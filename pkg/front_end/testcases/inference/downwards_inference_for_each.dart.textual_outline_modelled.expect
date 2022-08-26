@@ -1,12 +1,11 @@
-// @dart = 2.9
 library test;
 
 import 'dart:async';
 
 Future f() async {}
 Future main() async {}
-T F<T>() => null;
+T F<T>() => throw '';
 
 abstract class MyStream<T> extends Stream<T> {
-  factory MyStream() => null;
+  factory MyStream() => throw '';
 }

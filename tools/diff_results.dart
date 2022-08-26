@@ -3,8 +3,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -29,7 +27,7 @@ The options are as follows:
 ${parser.usage}""");
 }
 
-bool verbose;
+late bool verbose;
 
 main(List<String> args) async {
   final options = parser.parse(args);
@@ -261,23 +259,23 @@ class GroupedDiff {
 }
 
 class Diff {
-  final Result before;
-  final Result after;
+  final Result? before;
+  final Result? after;
 
   Diff(this.before, this.after);
 
-  String get test => before?.name ?? after?.name;
-  String get builder => before?.builderName ?? after?.builderName;
+  String get test => (before?.name ?? after?.name)!;
+  String get builder => (before?.builderName ?? after?.builderName)!;
 
   bool sameExpectationDifferenceAs(Diff other) {
     if ((before == null) != (other.before == null)) return false;
     if ((after == null) != (other.after == null)) return false;
 
     if (before != null) {
-      if (!before.sameResult(other.before)) return false;
+      if (!before!.sameResult(other.before!)) return false;
     }
     if (after != null) {
-      if (!after.sameResult(other.after)) return false;
+      if (!after!.sameResult(other.after!)) return false;
     }
     return true;
   }
@@ -315,6 +313,7 @@ class Result {
   int get hashCode => name.hashCode ^ builderName.hashCode;
 
   @override
+  // ignore: unnecessary_overrides
   bool operator ==(Object other) {
     // TODO: implement ==
     return super == other;

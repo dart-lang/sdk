@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -14,7 +15,6 @@ import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
-import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:test/test.dart';
 
@@ -138,7 +138,8 @@ class MockResourceProvider implements ResourceProvider {
 
 /// A concrete implementation of a server plugin that is suitable for testing.
 class MockServerPlugin extends ServerPlugin {
-  MockServerPlugin(ResourceProvider resourceProvider) : super(resourceProvider);
+  MockServerPlugin(ResourceProvider resourceProvider)
+      : super(resourceProvider: resourceProvider);
 
   @override
   List<String> get fileGlobsToAnalyze => <String>['*.dart'];
@@ -150,39 +151,24 @@ class MockServerPlugin extends ServerPlugin {
   String get version => '0.1.0';
 
   @override
-  AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot) {
-    return MockAnalysisDriver();
-  }
+  Future<void> analyzeFile({
+    required AnalysisContext analysisContext,
+    required String path,
+  }) async {}
 }
 
 class MockSource implements Source {
   @override
   TimestampedData<String> get contents => TimestampedData(0, '');
 
-  @Deprecated('Not used anymore')
-  @override
-  String get encoding => '';
-
   @override
   String get fullName => '/pkg/lib/test.dart';
-
-  @Deprecated('Use uri.isScheme("dart") instead')
-  @override
-  bool get isInSystemLibrary => false;
-
-  @Deprecated('Not used anymore')
-  @override
-  int get modificationStamp => 0;
 
   @override
   String get shortName => 'test.dart';
 
   @override
   Uri get uri => Uri.parse('package:test/test.dart');
-
-  @Deprecated('Use Source.uri instead')
-  @override
-  UriKind get uriKind => UriKind.PACKAGE_URI;
 
   @override
   bool exists() => true;

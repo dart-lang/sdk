@@ -1,5 +1,4 @@
-// @dart = 2.9
 library test;
 
-test1() {}
+test1(List<int> o) {}
 main() {}

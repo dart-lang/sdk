@@ -52,7 +52,7 @@ class TransformSetManagerTest extends AbstractContextTest {
   }
 
   void _addDataFile(String packageName) {
-    newFile2('$workspaceRootPath/$packageName/lib/fix_data.yaml', '''
+    newFile('$workspaceRootPath/$packageName/lib/fix_data.yaml', '''
 version: 1
 transforms:
 - title: 'Rename A'

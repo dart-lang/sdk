@@ -1,6 +1,5 @@
-// @dart = 2.9
 library test;
 
 import 'dart:async';
 
-main() {}
+test(Future<int> futureInt) {}

@@ -171,7 +171,7 @@ void f(int? a, int b) {
   }
 
   test_getter_class() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class C {
   static int x = 0;
 }
@@ -179,11 +179,13 @@ class C {
 f() {
   C?.x;
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2),
+    ]);
   }
 
   test_getter_extension() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on int {
   static int x = 0;
 }
@@ -191,11 +193,13 @@ extension E on int {
 f() {
   E?.x;
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 53, 2),
+    ]);
   }
 
   test_getter_legacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = 0;
 ''');
@@ -213,7 +217,7 @@ f() {
   }
 
   test_getter_mixin() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 mixin M {
   static int x = 0;
 }
@@ -221,7 +225,9 @@ mixin M {
 f() {
   M?.x;
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2),
+    ]);
   }
 
   test_getter_nonNullable() async {
@@ -249,7 +255,7 @@ f(int? x) {
   /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
   /// report another error.
   test_getter_prefix() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
     await assertErrorsInCode('''
@@ -264,7 +270,7 @@ f() {
   }
 
   test_index_legacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = [0];
 ''');
@@ -303,7 +309,7 @@ f(List<int>? x) {
   }
 
   test_method_class() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class C {
   static void foo() {}
 }
@@ -311,11 +317,31 @@ class C {
 f() {
   C?.foo();
 }
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 45, 2),
+    ]);
+  }
+
+  test_method_class_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {
+  static void foo() {}
+}
 ''');
+
+    await assertErrorsInCode('''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.C?.foo();
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 49, 2),
+    ]);
   }
 
   test_method_extension() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on int {
   static void foo() {}
 }
@@ -323,11 +349,31 @@ extension E on int {
 f() {
   E?.foo();
 }
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 56, 2),
+    ]);
+  }
+
+  test_method_extension_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {
+  static void foo() {}
+}
 ''');
+
+    await assertErrorsInCode('''
+import 'a.dart' as prefix;
+
+f() {
+  prefix.E?.foo();
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 44, 2),
+    ]);
   }
 
   test_method_legacy() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = 0;
 ''');
@@ -345,7 +391,7 @@ f() {
   }
 
   test_method_mixin() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 mixin M {
   static void foo() {}
 }
@@ -353,7 +399,27 @@ mixin M {
 f() {
   M?.foo();
 }
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 45, 2),
+    ]);
+  }
+
+  test_method_mixin_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin M {
+  static void foo() {}
+}
 ''');
+
+    await assertErrorsInCode('''
+import 'a.dart' as prefix;
+
+f() {
+  prefix.M?.foo();
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 44, 2),
+    ]);
   }
 
   test_method_nonNullable() async {
@@ -377,6 +443,22 @@ f(int? x) {
 ''');
   }
 
+  test_method_typeAlias_class() async {
+    await assertErrorsInCode('''
+class A {
+  static void foo() {}
+}
+
+typedef B = A; 
+
+f() {
+  B?.foo();
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 62, 2),
+    ]);
+  }
+
   test_nonNullableSpread_nullableType() async {
     await assertNoErrorsInCode('''
 f(List<int> x) {
@@ -386,7 +468,7 @@ f(List<int> x) {
   }
 
   test_nullableSpread_legacyType() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 var x = <int>[];
 ''');
@@ -421,7 +503,7 @@ f(List<int>? x) {
   }
 
   test_setter_class() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class C {
   static int x = 0;
 }
@@ -429,11 +511,13 @@ class C {
 f() {
   C?.x = 0;
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2),
+    ]);
   }
 
   test_setter_extension() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on int {
   static int x = 0;
 }
@@ -441,11 +525,13 @@ extension E on int {
 f() {
   E?.x = 0;
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 53, 2),
+    ]);
   }
 
   test_setter_mixin() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 mixin M {
   static int x = 0;
 }
@@ -453,14 +539,16 @@ mixin M {
 f() {
   M?.x = 0;
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 42, 2),
+    ]);
   }
 
   /// Here we test that analysis does not crash while checking whether to
   /// report [StaticWarningCode.INVALID_NULL_AWARE_OPERATOR]. But we also
   /// report another error.
   test_setter_prefix() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
     await assertErrorsInCode('''

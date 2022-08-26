@@ -303,8 +303,14 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
     }
   }
 
+  @pragma('dart2js:noInline')
   void clear() {
-    length = 0;
+    checkGrowable('clear');
+    _clear();
+  }
+
+  void _clear() {
+    _setLengthUnsafe(0);
   }
 
   void forEach(void f(E element)) {

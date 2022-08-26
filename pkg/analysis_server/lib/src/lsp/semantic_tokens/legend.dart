@@ -4,7 +4,7 @@
 
 import 'dart:math' as math;
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart';
 import 'package:meta/meta.dart';
@@ -23,7 +23,7 @@ class SemanticTokenLegendLookup {
   late List<SemanticTokenModifiers> _usedTokenModifiers;
 
   /// All [SemanticTokenTypes] the server may generate. The order of these
-  /// items is important as the indexes will be used in communication betewen
+  /// items is important as the indexes will be used in communication between
   /// server and client.
   late List<SemanticTokenTypes> _usedTokenTypes;
 

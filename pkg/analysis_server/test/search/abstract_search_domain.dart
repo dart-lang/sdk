@@ -5,14 +5,14 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
-class AbstractSearchDomainTest extends AbstractAnalysisTest {
-  final Map<String, _ResultSet> resultSets = {};
+class AbstractSearchDomainTest extends PubPackageAnalysisServerTest {
+  final Map<String, _ResultSet> _resultSets = {};
   String? searchId;
   List<SearchResult> results = <SearchResult>[];
   late SearchResult result;
@@ -20,13 +20,13 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   void assertHasResult(SearchResultKind kind, String search, [int? length]) {
     var offset = findOffset(search);
     length ??= findIdentifierLength(search);
-    findResult(kind, testFile, offset, length, true);
+    findResult(kind, testFile.path, offset, length, true);
   }
 
   void assertNoResult(SearchResultKind kind, String search, [int? length]) {
     var offset = findOffset(search);
     length ??= findIdentifierLength(search);
-    findResult(kind, testFile, offset, length, false);
+    findResult(kind, testFile.path, offset, length, false);
   }
 
   void findResult(SearchResultKind kind, String file, int offset, int length,
@@ -38,7 +38,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
           location.offset == offset &&
           location.length == length) {
         if (!expected) {
-          fail('Unexpected result $result in\n' + results.join('\n'));
+          fail('Unexpected result $result in\n${results.join('\n')}');
         }
         this.result = result;
         return;
@@ -46,8 +46,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
     }
     if (expected) {
       fail(
-          'Not found: "search" kind=$kind offset=$offset length=$length\nin\n' +
-              results.join('\n'));
+          'Not found: "search" kind=$kind offset=$offset length=$length\nin\n${results.join('\n')}');
     }
   }
 
@@ -69,10 +68,10 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
     if (notification.event == SEARCH_NOTIFICATION_RESULTS) {
       var params = SearchResultsParams.fromNotification(notification);
       var id = params.id;
-      var resultSet = resultSets[id];
+      var resultSet = _resultSets[id];
       if (resultSet == null) {
         resultSet = _ResultSet(id);
-        resultSets[id] = resultSet;
+        _resultSets[id] = resultSet;
       }
       resultSet.results.addAll(params.results);
       resultSet.done = params.isLast;
@@ -82,14 +81,11 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    server.handlers = [
-      SearchDomainHandler(server),
-    ];
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future waitForSearchResults() {
-    var resultSet = resultSets[searchId];
+    var resultSet = _resultSets[searchId];
     if (resultSet != null && resultSet.done) {
       results = resultSet.results;
       return Future.value();

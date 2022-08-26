@@ -146,7 +146,8 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
     descriptors_ = code.pc_descriptors();
     PcDescriptors::Iterator iter(descriptors_, UntaggedPcDescriptors::kIcCall);
     while (iter.MoveNext()) {
-      FATAL1("%s has IC calls but no ic_data_array\n", object_.ToCString());
+      FATAL1("%s has IC calls but no ic_data_array\n",
+             function.ToFullyQualifiedCString());
     }
 #endif
     return;
@@ -656,10 +657,15 @@ void Class::CheckReload(const Class& replacement,
               TypeParametersChanged(context->zone(), *this, replacement));
       return;
     }
+  }
+
+  if (is_finalized() || is_allocate_finalized()) {
+    auto thread = Thread::Current();
 
     // Ensure the replacement class is also finalized.
-    const Error& error =
-        Error::Handle(replacement.EnsureIsFinalized(Thread::Current()));
+    const Error& error = Error::Handle(
+        is_allocate_finalized() ? replacement.EnsureIsAllocateFinalized(thread)
+                                : replacement.EnsureIsFinalized(thread));
     if (!error.IsNull()) {
       context->group_reload_context()->AddReasonForCancelling(
           new (context->zone())
@@ -858,7 +864,6 @@ void CallSiteResetter::Reset(const ICData& ic) {
   ICData::RebindRule rule = ic.rebind_rule();
   if (rule == ICData::kInstance) {
     const intptr_t num_args = ic.NumArgsTested();
-    const bool tracking_exactness = ic.is_tracking_exactness();
     const intptr_t len = ic.Length();
     // We need at least one non-sentinel entry to require a check
     // for the smi fast path case.
@@ -878,15 +883,12 @@ void CallSiteResetter::Reset(const ICData& ic) {
         // The smi fast path case, preserve the initial entry but reset the
         // count.
         ic.ClearCountAt(0, *this);
-        ic.WriteSentinelAt(1, *this);
-        entries_ = ic.entries();
-        entries_.Truncate(2 * ic.TestEntryLength());
+        ic.TruncateTo(/*num_checks=*/1, *this);
         return;
       }
       // Fall back to the normal behavior with cached empty ICData arrays.
     }
-    entries_ = ICData::CachedEmptyICDataArray(num_args, tracking_exactness);
-    ic.set_entries(entries_);
+    ic.Clear(*this);
     ic.set_is_megamorphic(false);
     return;
   } else if (rule == ICData::kNoRebind || rule == ICData::kNSMDispatch) {

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -31,13 +31,11 @@ static method test(dynamic value) → dynamic {
     case #C2:
       {
         result = 2;
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_execution_case_t02.dart", 35);
       }
     #L4:
     case #C3:
       {
         result = 3;
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_execution_case_t02.dart", 36);
       }
     #L5:
     default:
@@ -56,7 +54,6 @@ static method testEmptyCases(dynamic value) → dynamic {
     case #C2:
       {
         result = 1;
-        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_execution_case_t02.dart", 46);
       }
     #L8:
     case #C3:

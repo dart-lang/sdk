@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field core::int a = 1.{core::num::clamp}(2, 3){(core::num, core::num) → core::int};
+static field core::num b = 1.0.{core::num::clamp}(2, 3){(core::num, core::num) → core::num};
+static field core::num c = 1.0.{core::num::clamp}(2.0, 3){(core::num, core::num) → core::num};
+static field core::num d = 1.0.{core::num::clamp}(2, 3.0){(core::num, core::num) → core::num};
+static field core::double e = 1.0.{core::num::clamp}(2.0, 3.0){(core::num, core::num) → core::double};
+static final field core::int f = 1.{core::num::clamp}(2, 3){(core::num, core::num) → core::int};
+static final field core::num g = 1.0.{core::num::clamp}(2, 3){(core::num, core::num) → core::num};
+static final field core::num h = 1.0.{core::num::clamp}(2.0, 3){(core::num, core::num) → core::num};
+static final field core::num i = 1.0.{core::num::clamp}(2, 3.0){(core::num, core::num) → core::num};
+static final field core::double j = 1.0.{core::num::clamp}(2.0, 3.0){(core::num, core::num) → core::double};
+static method main() → void {}

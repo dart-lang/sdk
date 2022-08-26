@@ -32,17 +32,18 @@ class ShowCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    if (argResults.rest.isEmpty) {
+    final argRes = argResults!;
+    if (argRes.rest.isEmpty) {
       usageException('Missing argument: <input-info>');
     }
 
-    String filename = argResults.rest[0];
+    String filename = argRes.rest[0];
     AllInfo info = await infoFromFile(filename);
-    if (argResults['inject-text']) injectText(info);
+    if (argRes['inject-text']) injectText(info);
 
-    var buffer = StringBuffer();
-    info.accept(TextPrinter(buffer, argResults['inject-text']));
-    var outputPath = argResults['out'];
+    final buffer = StringBuffer();
+    info.accept(TextPrinter(buffer, argRes['inject-text']));
+    final outputPath = argRes['out'];
     if (outputPath == null) {
       print(buffer);
     } else {
@@ -77,7 +78,7 @@ class TextPrinter implements InfoVisitor<void> {
 
   @override
   void visitAll(AllInfo info) {
-    _writeBlock("Summary data", () => visitProgram(info.program));
+    _writeBlock("Summary data", () => visitProgram(info.program!));
     buffer.writeln();
     _writeBlock("Libraries", () => info.libraries.forEach(visitLibrary));
     // Note: classes, functions, typedefs, and fields are group;ed by library.
@@ -144,7 +145,7 @@ class TextPrinter implements InfoVisitor<void> {
   @override
   void visitClass(ClassInfo info) {
     _writeBlock(
-        '${info.name}: ${_size(info.size)} [${info.outputUnit.filename}]', () {
+        '${info.name}: ${_size(info.size)} [${info.outputUnit?.filename}]', () {
       if (info.functions.isNotEmpty) {
         _writeBlock('Methods:', () => info.functions.forEach(visitFunction));
       }
@@ -158,7 +159,7 @@ class TextPrinter implements InfoVisitor<void> {
   @override
   void visitClassType(ClassTypeInfo info) {
     _writeBlock(
-        '${info.name}: ${_size(info.size)} [${info.outputUnit.filename}]',
+        '${info.name}: ${_size(info.size)} [${info.outputUnit?.filename}]',
         () {});
   }
 
@@ -180,7 +181,7 @@ class TextPrinter implements InfoVisitor<void> {
   void visitFunction(FunctionInfo info) {
     var outputUnitFile = '';
     if (info.functionKind == FunctionInfo.TOP_LEVEL_FUNCTION_KIND) {
-      outputUnitFile = ' [${info.outputUnit.filename}]';
+      outputUnitFile = ' [${info.outputUnit?.filename}]';
     }
     String params =
         info.parameters.map((p) => "${p.declaredType} ${p.name}").join(', ');

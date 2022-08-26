@@ -121,6 +121,7 @@ f(a) async {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'await');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
     assertHasRegion(HighlightRegionType.KEYWORD, 'in');
   }
 
@@ -133,6 +134,7 @@ f(a) async {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'await');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
     assertHasRegion(HighlightRegionType.KEYWORD, 'in');
   }
 
@@ -145,6 +147,7 @@ f(a) async {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'await');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
     assertHasRegion(HighlightRegionType.KEYWORD, 'in');
   }
 
@@ -328,7 +331,7 @@ part "my_part.dart";
 void f() {
   var part = 42;
 }''');
-    newFile2('/project/bin/my_part.dart', 'part of lib;');
+    newFile('/project/bin/my_part.dart', 'part of lib;');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'part "my_');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 42');
@@ -336,7 +339,7 @@ void f() {
 
   Future<void> test_BUILT_IN_partOf() async {
     addTestFile('''
-part of lib;
+part of my.lib.name;
 void f() {
   var part = 1;
   var of = 2;
@@ -610,11 +613,14 @@ export 'dart:math'
 
   Future<void> test_DIRECTIVE_partOf() async {
     addTestFile('''
-part of lib;
+part of my.lib.name;
 ''');
     _addLibraryForTestPart();
     await prepareHighlights();
-    assertHasStringRegion(HighlightRegionType.DIRECTIVE, 'part of lib;');
+    assertHasStringRegion(
+      HighlightRegionType.DIRECTIVE,
+      'part of my.lib.name;',
+    );
   }
 
   Future<void> test_DYNAMIC_LOCAL_VARIABLE() async {
@@ -1014,6 +1020,7 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'assert(true)');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for (;;)');
     assertHasRegion(HighlightRegionType.KEYWORD, 'for (var v4 in');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var v4 in');
     assertHasRegion(HighlightRegionType.KEYWORD, 'break;');
     assertHasRegion(HighlightRegionType.KEYWORD, 'case 0:');
     assertHasRegion(HighlightRegionType.KEYWORD, 'catch (e) {}');
@@ -1690,8 +1697,8 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
   }
 
   void _addLibraryForTestPart() {
-    newFile2('$testPackageLibPath/my_lib.dart', '''
-library lib;
+    newFile('$testPackageLibPath/my_lib.dart', '''
+library my.lib.name;
 part 'test.dart';
     ''');
   }

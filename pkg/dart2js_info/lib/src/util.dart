@@ -24,8 +24,9 @@ Graph<Info> graphFromInfo(AllInfo info) {
     for (var g in f.uses) {
       graph.addEdge(f, g.target);
     }
-    if (info.dependencies[f] != null) {
-      for (var g in info.dependencies[f]) {
+    final dependencies = info.dependencies[f];
+    if (dependencies != null) {
+      for (var g in dependencies) {
         graph.addEdge(f, g);
       }
     }
@@ -36,8 +37,9 @@ Graph<Info> graphFromInfo(AllInfo info) {
     for (var g in f.uses) {
       graph.addEdge(f, g.target);
     }
-    if (info.dependencies[f] != null) {
-      for (var g in info.dependencies[f]) {
+    final dependencies = info.dependencies[f];
+    if (dependencies != null) {
+      for (var g in dependencies) {
         graph.addEdge(f, g);
       }
     }
@@ -52,8 +54,8 @@ Graph<Info> graphFromInfo(AllInfo info) {
 // TODO(sigmund): guarantee that the name is actually unique.
 String qualifiedName(Info f) {
   assert(f is ClosureInfo || f is ClassInfo);
-  var element = f;
-  String name;
+  Info? element = f;
+  String? name;
   while (element != null) {
     if (element is LibraryInfo) {
       name = '${element.uri}:$name';
@@ -69,10 +71,11 @@ String qualifiedName(Info f) {
 /// Provide a unique long name associated with [info].
 // TODO(sigmund): guarantee that the name is actually unique.
 String longName(Info info, {bool useLibraryUri = false, bool forId = false}) {
-  var infoPath = [];
-  while (info != null) {
-    infoPath.add(info);
-    info = info.parent;
+  final infoPath = <Info>[];
+  Info? localInfo = info;
+  while (localInfo != null) {
+    infoPath.add(localInfo);
+    localInfo = localInfo.parent;
   }
   var sb = StringBuffer();
   var first = true;
@@ -111,9 +114,9 @@ String longName(Info info, {bool useLibraryUri = false, bool forId = false}) {
 }
 
 /// Provides the package name associated with [info] or null otherwise.
-String packageName(Info info) {
+String? packageName(Info info) {
   while (info.parent != null) {
-    info = info.parent;
+    info = info.parent!;
   }
   if (info is LibraryInfo) {
     if (info.uri.isScheme('package')) {
@@ -127,9 +130,9 @@ String packageName(Info info) {
 ///
 /// This corresponds to the package name, a Dart core library, 'file' for loose
 /// files, or null otherwise.
-String libraryGroupName(Info info) {
+String? libraryGroupName(Info info) {
   while (info.parent != null) {
-    info = info.parent;
+    info = info.parent!;
   }
   if (info is LibraryInfo) {
     if (info.uri.isScheme('package')) {

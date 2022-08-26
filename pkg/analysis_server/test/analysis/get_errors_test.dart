@@ -27,8 +27,8 @@ class GetErrorsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_afterAnalysisComplete() async {
-    newFile2(testFilePath, '''
-main() {
+    newFile(testFilePath, '''
+void f() {
   print(42)
 }
 ''');
@@ -40,12 +40,12 @@ main() {
   }
 
   Future<void> test_errorInPart() async {
-    var libraryFile = newFile2('$testPackageLibPath/a.dart', r'''
+    var libraryFile = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
 class A {}
 ''');
 
-    var partFile = newFile2('$testPackageLibPath/b.dart', r'''
+    var partFile = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 class A {}
 ''');
@@ -73,8 +73,8 @@ class A {}
   }
 
   Future<void> test_hasErrors() async {
-    newFile2(testFilePath, '''
-main() {
+    newFile(testFilePath, '''
+void f() {
   print(42)
 }
 ''');
@@ -111,8 +111,8 @@ main() {
   }
 
   Future<void> test_noErrors() async {
-    newFile2(testFilePath, '''
-main() {
+    newFile(testFilePath, '''
+void f() {
   print(42);
 }
 ''');

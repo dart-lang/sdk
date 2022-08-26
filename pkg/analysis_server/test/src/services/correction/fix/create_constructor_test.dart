@@ -24,7 +24,7 @@ class CreateConstructorMixinTest extends FixProcessorTest {
     await resolveTestCode('''
 mixin M {}
 
-main() {
+void f() {
   new M.named();
 }
 ''');
@@ -40,14 +40,14 @@ class CreateConstructorTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
 
   Future<void> test_inLibrary_insteadOfSyntheticDefault() async {
-    var a = newFile2('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 /// $_text200
 class A {}
 ''').path;
     await resolveTestCode('''
 import 'a.dart';
 
-main() {
+void f() {
   new A.named(1, 2.0);
 }
 ''');
@@ -60,14 +60,14 @@ class A {
   }
 
   Future<void> test_inLibrary_named() async {
-    var a = newFile2('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
 /// $_text200
 class A {}
 ''').path;
     await resolveTestCode('''
 import 'a.dart';
 
-main() {
+void f() {
   new A(1, 2.0);
 }
 ''');
@@ -99,7 +99,7 @@ class A {
 
   method() {}
 }
-main() {
+void f() {
   new A(1, 2.0);
 }
 ''');
@@ -111,7 +111,7 @@ class A {
 
   method() {}
 }
-main() {
+void f() {
   new A(1, 2.0);
 }
 ''');
@@ -133,7 +133,7 @@ void f() {
 class A {
   method() {}
 }
-main() {
+void f() {
   new A.named(1, 2.0);
 }
 ''');
@@ -143,7 +143,7 @@ class A {
 
   method() {}
 }
-main() {
+void f() {
   new A.named(1, 2.0);
 }
 ''');
@@ -153,7 +153,7 @@ main() {
   Future<void> test_named_emptyClassBody() async {
     await resolveTestCode('''
 class A {}
-main() {
+void f() {
   new A.named(1);
 }
 ''');
@@ -161,10 +161,62 @@ main() {
 class A {
   A.named(int i);
 }
-main() {
+void f() {
   new A.named(1);
 }
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
+  }
+
+  Future<void> test_undefined_enum_constructor_named() async {
+    await resolveTestCode('''
+enum E {
+  c.x();
+  const E.y();
+}
+''');
+    await assertHasFix('''
+enum E {
+  c.x();
+  const E.y();
+
+  const E.x();
+}
+''', matchFixMessage: "Create constructor 'E.x'");
+  }
+
+  Future<void> test_undefined_enum_constructor_unnamed() async {
+    await resolveTestCode('''
+enum E {
+  c;
+  const E.x();
+}
+''');
+    await assertHasFix('''
+enum E {
+  c;
+  const E.x();
+
+  const E();
+}
+''', matchFixMessage: "Create constructor 'E'");
+  }
+
+  @FailingTest(reason: 'parameter types should be inferred')
+  Future<void> test_undefined_enum_constructor_unnamed_parameters() async {
+    await resolveTestCode('''
+enum E {
+  c(1);
+  const E.x();
+}
+''');
+    await assertHasFix('''
+enum E {
+  c(1);
+  const E.x();
+
+  const E(int i);
+}
+''');
   }
 }

@@ -35,7 +35,16 @@ typedef void as();
     ]);
   }
 
-  test_typedef_generic() async {
+  test_typedef_classic_as() async {
+    await assertErrorsInCode(r'''
+typedef void as();
+''', [
+      error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 13, 2),
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 2),
+    ]);
+  }
+
+  test_typedef_generic_as() async {
     await assertErrorsInCode(r'''
 typedef as = void Function();
 ''', [
@@ -44,12 +53,21 @@ typedef as = void Function();
     ]);
   }
 
-  test_typedef_interfaceType() async {
+  test_typedef_interfaceType_as() async {
     await assertErrorsInCode(r'''
 typedef as = List<int>;
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 2),
       error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 2)
+    ]);
+  }
+
+  test_typedef_interfaceType_Function() async {
+    await assertErrorsInCode(r'''
+typedef Function = List<int>;
+''', [
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 8),
+      error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 8)
     ]);
   }
 }

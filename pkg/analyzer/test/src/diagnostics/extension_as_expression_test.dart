@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class ExtensionAsExpressionTest extends PubPackageResolutionTest {
   test_prefixedIdentifier() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 extension E on int {}
 ''');
     await assertErrorsInCode('''

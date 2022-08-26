@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../problems.dart';
 import '../source/source_library_builder.dart';
@@ -48,7 +49,14 @@ class FixedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build(LibraryBuilder library) {
+  DartType build(LibraryBuilder library, TypeUse typeUse,
+      {ClassHierarchyBase? hierarchy}) {
+    return type;
+  }
+
+  @override
+  DartType buildAliased(
+      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     return type;
   }
 
@@ -67,4 +75,7 @@ class FixedTypeBuilder extends TypeBuilder {
   @override
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder) =>
       this;
+
+  @override
+  bool get isExplicit => true;
 }

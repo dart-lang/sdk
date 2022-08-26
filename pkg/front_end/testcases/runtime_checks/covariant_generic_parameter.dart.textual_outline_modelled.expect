@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class C<T> {
-  void f(T x) {}
+  void f(T? x) {}
 }
 
 main() {}

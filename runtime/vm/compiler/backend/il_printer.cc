@@ -1286,11 +1286,19 @@ void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
-void EnterHandleScopeInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  if (kind_ == Kind::kEnterHandleScope) {
-    f->AddString("<enter handle scope>");
-  } else {
-    f->AddString("<get top api scope>");
+void CCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->AddString(" target_address=");
+  InputAt(TargetAddressIndex())->PrintTo(f);
+
+  const auto& argument_locations =
+      native_calling_convention_.argument_locations();
+  for (intptr_t i = 0; i < argument_locations.length(); i++) {
+    const auto& arg_location = *argument_locations.At(i);
+    f->AddString(", ");
+    InputAt(i)->PrintTo(f);
+    f->AddString(" (@");
+    arg_location.PrintTo(f);
+    f->AddString(")");
   }
 }
 
@@ -1353,6 +1361,45 @@ void TailCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
   f->Printf("%s(", name);
   InputAt(0)->PrintTo(f);
+  f->AddString(")");
+}
+
+void Call1ArgStubInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  const char* name = "";
+  switch (stub_id_) {
+    case StubId::kCloneSuspendState:
+      name = "CloneSuspendState";
+      break;
+    case StubId::kInitAsync:
+      name = "InitAsync";
+      break;
+    case StubId::kInitAsyncStar:
+      name = "InitAsyncStar";
+      break;
+    case StubId::kInitSyncStar:
+      name = "InitSyncStar";
+      break;
+  }
+  f->Printf("%s(", name);
+  operand()->PrintTo(f);
+  f->AddString(")");
+}
+
+void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  const char* name = "";
+  switch (stub_id_) {
+    case StubId::kAwait:
+      name = "Await";
+      break;
+    case StubId::kYieldAsyncStar:
+      name = "YieldAsyncStar";
+      break;
+    case StubId::kYieldSyncStar:
+      name = "YieldSyncStar";
+      break;
+  }
+  f->Printf("%s(", name);
+  operand()->PrintTo(f);
   f->AddString(")");
 }
 

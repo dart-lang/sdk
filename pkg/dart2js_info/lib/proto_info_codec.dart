@@ -29,7 +29,6 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   final Set<int> usedIds = <int>{};
 
   Id idFor(Info info) {
-    if (info == null) return null;
     var serializedId = ids[info];
     if (serializedId != null) return serializedId;
 
@@ -41,9 +40,8 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     int id;
     if (info is ConstantInfo) {
       // No name and no parent, so `longName` isn't helpful
-      assert(info.name == null);
+      assert(info.name.isEmpty);
       assert(info.parent == null);
-      assert(info.code != null);
       // Instead, use the content of the code.
       id = info.code.first.text.hashCode;
     } else {
@@ -60,10 +58,11 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   AllInfoPB convert(AllInfo input) => _convertToAllInfoPB(input);
 
   DependencyInfoPB _convertToDependencyInfoPB(DependencyInfo info) {
-    var result = DependencyInfoPB()
-      ..targetId = idFor(info.target)?.serializedId;
+    var result = DependencyInfoPB();
+    final targetId = idFor(info.target).serializedId;
+    result.targetId = targetId;
     if (info.mask != null) {
-      result.mask = info.mask;
+      result.mask = info.mask!;
     }
     return result;
   }
@@ -121,21 +120,13 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       ..functionModifiers = _convertToFunctionModifiers(info.modifiers)
       ..inlinedCount = info.inlinedCount ?? 0;
 
-    if (info.returnType != null) {
-      proto.returnType = info.returnType;
-    }
+    proto.returnType = info.returnType;
 
-    if (info.inferredReturnType != null) {
-      proto.inferredReturnType = info.inferredReturnType;
-    }
+    proto.inferredReturnType = info.inferredReturnType;
 
-    if (info.code != null) {
-      proto.code = info.code.map((c) => c.text).join('\n');
-    }
+    proto.code = info.code.map((c) => c.text).join('\n');
 
-    if (info.sideEffects != null) {
-      proto.sideEffects = info.sideEffects;
-    }
+    proto.sideEffects = info.sideEffects;
 
     proto.childrenIds
         .addAll(info.closures.map(((closure) => idFor(closure).serializedId)));
@@ -150,12 +141,10 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       ..inferredType = info.inferredType
       ..isConst = info.isConst;
 
-    if (info.code != null) {
-      proto.code = info.code.map((c) => c.text).join('\n');
-    }
+    proto.code = info.code.map((c) => c.text).join('\n');
 
     if (info.initializer != null) {
-      proto.initializerId = idFor(info.initializer).serializedId;
+      proto.initializerId = idFor(info.initializer!).serializedId;
     }
 
     proto.childrenIds
@@ -170,7 +159,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
 
   static OutputUnitInfoPB _convertToOutputUnitInfoPB(OutputUnitInfo info) {
     final proto = OutputUnitInfoPB();
-    proto.imports.addAll(info.imports.where((import) => import != null));
+    proto.imports.addAll(info.imports);
     return proto;
   }
 
@@ -188,23 +177,21 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       ..serializedId = idFor(info).serializedId
       ..size = info.size;
 
-    if (info.name != null) {
-      proto.name = info.name;
-    }
+    proto.name = info.name;
 
     if (info.parent != null) {
-      proto.parentId = idFor(info.parent).serializedId;
+      proto.parentId = idFor(info.parent!).serializedId;
     }
 
     if (info.coverageId != null) {
-      proto.coverageId = info.coverageId;
+      proto.coverageId = info.coverageId!;
     }
 
     if (info is BasicInfo && info.outputUnit != null) {
       // TODO(lorenvs): Similar to the JSON codec, omit this for the default
       // output unit. At the moment, there is no easy way to identify which
       // output unit is the default on [OutputUnitInfo].
-      proto.outputUnitId = idFor(info.outputUnit).serializedId;
+      proto.outputUnitId = idFor(info.outputUnit!).serializedId;
     }
 
     if (info is CodeInfo) {
@@ -242,15 +229,15 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       ..compilationDuration = Int64(info.compilationDuration.inMicroseconds)
       ..toProtoDuration = Int64(info.toJsonDuration.inMicroseconds)
       ..dumpInfoDuration = Int64(info.dumpInfoDuration.inMicroseconds)
-      ..noSuchMethodEnabled = info.noSuchMethodEnabled ?? false
-      ..isRuntimeTypeUsed = info.isRuntimeTypeUsed ?? false
-      ..isIsolateUsed = info.isIsolateInUse ?? false
-      ..isFunctionApplyUsed = info.isFunctionApplyUsed ?? false
-      ..isMirrorsUsed = info.isMirrorsUsed ?? false
-      ..minified = info.minified ?? false;
+      ..noSuchMethodEnabled = info.noSuchMethodEnabled
+      ..isRuntimeTypeUsed = info.isRuntimeTypeUsed
+      ..isIsolateUsed = info.isIsolateInUse
+      ..isFunctionApplyUsed = info.isFunctionApplyUsed
+      ..isMirrorsUsed = info.isMirrorsUsed
+      ..minified = info.minified;
 
     if (info.dart2jsVersion != null) {
-      result.dart2jsVersion = info.dart2jsVersion;
+      result.dart2jsVersion = info.dart2jsVersion!;
     }
     return result;
   }
@@ -281,7 +268,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   AllInfoPB _convertToAllInfoPB(AllInfo info) {
-    final proto = AllInfoPB()..program = _convertToProgramInfoPB(info.program);
+    final proto = AllInfoPB()..program = _convertToProgramInfoPB(info.program!);
 
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.libraries));
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.classes));

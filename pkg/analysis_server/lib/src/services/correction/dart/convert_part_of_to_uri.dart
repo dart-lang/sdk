@@ -35,7 +35,4 @@ class ConvertPartOfToUri extends CorrectionProducer {
       builder.addSimpleReplacement(replacementRange, "'$uri'");
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertPartOfToUri newInstance() => ConvertPartOfToUri();
 }

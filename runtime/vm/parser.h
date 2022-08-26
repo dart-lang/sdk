@@ -74,6 +74,12 @@ class ParsedFunction : public ZoneAllocated {
     parent_type_arguments_ = parent_type_arguments;
   }
 
+  LocalVariable* suspend_state_var() const { return suspend_state_var_; }
+  void set_suspend_state_var(LocalVariable* suspend_state_var) {
+    ASSERT(suspend_state_var != nullptr);
+    suspend_state_var_ = suspend_state_var;
+  }
+
   void set_default_parameter_values(ZoneGrowableArray<const Instance*>* list) {
     default_parameter_values_ = list;
 #if defined(DEBUG)
@@ -260,6 +266,7 @@ class ParsedFunction : public ZoneAllocated {
   RegExpCompileData* regexp_compile_data_;
   LocalVariable* function_type_arguments_;
   LocalVariable* parent_type_arguments_;
+  LocalVariable* suspend_state_var_ = nullptr;
   LocalVariable* current_context_var_;
   LocalVariable* arg_desc_var_;
   LocalVariable* receiver_var_ = nullptr;

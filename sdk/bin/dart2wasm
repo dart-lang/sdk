@@ -19,21 +19,39 @@ function follow_links() {
 PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
 # Handle the case where dart-sdk/bin has been symlinked to.
-BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
-SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
+PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+SDK_DIR="$(cd "${PROG_DIR}/../.." ; pwd -P)"
 
+# Locate build directory, containing executables, snapshots and platform dill.
+if [[ `uname` == 'Darwin' ]]; then
+  OUT_DIR="$SDK_DIR/xcodebuild"
+else
+  OUT_DIR="$SDK_DIR/out"
+fi
+DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
+BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
+
+DART_PRECOMPILED_RUNTIME="$BIN_DIR/dart_precompiled_runtime"
+
+# Point to SDK directory.
 SDK_ARG="--dart-sdk=$SDK_DIR"
 
-DART="$BIN_DIR/dart"
+# Point to built platform dill.
+PLATFORM="$BIN_DIR/dart2wasm_platform.dill"
+PLATFORM_ARG="--platform=$PLATFORM"
 
 unset EXTRA_VM_OPTIONS
 declare -a EXTRA_VM_OPTIONS
 
+# Choose snapshot with or without asserts enabled.
+SNAPSHOT_NAME="dart2wasm"
 case $0 in
   *_developer)
     EXTRA_VM_OPTIONS+=('--enable_asserts')
+    SNAPSHOT_NAME="dart2wasm_asserts"
     ;;
 esac
+SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
 
 # We allow extra vm options to be passed in through an environment variable.
 if [[ $DART_VM_OPTIONS ]]; then
@@ -43,6 +61,4 @@ fi
 
 DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
-DART2WASM_COMPILER="$DART_ROOT/pkg/dart2wasm/bin/dart2wasm.dart"
-
-exec "$DART" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$DART2WASM_COMPILER" "$SDK_ARG" "$@"
+exec "$DART_PRECOMPILED_RUNTIME" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "$SDK_ARG" "$PLATFORM_ARG" "$@"

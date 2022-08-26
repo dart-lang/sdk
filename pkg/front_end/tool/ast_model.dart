@@ -108,6 +108,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_proceduresInternal': FieldRule(name: 'procedures'),
     '_redirectingFactoriesView': null,
     '_redirectingFactoriesInternal': FieldRule(name: 'redirectingFactories'),
+    '_onClause': null,
     'lazyBuilder': null,
     'dirty': null,
   },
@@ -174,7 +175,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   },
   'FunctionType': {
     'typeParameters': FieldRule(isDeclaration: true),
-    '_typedefType': FieldRule(name: 'typedefType'),
   },
   'TypeParameterType': {
     'parameter': FieldRule(isDeclaration: false),

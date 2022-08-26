@@ -914,7 +914,18 @@ void FUNCTION_NAME(Socket_GetError)(Dart_NativeArguments args) {
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   OSError os_error;
   SocketBase::GetError(socket->fd(), &os_error);
-  Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+  if (os_error.code() != 0) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+  } else {
+    Dart_SetReturnValue(args, Dart_Null());
+  }
+}
+
+void FUNCTION_NAME(Socket_Fatal)(Dart_NativeArguments args) {
+  Dart_Handle msg = Dart_GetNativeArgument(args, 0);
+  const char* msgStr =
+      (!Dart_IsNull(msg)) ? DartUtils::GetStringValue(msg) : nullptr;
+  FATAL("Fatal error in dart:io (socket): %s", msgStr);
 }
 
 void FUNCTION_NAME(Socket_GetFD)(Dart_NativeArguments args) {

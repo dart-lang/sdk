@@ -1,12 +1,11 @@
-// @dart = 2.9
 library test;
 
 class B {
-  covariant num x;
+  covariant num x = 0;
 }
 
 class C {
-  int x;
+  int x = 0;
 }
 
 class D extends C implements B {}

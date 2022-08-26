@@ -751,6 +751,92 @@ ASSEMBLER_TEST_RUN(LoadStorePairOffset, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(LoadStorePairUnsigned32, assembler) {
+  __ SetupDartSP();
+  __ LoadImmediate(R2, 0xAABBCCDDEEFF9988);
+  __ LoadImmediate(R3, 0xBBCCDDEEFF998877);
+  __ sub(SP, SP, Operand(4 * target::kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
+  __ stp(R2, R3,
+         Address(SP, 2 * sizeof(uint32_t), Address::PairOffset,
+                 compiler::kUnsignedFourBytes),
+         kUnsignedFourBytes);
+  __ ldp(R0, R1,
+         Address(SP, 2 * sizeof(uint32_t), Address::PairOffset,
+                 kUnsignedFourBytes),
+         kUnsignedFourBytes);
+  __ add(SP, SP, Operand(4 * target::kWordSize));
+  __ sub(R0, R0, Operand(R1));
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadStorePairUnsigned32, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-278523631, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov sp, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r2, #0x9988\n"
+      "movk r2, #0xeeff lsl 16\n"
+      "movk r2, #0xccdd lsl 32\n"
+      "movk r2, #0xaabb lsl 48\n"
+      "movz r3, #0x8877\n"
+      "movk r3, #0xff99 lsl 16\n"
+      "movk r3, #0xddee lsl 32\n"
+      "movk r3, #0xbbcc lsl 48\n"
+      "sub sp, sp, #0x20\n"
+      "and csp, sp, 0xfffffffffffffff0\n"
+      "stpw r2, r3, [sp, #8]\n"
+      "ldpw r0, r1, [sp, #8]\n"
+      "add sp, sp, #0x20\n"
+      "sub r0, r0, r1\n"
+      "mov csp, sp\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(LoadStorePairSigned32, assembler) {
+  __ SetupDartSP();
+  __ LoadImmediate(R2, 0xAABBCCDDEEFF9988);
+  __ LoadImmediate(R3, 0xBBCCDDEEFF998877);
+  __ sub(SP, SP, Operand(4 * target::kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
+  __ stp(R2, R3,
+         Address(SP, 2 * sizeof(int32_t), Address::PairOffset, kFourBytes),
+         kFourBytes);
+  __ ldp(R0, R1,
+         Address(SP, 2 * sizeof(int32_t), Address::PairOffset, kFourBytes),
+         kFourBytes);
+  __ add(SP, SP, Operand(4 * target::kWordSize));
+  __ sub(R0, R0, Operand(R1));
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(LoadStorePairSigned32, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-278523631, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov sp, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r2, #0x9988\n"
+      "movk r2, #0xeeff lsl 16\n"
+      "movk r2, #0xccdd lsl 32\n"
+      "movk r2, #0xaabb lsl 48\n"
+      "movz r3, #0x8877\n"
+      "movk r3, #0xff99 lsl 16\n"
+      "movk r3, #0xddee lsl 32\n"
+      "movk r3, #0xbbcc lsl 48\n"
+      "sub sp, sp, #0x20\n"
+      "and csp, sp, 0xfffffffffffffff0\n"
+      "stpw r2, r3, [sp, #8]\n"
+      "ldpsw r0, r1, [sp, #8]\n"
+      "add sp, sp, #0x20\n"
+      "sub r0, r0, r1\n"
+      "mov csp, sp\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(PushRegisterPair, assembler) {
   __ SetupDartSP();
   __ LoadImmediate(R2, 12);
@@ -883,10 +969,8 @@ ASSEMBLER_TEST_RUN(LoadStoreDoublePair, test) {
       "fmovd v1, 3.000000\n"
       "fmovd v2, 4.000000\n"
       "fstpd v1, v2, [sp, #-16]!\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v1, tmp\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v2, tmp\n"
+      "veor v1, v1, v1\n"
+      "veor v2, v2, v2\n"
       "fldpd v1, v2, [sp], #16 !\n"
       "fsubd v0, v2, v1\n"
       "mov csp, sp\n"
@@ -915,10 +999,8 @@ ASSEMBLER_TEST_RUN(LoadStoreQuadPair, test) {
       "fmovd v1, 3.000000\n"
       "fmovd v2, 4.000000\n"
       "fstpq v1, v2, [sp, #-32]!\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v1, tmp\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v2, tmp\n"
+      "veor v1, v1, v1\n"
+      "veor v2, v2, v2\n"
       "fldpq v1, v2, [sp], #32 !\n"
       "fsubd v0, v2, v1\n"
       "mov csp, sp\n"
@@ -2512,9 +2594,8 @@ ASSEMBLER_TEST_RUN(FcmpEqBranch, test) {
       "movk tmp, #0x406d lsl 48\n"
       "fmovdr v2, tmp\n"
       "fcmpd v1, v2\n"
-      "beq +12\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "beq +8\n"
+      "veor v0, v0, v0\n"
       "ret\n");
 }
 
@@ -2610,8 +2691,7 @@ ASSEMBLER_TEST_RUN(FcmpEqBranchNotTaken, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "movz tmp, #0x2000 lsl 32\n"
       "movk tmp, #0x406d lsl 48\n"
       "fmovdr v1, tmp\n"
@@ -2662,8 +2742,7 @@ ASSEMBLER_TEST_RUN(FcmpLtBranchNotTaken, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "movz tmp, #0x6000 lsl 32\n"
       "movk tmp, #0x406d lsl 48\n"
       "fmovdr v1, tmp\n"
@@ -2703,9 +2782,8 @@ ASSEMBLER_TEST_RUN(FcmpzGtBranch, test) {
       "movk tmp, #0x406d lsl 48\n"
       "fmovdr v1, tmp\n"
       "fcmpd v1, #0.0\n"
-      "bgt +16\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "bgt +12\n"
+      "veor v0, v0, v0\n"
       "ret\n"
       "movz tmp, #0x4045 lsl 48\n"
       "fmovdr v0, tmp\n"
@@ -3258,8 +3336,7 @@ ASSEMBLER_TEST_GENERATE(Smaddl3, assembler) {
 
 ASSEMBLER_TEST_RUN(Smaddl3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(0xffffl * 0xffffl,
-            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_EQ(0xfffe0001, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
       "movz r1, #0xffff\n"
       "movz r2, #0xffff\n"
@@ -5523,8 +5600,7 @@ ASSEMBLER_TEST_RUN(Vadds, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(12.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fmovd v1, 1.000000\n"
       "fmovd v2, 2.000000\n"
       "fmovd v3, 3.000000\n"
@@ -5590,14 +5666,11 @@ ASSEMBLER_TEST_RUN(Vsubs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(-6.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      ""
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fmovd v1, 1.000000\n"
       "fmovd v2, 2.000000\n"
       "fmovd v3, 3.000000\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v5, tmp\n"
+      "veor v5, v5, v5\n"
       "fcvtsd v0, v0\n"
       "fcvtsd v1, v1\n"
       "fcvtsd v2, v2\n"
@@ -5659,9 +5732,7 @@ ASSEMBLER_TEST_RUN(Vmuls, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(14.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      ""
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fmovd v1, 1.000000\n"
       "fmovd v2, 2.000000\n"
       "fmovd v3, 3.000000\n"
@@ -5726,9 +5797,7 @@ ASSEMBLER_TEST_RUN(Vdivs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(4.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
   EXPECT_DISASSEMBLY(
-      ""
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fmovd v1, 1.000000\n"
       "fmovd v2, 2.000000\n"
       "fmovd v3, 3.000000\n"
@@ -5810,8 +5879,7 @@ ASSEMBLER_TEST_RUN(Vsubd, test) {
   EXPECT_DISASSEMBLY(
       "fmovd v0, 2.000000\n"
       "fmovd v1, 3.000000\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v5, tmp\n"
+      "veor v5, v5, v5\n"
       "vinsd v4[0], v0[0]\n"
       "vinsd v4[1], v1[0]\n"
       "vsubd v5, v5, v4\n"
@@ -6066,8 +6134,7 @@ ASSEMBLER_TEST_RUN(Vinss, test) {
       "fcvtsd v0, v0\n"
       "vinss v1[3], v0[0]\n"
       "vinss v1[1], v0[0]\n"
-      "movz tmp, #0x0\n"
-      "fmovdr v0, tmp\n"
+      "veor v0, v0, v0\n"
       "fcvtsd v0, v0\n"
       "vinss v1[2], v0[0]\n"
       "vinss v1[0], v0[0]\n"
@@ -6647,6 +6714,25 @@ ASSEMBLER_TEST_RUN(Vcged, test) {
       "ret\n");
 }
 
+// Verify that vmaxs(-0.0, 0.0) = 0.0
+ASSEMBLER_TEST_GENERATE(Vmaxs_zero, assembler) {
+  __ veor(V1, V1, V1);
+  __ vnegd(V2, V1);
+  __ vmaxs(V0, V2, V1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vmaxs_zero, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  double d = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
+  EXPECT_EQ(true, !signbit(d) && (d == 0.0));
+  EXPECT_DISASSEMBLY(
+      "veor v1, v1, v1\n"
+      "vnegd v2, v1\n"
+      "vmaxs v0, v2, v1\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vmaxs, assembler) {
   __ LoadDImmediate(V0, 10.5);
   __ LoadDImmediate(V1, 10.0);
@@ -6706,6 +6792,25 @@ ASSEMBLER_TEST_RUN(Vmaxs, test) {
       "ret\n");
 }
 
+// Verify that vmaxd(-0.0, 0.0) = 0.0
+ASSEMBLER_TEST_GENERATE(Vmaxd_zero, assembler) {
+  __ veor(V1, V1, V1);
+  __ vnegd(V2, V1);
+  __ vmaxd(V0, V2, V1);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vmaxd_zero, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  double d = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
+  EXPECT_EQ(true, !signbit(d) && (d == 0.0));
+  EXPECT_DISASSEMBLY(
+      "veor v1, v1, v1\n"
+      "vnegd v2, v1\n"
+      "vmaxd v0, v2, v1\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vmaxd, assembler) {
   __ LoadDImmediate(V0, 21.0);
   __ LoadDImmediate(V1, 20.5);
@@ -6738,6 +6843,26 @@ ASSEMBLER_TEST_RUN(Vmaxd, test) {
       "vinsd v0[0], v4[0]\n"
       "vinsd v1[0], v4[1]\n"
       "faddd v0, v0, v1\n"
+      "ret\n");
+}
+
+// Verify that vmins(-0.0, 0.0) = -0.0
+ASSEMBLER_TEST_GENERATE(Vmins_zero, assembler) {
+  __ veor(V1, V1, V1);
+  __ vnegd(V2, V1);
+  __ vmins(V0, V1, V2);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vmins_zero, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  double d = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
+  fprintf(stderr, "d: %f\n", d);
+  EXPECT_EQ(true, signbit(d) && (d == 0.0));
+  EXPECT_DISASSEMBLY(
+      "veor v1, v1, v1\n"
+      "vnegd v2, v1\n"
+      "vmins v0, v1, v2\n"
       "ret\n");
 }
 
@@ -6797,6 +6922,26 @@ ASSEMBLER_TEST_RUN(Vmins, test) {
       "faddd v0, v0, v1\n"
       "faddd v0, v0, v2\n"
       "faddd v0, v0, v3\n"
+      "ret\n");
+}
+
+// Verify that vmind(-0.0, 0.0) = -0.0
+ASSEMBLER_TEST_GENERATE(Vmind_zero, assembler) {
+  __ veor(V1, V1, V1);
+  __ vnegd(V2, V1);
+  __ vmind(V0, V1, V2);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vmind_zero, test) {
+  typedef double (*DoubleReturn)() DART_UNUSED;
+  double d = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
+  fprintf(stderr, "d: %f\n", d);
+  EXPECT_EQ(true, signbit(d) && (d == 0.0));
+  EXPECT_DISASSEMBLY(
+      "veor v1, v1, v1\n"
+      "vnegd v2, v1\n"
+      "vmind v0, v1, v2\n"
       "ret\n");
 }
 

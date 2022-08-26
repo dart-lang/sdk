@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,10 +18,7 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 /// expressions of the form `o.^`, where `o` is an expression denoting an
 /// instance of a type.
 class TypeMemberContributor extends DartCompletionContributor {
-  TypeMemberContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  TypeMemberContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {
@@ -46,7 +42,10 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
 
     // Determine the target expression's type.
-    var type = expression.staticType?.resolveToBound(request.objectType);
+    final expressionType = expression.staticType;
+    var type = expressionType != null
+        ? request.libraryElement.typeSystem.resolveToBound(expressionType)
+        : null;
     if (type == null || type.isDynamic) {
       // If the expression does not provide a good type, then attempt to get a
       // better type from the element.
@@ -227,8 +226,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 /// an interface type.
 class _SuggestionBuilder extends MemberSuggestionBuilder {
   /// Initialize a newly created suggestion builder.
-  _SuggestionBuilder(DartCompletionRequest request, SuggestionBuilder builder)
-      : super(request, builder);
+  _SuggestionBuilder(super.request, super.builder);
 
   /// Return completion suggestions for 'dot' completions on the given [type].
   /// If the 'dot' completion is a super expression, then [containingMethodName]

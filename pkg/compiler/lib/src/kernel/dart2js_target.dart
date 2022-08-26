@@ -43,9 +43,11 @@ List<Pattern> _allowedNativeTestPatterns = [
   RegExp(r'(?<!generated_)tests/web/native'),
   RegExp(r'(?<!generated_)tests/web/internal'),
   'generated_tests/web/native/native_test',
+  'generated_tests/web/internal/deferred_url_test',
   RegExp(r'(?<!generated_)tests/web_2/native'),
   RegExp(r'(?<!generated_)tests/web_2/internal'),
   'generated_tests/web_2/native/native_test',
+  'generated_tests/web_2/internal/deferred_url_test',
 ];
 
 bool allowedNativeTest(Uri uri) {
@@ -71,9 +73,12 @@ class Dart2jsTarget extends Target {
 
   final CompilerOptions? options;
   final bool canPerformGlobalTransforms;
+  final bool supportsUnevaluatedConstants;
 
   Dart2jsTarget(this.name, this.flags,
-      {this.options, this.canPerformGlobalTransforms = true});
+      {this.options,
+      this.canPerformGlobalTransforms = true,
+      this.supportsUnevaluatedConstants = true});
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -133,6 +138,13 @@ class Dart2jsTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
+  void performOutlineTransformations(ir.Component component,
+      CoreTypes coreTypes, ReferenceFromIndex? referenceFromIndex) {
+    component.accept(StaticInteropStubCreator(
+        StaticInteropClassEraser(coreTypes, referenceFromIndex)));
+  }
+
+  @override
   void performModularTransformationsOnLibraries(
       ir.Component component,
       CoreTypes coreTypes,
@@ -145,7 +157,8 @@ class Dart2jsTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     var nativeClasses = JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    var staticInteropClassEraser = StaticInteropClassEraser(coreTypes);
+    var staticInteropClassEraser =
+        StaticInteropClassEraser(coreTypes, referenceFromIndex);
     for (var library in libraries) {
       JsInteropChecks(
               coreTypes,
@@ -188,8 +201,9 @@ class Dart2jsTarget extends Target {
             .getTopLevelProcedure('dart:core', '_createInvocationMirror'),
         ir.Arguments(<ir.Expression>[
           ir.StringLiteral(name)..fileOffset = offset,
-          ir.ListLiteral(
-              arguments.types.map((t) => ir.TypeLiteral(t)).toList()),
+          ir.ListLiteral(arguments.types
+              .map<ir.Expression>((t) => ir.TypeLiteral(t))
+              .toList()),
           ir.ListLiteral(arguments.positional)..fileOffset = offset,
           ir.MapLiteral(List<ir.MapLiteralEntry>.from(
               arguments.named.map((ir.NamedExpression arg) {
@@ -223,13 +237,21 @@ class Dart2jsTarget extends Target {
   }
 
   @override
-  ConstantsBackend get constantsBackend =>
-      const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true);
+  ConstantsBackend get constantsBackend => Dart2jsConstantsBackend(
+      supportsUnevaluatedConstants: supportsUnevaluatedConstants);
 
   @override
   DartLibrarySupport get dartLibrarySupport =>
       const Dart2jsDartLibrarySupport();
 }
+
+const implicitlyUsedLibraries = <String>[
+  'dart:_foreign_helper',
+  'dart:_interceptors',
+  'dart:_js_helper',
+  'dart:_late_helper',
+  'dart:js_util'
+];
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
 // compile-platform should just specify which libraries to compile instead.
@@ -247,6 +269,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_helper',
     'dart:_js_names',
     'dart:_js_primitives',
+    'dart:_js_shared_embedded_names',
     'dart:_late_helper',
     'dart:_metadata',
     'dart:_native_typed_data',
@@ -282,6 +305,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_helper',
     'dart:_js_names',
     'dart:_js_primitives',
+    'dart:_js_shared_embedded_names',
     'dart:_late_helper',
     'dart:_native_typed_data',
     'dart:_recipe_syntax',

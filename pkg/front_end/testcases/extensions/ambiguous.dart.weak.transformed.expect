@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -150,21 +150,11 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension A on self::C* {
+extension A on self::C {
   method method = self::A|method;
   tearoff method = self::A|get#method;
   get getter = self::A|get#getter;
@@ -174,7 +164,7 @@ extension A on self::C* {
   operator [] = self::A|[];
   set setter = self::A|set#setter;
 }
-extension B on self::C* {
+extension B on self::C {
   method method = self::B|method;
   tearoff method = self::B|get#method;
   get getter = self::B|get#getter;
@@ -184,33 +174,33 @@ extension B on self::C* {
   set setter = self::B|set#setter;
   set property = self::B|set#property;
 }
-static method A|method(lowered final self::C* #this) → void {}
-static method A|get#method(lowered final self::C* #this) → () →* void
+static method A|method(lowered final self::C #this) → void {}
+static method A|get#method(lowered final self::C #this) → () → void
   return () → void => self::A|method(#this);
-static method A|get#getter(lowered final self::C* #this) → core::int*
+static method A|get#getter(lowered final self::C #this) → core::int
   return 42;
-static method A|set#setter(lowered final self::C* #this, core::int* value) → void {}
-static method A|get#property(lowered final self::C* #this) → core::int*
+static method A|set#setter(lowered final self::C #this, core::int value) → void {}
+static method A|get#property(lowered final self::C #this) → core::int
   return 42;
-static method A|+(lowered final self::C* #this, core::int* i) → core::int*
+static method A|+(lowered final self::C #this, core::int i) → core::int
   return i;
-static method A|unary-(lowered final self::C* #this) → core::int*
+static method A|unary-(lowered final self::C #this) → core::int
   return 0;
-static method A|[](lowered final self::C* #this, core::int* i) → core::int*
+static method A|[](lowered final self::C #this, core::int i) → core::int
   return i;
-static method B|method(lowered final self::C* #this) → void {}
-static method B|get#method(lowered final self::C* #this) → () →* void
+static method B|method(lowered final self::C #this) → void {}
+static method B|get#method(lowered final self::C #this) → () → void
   return () → void => self::B|method(#this);
-static method B|get#getter(lowered final self::C* #this) → core::int*
+static method B|get#getter(lowered final self::C #this) → core::int
   return 42;
-static method B|set#setter(lowered final self::C* #this, core::int* value) → void {}
-static method B|set#property(lowered final self::C* #this, core::int* value) → void {}
-static method B|+(lowered final self::C* #this, core::int* i) → core::int*
+static method B|set#setter(lowered final self::C #this, core::int value) → void {}
+static method B|set#property(lowered final self::C #this, core::int value) → void {}
+static method B|+(lowered final self::C #this, core::int i) → core::int
   return i;
-static method B|unary-(lowered final self::C* #this) → core::int*
+static method B|unary-(lowered final self::C #this) → core::int
   return 0;
-static method B|[]=(lowered final self::C* #this, core::int* i, core::int* j) → void {}
-static method errors(self::C* c) → dynamic {
+static method B|[]=(lowered final self::C #this, core::int i, core::int j) → void {}
+static method errors(self::C c) → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:28:5: Error: The method 'method' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.

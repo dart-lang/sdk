@@ -22,7 +22,7 @@ void main() {
 class UtilTest extends AbstractSingleUnitTest {
   Future<void> assert_invertCondition(String expr, String expected) async {
     await resolveTestCode('''
-main() {
+void f() {
   int? v1, v2, v3, v4, v5;
   bool b1 = true, b2 = true, b3 = true;
   bool? b4, b5;
@@ -196,8 +196,8 @@ class A {}
 
   Future<void>
       test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
-    newFile2('$workspaceRootPath/aaa/lib/aaa.dart', '');
-    newFile2('$workspaceRootPath/bbb/lib/bbb.dart', '');
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart', '');
+    newFile('$workspaceRootPath/bbb/lib/bbb.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -221,8 +221,8 @@ import 'package:bbb/bbb.dart';
 
   Future<void>
       test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
-    newFile2('$workspaceRootPath/aaa/lib/aaa.dart', '');
-    newFile2('$workspaceRootPath/bbb/lib/bbb.dart', '');
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart', '');
+    newFile('$workspaceRootPath/bbb/lib/bbb.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -245,10 +245,10 @@ import 'package:bbb/bbb.dart';
   }
 
   Future<void> test_addLibraryImports_package_hasImports_between() async {
-    newFile2('$workspaceRootPath/aaa/lib/aaa.dart', '');
-    newFile2('$workspaceRootPath/bbb/lib/bbb.dart', '');
-    newFile2('$workspaceRootPath/ccc/lib/ccc.dart', '');
-    newFile2('$workspaceRootPath/ddd/lib/ddd.dart', '');
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart', '');
+    newFile('$workspaceRootPath/bbb/lib/bbb.dart', '');
+    newFile('$workspaceRootPath/ccc/lib/ccc.dart', '');
+    newFile('$workspaceRootPath/ddd/lib/ddd.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -270,6 +270,46 @@ import 'package:bbb/bbb.dart';
 import 'package:ccc/ccc.dart';
 import 'package:ddd/ddd.dart';
 ''');
+  }
+
+  Future<void> test_findSimplePrintInvocation() async {
+    await resolveTestCode('''
+void f() {
+  print('hi');
+}
+''');
+    var printIdentifier = findNode.simple('print');
+    var expected = findNode.expressionStatement('print');
+    var result = CorrectionUtils(testAnalysisResult)
+        .findSimplePrintInvocation(printIdentifier);
+    expect(result, expected);
+  }
+
+  Future<void> test_findSimplePrintInvocation_custom_print() async {
+    await resolveTestCode('''
+void print(String toPrint) {
+}
+
+void f() {
+  print('hi');
+}
+''');
+    var printIdentifier = findNode.simple('print(\'hi\'');
+    var result = CorrectionUtils(testAnalysisResult)
+        .findSimplePrintInvocation(printIdentifier);
+    expect(result, null);
+  }
+
+  Future<void> test_findSimplePrintInvocation_negative() async {
+    await resolveTestCode('''
+void f() {
+  true ? print('hi') : print('false');
+}
+''');
+    var printIdentifier = findNode.simple('print(\'false');
+    var result = CorrectionUtils(testAnalysisResult)
+        .findSimplePrintInvocation(printIdentifier);
+    expect(result, null);
   }
 
   Future<void> test_invertCondition_binary_compare() async {

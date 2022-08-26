@@ -118,7 +118,7 @@ class _ClassVerifier {
 
   final List<InterfaceType> directSuperInterfaces = [];
 
-  late final implementsDartCoreEnum =
+  late final bool implementsDartCoreEnum =
       classElement.allSupertypes.any((e) => e.isDartCoreEnum);
 
   _ClassVerifier({
@@ -648,6 +648,7 @@ class _ClassVerifier {
 
   void _checkIllegalConcreteEnumMemberDeclaration(SimpleIdentifier name) {
     if (implementsDartCoreEnum &&
+        !classElement.isDartCoreEnumImpl &&
         const {'index', 'hashCode', '=='}.contains(name.name)) {
       reporter.reportErrorForNode(
         CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
@@ -748,14 +749,15 @@ class _ClassVerifier {
   /// because the class itself defines an abstract method with this [name],
   /// report the more specific error, and return `true`.
   bool _reportConcreteClassWithAbstractMember(String name) {
-    bool checkMemberNameCombo(ClassMember member, String memberName) {
+    bool checkMemberNameCombo(
+        ClassMember member, String memberName, String displayName) {
       if (memberName == name) {
         reporter.reportErrorForNode(
           classElement.isEnum
               ? CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER
               : CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
           member,
-          [name, classElement.name],
+          [displayName, classElement.name],
         );
         return true;
       } else {
@@ -765,18 +767,18 @@ class _ClassVerifier {
 
     for (var member in members) {
       if (member is MethodDeclaration) {
-        var name2 = member.name.name;
+        var displayName = member.name.name;
+        var name2 = displayName;
         if (member.isSetter) {
           name2 += '=';
         }
-        if (checkMemberNameCombo(member, name2)) return true;
+        if (checkMemberNameCombo(member, name2, displayName)) return true;
       } else if (member is FieldDeclaration) {
         for (var variableDeclaration in member.fields.variables) {
           var name2 = variableDeclaration.name.name;
-          if (checkMemberNameCombo(member, name2)) return true;
+          if (checkMemberNameCombo(member, name2, name2)) return true;
           if (!variableDeclaration.isFinal) {
-            name2 += '=';
-            if (checkMemberNameCombo(member, name2)) return true;
+            if (checkMemberNameCombo(member, '$name2=', name2)) return true;
           }
         }
       }

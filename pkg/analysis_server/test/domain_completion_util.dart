@@ -7,37 +7,21 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
-import 'analysis_abstract.dart';
+import 'analysis_server_base.dart';
 import 'constants.dart';
 
-class AbstractCompletionDomainTest extends AbstractAnalysisTest {
+class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
   late String completionId;
-  late int completionOffset;
+  late int completionOffset; // TODO(scheglov) remove it
   int? replacementOffset;
   late int replacementLength;
   Map<String, Completer<void>> receivedSuggestionsCompleters = {};
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
   Map<String, List<CompletionSuggestion>> allSuggestions = {};
-
-  @override
-  String addTestFile(String content, {int? offset}) {
-    completionOffset = content.indexOf('^');
-    if (offset != null) {
-      expect(completionOffset, -1, reason: 'cannot supply offset and ^');
-      completionOffset = offset;
-      return super.addTestFile(content);
-    }
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    var nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-    return super.addTestFile(content.substring(0, completionOffset) +
-        content.substring(completionOffset + 1));
-  }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
       {bool isDeprecated = false,
@@ -47,7 +31,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
       int? replacementLength,
       ElementKind? elementKind}) {
     CompletionSuggestion? cs;
-    suggestions.forEach((s) {
+    for (var s in suggestions) {
       if (elementKind != null && s.element?.kind != elementKind) {
         return;
       }
@@ -58,7 +42,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
           fail('expected exactly one $completion but found > 1');
         }
       }
-    });
+    }
     if (cs == null) {
       var completions = suggestions.map((s) => s.completion).toList();
 
@@ -69,7 +53,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
 
       fail('expected $expectationText, but found\n $completions');
     }
-    var suggestion = cs!;
+    var suggestion = cs;
     expect(suggestion.kind, equals(kind));
     expect(suggestion.selectionOffset, selectionOffset ?? completion.length);
     expect(suggestion.selectionLength, equals(0));
@@ -92,17 +76,47 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     expect(id.isNotEmpty, isTrue);
   }
 
-  Future getSuggestions() async {
-    await waitForTasksFinished();
+  Future<void> getCodeSuggestions({
+    required String path,
+    required String content,
+  }) async {
+    completionOffset = content.indexOf('^');
+    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
 
-    var request = CompletionGetSuggestionsParams(testFile, completionOffset)
-        .toRequest('0');
-    var response = await waitResponse(request);
+    var nextOffset = content.indexOf('^', completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+
+    newFile(
+      path,
+      content.substring(0, completionOffset) +
+          content.substring(completionOffset + 1),
+    );
+
+    return await getSuggestions(
+      path: path,
+      completionOffset: completionOffset,
+    );
+  }
+
+  Future<void> getSuggestions({
+    required String path,
+    required int completionOffset,
+  }) async {
+    var request =
+        CompletionGetSuggestionsParams(path, completionOffset).toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     var result = CompletionGetSuggestionsResult.fromResponse(response);
     completionId = result.id;
     assertValidId(completionId);
     await _getResultsCompleter(completionId).future;
     expect(suggestionsDone, isTrue);
+  }
+
+  Future<void> getTestCodeSuggestions(String content) {
+    return getCodeSuggestions(
+      path: testFile.path,
+      content: content,
+    );
   }
 
   @override
@@ -127,8 +141,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    handler = CompletionDomainHandler(server);
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Completer<void> _getResultsCompleter(String id) {

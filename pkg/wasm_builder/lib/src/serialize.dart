@@ -40,7 +40,9 @@ mixin SerializerMixin implements Serializer {
     // Ensure space for at least `size` additional bytes.
     if (_data.length < _index + size) {
       int newLength = _data.length * 2;
-      while (newLength < _index + size) newLength *= 2;
+      while (newLength < _index + size) {
+        newLength *= 2;
+      }
       _data = Uint8List(newLength)..setRange(0, _data.length, _data);
     }
   }
@@ -107,7 +109,9 @@ mixin SerializerMixin implements Serializer {
 
   void writeList(List<Serializable> objects) {
     writeUnsigned(objects.length);
-    for (int i = 0; i < objects.length; i++) write(objects[i]);
+    for (int i = 0; i < objects.length; i++) {
+      write(objects[i]);
+    }
   }
 
   void writeData(Serializer chunk, [List<int>? watchPoints]) {

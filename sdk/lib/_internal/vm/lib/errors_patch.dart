@@ -122,9 +122,9 @@ class _CastError extends Error implements CastError, TypeError {
   String toString() => _errorMsg;
 
   // Fields _url, _line, and _column are only used for debugging purposes.
-  final String _url;
-  final int _line;
-  final int _column;
+  final String? _url;
+  final int? _line;
+  final int? _column;
   final String _errorMsg;
 }
 

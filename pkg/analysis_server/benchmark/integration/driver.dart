@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' show max, sqrt;
 
 import 'package:logging/logging.dart';
+import 'package:path/path.dart';
 
 import '../../test/integration/support/integration_test_methods.dart';
 import '../../test/integration/support/integration_tests.dart';
@@ -90,8 +92,9 @@ class Driver extends IntegrationTestMixin {
       serverConnected.complete();
     });
     running = true;
+    var dartSdkPath = dirname(dirname(Platform.resolvedExecutable));
     return server
-        .start(diagnosticPort: diagnosticPort /*profileServer: true*/)
+        .start(dartSdkPath: dartSdkPath, diagnosticPort: diagnosticPort)
         .then((params) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {

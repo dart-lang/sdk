@@ -36,7 +36,4 @@ class RemoveUnnecessaryCast extends CorrectionProducer {
       builder.removeEnclosingParentheses(asExpression);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnnecessaryCast newInstance() => RemoveUnnecessaryCast();
 }

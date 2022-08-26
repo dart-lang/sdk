@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 77;
+  UInt32 formatVersion = 82;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -437,7 +437,7 @@ type Procedure extends Member {
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isRedirectingFactory, isExtensionMember,
-              isNonNullableByDefault);
+              isNonNullableByDefault, isSynthetic, isInternalImplementation);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -598,12 +598,29 @@ type SpecializedVariableSet extends Expression {
   // Equivalent to VariableSet with index N.
 }
 
+type AbstractSuperPropertyGet extends Expression {
+  Byte tag = 22;
+  FileOffset fileOffset;
+  Name name;
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
+}
+
+type AbstractSuperPropertySet extends Expression {
+  Byte tag = 23;
+  FileOffset fileOffset;
+  Name name;
+  Expression value;
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
+}
+
 type SuperPropertyGet extends Expression {
   Byte tag = 24;
   FileOffset fileOffset;
   Name name;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type SuperPropertySet extends Expression {
@@ -611,8 +628,8 @@ type SuperPropertySet extends Expression {
   FileOffset fileOffset;
   Name name;
   Expression value;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 /*
@@ -820,13 +837,22 @@ type EqualsCall extends Expression {
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
+type AbstractSuperMethodInvocation extends Expression {
+  Byte tag = 28;
+  FileOffset fileOffset;
+  Name name;
+  Arguments arguments;
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
+}
+
 type SuperMethodInvocation extends Expression {
   Byte tag = 29;
   FileOffset fileOffset;
   Name name;
   Arguments arguments;
-  MemberReference interfaceTarget; // May be NullReference.
-  MemberReference interfaceTargetOrigin; // May be NullReference.
+  MemberReference interfaceTarget;
+  MemberReference interfaceTargetOrigin;
 }
 
 type StaticInvocation extends Expression {
@@ -1070,6 +1096,7 @@ type MapEntry {
 
 type AwaitExpression extends Expression {
   Byte tag = 51;
+  FileOffset fileOffset;
   Expression operand;
 }
 
@@ -1304,6 +1331,7 @@ type AsyncForInStatement extends Statement {
 type SwitchStatement extends Statement {
   Byte tag = 71;
   FileOffset fileOffset;
+  Byte isExplicitlyExhaustive; // 1 if exhaustive, 0 if not.
   Expression expression;
   List<SwitchCase> cases;
 }
@@ -1370,7 +1398,7 @@ type TryFinally extends Statement {
 type YieldStatement extends Statement {
   Byte tag = 77;
   FileOffset fileOffset;
-  Byte flags (isYieldStar);
+  Byte flags (isYieldStar, isNative);
   Expression expression;
 }
 
@@ -1390,8 +1418,9 @@ type VariableDeclarationPlain {
 
   List<Expression> annotations;
 
-  Byte flags (isFinal, isConst, isInitializingFormal, isCovariantByDeclaration,
-              isCovariantByClass, isLate, isRequired, isLowered);
+  UInt flags (isFinal, isConst, hasDeclaredInitializer, isInitializingFormal,
+              isCovariantByClass, isLate, isRequired, isCovariantByDeclaration,
+              isLowered);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
@@ -1461,7 +1490,6 @@ type FunctionType extends DartType {
   UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
-  Option<TypedefType> typedef;
   DartType returnType;
 }
 

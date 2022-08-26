@@ -7,8 +7,7 @@ library entity_utils;
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show isUserDefinableOperator, isMinusOperator;
 
-import '../js_backend/namer.dart';
-import 'entities.dart';
+import 'entities.dart' show Entity, FunctionEntity;
 
 // Somewhat stable ordering for libraries using [Uri]s
 int compareLibrariesUris(Uri a, Uri b) {
@@ -65,8 +64,8 @@ int compareSourceUris(Uri uri1, Uri uri2) {
 }
 
 /// Compare entities within the same compilation unit.
-int compareEntities(Entity element1, int line1, int column1, Entity element2,
-    int line2, int column2) {
+int compareEntities(Entity element1, int? line1, int? column1, Entity element2,
+    int? line2, int? column2) {
   line1 ??= -1;
   line2 ??= -1;
   int r = line1.compareTo(line2);
@@ -77,7 +76,7 @@ int compareEntities(Entity element1, int line1, int column1, Entity element2,
   r = column1.compareTo(column2);
   if (r != 0) return r;
 
-  r = element1.name.compareTo(element2.name);
+  r = element1.name!.compareTo(element2.name!);
   if (r != 0) return r;
 
   // Same file, position and name.  If this happens, we should find out why
@@ -86,7 +85,7 @@ int compareEntities(Entity element1, int line1, int column1, Entity element2,
 }
 
 String reconstructConstructorName(FunctionEntity element) {
-  String className = element.enclosingClass.name;
+  String className = element.enclosingClass!.name;
   if (element.name == '') {
     return className;
   } else {
@@ -96,7 +95,7 @@ String reconstructConstructorName(FunctionEntity element) {
 
 String reconstructConstructorNameSourceString(FunctionEntity element) {
   if (element.name == '') {
-    return element.enclosingClass.name;
+    return element.enclosingClass!.name;
   } else {
     return reconstructConstructorName(element);
   }
@@ -109,7 +108,12 @@ String reconstructConstructorNameSourceString(FunctionEntity element) {
 /// The results returned from this method are guaranteed to be valid
 /// JavaScript identifiers, except it may include reserved words for
 /// non-operator names.
-String operatorNameToIdentifier(String name) {
+// TODO(sra): The namer uses another, different, version of this function. Make
+// it clearer that this function is not used for JavaScript naming, but is
+// useful in creating identifiers for other purposes like data formats for file
+// names.  Rename this function and move it to a more general String utils
+// place.
+String? operatorNameToIdentifier(String? name) {
   if (name == null) {
     return name;
   } else if (name == '==') {
@@ -155,11 +159,13 @@ String operatorNameToIdentifier(String name) {
   } else if (name == 'unary-') {
     return r'operator$negate';
   } else {
-    return Namer.replaceNonIdentifierCharacters(name);
+    return name.replaceAll(_nonIdentifierRE, '_');
   }
 }
 
-String constructOperatorNameOrNull(String op, bool isUnary) {
+final RegExp _nonIdentifierRE = RegExp(r'[^A-Za-z0-9_$]');
+
+String? constructOperatorNameOrNull(String op, bool isUnary) {
   if (isMinusOperator(op)) {
     return isUnary ? 'unary-' : op;
   } else if (isUserDefinableOperator(op) || op == '??') {
@@ -170,7 +176,7 @@ String constructOperatorNameOrNull(String op, bool isUnary) {
 }
 
 String constructOperatorName(String op, bool isUnary) {
-  String operatorName = constructOperatorNameOrNull(op, isUnary);
+  String? operatorName = constructOperatorNameOrNull(op, isUnary);
   if (operatorName == null)
     throw 'Unhandled operator: $op';
   else

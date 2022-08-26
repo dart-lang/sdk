@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,7 +15,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 abstract class SimpleEditCommandHandler
     extends CommandHandler<ExecuteCommandParams, Object> {
-  SimpleEditCommandHandler(LspAnalysisServer server) : super(server);
+  SimpleEditCommandHandler(super.server);
 
   String get commandName;
 
@@ -72,7 +70,7 @@ abstract class SimpleEditCommandHandler
     // sent - and may have failed to apply - was related to this command
     // execution).
     // We need to fromJson to convert the JSON map to the real types.
-    final editResponseResult = ApplyWorkspaceEditResponse.fromJson(
+    final editResponseResult = ApplyWorkspaceEditResult.fromJson(
         editResponse.result as Map<String, Object?>);
     if (editResponseResult.applied) {
       return success(null);

@@ -61,6 +61,10 @@ class C6 extends S6 {
   C6([int? super.x]); // Ok.
 }
 
+class D6 extends C6 {
+  D6([int super.x]); // Error
+}
+
 class S7 {
   int s;
   S7([int x = 0]) : s = x - 1;

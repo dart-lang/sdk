@@ -1235,12 +1235,14 @@ VM_METRIC_LIST(VM_METRIC_API)
 #endif  // !defined(PRODUCT)
 
 #define ISOLATE_GROUP_METRIC_API(type, variable, name, unit)                   \
-  DART_EXPORT int64_t Dart_Isolate##variable##Metric(Dart_Isolate isolate) {   \
-    if (isolate == nullptr) {                                                  \
-      FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);   \
+  DART_EXPORT int64_t Dart_IsolateGroup##variable##Metric(                     \
+      Dart_IsolateGroup isolate_group) {                                       \
+    if (isolate_group == nullptr) {                                            \
+      FATAL1("%s expects argument 'isolate_group' to be non-null.",            \
+             CURRENT_FUNC);                                                    \
     }                                                                          \
-    Isolate* iso = reinterpret_cast<Isolate*>(isolate);                        \
-    return iso->group()->Get##variable##Metric()->Value();                     \
+    IsolateGroup* group = reinterpret_cast<IsolateGroup*>(isolate_group);      \
+    return group->Get##variable##Metric()->Value();                            \
   }
 ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_API)
 #undef ISOLATE_GROUP_METRIC_API
@@ -1311,9 +1313,6 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   }
 
   if (success) {
-    if (is_new_group) {
-      group->heap()->InitGrowthControl();
-    }
     // A Thread structure has been associated to the thread, we do the
     // safepoint transition explicitly here instead of using the
     // TransitionXXX scope objects as the reverse transition happens
@@ -1526,6 +1525,12 @@ DART_EXPORT void* Dart_CurrentIsolateGroupData() {
   CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
   return isolate_group->embedder_data();
+}
+
+DART_EXPORT Dart_IsolateGroupId Dart_CurrentIsolateGroupId() {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  CHECK_ISOLATE_GROUP(isolate_group);
+  return isolate_group->id();
 }
 
 DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate) {
@@ -2045,16 +2050,6 @@ DART_EXPORT bool Dart_RunLoopAsync(bool errors_are_fatal,
   Dart_ExitIsolate();
   isolate->Run();
   return true;
-}
-
-DART_EXPORT void Dart_RunTask(Dart_Task task) {
-  Thread* T = Thread::Current();
-  Isolate* I = T == nullptr ? nullptr : T->isolate();
-  CHECK_NO_ISOLATE(I);
-  API_TIMELINE_BEGIN_END(T);
-  ThreadPool::Task* task_impl = reinterpret_cast<ThreadPool::Task*>(task);
-  task_impl->Run();
-  delete task_impl;
 }
 
 DART_EXPORT Dart_Handle Dart_HandleMessage() {
@@ -2854,13 +2849,15 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
   Thread* thread = Thread::Current();
   DARTSCOPE(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
-  if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(thread->zone(), str, String);
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
+    if (!str_obj.IsNull()) {
+      *len = str_obj.Length();
+      return Api::Success();
+    }
   }
-  *len = str_obj.Length();
-  return Api::Success();
+  RETURN_TYPE_ERROR(thread->zone(), str, String);
 }
 
 DART_EXPORT Dart_Handle Dart_NewStringFromCString(const char* str) {
@@ -3054,16 +3051,18 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
-  if (str_obj.IsNull()) {
-    RETURN_TYPE_ERROR(thread->zone(), str, String);
-  }
   if (size == NULL) {
     RETURN_NULL_ERROR(size);
   }
-  *size = (str_obj.Length() * str_obj.CharSize());
-  return Api::Success();
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
+    if (!str_obj.IsNull()) {
+      *size = (str_obj.Length() * str_obj.CharSize());
+      return Api::Success();
+    }
+  }
+  RETURN_TYPE_ERROR(thread->zone(), str, String);
 }
 
 DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
@@ -3073,21 +3072,23 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const String& str = Api::UnwrapStringHandle(reused_obj_handle, object);
-  if (str.IsNull()) {
-    RETURN_TYPE_ERROR(thread->zone(), object, String);
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const String& str = Api::UnwrapStringHandle(reused_obj_handle, object);
+    if (!str.IsNull()) {
+      if (str.IsExternal()) {
+        *peer = str.GetPeer();
+        ASSERT(*peer != NULL);
+      } else {
+        NoSafepointScope no_safepoint_scope;
+        *peer = thread->heap()->GetPeer(str.ptr());
+      }
+      *char_size = str.CharSize();
+      *str_len = str.Length();
+      return Api::Success();
+    }
   }
-  if (str.IsExternal()) {
-    *peer = str.GetPeer();
-    ASSERT(*peer != NULL);
-  } else {
-    NoSafepointScope no_safepoint_scope;
-    *peer = thread->heap()->GetPeer(str.ptr());
-  }
-  *char_size = str.CharSize();
-  *str_len = str.Length();
-  return Api::Success();
+  RETURN_TYPE_ERROR(thread->zone(), object, String);
 }
 
 // --- Lists ---
@@ -4937,13 +4938,16 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
-  if (instance.IsNull()) {
-    RETURN_TYPE_ERROR(thread->zone(), obj, Instance);
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const Instance& instance =
+        Api::UnwrapInstanceHandle(reused_obj_handle, obj);
+    if (!instance.IsNull()) {
+      *count = instance.NumNativeFields();
+      return Api::Success();
+    }
   }
-  *count = instance.NumNativeFields();
-  return Api::Success();
+  RETURN_TYPE_ERROR(thread->zone(), obj, Instance);
 }
 
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
@@ -4952,18 +4956,26 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
-  ReusableObjectHandleScope reused_obj_handle(thread);
-  const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
-  if (instance.IsNull()) {
+  bool is_null = false;
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const Instance& instance =
+        Api::UnwrapInstanceHandle(reused_obj_handle, obj);
+    if (!instance.IsNull()) {
+      if (instance.IsValidNativeIndex(index)) {
+        *value = instance.GetNativeField(index);
+        return Api::Success();
+      }
+    } else {
+      is_null = true;
+    }
+  }
+  if (is_null) {
     RETURN_TYPE_ERROR(thread->zone(), obj, Instance);
   }
-  if (!instance.IsValidNativeIndex(index)) {
-    return Api::NewError(
-        "%s: invalid index %d passed in to access native instance field",
-        CURRENT_FUNC, index);
-  }
-  *value = instance.GetNativeField(index);
-  return Api::Success();
+  return Api::NewError(
+      "%s: invalid index %d passed in to access native instance field",
+      CURRENT_FUNC, index);
 }
 
 DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
@@ -6721,24 +6733,12 @@ DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id) {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
 
-  const GrowableObjectArray& result =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      Z, T->isolate_group()->object_store()->libraries());
-  Library& lib = Library::Handle(Z);
-  LoadingUnit& unit = LoadingUnit::Handle(Z);
-  String& uri = String::Handle(Z);
-  for (intptr_t i = 0; i < libs.Length(); i++) {
-    lib ^= libs.At(i);
-    unit = lib.loading_unit();
-    if (unit.IsNull() || (unit.id() != loading_unit_id)) {
-      continue;
-    }
-    uri = lib.url();
-    result.Add(uri);
+  const Array& loading_units =
+      Array::Handle(Z, T->isolate_group()->object_store()->loading_unit_uris());
+  if (loading_unit_id >= 0 && loading_unit_id < loading_units.Length()) {
+    return Api::NewHandle(T, loading_units.At(loading_unit_id));
   }
-
-  return Api::NewHandle(T, Array::MakeFixedLength(result));
+  return Api::NewError("Invalid loading_unit_id");
 #endif
 }
 

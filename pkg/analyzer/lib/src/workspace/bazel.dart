@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -23,6 +24,23 @@ class BazelFileUriResolver extends ResourceUriResolver {
   final BazelWorkspace workspace;
 
   BazelFileUriResolver(this.workspace) : super(workspace.provider);
+
+  @override
+  Uri pathToUri(String path) {
+    var pathContext = workspace.provider.pathContext;
+    for (var genRoot in [
+      ...workspace.binPaths,
+      workspace.genfiles,
+      workspace.readonly,
+    ]) {
+      if (genRoot != null && pathContext.isWithin(genRoot, path)) {
+        String relative = pathContext.relative(path, from: genRoot);
+        var writablePath = pathContext.join(workspace.root, relative);
+        return pathContext.toUri(writablePath);
+      }
+    }
+    return workspace.provider.pathContext.toUri(path);
+  }
 
   @override
   Source? resolveAbsolute(Uri uri) {
@@ -105,7 +123,12 @@ class BazelPackageUriResolver extends UriResolver {
     }
 
     String packageName = uriPath.substring(0, slash);
+
     String fileUriPart = uriPath.substring(slash + 1);
+    if (fileUriPart.isEmpty) {
+      return null;
+    }
+
     String filePath = fileUriPart.replaceAll('/', _context.separator);
 
     if (!packageName.contains('.')) {
@@ -639,8 +662,7 @@ class BazelWorkspacePackage extends WorkspacePackage {
   @override
   // TODO(brianwilkerson) Implement this by looking in the BUILD file for 'deps'
   //  lists.
-  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
-      <String, List<Folder>>{};
+  Packages packagesAvailableTo(String libraryPath) => Packages.empty;
 
   @override
   bool sourceIsInPublicApi(Source source) {

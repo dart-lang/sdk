@@ -1,4 +1,4 @@
-library test;
+library test /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -7,38 +7,28 @@ library test;
 //   var x;
 //       ^
 // pkg/front_end/testcases/inference_new/infer_field_override_setter_overrides_getter.dart:9:11: Context: This is one of the overridden members.
-//   num get x;
+//   int get x;
 //           ^
 // pkg/front_end/testcases/inference_new/infer_field_override_setter_overrides_getter.dart:13:12: Context: This is one of the overridden members.
-//   void set x(int value);
+//   void set x(num value);
 //            ^
 //
 import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A
     ;
-  abstract get x() → core::num*;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract get x() → core::int;
 }
 abstract class B extends self::A {
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     ;
-  abstract set x(core::int* value) → void;
+  abstract set x(core::num value) → void;
 }
 class C extends self::B {
   field invalid-type x;
-  synthetic constructor •() → self::C*
+  synthetic constructor •() → self::C
     ;
 }
 static method main() → dynamic

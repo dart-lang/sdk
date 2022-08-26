@@ -22,7 +22,7 @@ class GetFixesTest extends AbstractAnalysisServerIntegrationTest {
 FutureOr f;
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isNotEmpty);
@@ -50,7 +50,7 @@ import 'dart:async';
 FutureOr f;
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var result = await sendEditGetFixes(pathname, text.indexOf('FutureOr f'));

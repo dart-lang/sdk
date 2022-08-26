@@ -4,15 +4,14 @@
 
 library fasta.testing.kernel_chain;
 
+import 'dart:async';
 import 'dart:io' show Directory, File, IOSink, Platform;
-
-import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show DiagnosticMessage;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -22,17 +21,24 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
-import 'package:front_end/src/fasta/fasta_codes.dart' show templateUnspecified;
-
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 
 import 'package:front_end/src/fasta/messages.dart'
-    show DiagnosticMessageFromJson, LocatedMessage, Message;
+    show DiagnosticMessageFromJson;
 
-import 'package:kernel/ast.dart' show Component, Library, Reference, Source;
+import 'package:kernel/ast.dart'
+    show
+        Block,
+        Component,
+        Library,
+        Procedure,
+        Reference,
+        ReturnStatement,
+        Source,
+        Statement;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
@@ -45,9 +51,6 @@ import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/naive_type_checker.dart' show NaiveTypeChecker;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
-
-import 'package:kernel/text/text_serialization_verifier.dart'
-    show RoundTripStatus, TextSerializationVerifier;
 
 import 'package:testing/testing.dart'
     show
@@ -220,7 +223,7 @@ class MatchExpectation
 
     Component componentToText = component;
     if (serializeFirst) {
-      component.computeCanonicalNames();
+      // TODO(johnniwinther): Use library filter instead.
       List<Library> sdkLibraries =
           component.libraries.where((l) => !result.isUserLibrary(l)).toList();
 
@@ -351,79 +354,10 @@ class MatchExpectation
   }
 }
 
-class KernelTextSerialization
-    extends Step<ComponentResult, ComponentResult, ChainContext> {
-  static const bool writeRoundTripStatus = bool.fromEnvironment(
-      "text_serialization.writeRoundTripStatus",
-      defaultValue: false);
-
-  static const String suffix = ".roundtrip";
-
-  const KernelTextSerialization();
-
-  @override
-  String get name => "kernel text serialization";
-
-  @override
-  Future<Result<ComponentResult>> run(
-      ComponentResult result, ChainContext context) async {
-    Component component = result.component;
-    StringBuffer messages = new StringBuffer();
-    ProcessedOptions options = new ProcessedOptions(
-        options: new CompilerOptions()
-          ..onDiagnostic = (DiagnosticMessage message) {
-            if (messages.isNotEmpty) {
-              messages.write("\n");
-            }
-            messages.writeAll(message.plainTextFormatted, "\n");
-          });
-    return await CompilerContext.runWithOptions(options,
-        (compilerContext) async {
-      component.computeCanonicalNames();
-      compilerContext.uriToSource.addAll(component.uriToSource);
-      TextSerializationVerifier verifier =
-          new TextSerializationVerifier(root: component.root);
-      for (Library library in component.libraries) {
-        if (!library.importUri.isScheme("dart") &&
-            !library.importUri.isScheme("package")) {
-          verifier.verify(library);
-        }
-      }
-
-      List<RoundTripStatus> failures = verifier.failures;
-      for (RoundTripStatus failure in failures) {
-        Message message = templateUnspecified.withArguments("\n${failure}");
-        LocatedMessage locatedMessage = failure.uri != null
-            ? message.withLocation(failure.uri!, failure.offset, 1)
-            : message.withoutLocation();
-        options.report(locatedMessage, locatedMessage.code.severity);
-      }
-
-      if (writeRoundTripStatus) {
-        Uri uri = component.uriToSource.keys
-            .firstWhere((uri) => uri.isScheme("file"));
-        String filename = "${uri.toFilePath()}${suffix}";
-        uri = new File(filename).uri;
-        StringBuffer buffer = new StringBuffer();
-        for (RoundTripStatus status in verifier.takeStatus()) {
-          status.printOn(buffer);
-        }
-        await openWrite(uri, (IOSink sink) {
-          sink.write(buffer.toString());
-        });
-      }
-
-      if (failures.isNotEmpty) {
-        return new Result<ComponentResult>(null,
-            context.expectationSet["TextSerializationFailure"], "$messages");
-      }
-      return pass(result);
-    });
-  }
-}
-
 class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
-  const WriteDill();
+  final bool skipVm;
+
+  const WriteDill({required this.skipVm});
 
   @override
   String get name => "write .dill";
@@ -431,24 +365,91 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   @override
   Future<Result<ComponentResult>> run(ComponentResult result, _) async {
     Component component = result.component;
-    Directory tmp = await Directory.systemTemp.createTemp();
-    Uri uri = tmp.uri.resolve("generated.dill");
-    File generated = new File.fromUri(uri);
-    IOSink sink = generated.openWrite();
-    result = new ComponentResult(
-        result.description,
-        result.component,
-        result.userLibraries,
-        result.compilationSetup,
-        result.sourceTarget,
-        uri);
+    Procedure? mainMethod = component.mainMethod;
+    bool writeToFile = !skipVm;
+    if (mainMethod == null) {
+      writeToFile = false;
+    } else {
+      Statement? mainBody = mainMethod.function.body;
+      if (mainBody is Block && mainBody.statements.isEmpty ||
+          mainBody is ReturnStatement && mainBody.expression == null) {
+        writeToFile = false;
+      }
+    }
+    ByteSink sink = new ByteSink();
+    bool good = false;
     try {
-      new BinaryPrinter(sink).writeComponentFile(component);
+      // TODO(johnniwinther): Use library filter instead.
+      // Avoid serializing the sdk.
+      Component userCode = new Component(
+          nameRoot: component.root,
+          uriToSource: new Map<Uri, Source>.from(component.uriToSource));
+      userCode.setMainMethodAndMode(
+          component.mainMethodName, true, component.mode);
+      List<Library> auxiliaryLibraries = [];
+      for (Library library in component.libraries) {
+        bool includeLibrary;
+        if (library.importUri.isScheme("dart")) {
+          if (result.isUserLibrary(library)) {
+            // dart:test, test:extra etc as used will say yes to being a user
+            // library.
+            includeLibrary = true;
+          } else if (library.isSynthetic) {
+            // OK --- serialize that.
+            includeLibrary = true;
+          } else {
+            // Skip serialization of "real" platform libraries.
+            includeLibrary = false;
+          }
+        } else if (result.isUserLibrary(library)) {
+          includeLibrary = true;
+        } else {
+          // This library is neither part of the user libraries nor part of the
+          // platform libraries. To run this, we need to include it in the
+          // dill.
+          auxiliaryLibraries.add(library);
+          includeLibrary = false;
+        }
+        if (includeLibrary) {
+          userCode.libraries.add(library);
+        }
+      }
+
+      // We first ensure that we can serialize with possible references to
+      // libraries that aren't included in the serialization.
+      new BinaryPrinter(sink).writeComponentFile(userCode);
+
+      // We then serialize with any such libraries to
+      //   a) ensure that we can do that too, and that
+      //   b) the output is complete (modulo the platform) so that the VM can
+      //      actually run it.
+      if (auxiliaryLibraries.isNotEmpty) {
+        userCode.libraries.addAll(auxiliaryLibraries);
+        sink = new ByteSink();
+        new BinaryPrinter(sink).writeComponentFile(userCode);
+      }
+      good = true;
     } catch (e, s) {
       return fail(result, e, s);
     } finally {
-      print("Wrote `${generated.path}`");
-      await sink.close();
+      if (good && writeToFile) {
+        Directory tmp = await Directory.systemTemp.createTemp();
+        Uri uri = tmp.uri.resolve("generated.dill");
+        File generated = new File.fromUri(uri);
+        IOSink ioSink = generated.openWrite();
+        ioSink.add(sink.builder.takeBytes());
+        await ioSink.close();
+        result = new ComponentResult(
+            result.description,
+            result.component,
+            result.userLibraries,
+            result.compilationSetup,
+            result.sourceTarget,
+            uri);
+        print("Wrote component to `${generated.path}`.");
+      } else {
+        print("Wrote component to memory.");
+      }
     }
     return pass(result);
   }
@@ -469,32 +470,6 @@ class ReadDill extends Step<Uri, Uri, ChainContext> {
     }
     return new Future.value(pass(uri));
   }
-}
-
-class BytesCollector implements Sink<List<int>> {
-  final List<List<int>> lists = <List<int>>[];
-
-  int length = 0;
-
-  @override
-  void add(List<int> data) {
-    lists.add(data);
-    length += data.length;
-  }
-
-  Uint8List collect() {
-    Uint8List result = new Uint8List(length);
-    int offset = 0;
-    for (List<int> list in lists) {
-      result.setRange(offset, offset += list.length, list);
-    }
-    lists.clear();
-    length = 0;
-    return result;
-  }
-
-  @override
-  void close() {}
 }
 
 Future<String> runDiff(Uri expected, String actual) async {

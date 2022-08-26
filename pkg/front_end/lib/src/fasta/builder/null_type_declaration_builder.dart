@@ -5,6 +5,7 @@
 library fasta.null_type_declaration_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
+import 'package:kernel/class_hierarchy.dart';
 
 import 'builtin_type_declaration_builder.dart';
 import 'library_builder.dart';
@@ -20,14 +21,27 @@ class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   String get debugName => "NullTypeBuilder";
 
   @override
-  DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
+  DartType buildAliasedType(
+      LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      ClassHierarchyBase? hierarchy,
+      {required bool hasExplicitTypeArguments}) {
     return type;
   }
 
   @override
-  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments) {
+  DartType buildAliasedTypeWithBuiltArguments(
+      LibraryBuilder library,
+      Nullability nullability,
+      List<DartType> arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
     return type;
   }
 }

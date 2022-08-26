@@ -1161,6 +1161,18 @@ void Assembler::AddImmediate(Register reg,
   }
 }
 
+void Assembler::AddImmediate(Register dest, Register src, int32_t value) {
+  if (dest == src) {
+    AddImmediate(dest, value);
+    return;
+  }
+  if (value == 0) {
+    MoveRegister(dest, src);
+    return;
+  }
+  leaq(dest, Address(src, value));
+}
+
 void Assembler::AddImmediate(const Address& address, const Immediate& imm) {
   const int64_t value = imm.value();
   if (value == 0) {
@@ -1255,11 +1267,6 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
     return false;
   }
 
-  if (target::IsSmi(object)) {
-    // If the raw smi does not fit into a 32-bit signed int, then we'll keep
-    // the raw value in the object pool.
-    return !Utils::IsInt(32, target::ToRawSmi(object));
-  }
   ASSERT(IsNotTemporaryScopedHandle(object));
   ASSERT(IsInOldSpace(object));
   return true;
@@ -1299,18 +1306,18 @@ void Assembler::LoadObjectHelper(Register dst,
       movq(dst, Address(THR, offset));
       return;
     }
+    if (target::IsSmi(object)) {
+      LoadImmediate(dst, Immediate(target::ToRawSmi(object)));
+      return;
+    }
   }
-  if (CanLoadFromObjectPool(object)) {
-    const intptr_t index =
-        is_unique ? object_pool_builder().AddObject(
-                        object, ObjectPoolBuilderEntry::kPatchable)
-                  : object_pool_builder().FindObject(
-                        object, ObjectPoolBuilderEntry::kNotPatchable);
-    LoadWordFromPoolIndex(dst, index);
-    return;
-  }
-  ASSERT(target::IsSmi(object));
-  LoadImmediate(dst, Immediate(target::ToRawSmi(object)));
+  RELEASE_ASSERT(CanLoadFromObjectPool(object));
+  const intptr_t index =
+      is_unique ? object_pool_builder().AddObject(
+                      object, ObjectPoolBuilderEntry::kPatchable)
+                : object_pool_builder().FindObject(
+                      object, ObjectPoolBuilderEntry::kNotPatchable);
+  LoadWordFromPoolIndex(dst, index);
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {
@@ -1328,12 +1335,11 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     movq(TMP, Address(THR, offset_from_thread));
     movq(dst, TMP);
-  } else if (CanLoadFromObjectPool(object)) {
+  } else if (target::IsSmi(object)) {
+    MoveImmediate(dst, Immediate(target::ToRawSmi(object)));
+  } else {
     LoadObject(TMP, object);
     movq(dst, TMP);
-  } else {
-    ASSERT(target::IsSmi(object));
-    MoveImmediate(dst, Immediate(target::ToRawSmi(object)));
   }
 }
 
@@ -1343,12 +1349,11 @@ void Assembler::PushObject(const Object& object) {
   intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     pushq(Address(THR, offset_from_thread));
-  } else if (CanLoadFromObjectPool(object)) {
+  } else if (target::IsSmi(object)) {
+    PushImmediate(Immediate(target::ToRawSmi(object)));
+  } else {
     LoadObject(TMP, object);
     pushq(TMP);
-  } else {
-    ASSERT(target::IsSmi(object));
-    PushImmediate(Immediate(target::ToRawSmi(object)));
   }
 }
 
@@ -1358,19 +1363,15 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     OBJ(cmp)(reg, Address(THR, offset_from_thread));
-  } else if (CanLoadFromObjectPool(object)) {
+  } else if (target::IsSmi(object)) {
+    CompareImmediate(reg, Immediate(target::ToRawSmi(object)), kObjectBytes);
+  } else {
+    RELEASE_ASSERT(CanLoadFromObjectPool(object));
     const intptr_t idx = object_pool_builder().FindObject(
         object, ObjectPoolBuilderEntry::kNotPatchable);
     const int32_t offset = target::ObjectPool::element_offset(idx);
     OBJ(cmp)(reg, Address(PP, offset - kHeapObjectTag));
-  } else {
-    ASSERT(target::IsSmi(object));
-    CompareImmediate(reg, Immediate(target::ToRawSmi(object)), kObjectBytes);
   }
-}
-
-intptr_t Assembler::FindImmediate(int64_t imm) {
-  return object_pool_builder().FindImmediate(imm);
 }
 
 void Assembler::LoadImmediate(Register reg, const Immediate& imm) {
@@ -1379,7 +1380,7 @@ void Assembler::LoadImmediate(Register reg, const Immediate& imm) {
   } else if (imm.is_int32() || !constant_pool_allowed()) {
     movq(reg, imm);
   } else {
-    const intptr_t idx = FindImmediate(imm.value());
+    const intptr_t idx = object_pool_builder().FindImmediate(imm.value());
     LoadWordFromPoolIndex(reg, idx);
   }
 }
@@ -1398,10 +1399,16 @@ void Assembler::LoadDImmediate(FpuRegister dst, double immediate) {
   if (bits == 0) {
     xorps(dst, dst);
   } else {
-    intptr_t index = FindImmediate(bits);
+    intptr_t index = object_pool_builder().FindImmediate64(bits);
     LoadUnboxedDouble(
         dst, PP, target::ObjectPool::element_offset(index) - kHeapObjectTag);
   }
+}
+
+void Assembler::LoadQImmediate(FpuRegister dst, simd128_value_t immediate) {
+  intptr_t index = object_pool_builder().FindImmediate128(immediate);
+  movups(dst, Address(PP, target::ObjectPool::element_offset(index) -
+                              kHeapObjectTag));
 }
 
 void Assembler::LoadCompressed(Register dest, const Address& slot) {
@@ -1875,6 +1882,12 @@ void Assembler::PopRegisters(const RegisterSet& register_set) {
   }
 }
 
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  for (Register reg : regs) {
+    PushRegister(reg);
+  }
+}
+
 static const RegisterSet kVolatileRegisterSet(
     CallingConventions::kVolatileCpuRegisters,
     CallingConventions::kVolatileXmmRegisters);
@@ -2017,13 +2030,11 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   }
 }
 
-void Assembler::LeaveDartFrame(RestorePP restore_pp) {
+void Assembler::LeaveDartFrame() {
   // Restore caller's PP register that was pushed in EnterDartFrame.
   if (!FLAG_precompiled_mode) {
-    if (restore_pp == kRestoreCallerPP) {
-      movq(PP, Address(RBP, (target::frame_layout.saved_caller_pp_from_fp *
-                             target::kWordSize)));
-    }
+    movq(PP, Address(RBP, (target::frame_layout.saved_caller_pp_from_fp *
+                           target::kWordSize)));
   }
   set_constant_pool_allowed(false);
   LeaveFrame();
@@ -2051,7 +2062,7 @@ void Assembler::CheckCodePointer() {
     leaq(RAX, Address::AddressRIPRelative(-header_to_rip_offset));
     ASSERT(CodeSize() == (header_to_rip_offset - header_to_entry_offset));
   }
-  cmpq(RAX, FieldAddress(CODE_REG, target::Code::saved_instructions_offset()));
+  cmpq(RAX, FieldAddress(CODE_REG, target::Code::instructions_offset()));
   j(EQUAL, &instructions_ok);
   int3();
   Bind(&instructions_ok);
@@ -2187,6 +2198,7 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Label* trace,
+                                     Register temp_reg,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
   const intptr_t shared_table_offset =
@@ -2195,7 +2207,9 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
       target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
 
-  Register temp_reg = TMP;
+  if (temp_reg == kNoRegister) {
+    temp_reg = TMP;
+  }
   LoadIsolateGroup(temp_reg);
   movq(temp_reg, Address(temp_reg, shared_table_offset));
   movq(temp_reg, Address(temp_reg, table_offset));
@@ -2221,7 +2235,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, distance));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp_reg, distance));
     movq(instance_reg, Address(THR, target::Thread::top_offset()));
     addq(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
@@ -2253,7 +2267,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, distance));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp, distance));
     movq(instance, Address(THR, target::Thread::top_offset()));
     movq(end_address, instance);
 
@@ -2279,6 +2293,27 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     jmp(failure);
   }
+}
+
+void Assembler::CopyMemoryWords(Register src,
+                                Register dst,
+                                Register size,
+                                Register temp) {
+  // This loop is equivalent to
+  //   shrq(size, Immediate(target::kWordSizeLog2));
+  //   rep_movsq()
+  // but shows better performance on certain micro-benchmarks.
+  Label loop, done;
+  cmpq(size, Immediate(0));
+  j(EQUAL, &done, kNearJump);
+  Bind(&loop);
+  movq(temp, Address(src, 0));
+  addq(src, Immediate(target::kWordSize));
+  movq(Address(dst, 0), temp);
+  addq(dst, Immediate(target::kWordSize));
+  subq(size, Immediate(target::kWordSize));
+  j(NOT_ZERO, &loop, kNearJump);
+  Bind(&done);
 }
 
 void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {

@@ -1,5 +1,4 @@
 // @dart = 2.9
-// @dart = 2.8
 extension Extension<T> on T {
   T method1() => this;
 }

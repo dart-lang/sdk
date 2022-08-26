@@ -6,7 +6,7 @@ abstract class M {
   var m;
 }
 
-abstract class N extends M {
+mixin N on M {
   void set superM(value) {
     super.m = value;
   }

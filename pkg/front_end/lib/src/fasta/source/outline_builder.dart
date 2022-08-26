@@ -32,6 +32,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../combinator.dart' show CombinatorBuilder;
@@ -1884,7 +1885,7 @@ class OutlineBuilder extends StackListenerImpl {
           List<TypeVariableBuilder> unboundTypeVariables = [];
           thisType = substitute(thisType, substitution,
               unboundTypes: unboundTypes,
-              unboundTypeVariables: unboundTypeVariables)!;
+              unboundTypeVariables: unboundTypeVariables);
           for (NamedTypeBuilder unboundType in unboundTypes) {
             extension.registerUnresolvedNamedType(unboundType);
           }
@@ -1925,7 +1926,6 @@ class OutlineBuilder extends StackListenerImpl {
         libraryBuilder.addConstructor(
             metadata,
             modifiers,
-            returnType,
             name,
             constructorName,
             typeVariables,
@@ -2260,7 +2260,10 @@ class OutlineBuilder extends StackListenerImpl {
           metadata,
           kind,
           modifiers,
-          type,
+          type ??
+              (memberKind.isParameterInferable
+                  ? libraryBuilder.addInferableType()
+                  : const ImplicitTypeBuilder()),
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
           thisKeyword != null,
           superKeyword != null,
@@ -2583,7 +2586,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     push(libraryBuilder.addFunctionType(
-        returnType,
+        returnType ?? const ImplicitTypeBuilder(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
@@ -2604,7 +2607,7 @@ class OutlineBuilder extends StackListenerImpl {
       reportErrorIfNullableType(question);
     }
     push(libraryBuilder.addFunctionType(
-        returnType,
+        returnType ?? const ImplicitTypeBuilder(),
         typeVariables,
         formals,
         libraryBuilder.nullableBuilderIfTrue(question != null),
@@ -2641,9 +2644,14 @@ class OutlineBuilder extends StackListenerImpl {
       libraryBuilder.beginNestedDeclaration(
           TypeParameterScopeKind.functionType, "#function_type",
           hasMembers: false);
-      // TODO(dmitryas): Make sure that RHS of typedefs can't have '?'.
-      aliasedType = libraryBuilder.addFunctionType(returnType, null, formals,
-          const NullabilityBuilder.omitted(), uri, charOffset);
+      // TODO(cstefantsova): Make sure that RHS of typedefs can't have '?'.
+      aliasedType = libraryBuilder.addFunctionType(
+          returnType ?? const ImplicitTypeBuilder(),
+          null,
+          formals,
+          const NullabilityBuilder.omitted(),
+          uri,
+          charOffset);
     } else {
       Object? type = pop();
       typeVariables = pop() as List<TypeVariableBuilder>?;
@@ -3461,4 +3469,30 @@ enum _MethodKind {
   extensionMethod,
   enumConstructor,
   enumMethod,
+}
+
+extension on MemberKind {
+  /// Returns `true` if a parameter occurring in this context can be inferred.
+  bool get isParameterInferable {
+    switch (this) {
+      case MemberKind.Catch:
+      case MemberKind.FunctionTypeAlias:
+      case MemberKind.Factory:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+      case MemberKind.Local:
+      case MemberKind.StaticMethod:
+      case MemberKind.TopLevelMethod:
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+        return false;
+      case MemberKind.NonStaticMethod:
+      // These can be inferred but cannot hold parameters so the cases are
+      // dead code:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
+        return true;
+    }
+  }
 }

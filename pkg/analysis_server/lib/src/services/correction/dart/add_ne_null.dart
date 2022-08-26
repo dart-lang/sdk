@@ -38,7 +38,4 @@ class AddNeNull extends CorrectionProducerWithDiagnostic {
           problemMessage.offset + problemMessage.length, ' != null');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddNeNull newInstance() => AddNeNull();
 }

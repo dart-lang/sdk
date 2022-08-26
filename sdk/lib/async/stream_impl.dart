@@ -80,9 +80,9 @@ class _BufferingStreamSubscription<T>
 
   /* Event handlers provided in constructor. */
   @pragma("vm:entry-point")
-  _DataHandler<T> _onData;
+  void Function(T) _onData;
   Function _onError;
-  _DoneHandler _onDone;
+  void Function() _onDone;
 
   final Zone _zone;
 
@@ -318,9 +318,7 @@ class _BufferingStreamSubscription<T>
   /// If the subscription is not paused, this also schedules a firing
   /// of pending events later (if necessary).
   void _addPending(_DelayedEvent event) {
-    _StreamImplEvents<T>? pending = _pending as dynamic;
-    pending ??= _StreamImplEvents<T>();
-    _pending = pending;
+    var pending = _pending ??= _PendingEvents<T>();
     pending.add(event);
     if (!_hasPending) {
       _state |= _STATE_HAS_PENDING;
@@ -487,81 +485,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
   void _onListen(StreamSubscription subscription) {}
 }
 
-typedef _PendingEvents<T> _EventGenerator<T>();
-
-/// Stream that generates its own events.
-class _GeneratedStreamImpl<T> extends _StreamImpl<T> {
-  final _EventGenerator<T> _pending;
-  bool _isUsed = false;
-
-  /// Initializes the stream to have only the events provided by a
-  /// [_PendingEvents].
-  ///
-  /// A new [_PendingEvents] must be generated for each listen.
-  _GeneratedStreamImpl(this._pending);
-
-  StreamSubscription<T> _createSubscription(void onData(T data)?,
-      Function? onError, void onDone()?, bool cancelOnError) {
-    if (_isUsed) throw new StateError("Stream has already been listened to.");
-    _isUsed = true;
-    return new _BufferingStreamSubscription<T>(
-        onData, onError, onDone, cancelOnError)
-      .._setPendingEvents(_pending());
-  }
-}
-
-/// Pending events object that gets its events from an [Iterable].
-class _IterablePendingEvents<T> extends _PendingEvents<T> {
-  // The iterator providing data for data events.
-  // Set to null when iteration has completed.
-  Iterator<T>? _iterator;
-
-  _IterablePendingEvents(Iterable<T> data) : _iterator = data.iterator;
-
-  bool get isEmpty => _iterator == null;
-
-  void handleNext(_EventDispatch<T> dispatch) {
-    var iterator = _iterator;
-    if (iterator == null) {
-      throw new StateError("No events pending.");
-    }
-    // Send one event per call to moveNext.
-    // If moveNext returns true, send the current element as data.
-    // If current throws, send that error, but keep iterating.
-    // If moveNext returns false, send a done event and clear the _iterator.
-    // If moveNext throws an error, send an error and prepare to send a done
-    // event afterwards.
-    bool movedNext = false;
-    try {
-      if (iterator.moveNext()) {
-        movedNext = true;
-        dispatch._sendData(iterator.current);
-      } else {
-        _iterator = null;
-        dispatch._sendDone();
-      }
-    } catch (e, s) {
-      if (!movedNext) {
-        // Threw in .moveNext().
-        // Ensure that we send a done afterwards.
-        _iterator = const EmptyIterator<Never>();
-      }
-      // Else threw in .current.
-      dispatch._sendError(e, s);
-    }
-  }
-
-  void clear() {
-    if (isScheduled) cancelSchedule();
-    _iterator = null;
-  }
-}
-
 // Internal helpers.
-
-// Types of the different handlers on a stream. Types used to type fields.
-typedef void _DataHandler<T>(T value);
-typedef void _DoneHandler();
 
 /// Default data handler, does nothing.
 void _nullDataHandler(dynamic value) {}
@@ -617,32 +541,36 @@ class _DelayedDone implements _DelayedEvent {
   }
 }
 
-/// Superclass for provider of pending events.
-abstract class _PendingEvents<T> {
+/// Container and manager of pending events for a stream subscription.
+class _PendingEvents<T> {
   // No async event has been scheduled.
-  static const int _STATE_UNSCHEDULED = 0;
+  static const int stateUnscheduled = 0;
   // An async event has been scheduled to run a function.
-  static const int _STATE_SCHEDULED = 1;
+  static const int stateScheduled = 1;
   // An async event has been scheduled, but it will do nothing when it runs.
   // Async events can't be preempted.
-  static const int _STATE_CANCELED = 3;
+  static const int stateCanceled = 3;
 
   /// State of being scheduled.
   ///
-  /// Set to [_STATE_SCHEDULED] when pending events are scheduled for
+  /// Set to [stateScheduled] when pending events are scheduled for
   /// async dispatch. Since we can't cancel a [scheduleMicrotask] call, if
-  /// scheduling is "canceled", the _state is simply set to [_STATE_CANCELED]
+  /// scheduling is "canceled", the _state is simply set to [stateCanceled]
   /// which will make the async code do nothing except resetting [_state].
   ///
-  /// If events are scheduled while the state is [_STATE_CANCELED], it is
-  /// merely switched back to [_STATE_SCHEDULED], but no new call to
+  /// If events are scheduled while the state is [stateCanceled], it is
+  /// merely switched back to [stateScheduled], but no new call to
   /// [scheduleMicrotask] is performed.
-  int _state = _STATE_UNSCHEDULED;
+  int _state = stateUnscheduled;
 
-  bool get isEmpty;
+  /// First element in the list of pending events, if any.
+  _DelayedEvent? firstPendingEvent;
 
-  bool get isScheduled => _state == _STATE_SCHEDULED;
-  bool get _eventScheduled => _state >= _STATE_SCHEDULED;
+  /// Last element in the list of pending events. New events are added after it.
+  _DelayedEvent? lastPendingEvent;
+
+  bool get isScheduled => _state == stateScheduled;
+  bool get _eventScheduled => _state >= stateScheduled;
 
   /// Schedule an event to run later.
   ///
@@ -652,36 +580,22 @@ abstract class _PendingEvents<T> {
     if (isScheduled) return;
     assert(!isEmpty);
     if (_eventScheduled) {
-      assert(_state == _STATE_CANCELED);
-      _state = _STATE_SCHEDULED;
+      assert(_state == stateCanceled);
+      _state = stateScheduled;
       return;
     }
     scheduleMicrotask(() {
       int oldState = _state;
-      _state = _STATE_UNSCHEDULED;
-      if (oldState == _STATE_CANCELED) return;
+      _state = stateUnscheduled;
+      if (oldState == stateCanceled) return;
       handleNext(dispatch);
     });
-    _state = _STATE_SCHEDULED;
+    _state = stateScheduled;
   }
 
   void cancelSchedule() {
-    if (isScheduled) _state = _STATE_CANCELED;
+    if (isScheduled) _state = stateCanceled;
   }
-
-  void handleNext(_EventDispatch<T> dispatch);
-
-  /// Throw away any pending events and cancel scheduled events.
-  void clear();
-}
-
-/// Class holding pending events for a [_StreamImpl].
-class _StreamImplEvents<T> extends _PendingEvents<T> {
-  /// Single linked list of [_DelayedEvent] objects.
-  _DelayedEvent? firstPendingEvent;
-
-  /// Last element in the list of pending events. New events are added after it.
-  _DelayedEvent? lastPendingEvent;
 
   bool get isEmpty => lastPendingEvent == null;
 
@@ -722,7 +636,7 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
 
   final Zone _zone;
   int _state = 0;
-  _DoneHandler? _onDone;
+  void Function()? _onDone;
 
   _DoneStreamSubscription(this._onDone) : _zone = Zone.current {
     _schedule();

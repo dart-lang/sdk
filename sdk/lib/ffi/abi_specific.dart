@@ -43,6 +43,7 @@ part of dart.ffi;
 ///   const UintPtr();
 /// }
 /// ```
+@Since('2.16')
 class AbiSpecificInteger extends NativeType {
   const AbiSpecificInteger();
 }
@@ -50,6 +51,7 @@ class AbiSpecificInteger extends NativeType {
 /// Mapping for a subtype of [AbiSpecificInteger].
 ///
 /// See documentation on [AbiSpecificInteger].
+@Since('2.16')
 class AbiSpecificIntegerMapping {
   final Map<Abi, NativeType> mapping;
 

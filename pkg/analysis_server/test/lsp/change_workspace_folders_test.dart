@@ -68,13 +68,48 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_changeWorkspaceFolders_addAndRemove_trailingSlash() async {
+    await initialize(workspaceFolders: []);
+    // Test:
+    // - folder1: add with, remove with
+    // - folder2: add with, remove without
+    // - folder3: add without, remove with
+
+    // Add and ensure they're all listed without their trailing slashes.
+    await changeWorkspaceFolders(
+      add: [
+        withTrailingSlashUri(workspaceFolder1Uri),
+        withTrailingSlashUri(workspaceFolder2Uri),
+        workspaceFolder3Uri,
+      ],
+    );
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([
+        workspaceFolder1Path,
+        workspaceFolder2Path,
+        workspaceFolder3Path,
+      ]),
+    );
+
+    // Remove and ensure they were all removed.
+    await changeWorkspaceFolders(
+      remove: [
+        withTrailingSlashUri(workspaceFolder1Uri),
+        workspaceFolder2Uri,
+        withTrailingSlashUri(workspaceFolder3Uri),
+      ],
+    );
+    expect(server.contextManager.includedPaths, isEmpty);
+  }
+
   Future<void>
       test_changeWorkspaceFolders_addExplicitParentOfImplicit_closeFile() async {
     final nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile2(nestedFilePath, '');
+    newFile(nestedFilePath, '');
 
     await initialize(allowEmptyRootUri: true);
     await openFile(nestedFileUri, '');
@@ -111,7 +146,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile2(nestedFilePath, '');
+    newFile(nestedFilePath, '');
 
     await initialize(allowEmptyRootUri: true);
     await openFile(nestedFileUri, '');
@@ -149,7 +184,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile2(nestedFilePath, '');
+    newFile(nestedFilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
 
@@ -184,7 +219,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile2(nestedFilePath, '');
+    newFile(nestedFilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
 
@@ -220,7 +255,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile2(nestedFilePath, '');
+    newFile(nestedFilePath, '');
 
     // Ensure no pubspecs in tree.
     deleteFile(
@@ -256,10 +291,10 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     // analysis driver will be used (see [AbstractAnalysisServer.getAnalysisDriver])
     // and no new root will be created.
     final workspace1FilePath = join(workspaceFolder1Path, 'test.dart');
-    newFile2(workspace1FilePath, '');
+    newFile(workspace1FilePath, '');
     final workspace2FilePath = join(workspaceFolder2Path, 'test.dart');
     final workspace2FileUri = Uri.file(workspace2FilePath);
-    newFile2(workspace2FilePath, '');
+    newFile(workspace2FilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
 
@@ -309,7 +344,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
 
     // Generate an error in the test project.
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    newFile2(mainFilePath, 'String a = 1;');
+    newFile(mainFilePath, 'String a = 1;');
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
 

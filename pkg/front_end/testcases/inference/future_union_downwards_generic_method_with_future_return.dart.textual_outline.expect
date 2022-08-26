@@ -1,9 +1,8 @@
-// @dart = 2.9
 library test;
 
 import 'dart:async';
 
-foo() async {}
+foo(Future<List<A>> f1, Future<List<A>> f2) async {}
 
 class A {}
 

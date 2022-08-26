@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-main() {
+test() {
   var x = void f<T>(T t) {};
   print(x.runtimeType);
   print(void g<T>(T t) {});

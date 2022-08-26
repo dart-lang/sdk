@@ -11,18 +11,6 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 class Fix {
-  /// A comparator that can be used to sort fixes by their relevance. The most
-  /// relevant fixes will be sorted before fixes with a lower relevance. Fixes
-  /// with the same relevance are sorted alphabetically.
-  static final Comparator<Fix> SORT_BY_RELEVANCE = (Fix a, Fix b) {
-    if (a.kind.priority != b.kind.priority) {
-      // A higher priority indicates a higher relevance
-      // and should be sorted before a lower priority.
-      return b.kind.priority - a.kind.priority;
-    }
-    return a.change.message.compareTo(b.change.message);
-  };
-
   /// A description of the fix being proposed.
   final FixKind kind;
 
@@ -35,6 +23,19 @@ class Fix {
   @override
   String toString() {
     return 'Fix(kind=$kind, change=$change)';
+  }
+
+  /// A finction that can be used to sort fixes by their relevance.
+  ///
+  /// The most relevant fixes will be sorted before fixes with a lower
+  /// relevance. Fixes with the same relevance are sorted alphabetically.
+  static int compareFixes(Fix a, Fix b) {
+    if (a.kind.priority != b.kind.priority) {
+      // A higher priority indicates a higher relevance
+      // and should be sorted before a lower priority.
+      return b.kind.priority - a.kind.priority;
+    }
+    return a.change.message.compareTo(b.change.message);
   }
 }
 

@@ -262,7 +262,7 @@ List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
 
   if (element is engine.PrefixElement) {
-    element = element.enclosingElement.definingCompilationUnit;
+    element = element.enclosingElement2.definingCompilationUnit;
   }
 
   var withNullability = element.library?.isNonNullableByDefault ?? false;

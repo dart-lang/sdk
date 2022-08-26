@@ -10,7 +10,6 @@ Otherwise these changes will need to be carefully coordinated with the flutter t
 
 This API stability does not cover any of the source code APIs.
 
-
 ### Stable subset
 
 * The frontend_server kernel compilation and expression evaluation for kernel should be considered "stable".

@@ -453,6 +453,14 @@ int64_t OS::GetCurrentThreadCPUMicros() {
   return status == ZX_OK ? info.total_runtime / kNanosecondsPerMicrosecond : 0;
 }
 
+int64_t OS::GetCurrentMonotonicMicrosForTimeline() {
+#if defined(SUPPORT_TIMELINE)
+  return OS::GetCurrentMonotonicMicros();
+#else
+  return -1;
+#endif
+}
+
 // On Fuchsia, thread timestamp values are not used in the tracing/timeline
 // integration. Because of this, we try to avoid querying them, since doing so
 // has both a runtime and trace buffer storage cost.

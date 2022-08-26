@@ -1,16 +1,15 @@
-// @dart = 2.9
 library test;
 
 class C {
-  num x;
+  num? x;
 }
 
 class D implements C {
-  covariant int x;
+  covariant int? x;
 }
 
 class E implements D {
-  int x;
+  int? x;
 }
 
 main() {}

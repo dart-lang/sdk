@@ -30,7 +30,7 @@ main() {
           .join();
       expectLinesStartWith(output, [
         'Unhandled exception:',
-        'error',
+        'Exception: error text',
       ]);
     });
 
@@ -42,6 +42,7 @@ main() {
       await client.pauseOnException(
         testFile,
         exceptionPauseMode: 'Unhandled',
+        expectText: '_Exception (Exception: error text)',
       );
     });
 

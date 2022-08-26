@@ -88,12 +88,11 @@ String branchOfBuilder(String builder, List<String> branches) {
 
 /// Finds the named configuration to test according to the test matrix
 /// information and the command line options.
-Map<String, Set<Builder>> resolveNamedConfigurations(
+Map<String, Set<Builder>>? resolveNamedConfigurations(
     TestMatrix testMatrix,
     String requestedBranch,
     List<String> requestedNamedConfigurations,
-    String requestedBuilder) {
-  assert(requestedBranch != null);
+    String? requestedBuilder) {
   var testedConfigurations = <String, Set<Builder>>{};
   var foundBuilder = false;
   for (var builder in testMatrix.builders) {
@@ -159,7 +158,7 @@ Map<String, Set<Builder>> resolveNamedConfigurations(
 }
 
 /// Locates the merge base between head and the [branch] on the given [remote].
-Future<String> findMergeBase(String remote, String branch) async {
+Future<String> findMergeBase(String? remote, String? branch) async {
   var arguments = ["merge-base", "$remote/$branch", "HEAD"];
   var result =
       await Process.run("git", arguments, runInShell: Platform.isWindows);
@@ -223,7 +222,7 @@ Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   client.close();
   // Remove XSSI protection prefix )]}'\n before parsing the response.
   var object = jsonDecode(responseString.substring(5)) as Map<String, dynamic>;
-  var builds = object["builds"] as List<dynamic>;
+  var builds = object["builds"] as List<dynamic>?;
   if (builds == null || builds.isEmpty) {
     throw NoResultsForCommitException(
         "Builder $builder hasn't built commit $commit");
@@ -235,8 +234,8 @@ Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   }
   var resultsPath = buildFileCloudPath(builder, "$buildNumber", "results.json");
   var flakyPath = buildFileCloudPath(builder, "$buildNumber", "flaky.json");
-  if (await lsGsutil(resultsPath) == null ||
-      await lsGsutil(flakyPath) == null) {
+  if ((await lsGsutil(resultsPath)).isEmpty ||
+      (await lsGsutil(flakyPath)).isEmpty) {
     throw NoResultsForCommitException(
         "Build $buildNumber did not upload results");
   }
@@ -279,7 +278,7 @@ Future<BuildSearchResult> searchForApproximateBuild(
 }
 
 void overrideConfiguration(Map<String, Map<String, dynamic>> results,
-    String configuration, String newConfiguration) {
+    String configuration, String? newConfiguration) {
   results.forEach((String key, Map<String, dynamic> result) {
     if (result["configuration"] == configuration) {
       result["configuration"] = newConfiguration;
@@ -287,7 +286,7 @@ void overrideConfiguration(Map<String, Map<String, dynamic>> results,
   });
 }
 
-void printUsage(ArgParser parser, {String error, bool printOptions = false}) {
+void printUsage(ArgParser parser, {String? error, bool printOptions = false}) {
   if (error != null) {
     print("$error\n");
     exitCode = 1;
@@ -365,10 +364,10 @@ Future<void> runTests(List<String> args) async {
     return;
   }
 
-  var requestedBuilder = options["builder"] as String;
+  var requestedBuilder = options["builder"] as String?;
   var requestedNamedConfigurations =
       (options["named-configuration"] as List).cast<String>();
-  var localConfiguration = options["local-configuration"] as String;
+  var localConfiguration = options["local-configuration"] as String?;
 
   if (requestedBuilder == null && requestedNamedConfigurations.isEmpty) {
     printUsage(parser,
@@ -410,7 +409,7 @@ Future<void> runTests(List<String> args) async {
 
   // Print information about the resolved builders to compare with.
   for (var namedConfiguration in namedConfigurations) {
-    var testedBuilders = testedConfigurations[namedConfiguration];
+    var testedBuilders = testedConfigurations[namedConfiguration]!;
     var onWhichBuilders = testedBuilders.length == 1
         ? "builder ${testedBuilders.single.name}"
         : "builders${testedBuilders.map((b) => "\n  ${b.name}").join()}";
@@ -425,9 +424,9 @@ Future<void> runTests(List<String> args) async {
   }
 
   // Use given commit or find out where the current HEAD branched.
-  var commit = options["commit"] as String ??
+  var commit = options["commit"] as String? ??
       await findMergeBase(
-          options["remote"] as String, options["branch"] as String);
+          options["remote"] as String?, options["branch"] as String?);
   print("Base commit is $commit");
 
   // Store the downloaded results and our test results in a temporary directory.

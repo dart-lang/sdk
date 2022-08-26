@@ -8,7 +8,7 @@ import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 
 export 'package:analyzer_plugin/protocol/protocol.dart' show Enum;
 
@@ -95,6 +95,15 @@ class Request {
   @override
   int get hashCode {
     return id.hashCode;
+  }
+
+  /// Returns the amount of time (in milliseconds) since the client sent this
+  /// request or `null` if the client did not provide [clientRequestTime].
+  int? get timeSinceRequest {
+    var clientRequestTime = this.clientRequestTime;
+    return clientRequestTime != null
+        ? DateTime.now().millisecondsSinceEpoch - clientRequestTime
+        : null;
   }
 
   @override
@@ -193,7 +202,7 @@ class Request {
   ///     'id': String,
   ///     'method': methodName,
   ///     'params': {
-  ///       paramter_name: value
+  ///       parameter_name: value
   ///     }
   ///   }
   ///
@@ -229,7 +238,7 @@ class Request {
   ///     'id': String,
   ///     'method': methodName,
   ///     'params': {
-  ///       paramter_name: value
+  ///       parameter_name: value
   ///     }
   ///   }
   ///
@@ -259,7 +268,7 @@ class RequestFailure implements Exception {
   /// The response to be returned as a result of the failure.
   final Response response;
 
-  /// Initialize a newly created exception to return the given reponse.
+  /// Initialize a newly created exception to return the given response.
   RequestFailure(this.response);
 }
 

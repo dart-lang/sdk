@@ -1,6 +1,5 @@
-// @dart = 2.9
 class Increment {
-  int x;
+  late int x;
   Increment() : =x++ {}
 }
 main() {}

@@ -1098,7 +1098,7 @@ Function(int, String) v;
     assertNoErrors();
     expect(directive, TypeMatcher<ExportDirective>());
     var exportDirective = directive as ExportDirective;
-    expect(exportDirective.keyword, isNotNull);
+    expect(exportDirective.exportKeyword, isNotNull);
     expect(exportDirective.uri, isNotNull);
     expect(exportDirective.combinators, hasLength(0));
     expect(exportDirective.semicolon, isNotNull);
@@ -1117,7 +1117,7 @@ Function(int, String) v;
     assertNoErrors();
     expect(directive, TypeMatcher<ImportDirective>());
     var importDirective = directive as ImportDirective;
-    expect(importDirective.keyword, isNotNull);
+    expect(importDirective.importKeyword, isNotNull);
     expect(importDirective.uri, isNotNull);
     expect(importDirective.asKeyword, isNull);
     expect(importDirective.prefix, isNull);
@@ -1384,7 +1384,7 @@ enum E {
     var directive = parseFullDirective() as ExportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.exportKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.configurations, hasLength(2));
     expectDottedName(directive.configurations[0].name, ['a']);
@@ -1398,7 +1398,7 @@ enum E {
     var directive = parseFullDirective() as ExportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.exportKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.configurations, hasLength(1));
     expectDottedName(directive.configurations[0].name, ['a', 'b']);
@@ -1411,7 +1411,7 @@ enum E {
     var directive = parseFullDirective() as ExportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.exportKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(1));
     expect(directive.semicolon, isNotNull);
@@ -1422,7 +1422,7 @@ enum E {
     var directive = parseFullDirective() as ExportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.exportKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(2));
     expect(directive.semicolon, isNotNull);
@@ -1433,7 +1433,7 @@ enum E {
     var directive = parseFullDirective() as ExportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.exportKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(0));
     expect(directive.semicolon, isNotNull);
@@ -1444,7 +1444,7 @@ enum E {
     var directive = parseFullDirective() as ExportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.exportKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(1));
     expect(directive.semicolon, isNotNull);
@@ -1455,7 +1455,7 @@ enum E {
     var directive = parseFullDirective() as ExportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.exportKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.combinators, hasLength(2));
     expect(directive.semicolon, isNotNull);
@@ -1786,7 +1786,7 @@ enum E {
     var directive = parseFullDirective() as ImportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.importKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.configurations, hasLength(2));
     expectDottedName(directive.configurations[0].name, ['a']);
@@ -1803,7 +1803,7 @@ enum E {
     var directive = parseFullDirective() as ImportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.importKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.configurations, hasLength(1));
     expectDottedName(directive.configurations[0].name, ['a', 'b']);
@@ -1819,7 +1819,7 @@ enum E {
     var directive = parseFullDirective() as ImportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.importKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNotNull);
     expect(directive.asKeyword, isNotNull);
@@ -1833,7 +1833,7 @@ enum E {
     var directive = parseFullDirective() as ImportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.importKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
     expect(directive.asKeyword, isNull);
@@ -1847,7 +1847,7 @@ enum E {
     var directive = parseFullDirective() as ImportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.importKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
     expect(directive.asKeyword, isNull);
@@ -1861,7 +1861,7 @@ enum E {
     var directive = parseFullDirective() as ImportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.importKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
     expect(directive.asKeyword, isNotNull);
@@ -1875,7 +1875,7 @@ enum E {
     var directive = parseFullDirective() as ImportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.importKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
     expect(directive.asKeyword, isNotNull);
@@ -1889,7 +1889,7 @@ enum E {
     var directive = parseFullDirective() as ImportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.importKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
     expect(directive.asKeyword, isNotNull);
@@ -1903,7 +1903,7 @@ enum E {
     var directive = parseFullDirective() as ImportDirective;
     expect(directive, isNotNull);
     assertNoErrors();
-    expect(directive.keyword, isNotNull);
+    expect(directive.importKeyword, isNotNull);
     expect(directive.uri, isNotNull);
     expect(directive.deferredKeyword, isNull);
     expect(directive.asKeyword, isNull);

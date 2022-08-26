@@ -1,0 +1,17 @@
+class Struct {}
+
+class StructA extends Struct {}
+
+class StructB extends Struct {}
+
+class NonStruct {}
+
+extension Extension<T extends Struct?> on T {
+  T method() => this;
+  T get property => this;
+  void set property(T value) {}
+}
+
+main() {}
+errors() {}
+testNonStruct() {}

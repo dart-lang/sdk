@@ -66,10 +66,9 @@ class InstanceCreationExpressionResolver {
             resolver: _resolver,
             node: node,
             argumentList: node.argumentList,
-            rawType: elementToInfer?.asType,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+        .resolveInvocation(rawType: elementToInfer?.asType);
     _resolver.inferenceHelper.recordStaticType(
         node, node.constructorName.type.type!,
         contextType: contextType);

@@ -1,3 +1,2 @@
-// @dart = 2.9
 const b1 = 2;
 main() {}

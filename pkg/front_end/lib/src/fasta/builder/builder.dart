@@ -197,9 +197,6 @@ abstract class Builder {
   /// Applies [patch] to this declaration.
   void applyPatch(Builder patch);
 
-  /// Returns the number of patches that was finished.
-  int finishPatch();
-
   /// Return `true` if this builder is a duplicate of another with the same
   /// name. This is `false` for the builder first declared amongst duplicates.
   bool get isDuplicate;
@@ -292,12 +289,6 @@ abstract class BuilderImpl implements Builder {
   @override
   void applyPatch(Builder patch) {
     unsupported("${runtimeType}.applyPatch", charOffset, fileUri);
-  }
-
-  @override
-  int finishPatch() {
-    if (!isPatch) return 0;
-    unsupported("${runtimeType}.finishPatch", charOffset, fileUri);
   }
 
   @override

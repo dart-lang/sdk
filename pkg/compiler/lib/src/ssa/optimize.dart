@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common/elements.dart' show JCommonElements;
@@ -35,6 +37,7 @@ import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'interceptor_simplifier.dart';
 import 'interceptor_finalizer.dart';
+import 'late_field_optimizer.dart';
 import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -120,6 +123,7 @@ class SsaOptimizerTask extends CompilerTask {
         loadElimination = SsaLoadElimination(closedWorld),
         SsaRedundantPhiEliminator(),
         SsaDeadPhiEliminator(),
+        SsaLateFieldOptimizer(closedWorld, log),
         // After GVN and load elimination the same value may be used in code
         // controlled by a test on the value, so redo 'conversion insertion' to
         // learn from the refined type.
@@ -458,7 +462,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         node.isLateSentinel(_abstractValueDomain).isDefinitelyFalse) {
       ConstantValue value =
           _abstractValueDomain.getPrimitiveValue(node.instructionType);
-      if (value.isBool) {
+      if (value is BoolConstantValue) {
         return value;
       }
       // TODO(het): consider supporting other values (short strings?)
@@ -560,9 +564,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     assert(inputs.length == 1);
     HInstruction input = inputs[0];
     if (input is HConstant) {
-      HConstant constant = input;
-      bool isTrue = constant.constant.isTrue;
-      return _graph.addConstantBool(!isTrue, _closedWorld);
+      return _graph.addConstantBool(
+          input.constant is! TrueConstantValue, _closedWorld);
     } else if (input is HNot) {
       return input.inputs[0];
     }
@@ -1057,7 +1060,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
     if (index.isConstant()) {
       HConstant constantInstruction = index;
-      assert(!constantInstruction.constant.isInt);
+      assert(constantInstruction.constant is! IntConstantValue);
       if (!constant_system.isInt(constantInstruction.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
         node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
@@ -1144,7 +1147,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction compareConstant(HConstant constant, HInstruction input) {
-      if (constant.constant.isTrue) {
+      if (constant.constant is TrueConstantValue) {
         return input;
       } else {
         return HNot(input, _abstractValueDomain.boolType);
@@ -1396,8 +1399,27 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   @override
+  HInstruction visitLateReadCheck(HLateReadCheck node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
+  }
+
+  @override
+  HInstruction visitLateWriteOnceCheck(HLateWriteOnceCheck node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
+  }
+
+  @override
+  HInstruction visitLateInitializeOnceCheck(HLateInitializeOnceCheck node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
+  }
+
+  @override
   HInstruction visitTypeKnown(HTypeKnown node) {
-    return node.isRedundant(_closedWorld) ? node.checkedInput : node;
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
   }
 
   @override
@@ -1408,10 +1430,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // field.
     if (receiver is HConstant) {
       ConstantValue constant = receiver.constant;
-      if (constant.isConstructedObject) {
-        ConstructedConstantValue constructedConstant = constant;
-        Map<FieldEntity, ConstantValue> fields = constructedConstant.fields;
-        ConstantValue value = fields[node.element];
+      if (constant is ConstructedConstantValue) {
+        ConstantValue value = constant.fields[node.element];
         if (value != null) {
           return _graph.addConstant(value, _closedWorld);
         }
@@ -1715,7 +1735,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         HInstruction firstArgument = node.inputs[0];
         if (firstArgument is HConstant) {
           HConstant constant = firstArgument;
-          if (constant.constant.isTrue) return constant;
+          if (constant.constant is TrueConstantValue) return constant;
         }
       }
     } else if (commonElements.isCheckInt(element)) {
@@ -1745,8 +1765,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         HInstruction argument = node.inputs[0];
         if (argument is HConstant) {
           ConstantValue constant = argument.constant;
-          if (constant.isBool) {
-            bool value = constant.isTrue;
+          if (constant is BoolConstantValue) {
+            bool value = constant is TrueConstantValue;
             if (element == commonElements.assertTest) {
               // `assertTest(argument)` effectively negates the argument.
               return _graph.addConstantBool(!value, _closedWorld);
@@ -1862,8 +1882,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     HInstruction tryConstant() {
       if (!input.isConstant()) return null;
       HConstant constant = input;
-      if (!constant.constant.isPrimitive) return null;
-      PrimitiveConstantValue value = constant.constant;
+      ConstantValue value = constant.constant;
       if (value is IntConstantValue) {
         // Only constant-fold int.toString() when Dart and JS results the same.
         // TODO(18103): We should be able to remove this work-around when issue
@@ -2078,7 +2097,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     IsTestSpecialization specialization =
         SpecializedChecks.findIsTestSpecialization(
-            node.dartType, _graph, _closedWorld);
+            node.dartType, _graph.element, _closedWorld);
 
     if (specialization == IsTestSpecialization.isNull ||
         specialization == IsTestSpecialization.notNull) {
@@ -2403,7 +2422,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final JClosedWorld closedWorld;
   final SsaOptimizerTask optimizer;
   HGraph _graph;
-  SsaLiveBlockAnalyzer analyzer;
   Map<HInstruction, bool> trivialDeadStoreReceivers = Maplet();
   bool eliminatedSideEffects = false;
   bool newGvnCandidates = false;
@@ -2413,14 +2431,10 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
-  HInstruction zapInstructionCache;
-  HInstruction get zapInstruction {
-    if (zapInstructionCache == null) {
-      // A constant with no type does not pollute types at phi nodes.
-      zapInstructionCache = analyzer.graph.addConstantUnreachable(closedWorld);
-    }
-    return zapInstructionCache;
-  }
+  // A constant with no type does not pollute types at phi nodes.
+  HInstruction _zapInstruction;
+  HInstruction get zapInstruction =>
+      _zapInstruction ??= _graph.addConstantUnreachable(closedWorld);
 
   /// Determines whether we can delete [instruction] because the only thing it
   /// does is throw the same exception as the next instruction that throws or
@@ -2457,9 +2471,10 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
           // We also leave HIf nodes in place when one branch is dead.
           HInstruction condition = current.inputs.first;
           if (condition is HConstant) {
-            bool isTrue = condition.constant.isTrue;
-            successor = isTrue ? current.thenBlock : current.elseBlock;
-            assert(!analyzer.isDeadBlock(successor));
+            successor = condition.constant is TrueConstantValue
+                ? current.thenBlock
+                : current.elseBlock;
+            assert(successor.isLive);
           }
         }
         if (successor != null && successor.id > current.block.id) {
@@ -2518,10 +2533,17 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   @override
   void visitGraph(HGraph graph) {
     _graph = graph;
-    analyzer = SsaLiveBlockAnalyzer(graph, closedWorld, optimizer);
-    analyzer.analyze();
+    _zapInstruction = null;
+    _computeLiveness();
     visitPostDominatorTree(graph);
-    cleanPhis();
+  }
+
+  void _computeLiveness() {
+    var analyzer = SsaLiveBlockAnalyzer(_graph, closedWorld, optimizer);
+    analyzer.analyze();
+    for (HBasicBlock block in _graph.blocks) {
+      block.isLive = analyzer.isLiveBlock(block);
+    }
   }
 
   @override
@@ -2531,14 +2553,12 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    bool isDeadBlock = analyzer.isDeadBlock(block);
-    block.isLive = !isDeadBlock;
     simplifyControlFlow(block);
     // Start from the last non-control flow instruction in the block.
     HInstruction instruction = block.last.previous;
     while (instruction != null) {
       var previous = instruction.previous;
-      if (isDeadBlock) {
+      if (!block.isLive) {
         eliminatedSideEffects =
             eliminatedSideEffects || instruction.sideEffects.hasSideEffects();
         removeUsers(instruction);
@@ -2554,10 +2574,48 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
 
   void simplifyPhi(HPhi phi) {
     // Remove an unused HPhi so that the inputs can become potentially dead.
+    if (!phi.block.isLive) {
+      removeUsers(phi);
+    }
+
     if (phi.usedBy.isEmpty) {
       phi.block.removePhi(phi);
       return;
     }
+
+    // Run through the phis of the block and replace them with their input that
+    // comes from the only live predecessor if that dominates the phi.
+    //
+    // TODO(sra): If the input is directly in the only live predecessor, it
+    // might be possible to move it into [block] (e.g. all its inputs are
+    // dominating.)
+    // Find the index of the single live predecessor if it exists.
+    List<HBasicBlock> predecessors = phi.block.predecessors;
+    int indexOfLive = -1;
+    for (int i = 0; i < predecessors.length; i++) {
+      if (predecessors[i].isLive) {
+        if (indexOfLive >= 0) {
+          indexOfLive = -1;
+          break;
+        }
+        indexOfLive = i;
+      }
+    }
+
+    if (indexOfLive >= 0) {
+      HInstruction replacement = phi.inputs[indexOfLive];
+      if (replacement.dominates(phi)) {
+        phi.block.rewrite(phi, replacement);
+        phi.block.removePhi(phi);
+        if (replacement.sourceElement == null &&
+            phi.sourceElement != null &&
+            replacement is! HThis) {
+          replacement.sourceElement = phi.sourceElement;
+        }
+        return;
+      }
+    }
+
     // If the phi is of the form `phi(x, HTypeKnown(x))`, it does not strengthen
     // `x`.  We can replace the phi with `x` to potentially make the HTypeKnown
     // refinement node dead and potentially make a HIf control no HPhis.
@@ -2661,49 +2719,6 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     }
   }
 
-  void cleanPhis() {
-    L:
-    for (HBasicBlock block in _graph.blocks) {
-      List<HBasicBlock> predecessors = block.predecessors;
-      // Zap all inputs to phis that correspond to dead blocks.
-      block.forEachPhi((HPhi phi) {
-        for (int i = 0; i < phi.inputs.length; ++i) {
-          if (!predecessors[i].isLive && phi.inputs[i] != zapInstruction) {
-            phi.replaceInput(i, zapInstruction);
-          }
-        }
-      });
-      if (predecessors.length < 2) continue L;
-      // Find the index of the single live predecessor if it exists.
-      int indexOfLive = -1;
-      for (int i = 0; i < predecessors.length; i++) {
-        if (predecessors[i].isLive) {
-          if (indexOfLive >= 0) continue L;
-          indexOfLive = i;
-        }
-      }
-      // Run through the phis of the block and replace them with their input
-      // that comes from the only live predecessor if that dominates the phi.
-      //
-      // TODO(sra): If the input is directly in the only live predecessor, it
-      // might be possible to move it into [block] (e.g. all its inputs are
-      // dominating.)
-      block.forEachPhi((HPhi phi) {
-        HInstruction replacement =
-            (indexOfLive >= 0) ? phi.inputs[indexOfLive] : zapInstruction;
-        if (replacement.dominates(phi)) {
-          block.rewrite(phi, replacement);
-          block.removePhi(phi);
-          if (replacement.sourceElement == null &&
-              phi.sourceElement != null &&
-              replacement is! HThis) {
-            replacement.sourceElement = phi.sourceElement;
-          }
-        }
-      });
-    }
-  }
-
   void removeUsers(HInstruction instruction) {
     instruction.usedBy.forEach((user) {
       removeInput(user, instruction);
@@ -2736,7 +2751,7 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor {
 
   Map<HInstruction, Range> get ranges => optimizer.ranges;
 
-  bool isDeadBlock(HBasicBlock block) => !live.contains(block);
+  bool isLiveBlock(HBasicBlock block) => live.contains(block);
 
   void analyze() {
     markBlockLive(graph.entry);
@@ -3767,6 +3782,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitNot(HNot instruction) {}
   @override
   void visitNullCheck(HNullCheck instruction) {}
+  @override
+  void visitLateReadCheck(HLateReadCheck instruction) {}
   @override
   void visitParameterValue(HParameterValue instruction) {}
   @override

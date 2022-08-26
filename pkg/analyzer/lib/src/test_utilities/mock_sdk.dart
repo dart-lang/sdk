@@ -86,6 +86,10 @@ abstract class Stream<T> {
     throw 0;
   }
 
+  factory Stream.value(T value) {
+    throw 0;
+  }
+
   Future<T> get first;
 
   StreamSubscription<T> listen(void onData(T event)?,
@@ -258,6 +262,7 @@ final MockSdkLibrary _LIB_CORE = MockSdkLibrary(
 library dart.core;
 
 import "dart:_internal" hide Symbol;
+import "dart:_internal" as internal show Symbol;
 
 export 'dart:async' show Future, Stream;
 
@@ -279,7 +284,8 @@ class ArgumentError extends Error {
 
 // In the SDK this is an abstract class.
 class BigInt implements Comparable<BigInt> {
-  static BigInt parse(String source, {int radix}) => BigInt();
+  int compareTo(BigInt other) => 0;
+  static BigInt parse(String source, {int? radix}) => throw 0;
 }
 
 abstract class bool extends Object {
@@ -351,7 +357,9 @@ abstract class double extends num {
   external static double? tryParse(String source);
 }
 
-class Duration implements Comparable<Duration> {}
+class Duration implements Comparable<Duration> {
+  int compareTo(Duration other) => 0;
+}
 
 class Error {
   Error();
@@ -457,11 +465,11 @@ class List<E> implements Iterable<E> {
 
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
-  Map<int, E> asMap() {}
+  Map<int, E> asMap() => throw 0;
   void clear() {}
   int indexOf(Object element);
   bool remove(Object? value);
-  E removeLast() {}
+  E removeLast() => throw 0;
 
   noSuchMethod(Invocation invocation) => null;
 }
@@ -557,11 +565,14 @@ class Object {
 }
 
 abstract class Enum {
-  int get index;
+  int get index; // Enum
+  String get _name;
 }
 
-abstract class _Enum extends Enum {
-  String _name;
+abstract class _Enum implements Enum {
+  final int index;
+  final String _name;
+  const _Enum(this.index, this._name);
 }
 
 abstract class Pattern {
@@ -584,6 +595,9 @@ abstract class Set<E> implements Iterable<E> {
   void addAll(Iterable<E> elements);
   bool remove(Object? value);
   E? lookup(Object? object);
+
+  static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
+      throw '';
 }
 
 class StackTrace {}
@@ -621,7 +635,7 @@ abstract class String implements Comparable<String>, Pattern {
 }
 
 class Symbol {
-  const factory Symbol(String name) = _SymbolImpl;
+  const factory Symbol(String name) = internal.Symbol;
 }
 
 class Type {}
@@ -633,8 +647,8 @@ class UnsupportedError {
 }
 
 class Uri {
-  static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
-    return null;
+  static List<int> parseIPv6Address(String host, [int start = 0, int? end]) {
+    throw 0;
   }
 }
 
@@ -646,8 +660,9 @@ class _Proxy {
   const _Proxy();
 }
 
-class _SymbolImpl {
-  const _SymbolImpl(String name);
+@Since("2.15")
+extension EnumName on Enum {
+  String get name => _name;
 }
 ''',
     )
@@ -803,10 +818,14 @@ class Abi {
   static const androidArm = _androidArm;
   static const androidArm64 = _androidArm64;
   static const androidIA32 = _androidIA32;
+  static const linuxX64 = _linuxX64;
+  static const macosX64 = _macosX64;
 
   static const _androidArm = Abi._(_Architecture.arm, _OS.android);
   static const _androidArm64 = Abi._(_Architecture.arm64, _OS.android);
   static const _androidIA32 = Abi._(_Architecture.ia32, _OS.android);
+  static const _linuxX64 = Abi._(_Architecture.x64, _OS.linux);
+  static const _macosX64 = Abi._(_Architecture.x64, _OS.macos);
 
   final _OS _os;
 
@@ -1078,7 +1097,8 @@ final MockSdkLibrary _LIB_INTERNAL = MockSdkLibrary(
       '''
 library dart._internal;
 
-class Symbol {}
+import 'dart:core' hide Symbol;
+import 'dart:core' as core show Symbol;
 
 class EmptyIterable<E> implements Iterable<E> {
   const EmptyIterable();
@@ -1087,6 +1107,16 @@ class EmptyIterable<E> implements Iterable<E> {
 class ExternalName {
   final String name;
   const ExternalName(this.name);
+}
+
+@Since("2.2")
+class Since {
+  final String version;
+  const Since(this.version);
+}
+
+class Symbol implements core.Symbol {
+  external const Symbol(String name);
 }
 ''',
     )

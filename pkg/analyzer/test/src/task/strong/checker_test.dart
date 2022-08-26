@@ -248,7 +248,7 @@ void main() {
   }
 
   test_conversionAndDynamicInvoke() async {
-    newFile2('$testPackageLibPath/helper.dart', r'''
+    newFile('$testPackageLibPath/helper.dart', r'''
 dynamic toString = (int x) => x + 42;
 dynamic hashCode = "hello";
 ''');
@@ -2787,7 +2787,7 @@ class E extends B implements A { }
   }
 
   test_privateOverride() async {
-    newFile2('$testPackageLibPath/helper.dart', r'''
+    newFile('$testPackageLibPath/helper.dart', r'''
 import 'test.dart' as main;
 
 class Base {
@@ -2884,7 +2884,7 @@ class A {
   }
 
   test_relaxedCasts() async {
-    await assertErrorsInCode('''
+    await assertErrorsInCode(r'''
 class A {}
 
 class L<T> {}
@@ -2962,10 +2962,10 @@ void main() {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 764, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 783, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1032, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1202, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 766, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 785, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1034, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1204, 5),
     ]);
   }
 

@@ -1,10 +1,9 @@
-// @dart = 2.9
 library test;
 
 class C<T> {
-  T x;
-  void f(T value) {}
-  void set y(T value) {}
+  T? x;
+  void f(T? value) {}
+  void set y(T? value) {}
 }
 
 typedef void F<T>(T x);

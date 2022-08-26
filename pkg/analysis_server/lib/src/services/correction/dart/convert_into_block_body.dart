@@ -61,7 +61,7 @@ class ConvertIntoBlockBody extends CorrectionProducer {
     var functionElement = _getFunctionElement(body.parent);
     if (functionElement == null) return null;
 
-    var lines = ['// TODO: implement ${functionElement.name}'];
+    var lines = ['// TODO: implement ${functionElement.displayName}'];
 
     var returnValueType = functionElement.returnType;
     if (!returnValueType.isVoid) {
@@ -104,7 +104,4 @@ class ConvertIntoBlockBody extends CorrectionProducer {
     }
     return null;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertIntoBlockBody newInstance() => ConvertIntoBlockBody();
 }

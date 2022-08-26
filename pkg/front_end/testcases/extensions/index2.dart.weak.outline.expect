@@ -1,0 +1,49 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class MapLike<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field core::Map<self::MapLike::K%, self::MapLike::V%> _map;
+  synthetic constructor •() → self::MapLike<self::MapLike::K%, self::MapLike::V%>
+    ;
+  method get(core::Object key) → self::MapLike::V?
+    ;
+  method put(covariant-by-class self::MapLike::K% key, covariant-by-class self::MapLike::V% value) → self::MapLike::V%
+    ;
+}
+class MapLike2<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field core::Map<self::MapLike2::K%, self::MapLike2::V%> _map;
+  final field self::MapLike2::V% defaultValue;
+  constructor •(self::MapLike2::V% defaultValue) → self::MapLike2<self::MapLike2::K%, self::MapLike2::V%>
+    ;
+  method get(core::Object key) → self::MapLike2::V%
+    ;
+  method put(covariant-by-class self::MapLike2::K% key, covariant-by-class self::MapLike2::V% value) → self::MapLike2::V%
+    ;
+}
+extension Extension<K extends core::Object? = dynamic, V extends core::Object? = dynamic> on self::MapLike<K%, V%> {
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+}
+extension Extension2<K extends core::Object? = dynamic, V extends core::Object? = dynamic> on self::MapLike2<K%, V%> {
+  operator [] = self::Extension2|[];
+  operator []= = self::Extension2|[]=;
+}
+static method Extension|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]::K%, self::Extension|[]::V%> #this, core::Object key) → self::Extension|[]::V?
+  ;
+static method Extension|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]=::K%, self::Extension|[]=::V%> #this, self::Extension|[]=::K% key, self::Extension|[]=::V% value) → void
+  ;
+static method Extension2|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]::K%, self::Extension2|[]::V%> #this, core::Object key) → self::Extension2|[]::V%
+  ;
+static method Extension2|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]=::K%, self::Extension2|[]=::V%> #this, self::Extension2|[]=::K% key, self::Extension2|[]=::V% value) → void
+  ;
+static method main() → dynamic
+  ;
+static method implicit() → dynamic
+  ;
+static method explicitWithTypeArguments() → dynamic
+  ;
+static method explicitInferredTypeArguments() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

@@ -22,8 +22,7 @@ export 'abstract_scanner.dart'
 
 export 'token_impl.dart'
     show
-        LanguageVersionToken,
-        StringToken,
+        StringTokenImpl,
         isBinaryOperator,
         isMinusOperator,
         isTernaryOperator,
@@ -32,7 +31,7 @@ export 'token_impl.dart'
 
 export 'error_token.dart' show ErrorToken, buildUnexpectedCharacterToken;
 
-export 'token_impl.dart' show LanguageVersionToken;
+export 'token.dart' show LanguageVersionToken;
 
 export 'token_constants.dart' show EOF_TOKEN;
 

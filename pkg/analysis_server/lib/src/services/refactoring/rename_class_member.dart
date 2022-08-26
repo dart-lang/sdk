@@ -108,11 +108,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         continue;
       }
       // check the element being renamed is accessible
-      {
-        var whereLibrary = reference.element.library;
-        if (!element.isAccessibleIn(whereLibrary)) {
-          continue;
-        }
+      if (!element.isAccessibleIn2(reference.libraryElement)) {
+        continue;
       }
       // add edit
       reference.addEdit(change, newName, id: _newPotentialId());

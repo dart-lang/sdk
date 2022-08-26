@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../../common/elements.dart' show CommonElements;
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
 import '../../elements/types.dart';
-import '../../ir/static_type.dart';
+import '../../ir/class_relation.dart';
 import '../../universe/selector.dart';
 import '../../world.dart';
 import '../abstract_value_domain.dart';
@@ -191,13 +193,13 @@ class PowersetBitsDomain {
   bool isPrimitiveValue(int value) => isSingleton(value);
 
   int computeAbstractValueForConstant(ConstantValue value) {
-    if (value.isTrue) {
+    if (value is TrueConstantValue) {
       return trueValue;
     }
-    if (value.isFalse) {
+    if (value is FalseConstantValue) {
       return falseValue;
     }
-    if (value.isNull) {
+    if (value is NullConstantValue) {
       return nullValue;
     }
 

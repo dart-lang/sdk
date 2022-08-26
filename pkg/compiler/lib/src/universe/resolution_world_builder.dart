@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart' show Identifiers, Names;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../ir/static_type.dart';
+import '../ir/class_relation.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart'
@@ -528,19 +530,19 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   /// the usage changes for each member.
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     if (staticUse.kind == StaticUseKind.CLOSURE) {
-      Local localFunction = staticUse.element;
+      Local /*!*/ localFunction = staticUse.element;
       FunctionType type =
           _elementEnvironment.getLocalFunctionType(localFunction);
       if (type.typeVariables.isNotEmpty) {
         _genericLocalFunctions.add(localFunction);
       }
-      _localFunctions.add(staticUse.element);
+      _localFunctions.add(localFunction);
       return;
     } else if (staticUse.kind == StaticUseKind.CLOSURE_CALL) {
-      if (staticUse.typeArguments?.isNotEmpty ?? false) {
+      final typeArguments = staticUse.typeArguments;
+      if (typeArguments != null && typeArguments.isNotEmpty) {
         registerDynamicInvocation(
-            Selector.call(Names.call, staticUse.callStructure),
-            staticUse.typeArguments);
+            Selector.call(Names.call, staticUse.callStructure), typeArguments);
       }
       return;
     }

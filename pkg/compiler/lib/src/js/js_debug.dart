@@ -9,8 +9,6 @@ library js.debug;
 import 'package:js_ast/js_ast.dart';
 import 'package:kernel/text/indentation.dart' show Indentation, Tagging;
 
-import '../io/code_output.dart' show BufferedCodeOutput;
-
 /// Unparse the JavaScript [node].
 String nodeToString(Node node, {bool pretty = false}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
@@ -27,7 +25,7 @@ class DebugPrinter extends BaseVisitorVoid with Indentation, Tagging<Node> {
   @override
   StringBuffer sb = StringBuffer();
 
-  void visitNodeWithChildren(Node node, String type, [Map params]) {
+  void visitNodeWithChildren(Node node, String type, [Map? params]) {
     openNode(node, type, params);
     node.visitChildren(this);
     closeNode();
@@ -62,8 +60,7 @@ class DebugPrinter extends BaseVisitorVoid with Indentation, Tagging<Node> {
 }
 
 /// Simple printing context that doesn't throw on errors.
-class LenientPrintingContext extends SimpleJavaScriptPrintingContext
-    implements BufferedCodeOutput {
+class LenientPrintingContext extends SimpleJavaScriptPrintingContext {
   @override
   void error(String message) {
     buffer.write('>>$message<<');

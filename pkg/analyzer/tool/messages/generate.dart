@@ -55,7 +55,7 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
 /// Code generator for analyzer error classes.
 class _AnalyzerErrorGenerator {
   final List<ErrorClassInfo> errorClasses;
-  final out = StringBuffer('''
+  final StringBuffer out = StringBuffer('''
 // Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -81,12 +81,6 @@ class _AnalyzerErrorGenerator {
     for (var importPath in imports.toList()..sort()) {
       out.writeln("import ${json.encode(importPath)};");
     }
-    out.writeln();
-    out.writeln("// It is hard to visually separate each code's _doc comment_ "
-        "from its published");
-    out.writeln('// _documentation comment_ when each is written as an '
-        'end-of-line comment.');
-    out.writeln('// ignore_for_file: slash_for_doc_comments');
     if (shouldGenerateFastaAnalyzerErrorCodes) {
       out.writeln();
       _generateFastaAnalyzerErrorCodeList();
@@ -113,14 +107,11 @@ class _AnalyzerErrorGenerator {
           '[name].');
       out.writeln(
           'const ${errorClass.name}(String name, String problemMessage, {');
-      out.writeln('String? correctionMessage,');
-      out.writeln('bool hasPublishedDocs = false,');
-      out.writeln('bool isUnresolvedIdentifier = false,');
+      out.writeln('super.correctionMessage,');
+      out.writeln('super.hasPublishedDocs = false,');
+      out.writeln('super.isUnresolvedIdentifier = false,');
       out.writeln('String? uniqueName,');
       out.writeln('}) : super(');
-      out.writeln('correctionMessage: correctionMessage,');
-      out.writeln('hasPublishedDocs: hasPublishedDocs,');
-      out.writeln('isUnresolvedIdentifier: isUnresolvedIdentifier,');
       out.writeln('name: name,');
       out.writeln('problemMessage: problemMessage,');
       out.writeln("uniqueName: '${errorClass.name}.\${uniqueName ?? name}',");

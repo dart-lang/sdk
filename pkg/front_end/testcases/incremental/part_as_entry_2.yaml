@@ -1,0 +1,42 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+type: newworld
+worlds:
+  - entry: entry.dart
+    experiments: alternative-invalidation-strategy
+    checkEntries: false
+    sources:
+      entry.dart: |
+        part of "lib.dart";
+      lib.dart: |
+        import 'lib1.dart';
+        export 'lib1.dart';
+        part "entry.dart";
+      lib1.dart: |
+        import 'lib.dart';
+        main() {
+          print("Hello, World!");
+        }
+    expectedLibraryCount: 2
+
+  - entry: entry.dart
+    experiments: alternative-invalidation-strategy
+    checkEntries: false
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib.dart
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: true
+
+  - entry: entry.dart
+    experiments: alternative-invalidation-strategy
+    checkEntries: false
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib1.dart
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: true

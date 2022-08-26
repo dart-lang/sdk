@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
@@ -54,13 +55,14 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
     var folder = newFolder('/home/test');
     contextBuilder = ContextBuilderImpl(resourceProvider: resourceProvider);
-    var workspace = BasicWorkspace.find(resourceProvider, {}, folder.path);
+    var workspace =
+        BasicWorkspace.find(resourceProvider, Packages.empty, folder.path);
     contextRoot = ContextRootImpl(resourceProvider, folder, workspace);
   }
 
   void test_analysisOptions_invalid() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile2(projectPath, ';');
+    newAnalysisOptionsYamlFile(projectPath, ';');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
     var analysisOptions = analysisContext.analysisOptionsImpl;
@@ -69,7 +71,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   void test_analysisOptions_languageOptions() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile2(
+    newAnalysisOptionsYamlFile(
       projectPath,
       AnalysisOptionsFileConfig(
         strictRawTypes: true,
@@ -98,7 +100,7 @@ environment:
 
   void test_analysisOptions_sdkVersionConstraint_noPubspec() {
     var projectPath = convertPath('/home/test');
-    newFile2('$projectPath/lib/a.dart', '');
+    newFile('$projectPath/lib/a.dart', '');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
     var analysisOptions = analysisContext.driver.analysisOptions;
@@ -167,7 +169,7 @@ environment:
 
   void test_sourceFactory_bazelWorkspace() {
     var projectPath = convertPath('/workspace/my/module');
-    newFile2('/workspace/WORKSPACE', '');
+    newFile('/workspace/WORKSPACE', '');
     newFolder('/workspace/bazel-bin');
     newFolder('/workspace/bazel-genfiles');
 
@@ -186,7 +188,7 @@ environment:
 
   void test_sourceFactory_pubWorkspace() {
     var projectPath = convertPath('/home/my');
-    newFile2('/home/my/pubspec.yaml', '');
+    newFile('/home/my/pubspec.yaml', '');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
     expect(analysisContext.contextRoot.workspace, isA<PubWorkspace>());

@@ -40,7 +40,4 @@ class AddRequiredKeyword extends CorrectionProducer {
       builder.addSimpleInsertion(insertOffset, 'required ');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddRequiredKeyword newInstance() => AddRequiredKeyword();
 }

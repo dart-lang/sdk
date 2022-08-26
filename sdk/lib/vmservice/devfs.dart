@@ -84,7 +84,7 @@ class DevFS {
     if (deleteDir == null) {
       return;
     }
-    final deletions = <Future>[
+    final deletions = <Future<void>>[
       for (final fs in _fsMap.values) deleteDir(fs.uri),
     ];
     Future.wait(deletions);
@@ -350,7 +350,7 @@ class DevFS {
             details: "${message.method}: invalid 'files' parameter "
                 "at index ${i}: ${fileInfo}");
       }
-      final uri = fs.resolvePath(fileInfo[0]);
+      final uri = fs.resolvePath(fileInfo[0] as String);
       if (uri == null) {
         return encodeRpcError(message, kInvalidParams,
             details: "${message.method}: invalid 'files' parameter "
@@ -358,9 +358,10 @@ class DevFS {
       }
       uris.add(uri);
     }
-    final pendingWrites = <Future>[];
+    final pendingWrites = <Future<void>>[];
     for (int i = 0; i < uris.length; i++) {
-      final decodedFileContents = base64.decode(files[i][1]);
+      final file = files[i].cast<String>();
+      final decodedFileContents = base64.decode(file[1]);
       pendingWrites.add(writeFile(uris[i], decodedFileContents));
     }
     await Future.wait(pendingWrites);
@@ -386,7 +387,7 @@ class DevFS {
     final fileList = await listFiles(fs.uri);
     // Remove any url-encoding in the filenames.
     for (int i = 0; i < fileList.length; i++) {
-      fileList[i]['name'] = Uri.decodeFull(fileList[i]['name']);
+      fileList[i]['name'] = Uri.decodeFull(fileList[i]['name'] as String);
     }
     final result = <String, dynamic>{'type': 'FSFileList', 'files': fileList};
     return encodeResult(message, result);

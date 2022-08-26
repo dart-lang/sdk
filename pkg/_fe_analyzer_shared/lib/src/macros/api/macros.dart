@@ -64,15 +64,15 @@ abstract class ClassTypesMacro implements Macro {
 /// The interface for [Macro]s that can be applied to any class, and wants to
 /// contribute new non-type declarations to the program.
 abstract class ClassDeclarationsMacro implements Macro {
-  FutureOr<void> buildDeclarationsForClass(
-      ClassDeclaration clazz, ClassMemberDeclarationBuilder builder);
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any class, and wants to
 /// augment the definitions of members on the class.
 abstract class ClassDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForClass(
-      ClassDeclaration clazz, ClassDefinitionBuilder builder);
+      IntrospectableClassDeclaration clazz, ClassDefinitionBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any field, and wants to

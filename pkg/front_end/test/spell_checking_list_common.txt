@@ -723,6 +723,7 @@ cycles
 cyclic
 dart
 dart2js
+dart2wasm
 dartdevc
 data
 date
@@ -2265,7 +2266,6 @@ preceded
 precedence
 precedes
 preceding
-preceeding
 precise
 precisely
 precision
@@ -2972,6 +2972,7 @@ survives
 suspect
 swap
 switch
+switches
 symbol
 symbols
 symmetric
@@ -3339,6 +3340,7 @@ warn
 warning
 warnings
 was
+wasm
 wasn't
 way
 ways

@@ -54,7 +54,7 @@ import "org-dartlang-testcase:///foundation_basic_types_lib.dart";
 abstract class BindingBase extends core::Object {
   synthetic constructor •() → fou::BindingBase
     ;
-  method registerSignalServiceExtension({required core::String name, required () → asy::Future<Null> callback}) → void
+  method registerSignalServiceExtension({required core::String name = #C1, required () → asy::Future<Null> callback = #C1}) → void
     ;
 }
 
@@ -133,3 +133,8 @@ import "services_binding_lib.dart" as ser;
 additionalExports = (ser::ServicesBinding)
 
 export "org-dartlang-testcase:///services_binding_lib.dart";
+
+
+constants  {
+  #C1 = null
+}

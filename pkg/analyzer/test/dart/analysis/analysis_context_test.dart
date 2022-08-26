@@ -16,13 +16,13 @@ void main() {
 @reflectiveTest
 class AnalysisContextTest extends PubPackageResolutionTest {
   test_changeFile_imported() async {
-    var a = newFile2('$testPackageLibPath/a.dart', '');
+    var a = newFile('$testPackageLibPath/a.dart', '');
 
-    var b = newFile2('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 ''');
 
-    var c = newFile2('$testPackageLibPath/c.dart', '');
+    var c = newFile('$testPackageLibPath/c.dart', '');
 
     var analysisContext = contextFor(a.path);
 
@@ -41,19 +41,19 @@ import 'a.dart';
   }
 
   test_changeFile_part() async {
-    var a = newFile2('$testPackageLibPath/a.dart', r'''
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
 ''');
 
-    var b = newFile2('$testPackageLibPath/b.dart', r'''
+    var b = newFile('$testPackageLibPath/b.dart', r'''
 part of 'a.dart';
 ''');
 
-    var c = newFile2('$testPackageLibPath/c.dart', r'''
+    var c = newFile('$testPackageLibPath/c.dart', r'''
 import 'a.dart';
 ''');
 
-    var d = newFile2('$testPackageLibPath/d.dart', '');
+    var d = newFile('$testPackageLibPath/d.dart', '');
 
     var analysisContext = contextFor(a.path);
 

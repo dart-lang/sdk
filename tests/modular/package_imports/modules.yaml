@@ -11,3 +11,8 @@ dependencies:
   f3: a
   a: f1
   f1: f0
+
+packages:
+  f0: .
+  f1: f1
+  a: a

@@ -53,11 +53,12 @@ class RuntimeCoverageAnalysisCommand extends Command<void>
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final argRes = argResults!;
+    final args = argRes.rest;
     if (args.length < 2) {
       usageException('Missing arguments, expected: info.data coverage.json');
     }
-    var showPackages = argResults['show-packages'];
+    final showPackages = argRes['show-packages'];
     if (showPackages) {
       await _reportWithPackages(args[0], args[1]);
     } else {
@@ -75,7 +76,7 @@ Future<void> _report(
   // The value associated with each coverage item isn't used for now.
   var coverage = coverageRaw.keys.toSet();
 
-  int totalProgramSize = info.program.size;
+  int totalProgramSize = info.program!.size;
   int totalLibSize = info.libraries.fold(0, (n, lib) => n + lib.size);
 
   int totalCode = 0;
@@ -128,13 +129,13 @@ Future<void> _reportWithPackages(
   // The value associated with each coverage item isn't used for now.
   var coverage = coverageRaw.keys.toSet();
 
-  int totalProgramSize = info.program.size;
+  int totalProgramSize = info.program!.size;
   int totalLibSize = info.libraries.fold(0, (n, lib) => n + lib.size);
 
   int totalCode = 0;
   int usedCode = 0;
-  var packageData = <String, PackageInfo>{};
-  var unused = PriorityQueue<Info>((a, b) => b.size.compareTo(a.size));
+  final packageData = <String?, PackageInfo>{};
+  final unused = PriorityQueue<Info>((a, b) => b.size.compareTo(a.size));
 
   void tallyCode(BasicInfo i) {
     totalCode += i.size;
@@ -142,8 +143,7 @@ Future<void> _reportWithPackages(
     var used = coverage.contains(name);
 
     var groupName = libraryGroupName(i);
-    packageData.putIfAbsent(groupName, () => PackageInfo());
-    packageData[groupName].add(i, used: used);
+    (packageData[groupName] ??= PackageInfo()).add(i, used: used);
 
     if (used) {
       usedCode += i.size;
@@ -216,7 +216,7 @@ Future<void> _reportWithPackages(
       var name = qualifiedName(item);
       var used = coverage.contains(name);
       var usedTick = used ? '+' : '-';
-      var mainUnitTick = item.outputUnit.name == 'main' ? 'M' : 'D';
+      var mainUnitTick = item.outputUnit!.name == 'main' ? 'M' : 'D';
       _leftPadded('    [$usedTick$mainUnitTick] ${qualifiedName(item)}:',
           '${item.size} bytes ($percent% of package)');
     }
@@ -225,7 +225,7 @@ Future<void> _reportWithPackages(
   }
 }
 
-void _section(String title, {int size}) {
+void _section(String title, {int? size}) {
   if (size == null) {
     print(title);
   } else {
@@ -266,7 +266,7 @@ class PackageInfo {
     } else {
       unusedSize += i.size;
     }
-    if (i.outputUnit.name == 'main') {
+    if (i.outputUnit!.name == 'main') {
       mainUnitSize += i.size;
       if (!used) {
         unusedMainUnitSize += i.size;

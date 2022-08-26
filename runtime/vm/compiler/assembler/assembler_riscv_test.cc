@@ -32,7 +32,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ PushNativeCalleeSavedRegisters();
 
   __ mv(THR, A2);
-  __ lx(WRITE_BARRIER_MASK, Address(THR, Thread::write_barrier_mask_offset()));
+  __ RestorePinnedRegisters();  // Setup WRITE_BARRIER_STATE.
 
   __ StoreIntoObject(A1, FieldAddress(A1, GrowableObjectArray::data_offset()),
                      A0);
@@ -3369,11 +3369,31 @@ ASSEMBLER_TEST_RUN(SingleMin, test) {
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -3.0f));
   EXPECT_EQ(-5.0f, CallF(test->entry(), -3.0f, -5.0f));
 
+  EXPECT_EQ(bit_cast<uint32_t>(-0.0f),
+            bit_cast<uint32_t>(CallF(test->entry(), 0.0f, -0.0f)));
+  EXPECT_EQ(bit_cast<uint32_t>(-0.0f),
+            bit_cast<uint32_t>(CallF(test->entry(), -0.0f, 0.0f)));
+
   float qNAN = std::numeric_limits<float>::quiet_NaN();
   EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, qNAN));
   EXPECT_EQ(3.0f, CallF(test->entry(), qNAN, 3.0f));
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, qNAN));
   EXPECT_EQ(-3.0f, CallF(test->entry(), qNAN, -3.0f));
+
+  float sNAN = std::numeric_limits<float>::signaling_NaN();
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, sNAN));
+  EXPECT_EQ(3.0f, CallF(test->entry(), sNAN, 3.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, sNAN));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), sNAN, -3.0f));
+
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), qNAN, qNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), sNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), qNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), sNAN, qNAN)));
 }
 
 ASSEMBLER_TEST_GENERATE(SingleMax, assembler) {
@@ -3399,11 +3419,31 @@ ASSEMBLER_TEST_RUN(SingleMax, test) {
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -3.0f));
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, -5.0f));
 
+  EXPECT_EQ(bit_cast<uint32_t>(0.0f),
+            bit_cast<uint32_t>(CallF(test->entry(), 0.0f, -0.0f)));
+  EXPECT_EQ(bit_cast<uint32_t>(0.0f),
+            bit_cast<uint32_t>(CallF(test->entry(), -0.0f, 0.0f)));
+
   float qNAN = std::numeric_limits<float>::quiet_NaN();
   EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, qNAN));
   EXPECT_EQ(3.0f, CallF(test->entry(), qNAN, 3.0f));
   EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, qNAN));
   EXPECT_EQ(-3.0f, CallF(test->entry(), qNAN, -3.0f));
+
+  float sNAN = std::numeric_limits<float>::signaling_NaN();
+  EXPECT_EQ(3.0f, CallF(test->entry(), 3.0f, sNAN));
+  EXPECT_EQ(3.0f, CallF(test->entry(), sNAN, 3.0f));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), -3.0f, sNAN));
+  EXPECT_EQ(-3.0f, CallF(test->entry(), sNAN, -3.0f));
+
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), qNAN, qNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), sNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), qNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint32_t>(qNAN),
+            bit_cast<uint32_t>(CallF(test->entry(), sNAN, qNAN)));
 }
 
 ASSEMBLER_TEST_GENERATE(SingleEqual, assembler) {
@@ -4312,11 +4352,31 @@ ASSEMBLER_TEST_RUN(DoubleMin, test) {
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -3.0));
   EXPECT_EQ(-5.0, CallD(test->entry(), -3.0, -5.0));
 
+  EXPECT_EQ(bit_cast<uint64_t>(-0.0),
+            bit_cast<uint64_t>(CallD(test->entry(), 0.0, -0.0)));
+  EXPECT_EQ(bit_cast<uint64_t>(-0.0),
+            bit_cast<uint64_t>(CallD(test->entry(), -0.0, 0.0)));
+
   double qNAN = std::numeric_limits<double>::quiet_NaN();
   EXPECT_EQ(3.0, CallD(test->entry(), 3.0, qNAN));
   EXPECT_EQ(3.0, CallD(test->entry(), qNAN, 3.0));
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, qNAN));
   EXPECT_EQ(-3.0, CallD(test->entry(), qNAN, -3.0));
+
+  double sNAN = std::numeric_limits<double>::signaling_NaN();
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, sNAN));
+  EXPECT_EQ(3.0, CallD(test->entry(), sNAN, 3.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, sNAN));
+  EXPECT_EQ(-3.0, CallD(test->entry(), sNAN, -3.0));
+
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), sNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), qNAN, qNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), qNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), sNAN, qNAN)));
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleMax, assembler) {
@@ -4342,11 +4402,31 @@ ASSEMBLER_TEST_RUN(DoubleMax, test) {
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -3.0));
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, -5.0));
 
+  EXPECT_EQ(bit_cast<uint64_t>(0.0),
+            bit_cast<uint64_t>(CallD(test->entry(), 0.0, -0.0)));
+  EXPECT_EQ(bit_cast<uint64_t>(0.0),
+            bit_cast<uint64_t>(CallD(test->entry(), -0.0, 0.0)));
+
   double qNAN = std::numeric_limits<double>::quiet_NaN();
   EXPECT_EQ(3.0, CallD(test->entry(), 3.0, qNAN));
   EXPECT_EQ(3.0, CallD(test->entry(), qNAN, 3.0));
   EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, qNAN));
   EXPECT_EQ(-3.0, CallD(test->entry(), qNAN, -3.0));
+
+  double sNAN = std::numeric_limits<double>::signaling_NaN();
+  EXPECT_EQ(3.0, CallD(test->entry(), 3.0, sNAN));
+  EXPECT_EQ(3.0, CallD(test->entry(), sNAN, 3.0));
+  EXPECT_EQ(-3.0, CallD(test->entry(), -3.0, sNAN));
+  EXPECT_EQ(-3.0, CallD(test->entry(), sNAN, -3.0));
+
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), sNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), qNAN, qNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), qNAN, sNAN)));
+  EXPECT_EQ(bit_cast<uint64_t>(qNAN),
+            bit_cast<uint64_t>(CallD(test->entry(), sNAN, qNAN)));
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToSingle, assembler) {
@@ -6128,32 +6208,88 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate_MinInt64, assembler) {
 }
 ASSEMBLER_TEST_RUN(LoadImmediate_MinInt64, test) {
   EXPECT_DISASSEMBLY(
-      "f8000537 lui a0, -134217728\n"
-      "    0532 slli a0, a0, 12\n"
-      "    0532 slli a0, a0, 12\n"
-      "    0532 slli a0, a0, 12\n"
+      "    557d li a0, -1\n"
+      "03f51513 slli a0, a0, 0x3f\n"
       "    8082 ret\n");
   EXPECT_EQ(kMinInt64, Call(test->entry()));
 }
 
-ASSEMBLER_TEST_GENERATE(LoadImmediate_Large, assembler) {
+ASSEMBLER_TEST_GENERATE(LoadImmediate_Full, assembler) {
   FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, 0xABCDABCDABCDABCD);
   __ ret();
 }
-ASSEMBLER_TEST_RUN(LoadImmediate_Large, test) {
+ASSEMBLER_TEST_RUN(LoadImmediate_Full, test) {
   EXPECT_DISASSEMBLY(
-      "fabce537 lui a0, -88285184\n"
-      "abd5051b addiw a0, a0, -1347\n"
+      "feaf3537 lui a0, -22073344\n"
+      "6af5051b addiw a0, a0, 1711\n"
       "    0532 slli a0, a0, 12\n"
-      "dac50513 addi a0, a0, -596\n"
-      "    0532 slli a0, a0, 12\n"
+      "36b50513 addi a0, a0, 875\n"
+      "    053a slli a0, a0, 14\n"
       "cdb50513 addi a0, a0, -805\n"
       "    0532 slli a0, a0, 12\n"
       "bcd50513 addi a0, a0, -1075\n"
       "    8082 ret\n");
   EXPECT_EQ(static_cast<int64_t>(0xABCDABCDABCDABCD), Call(test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiAddiwSlli, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GC);
+  __ LoadImmediate(A0, 0x7BCDABCD00000);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_LuiAddiwSlli, test) {
+  EXPECT_DISASSEMBLY(
+      "7bcdb537 lui a0, 2077077504\n"
+      "bcd5051b addiw a0, a0, -1075\n"
+      "    0552 slli a0, a0, 20\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<int64_t>(0x7BCDABCD00000), Call(test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_LuiSlli, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GC);
+  __ LoadImmediate(A0, 0xABCDE00000000000);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_LuiSlli, test) {
+  EXPECT_DISASSEMBLY(
+      "d5e6f537 lui a0, -706285568\n"
+      "02151513 slli a0, a0, 0x21\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<int64_t>(0xABCDE00000000000), Call(test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlli, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GC);
+  __ LoadImmediate(A0, 0xABC00000000000);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_LiSlli, test) {
+  EXPECT_DISASSEMBLY(
+      "2af00513 li a0, 687\n"
+      "02e51513 slli a0, a0, 0x2e\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<int64_t>(0xABC00000000000), Call(test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(LoadImmediate_LiSlliAddi, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GC);
+  __ LoadImmediate(A0, 0xFF000000000000FF);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LoadImmediate_LiSlliAddi, test) {
+  EXPECT_DISASSEMBLY(
+      "    557d li a0, -1\n"
+      "03851513 slli a0, a0, 0x38\n"
+      "0ff50513 addi a0, a0, 255\n"
+      "    8082 ret\n");
+  EXPECT_EQ(static_cast<int64_t>(0xFF000000000000FF), Call(test->entry()));
 }
 #endif
 

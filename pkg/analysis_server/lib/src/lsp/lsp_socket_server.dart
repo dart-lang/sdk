@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -30,13 +30,19 @@ class LspSocketServer implements AbstractSocketServer {
 
   /// The function used to create a new SDK using the default SDK.
   final DartSdkManager sdkManager;
+
   @override
   final DiagnosticServer diagnosticServer;
+
+  /// The object through which analytics are to be sent.
+  final AnalyticsManager analyticsManager;
+
   final InstrumentationService instrumentationService;
 
   LspSocketServer(
     this.analysisServerOptions,
     this.diagnosticServer,
+    this.analyticsManager,
     this.sdkManager,
     this.instrumentationService,
   );
@@ -72,6 +78,7 @@ class LspSocketServer implements AbstractSocketServer {
       resourceProvider,
       analysisServerOptions,
       sdkManager,
+      analyticsManager,
       CrashReportingAttachmentsBuilder.empty,
       instrumentationService,
       diagnosticServer: diagnosticServer,

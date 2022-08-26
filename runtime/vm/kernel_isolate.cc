@@ -699,6 +699,10 @@ class KernelCompilationRequest : public ValueObject {
     experimental_flags_object.value.as_array.values = experimental_flags_array;
     experimental_flags_object.value.as_array.length = num_experimental_flags;
 
+    Dart_CObject enable_mirrors;
+    enable_mirrors.type = Dart_CObject_kBool;
+    enable_mirrors.value.as_bool = FLAG_enable_mirrors;
+
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
     Dart_CObject* message_arr[] = {&tag,
@@ -718,7 +722,8 @@ class KernelCompilationRequest : public ValueObject {
                                    &dills_object,
                                    &num_blob_loads,
                                    &enable_asserts,
-                                   &experimental_flags_object};
+                                   &experimental_flags_object,
+                                   &enable_mirrors};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
 
@@ -942,6 +947,10 @@ class KernelCompilationRequest : public ValueObject {
     verbosity_str.value.as_string =
         const_cast<char*>(KernelCompilationVerbosityLevelToString(verbosity));
 
+    Dart_CObject enable_mirrors;
+    enable_mirrors.type = Dart_CObject_kBool;
+    enable_mirrors.value.as_bool = FLAG_enable_mirrors;
+
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &uri,
@@ -957,7 +966,8 @@ class KernelCompilationRequest : public ValueObject {
                                    &multiroot_filepaths_object,
                                    &multiroot_scheme_object,
                                    &original_working_directory_object,
-                                   &verbosity_str};
+                                   &verbosity_str,
+                                   &enable_mirrors};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
     // Send the message.

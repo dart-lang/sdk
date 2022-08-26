@@ -20,7 +20,6 @@ import 'package:analysis_server/src/services/refactoring/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -28,6 +27,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringMethodParameter, SourceChange;
 
@@ -39,6 +39,16 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
       AnalysisSession session, PropertyAccessorElement element) {
     return ConvertGetterToMethodRefactoringImpl(searchEngine, session, element);
   }
+
+  /// Return `true` if refactoring is available, possibly without checking all
+  /// initial conditions.
+  ///
+  /// This value may be used to control the visibility of the refactor in the UI
+  /// so that it doesn't show up in locations that are obviously not
+  /// appropriate. Initial conditions may perform additional checks (and provide
+  /// user-friendly messages) for locations where a user might reasonably expect
+  /// to see the refactor but it's not valid for a less obvious reason.
+  bool isAvailable();
 }
 
 /// [Refactoring] to convert normal [MethodDeclaration]s into getters.
@@ -49,6 +59,16 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
       AnalysisSession session, ExecutableElement element) {
     return ConvertMethodToGetterRefactoringImpl(searchEngine, session, element);
   }
+
+  /// Return `true` if refactoring is available, possibly without checking all
+  /// initial conditions.
+  ///
+  /// This value may be used to control the visibility of the refactor in the UI
+  /// so that it doesn't show up in locations that are obviously not
+  /// appropriate. Initial conditions may perform additional checks (and provide
+  /// user-friendly messages) for locations where a user might reasonably expect
+  /// to see the refactor but it's not valid for a less obvious reason.
+  bool isAvailable();
 }
 
 /// [Refactoring] to extract an expression into a local variable declaration.
@@ -100,6 +120,12 @@ abstract class ExtractLocalRefactoring implements Refactoring {
 
   /// Return `true` if refactoring is available, possibly without checking all
   /// initial conditions.
+  ///
+  /// This value may be used to control the visibility of the refactor in the UI
+  /// so that it doesn't show up in locations that are obviously not
+  /// appropriate. Initial conditions may perform additional checks (and provide
+  /// user-friendly messages) for locations where a user might reasonably expect
+  /// to see the refactor but it's not valid for a less obvious reason.
   bool isAvailable();
 }
 
@@ -168,6 +194,12 @@ abstract class ExtractMethodRefactoring implements Refactoring {
 
   /// Return `true` if refactoring is available, possibly without checking all
   /// initial conditions.
+  ///
+  /// This value may be used to control the visibility of the refactor in the UI
+  /// so that it doesn't show up in locations that are obviously not
+  /// appropriate. Initial conditions may perform additional checks (and provide
+  /// user-friendly messages) for locations where a user might reasonably expect
+  /// to see the refactor but it's not valid for a less obvious reason.
   bool isAvailable();
 }
 
@@ -195,6 +227,12 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
 
   /// Return `true` if refactoring is available, possibly without checking all
   /// initial conditions.
+  ///
+  /// This value may be used to control the visibility of the refactor in the UI
+  /// so that it doesn't show up in locations that are obviously not
+  /// appropriate. Initial conditions may perform additional checks (and provide
+  /// user-friendly messages) for locations where a user might reasonably expect
+  /// to see the refactor but it's not valid for a less obvious reason.
   bool isAvailable();
 }
 
@@ -214,6 +252,12 @@ abstract class InlineLocalRefactoring implements Refactoring {
 
   /// Return `true` if refactoring is available, possibly without checking all
   /// initial conditions.
+  ///
+  /// This value may be used to control the visibility of the refactor in the UI
+  /// so that it doesn't show up in locations that are obviously not
+  /// appropriate. Initial conditions may perform additional checks (and provide
+  /// user-friendly messages) for locations where a user might reasonably expect
+  /// to see the refactor but it's not valid for a less obvious reason.
   bool isAvailable();
 }
 
@@ -246,6 +290,12 @@ abstract class InlineMethodRefactoring implements Refactoring {
 
   /// Return `true` if refactoring is available, possibly without checking all
   /// initial conditions.
+  ///
+  /// This value may be used to control the visibility of the refactor in the UI
+  /// so that it doesn't show up in locations that are obviously not
+  /// appropriate. Initial conditions may perform additional checks (and provide
+  /// user-friendly messages) for locations where a user might reasonably expect
+  /// to see the refactor but it's not valid for a less obvious reason.
   bool isAvailable();
 }
 

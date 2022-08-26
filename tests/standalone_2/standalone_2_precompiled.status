@@ -16,7 +16,9 @@ io/http_redirect_test: SkipByDesign # Requires dart:mirrors
 io/http_response_deadline_test: Skip
 io/http_server_close_response_after_error_test: Skip
 io/https_unauthorized_test: Skip
+io/named_pipe_operations_test: Skip
 io/named_pipe_script_test: Skip
+io/named_pipe_type_test: Skip
 io/namespace_test: Skip # Issue 33168
 io/platform_resolved_executable_test: Skip
 io/print_sync_test: Skip

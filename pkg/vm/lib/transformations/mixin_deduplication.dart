@@ -196,20 +196,20 @@ class ReferenceUpdater extends RecursiveVisitor {
 
   @override
   visitSuperPropertyGet(SuperPropertyGet node) {
-    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget)!;
     super.visitSuperPropertyGet(node);
   }
 
   @override
   visitSuperPropertySet(SuperPropertySet node) {
-    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget);
+    node.interfaceTarget = _resolveNewInterfaceTarget(node.interfaceTarget)!;
     super.visitSuperPropertySet(node);
   }
 
   @override
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     node.interfaceTarget =
-        _resolveNewInterfaceTarget(node.interfaceTarget) as Procedure?;
+        _resolveNewInterfaceTarget(node.interfaceTarget) as Procedure;
     super.visitSuperMethodInvocation(node);
   }
 

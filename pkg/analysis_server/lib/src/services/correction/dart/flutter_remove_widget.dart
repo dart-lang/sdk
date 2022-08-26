@@ -88,7 +88,4 @@ class FlutterRemoveWidget extends CorrectionProducer {
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static FlutterRemoveWidget newInstance() => FlutterRemoveWidget();
 }

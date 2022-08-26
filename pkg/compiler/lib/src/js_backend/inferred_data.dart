@@ -4,13 +4,12 @@
 
 import 'dart:collection' show Queue;
 
-import '../common.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
-import '../world.dart';
+import '../world_interfaces.dart';
 import 'annotations.dart';
 
 abstract class InferredData {
@@ -159,7 +158,7 @@ class InferredDataImpl implements InferredData {
           sideEffects.setDependsOnSomething();
         }
       } else {
-        sideEffects.add(getSideEffectsOfElement(e));
+        sideEffects.add(getSideEffectsOfElement(e as FunctionEntity));
       }
     }
     return sideEffects;
@@ -167,8 +166,6 @@ class InferredDataImpl implements InferredData {
 
   @override
   SideEffects getSideEffectsOfElement(FunctionEntity element) {
-    assert(_sideEffects != null,
-        failedAt(element, "Side effects have not been computed yet."));
     // TODO(johnniwinther): Check that [_makeSideEffects] is only called if
     // type inference has been disabled (explicitly or because of compile time
     // errors).
@@ -206,7 +203,7 @@ class InferredDataImpl implements InferredData {
 
 class InferredDataBuilderImpl implements InferredDataBuilder {
   final Set<MemberEntity> _functionsCalledInLoop = {};
-  Map<MemberEntity, SideEffectsBuilder> _sideEffectsBuilders = {};
+  Map<MemberEntity, SideEffectsBuilder>? _sideEffectsBuilders = {};
   final Set<FunctionEntity> prematureSideEffectAccesses = {};
 
   final Set<FunctionEntity> _sideEffectsFreeElements = {};
@@ -222,14 +219,14 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
 
   @override
   SideEffectsBuilder getSideEffectsBuilder(MemberEntity member) {
-    return _sideEffectsBuilders[member] ??= SideEffectsBuilder(member);
+    return _sideEffectsBuilders![member] ??= SideEffectsBuilder(member);
   }
 
   @override
   void registerSideEffectsFree(FunctionEntity element) {
     _sideEffectsFreeElements.add(element);
-    assert(!_sideEffectsBuilders.containsKey(element));
-    _sideEffectsBuilders[element] = SideEffectsBuilder.free(element);
+    assert(!_sideEffectsBuilders!.containsKey(element));
+    _sideEffectsBuilders![element] = SideEffectsBuilder.free(element);
   }
 
   /// Compute [SideEffects] for all registered [SideEffectBuilder]s.
@@ -239,10 +236,11 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
         "Inferred data has already been computed.");
     Map<FunctionEntity, SideEffects> _sideEffects = {};
     Iterable<SideEffectsBuilder> sideEffectsBuilders =
-        _sideEffectsBuilders.values;
+        _sideEffectsBuilders!.values;
     emptyWorkList(sideEffectsBuilders);
     for (SideEffectsBuilder sideEffectsBuilder in sideEffectsBuilders) {
-      _sideEffects[sideEffectsBuilder.member] = sideEffectsBuilder.sideEffects;
+      _sideEffects[sideEffectsBuilder.member as FunctionEntity] =
+          sideEffectsBuilder.sideEffects;
     }
     _sideEffectsBuilders = null;
 

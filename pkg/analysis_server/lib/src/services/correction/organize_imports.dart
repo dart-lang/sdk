@@ -84,14 +84,14 @@ class ImportOrganizer {
         hasLibraryDirective = true;
       }
       if (directive is UriBasedDirective) {
-        var priority = getDirectivePriority(directive);
+        var priority = _getDirectivePriority(directive);
         if (priority != null) {
           var offset = directive.offset;
           var end = directive.end;
 
-          final isPsuedoLibraryDirective = directive == unit.directives.first;
+          final isPseudoLibraryDirective = directive == unit.directives.first;
           Annotation? lastLibraryAnnotation;
-          if (isPsuedoLibraryDirective) {
+          if (isPseudoLibraryDirective) {
             // Find the last library-level annotation that does not come
             // after any non-library annotation. If there are already
             // non-library annotations before library annotations, we will not
@@ -196,7 +196,7 @@ class ImportOrganizer {
               postAnnotationCommentText,
               uriContent,
               trailingCommentText,
-              isPsuedoLibraryDirective
+              isPseudoLibraryDirective
                   ? (libraryDocsAndAnnotationsEndOffset ?? offset)
                   : offset,
               end,
@@ -272,36 +272,6 @@ class ImportOrganizer {
     var beforeDirectives = code.substring(0, firstDirectiveOffset);
     var afterDirectives = code.substring(lastDirectiveEnd);
     code = beforeDirectives + directivesCode + afterDirectives;
-  }
-
-  static _DirectivePriority? getDirectivePriority(UriBasedDirective directive) {
-    var uriContent = directive.uri.stringValue ?? '';
-    if (directive is ImportDirective) {
-      if (uriContent.startsWith('dart:')) {
-        return _DirectivePriority.IMPORT_SDK;
-      } else if (uriContent.startsWith('package:')) {
-        return _DirectivePriority.IMPORT_PKG;
-      } else if (uriContent.contains('://')) {
-        return _DirectivePriority.IMPORT_OTHER;
-      } else {
-        return _DirectivePriority.IMPORT_REL;
-      }
-    }
-    if (directive is ExportDirective) {
-      if (uriContent.startsWith('dart:')) {
-        return _DirectivePriority.EXPORT_SDK;
-      } else if (uriContent.startsWith('package:')) {
-        return _DirectivePriority.EXPORT_PKG;
-      } else if (uriContent.contains('://')) {
-        return _DirectivePriority.EXPORT_OTHER;
-      } else {
-        return _DirectivePriority.EXPORT_REL;
-      }
-    }
-    if (directive is PartDirective) {
-      return _DirectivePriority.PART;
-    }
-    return null;
   }
 
   /// Return the EOL to use for [code].
@@ -382,6 +352,37 @@ class ImportOrganizer {
         return comment;
       }
       comment = comment.next;
+    }
+    return null;
+  }
+
+  static _DirectivePriority? _getDirectivePriority(
+      UriBasedDirective directive) {
+    var uriContent = directive.uri.stringValue ?? '';
+    if (directive is ImportDirective) {
+      if (uriContent.startsWith('dart:')) {
+        return _DirectivePriority.IMPORT_SDK;
+      } else if (uriContent.startsWith('package:')) {
+        return _DirectivePriority.IMPORT_PKG;
+      } else if (uriContent.contains('://')) {
+        return _DirectivePriority.IMPORT_OTHER;
+      } else {
+        return _DirectivePriority.IMPORT_REL;
+      }
+    }
+    if (directive is ExportDirective) {
+      if (uriContent.startsWith('dart:')) {
+        return _DirectivePriority.EXPORT_SDK;
+      } else if (uriContent.startsWith('package:')) {
+        return _DirectivePriority.EXPORT_PKG;
+      } else if (uriContent.contains('://')) {
+        return _DirectivePriority.EXPORT_OTHER;
+      } else {
+        return _DirectivePriority.EXPORT_REL;
+      }
+    }
+    if (directive is PartDirective) {
+      return _DirectivePriority.PART;
     }
     return null;
   }

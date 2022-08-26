@@ -1,4 +1,3 @@
-// @dart = 2.9
 extension mixin on int {}
 
 extension extension on int {}

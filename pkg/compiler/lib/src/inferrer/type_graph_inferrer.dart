@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library type_graph_inferrer;
 
 import 'dart:collection' show Queue;
@@ -16,7 +18,7 @@ import '../js_model/elements.dart' show JClosureCallMethod;
 import '../js_model/locals.dart';
 import '../world.dart';
 import 'abstract_value_domain.dart';
-import 'inferrer_engine.dart';
+import 'engine.dart';
 import 'type_graph_nodes.dart';
 import 'types.dart';
 
@@ -159,13 +161,8 @@ class TypeGraphInferrer implements TypesInferrer {
     });
 
     Map<ir.TreeNode, AbstractValue> allocatedLists = {};
-    Set<ir.TreeNode> checkedForGrowableLists = {};
     inferrer.types.allocatedLists
         .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
-      ListTypeInformation info = inferrer.types.allocatedLists[node];
-      if (info.checksGrowable) {
-        checkedForGrowableLists.add(node);
-      }
       allocatedLists[node] = typeInformation.type;
     });
 
@@ -175,7 +172,6 @@ class TypeGraphInferrer implements TypesInferrer {
         _inferredDataBuilder.close(closedWorld),
         memberResults,
         parameterResults,
-        checkedForGrowableLists,
         inferrer.returnsListElementTypeSet,
         allocatedLists);
 

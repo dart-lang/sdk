@@ -5,6 +5,7 @@
 library fasta.invalid_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, InvalidType, Nullability;
+import 'package:kernel/class_hierarchy.dart';
 
 import '../fasta_codes.dart' show LocatedMessage;
 import '../scope.dart';
@@ -33,15 +34,30 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
   Uri? get fileUri => message.uri;
 
   @override
-  DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
-    return buildTypeWithBuiltArguments(library, null, null);
+  DartType buildAliasedType(
+      LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      ClassHierarchyBase? hierarchy,
+      {required bool hasExplicitTypeArguments}) {
+    return buildAliasedTypeWithBuiltArguments(
+        library, null, null, typeUse, fileUri, charOffset,
+        hasExplicitTypeArguments: hasExplicitTypeArguments);
   }
 
   /// [Arguments] have already been built.
   @override
-  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
-      Nullability? nullability, List<DartType>? arguments) {
+  DartType buildAliasedTypeWithBuiltArguments(
+      LibraryBuilder library,
+      Nullability? nullability,
+      List<DartType>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
     if (!suppressMessage) {
       library.addProblem(message.messageObject, message.charOffset,
           message.length, message.uri,

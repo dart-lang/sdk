@@ -139,8 +139,7 @@ class KernelTarget extends TargetImplementation {
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
 
-  final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners =
-      <DelayedDefaultValueCloner>[];
+  final Map<Member, DelayedDefaultValueCloner> _delayedDefaultValueCloners = {};
 
   final UriTranslator uriTranslator;
 
@@ -401,7 +400,8 @@ class KernelTarget extends TargetImplementation {
     loader.finishTypeVariables(
         augmentationLibraries, objectClassBuilder, dynamicType);
     for (SourceLibraryBuilder augmentationLibrary in augmentationLibraries) {
-      augmentationLibrary.build(loader.coreLibrary, modifyTarget: false);
+      augmentationLibrary.buildOutlineNodes(loader.coreLibrary,
+          modifyTarget: false);
     }
     loader.resolveConstructors(augmentationLibraries);
   }
@@ -460,8 +460,8 @@ class KernelTarget extends TargetImplementation {
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
-      List<SourceClassBuilder>? sourceClassBuilders =
-          loader.checkSemantics(objectClassBuilder);
+      List<SourceClassBuilder>? sortedSourceClassBuilders =
+          loader.checkClassCycles(objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
       loader.finishTypeVariables(
@@ -472,17 +472,10 @@ class KernelTarget extends TargetImplementation {
       loader.createTypeInferenceEngine();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildComponent);
-      loader.buildComponent();
+      loader.buildOutlineNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_installDefaultSupertypes);
       installDefaultSupertypes();
-
-      benchmarker
-          ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
-      installSyntheticConstructors(sourceClassBuilders);
-
-      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveConstructors);
-      loader.resolveConstructors(loader.sourceLibraryBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_link);
       component =
@@ -492,15 +485,16 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildClassHierarchy);
-      loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
+      loader.buildClassHierarchy(sortedSourceClassBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-      loader.checkSupertypes(
-          sourceClassBuilders, enumClass, underscoreEnumClass);
+      loader.checkSupertypes(sortedSourceClassBuilders, objectClass, enumClass,
+          underscoreEnumClass);
 
       if (macroApplications != null) {
         benchmarker?.enterPhase(BenchmarkPhases.outline_applyDeclarationMacros);
-        await macroApplications.applyDeclarationsMacros(loader.hierarchyBuilder,
+        await macroApplications.applyDeclarationsMacros(
+            loader.hierarchyBuilder, sortedSourceClassBuilders,
             (SourceLibraryBuilder augmentationLibrary) async {
           List<SourceLibraryBuilder> augmentationLibraries = [
             augmentationLibrary
@@ -515,8 +509,15 @@ class KernelTarget extends TargetImplementation {
       }
 
       benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_installSyntheticConstructors);
+      installSyntheticConstructors(sortedSourceClassBuilders);
+
+      benchmarker?.enterPhase(BenchmarkPhases.outline_resolveConstructors);
+      loader.resolveConstructors(loader.sourceLibraryBuilders);
+
+      benchmarker
           ?.enterPhase(BenchmarkPhases.outline_buildClassHierarchyMembers);
-      loader.buildClassHierarchyMembers(sourceClassBuilders);
+      loader.buildClassHierarchyMembers(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_computeHierarchy);
       loader.computeHierarchy();
@@ -528,31 +529,34 @@ class KernelTarget extends TargetImplementation {
       loader.installTypedefTearOffs();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
-      loader.performTopLevelInference(sourceClassBuilders);
+      loader.performTopLevelInference(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkOverrides);
-      loader.checkOverrides(sourceClassBuilders);
+      loader.checkOverrides(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkAbstractMembers);
-      loader.checkAbstractMembers(sourceClassBuilders);
+      loader.checkAbstractMembers(sortedSourceClassBuilders);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_addNoSuchMethodForwarders);
-      loader.addNoSuchMethodForwarders(sourceClassBuilders);
+      loader.addNoSuchMethodForwarders(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
-      loader.checkMixins(sourceClassBuilders);
+      loader.checkMixins(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildOutlineExpressions);
+      // TODO(johnniwinther): Add an interface for registering delayed actions.
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners = [];
       loader.buildOutlineExpressions(
-          loader.hierarchy, _delayedDefaultValueCloners);
+          loader.hierarchy, delayedDefaultValueCloners);
+      delayedDefaultValueCloners.forEach(registerDelayedDefaultValueCloner);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkTypes);
       loader.checkTypes();
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_checkRedirectingFactories);
-      loader.checkRedirectingFactories(sourceClassBuilders);
+      loader.checkRedirectingFactories(sortedSourceClassBuilders);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_finishSynthesizedParameters);
@@ -572,7 +576,7 @@ class KernelTarget extends TargetImplementation {
       // of time, meaning that all source library builders will be kept alive
       // (for whatever amount of time) even though we convert them to dill
       // library builders. To avoid it we null it out here.
-      sourceClassBuilders = null;
+      sortedSourceClassBuilders = null;
 
       return new BuildResult(
           component: component, macroApplications: macroApplications);
@@ -614,6 +618,9 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_buildBodies);
       await loader.buildBodies(loader.sourceLibraryBuilders);
 
+      benchmarker?.enterPhase(BenchmarkPhases.body_checkMixinSuperAccesses);
+      loader.checkMixinSuperAccesses();
+
       benchmarker?.enterPhase(BenchmarkPhases.body_finishSynthesizedParameters);
       finishSynthesizedParameters();
 
@@ -631,7 +638,7 @@ class KernelTarget extends TargetImplementation {
       loader.finishNativeMethods();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishPatchMethods);
-      loader.finishPatchMethods();
+      loader.buildBodyNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
       finishAllConstructors(sourceClasses);
@@ -1001,6 +1008,7 @@ class KernelTarget extends TargetImplementation {
       VariableDeclaration copy = new VariableDeclaration(formal.name,
           isFinal: formal.isFinal,
           isConst: formal.isConst,
+          hasDeclaredInitializer: formal.hasDeclaredInitializer,
           type: const UnknownType());
       if (!hasTypeDependency && formal.type is! UnknownType) {
         copy.type = substitution.substituteType(formal.type);
@@ -1047,19 +1055,6 @@ class KernelTarget extends TargetImplementation {
         returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
         superConstructor, new Arguments(positional, named: named));
-    DelayedDefaultValueCloner delayedDefaultValueCloner =
-        new DelayedDefaultValueCloner(
-            substitutionMap, superConstructor.function, function,
-            libraryBuilder: classBuilder.libraryBuilder);
-    if (!isConst) {
-      // For constant constructors default values are computed and cloned part
-      // of the outline expression and therefore passed to the
-      // [SyntheticConstructorBuilder] below.
-      //
-      // For non-constant constructors default values are cloned as part of the
-      // full compilation using [_delayedDefaultValueCloners].
-      _delayedDefaultValueCloners.add(delayedDefaultValueCloner);
-    }
     Constructor constructor = new Constructor(function,
         name: superConstructor.name,
         initializers: <Initializer>[initializer],
@@ -1072,6 +1067,10 @@ class KernelTarget extends TargetImplementation {
       //..fileOffset = cls.fileOffset
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
+    DelayedDefaultValueCloner delayedDefaultValueCloner =
+        new DelayedDefaultValueCloner(
+            superConstructor, constructor, substitutionMap,
+            libraryBuilder: classBuilder.libraryBuilder);
 
     TypeDependency? typeDependency;
     if (hasTypeDependency) {
@@ -1089,8 +1088,12 @@ class KernelTarget extends TargetImplementation {
         forAbstractClassOrEnum: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
-      buildConstructorTearOffProcedure(constructorTearOff, constructor,
-          classBuilder.cls, classBuilder.libraryBuilder);
+      buildConstructorTearOffProcedure(
+          tearOff: constructorTearOff,
+          declarationConstructor: constructor,
+          implementationConstructor: constructor,
+          enclosingClass: classBuilder.cls,
+          libraryBuilder: classBuilder.libraryBuilder);
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
         new SyntheticSourceConstructorBuilder(
@@ -1108,11 +1111,27 @@ class KernelTarget extends TargetImplementation {
     return constructorBuilder;
   }
 
+  void registerDelayedDefaultValueCloner(DelayedDefaultValueCloner cloner) {
+    assert(!_delayedDefaultValueCloners.containsKey(cloner.synthesized),
+        "Default cloner already registered for ${cloner.synthesized}.");
+    _delayedDefaultValueCloners[cloner.synthesized] = cloner;
+  }
+
   void finishSynthesizedParameters({bool forOutline = false}) {
+    void cloneDefaultValues(
+        DelayedDefaultValueCloner delayedDefaultValueCloner) {
+      DelayedDefaultValueCloner? originalCloner =
+          _delayedDefaultValueCloners[delayedDefaultValueCloner.original];
+      if (originalCloner != null) {
+        cloneDefaultValues(originalCloner);
+      }
+      delayedDefaultValueCloner.cloneDefaultValues(loader.typeEnvironment);
+    }
+
     for (DelayedDefaultValueCloner delayedDefaultValueCloner
-        in _delayedDefaultValueCloners) {
+        in _delayedDefaultValueCloners.values) {
       if (!forOutline || delayedDefaultValueCloner.isOutlineNode) {
-        delayedDefaultValueCloner.cloneDefaultValues(loader.typeEnvironment);
+        cloneDefaultValues(delayedDefaultValueCloner);
       }
     }
     if (!forOutline) {
@@ -1148,8 +1167,12 @@ class KernelTarget extends TargetImplementation {
         forAbstractClassOrEnum:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
-      buildConstructorTearOffProcedure(constructorTearOff, constructor,
-          classBuilder.cls, classBuilder.libraryBuilder);
+      buildConstructorTearOffProcedure(
+          tearOff: constructorTearOff,
+          declarationConstructor: constructor,
+          implementationConstructor: constructor,
+          enclosingClass: classBuilder.cls,
+          libraryBuilder: classBuilder.libraryBuilder);
     }
     return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);

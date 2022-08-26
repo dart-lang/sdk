@@ -186,9 +186,12 @@ class RuntimeTypeUse {
   final DartType receiverType;
 
   /// The static type of the argument if [kind] is `RuntimeTypeUseKind.equals`.
-  final DartType argumentType;
+  final DartType? argumentType;
 
-  RuntimeTypeUse(this.kind, this.receiverType, this.argumentType);
+  RuntimeTypeUse(this.kind, this.receiverType, this.argumentType) {
+    // TODO(48820): Remove assertions when sound.
+    (receiverType as dynamic)!;
+  }
 
   @override
   int get hashCode =>
@@ -247,7 +250,7 @@ class GenericInstantiation {
 
   factory GenericInstantiation.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    DartType functionType = source.readDartType();
+    final functionType = source.readDartType() as FunctionType;
     List<DartType> typeArguments = source.readDartTypes();
     source.end(tag);
     return GenericInstantiation(functionType, typeArguments);

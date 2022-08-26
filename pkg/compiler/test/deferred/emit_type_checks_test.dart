@@ -8,7 +8,7 @@
 // Files when using deferred loading.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';
@@ -20,8 +20,8 @@ void main() {
     CompilationResult result = await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
-    String mainOutput = collector.getOutput('', OutputType.js);
-    String deferredOutput = collector.getOutput('out_1', OutputType.jsPart);
+    String mainOutput = collector.getOutput('', api.OutputType.js);
+    String deferredOutput = collector.getOutput('out_1', api.OutputType.jsPart);
     JsBackendStrategy backendStrategy = compiler.backendStrategy;
     String isPrefix =
         backendStrategy.namerForTesting.fixedNames.operatorIsPrefix;

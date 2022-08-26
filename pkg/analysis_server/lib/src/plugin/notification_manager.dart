@@ -243,7 +243,7 @@ abstract class AbstractNotificationManager {
     Set<server.AnalysisService> services = HashSet<server.AnalysisService>();
     services.addAll(currentSubscriptions.keys);
     services.addAll(newSubscriptions.keys);
-    services.forEach((server.AnalysisService service) {
+    for (var service in services) {
       var collector = collectorFor(service);
       if (collector != null) {
         var currentPaths = currentSubscriptions[service];
@@ -254,29 +254,29 @@ abstract class AbstractNotificationManager {
             return;
           }
           // All of the [newPaths] need to be added.
-          newPaths.forEach((String filePath) {
+          for (var filePath in newPaths) {
             collector.startCollectingFor(filePath);
-          });
+          }
         } else if (newPaths == null) {
           // All of the [currentPaths] need to be removed.
-          currentPaths.forEach((String filePath) {
+          for (var filePath in currentPaths) {
             collector.stopCollectingFor(filePath);
-          });
+          }
         } else {
           // Compute the difference of the two sets.
-          newPaths.forEach((String filePath) {
+          for (var filePath in newPaths) {
             if (!currentPaths.contains(filePath)) {
               collector.startCollectingFor(filePath);
             }
-          });
-          currentPaths.forEach((String filePath) {
+          }
+          for (var filePath in currentPaths) {
             if (!newPaths.contains(filePath)) {
               collector.stopCollectingFor(filePath);
             }
-          });
+          }
         }
       }
-    });
+    }
     currentSubscriptions = newSubscriptions;
   }
 

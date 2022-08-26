@@ -111,8 +111,8 @@
   FIELD(Closure, hash_offset)                                                  \
   FIELD(Closure, instantiator_type_arguments_offset)                           \
   FIELD(ClosureData, default_type_arguments_kind_offset)                       \
+  FIELD(Code, instructions_offset)                                             \
   FIELD(Code, object_pool_offset)                                              \
-  FIELD(Code, saved_instructions_offset)                                       \
   FIELD(Code, owner_offset)                                                    \
   FIELD(Context, num_variables_offset)                                         \
   FIELD(Context, parent_offset)                                                \
@@ -133,7 +133,6 @@
   RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
   FIELD(Function, kind_tag_offset)                                             \
-  FIELD(Function, packed_fields_offset)                                        \
   FIELD(Function, signature_offset)                                            \
   FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
@@ -150,6 +149,7 @@
   FIELD(Isolate, current_tag_offset)                                           \
   FIELD(Isolate, default_tag_offset)                                           \
   FIELD(Isolate, finalizers_offset)                                            \
+  NOT_IN_PRODUCT(FIELD(Isolate, has_resumption_breakpoints_offset))            \
   FIELD(Isolate, ic_miss_code_offset)                                          \
   FIELD(IsolateGroup, object_store_offset)                                     \
   FIELD(IsolateGroup, shared_class_table_offset)                               \
@@ -177,6 +177,17 @@
   FIELD(ObjectStore, int_type_offset)                                          \
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
+  FIELD(ObjectStore, suspend_state_await_offset)                               \
+  FIELD(ObjectStore, suspend_state_handle_exception_offset)                    \
+  FIELD(ObjectStore, suspend_state_init_async_offset)                          \
+  FIELD(ObjectStore, suspend_state_init_async_star_offset)                     \
+  FIELD(ObjectStore, suspend_state_init_sync_star_offset)                      \
+  FIELD(ObjectStore, suspend_state_return_async_offset)                        \
+  FIELD(ObjectStore, suspend_state_return_async_not_future_offset)             \
+  FIELD(ObjectStore, suspend_state_return_async_star_offset)                   \
+  FIELD(ObjectStore, suspend_state_return_sync_star_offset)                    \
+  FIELD(ObjectStore, suspend_state_yield_async_star_offset)                    \
+  FIELD(ObjectStore, suspend_state_yield_sync_star_offset)                     \
   FIELD(OneByteString, data_offset)                                            \
   FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
@@ -186,9 +197,17 @@
   FIELD(SingleTargetCache, upper_limit_offset)                                 \
   FIELD(StoreBufferBlock, pointers_offset)                                     \
   FIELD(StoreBufferBlock, top_offset)                                          \
+  FIELD(StreamInfo, enabled_offset)                                            \
   FIELD(String, hash_offset)                                                   \
   FIELD(String, length_offset)                                                 \
   FIELD(SubtypeTestCache, cache_offset)                                        \
+  FIELD(SuspendState, FrameSizeGrowthGap)                                      \
+  FIELD(SuspendState, error_callback_offset)                                   \
+  FIELD(SuspendState, frame_size_offset)                                       \
+  FIELD(SuspendState, function_data_offset)                                    \
+  FIELD(SuspendState, payload_offset)                                          \
+  FIELD(SuspendState, pc_offset)                                               \
+  FIELD(SuspendState, then_callback_offset)                                    \
   FIELD(Thread, AllocateArray_entry_point_offset)                              \
   FIELD(Thread, active_exception_offset)                                       \
   FIELD(Thread, active_stacktrace_offset)                                      \
@@ -204,6 +223,7 @@
   FIELD(Thread, allocate_object_slow_entry_point_offset)                       \
   FIELD(Thread, allocate_object_slow_stub_offset)                              \
   FIELD(Thread, api_top_scope_offset)                                          \
+  FIELD(Thread, async_exception_handler_stub_offset)                           \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
   FIELD(Thread, bool_true_offset)                                              \
@@ -213,6 +233,7 @@
   FIELD(Thread, dart_stream_offset)                                            \
   FIELD(Thread, dispatch_table_array_offset)                                   \
   FIELD(Thread, double_truncate_round_supported_offset)                        \
+  FIELD(Thread, service_extension_stream_offset)                               \
   FIELD(Thread, optimize_entry_offset)                                         \
   FIELD(Thread, optimize_stub_offset)                                          \
   FIELD(Thread, deoptimize_entry_offset)                                       \
@@ -256,6 +277,11 @@
   FIELD(Thread, null_cast_error_shared_without_fpu_regs_stub_offset)           \
   FIELD(Thread, range_error_shared_with_fpu_regs_stub_offset)                  \
   FIELD(Thread, range_error_shared_without_fpu_regs_stub_offset)               \
+  FIELD(Thread, resume_stub_offset)                                            \
+  FIELD(Thread, return_async_not_future_stub_offset)                           \
+  FIELD(Thread, return_async_star_stub_offset)                                 \
+  FIELD(Thread, return_async_stub_offset)                                      \
+  FIELD(Thread, return_sync_star_stub_offset)                                  \
                                                                                \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
@@ -273,6 +299,17 @@
                                                                                \
   FIELD(Thread, stack_overflow_shared_without_fpu_regs_stub_offset)            \
   FIELD(Thread, store_buffer_block_offset)                                     \
+  FIELD(Thread, suspend_state_await_entry_point_offset)                        \
+  FIELD(Thread, suspend_state_init_async_entry_point_offset)                   \
+  FIELD(Thread, suspend_state_return_async_entry_point_offset)                 \
+  FIELD(Thread, suspend_state_return_async_not_future_entry_point_offset)      \
+  FIELD(Thread, suspend_state_init_async_star_entry_point_offset)              \
+  FIELD(Thread, suspend_state_yield_async_star_entry_point_offset)             \
+  FIELD(Thread, suspend_state_return_async_star_entry_point_offset)            \
+  FIELD(Thread, suspend_state_init_sync_star_entry_point_offset)               \
+  FIELD(Thread, suspend_state_yield_sync_star_entry_point_offset)              \
+  FIELD(Thread, suspend_state_return_sync_star_entry_point_offset)             \
+  FIELD(Thread, suspend_state_handle_exception_entry_point_offset)             \
   FIELD(Thread, top_exit_frame_info_offset)                                    \
   FIELD(Thread, top_offset)                                                    \
   FIELD(Thread, top_resource_offset)                                           \
@@ -396,6 +433,7 @@
   SIZEOF(Library, InstanceSize, UntaggedLibrary)                               \
   SIZEOF(LibraryPrefix, InstanceSize, UntaggedLibraryPrefix)                   \
   SIZEOF(LinkedHashBase, InstanceSize, UntaggedLinkedHashBase)                 \
+  SIZEOF(LocalHandle, InstanceSize, LocalHandle)                               \
   SIZEOF(MegamorphicCache, InstanceSize, UntaggedMegamorphicCache)             \
   SIZEOF(Mint, InstanceSize, UntaggedMint)                                     \
   SIZEOF(MirrorReference, InstanceSize, UntaggedMirrorReference)               \
@@ -414,6 +452,7 @@
   SIZEOF(Sentinel, InstanceSize, UntaggedSentinel)                             \
   SIZEOF(SingleTargetCache, InstanceSize, UntaggedSingleTargetCache)           \
   SIZEOF(StackTrace, InstanceSize, UntaggedStackTrace)                         \
+  SIZEOF(SuspendState, HeaderSize, UntaggedSuspendState)                       \
   SIZEOF(String, InstanceSize, UntaggedString)                                 \
   SIZEOF(SubtypeTestCache, InstanceSize, UntaggedSubtypeTestCache)             \
   SIZEOF(LoadingUnit, InstanceSize, UntaggedLoadingUnit)                       \
@@ -437,12 +476,15 @@
   PAYLOAD_SIZEOF(CompressedStackMaps, InstanceSize, HeaderSize)                \
   PAYLOAD_SIZEOF(InstructionsSection, InstanceSize, HeaderSize)                \
   PAYLOAD_SIZEOF(PcDescriptors, InstanceSize, HeaderSize)                      \
+  PAYLOAD_SIZEOF(SuspendState, InstanceSize, HeaderSize)                       \
   PAYLOAD_SIZEOF(TypedData, InstanceSize, HeaderSize)
 
 #define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
                          RANGE, CONSTANT)                                      \
+  FIELD(Code, active_instructions_offset)                                      \
   FIELD(Function, usage_counter_offset)                                        \
-  FIELD(ICData, receivers_static_type_offset)
+  FIELD(ICData, receivers_static_type_offset)                                  \
+  FIELD(SuspendState, frame_capacity_offset)
 
 #define AOT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,   \
                          RANGE, CONSTANT)                                      \

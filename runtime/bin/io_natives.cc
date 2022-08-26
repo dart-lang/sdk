@@ -153,6 +153,7 @@ namespace bin {
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
+  V(Socket_Fatal, 1)                                                           \
   V(Socket_GetFD, 1)                                                           \
   V(Socket_GetOption, 3)                                                       \
   V(Socket_GetRawOption, 4)                                                    \
@@ -175,6 +176,8 @@ namespace bin {
   V(Stdin_ReadByte, 1)                                                         \
   V(Stdin_GetEchoMode, 1)                                                      \
   V(Stdin_SetEchoMode, 2)                                                      \
+  V(Stdin_GetEchoNewlineMode, 1)                                               \
+  V(Stdin_SetEchoNewlineMode, 2)                                               \
   V(Stdin_GetLineMode, 1)                                                      \
   V(Stdin_SetLineMode, 2)                                                      \
   V(Stdin_AnsiSupported, 1)                                                    \

@@ -1,0 +1,26 @@
+abstract class DiagnosticsNode {
+  DiagnosticsNode({
+    this.showName = true,
+  });
+  final bool showName;
+}
+
+class DiagnosticsProperty extends DiagnosticsNode {
+  DiagnosticsProperty({
+    super.showName,
+  });
+  DiagnosticsProperty.lazy({
+    super.showName,
+  });
+}
+
+class NumProperty extends DiagnosticsProperty {
+  NumProperty({
+    super.showName,
+  });
+  NumProperty.lazy({
+    super.showName,
+  }) : super.lazy();
+}
+
+void main() {}

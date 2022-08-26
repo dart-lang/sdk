@@ -35,7 +35,4 @@ class RemoveUnusedImport extends CorrectionProducer {
       builder.addDeletion(utils.getLinesRange(range.node(importDirective)));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnusedImport newInstance() => RemoveUnusedImport();
 }

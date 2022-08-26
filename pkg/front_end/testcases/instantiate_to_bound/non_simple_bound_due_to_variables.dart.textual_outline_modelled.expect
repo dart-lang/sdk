@@ -1,5 +1,4 @@
-// @dart = 2.9
-B b;
+B b = throw '';
 
 class A<TypeT, TypeS extends TypeT> {}
 

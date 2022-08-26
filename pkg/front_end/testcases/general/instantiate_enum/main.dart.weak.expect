@@ -29,8 +29,8 @@ class Enum1 extends core::_Enum /*isEnum*/  {
   static const field self::Enum1 a = #C3;
   static const field self::Enum1 b = #C6;
   static const field self::Enum1 c = #C9;
-  const constructor •(core::int index, core::String name) → self::Enum1
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::Enum1
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "Enum1.${this.{core::_Enum::_name}{core::String}}";
@@ -61,8 +61,8 @@ class Enum2 extends core::_Enum /*isEnum*/  {
   static const field self2::Enum2 a = #C11;
   static const field self2::Enum2 b = #C12;
   static const field self2::Enum2 c = #C13;
-  const constructor •(core::int index, core::String name) → self2::Enum2
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self2::Enum2
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "Enum2.${this.{core::_Enum::_name}{core::String}}";

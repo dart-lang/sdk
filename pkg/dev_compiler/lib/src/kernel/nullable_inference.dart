@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:kernel/core_types.dart';
@@ -46,7 +44,7 @@ class NullableInference extends ExpressionVisitor<bool> {
   final bool _soundNullSafety;
 
   NullableInference(this.jsTypeRep, this._staticTypeContext,
-      {SharedCompilerOptions options})
+      {SharedCompilerOptions? options})
       : coreTypes = jsTypeRep.coreTypes,
         _soundNullSafety = options?.soundNullSafety ?? false {
     _variableInference._nullInference = this;
@@ -65,7 +63,7 @@ class NullableInference extends ExpressionVisitor<bool> {
   }
 
   /// Returns true if [expr] can be null.
-  bool isNullable(Expression expr) => expr != null ? expr.accept(this) : false;
+  bool isNullable(Expression expr) => expr.accept(this);
 
   @override
   bool defaultExpression(Expression node) => true;
@@ -161,8 +159,8 @@ class NullableInference extends ExpressionVisitor<bool> {
       _invocationIsNullable(node.interfaceTarget, node.name.text, node);
 
   bool _invocationIsNullable(
-      Member target, String name, InvocationExpression node,
-      [Expression receiver]) {
+      Member? target, String name, InvocationExpression node,
+      [Expression? receiver]) {
     // TODO(jmesserly): this is not a valid assumption for user-defined equality
     // but it is added to match the behavior of the Analyzer backend.
     // https://github.com/dart-lang/sdk/issues/31854
@@ -170,7 +168,8 @@ class NullableInference extends ExpressionVisitor<bool> {
     if (_staticallyNonNullable(node.getStaticType(_staticTypeContext))) {
       return false;
     }
-    if (target == null) return true; // dynamic call
+    // Dynamic call.
+    if (target == null) return true;
     if (target.name.text == 'toString' &&
         receiver != null &&
         receiver.getStaticType(_staticTypeContext) ==
@@ -184,20 +183,19 @@ class NullableInference extends ExpressionVisitor<bool> {
     return _returnValueIsNullable(target);
   }
 
-  bool _getterIsNullable(Member target, Expression node) {
+  bool _getterIsNullable(Member? target, Expression node) {
     if (_staticallyNonNullable(node.getStaticType(_staticTypeContext))) {
       return false;
     }
+    // Dynamic access.
     if (target == null) return true;
-    // tear-offs are not null
+    // Tear-offs are not null.
     if (target is Procedure && !target.isAccessor) return false;
     return _returnValueIsNullable(target);
   }
 
   bool _staticallyNonNullable(DartType type) =>
-      _soundNullSafety &&
-      type != null &&
-      type.nullability == Nullability.nonNullable;
+      _soundNullSafety && type.nullability == Nullability.nonNullable;
 
   bool _returnValueIsNullable(Member target) {
     var targetClass = target.enclosingClass;
@@ -359,7 +357,7 @@ class NullableInference extends ExpressionVisitor<bool> {
 ///
 // TODO(jmesserly): Introduce flow analysis.
 class _NullableVariableInference extends RecursiveVisitor {
-  NullableInference _nullInference;
+  late NullableInference _nullInference;
 
   /// Variables that are currently believed to be not-null.
   final _notNullLocals = HashSet<VariableDeclaration>.identity();
@@ -378,7 +376,7 @@ class _NullableVariableInference extends RecursiveVisitor {
 
   /// The current variable we are setting/initializing, so we can track if it
   /// is [_assignedTo] from another variable.
-  VariableDeclaration _variableAssignedTo;
+  VariableDeclaration? _variableAssignedTo;
 
   void enterFunction(FunctionNode node) {
     if (_functions.contains(node)) return; // local function already analyzed.
@@ -395,7 +393,7 @@ class _NullableVariableInference extends RecursiveVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _notNullLocals.add(node.variable);
-    node.function?.accept(this);
+    node.function.accept(this);
   }
 
   @override
@@ -460,7 +458,7 @@ class _NullableVariableInference extends RecursiveVisitor {
       _variableAssignedTo = variable;
 
       if (_nullInference.isNullable(node.value)) {
-        void markNullable(VariableDeclaration v) {
+        void markNullable(VariableDeclaration? v) {
           _notNullLocals.remove(v);
           _assignedTo.remove(v)?.forEach(markNullable);
         }
@@ -476,7 +474,7 @@ class _NullableVariableInference extends RecursiveVisitor {
   bool variableIsNullable(VariableDeclaration variable) {
     if (_notNullLocals.contains(variable)) {
       if (_variableAssignedTo != null) {
-        _assignedTo.putIfAbsent(variable, () => []).add(_variableAssignedTo);
+        _assignedTo.putIfAbsent(variable, () => []).add(_variableAssignedTo!);
       }
       return false;
     }

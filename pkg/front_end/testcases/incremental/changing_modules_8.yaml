@@ -10,14 +10,12 @@ type: newworld
 modules:
   module:
     module/lib1.dart: |
-      // @dart=2.9
       import 'lib2.dart';
 
       abstract class XSet {
         factory XSet.identity() = XLinkedHashSet.identity;
       }
     module/lib2.dart: |
-      // @dart=2.9
       import 'lib1.dart';
       import 'lib3.dart';
 
@@ -25,27 +23,41 @@ modules:
         factory XLinkedHashSet.identity() = XIdentityHashSet;
       }
     module/lib3.dart: |
-      // @dart=2.9
       import 'lib2.dart';
 
       class XIdentityHashSet implements XLinkedHashSet {
         XIdentityHashSet();
       }
-    module/.packages: |
-      module:.
+    module/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "module",
+            "rootUri": ".."
+          }
+        ]
+      }
 worlds:
   - entry: compileme.dart
     fromComponent: true
     sources:
       compileme.dart: |
-        // @dart=2.9
         import 'package:module/lib1.dart';
 
         main() {
           XSet history = new XSet.identity();
         }
-      .packages: |
-        module:module
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "module",
+              "rootUri": "../module"
+            }
+          ]
+        }
     modules:
       - module
     expectedLibraryCount: 4

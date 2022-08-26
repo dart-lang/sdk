@@ -1,7 +1,13 @@
 name: dartfuzz
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
 
 environment:
-  sdk: '>=2.2.2 <3.0.0'
+  sdk: '>=2.10.0 <3.0.0'
+
+dependencies:
+  analyzer: any
+  args: any
 
 dev_dependencies:
-  pedantic: 'any'
+  lints: any

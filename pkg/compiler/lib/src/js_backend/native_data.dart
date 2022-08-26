@@ -10,8 +10,8 @@ import '../common.dart';
 import '../common/elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
 import '../ir/annotations.dart';
-import '../js_model/js_world_builder.dart' show identity, JsToFrontendMap;
-import '../kernel/element_map.dart';
+import '../js_model/js_to_frontend_map.dart' show identity, JsToFrontendMap;
+import '../kernel/element_map_interfaces.dart';
 import '../native/behavior.dart' show NativeBehavior;
 import '../serialization/serialization.dart';
 import '../util/util.dart';
@@ -54,7 +54,7 @@ class NativeBasicDataBuilder {
     // method.
     assert(
         _nativeClassTagInfo[cls] == null ||
-            _nativeClassTagInfo[cls].text == tagText,
+            _nativeClassTagInfo[cls]!.text == tagText,
         failedAt(
             cls,
             "Native tag info set inconsistently on $cls: "
@@ -68,7 +68,7 @@ class NativeBasicDataBuilder {
   /// If [name] is provided, it sets the explicit js interop name for the
   /// library [element], other the js interop name is expected to be computed
   /// later.
-  void markAsJsInteropLibrary(LibraryEntity element, {String name}) {
+  void markAsJsInteropLibrary(LibraryEntity element, {required String name}) {
     assert(
         !_closed,
         failedAt(
@@ -84,7 +84,7 @@ class NativeBasicDataBuilder {
   /// class [element], other the js interop name is expected to be computed
   /// later.
   void markAsJsInteropClass(ClassEntity element,
-      {String name, bool isAnonymous = false}) {
+      {required String name, required bool isAnonymous}) {
     assert(
         !_closed,
         failedAt(
@@ -154,7 +154,7 @@ class NativeBasicData {
   final Set<ClassEntity> _anonymousJsInteropClasses;
 
   /// The JavaScript members implemented via typed JavaScript interop.
-  final Map<MemberEntity, String> _jsInteropMembers;
+  final Map<MemberEntity, String?> _jsInteropMembers;
 
   NativeBasicData(
       this._env,
@@ -166,30 +166,34 @@ class NativeBasicData {
       this._jsInteropMembers);
 
   factory NativeBasicData.fromIr(
-      KernelToElementMap map, IrAnnotationData data) {
+      KernelToElementMapForNativeData map, IrAnnotationData data) {
     ElementEnvironment env = map.elementEnvironment;
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo = {};
     Map<LibraryEntity, String> jsInteropLibraries = {};
     Map<ClassEntity, String> jsInteropClasses = {};
     Set<ClassEntity> anonymousJsInteropClasses = {};
-    Map<MemberEntity, String> jsInteropMembers = {};
+    Map<MemberEntity, String?> jsInteropMembers = {};
 
     data.forEachNativeClass((ir.Class node, String text) {
       nativeClassTagInfo[map.getClass(node)] = NativeClassTag(text);
     });
     data.forEachJsInteropLibrary((ir.Library node, String name) {
-      jsInteropLibraries[env.lookupLibrary(node.importUri, required: true)] =
+      jsInteropLibraries[env.lookupLibrary(node.importUri, required: true)!] =
           name;
     });
     data.forEachJsInteropClass((ir.Class node, String name,
-        {bool isAnonymous}) {
+        {required bool isAnonymous}) {
       ClassEntity cls = map.getClass(node);
       jsInteropClasses[cls] = name;
       if (isAnonymous) {
         anonymousJsInteropClasses.add(cls);
       }
     });
-    data.forEachJsInteropMember((ir.Member node, String name) {
+    data.forEachJsInteropMember((ir.Member node, String? name) {
+      // TODO(49428): Are there other members that we should ignore here?
+      //  There are non-external and unannotated members because the source code
+      //  doesn't contain them. (e.g. default constructor) Does it make sense to
+      //  consider these valid JS members?
       if (memberIsIgnorable(node)) return;
       jsInteropMembers[map.getMember(node)] = name;
     });
@@ -205,7 +209,7 @@ class NativeBasicData {
     bool isAllowInteropUsed = source.readBool();
     Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
         source.readClassMap(() {
-      List<String> names = source.readStrings();
+      final names = source.readStrings()!;
       bool isNonLeaf = source.readBool();
       return NativeClassTag.internal(names, isNonLeaf);
     });
@@ -214,8 +218,8 @@ class NativeBasicData {
     Map<ClassEntity, String> jsInteropClasses =
         source.readClassMap(source.readString);
     Set<ClassEntity> anonymousJsInteropClasses = source.readClasses().toSet();
-    Map<MemberEntity, String> jsInteropMembers =
-        source.readMemberMap((MemberEntity member) => source.readString());
+    Map<MemberEntity, String?> jsInteropMembers = source
+        .readMemberMap((MemberEntity member) => source.readStringOrNull());
     source.end(tag);
     return NativeBasicData(
         elementEnvironment,
@@ -239,7 +243,7 @@ class NativeBasicData {
     sink.writeClassMap(_jsInteropClasses, sink.writeString);
     sink.writeClasses(_anonymousJsInteropClasses);
     sink.writeMemberMap(_jsInteropMembers,
-        (MemberEntity member, String name) => sink.writeString(name));
+        (MemberEntity member, String? name) => sink.writeStringOrNull(name));
     sink.end(tag);
   }
 
@@ -266,12 +270,12 @@ class NativeBasicData {
 
   /// Returns the list of non-directive native tag words for [cls].
   List<String> getNativeTagsOfClass(ClassEntity cls) {
-    return _nativeClassTagInfo[cls].names;
+    return _nativeClassTagInfo[cls]!.names;
   }
 
   /// Returns `true` if [cls] has a `!nonleaf` tag word.
   bool hasNativeTagsForcedNonLeaf(ClassEntity cls) {
-    return _nativeClassTagInfo[cls].isNonLeaf;
+    return _nativeClassTagInfo[cls]!.isNonLeaf;
   }
 
   /// Returns `true` if js interop features are used.
@@ -300,12 +304,12 @@ class NativeBasicData {
         element.isConstructor ||
         element.isGetter ||
         element.isSetter) {
-      FunctionEntity function = element;
+      final function = element as FunctionEntity;
       if (!function.isExternal) return false;
 
       if (_isJsInteropMember(function)) return true;
       if (function.enclosingClass != null) {
-        return isJsInteropClass(function.enclosingClass);
+        return isJsInteropClass(function.enclosingClass!);
       }
       if (function.isTopLevel) {
         return isJsInteropLibrary(function.library);
@@ -316,8 +320,10 @@ class NativeBasicData {
     }
   }
 
-  /// Returns `true` if [element] or any of its superclasses is native.
-  bool isNativeOrExtendsNative(ClassEntity element) {
+  /// Returns `true` if [element] or any of its superclasses is native. Supports
+  /// nullable element for checks on non-existent enclosing class of top-level
+  /// functions.
+  bool isNativeOrExtendsNative(ClassEntity? element) {
     if (element == null) return false;
     if (isNativeClass(element) || isJsInteropClass(element)) {
       return true;
@@ -337,7 +343,7 @@ class NativeBasicData {
         map.toBackendClassMap(_jsInteropClasses, identity);
     Set<ClassEntity> anonymousJsInteropClasses =
         map.toBackendClassSet(_anonymousJsInteropClasses);
-    Map<MemberEntity, String> jsInteropMembers =
+    Map<MemberEntity, String?> jsInteropMembers =
         map.toBackendMemberMap(_jsInteropMembers, identity);
     return NativeBasicData(
         environment,
@@ -445,7 +451,8 @@ class NativeData implements NativeBasicData {
       this._nativeFieldLoadBehavior,
       this._nativeFieldStoreBehavior);
 
-  factory NativeData.fromIr(KernelToElementMap map, IrAnnotationData data) {
+  factory NativeData.fromIr(
+      KernelToElementMapForNativeData map, IrAnnotationData data) {
     NativeBasicData nativeBasicData = NativeBasicData.fromIr(map, data);
     Map<MemberEntity, String> nativeMemberName = {};
     Map<FunctionEntity, NativeBehavior> nativeMethodBehavior = {};
@@ -456,7 +463,7 @@ class NativeData implements NativeBasicData {
         String name,
         Iterable<String> createsAnnotations,
         Iterable<String> returnsAnnotations) {
-      MemberEntity member = map.getMember(node);
+      final member = map.getMember(node) as FunctionEntity;
       nativeMemberName[member] = name;
       bool isJsInterop = nativeBasicData.isJsInteropMember(member);
       nativeMethodBehavior[member] = map.getNativeBehaviorForMethod(
@@ -468,9 +475,10 @@ class NativeData implements NativeBasicData {
         String name,
         Iterable<String> createsAnnotations,
         Iterable<String> returnsAnnotations) {
-      FieldEntity field = map.getMember(node);
+      final field = map.getMember(node) as FieldEntity;
       nativeMemberName[field] = name;
       bool isJsInterop = nativeBasicData.isJsInteropMember(field);
+      node as ir.Field;
       nativeFieldLoadBehavior[field] = map.getNativeBehaviorForFieldLoad(
           node, createsAnnotations, returnsAnnotations,
           isJsInterop: isJsInterop);
@@ -556,7 +564,7 @@ class NativeData implements NativeBasicData {
       _nativeBasicData._jsInteropClasses;
 
   @override
-  Map<MemberEntity, String> get _jsInteropMembers =>
+  Map<MemberEntity, String?> get _jsInteropMembers =>
       _nativeBasicData._jsInteropMembers;
 
   /// Returns `true` if [element] has an `@Anonymous` annotation.
@@ -588,21 +596,21 @@ class NativeData implements NativeBasicData {
       _nativeBasicData.isJsInteropClass(element);
 
   @override
-  bool isNativeOrExtendsNative(ClassEntity element) =>
+  bool isNativeOrExtendsNative(ClassEntity? element) =>
       _nativeBasicData.isNativeOrExtendsNative(element);
 
   /// Returns the explicit js interop name for library [element].
-  String getJsInteropLibraryName(LibraryEntity element) {
+  String? getJsInteropLibraryName(LibraryEntity element) {
     return _jsInteropLibraries[element];
   }
 
   /// Returns the explicit js interop name for class [element].
-  String getJsInteropClassName(ClassEntity element) {
+  String? getJsInteropClassName(ClassEntity element) {
     return _jsInteropClasses[element];
   }
 
   /// Returns the explicit js interop name for member [element].
-  String getJsInteropMemberName(MemberEntity element) {
+  String? getJsInteropMemberName(MemberEntity element) {
     return _jsInteropMembers[element];
   }
 
@@ -617,12 +625,12 @@ class NativeData implements NativeBasicData {
         element.isConstructor ||
         element.isGetter ||
         element.isSetter) {
-      FunctionEntity function = element;
+      final function = element as FunctionEntity;
       if (!function.isExternal) return false;
 
       if (_isJsInteropMember(function)) return true;
       if (function.enclosingClass != null) {
-        return isJsInteropClass(function.enclosingClass);
+        return isJsInteropClass(function.enclosingClass!);
       }
       if (function.isTopLevel) {
         return isJsInteropLibrary(function.library);
@@ -641,33 +649,38 @@ class NativeData implements NativeBasicData {
 
   /// Computes the name for [element] to use in the generated JavaScript. This
   /// is either given through a native annotation or a js interop annotation.
-  String getFixedBackendName(MemberEntity element) {
-    String name = _nativeMemberName[element];
+  String? getFixedBackendName(MemberEntity element) {
+    String? name = _nativeMemberName[element];
     if (name == null && isJsInteropMember(element)) {
-      // If an element isJsInterop but _isJsInterop is false that means it is
-      // considered interop as the parent class is interop.
-      name = element.isConstructor
-          ? _jsClassNameHelper(element.enclosingClass)
-          : _jsMemberNameHelper(element);
+      if (element.isConstructor) {
+        name = _jsClassNameHelper(element.enclosingClass!);
+      } else {
+        name = _jsMemberNameHelper(element);
+        // Top-level static JS interop members can be associated with a dotted
+        // name, if so, fixedBackendName is the last segment.
+        if (element.isTopLevel && name.contains('.')) {
+          name = name.substring(name.lastIndexOf('.') + 1);
+        }
+      }
       _nativeMemberName[element] = name;
     }
     return name;
   }
 
   String _jsLibraryNameHelper(LibraryEntity element) {
-    String jsInteropName = getJsInteropLibraryName(element);
+    String? jsInteropName = getJsInteropLibraryName(element);
     if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
     return 'self';
   }
 
   String _jsClassNameHelper(ClassEntity element) {
-    String jsInteropName = getJsInteropClassName(element);
+    String? jsInteropName = getJsInteropClassName(element);
     if (jsInteropName != null && jsInteropName.isNotEmpty) return jsInteropName;
     return computeUnescapedJSInteropName(element.name);
   }
 
   String _jsMemberNameHelper(MemberEntity element) {
-    String jsInteropName = _jsInteropMembers[element];
+    String? jsInteropName = _jsInteropMembers[element];
     assert(
         !(_jsInteropMembers.containsKey(element) && jsInteropName == null),
         failedAt(
@@ -677,7 +690,7 @@ class NativeData implements NativeBasicData {
     if (jsInteropName != null && jsInteropName.isNotEmpty) {
       return jsInteropName;
     }
-    return computeUnescapedJSInteropName(element.name);
+    return computeUnescapedJSInteropName(element.name!);
   }
 
   /// Returns a JavaScript path specifying the context in which
@@ -686,23 +699,32 @@ class NativeData implements NativeBasicData {
   /// For example: fixedBackendPath for the static method createMap in the
   /// Map class of the goog.map JavaScript library would have path
   /// "goog.maps.Map".
-  String getFixedBackendMethodPath(FunctionEntity element) {
+  String? getFixedBackendMethodPath(FunctionEntity element) {
     if (!isJsInteropMember(element)) return null;
     if (element.isInstanceMember) return 'this';
     if (element.isConstructor) {
-      return _fixedBackendClassPath(element.enclosingClass);
+      return _fixedBackendClassPath(element.enclosingClass!);
     }
     StringBuffer sb = StringBuffer();
     sb.write(_jsLibraryNameHelper(element.library));
     if (element.enclosingClass != null) {
       sb
         ..write('.')
-        ..write(_jsClassNameHelper(element.enclosingClass));
+        ..write(_jsClassNameHelper(element.enclosingClass!));
+    }
+
+    // Top-level static JS interop members can be associated with a dotted
+    // name, if so, fixedBackendPath includes all but the last segment.
+    final name = _jsMemberNameHelper(element);
+    if (element.isTopLevel && name.contains('.')) {
+      sb
+        ..write('.')
+        ..write(name.substring(0, name.lastIndexOf('.')));
     }
     return sb.toString();
   }
 
-  String _fixedBackendClassPath(ClassEntity element) {
+  String? _fixedBackendClassPath(ClassEntity element) {
     if (!isJsInteropClass(element)) return null;
     return _jsLibraryNameHelper(element.library);
   }
@@ -724,7 +746,7 @@ class NativeData implements NativeBasicData {
         _nativeMethodBehavior.containsKey(method),
         failedAt(method,
             "No native method behavior has been computed for $method."));
-    return _nativeMethodBehavior[method];
+    return _nativeMethodBehavior[method]!;
   }
 
   /// Returns the [NativeBehavior] for reading from the native [field].
@@ -735,7 +757,7 @@ class NativeData implements NativeBasicData {
             field,
             "No native field load behavior has been "
             "computed for $field."));
-    return _nativeFieldLoadBehavior[field];
+    return _nativeFieldLoadBehavior[field]!;
   }
 
   /// Returns the [NativeBehavior] for writing to the native [field].
@@ -744,7 +766,7 @@ class NativeData implements NativeBasicData {
         _nativeFieldStoreBehavior.containsKey(field),
         failedAt(field,
             "No native field store behavior has been computed for $field."));
-    return _nativeFieldStoreBehavior[field];
+    return _nativeFieldStoreBehavior[field]!;
   }
 
   /// Apply JS$ escaping scheme to convert possible escaped Dart names into
@@ -771,7 +793,7 @@ class NativeData implements NativeBasicData {
     final nativeMethodBehavior = <FunctionEntity, NativeBehavior>{};
     _nativeMethodBehavior
         .forEach((FunctionEntity method, NativeBehavior behavior) {
-      FunctionEntity backendMethod = map.toBackendMember(method);
+      final backendMethod = map.toBackendMember(method) as FunctionEntity?;
       if (backendMethod != null) {
         // If [method] isn't used it doesn't have a corresponding backend
         // method.

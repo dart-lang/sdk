@@ -778,6 +778,8 @@ class Assembler : public MicroAssembler {
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
+  void PushRegistersInOrder(std::initializer_list<Register> regs);
+
   // Push all registers which are callee-saved according to the ARM64 ABI.
   void PushNativeCalleeSavedRegisters();
 
@@ -801,6 +803,8 @@ class Assembler : public MicroAssembler {
   void Jump(Label* label, JumpDistance distance = kFarJump) {
     j(label, distance);
   }
+  // Unconditional jump to a given address in register.
+  void Jump(Register target) { jr(target); }
   // Unconditional jump to a given address in memory. Clobbers TMP.
   void Jump(const Address& address);
 
@@ -834,16 +838,11 @@ class Assembler : public MicroAssembler {
                               Register address,
                               int32_t offset = 0);
 
-  void CompareWithFieldValue(Register value, FieldAddress address) {
-    CompareWithMemoryValue(value, address);
-  }
   void CompareWithCompressedFieldFromOffset(Register value,
                                             Register base,
                                             int32_t offset);
 
-  void CompareWithMemoryValue(Register value,
-                              Address address,
-                              OperandSize sz = kWordBytes);
+  void CompareWithMemoryValue(Register value, Address address);
 
   void CompareFunctionTypeNullabilityWith(Register type, int8_t value) override;
   void CompareTypeNullabilityWith(Register type, int8_t value) override;
@@ -888,6 +887,11 @@ class Assembler : public MicroAssembler {
   void BranchIfZero(Register rn,
                     Label* label,
                     JumpDistance distance = kFarJump);
+  void BranchIfBit(Register rn,
+                   intptr_t bit_number,
+                   Condition condition,
+                   Label* label,
+                   JumpDistance distance = kFarJump);
   void SetIf(Condition condition, Register rd);
 
   void SmiUntag(Register reg) { SmiUntag(reg, reg); }
@@ -925,12 +929,22 @@ class Assembler : public MicroAssembler {
       CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   void Call(Address target);
+  void Call(Register target);
   void Call(const Code& code) { JumpAndLink(code); }
 
   void CallCFunction(Address target) { Call(target); }
+  void CallCFunction(Register target) {
+    Call(target);
+  }
 
   void AddImmediate(Register dest, intx_t imm) {
     AddImmediate(dest, dest, imm);
+  }
+  void AddRegisters(Register dest, Register src) {
+    add(dest, dest, src);
+  }
+  void SubRegisters(Register dest, Register src) {
+    sub(dest, dest, src);
   }
 
   // Macros accepting a pp Register argument may attempt to load values from
@@ -946,14 +960,23 @@ class Assembler : public MicroAssembler {
                     Register rn,
                     intx_t imm,
                     OperandSize sz = kWordBytes);
+  void AndImmediate(Register rd, intx_t imm) {
+    AndImmediate(rd, rd, imm);
+  }
   void OrImmediate(Register rd,
                    Register rn,
                    intx_t imm,
                    OperandSize sz = kWordBytes);
+  void OrImmediate(Register rd, intx_t imm) {
+    OrImmediate(rd, rd, imm);
+  }
   void XorImmediate(Register rd,
                     Register rn,
                     intx_t imm,
                     OperandSize sz = kWordBytes);
+  void LslImmediate(Register rd, int32_t shift) {
+    slli(rd, rd, shift);
+  }
   void TestImmediate(Register rn, intx_t imm, OperandSize sz = kWordBytes);
   void CompareImmediate(Register rn, intx_t imm, OperandSize sz = kWordBytes);
 
@@ -1015,6 +1038,9 @@ class Assembler : public MicroAssembler {
                           int32_t offset,
                           OperandSize sz = kWordBytes) {
     StoreToOffset(src, base, offset - kHeapObjectTag, sz);
+  }
+  void StoreZero(const Address& address, Register temp = kNoRegister) {
+    sx(ZR, address);
   }
   void StoreSToOffset(FRegister src, Register base, int32_t offset);
   void StoreDToOffset(FRegister src, Register base, int32_t offset);
@@ -1138,7 +1164,6 @@ class Assembler : public MicroAssembler {
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
-  intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
@@ -1158,6 +1183,7 @@ class Assembler : public MicroAssembler {
   void LoadImmediate(Register reg, intx_t imm);
 
   void LoadDImmediate(FRegister reg, double immd);
+  void LoadQImmediate(FRegister reg, simd128_value_t immq);
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.
@@ -1205,6 +1231,12 @@ class Assembler : public MicroAssembler {
   void LeaveFrame();
   void Ret() { ret(); }
 
+  // Sets the return address to [value] as if there was a call.
+  // On RISC-V sets RA.
+  void SetReturnAddress(Register value) {
+    mv(RA, value);
+  }
+
   // Emit code to transition between generated mode and native mode.
   //
   // These require and ensure that CSP and SP are equal and aligned and require
@@ -1225,14 +1257,15 @@ class Assembler : public MicroAssembler {
   void RestorePoolPointer();
 
   // Restores the values of the registers that are blocked to cache some values
-  // e.g. BARRIER_MASK and NULL_REG.
+  // e.g. WRITE_BARRIER_STATE and NULL_REG.
   void RestorePinnedRegisters();
 
   void SetupGlobalPoolAndDispatchTable();
 
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
   void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
+  void LeaveDartFrame();
+  void LeaveDartFrame(intptr_t fp_sp_dist);
 
   // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
@@ -1255,7 +1288,10 @@ class Assembler : public MicroAssembler {
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
-  void MaybeTraceAllocation(intptr_t cid, Register temp_reg, Label* trace);
+  void MaybeTraceAllocation(intptr_t cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
 
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
@@ -1272,11 +1308,19 @@ class Assembler : public MicroAssembler {
                         Register temp1,
                         Register temp2);
 
+  // Copy [size] bytes from [src] address to [dst] address.
+  // [size] should be a multiple of word size.
+  // Clobbers [src], [dst], [size] and [temp] registers.
+  void CopyMemoryWords(Register src,
+                       Register dst,
+                       Register size,
+                       Register temp);
+
   // This emits an PC-relative call of the form "bl <offset>".  The offset
   // is not yet known and needs therefore relocation to the right place before
   // the code can be used.
   //
-  // The neccessary information for the "linker" (i.e. the relocation
+  // The necessary information for the "linker" (i.e. the relocation
   // information) is stored in [UntaggedCode::static_calls_target_table_]: an
   // entry of the form
   //
@@ -1377,6 +1421,9 @@ class Assembler : public MicroAssembler {
                               Register rs1,
                               Register rs2,
                               Label* overflow);
+
+  // Clobbers [rs].
+  void CountLeadingZeroes(Register rd, Register rs);
 
  private:
   bool constant_pool_allowed_;

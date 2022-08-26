@@ -72,11 +72,11 @@ class E extends core::_Enum /*isEnum*/  {
   four.f2(); // Error.
       ^^";
   static final field dynamic _redirecting# = <dynamic>[#C7, #C8, #C9, #C10]/*isLegacy*/;
-  const constructor •(core::int index, core::String name) → self::E
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::E
+    : super core::_Enum::•(#index, #name)
     ;
-  const constructor named(core::int index, core::String name) → self::E
-    : this self::E::•(index, name)
+  const constructor named(core::int #index, core::String #name) → self::E
+    : this self::E::•(#index, #name)
     ;
   method toString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";

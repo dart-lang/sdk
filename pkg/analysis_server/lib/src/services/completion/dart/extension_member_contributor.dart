@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,10 +16,7 @@ import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 class ExtensionMemberContributor extends DartCompletionContributor {
   late final memberBuilder = MemberSuggestionBuilder(request, builder);
 
-  ExtensionMemberContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  ExtensionMemberContributor(super.request, super.builder);
 
   void addExtensions(List<ExtensionElement> extensions) {
     var containingLibrary = request.libraryElement;

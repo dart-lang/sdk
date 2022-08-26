@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -140,7 +140,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension Extension<T extends core::Object* = dynamic> on core::int* {
+extension Extension<T extends core::Object? = dynamic> on core::int {
   get duplicateInstanceGetter = self::Extension|get#duplicateInstanceGetter;
   method duplicateInstanceMethod = self::Extension|duplicateInstanceMethod;
   tearoff duplicateInstanceMethod = self::Extension|get#duplicateInstanceMethod;
@@ -168,56 +168,56 @@ extension Extension<T extends core::Object* = dynamic> on core::int* {
   set instanceSetterAndStaticGetter = self::Extension|set#instanceSetterAndStaticGetter;
   set instanceSetterAndStaticField = self::Extension|set#instanceSetterAndStaticField;
 }
-static field core::int* Extension|duplicateStaticField;
-static method Extension|get#duplicateInstanceGetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+static field core::int Extension|duplicateStaticField;
+static method Extension|get#duplicateInstanceGetter<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   ;
-static method Extension|set#duplicateInstanceSetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+static method Extension|set#duplicateInstanceSetter<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|duplicateInstanceMethod<T extends core::Object* = dynamic>(lowered final core::int* #this) → void
+static method Extension|duplicateInstanceMethod<T extends core::Object? = dynamic>(lowered final core::int #this) → void
   ;
-static method Extension|get#duplicateInstanceMethod<T extends core::Object* = dynamic>(lowered final core::int* #this) → () →* void
-  return () → void => self::Extension|duplicateInstanceMethod<self::Extension|get#duplicateInstanceMethod::T*>(#this);
-static get Extension|duplicateStaticGetter() → core::int*
+static method Extension|get#duplicateInstanceMethod<T extends core::Object? = dynamic>(lowered final core::int #this) → () → void
+  return () → void => self::Extension|duplicateInstanceMethod<self::Extension|get#duplicateInstanceMethod::T%>(#this);
+static get Extension|duplicateStaticGetter() → core::int
   ;
-static set Extension|duplicateStaticSetter(core::int* value) → void
+static set Extension|duplicateStaticSetter(core::int value) → void
   ;
 static method Extension|duplicateStaticMethod() → void
   ;
-static method Extension|get#duplicateInstanceGetterPlusSetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+static method Extension|get#duplicateInstanceGetterPlusSetter<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   ;
-static method Extension|set#duplicateInstanceGetterPlusSetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+static method Extension|set#duplicateInstanceGetterPlusSetter<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|get#duplicateInstanceSetterPlusGetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+static method Extension|get#duplicateInstanceSetterPlusGetter<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   ;
-static method Extension|set#duplicateInstanceSetterPlusGetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+static method Extension|set#duplicateInstanceSetterPlusGetter<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|get#duplicateInstanceGetterAndSetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+static method Extension|get#duplicateInstanceGetterAndSetter<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   ;
-static method Extension|set#duplicateInstanceGetterAndSetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+static method Extension|set#duplicateInstanceGetterAndSetter<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void
   ;
-static get Extension|duplicateStaticGetterPlusSetter() → core::int*
+static get Extension|duplicateStaticGetterPlusSetter() → core::int
   ;
-static set Extension|duplicateStaticGetterPlusSetter(core::int* value) → void
+static set Extension|duplicateStaticGetterPlusSetter(core::int value) → void
   ;
-static get Extension|duplicateStaticSetterPlusGetter() → core::int*
+static get Extension|duplicateStaticSetterPlusGetter() → core::int
   ;
-static set Extension|duplicateStaticSetterPlusGetter(core::int* value) → void
+static set Extension|duplicateStaticSetterPlusGetter(core::int value) → void
   ;
-static get Extension|duplicateStaticGetterAndSetter() → core::int*
+static get Extension|duplicateStaticGetterAndSetter() → core::int
   ;
-static set Extension|duplicateStaticGetterAndSetter(core::int* value) → void
+static set Extension|duplicateStaticGetterAndSetter(core::int value) → void
   ;
-static method Extension|get#instanceGetterAndStaticSetter<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+static method Extension|get#instanceGetterAndStaticSetter<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   ;
-static set Extension|instanceGetterAndStaticSetter(core::int* value) → void
+static set Extension|instanceGetterAndStaticSetter(core::int value) → void
   ;
-static get Extension|instanceSetterAndStaticGetter() → core::int*
+static get Extension|instanceSetterAndStaticGetter() → core::int
   ;
-static method Extension|set#instanceSetterAndStaticGetter<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+static method Extension|set#instanceSetterAndStaticGetter<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|get#instanceGetterAndStaticField<T extends core::Object* = dynamic>(lowered final core::int* #this) → core::int*
+static method Extension|get#instanceGetterAndStaticField<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   ;
-static method Extension|set#instanceSetterAndStaticField<T extends core::Object* = dynamic>(lowered final core::int* #this, core::int* value) → void
+static method Extension|set#instanceSetterAndStaticField<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void
   ;
 static method main() → dynamic
   ;

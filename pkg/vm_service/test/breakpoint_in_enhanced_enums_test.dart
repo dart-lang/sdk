@@ -1,15 +1,13 @@
 // Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// SharedOptions=--enable-experiment=enhanced-enums
 
 // @dart=2.17
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const int LINE_A = 23;
+const int LINE_A = 21;
 const int LINE_B = LINE_A + 11;
 const int LINE_C = LINE_B + 4;
 const int LINE_D = LINE_C + 4;
@@ -57,7 +55,7 @@ enum E with M {
   }
 
   String toString() {
-    print('overriden toString'); // LINE_H
+    print('overridden toString'); // LINE_H
     return '';
   }
 }
@@ -106,5 +104,4 @@ main([args = const <String>[]]) => runIsolateTests(
       testeeConcurrent: testMain,
       pause_on_start: true,
       pause_on_exit: true,
-      experiments: ['enhanced-enums'],
     );

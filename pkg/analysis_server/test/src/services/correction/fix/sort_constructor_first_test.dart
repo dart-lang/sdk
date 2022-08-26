@@ -80,6 +80,69 @@ class SortConstructorFirstTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.sort_constructors_first;
 
+  Future<void> test_hasComment() async {
+    await resolveTestCode('''
+class A {
+  void foo() {}
+  /// comment
+  A();
+}
+''');
+    await assertHasFix('''
+class A {
+  /// comment
+  A();
+  void foo() {}
+}
+''');
+  }
+
+  Future<void> test_hasComment_hasMetadata_afterComment() async {
+    await resolveTestCode('''
+const a = 0;
+
+class A {
+  void foo() {}
+  /// comment
+  @a
+  A();
+}
+''');
+    await assertHasFix('''
+const a = 0;
+
+class A {
+  /// comment
+  @a
+  A();
+  void foo() {}
+}
+''');
+  }
+
+  Future<void> test_hasComment_hasMetadata_beforeComment() async {
+    await resolveTestCode('''
+const a = 0;
+
+class A {
+  void foo() {}
+  @a
+  /// comment
+  A();
+}
+''');
+    await assertHasFix('''
+const a = 0;
+
+class A {
+  @a
+  /// comment
+  A();
+  void foo() {}
+}
+''');
+  }
+
   Future<void> test_one_fix() async {
     await resolveTestCode('''
 class A {

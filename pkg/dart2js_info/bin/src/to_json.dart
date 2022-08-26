@@ -36,21 +36,22 @@ class ToJsonCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    if (argResults.rest.isEmpty) {
+    final args = argResults!;
+    if (args.rest.isEmpty) {
       usageException('Missing argument: <input-info>');
     }
 
-    String filename = argResults.rest[0];
-    bool isBackwardCompatible = argResults['compat-mode'];
+    String filename = args.rest[0];
+    bool isBackwardCompatible = args['compat-mode'];
     AllInfo info = await infoFromFile(filename);
 
-    if (isBackwardCompatible || argResults['inject-text']) {
+    if (isBackwardCompatible || args['inject-text']) {
       injectText(info);
     }
 
     var json = AllInfoJsonCodec(isBackwardCompatible: isBackwardCompatible)
         .encode(info);
-    String outputFilename = argResults['out'] ?? '$filename.json';
+    String outputFilename = args['out'] ?? '$filename.json';
     File(outputFilename)
         .writeAsStringSync(const JsonEncoder.withIndent("  ").convert(json));
   }

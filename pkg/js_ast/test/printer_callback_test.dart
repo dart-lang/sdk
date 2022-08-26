@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 // Note: This test relies on LF line endings in the source file.
 
 // Test that JS printer callbacks occur when expected.
@@ -32,25 +30,25 @@ class TestCase {
 
 const List<TestCase> DATA = <TestCase>[
   TestCase({
-    TestMode.NONE: """
+    TestMode.NONE: '''
 function(a, b) {
   return null;
-}""",
-    TestMode.ENTER: """
+}''',
+    TestMode.ENTER: '''
 @0function(@1a, @2b) @3{
   @4return @5null;
-}""",
-    TestMode.DELIMITER: """
+}''',
+    TestMode.DELIMITER: '''
 function(a, b) {
   return null@4;
-@0}""",
-    TestMode.EXIT: """
+@0}''',
+    TestMode.EXIT: '''
 function(a@1, b@2) {
   return null@5;
-@4}@3@0"""
+@4}@3@0'''
   }),
   TestCase({
-    TestMode.NONE: """
+    TestMode.NONE: '''
 function() {
   if (true) {
     foo1();
@@ -63,8 +61,8 @@ function() {
     baz3();
     baz4();
   }
-}""",
-    TestMode.ENTER: """
+}''',
+    TestMode.ENTER: '''
 @0function() @1{
   @2if (@3true) @4{
     @5@6@7foo1();
@@ -77,8 +75,8 @@ function() {
     @23@24@25baz3();
     @26@27@28baz4();
   }
-}""",
-    TestMode.DELIMITER: """
+}''',
+    TestMode.DELIMITER: '''
 function() {
   if (true) {
     foo1();
@@ -91,8 +89,8 @@ function() {
     baz3();
     baz4();
   }
-@0}""",
-    TestMode.EXIT: """
+@0}''',
+    TestMode.EXIT: '''
 function() {
   if (true@3) {
     foo1@7()@6;
@@ -105,29 +103,29 @@ function() {
     baz3@25()@24;
 @23    baz4@28()@27;
 @26  }@22
-@20}@1@0""",
+@20}@1@0''',
   }),
   TestCase({
-    TestMode.NONE: """
+    TestMode.NONE: '''
 function() {
   function foo() {
   }
-}""",
-    TestMode.ENTER: """
+}''',
+    TestMode.ENTER: '''
 @0function() @1{
   @2@3function @4foo() @5{
   }
-}""",
-    TestMode.DELIMITER: """
+}''',
+    TestMode.DELIMITER: '''
 function() {
   function foo() {
   @3}
-@0}""",
-    TestMode.EXIT: """
+@0}''',
+    TestMode.EXIT: '''
 function() {
   function foo@4() {
   }@5@3
-@2}@1@0"""
+@2}@1@0'''
   }),
   TestCase({
     TestMode.INPUT: """
@@ -135,33 +133,33 @@ function() {
   a['b'];
   [1,, 2];
 }""",
-    TestMode.NONE: """
+    TestMode.NONE: '''
 function() {
   a.b;
   [1,, 2];
-}""",
-    TestMode.ENTER: """
+}''',
+    TestMode.ENTER: '''
 @0function() @1{
   @2@3@4a.@5b;
   @6@7[@81,@9, @102];
-}""",
-    TestMode.DELIMITER: """
+}''',
+    TestMode.DELIMITER: '''
 function() {
   a.b;
   [1,, 2];
-@0}""",
-    TestMode.EXIT: """
+@0}''',
+    TestMode.EXIT: '''
 function() {
   a@4.b@5@3;
 @2  [1@8,,@9 2@10]@7;
-@6}@1@0""",
+@6}@1@0''',
   }),
   TestCase({
-    TestMode.INPUT: "a.#nameTemplate = #nameTemplate",
-    TestMode.NONE: "a.nameValue = nameValue",
-    TestMode.ENTER: "@0@1@2a.@3nameValue = @3nameValue",
-    TestMode.DELIMITER: "a.nameValue = nameValue",
-    TestMode.EXIT: "a@2.nameValue@3@1 = nameValue@3@0",
+    TestMode.INPUT: 'a.#nameTemplate = #nameTemplate',
+    TestMode.NONE: 'a.nameValue = nameValue',
+    TestMode.ENTER: '@0@1@2a.@3nameValue = @3nameValue',
+    TestMode.DELIMITER: 'a.nameValue = nameValue',
+    TestMode.EXIT: 'a@2.nameValue@3@1 = nameValue@3@0',
   }, {
     'nameTemplate': 'nameValue'
   }),
@@ -178,11 +176,8 @@ class FixedName extends Name {
 
 void check(TestCase testCase) {
   Map<TestMode, String> map = testCase.data;
-  String code = map[TestMode.INPUT];
-  if (code == null) {
-    // Input is the same as output.
-    code = map[TestMode.NONE];
-  }
+  // Unspecified input is the same as output.
+  String? code = map[TestMode.INPUT] ?? map[TestMode.NONE]!;
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions();
   Map arguments = {};
   testCase.environment.forEach((String name, String value) {
@@ -196,7 +191,7 @@ void check(TestCase testCase) {
     // TODO(johnniwinther): Remove `replaceAll(...)` when dart2js behaves as the
     // VM on newline in multiline strings.
     expect(context.getText(), equals(expectedOutput.replaceAll('\r\n', '\n')),
-        reason: "Unexpected output for $code in $mode");
+        reason: 'Unexpected output for $code in $mode');
   });
 }
 
@@ -221,7 +216,7 @@ class Context extends SimpleJavaScriptPrintingContext {
 
   @override
   void exitNode(
-      Node node, int startPosition, int endPosition, int delimiterPosition) {
+      Node node, int startPosition, int endPosition, int? delimiterPosition) {
     int value = id(node);
     if (mode == TestMode.DELIMITER && delimiterPosition != null) {
       tagMap.putIfAbsent(delimiterPosition, () => []).add(tag(value));
@@ -239,7 +234,7 @@ class Context extends SimpleJavaScriptPrintingContext {
       if (offset < position) {
         sb.write(text.substring(offset, position));
       }
-      tagMap[position].forEach((String tag) => sb.write(tag));
+      tagMap[position]!.forEach((String tag) => sb.write(tag));
       offset = position;
     }
     if (offset < text.length) {

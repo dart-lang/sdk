@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.cmdline;
 
 import 'dart:async' show Future;
@@ -11,8 +13,10 @@ import 'dart:isolate' show Isolate;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../compiler.dart' as api;
+import '../compiler_api.dart' as api;
+import '../compiler_api_unmigrated.dart' as api_unmigrated;
 import 'commandline_options.dart';
+import 'common/ram_usage.dart';
 import 'options.dart' show CompilerOptions, FeatureOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
@@ -316,15 +320,13 @@ Future<api.CompilationResult> compile(List<String> argv,
       fail("Cannot use ${Flags.writeModularAnalysis} "
           "and write serialized codegen simultaneously.");
     }
-    if (writeStrategy == WriteStrategy.toKernel) {
-      fail("Cannot use ${Flags.writeModularAnalysis} "
-          "and run the CFE simultaneously.");
-    }
     if (argument != Flags.writeModularAnalysis) {
       writeModularAnalysisUri =
           fe.nativeToUri(extractPath(argument, isDirectory: false));
     }
-    writeStrategy = WriteStrategy.toModularAnalysis;
+    writeStrategy = writeStrategy == WriteStrategy.toKernel
+        ? WriteStrategy.toKernelWithModularAnalysis
+        : WriteStrategy.toModularAnalysis;
   }
 
   void setReadData(String argument) {
@@ -369,10 +371,6 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setCfeOnly(String argument) {
-    if (writeStrategy == WriteStrategy.toModularAnalysis) {
-      fail("Cannot use ${Flags.cfeOnly} "
-          "and write serialized modular analysis simultaneously.");
-    }
     if (writeStrategy == WriteStrategy.toClosedWorld) {
       fail("Cannot use ${Flags.cfeOnly} "
           "and write serialized closed world simultaneously.");
@@ -385,7 +383,9 @@ Future<api.CompilationResult> compile(List<String> argv,
       fail("Cannot use ${Flags.cfeOnly} "
           "and write serialized codegen simultaneously.");
     }
-    writeStrategy = WriteStrategy.toKernel;
+    writeStrategy = writeStrategy == WriteStrategy.toModularAnalysis
+        ? WriteStrategy.toKernelWithModularAnalysis
+        : WriteStrategy.toKernel;
   }
 
   void setReadCodegen(String argument) {
@@ -823,6 +823,12 @@ Future<api.CompilationResult> compile(List<String> argv,
             "and read serialized codegen simultaneously.");
       }
       break;
+    case WriteStrategy.toKernelWithModularAnalysis:
+      out ??= Uri.base.resolve('out.dill');
+      options.add(Flags.cfeOnly);
+      writeModularAnalysisUri ??= Uri.base.resolve('$out.mdata');
+      options.add('${Flags.writeModularAnalysis}=${writeModularAnalysisUri}');
+      break;
     case WriteStrategy.toModularAnalysis:
       writeModularAnalysisUri ??= Uri.base.resolve('$out.mdata');
       options.add('${Flags.writeModularAnalysis}=${writeModularAnalysisUri}');
@@ -928,7 +934,8 @@ Future<api.CompilationResult> compile(List<String> argv,
       RandomAccessFileOutputProvider(out, sourceMapOut,
           onInfo: diagnosticHandler.info, onFailure: fail);
 
-  api.CompilationResult compilationDone(api.CompilationResult result) {
+  Future<api.CompilationResult> compilationDone(
+      api.CompilationResult result) async {
     if (!result.isSuccess) {
       fail('Compilation failed.');
     }
@@ -1005,6 +1012,15 @@ Future<api.CompilationResult> compile(List<String> argv,
         String output = fe.relativizeUri(Uri.base, out, Platform.isWindows);
         summary += 'compiled to dill: ${output}.';
         break;
+      case WriteStrategy.toKernelWithModularAnalysis:
+        processName = 'Compiled';
+        outputName = 'kernel and bytes data';
+        outputSize = outputProvider.totalDataWritten;
+        String output = fe.relativizeUri(Uri.base, out, Platform.isWindows);
+        String dataOutput = fe.relativizeUri(
+            Uri.base, writeModularAnalysisUri, Platform.isWindows);
+        summary += 'compiled to dill and data: ${output} and ${dataOutput}.';
+        break;
       case WriteStrategy.toModularAnalysis:
         processName = 'Serialized';
         outputName = 'bytes data';
@@ -1046,7 +1062,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     print('$processName '
         '${_formatCharacterCount(inputSize)} $inputName to '
         '${_formatCharacterCount(outputSize)} $outputName in '
-        '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
+        '${_formatDurationAsSeconds(wallclock.elapsed)} seconds using '
+        '${await currentHeapCapacityInMb()} of memory');
     if (primaryOutputSize != null) {
       diagnosticHandler
           .info('${_formatCharacterCount(primaryOutputSize)} $outputName '
@@ -1257,7 +1274,7 @@ Usage: dart compile js [arguments] <dart entry point>
 
     -O3
        Enables optimizations that respect the language semantics only on
-       programs that don't ever throw any subtype of `Error`.  These
+       programs that do not ever throw any subtype of `Error`.  These
        optimizations improve the generated code, but they may cause programs to
        behave unexpectedly if this assumption is not met.  To use this
        option, we recommend that you properly test your application first
@@ -1420,7 +1437,7 @@ typedef CompileFunc = Future<api.CompilationResult> Function(
     api.CompilerOutput compilerOutput);
 
 ExitFunc exitFunc = exit;
-CompileFunc compileFunc = api.compile;
+CompileFunc compileFunc = api_unmigrated.compile;
 
 /// If `true` a '.deps' file will be generated after compilation.
 ///
@@ -1545,6 +1562,7 @@ enum ReadStrategy {
 
 enum WriteStrategy {
   toKernel,
+  toKernelWithModularAnalysis,
   toModularAnalysis,
   toClosedWorld,
   toData,

@@ -100,7 +100,7 @@ class Driver {
     // Process the command-line arguments.
     //
     if (!_processCommandLine(args)) {
-      return null;
+      return;
     }
     if (verbose) {
       stdout.writeln();
@@ -222,7 +222,7 @@ class Driver {
       );
     var token = scanner.tokenize();
     // TODO(brianwilkerson) Randomize. Sometimes add zero (0) as a break point.
-    while (token.type != TokenType.EOF) {
+    while (!token.isEof) {
       // TODO(brianwilkerson) Break inside comments?
 //      Token comment = token.precedingComments;
       var offset = token.offset;

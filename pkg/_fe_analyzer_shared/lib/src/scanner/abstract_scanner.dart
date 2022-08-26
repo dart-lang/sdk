@@ -9,7 +9,15 @@ import 'dart:collection' show ListMixin;
 import 'dart:typed_data' show Uint16List, Uint32List;
 
 import 'token.dart'
-    show BeginToken, Keyword, KeywordToken, SyntheticToken, Token, TokenType;
+    show
+        BeginToken,
+        CommentToken,
+        Keyword,
+        KeywordToken,
+        LanguageVersionToken,
+        SyntheticToken,
+        Token,
+        TokenType;
 
 import 'token.dart' as analyzer show StringToken;
 
@@ -34,8 +42,7 @@ import 'error_token.dart'
 
 import 'keyword_state.dart' show KeywordState;
 
-import 'token_impl.dart'
-    show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
+import 'token_impl.dart' show DartDocToken, StringTokenImpl;
 
 import 'token_constants.dart';
 
@@ -570,11 +577,9 @@ abstract class AbstractScanner implements Scanner {
       {
         AbstractScanner option1 = createRecoveryOptionScanner();
         option1.insertSyntheticClosers(originalStack, groupingStack);
-        option1Recoveries =
-            option1.recoveryOptionTokenizer(option1.appendEndGroupInternal(
-                /* foundMatchingBrace = */ true,
-                type,
-                openKind));
+        option1Recoveries = option1.recoveryOptionTokenizer(
+            option1.appendEndGroupInternal(
+                /* foundMatchingBrace = */ true, type, openKind));
         option1Recoveries += option1.groupingStack.slowLength();
       }
 
@@ -583,11 +588,9 @@ abstract class AbstractScanner implements Scanner {
       {
         AbstractScanner option2 = createRecoveryOptionScanner();
         option2.groupingStack = originalStack;
-        option2Recoveries =
-            option2.recoveryOptionTokenizer(option2.appendEndGroupInternal(
-                /* foundMatchingBrace = */ false,
-                type,
-                openKind));
+        option2Recoveries = option2.recoveryOptionTokenizer(
+            option2.appendEndGroupInternal(
+                /* foundMatchingBrace = */ false, type, openKind));
         // We add 1 to make this option pay for ignoring this token.
         option2Recoveries += option2.groupingStack.slowLength() + 1;
       }
@@ -1914,7 +1917,7 @@ abstract class AbstractScanner implements Scanner {
         codeUnits.add(next);
         next = advance();
       }
-      appendToken(new StringToken.fromString(
+      appendToken(new StringTokenImpl.fromString(
           TokenType.IDENTIFIER, new String.fromCharCodes(codeUnits), charOffset,
           precedingComments: comments));
       return next;

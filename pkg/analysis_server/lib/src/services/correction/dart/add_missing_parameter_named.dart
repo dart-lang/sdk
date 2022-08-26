@@ -75,7 +75,4 @@ class AddMissingParameterNamed extends CorrectionProducer {
       await addParameter(parameterList?.leftParenthesis.end, '{', '}');
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddMissingParameterNamed newInstance() => AddMissingParameterNamed();
 }

@@ -5,11 +5,13 @@ publish_to: none
 environment:
   sdk: '>=2.12.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  analyzer:
-    path: ../analyzer
-  html: any
-  meta:
-    path: ../meta
+  analyzer: any
+  meta: any
   path: any
   test: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  lints: any

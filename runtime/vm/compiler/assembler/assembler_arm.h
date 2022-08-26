@@ -47,6 +47,16 @@ enum BlockAddressMode {
 
 namespace compiler {
 
+class Immediate : public ValueObject {
+ public:
+  explicit Immediate(int32_t value) : value_(value) {}
+
+  int32_t value() const { return value_; }
+
+ private:
+  const int32_t value_;
+};
+
 // Instruction encoding bits.
 enum {
   H = 1 << 5,   // halfword (or byte)
@@ -385,6 +395,8 @@ class Assembler : public AssemblerBase {
   void Bind(Label* label);
   // Unconditional jump to a given label. [distance] is ignored on ARM.
   void Jump(Label* label, JumpDistance distance = kFarJump) { b(label); }
+  // Unconditional jump to a given address in register.
+  void Jump(Register target) { bx(target); }
   // Unconditional jump to a given address in memory.
   void Jump(const Address& address) { Branch(address); }
 
@@ -415,9 +427,6 @@ class Assembler : public AssemblerBase {
     // We don't run TSAN bots on 32 bit.
   }
 
-  void CompareWithFieldValue(Register value, FieldAddress address) {
-    CompareWithMemoryValue(value, address);
-  }
   void CompareWithCompressedFieldFromOffset(Register value,
                                             Register base,
                                             int32_t offset) {
@@ -500,7 +509,7 @@ class Assembler : public AssemblerBase {
   void bic(Register rd, Register rn, Operand o, Condition cond = AL);
   void bics(Register rd, Register rn, Operand o, Condition cond = AL);
 
-  void mvn(Register rd, Operand o, Condition cond = AL);
+  void mvn_(Register rd, Operand o, Condition cond = AL);
   void mvns(Register rd, Operand o, Condition cond = AL);
 
   // Miscellaneous data-processing instructions.
@@ -804,6 +813,10 @@ class Assembler : public AssemblerBase {
 
   void CallCFunction(Address target) { Call(target); }
 
+  void CallCFunction(Register target, Condition cond = AL) {
+    blx(target, cond);
+  }
+
   // Add signed immediate value to rd. May clobber IP.
   void AddImmediate(Register rd, int32_t value, Condition cond = AL) {
     AddImmediate(rd, rd, value, cond);
@@ -818,6 +831,9 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int32_t value,
                             Condition cond = AL);
+  void AddRegisters(Register dest, Register src) {
+    add(dest, dest, Operand(src));
+  }
   void SubImmediate(Register rd,
                     Register rn,
                     int32_t value,
@@ -826,7 +842,24 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int32_t value,
                             Condition cond = AL);
+  void SubRegisters(Register dest, Register src) {
+    sub(dest, dest, Operand(src));
+  }
   void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
+  void AndImmediate(Register rd, int32_t imm, Condition cond = AL) {
+    AndImmediate(rd, rd, imm, cond);
+  }
+  void OrImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
+  void OrImmediate(Register rd, int32_t imm, Condition cond = AL) {
+    OrImmediate(rd, rd, imm, cond);
+  }
+  void LslImmediate(Register rd, Register rn, int32_t shift) {
+    ASSERT((shift >= 0) && (shift < kBitsPerInt32));
+    Lsl(rd, rn, Operand(shift));
+  }
+  void LslImmediate(Register rd, int32_t shift) {
+    LslImmediate(rd, rd, shift);
+  }
 
   // Test rn and immediate. May clobber IP.
   void TestImmediate(Register rn, int32_t imm, Condition cond = AL);
@@ -848,6 +881,7 @@ class Assembler : public AssemblerBase {
   // These three do not clobber IP.
   void LoadPatchableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadDecodableImmediate(Register rd, int32_t value, Condition cond = AL);
+  void LoadImmediate(Register rd, Immediate value, Condition cond = AL);
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
   // These two may clobber IP.
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);
@@ -855,6 +889,7 @@ class Assembler : public AssemblerBase {
                       double value,
                       Register scratch,
                       Condition cond = AL);
+  void LoadQImmediate(QRegister dd, simd128_value_t value);
 
   void MarkExceptionHandler(Label* label);
 
@@ -966,7 +1001,6 @@ class Assembler : public AssemblerBase {
                                Register scratch,
                                bool can_be_null = false) override;
 
-  intptr_t FindImmediate(int32_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadFromOffset(Register reg,
                       const Address& address,
@@ -1051,6 +1085,10 @@ class Assembler : public AssemblerBase {
                           Condition cond = AL) {
     StoreToOffset(reg, base, offset - kHeapObjectTag, type, cond);
   }
+  void StoreZero(const Address& address, Register temp) {
+    mov(temp, Operand(0));
+    str(temp, address);
+  }
   void LoadSFromOffset(SRegister reg,
                        Register base,
                        int32_t offset,
@@ -1111,8 +1149,13 @@ class Assembler : public AssemblerBase {
   void PushList(RegList regs, Condition cond = AL);
   void PopList(RegList regs, Condition cond = AL);
 
+  void PushQuad(FpuRegister rd, Condition cond = AL);
+  void PopQuad(FpuRegister rd, Condition cond = AL);
+
   void PushRegisters(const RegisterSet& regs);
   void PopRegisters(const RegisterSet& regs);
+
+  void PushRegistersInOrder(std::initializer_list<Register> regs);
 
   // Push all registers which are callee-saved according to the ARM ABI.
   void PushNativeCalleeSavedRegisters();
@@ -1136,6 +1179,14 @@ class Assembler : public AssemblerBase {
                     JumpDistance distance = kFarJump) {
     cmp(rn, Operand(0));
     b(label, ZERO);
+  }
+  void BranchIfBit(Register rn,
+                   intptr_t bit_number,
+                   Condition condition,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
+    tst(rn, Operand(1 << bit_number));
+    b(label, condition);
   }
 
   void MoveRegister(Register rd, Register rm, Condition cond) {
@@ -1249,6 +1300,11 @@ class Assembler : public AssemblerBase {
   void EnterFrame(RegList regs, intptr_t frame_space);
   void LeaveFrame(RegList regs, bool allow_pop_pc = false);
   void Ret(Condition cond = AL);
+
+  // Sets the return address to [value] as if there was a call.
+  // On ARM sets LR.
+  void SetReturnAddress(Register value);
+
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
   // In debug mode, this generates code to check that:
@@ -1368,6 +1424,13 @@ class Assembler : public AssemblerBase {
   // which will allocate in the runtime where tracing occurs.
   void MaybeTraceAllocation(Register stats_addr_reg, Label* trace);
 
+  // If allocation tracing for |cid| is enabled, will jump to |trace| label,
+  // which will allocate in the runtime where tracing occurs.
+  void MaybeTraceAllocation(intptr_t cid,
+                            Label* trace,
+                            Register temp_reg,
+                            JumpDistance distance = JumpDistance::kFarJump);
+
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
                          Label* failure,
@@ -1383,11 +1446,19 @@ class Assembler : public AssemblerBase {
                         Register temp1,
                         Register temp2);
 
+  // Copy [size] bytes from [src] address to [dst] address.
+  // [size] should be a multiple of word size.
+  // Clobbers [src], [dst], [size] and [temp] registers.
+  void CopyMemoryWords(Register src,
+                       Register dst,
+                       Register size,
+                       Register temp);
+
   // This emits an PC-relative call of the form "blr.<cond> <offset>".  The
   // offset is not yet known and needs therefore relocation to the right place
   // before the code can be used.
   //
-  // The neccessary information for the "linker" (i.e. the relocation
+  // The necessary information for the "linker" (i.e. the relocation
   // information) is stored in [UntaggedCode::static_calls_target_table_]: an
   // entry of the form
   //

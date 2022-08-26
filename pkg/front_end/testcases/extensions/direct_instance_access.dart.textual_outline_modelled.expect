@@ -1,10 +1,9 @@
-// @dart = 2.9
 class Class {
   var field;
 }
 
 class GenericClass<T> {
-  T field;
+  T? field;
 }
 
 extension Extension on Class {
@@ -24,10 +23,10 @@ extension Extension on Class {
 }
 
 extension GenericExtension<T> on GenericClass<T> {
-  T get property => this.field;
-  T readGetter() {}
-  genericWriteSetterNamed<S extends T>({S value}) {}
-  genericWriteSetterOptional<S extends T>([S value]) {}
+  T? get property => this.field;
+  T? readGetter() {}
+  genericWriteSetterNamed<S extends T>({S? value}) {}
+  genericWriteSetterOptional<S extends T>([S? value]) {}
   genericWriteSetterRequired<S extends T>(S value) {}
   get tearOffGetterGenericNamed => genericWriteSetterNamed;
   get tearOffGetterGenericOptional => genericWriteSetterOptional;
@@ -39,9 +38,9 @@ extension GenericExtension<T> on GenericClass<T> {
   getterCalls<S extends T>(S value) {}
   invocations<S extends T>(S value) {}
   tearOffs<S extends T>(S value) {}
-  void set property(T value) {}
-  writeSetterNamed({T value}) {}
-  writeSetterOptional([T value]) {}
+  void set property(T? value) {}
+  writeSetterNamed({T? value}) {}
+  writeSetterOptional([T? value]) {}
   writeSetterRequired(T value) {}
 }
 

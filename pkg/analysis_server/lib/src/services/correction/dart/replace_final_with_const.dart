@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -32,9 +33,31 @@ class ReplaceFinalWithConst extends CorrectionProducer {
           builder.addSimpleReplacement(range.token(keyword), 'const');
         });
       }
+
+      for (var variable in node.variables) {
+        var initializer = variable.initializer;
+        if (initializer != null) {
+          Token? constToken;
+          if (initializer is InstanceCreationExpression) {
+            constToken = initializer.keyword;
+          } else if (initializer is TypedLiteral) {
+            constToken = initializer.constKeyword;
+          }
+
+          if (constToken == null) {
+            continue;
+          }
+
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addDeletion(
+              range.startStart(
+                constToken!,
+                constToken.next!,
+              ),
+            );
+          });
+        }
+      }
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceFinalWithConst newInstance() => ReplaceFinalWithConst();
 }

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of utilslib;
 
-typedef num NumericValueSelector<T>(T value);
+typedef int NumericValueSelector<T>(T value);
 
 /**
  * General purpose collection utilities.
@@ -56,7 +54,7 @@ class CollectionUtils {
   }
 
   /** Compute the minimum of an iterable. Returns null if empty. */
-  static num min(Iterable source) {
+  static num? min(Iterable source) {
     final iter = source.iterator;
     if (!iter.moveNext()) {
       return null;
@@ -69,7 +67,7 @@ class CollectionUtils {
   }
 
   /** Compute the maximum of an iterable. Returns null if empty. */
-  static num max(Iterable source) {
+  static num? max(Iterable source) {
     final iter = source.iterator;
     if (!iter.moveNext()) {
       return null;
@@ -82,8 +80,9 @@ class CollectionUtils {
   }
 
   /** Orders an iterable by its values, or by a key selector. */
-  static List orderBy(Iterable source, [NumericValueSelector selector = null]) {
-    final result = new List.from(source);
+  static List<T> orderBy<T>(Iterable<T> source,
+      [NumericValueSelector? selector = null]) {
+    final result = List<T>.from(source);
     sortBy(result, selector);
     return result;
   }
@@ -92,7 +91,7 @@ class CollectionUtils {
   // TODO(jmesserly): we probably don't want to call the key selector more than
   // once for a given element. This would improve performance and the API
   // contract could be stronger.
-  static void sortBy(List list, [NumericValueSelector selector = null]) {
+  static void sortBy(List list, [NumericValueSelector? selector = null]) {
     if (selector != null) {
       list.sort((x, y) => selector(x) - selector(y));
     } else {
@@ -101,7 +100,7 @@ class CollectionUtils {
   }
 
   /** Compute the sum of an iterable. An empty iterable is an error. */
-  static num sum(Iterable source, [NumericValueSelector selector = null]) {
+  static num sum(Iterable source, [NumericValueSelector? selector = null]) {
     final iter = source.iterator;
     bool wasEmpty = true;
     num total = 0;
@@ -116,7 +115,7 @@ class CollectionUtils {
         total += element;
       }
     }
-    if (wasEmpty) throw new StateError("No elements");
+    if (wasEmpty) throw StateError("No elements");
     return total;
   }
 

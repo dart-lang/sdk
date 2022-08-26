@@ -51,16 +51,16 @@ void testTypes() {
       new TypedefType.byReference(rootReference, Nullability.nonNullable, []),
       '<root>');
 
-  CanonicalName library = root.getChild('library');
+  CanonicalName library = root.getChild('lib');
   Reference libraryReference = new Reference()..canonicalName = library;
   testType(
       new InterfaceType.byReference(
           libraryReference, Nullability.nonNullable, []),
-      'library');
+      'library lib');
   testType(
       new TypedefType.byReference(
           libraryReference, Nullability.nonNullable, []),
-      'library');
+      'library lib');
 
   CanonicalName className = library.getChild('Class');
   Reference classNameReference = new Reference()..canonicalName = className;
@@ -68,12 +68,12 @@ void testTypes() {
       new InterfaceType.byReference(
           classNameReference, Nullability.nonNullable, []),
       'Class',
-      verbose: 'library::Class');
+      verbose: 'library lib::Class');
   testType(
       new TypedefType.byReference(
           classNameReference, Nullability.nonNullable, []),
       'Class',
-      verbose: 'library::Class');
+      verbose: 'library lib::Class');
 }
 
 void testMembers() {
@@ -100,7 +100,7 @@ void testMembers() {
   testExpression(new StaticGet.byReference(rootReference), '''
 <root>''');
 
-  CanonicalName library = root.getChild('library');
+  CanonicalName library = root.getChild('lib');
   Reference libraryReference = new Reference()..canonicalName = library;
   testExpression(
       new InstanceGet.byReference(
@@ -110,9 +110,10 @@ void testMembers() {
       '''
 0.foo''');
   testExpression(new StaticGet.byReference(libraryReference), '''
-library''');
+library lib''');
 
-  CanonicalName topLevelMemberName = library.getChild('member');
+  CanonicalName topLevelMemberName =
+      library.getChild(CanonicalName.methodsName).getChild('member');
   Reference topLevelMemberNameReference = new Reference()
     ..canonicalName = topLevelMemberName;
   testExpression(
@@ -124,7 +125,7 @@ library''');
 0.foo''');
   testExpression(new StaticGet.byReference(topLevelMemberNameReference), '''
 member''', verbose: '''
-library::member''');
+library lib::member''');
 
   CanonicalName className = library.getChild('Class');
   Reference classNameReference = new Reference()..canonicalName = className;
@@ -137,9 +138,10 @@ library::member''');
 0.foo''');
   testExpression(new StaticGet.byReference(classNameReference), '''
 Class''', verbose: '''
-library::Class''');
+library lib::Class''');
 
-  CanonicalName classMemberName = className.getChild('member');
+  CanonicalName classMemberName =
+      className.getChild(CanonicalName.methodsName).getChild('member');
   Reference classMemberNameReference = new Reference()
     ..canonicalName = classMemberName;
   testExpression(
@@ -151,5 +153,5 @@ library::Class''');
 0.foo''');
   testExpression(new StaticGet.byReference(classMemberNameReference), '''
 Class.member''', verbose: '''
-library::Class.member''');
+library lib::Class.member''');
 }

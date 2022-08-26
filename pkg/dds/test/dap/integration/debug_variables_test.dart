@@ -18,7 +18,7 @@ main() {
   group('debug mode variables', () {
     test('provides variable list for frames', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = 1;
   foo();
@@ -58,7 +58,7 @@ void foo() {
 
     test('provides simple exception types for frames', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = dap.createTestFile(r'''
 void main(List<String> args) {
   throw 'my error';
 }
@@ -80,7 +80,7 @@ void main(List<String> args) {
 
     test('provides complex exception types for frames', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = dap.createTestFile(r'''
 void main(List<String> args) {
   throw ArgumentError.notNull('args');
 }
@@ -104,7 +104,7 @@ void main(List<String> args) {
 
     test('includes simple variable fields', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = DateTime(2000, 1, 1);
   print('Hello!'); $breakpointMarker
@@ -126,7 +126,7 @@ void main(List<String> args) {
     test('includes variable getters when evaluateGettersInDebugViews=true',
         () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = DateTime(2000, 1, 1);
   print('Hello!'); $breakpointMarker
@@ -172,7 +172,7 @@ void main(List<String> args) {
 
     test('renders a simple list', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = ["first", "second", "third"];
   print('Hello!'); $breakpointMarker
@@ -195,7 +195,7 @@ void main(List<String> args) {
 
     test('renders a simple list subset', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = ["first", "second", "third"];
   print('Hello!'); $breakpointMarker
@@ -218,7 +218,7 @@ void main(List<String> args) {
 
     test('renders a simple map with keys/values', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = {
     'zero': 0,
@@ -261,7 +261,7 @@ void main(List<String> args) {
 
     test('renders a simple map subset', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = {
     'zero': 0,
@@ -291,7 +291,7 @@ void main(List<String> args) {
 
     test('renders a complex map with keys/values', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = {
     DateTime(2000, 1, 1): Exception("my error")
@@ -349,7 +349,7 @@ void main(List<String> args) {
 
     test('calls toString() on custom classes', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 class Foo {
   toString() => 'Bar!';
 }
@@ -386,7 +386,7 @@ void main() {
       //
       //     myVariable: Foo (Instance of Foo)
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 class Foo {}
 
 void main() {
@@ -416,7 +416,7 @@ void main() {
 
     test('handles errors in getters', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile('''
+      final testFile = dap.createTestFile('''
 class Foo {
   String get doesNotThrow => "success";
   String get throws => throw Exception('err');

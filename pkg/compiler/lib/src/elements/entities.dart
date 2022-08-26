@@ -6,12 +6,13 @@ library entities;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show AsyncModifier;
 
-import '../common.dart';
+// TODO(48820): Spannable was imported from `../common.dart`.
+import '../diagnostics/spannable.dart' show Spannable;
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../util/util.dart';
 import 'names.dart';
-import 'types.dart';
+import 'types.dart' show FunctionType;
 
 /// Abstract interface for entities.
 ///
@@ -23,7 +24,10 @@ import 'types.dart';
 /// entity in the Dart source code nor in the terminology of the Dart language
 /// and should therefore implement [Entity] directly.
 abstract class Entity implements Spannable {
-  String get name;
+  // Not all entities have names. Imports with no prefix and some local
+  // variables are unnamed. Some entities have a name that is the empty string
+  // (e.g. the default constructor).
+  String? get name;
 }
 
 /// Stripped down super interface for library like entities.
@@ -42,7 +46,7 @@ abstract class LibraryEntity extends Entity {
 ///
 /// The [name] property corresponds to the prefix name, if any.
 class ImportEntity {
-  final String name;
+  final String? name;
 
   /// The canonical URI of the library where this import occurs
   /// (where the import is declared).
@@ -65,6 +69,10 @@ class ImportEntity {
 /// Currently only [ClassElement] but later also kernel based Dart classes
 /// and/or Dart-in-JS classes.
 abstract class ClassEntity extends Entity {
+  /// Classes always have a name.
+  @override
+  String get name;
+
   /// If this is a normal class, the enclosing library for this class. If this
   /// is a closure class, the enclosing class of the closure for which it was
   /// created.
@@ -80,7 +88,9 @@ abstract class ClassEntity extends Entity {
 
 abstract class TypeVariableEntity extends Entity {
   /// The class or generic method that declared this type variable.
-  Entity get typeDeclaration;
+  /// Is `null` for some generic functions and closures.
+  // TODO(sra): Figure out how to always have a [typeDeclaration].
+  Entity? get typeDeclaration;
 
   /// The index of this type variable in the type variables of its
   /// [typeDeclaration].
@@ -134,7 +144,7 @@ abstract class MemberEntity extends Entity {
 
   /// The enclosing class if this is a constructor, instance member or
   /// static member of a class.
-  ClassEntity get enclosingClass;
+  ClassEntity? get enclosingClass;
 
   /// The enclosing library if this is a library member, otherwise the
   /// enclosing library of the [enclosingClass].
@@ -146,6 +156,18 @@ abstract class MemberEntity extends Entity {
 /// Currently only [FieldElement] but later also kernel based Dart fields
 /// and/or Dart-in-JS field-like properties.
 abstract class FieldEntity extends MemberEntity {}
+
+/// An entity that defines a local entity (memory slot) in generated code.
+///
+/// Parameters, local variables and local functions (can) define local entity
+/// and thus implement [Local] through [LocalElement]. For non-element locals,
+/// like `this` and boxes, specialized [Local] classes are created.
+///
+/// Type variables can introduce locals in factories and constructors
+/// but since one type variable can introduce different locals in different
+/// factories and constructors it is not itself a [Local] but instead
+/// a non-element [Local] is created through a specialized class.
+abstract class Local extends Entity {}
 
 /// Stripped down super interface for function like entities.
 ///
@@ -225,6 +247,10 @@ enum Variance { legacyCovariant, covariant, contravariant, invariant }
 // TODO(johnniwinther): Remove factory constructors from the set of
 // constructors.
 abstract class ConstructorEntity extends FunctionEntity {
+  // Constructors always have an enclosing class.
+  @override
+  ClassEntity get enclosingClass;
+
   /// Whether this is a generative constructor, possibly redirecting.
   bool get isGenerativeConstructor;
 
@@ -246,18 +272,6 @@ abstract class ConstructorBodyEntity extends FunctionEntity {
   /// The constructor for which this constructor body was created.
   ConstructorEntity get constructor;
 }
-
-/// An entity that defines a local entity (memory slot) in generated code.
-///
-/// Parameters, local variables and local functions (can) define local entity
-/// and thus implement [Local] through [LocalElement]. For non-element locals,
-/// like `this` and boxes, specialized [Local] classes are created.
-///
-/// Type variables can introduce locals in factories and constructors
-/// but since one type variable can introduce different locals in different
-/// factories and constructors it is not itself a [Local] but instead
-/// a non-element [Local] is created through a specialized class.
-abstract class Local extends Entity {}
 
 /// The structure of function parameters.
 class ParameterStructure {
@@ -340,7 +354,7 @@ class ParameterStructure {
     );
   }
 
-  factory ParameterStructure.fromType(FunctionType type) {
+  static ParameterStructure fromType(FunctionType type) {
     return ParameterStructure(
         type.parameterTypes.length,
         type.parameterTypes.length + type.optionalParameterTypes.length,
@@ -350,11 +364,12 @@ class ParameterStructure {
   }
 
   /// Deserializes a [ParameterStructure] object from [source].
-  factory ParameterStructure.readFromDataSource(DataSourceReader source) {
+  static readFromDataSource(DataSourceReader source) {
+    final tag = ParameterStructure.tag;
     source.begin(tag);
     int requiredPositionalParameters = source.readInt();
     int positionalParameters = source.readInt();
-    List<String> namedParameters = source.readStrings();
+    List<String> namedParameters = source.readStrings()!;
     Set<String> requiredNamedParameters =
         source.readStrings(emptyAsNull: true)?.toSet() ?? const <String>{};
     int typeParameters = source.readInt();
@@ -369,6 +384,7 @@ class ParameterStructure {
 
   /// Serializes this [ParameterStructure] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
+    final tag = ParameterStructure.tag;
     sink.begin(tag);
     sink.writeInt(requiredPositionalParameters);
     sink.writeInt(positionalParameters);

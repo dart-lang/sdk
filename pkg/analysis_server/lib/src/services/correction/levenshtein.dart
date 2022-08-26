@@ -61,7 +61,7 @@ int levenshtein(String s, String t, int threshold,
   // cost array, horizontally
   var d = List<int>.filled(s_len + 1, 0);
   // placeholder to assist in swapping p and d
-  List<int> _d;
+  List<int> holder;
 
   // fill in starting table values
   var boundary = math.min(s_len, threshold) + 1;
@@ -106,9 +106,9 @@ int levenshtein(String s, String t, int threshold,
     }
 
     // copy current distance counts to 'previous row' distance counts
-    _d = p;
+    holder = p;
     p = d;
-    d = _d;
+    d = holder;
   }
 
   // if p[n] is greater than the threshold,

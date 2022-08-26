@@ -1,0 +1,163 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  method toString() → core::String
+    return "M";
+}
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method toString() → core::String
+    return "A";
+}
+abstract class B extends core::Object implements core::Enum {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method toString() → core::String
+    return "B";
+}
+abstract class _E1&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E1&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  method toString() → core::String
+    return "M";
+}
+class E1 extends self::_E1&_Enum&M /*isEnum*/  {
+  static const field core::List<self::E1> values = #C4;
+  static const field self::E1 element = #C3;
+  const constructor •(core::int #index, core::String #name) → self::E1
+    : super self::_E1&_Enum&M::•(#index, #name)
+    ;
+  method toString() → core::String
+    return super.{self::_E1&_Enum&M::toString}();
+}
+abstract class _E2&_Enum&M extends core::_Enum implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E2&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  method toString() → core::String
+    return "M";
+}
+class E2 extends self::_E2&_Enum&M /*isEnum*/  {
+  static const field core::List<self::E2> values = #C6;
+  static const field self::E2 element = #C5;
+  const constructor •(core::int #index, core::String #name) → self::E2
+    : super self::_E2&_Enum&M::•(#index, #name)
+    ;
+  method toString() → core::String
+    return "E2";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E3> values = #C8;
+  static const field self::E3 element = #C7;
+  const constructor •(core::int #index, core::String #name) → self::E3
+    : super core::_Enum::•(#index, #name)
+    ;
+  method toString() → core::String
+    return "E3";
+}
+class E4 extends core::_Enum implements self::B /*isEnum*/  {
+  static const field core::List<self::E4> values = #C10;
+  static const field self::E4 element = #C9;
+  const constructor •(core::int #index, core::String #name) → self::E4
+    : super core::_Enum::•(#index, #name)
+    ;
+  method toString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+class E5 extends core::_Enum implements self::B /*isEnum*/  {
+  static const field core::List<self::E5> values = #C12;
+  static const field self::E5 element = #C11;
+  const constructor •(core::int #index, core::String #name) → self::E5
+    : super core::_Enum::•(#index, #name)
+    ;
+  method toString() → core::String
+    return "E5";
+}
+abstract class _E6&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  method toString() → core::String
+    return "A";
+}
+class E6 extends self::_E6&_Enum&A /*isEnum*/  {
+  static const field core::List<self::E6> values = #C14;
+  static const field self::E6 element = #C13;
+  const constructor •(core::int #index, core::String #name) → self::E6
+    : super self::_E6&_Enum&A::•(#index, #name)
+    ;
+  method toString() → core::String
+    return super.{self::_E6&_Enum&A::toString}();
+}
+abstract class _E7&_Enum&A extends core::_Enum implements self::A /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&A
+    : super core::_Enum::•(index, _name)
+    ;
+  method toString() → core::String
+    return "A";
+}
+class E7 extends self::_E7&_Enum&A /*isEnum*/  {
+  static const field core::List<self::E7> values = #C16;
+  static const field self::E7 element = #C15;
+  const constructor •(core::int #index, core::String #name) → self::E7
+    : super self::_E7&_Enum&A::•(#index, #name)
+    ;
+  method toString() → core::String
+    return "E7";
+}
+static method checkEqual(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected '${x}' and '${y}' to be equal.";
+  }
+}
+static method main() → dynamic {
+  self::checkEqual("${#C3}", "M");
+  self::checkEqual("${#C5}", "E2");
+  self::checkEqual("${#C7}", "E3");
+  self::checkEqual("${#C9}", "E4.element");
+  self::checkEqual("${#C11}", "E5");
+  self::checkEqual("${#C13}", "A");
+  self::checkEqual("${#C15}", "E7");
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = <self::E1>[#C3]
+  #C5 = self::E2 {index:#C1, _name:#C2}
+  #C6 = <self::E2>[#C5]
+  #C7 = self::E3 {index:#C1, _name:#C2}
+  #C8 = <self::E3>[#C7]
+  #C9 = self::E4 {index:#C1, _name:#C2}
+  #C10 = <self::E4>[#C9]
+  #C11 = self::E5 {index:#C1, _name:#C2}
+  #C12 = <self::E5>[#C11]
+  #C13 = self::E6 {index:#C1, _name:#C2}
+  #C14 = <self::E6>[#C13]
+  #C15 = self::E7 {index:#C1, _name:#C2}
+  #C16 = <self::E7>[#C15]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue49236.dart:
+- E1. (from org-dartlang-testcase:///issue49236.dart:17:6)
+- _E1&_Enum&M. (from org-dartlang-testcase:///issue49236.dart:17:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- E2. (from org-dartlang-testcase:///issue49236.dart:21:6)
+- _E2&_Enum&M. (from org-dartlang-testcase:///issue49236.dart:21:6)
+- E3. (from org-dartlang-testcase:///issue49236.dart:27:6)
+- E4. (from org-dartlang-testcase:///issue49236.dart:33:6)
+- E5. (from org-dartlang-testcase:///issue49236.dart:37:6)
+- E6. (from org-dartlang-testcase:///issue49236.dart:43:6)
+- _E6&_Enum&A. (from org-dartlang-testcase:///issue49236.dart:43:6)
+- E7. (from org-dartlang-testcase:///issue49236.dart:47:6)
+- _E7&_Enum&A. (from org-dartlang-testcase:///issue49236.dart:47:6)

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*library: scope=[
   HiddenExtension2,
   ShownExtension2,
@@ -16,7 +14,7 @@
  builder-onType=String,
  extension-members=[static staticMethod=HiddenExtension2|staticMethod],
  extension-name=HiddenExtension2,
- extension-onType=String
+ extension-onType=String!
 */
 extension HiddenExtension2 on String {
   /*member: HiddenExtension2|staticMethod:
@@ -31,7 +29,7 @@ extension HiddenExtension2 on String {
  builder-onType=String,
  extension-members=[static staticMethod=ShownExtension2|staticMethod],
  extension-name=ShownExtension2,
- extension-onType=String
+ extension-onType=String!
 */
 extension ShownExtension2 on String {
   /*member: ShownExtension2|staticMethod:

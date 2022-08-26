@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 abstract class I<T> {
@@ -7,7 +6,7 @@ abstract class I<T> {
 }
 
 class B {
-  Object _x;
+  Object? _x;
   void check(Object expectedValue) {}
   void f([num x = 10]) {}
   void g({num x = 20}) {}

@@ -27,9 +27,9 @@ class DeclarationCode extends Code {
   @override
   CodeKind get kind => CodeKind.declaration;
 
-  DeclarationCode.fromString(String code) : super.fromString(code);
+  DeclarationCode.fromString(super.code) : super.fromString();
 
-  DeclarationCode.fromParts(List<Object> parts) : super.fromParts(parts);
+  DeclarationCode.fromParts(super.parts) : super.fromParts();
 }
 
 /// A piece of code representing a syntactically valid expression.
@@ -37,9 +37,9 @@ class ExpressionCode extends Code {
   @override
   CodeKind get kind => CodeKind.expression;
 
-  ExpressionCode.fromString(String code) : super.fromString(code);
+  ExpressionCode.fromString(super.code) : super.fromString();
 
-  ExpressionCode.fromParts(List<Object> parts) : super.fromParts(parts);
+  ExpressionCode.fromParts(super.parts) : super.fromParts();
 }
 
 /// A piece of code representing a syntactically valid function body.
@@ -52,21 +52,26 @@ class FunctionBodyCode extends Code {
   @override
   CodeKind get kind => CodeKind.functionBody;
 
-  FunctionBodyCode.fromString(String code) : super.fromString(code);
+  FunctionBodyCode.fromString(super.code) : super.fromString();
 
-  FunctionBodyCode.fromParts(List<Object> parts) : super.fromParts(parts);
+  FunctionBodyCode.fromParts(super.parts) : super.fromParts();
 }
 
-/// A piece of code identifying a syntactically valid function parameter.
+/// A piece of code identifying a syntactically valid function or function type
+/// parameter.
 ///
 /// There is no distinction here made between named and positional parameters.
+///
+/// There is also no distinction between function type parameters and normal
+/// function parameters, so the [name] is nullable (it is not required for
+/// positional function type parameters).
 ///
 /// It is the job of the user to construct and combine these together in a way
 /// that creates valid parameter lists.
 class ParameterCode implements Code {
   final Code? defaultValue;
   final List<String> keywords;
-  final String name;
+  final String? name;
   final TypeAnnotationCode? type;
 
   @override
@@ -82,7 +87,7 @@ class ParameterCode implements Code {
           type!,
           ' ',
         ],
-        name,
+        if (name != null) name!,
         if (defaultValue != null) ...[
           ' = ',
           defaultValue!,
@@ -92,13 +97,16 @@ class ParameterCode implements Code {
   ParameterCode({
     this.defaultValue,
     this.keywords = const [],
-    required this.name,
+    this.name,
     this.type,
   });
 }
 
 /// A piece of code representing a type annotation.
-abstract class TypeAnnotationCode implements Code {
+abstract class TypeAnnotationCode implements Code, TypeAnnotation {
+  @override
+  TypeAnnotationCode get code => this;
+
   /// Returns a [TypeAnnotationCode] object which is a non-nullable version
   /// of this one.
   ///
@@ -120,6 +128,9 @@ abstract class TypeAnnotationCode implements Code {
 class NullableTypeAnnotationCode implements TypeAnnotationCode {
   /// The underlying type that is being made nullable.
   TypeAnnotationCode underlyingType;
+
+  @override
+  TypeAnnotationCode get code => this;
 
   @override
   CodeKind get kind => CodeKind.nullableTypeAnnotation;
@@ -251,7 +262,7 @@ extension Join<T extends Object> on List<T> {
           this[i],
           separator,
         ],
-        last,
+        if (isNotEmpty) last,
       ];
 }
 

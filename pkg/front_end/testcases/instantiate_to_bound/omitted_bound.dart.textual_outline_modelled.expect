@@ -1,14 +1,13 @@
-// @dart = 2.9
 import 'dart:collection';
 
-A a;
-DoubleLinkedQueue c;
+A a = throw '';
+DoubleLinkedQueue c = throw '';
 
 class A<T> {}
 
 class C {
-  A foo() => null;
-  DoubleLinkedQueue baz() => null;
+  A foo() => throw '';
+  DoubleLinkedQueue baz() => throw '';
 }
 
 main() {}

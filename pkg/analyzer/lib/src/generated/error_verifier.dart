@@ -17,7 +17,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -46,6 +45,8 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -310,6 +311,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitAnnotation(Annotation node) {
     _checkForInvalidAnnotationFromDeferredLibrary(node);
+    _requiredParametersVerifier.visitAnnotation(node);
     super.visitAnnotation(node);
   }
 
@@ -425,8 +427,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
-      _checkForBuiltInIdentifierAsName(
-          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      if (!element.isDartCoreFunctionImpl) {
+        _checkForBuiltInIdentifierAsName(
+            node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      }
       _checkForConflictingClassTypeVariableErrorCodes();
       var superclass = node.extendsClause?.superclass;
       var implementsClause = node.implementsClause;
@@ -445,6 +449,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction(node.name);
+      _reportMacroApplicationErrors(
+        annotations: node.metadata,
+        macroErrors: element.macroApplicationErrors,
+      );
 
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
@@ -787,6 +795,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     }
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
+    _checkUseVerifier.checkFunctionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
   }
 
@@ -1654,11 +1663,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var implementsClause = node.implementsClause;
     var withClause = node.withClause;
 
-    if (node.name.name == "Function") {
-      errorReporter.reportErrorForNode(
-          HintCode.DEPRECATED_FUNCTION_CLASS_DECLARATION, node.name);
-    }
-
     if (extendsClause != null) {
       var superElement = extendsClause.superclass.name.staticElement;
       if (superElement != null && superElement.name == "Function") {
@@ -1914,7 +1918,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
     var element = node.declaredElement as ClassElement;
 
-    var analysisSession = _currentLibrary.session as AnalysisSessionImpl;
+    var analysisSession = _currentLibrary.session;
     var errors = analysisSession.classHierarchy.errors(element);
 
     for (var error in errors) {
@@ -2388,7 +2392,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // The object being iterated has to implement Iterable<T> for some T that
     // is assignable to the variable's type.
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
-    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
+    iterableType = typeSystem.resolveToBound(iterableType);
 
     var requiredSequenceType = awaitKeyword != null
         ? _typeProvider.streamDynamicType
@@ -4511,6 +4515,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return;
       }
     } else if (targetType == null) {
+      if (target is Identifier) {
+        final targetElement = target.staticElement;
+        if (targetElement is ClassElement ||
+            targetElement is ExtensionElement ||
+            targetElement is TypeAliasElement) {
+          errorReporter.reportErrorForOffset(
+            errorCode,
+            operator.offset,
+            endToken.end - operator.offset,
+            arguments,
+          );
+        }
+      }
       return;
     }
 
@@ -5173,6 +5190,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     return null;
   }
 
+  void _reportMacroApplicationErrors({
+    required List<Annotation> annotations,
+    required List<MacroApplicationError> macroErrors,
+  }) {
+    for (final macroError in macroErrors) {
+      if (macroError.annotationIndex < annotations.length) {
+        final applicationNode = annotations[macroError.annotationIndex];
+        if (macroError is UnknownMacroApplicationError) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.MACRO_EXECUTION_EXCEPTION,
+            applicationNode,
+            [
+              macroError.message,
+              macroError.stackTrace,
+            ],
+          );
+        } else {
+          // TODO(scheglov) Other implementations.
+          throw UnimplementedError('(${macroError.runtimeType}) $macroError');
+        }
+      }
+    }
+  }
+
   void _withEnclosingExecutable(
     ExecutableElement element,
     void Function() operation,
@@ -5297,13 +5338,5 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_INSTANTIATED_BOUND, node, []);
     }
-  }
-}
-
-extension on Object? {
-  /// If the target is [T], return it, otherwise `null`.
-  T? ifTypeOrNull<T>() {
-    final self = this;
-    return self is T ? self : null;
   }
 }

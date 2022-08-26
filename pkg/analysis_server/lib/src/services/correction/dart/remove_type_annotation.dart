@@ -49,8 +49,8 @@ class RemoveTypeAnnotation extends CorrectionProducer {
   Future<void> _removeFromDeclarationList(
       ChangeBuilder builder, VariableDeclarationList declarationList) async {
     // we need a type
-    var typeNode = declarationList.type;
-    if (typeNode == null) {
+    var type = declarationList.type;
+    if (type == null) {
       return;
     }
     // ignore if an incomplete variable declaration
@@ -63,18 +63,59 @@ class RemoveTypeAnnotation extends CorrectionProducer {
     if (selectionOffset > firstVariable.name.end) {
       return;
     }
+
+    var initializer = firstVariable.initializer;
     // The variable must have an initializer, otherwise there is no other
     // source for its type.
-    if (firstVariable.initializer == null) {
+    if (initializer == null) {
+      return;
+    }
+
+    String? typeArgumentsText;
+    int? typeArgumentsOffset;
+    if (type is NamedType) {
+      var typeArguments = type.typeArguments;
+      if (typeArguments != null) {
+        if (initializer is CascadeExpression) {
+          initializer = initializer.target;
+        }
+        if (initializer is TypedLiteral) {
+          if (initializer.typeArguments == null) {
+            typeArgumentsText = utils.getNodeText(typeArguments);
+            if (initializer is ListLiteral) {
+              typeArgumentsOffset = initializer.leftBracket.offset;
+            } else if (initializer is SetOrMapLiteral) {
+              typeArgumentsOffset = initializer.leftBracket.offset;
+            } else {
+              throw StateError('Unhandled subclass of TypedLiteral');
+            }
+          }
+        } else if (initializer is InstanceCreationExpression) {
+          if (initializer.constructorName.type.typeArguments == null) {
+            typeArgumentsText = utils.getNodeText(typeArguments);
+            typeArgumentsOffset = initializer.constructorName.type.end;
+          }
+        }
+      }
+    }
+    if (initializer is SetOrMapLiteral &&
+        initializer.typeArguments == null &&
+        typeArgumentsText == null) {
+      // This is to prevent the fix from converting a valid map or set literal
+      // into an ambiguous literal. We could apply this in more places
+      // by examining the elements of the collection.
       return;
     }
     var keyword = declarationList.keyword;
     await builder.addDartFileEdit(file, (builder) {
-      var typeRange = range.startStart(typeNode, firstVariable);
+      var typeRange = range.startStart(type, firstVariable);
       if (keyword != null && keyword.lexeme != 'var') {
         builder.addSimpleReplacement(typeRange, '');
       } else {
         builder.addSimpleReplacement(typeRange, 'var ');
+      }
+      if (typeArgumentsText != null && typeArgumentsOffset != null) {
+        builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
       }
     });
   }
@@ -107,7 +148,4 @@ class RemoveTypeAnnotation extends CorrectionProducer {
       builder.addDeletion(range.startStart(type, type.endToken.next!));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveTypeAnnotation newInstance() => RemoveTypeAnnotation();
 }

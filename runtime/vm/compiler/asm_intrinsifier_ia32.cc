@@ -1626,8 +1626,7 @@ static void TryAllocateString(Assembler* assembler,
   __ cmpl(length_reg, Immediate(0));
   __ j(LESS, failure);
 
-  NOT_IN_PRODUCT(
-      __ MaybeTraceAllocation(cid, EAX, failure, Assembler::kFarJump));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, EAX));
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }
@@ -1889,16 +1888,16 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ movl(EDI, Address(ESP, kStringParamOffset));
   __ LoadClassId(EDI, EDI);
   __ SubImmediate(EDI, Immediate(kOneByteStringCid));
-  __ movl(EAX, FieldAddress(
-                   EBX, EDI, TIMES_4,
-                   target::RegExp::function_offset(kOneByteStringCid, sticky)));
+  __ movl(FUNCTION_REG, FieldAddress(EBX, EDI, TIMES_4,
+                                     target::RegExp::function_offset(
+                                         kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
   __ xorl(ECX, ECX);
 
   // Tail-call the function.
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
+  __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
 }
 
 void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,

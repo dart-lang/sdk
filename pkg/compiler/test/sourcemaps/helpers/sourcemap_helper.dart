@@ -8,9 +8,9 @@ library sourcemap.helper;
 
 import 'dart:async';
 import 'dart:io';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/compiler.dart' as api;
+import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/code_output.dart';
 import 'package:compiler/src/io/source_file.dart';
@@ -23,9 +23,9 @@ import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import '../../helpers/memory_compiler.dart';
 
-class SourceFileSink implements OutputSink {
+class SourceFileSink implements api.OutputSink {
   final String filename;
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   SourceFile sourceFile;
 
   SourceFileSink(this.filename);
@@ -41,7 +41,7 @@ class SourceFileSink implements OutputSink {
   }
 }
 
-class OutputProvider implements CompilerOutput {
+class OutputProvider implements api.CompilerOutput {
   Map<Uri, SourceFileSink> outputMap = <Uri, SourceFileSink>{};
 
   SourceFile getSourceFile(Uri uri) {
@@ -53,7 +53,7 @@ class OutputProvider implements CompilerOutput {
   }
 
   SourceFileSink createSourceFileSink(
-      String name, String extension, OutputType type) {
+      String name, String extension, api.OutputType type) {
     String filename = '$name.$extension';
     SourceFileSink sink = new SourceFileSink(filename);
     Uri uri = Uri.parse(filename);
@@ -62,12 +62,13 @@ class OutputProvider implements CompilerOutput {
   }
 
   @override
-  OutputSink createOutputSink(String name, String extension, OutputType type) {
+  api.OutputSink createOutputSink(
+      String name, String extension, api.OutputType type) {
     return createSourceFileSink(name, extension, type);
   }
 
   @override
-  BinaryOutputSink createBinarySink(Uri uri) =>
+  api.BinaryOutputSink createBinarySink(Uri uri) =>
       throw new UnsupportedError("OutputProvider.createBinarySink");
 }
 
@@ -78,14 +79,16 @@ class CloningOutputProvider extends OutputProvider {
       : outputProvider = new RandomAccessFileOutputProvider(jsUri, jsMapUri);
 
   @override
-  OutputSink createOutputSink(String name, String extension, OutputType type) {
-    OutputSink output = outputProvider.createOutputSink(name, extension, type);
+  api.OutputSink createOutputSink(
+      String name, String extension, api.OutputType type) {
+    api.OutputSink output =
+        outputProvider.createOutputSink(name, extension, type);
     return new CloningOutputSink(
         [output, createSourceFileSink(name, extension, type)]);
   }
 
   @override
-  BinaryOutputSink createBinarySink(Uri uri) =>
+  api.BinaryOutputSink createBinarySink(Uri uri) =>
       throw new UnsupportedError("CloningOutputProvider.createBinarySink");
 }
 
@@ -414,7 +417,7 @@ class SourceMapProcessor {
 }
 
 class SourceMaps {
-  final api.Compiler compiler;
+  final Compiler compiler;
   final SourceFileManager sourceFileManager;
   // TODO(johnniwinther): Supported multiple output units.
   final SourceMapInfo mainSourceMapInfo;

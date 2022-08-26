@@ -10,9 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 /// A [Refactoring] for renaming [LabelElement]s.
 class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
-  RenameLabelRefactoringImpl(
-      RefactoringWorkspace workspace, LabelElement element)
-      : super(workspace, element);
+  RenameLabelRefactoringImpl(super.workspace, LabelElement super.element);
 
   @override
   LabelElement get element => super.element as LabelElement;

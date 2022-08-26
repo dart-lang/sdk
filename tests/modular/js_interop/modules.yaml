@@ -6,3 +6,6 @@
 dependencies:
   main: log
   log: js
+  js: meta
+packages:
+  js: ../../../pkg/js/lib

@@ -4,17 +4,20 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
 import 'package:analyzer/src/summary2/super_constructor_resolver.dart';
@@ -22,36 +25,29 @@ import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
-var timerLinkingLinkingBundle = Stopwatch();
-
-/// Note that AST units and tokens of [inputLibraries] will be damaged.
-@Deprecated('Use link2() instead')
-LinkResult link(
-  LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries,
-) {
-  var linker = Linker(elementFactory);
-  linker.link(inputLibraries);
-  return LinkResult(
-    resolutionBytes: linker.resolutionBytes,
+Future<LinkResult> link({
+  required LinkedElementFactory elementFactory,
+  required OperationPerformanceImpl performance,
+  required List<LibraryFileStateKind> inputLibraries,
+  macro.MultiMacroExecutor? macroExecutor,
+}) async {
+  final linker = Linker(elementFactory, macroExecutor);
+  await linker.link(
+    performance: performance,
+    inputLibraries: inputLibraries,
   );
-}
-
-/// Note that AST units and tokens of [inputLibraries] will be damaged.
-Future<LinkResult> link2(
-  LinkedElementFactory elementFactory,
-  List<LinkInputLibrary> inputLibraries,
-) async {
-  var linker = Linker(elementFactory);
-  linker.link(inputLibraries);
   return LinkResult(
     resolutionBytes: linker.resolutionBytes,
+    macroGeneratedUnits: linker.macroGeneratedUnits,
   );
 }
 
 class Linker {
   final LinkedElementFactory elementFactory;
+  final macro.MultiMacroExecutor? macroExecutor;
+  final DeclarationBuilder macroDeclarationBuilder = DeclarationBuilder();
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
@@ -62,7 +58,9 @@ class Linker {
 
   late Uint8List resolutionBytes;
 
-  Linker(this.elementFactory);
+  final List<LinkMacroGeneratedUnit> macroGeneratedUnits = [];
+
+  Linker(this.elementFactory, this.macroExecutor);
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -85,16 +83,19 @@ class Linker {
     return elementNodes[element];
   }
 
-  void link(List<LinkInputLibrary> inputLibraries) {
+  Future<void> link({
+    required OperationPerformanceImpl performance,
+    required List<LibraryFileStateKind> inputLibraries,
+  }) async {
     for (var inputLibrary in inputLibraries) {
       LibraryBuilder.build(this, inputLibrary);
     }
 
-    _buildOutlines();
+    await _buildOutlines(
+      performance: performance,
+    );
 
-    timerLinkingLinkingBundle.start();
     _writeLibraries();
-    timerLinkingLinkingBundle.stop();
   }
 
   void _buildEnumChildren() {
@@ -103,12 +104,31 @@ class Linker {
     }
   }
 
-  void _buildOutlines() {
+  Future<void> _buildOutlines({
+    required OperationPerformanceImpl performance,
+  }) async {
     _createTypeSystemIfNotLinkingDartCore();
-    _computeLibraryScopes();
+
+    await performance.runAsync(
+      'computeLibraryScopes',
+      (performance) async {
+        await _computeLibraryScopes(
+          performance: performance,
+        );
+      },
+    );
+
     _createTypeSystem();
     _resolveTypes();
     _buildEnumChildren();
+
+    await performance.runAsync(
+      'executeMacroDeclarationsPhase',
+      (_) async {
+        await _executeMacroDeclarationsPhase();
+      },
+    );
+
     SuperConstructorResolver(this).perform();
     _performTopLevelInference();
     _resolveConstructors();
@@ -125,37 +145,52 @@ class Linker {
     }
   }
 
-  void _computeLibraryScopes() {
+  Future<void> _computeLibraryScopes({
+    required OperationPerformanceImpl performance,
+  }) async {
     for (var library in builders.values) {
       library.buildElements();
     }
+
+    await performance.runAsync(
+      'executeMacroTypesPhase',
+      (performance) async {
+        for (var library in builders.values) {
+          await library.executeMacroTypesPhase(
+            performance: performance,
+          );
+        }
+      },
+    );
+
+    macroDeclarationBuilder.transferToElements();
 
     for (var library in builders.values) {
       library.buildInitialExportScope();
     }
 
-    var exporters = <LibraryBuilder>{};
-    var exportees = <LibraryBuilder>{};
+    var exportingBuilders = <LibraryBuilder>{};
+    var exportedBuilders = <LibraryBuilder>{};
 
     for (var library in builders.values) {
       library.addExporters();
     }
 
     for (var library in builders.values) {
-      if (library.exporters.isNotEmpty) {
-        exportees.add(library);
-        for (var exporter in library.exporters) {
-          exporters.add(exporter.exporter);
+      if (library.exports.isNotEmpty) {
+        exportedBuilders.add(library);
+        for (var export in library.exports) {
+          exportingBuilders.add(export.exporter);
         }
       }
     }
 
     var both = <LibraryBuilder>{};
-    for (var exported in exportees) {
-      if (exporters.contains(exported)) {
+    for (var exported in exportedBuilders) {
+      if (exportingBuilders.contains(exported)) {
         both.add(exported);
       }
-      for (var export in exported.exporters) {
+      for (var export in exported.exports) {
         exported.exportScope.forEach(export.addToExportScope);
       }
     }
@@ -163,9 +198,9 @@ class Linker {
     while (true) {
       var hasChanges = false;
       for (var exported in both) {
-        for (var export in exported.exporters) {
-          exported.exportScope.forEach((name, member) {
-            if (export.addToExportScope(name, member)) {
+        for (var export in exported.exports) {
+          exported.exportScope.forEach((name, reference) {
+            if (export.addToExportScope(name, reference)) {
               hasChanges = true;
             }
           });
@@ -180,9 +215,10 @@ class Linker {
   }
 
   void _createTypeSystem() {
-    var coreLib = elementFactory.libraryOfUri2('dart:core');
-    var asyncLib = elementFactory.libraryOfUri2('dart:async');
-    elementFactory.createTypeProviders(coreLib, asyncLib);
+    elementFactory.createTypeProviders(
+      elementFactory.dartCoreElement,
+      elementFactory.dartAsyncElement,
+    );
 
     inheritance = InheritanceManager3();
   }
@@ -199,6 +235,12 @@ class Linker {
   void _detachNodes() {
     for (var builder in builders.values) {
       detachElementsFromNodes(builder.element);
+    }
+  }
+
+  Future<void> _executeMacroDeclarationsPhase() async {
+    for (final library in builders.values) {
+      await library.executeMacroDeclarationsPhase();
     }
   }
 
@@ -245,10 +287,7 @@ class Linker {
     );
 
     for (var builder in builders.values) {
-      bundleWriter.writeLibraryElement(
-        builder.element,
-        builder.exports,
-      );
+      bundleWriter.writeLibraryElement(builder.element);
     }
 
     var writeWriterResult = bundleWriter.finish();
@@ -256,46 +295,24 @@ class Linker {
   }
 }
 
-class LinkInputLibrary {
-  final Source source;
-  final List<LinkInputUnit> units;
-
-  LinkInputLibrary({
-    required this.source,
-    required this.units,
-  });
-
-  Uri get uri => source.uri;
-
-  String get uriStr => '$uri';
-}
-
-class LinkInputUnit {
-  final int? partDirectiveIndex;
-  final String? partUriStr;
-  final Source source;
-  final String? sourceContent;
-  final bool isSynthetic;
+class LinkMacroGeneratedUnit {
+  final Uri uri;
+  final String content;
   final ast.CompilationUnit unit;
 
-  LinkInputUnit({
-    required this.partDirectiveIndex,
-    this.partUriStr,
-    required this.source,
-    this.sourceContent,
-    required this.isSynthetic,
+  LinkMacroGeneratedUnit({
+    required this.uri,
+    required this.content,
     required this.unit,
   });
-
-  Uri get uri => source.uri;
-
-  String get uriStr => '$uri';
 }
 
 class LinkResult {
   final Uint8List resolutionBytes;
+  final List<LinkMacroGeneratedUnit> macroGeneratedUnits;
 
   LinkResult({
     required this.resolutionBytes,
+    required this.macroGeneratedUnits,
   });
 }

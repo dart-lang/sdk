@@ -19,8 +19,7 @@ final int ZERO = '0'.codeUnitAt(0);
 /// [LogFileInputConverter] converts a log file stream
 /// into a series of operations to be sent to the analysis server.
 class LogFileInputConverter extends CommonInputConverter {
-  LogFileInputConverter(String tmpSrcDirPath, PathMap srcPathMap)
-      : super(tmpSrcDirPath, srcPathMap);
+  LogFileInputConverter(super.tmpSrcDirPath, super.srcPathMap);
 
   @override
   Operation? convert(String line) {

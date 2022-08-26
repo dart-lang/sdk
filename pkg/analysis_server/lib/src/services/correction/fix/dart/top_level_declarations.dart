@@ -39,12 +39,12 @@ class TopLevelDeclarations {
         continue;
       }
 
-      var libraryElement = analysisDriver.getLibraryByFile(file);
-      if (libraryElement == null) {
+      var elementResult = await analysisDriver.getLibraryByUri(file.uriStr);
+      if (elementResult is! LibraryElementResult) {
         continue;
       }
 
-      addElement(result, libraryElement, baseName);
+      addElement(result, elementResult.element, baseName);
     }
 
     return result;

@@ -77,14 +77,14 @@ import '$uriContent';
 
   void _configurePackagesFooBar() {
     final fooPackageRoot = getFolder('$packagesRootPath/foo');
-    newFile2('$packagesRootPath/foo/lib/foo01.dart', '');
-    newFile2('$packagesRootPath/foo/lib/foo02.dart', '');
+    newFile('$packagesRootPath/foo/lib/foo01.dart', '');
+    newFile('$packagesRootPath/foo/lib/foo02.dart', '');
     // We use this file to check that exactly `foo0` is used as prefix.
     // So, we don't have one-off and don't use just `foo`.
-    newFile2('$packagesRootPath/foo/lib/foo11.dart', '');
+    newFile('$packagesRootPath/foo/lib/foo11.dart', '');
 
     final barPackageRoot = getFolder('$packagesRootPath/bar');
-    newFile2('$packagesRootPath/bar/lib/bar01.dart', '');
+    newFile('$packagesRootPath/bar/lib/bar01.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()

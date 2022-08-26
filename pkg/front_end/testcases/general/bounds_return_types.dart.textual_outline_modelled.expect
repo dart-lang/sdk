@@ -1,0 +1,64 @@
+F<Class<ConcreteClass>> t6() => throw '';
+F<Class<dynamic>> t4() => throw '';
+F<Class> t3() => throw '';
+F<ConcreteClass> t5() => throw '';
+F<Object> t7() => throw '';
+F<dynamic> t2() => throw '';
+F<int> t8() => throw '';
+F t1() => throw '';
+G<Class<ConcreteClass>> s6() => throw '';
+G<Class<dynamic>> s4() => throw '';
+G<Class> s3() => throw '';
+G<ConcreteClass> s5() => throw '';
+G<Object> s7() => throw '';
+G<dynamic> s2() => throw '';
+G<int> s8() => throw '';
+G s1() => throw '';
+
+class Class<T> {}
+
+class Class1 {
+  F<Class<ConcreteClass>> t6() => throw '';
+  F<Class<dynamic>> t4() => throw '';
+  F<Class> t3() => throw '';
+  F<ConcreteClass> t5() => throw '';
+  F<Object> t7() => throw '';
+  F<dynamic> t2() => throw '';
+  F<int> t8() => throw '';
+  F t1() => throw '';
+  G<Class<ConcreteClass>> s6() => throw '';
+  G<Class<dynamic>> s4() => throw '';
+  G<Class> s3() => throw '';
+  G<ConcreteClass> s5() => throw '';
+  G<Object> s7() => throw '';
+  G<dynamic> s2() => throw '';
+  G<int> s8() => throw '';
+  G s1() => throw '';
+}
+
+class ConcreteClass implements Class<ConcreteClass> {}
+
+class G<X extends Class<X>> {}
+
+extension Extension1 on int {
+  F<Class<ConcreteClass>> t6() => throw '';
+  F<Class<dynamic>> t4() => throw '';
+  F<Class> t3() => throw '';
+  F<ConcreteClass> t5() => throw '';
+  F<Object> t7() => throw '';
+  F<dynamic> t2() => throw '';
+  F<int> t8() => throw '';
+  F t1() => throw '';
+  G<Class<ConcreteClass>> s6() => throw '';
+  G<Class<dynamic>> s4() => throw '';
+  G<Class> s3() => throw '';
+  G<ConcreteClass> s5() => throw '';
+  G<Object> s7() => throw '';
+  G<dynamic> s2() => throw '';
+  G<int> s8() => throw '';
+  G s1() => throw '';
+}
+
+main() {}
+method1() {}
+typedef F<X extends Class<X>> = X;

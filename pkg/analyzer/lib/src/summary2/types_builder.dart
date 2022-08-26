@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -384,14 +383,6 @@ class _MixinInference {
     interfacesMerger.addWithSupertypes(element.supertype);
   }
 
-  NullabilitySuffix get _noneOrStarSuffix {
-    return _nonNullableEnabled
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-  }
-
-  bool get _nonNullableEnabled => featureSet.isEnabled(Feature.non_nullable);
-
   void perform(WithClause? withClause) {
     if (withClause == null) return;
 
@@ -439,19 +430,46 @@ class _MixinInference {
       return mixinType;
     }
 
-    var mixinElement = mixinType.element;
-    if (mixinElement.typeParameters.isEmpty) {
-      return mixinType;
+    List<TypeParameterElement>? typeParameters;
+    List<InterfaceType>? supertypeConstraints;
+    InterfaceType Function(List<DartType> typeArguments)? instantiate;
+    final mixinElement = mixinNode.name.staticElement;
+    if (mixinElement is ClassElement) {
+      typeParameters = mixinElement.typeParameters;
+      if (typeParameters.isNotEmpty) {
+        supertypeConstraints = typeSystem
+            .gatherMixinSupertypeConstraintsForInference(mixinElement);
+        instantiate = (typeArguments) {
+          return mixinElement.instantiate(
+            typeArguments: typeArguments,
+            nullabilitySuffix: mixinType.nullabilitySuffix,
+          );
+        };
+      }
+    } else if (mixinElement is TypeAliasElementImpl) {
+      typeParameters = mixinElement.typeParameters;
+      if (typeParameters.isNotEmpty) {
+        final rawType = mixinElement.rawType;
+        if (rawType is InterfaceType) {
+          supertypeConstraints = rawType.superclassConstraints;
+          instantiate = (typeArguments) {
+            return mixinElement.instantiate(
+              typeArguments: typeArguments,
+              nullabilitySuffix: mixinType.nullabilitySuffix,
+            ) as InterfaceType;
+          };
+        }
+      }
     }
 
-    var mixinSupertypeConstraints =
-        typeSystem.gatherMixinSupertypeConstraintsForInference(mixinElement);
-    if (mixinSupertypeConstraints.isEmpty) {
+    if (typeParameters == null ||
+        supertypeConstraints == null ||
+        instantiate == null) {
       return mixinType;
     }
 
     var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
-      mixinSupertypeConstraints,
+      supertypeConstraints,
       interfacesMerger.typeList,
     );
 
@@ -469,22 +487,18 @@ class _MixinInference {
     // mixinSupertypeConstraints to find the correct set of type
     // parameters to apply to the mixin.
     var inferredTypeArguments = typeSystem.matchSupertypeConstraints(
-      mixinElement,
-      mixinSupertypeConstraints,
+      typeParameters,
+      supertypeConstraints,
       matchingInterfaceTypes,
-      genericMetadataIsEnabled:
-          mixinElement.library.featureSet.isEnabled(Feature.generic_metadata),
+      genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
     );
-    if (inferredTypeArguments != null) {
-      var inferredMixin = mixinElement.instantiate(
-        typeArguments: inferredTypeArguments,
-        nullabilitySuffix: _noneOrStarSuffix,
-      );
-      mixinType = inferredMixin;
-      mixinNode.type = inferredMixin;
+    if (inferredTypeArguments == null) {
+      return mixinType;
     }
 
-    return mixinType;
+    final inferredType = instantiate(inferredTypeArguments);
+    mixinNode.type = inferredType;
+    return inferredType;
   }
 
   InterfaceType _interfaceType(DartType type) {
@@ -573,8 +587,7 @@ class _MixinsInference {
     for (var declaration in declarations) {
       if (declaration is ClassOrMixinDeclaration) {
         var element = declaration.declaredElement as ClassElementImpl;
-        var sessionImpl = element.library.session as AnalysisSessionImpl;
-        sessionImpl.classHierarchy.remove(element);
+        element.library.session.classHierarchy.remove(element);
       }
     }
   }

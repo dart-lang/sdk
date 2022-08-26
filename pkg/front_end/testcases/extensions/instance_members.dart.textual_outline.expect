@@ -1,11 +1,10 @@
-// @dart = 2.9
 class A1 {}
 
 extension A2 on A1 {
   A1 method1() {}
   A1 method2<T>(T o) {}
-  A1 method3<T>([T o]) {}
-  A1 method4<T>({T o}) {}
+  A1 method3<T>([T? o]) {}
+  A1 method4<T>({T? o}) {}
 }
 
 class B1<T> {}

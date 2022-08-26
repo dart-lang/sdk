@@ -229,12 +229,10 @@ class Section : public ZoneAllocated {
 
  private:
   static intptr_t EncodeFlags(bool allocate, bool executable, bool writable) {
-    // Executable and writable only make sense if this is an allocated section.
-    ASSERT(allocate || (!executable && !writable));
-    if (!allocate) return 0;
-    intptr_t flags = elf::SHF_ALLOC;
     // We currently don't allow sections that are both executable and writable.
     ASSERT(!executable || !writable);
+    intptr_t flags = 0;
+    if (allocate) flags |= elf::SHF_ALLOC;
     if (executable) flags |= elf::SHF_EXECINSTR;
     if (writable) flags |= elf::SHF_WRITE;
     return flags;
@@ -265,7 +263,6 @@ class Segment : public ZoneAllocated {
     ASSERT(segment_type != elf::ProgramHeaderType::PT_NULL);
     // All segments should have at least one section.
     ASSERT(initial_section != nullptr);
-    ASSERT(initial_section->IsAllocated());
     sections_.Add(initial_section);
   }
 
@@ -282,6 +279,8 @@ class Segment : public ZoneAllocated {
         return compiler::target::kWordSize;
       case elf::ProgramHeaderType::PT_NOTE:
         return kNoteAlignment;
+      case elf::ProgramHeaderType::PT_GNU_STACK:
+        return 1;
       default:
         UNREACHABLE();
         return 0;
@@ -376,6 +375,21 @@ class ReservedSection : public Section {
   }
 
   DEFINE_TYPE_CHECK_FOR(ReservedSection);
+  intptr_t FileSize() const { return 0; }
+};
+
+// Specifies the permissions used for the stack, notably whether the stack
+// should be executable. If absent, the stack will be executable.
+class GnuStackSection : public Section {
+ public:
+  GnuStackSection()
+      : Section(elf::SectionHeaderType::SHT_NULL,
+                /*allocate=*/false,
+                /*executable=*/false,
+                /*writable=*/true) {
+    set_file_offset(0);
+  }
+
   intptr_t FileSize() const { return 0; }
 };
 
@@ -1657,6 +1671,12 @@ ProgramTable* SectionTable::CreateProgramTable(SymbolTable* symtab) {
   auto* const dynamic = Find(Elf::kDynamicTableName)->AsDynamicTable();
   program_table->Add(
       new (zone_) Segment(zone_, dynamic, elf::ProgramHeaderType::PT_DYNAMIC));
+
+  // Add a PT_GNU_STACK segment to prevent the loading of our snapshot from
+  // switch the stack to be executable.
+  auto* const gnu_stack = new (zone_) GnuStackSection();
+  program_table->Add(new (zone_) Segment(zone_, gnu_stack,
+                                         elf::ProgramHeaderType::PT_GNU_STACK));
 
   return program_table;
 }

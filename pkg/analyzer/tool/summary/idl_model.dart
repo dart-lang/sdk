@@ -50,14 +50,12 @@ class EnumDeclaration extends Declaration {
   /// List of enumerated values.
   final List<EnumValueDeclaration> values = <EnumValueDeclaration>[];
 
-  EnumDeclaration(String? documentation, String name)
-      : super(documentation, name);
+  EnumDeclaration(super.documentation, super.name);
 }
 
 /// Information about a single enum value defined in the IDL.
 class EnumValueDeclaration extends Declaration {
-  EnumValueDeclaration(String? documentation, String name)
-      : super(documentation, name);
+  EnumValueDeclaration(super.documentation, super.name);
 }
 
 /// Information about a single class field defined in the IDL.

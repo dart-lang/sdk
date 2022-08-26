@@ -8,6 +8,17 @@ import 'ast.dart';
 import 'core_types.dart';
 import 'src/replacement_visitor.dart';
 
+/// Returns all free type variables in [type].
+///
+/// Returns the set of all [TypeParameter]s that are referred to by a
+/// [TypeParameterType] in [type] that are not bound to an enclosing
+/// [FunctionType].
+Set<TypeParameter> allFreeTypeVariables(DartType type) {
+  _AllFreeTypeVariablesVisitor visitor = new _AllFreeTypeVariablesVisitor();
+  visitor.visit(type);
+  return visitor.freeTypeVariables;
+}
+
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
 ///
@@ -98,8 +109,10 @@ bool containsFreeFunctionTypeVariables(DartType type) {
 ///
 /// Returns `true` if [type] contains a [TypeParameterType] that doesn't refer
 /// to an enclosing generic [FunctionType] within [type].
-bool containsFreeTypeVariables(DartType type) {
-  return new _FreeTypeVariableVisitor().visit(type);
+bool containsFreeTypeVariables(DartType type,
+    {Set<TypeParameter>? boundVariables}) {
+  return new _FreeTypeVariableVisitor(boundVariables: boundVariables)
+      .visit(type);
 }
 
 /// Generates a fresh copy of the given type parameters, with their bounds
@@ -155,10 +168,7 @@ class FreshTypeParameters {
         substitute(type.returnType), type.nullability,
         namedParameters: type.namedParameters.map(substituteNamed).toList(),
         typeParameters: freshTypeParameters,
-        requiredParameterCount: type.requiredParameterCount,
-        typedefType: type.typedefType == null
-            ? null
-            : substitute(type.typedefType!) as TypedefType);
+        requiredParameterCount: type.requiredParameterCount);
   }
 
   DartType substitute(DartType type) => substitution.substituteType(type);
@@ -274,7 +284,7 @@ abstract class Substitution {
   /// *not* correspond to a sequence of two substitutions. For example,
   /// combining `{T -> List<G>}` with `{G -> String}` does not correspond to
   /// `{T -> List<String>}` because the result from substituting `T` is not
-  /// searched for occurences of `G`.
+  /// searched for occurrences of `G`.
   static Substitution combine(Substitution first, Substitution second) {
     if (first == _NullSubstitution.instance) return second;
     if (second == _NullSubstitution.instance) return first;
@@ -290,6 +300,80 @@ abstract class Substitution {
 
   Supertype substituteSupertype(Supertype node) {
     return new _TopSubstitutor(this, false).visitSupertype(node);
+  }
+}
+
+class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
+  final Set<TypeParameter> boundVariables = {};
+
+  final Set<TypeParameter> freeTypeVariables = {};
+
+  void visit(DartType node) => node.accept(this);
+
+  @override
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+  }
+
+  @override
+  void visitNeverType(NeverType node) {}
+  @override
+  void visitNullType(NullType node) {}
+  @override
+  void visitInvalidType(InvalidType node) {}
+  @override
+  void visitDynamicType(DynamicType node) {}
+  @override
+  void visitVoidType(VoidType node) {}
+
+  @override
+  void visitInterfaceType(InterfaceType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitExtensionType(ExtensionType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitFutureOrType(FutureOrType node) {
+    node.typeArgument.accept(this);
+  }
+
+  @override
+  void visitTypedefType(TypedefType node) {
+    for (DartType typeArgument in node.typeArguments) {
+      typeArgument.accept(this);
+    }
+  }
+
+  @override
+  void visitFunctionType(FunctionType node) {
+    boundVariables.addAll(node.typeParameters);
+    for (TypeParameter typeParameter in node.typeParameters) {
+      typeParameter.bound.accept(this);
+      typeParameter.defaultType.accept(this);
+    }
+    for (DartType positionalParameter in node.positionalParameters) {
+      positionalParameter.accept(this);
+    }
+    for (NamedType namedParameter in node.namedParameters) {
+      namedParameter.type.accept(this);
+    }
+    node.returnType.accept(this);
+    boundVariables.removeAll(node.typeParameters);
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
+    if (!boundVariables.contains(node.parameter)) {
+      freeTypeVariables.add(node.parameter);
+    }
   }
 }
 
@@ -402,6 +486,12 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 
   @override
   TypeParameter freshTypeParameter(TypeParameter node) {
+    assert(
+        !substitution.containsKey(node),
+        "Function type variables cannot be substituted while still attached "
+        "to the function. Perform substitution on "
+        "`FunctionType.withoutTypeParameters` instead.");
+
     TypeParameter fresh = new TypeParameter(node.name)..flags = node.flags;
     TypeParameterType typeParameterType = substitution[node] =
         new TypeParameterType.forAlphaRenaming(node, fresh);
@@ -661,13 +751,6 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
-    assert(
-        node.typeParameters.every((TypeParameter parameter) =>
-            lookup(parameter, true) == null &&
-            lookup(parameter, false) == null),
-        "Function type variables cannot be substituted while still attached "
-        "to the function. Perform substitution on "
-        "`FunctionType.withoutTypeParameters` instead.");
     _TypeSubstitutor inner =
         node.typeParameters.isEmpty ? this : newInnerEnvironment();
     int before = this.useCounter;
@@ -683,15 +766,11 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
         : node.namedParameters.map(inner.visitNamedType).toList();
     inner.invertVariance();
     DartType returnType = inner.visit(node.returnType);
-    TypedefType? typedefType = node.typedefType == null
-        ? null
-        : inner.visit(node.typedefType!) as TypedefType;
     if (this.useCounter == before) return node;
     return new FunctionType(positionalParameters, returnType, node.nullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        requiredParameterCount: node.requiredParameterCount,
-        typedefType: typedefType);
+        requiredParameterCount: node.requiredParameterCount);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
@@ -855,7 +934,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}).");
   }
 
   bool visitNamedType(NamedType node) {
@@ -919,9 +998,10 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 }
 
 class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
-  final Set<TypeParameter> variables = new Set<TypeParameter>();
+  final Set<TypeParameter> boundVariables;
 
-  _FreeTypeVariableVisitor();
+  _FreeTypeVariableVisitor({Set<TypeParameter>? boundVariables})
+      : this.boundVariables = boundVariables ?? <TypeParameter>{};
 
   bool visit(DartType node) => node.accept(this);
 
@@ -967,22 +1047,22 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitFunctionType(FunctionType node) {
-    variables.addAll(node.typeParameters);
+    boundVariables.addAll(node.typeParameters);
     bool result = node.typeParameters.any(handleTypeParameter) ||
         node.positionalParameters.any(visit) ||
         node.namedParameters.any(visitNamedType) ||
         visit(node.returnType);
-    variables.removeAll(node.typeParameters);
+    boundVariables.removeAll(node.typeParameters);
     return result;
   }
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return !variables.contains(node.parameter);
+    return !boundVariables.contains(node.parameter);
   }
 
   bool handleTypeParameter(TypeParameter node) {
-    assert(variables.contains(node));
+    assert(boundVariables.contains(node));
     if (node.bound.accept(this)) return true;
     // ignore: unnecessary_null_comparison
     if (node.defaultType == null) return false;
@@ -1093,7 +1173,7 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
 ///
 /// Some types are nullable even without the application of the nullable type
 /// constructor at the top level, for example, Null or FutureOr<int?>.
-// TODO(dmitryas): Remove [coreTypes] parameter when NullType is landed.
+// TODO(cstefantsova): Remove [coreTypes] parameter when NullType is landed.
 DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
   return type.accept1(const _NullabilityConstructorUnwrapper(), coreTypes);
 }
@@ -1102,7 +1182,7 @@ DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
 ///
 /// Implementing the function as a visitor makes the necessity of supporting a
 /// new implementation of [DartType] visible at compile time.
-// TODO(dmitryas): Remove CoreTypes as the second argument when NullType is
+// TODO(cstefantsova): Remove CoreTypes as the second argument when NullType is
 // landed.
 class _NullabilityConstructorUnwrapper
     implements DartTypeVisitor1<DartType, CoreTypes> {
@@ -1168,27 +1248,18 @@ class _NullabilityConstructorUnwrapper
   DartType visitVoidType(VoidType node, CoreTypes coreTypes) => node;
 }
 
-/// Eliminates specified free type parameters in a type.
-///
-/// The algorithm for elimination of type variables is described in
-/// https://github.com/dart-lang/language/pull/957
-class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
+abstract class NullabilityAwareTypeVariableEliminatorBase
+    extends ReplacementVisitor {
   final DartType bottomType;
   final DartType topType;
   final DartType topFunctionType;
-  final Set<TypeParameter> eliminationTargets;
   late bool _isLeastClosure;
-  final bool Function(DartType type, bool Function(DartType type) recursor)?
-      unhandledTypeHandler;
 
-  NullabilityAwareTypeVariableEliminator(
-      {required this.eliminationTargets,
-      required this.bottomType,
+  NullabilityAwareTypeVariableEliminatorBase(
+      {required this.bottomType,
       required this.topType,
-      required this.topFunctionType,
-      this.unhandledTypeHandler})
-      // ignore: unnecessary_null_comparison
-      : assert(eliminationTargets != null),
+      required this.topFunctionType})
+      :
         // ignore: unnecessary_null_comparison
         assert(bottomType != null),
         // ignore: unnecessary_null_comparison
@@ -1196,13 +1267,17 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
         // ignore: unnecessary_null_comparison
         assert(topFunctionType != null);
 
-  /// Returns a subtype of [type] for all values of [eliminationTargets].
+  bool containsTypeVariablesToEliminate(DartType type);
+
+  bool isTypeVariableToEliminate(TypeParameter typeParameter);
+
+  /// Returns a subtype of [type] for all variables to be eliminated.
   DartType eliminateToLeast(DartType type) {
     _isLeastClosure = true;
     return type.accept1(this, Variance.covariant) ?? type;
   }
 
-  /// Returns a supertype of [type] for all values of [eliminationTargets].
+  /// Returns a supertype of [type] for all variables to be eliminated.
   DartType eliminateToGreatest(DartType type) {
     _isLeastClosure = false;
     return type.accept1(this, Variance.covariant) ?? type;
@@ -1234,8 +1309,7 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
     //  - The greatest closure of `S` with respect to `L` is `Function`
     if (node.typeParameters.isNotEmpty) {
       for (TypeParameter typeParameter in node.typeParameters) {
-        if (containsTypeVariable(typeParameter.bound, eliminationTargets,
-            unhandledTypeHandler: unhandledTypeHandler)) {
+        if (containsTypeVariablesToEliminate(typeParameter.bound)) {
           return getFunctionReplacement(variance);
         }
       }
@@ -1245,10 +1319,111 @@ class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
 
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
-    if (eliminationTargets.contains(node.parameter)) {
+    if (isTypeVariableToEliminate(node.parameter)) {
       return getTypeParameterReplacement(variance);
     }
     return super.visitTypeParameterType(node, variance);
+  }
+}
+
+/// Eliminates specified free type parameters in a type.
+///
+/// Use this class when only a specific subset of unbound variables in a type
+/// should be substituted with one of [bottomType], [topType], or
+/// [topFunctionType].  For example, running a
+/// `NullabilityAwareTypeVariableEliminatorBase({T}, Never, Object?,
+/// Function).eliminateToLeast` on type `T Function<S>(S s, R r)` will return
+/// `Never Function<S>(S s, R r)`.
+///
+/// The algorithm for elimination of type variables is described in
+/// https://github.com/dart-lang/language/pull/957
+class NullabilityAwareTypeVariableEliminator
+    extends NullabilityAwareTypeVariableEliminatorBase {
+  final Set<TypeParameter> eliminationTargets;
+  final bool Function(DartType type, bool Function(DartType type) recursor)?
+      unhandledTypeHandler;
+
+  NullabilityAwareTypeVariableEliminator(
+      {required this.eliminationTargets,
+      required DartType bottomType,
+      required DartType topType,
+      required DartType topFunctionType,
+      this.unhandledTypeHandler})
+      // ignore: unnecessary_null_comparison
+      : assert(eliminationTargets != null),
+        // ignore: unnecessary_null_comparison
+        assert(bottomType != null),
+        // ignore: unnecessary_null_comparison
+        assert(topType != null),
+        // ignore: unnecessary_null_comparison
+        assert(topFunctionType != null),
+        super(
+            bottomType: bottomType,
+            topType: topType,
+            topFunctionType: topFunctionType);
+
+  @override
+  bool containsTypeVariablesToEliminate(DartType type) {
+    return containsTypeVariable(type, eliminationTargets,
+        unhandledTypeHandler: unhandledTypeHandler);
+  }
+
+  @override
+  bool isTypeVariableToEliminate(TypeParameter typeParameter) {
+    return eliminationTargets.contains(typeParameter);
+  }
+}
+
+/// Eliminates all free type parameters in a type.
+///
+/// Use this class when all unbound variables in a type should be substituted
+/// with one of [bottomType], [topType], or [topFunctionType].  For example,
+/// running a `NullabilityAwareFreeTypeVariableEliminator(Never, Object?,
+/// Function).eliminateToLeast` on type `T Function<S>(S s, R r)` will return
+/// `Never Function<S>(S s, Object? r)`.
+///
+/// The algorithm for elimination of type variables is described in
+/// https://github.com/dart-lang/language/pull/957
+class NullabilityAwareFreeTypeVariableEliminator
+    extends NullabilityAwareTypeVariableEliminatorBase {
+  Set<TypeParameter> _boundVariables = <TypeParameter>{};
+
+  NullabilityAwareFreeTypeVariableEliminator(
+      {required DartType bottomType,
+      required DartType topType,
+      required DartType topFunctionType})
+      :
+        // ignore: unnecessary_null_comparison
+        assert(bottomType != null),
+        // ignore: unnecessary_null_comparison
+        assert(topType != null),
+        // ignore: unnecessary_null_comparison
+        assert(topFunctionType != null),
+        super(
+            bottomType: bottomType,
+            topType: topType,
+            topFunctionType: topFunctionType);
+
+  @override
+  DartType? visitFunctionType(FunctionType node, int variance) {
+    if (node.typeParameters.isNotEmpty) {
+      _boundVariables.addAll(node.typeParameters);
+      DartType? result = super.visitFunctionType(node, variance);
+      _boundVariables.removeAll(node.typeParameters);
+      return result;
+    } else {
+      return super.visitFunctionType(node, variance);
+    }
+  }
+
+  @override
+  bool containsTypeVariablesToEliminate(DartType type) {
+    return containsFreeTypeVariables(type, boundVariables: _boundVariables);
+  }
+
+  @override
+  bool isTypeVariableToEliminate(TypeParameter typeParameter) {
+    return !_boundVariables.contains(typeParameter);
   }
 }
 

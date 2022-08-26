@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 F<num> g1(C<num> c) {}

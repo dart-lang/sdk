@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -57,7 +58,7 @@ class CiderFixesComputer {
           );
 
           var fixes = await DartFixContributor().computeFixes(context);
-          fixes.sort(Fix.SORT_BY_RELEVANCE);
+          fixes.sort(Fix.compareFixes);
 
           result.add(
             CiderErrorFixes(error: error, fixes: fixes, lineInfo: lineInfo),
@@ -88,7 +89,8 @@ class _CiderDartFixContextImpl extends DartFixContextImpl {
     var result = <LibraryElement, Element>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
     for (var file in files) {
-      if (file.partOfLibrary == null) {
+      final kind = file.kind;
+      if (kind is LibraryFileStateKind) {
         var libraryElement = await _fileResolver.getLibraryByUri2(
           uriStr: file.uriStr,
         );

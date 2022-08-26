@@ -43,18 +43,32 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
     Macro macro,
     Declaration declaration,
     IdentifierResolver identifierResolver,
-    ClassIntrospector classIntrospector,
+    TypeIntrospector typeIntrospector,
+    TypeDeclarationResolver typeDeclarationResolver,
     TypeResolver typeResolver) async {
   if (declaration is ClassDeclaration && macro is ClassDeclarationsMacro) {
+    if (declaration is! IntrospectableClassDeclaration) {
+      throw new ArgumentError(
+          'Class declarations annotated with a macro should be introspectable '
+          'in the declarations phase.');
+    }
     ClassMemberDeclarationBuilderImpl builder =
-        new ClassMemberDeclarationBuilderImpl(declaration.identifier,
-            identifierResolver, classIntrospector, typeResolver);
+        new ClassMemberDeclarationBuilderImpl(
+            declaration.identifier,
+            identifierResolver,
+            typeIntrospector,
+            typeDeclarationResolver,
+            typeResolver);
     await macro.buildDeclarationsForClass(declaration, builder);
     return builder.result;
   } else if (declaration is ClassMemberDeclaration) {
     ClassMemberDeclarationBuilderImpl builder =
-        new ClassMemberDeclarationBuilderImpl(declaration.definingClass,
-            identifierResolver, classIntrospector, typeResolver);
+        new ClassMemberDeclarationBuilderImpl(
+            declaration.definingClass,
+            identifierResolver,
+            typeIntrospector,
+            typeDeclarationResolver,
+            typeResolver);
     if (declaration is FunctionDeclaration) {
       if (macro is ConstructorDeclarationsMacro &&
           declaration is ConstructorDeclaration) {
@@ -75,7 +89,10 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
         return builder.result;
       } else if (macro is VariableDeclarationsMacro) {
         DeclarationBuilderImpl builder = new DeclarationBuilderImpl(
-            identifierResolver, classIntrospector, typeResolver);
+            identifierResolver,
+            typeIntrospector,
+            typeDeclarationResolver,
+            typeResolver);
         await macro.buildDeclarationsForVariable(
             declaration as VariableDeclaration, builder);
         return builder.result;
@@ -83,7 +100,10 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
     }
   } else {
     DeclarationBuilderImpl builder = new DeclarationBuilderImpl(
-        identifierResolver, classIntrospector, typeResolver);
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver);
     if (declaration is FunctionDeclaration &&
         macro is FunctionDeclarationsMacro) {
       await macro.buildDeclarationsForFunction(declaration, builder);
@@ -103,7 +123,7 @@ Future<MacroExecutionResult> executeDefinitionMacro(
     Macro macro,
     Declaration declaration,
     IdentifierResolver identifierResolver,
-    ClassIntrospector classIntrospector,
+    TypeIntrospector typeIntrospector,
     TypeResolver typeResolver,
     TypeDeclarationResolver typeDeclarationResolver,
     TypeInferrer typeInferrer) async {
@@ -114,9 +134,9 @@ Future<MacroExecutionResult> executeDefinitionMacro(
           new ConstructorDefinitionBuilderImpl(
               declaration,
               identifierResolver,
-              classIntrospector,
-              typeResolver,
+              typeIntrospector,
               typeDeclarationResolver,
+              typeResolver,
               typeInferrer);
       await macro.buildDefinitionForConstructor(declaration, builder);
       return builder.result;
@@ -124,9 +144,9 @@ Future<MacroExecutionResult> executeDefinitionMacro(
       FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
           declaration,
           identifierResolver,
-          classIntrospector,
-          typeResolver,
+          typeIntrospector,
           typeDeclarationResolver,
+          typeResolver,
           typeInferrer);
       if (macro is MethodDefinitionMacro && declaration is MethodDeclaration) {
         await macro.buildDefinitionForMethod(declaration, builder);
@@ -140,9 +160,9 @@ Future<MacroExecutionResult> executeDefinitionMacro(
     VariableDefinitionBuilderImpl builder = new VariableDefinitionBuilderImpl(
         declaration,
         identifierResolver,
-        classIntrospector,
-        typeResolver,
+        typeIntrospector,
         typeDeclarationResolver,
+        typeResolver,
         typeInferrer);
     if (macro is FieldDefinitionMacro && declaration is FieldDeclaration) {
       await macro.buildDefinitionForField(declaration, builder);
@@ -152,10 +172,15 @@ Future<MacroExecutionResult> executeDefinitionMacro(
       return builder.result;
     }
   } else if (macro is ClassDefinitionMacro && declaration is ClassDeclaration) {
+    if (declaration is! IntrospectableClassDeclaration) {
+      throw new ArgumentError(
+          'Class declarations annotated with a macro should be introspectable '
+          'in the definitions phase.');
+    }
     ClassDefinitionBuilderImpl builder = new ClassDefinitionBuilderImpl(
         declaration,
         identifierResolver,
-        classIntrospector,
+        typeIntrospector,
         typeResolver,
         typeDeclarationResolver,
         typeInferrer);

@@ -4,9 +4,11 @@
 
 import '../common.dart';
 import '../common/elements.dart';
-import '../elements/entities.dart';
+import '../elements/entities.dart' show ClassEntity;
+import '../elements/indexed.dart' show IndexedClass;
 import '../elements/types.dart' show InterfaceType;
-import '../kernel/element_map.dart' show KernelToElementMap;
+import '../kernel/element_map_interfaces.dart'
+    show KernelToElementMapForClassHierarchy;
 import '../serialization/serialization.dart';
 import 'class_set.dart';
 
@@ -199,69 +201,66 @@ class ClassHierarchyImpl implements ClassHierarchy {
         getClassHierarchyNode(_commonElements.objectClass);
     node.forEachSubclass((ClassEntity cls) {
       getClassHierarchyNode(cls).writeToDataSink(sink);
-      return null;
+      return IterationStep.CONTINUE;
     }, ClassHierarchyNode.ALL);
     ClassSet set = getClassSet(_commonElements.objectClass);
     set.forEachSubclass((ClassEntity cls) {
       getClassSet(cls).writeToDataSink(sink);
-      return null;
+      return IterationStep.CONTINUE;
     }, ClassHierarchyNode.ALL);
     sink.end(tag);
   }
 
   @override
   bool isInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    ClassHierarchyNode? node = _classHierarchyNodes[cls];
     return node != null && node.isInstantiated;
   }
 
   @override
   bool isDirectlyInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    ClassHierarchyNode? node = _classHierarchyNodes[cls];
     return node != null && node.isDirectlyInstantiated;
   }
 
   @override
   bool isAbstractlyInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    ClassHierarchyNode? node = _classHierarchyNodes[cls];
     return node != null && node.isAbstractlyInstantiated;
   }
 
   @override
   bool isExplicitlyInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    ClassHierarchyNode? node = _classHierarchyNodes[cls];
     return node != null && node.isExplicitlyInstantiated;
   }
 
   @override
   bool isIndirectlyInstantiated(ClassEntity cls) {
-    ClassHierarchyNode node = _classHierarchyNodes[cls];
+    ClassHierarchyNode? node = _classHierarchyNodes[cls];
     return node != null && node.isIndirectlyInstantiated;
   }
 
   @override
   bool isSubtypeOf(ClassEntity x, ClassEntity y) {
-    ClassSet classSet = _classSets[y];
-    assert(
-        classSet != null,
+    ClassSet classSet = _classSets[y] ??
         failedAt(
             y,
             "No ClassSet for $y (${y.runtimeType}): "
-            "${dump(y)} : ${_classSets}"));
-    ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x];
-    assert(classHierarchyNode != null,
-        failedAt(x, "No ClassHierarchyNode for $x: ${dump(x)}"));
+            "${dump(y)} : ${_classSets}");
+    ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x] ??
+        failedAt(x, "No ClassHierarchyNode for $x: ${dump(x)}");
     return classSet.hasSubtype(classHierarchyNode);
   }
 
   @override
   bool isSubclassOf(ClassEntity x, ClassEntity y) {
-    return _classHierarchyNodes[y].hasSubclass(_classHierarchyNodes[x]);
+    return _classHierarchyNodes[y]!.hasSubclass(_classHierarchyNodes[x]!);
   }
 
   @override
   Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
-    ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
+    ClassHierarchyNode? hierarchy = _classHierarchyNodes[cls];
     if (hierarchy == null) return const [];
     return hierarchy
         .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
@@ -269,7 +268,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return const [];
     return subclasses.subclassesByMask(
         ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
@@ -278,7 +277,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   int strictSubclassCount(ClassEntity cls) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return 0;
     return subclasses.instantiatedSubclassCount;
   }
@@ -286,7 +285,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   @override
   void forEachStrictSubclassOf(
       ClassEntity cls, IterationStep f(ClassEntity cls)) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return;
     subclasses.forEachSubclass(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
@@ -294,7 +293,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   bool anyStrictSubclassOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return false;
     return subclasses.anySubclass(
         predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
@@ -303,7 +302,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   Iterable<ClassEntity> subtypesOf(ClassEntity cls) {
-    ClassSet classSet = _classSets[cls];
+    ClassSet? classSet = _classSets[cls];
     if (classSet == null) {
       return const [];
     } else {
@@ -314,7 +313,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls) {
-    ClassSet classSet = _classSets[cls];
+    ClassSet? classSet = _classSets[cls];
     if (classSet == null) {
       return const [];
     } else {
@@ -325,7 +324,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   Iterable<ClassEntity> allSubtypesOf(ClassEntity cls) {
-    ClassSet classSet = _classSets[cls];
+    ClassSet? classSet = _classSets[cls];
     if (classSet == null) {
       return const [];
     } else {
@@ -335,7 +334,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   int strictSubtypeCount(ClassEntity cls) {
-    ClassSet classSet = _classSets[cls];
+    ClassSet? classSet = _classSets[cls];
     if (classSet == null) return 0;
     return classSet.instantiatedSubtypeCount;
   }
@@ -343,7 +342,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   @override
   void forEachStrictSubtypeOf(
       ClassEntity cls, IterationStep f(ClassEntity cls)) {
-    ClassSet classSet = _classSets[cls];
+    ClassSet? classSet = _classSets[cls];
     if (classSet == null) return;
     classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
@@ -351,7 +350,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   bool anyStrictSubtypeOf(ClassEntity cls, bool predicate(ClassEntity cls)) {
-    ClassSet classSet = _classSets[cls];
+    ClassSet? classSet = _classSets[cls];
     if (classSet == null) return false;
     return classSet.anySubtype(
         predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
@@ -360,8 +359,8 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   bool haveAnyCommonSubtypes(ClassEntity a, ClassEntity b) {
-    ClassSet classSetA = _classSets[a];
-    ClassSet classSetB = _classSets[b];
+    ClassSet? classSetA = _classSets[a];
+    ClassSet? classSetB = _classSets[b];
     if (classSetA == null || classSetB == null) return false;
     // TODO(johnniwinther): Implement an optimized query on [ClassSet].
     Set<ClassEntity> subtypesOfB = classSetB.subtypes().toSet();
@@ -375,7 +374,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   bool hasAnyStrictSubclass(ClassEntity cls) {
-    ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
+    ClassHierarchyNode? subclasses = _classHierarchyNodes[cls];
     if (subclasses == null) return false;
     return subclasses.isIndirectlyInstantiated;
   }
@@ -389,7 +388,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   bool hasOnlySubclasses(ClassEntity cls) {
     // TODO(johnniwinther): move this to ClassSet?
     if (cls == _commonElements.objectClass) return true;
-    ClassSet classSet = _classSets[cls];
+    ClassSet? classSet = _classSets[cls];
     if (classSet == null) {
       // Vacuously true.
       return true;
@@ -545,16 +544,16 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   ClassHierarchyNode getClassHierarchyNode(ClassEntity cls) {
-    return _classHierarchyNodes[cls];
+    return _classHierarchyNodes[cls]!;
   }
 
   @override
   ClassSet getClassSet(ClassEntity cls) {
-    return _classSets[cls];
+    return _classSets[cls]!;
   }
 
   @override
-  String dump([ClassEntity cls]) {
+  String dump([ClassEntity? cls]) {
     StringBuffer sb = StringBuffer();
     if (cls != null) {
       sb.write("Classes in the closed world related to $cls:\n");
@@ -575,7 +574,7 @@ class ClassHierarchyBuilder {
   final Map<ClassEntity, Set<ClassEntity>> mixinUses = {};
 
   final CommonElements _commonElements;
-  final KernelToElementMap _elementMap;
+  final KernelToElementMapForClassHierarchy _elementMap;
 
   ClassHierarchyBuilder(this._commonElements, this._elementMap);
 
@@ -595,8 +594,9 @@ class ClassHierarchyBuilder {
 
   ClassHierarchyNode _ensureClassHierarchyNode(ClassEntity cls) {
     return _classHierarchyNodes.putIfAbsent(cls, () {
-      ClassHierarchyNode parentNode;
-      ClassEntity superclass = _elementMap.getSuperClass(cls);
+      cls as IndexedClass; // TODO(48820): Try to remove.
+      ClassHierarchyNode? parentNode;
+      ClassEntity? superclass = _elementMap.getSuperClass(cls);
       if (superclass != null) {
         parentNode = _ensureClassHierarchyNode(superclass);
       }
@@ -607,6 +607,7 @@ class ClassHierarchyBuilder {
 
   ClassSet _ensureClassSet(ClassEntity cls) {
     return _classSets.putIfAbsent(cls, () {
+      cls as IndexedClass;
       ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
       ClassSet classSet = ClassSet(node);
 
@@ -617,7 +618,7 @@ class ClassHierarchyBuilder {
         subtypeSet.addSubtype(node);
       }
 
-      ClassEntity appliedMixin = _elementMap.getAppliedMixin(cls);
+      ClassEntity? appliedMixin = _elementMap.getAppliedMixin(cls);
       while (appliedMixin != null) {
         // TODO(johnniwinther): Use the data stored in [ClassSet].
         registerMixinUse(cls, appliedMixin);
@@ -631,7 +632,10 @@ class ClassHierarchyBuilder {
         //    class C = Object with B;
         //
         // we need to register that C not only mixes in B but also A.
-        appliedMixin = _elementMap.getAppliedMixin(appliedMixin);
+
+        // TODO(48820): Can we remove the need for `as IndexedClass`?
+        appliedMixin =
+            _elementMap.getAppliedMixin(appliedMixin as IndexedClass);
       }
       return classSet;
     });
@@ -640,14 +644,14 @@ class ClassHierarchyBuilder {
   void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {
     // Ensure that classes implicitly implementing `Function` are in its
     // subtype set.
-    ClassEntity cls = node.cls;
+    final cls = node.cls;
     if (cls != _commonElements.functionClass &&
         _elementMap.implementsFunction(cls)) {
       ClassSet subtypeSet = _ensureClassSet(_commonElements.functionClass);
       subtypeSet.addSubtype(node);
     }
     if (!node.isInstantiated && node.parentNode != null) {
-      _updateSuperClassHierarchyNodeForClass(node.parentNode);
+      _updateSuperClassHierarchyNodeForClass(node.parentNode!);
     }
   }
 
@@ -674,12 +678,10 @@ class ClassHierarchyBuilder {
   bool _isSubtypeOf(ClassEntity x, ClassEntity y) {
     assert(_classSets.containsKey(x),
         "ClassSet for $x has not been computed yet.");
-    ClassSet classSet = _classSets[y];
-    assert(classSet != null,
-        failedAt(y, "No ClassSet for $y (${y.runtimeType}): ${_classSets}"));
-    ClassHierarchyNode classHierarchyNode = _classHierarchyNodes[x];
-    assert(classHierarchyNode != null,
-        failedAt(x, "No ClassHierarchyNode for $x"));
+    ClassSet classSet = _classSets[y] ??
+        failedAt(y, "No ClassSet for $y (${y.runtimeType}): ${_classSets}");
+    ClassHierarchyNode classHierarchyNode =
+        _classHierarchyNodes[x] ?? failedAt(x, "No ClassHierarchyNode for $x");
     return classSet.hasSubtype(classHierarchyNode);
   }
 
@@ -687,13 +689,13 @@ class ClassHierarchyBuilder {
   /// target a member declared in [memberHoldingClass].
   bool isInheritedInExactClass(
       ClassEntity memberHoldingClass, ClassEntity exactClass) {
-    ClassHierarchyNode exactClassNode = _classHierarchyNodes[exactClass];
+    ClassHierarchyNode exactClassNode = _classHierarchyNodes[exactClass]!;
     if (!exactClassNode.isAbstractlyInstantiated &&
         !exactClassNode.isDirectlyInstantiated) {
       // No instances of [thisClass] are live.
       return false;
     }
-    ClassSet memberHoldingClassSet = _classSets[memberHoldingClass];
+    ClassSet memberHoldingClassSet = _classSets[memberHoldingClass]!;
     if (memberHoldingClassSet.hasSubclass(exactClassNode)) {
       /// A member from a super class can be accessed.
       return true;
@@ -735,23 +737,23 @@ class ClassHierarchyBuilder {
 /// member holding class, can be inherited into a live class.
 class _InheritedInThisClassCache {
   /// Set of classes that inherits members from the member holding class.
-  Set<ClassEntity> _inheritingClasses;
+  Set<ClassEntity>? _inheritingClasses;
 
   /// Cache for liveness computation for a `this` expressions of a given class.
-  Map<ClassEntity, _LiveSet> _map;
+  Map<ClassEntity, _LiveSet>? _map;
 
   /// Returns `true` if members of [memberHoldingClass] can be inherited into
   /// a live class that can be the target of a `this` expression in [thisClass].
   bool isInheritedInThisClassOf(ClassHierarchyBuilder builder,
       ClassEntity memberHoldingClass, ClassEntity thisClass) {
-    _LiveSet set;
+    _LiveSet? set;
     if (_map == null) {
       _map = {};
     } else {
-      set = _map[thisClass];
+      set = _map![thisClass];
     }
     if (set == null) {
-      set = _map[thisClass] = _computeInheritingInThisClassSet(
+      set = _map![thisClass] = _computeInheritingInThisClassSet(
           builder, memberHoldingClass, thisClass);
     }
     return set.hasLiveClass(builder);
@@ -760,15 +762,15 @@ class _InheritedInThisClassCache {
   _LiveSet _computeInheritingInThisClassSet(ClassHierarchyBuilder builder,
       ClassEntity memberHoldingClass, ClassEntity thisClass) {
     ClassHierarchyNode memberHoldingClassNode =
-        builder._classHierarchyNodes[memberHoldingClass];
+        builder._classHierarchyNodes[memberHoldingClass]!;
 
     if (_inheritingClasses == null) {
       _inheritingClasses = {};
-      _inheritingClasses.addAll(memberHoldingClassNode
+      _inheritingClasses!.addAll(memberHoldingClassNode
           .subclassesByMask(ClassHierarchyNode.ALL, strict: false));
       for (ClassHierarchyNode mixinApplication
-          in builder._classSets[memberHoldingClass].mixinApplicationNodes) {
-        _inheritingClasses.addAll(mixinApplication
+          in builder._classSets[memberHoldingClass]!.mixinApplicationNodes) {
+        _inheritingClasses!.addAll(mixinApplication
             .subclassesByMask(ClassHierarchyNode.ALL, strict: false));
       }
     }
@@ -776,9 +778,9 @@ class _InheritedInThisClassCache {
     Set<ClassEntity> validatingSet = {};
 
     void processHierarchy(ClassHierarchyNode mixerNode) {
-      for (ClassEntity inheritingClass in _inheritingClasses) {
+      for (ClassEntity inheritingClass in _inheritingClasses!) {
         ClassHierarchyNode inheritingClassNode =
-            builder._classHierarchyNodes[inheritingClass];
+            builder._classHierarchyNodes[inheritingClass]!;
         if (!validatingSet.contains(mixerNode.cls) &&
             inheritingClassNode.hasSubclass(mixerNode)) {
           // If [mixerNode.cls] is live then a `this` expression can target
@@ -794,7 +796,7 @@ class _InheritedInThisClassCache {
       }
     }
 
-    ClassSet thisClassSet = builder._classSets[thisClass];
+    ClassSet thisClassSet = builder._classSets[thisClass]!;
 
     processHierarchy(thisClassSet.node);
 
@@ -809,20 +811,20 @@ class _InheritedInThisClassCache {
 
 /// A cache object used for [ClassHierarchyBuilder.isInheritedInSubtypeOf].
 class _InheritedInSubtypeCache {
-  Map<ClassEntity, _LiveSet> _map;
+  Map<ClassEntity, _LiveSet>? _map;
 
   /// Returns whether a live class currently known to inherit from [x] and
   /// implement [y].
   bool isInheritedInSubtypeOf(
       ClassHierarchyBuilder builder, ClassEntity x, ClassEntity y) {
-    _LiveSet set;
+    _LiveSet? set;
     if (_map == null) {
       _map = {};
     } else {
-      set = _map[y];
+      set = _map![y];
     }
     if (set == null) {
-      set = _map[y] = _computeInheritingInSubtypeSet(builder, x, y);
+      set = _map![y] = _computeInheritingInSubtypeSet(builder, x, y);
     }
     return set.hasLiveClass(builder);
   }
@@ -831,12 +833,7 @@ class _InheritedInSubtypeCache {
   /// while implementing class [y].
   _LiveSet _computeInheritingInSubtypeSet(
       ClassHierarchyBuilder builder, ClassEntity x, ClassEntity y) {
-    ClassSet classSet = builder._classSets[x];
-
-    assert(
-        classSet != null,
-        failedAt(
-            x, "No ClassSet for $x (${x.runtimeType}): ${builder._classSets}"));
+    ClassSet classSet = builder._classSets[x]!;
 
     Set<ClassEntity> classes = {};
 
@@ -846,12 +843,12 @@ class _InheritedInSubtypeCache {
     }
 
     /// Add subclasses of [node] that implement [y].
-    void subclassImplements(ClassHierarchyNode node, {bool strict}) {
+    void subclassImplements(ClassHierarchyNode node, {required bool strict}) {
       node.forEachSubclass((ClassEntity z) {
         if (builder._isSubtypeOf(z, y)) {
           classes.add(z);
         }
-        return null;
+        return IterationStep.CONTINUE;
       }, ClassHierarchyNode.ALL, strict: strict);
     }
 
@@ -879,8 +876,8 @@ class _LiveSet {
   /// therefore known never to contain live classes. In this case [_classes]
   /// is `null`. If `null` [_classes] is a non-empty set containing classes
   /// that are not yet known to be live.
-  bool _result;
-  Set<ClassEntity> _classes;
+  bool? _result;
+  Set<ClassEntity>? _classes;
 
   _LiveSet(Set<ClassEntity> classes)
       : _result = classes.isEmpty ? false : null,
@@ -899,9 +896,9 @@ class _LiveSet {
   /// `true` (because at least one class is known to be live) we will continue
   /// to return `true`.
   bool hasLiveClass(ClassHierarchyBuilder builder) {
-    if (_result != null) return _result;
-    for (ClassEntity cls in _classes) {
-      if (builder._classHierarchyNodes[cls].isInstantiated) {
+    if (_result != null) return _result!;
+    for (ClassEntity cls in _classes!) {
+      if (builder._classHierarchyNodes[cls]!.isInstantiated) {
         // We now know this set contains a live class and done need to remember
         // that set of classes anymore.
         _result = true;
@@ -956,11 +953,13 @@ enum SubclassResultKind {
 /// Result computed in [ClassHierarchy.commonSubclasses].
 class SubclassResult {
   final SubclassResultKind kind;
-  final List<ClassEntity> classes;
+  final List<ClassEntity>? _classes;
 
-  SubclassResult(this.classes) : kind = SubclassResultKind.SET;
+  List<ClassEntity> get classes => _classes!;
 
-  const SubclassResult.internal(this.kind) : classes = null;
+  SubclassResult(this._classes) : kind = SubclassResultKind.SET;
+
+  const SubclassResult.internal(this.kind) : _classes = null;
 
   static const SubclassResult EMPTY =
       SubclassResult.internal(SubclassResultKind.EMPTY);
@@ -978,5 +977,5 @@ class SubclassResult {
       SubclassResult.internal(SubclassResultKind.SUBTYPE2);
 
   @override
-  String toString() => 'SubclassResult($kind,classes=$classes)';
+  String toString() => 'SubclassResult($kind,classes=$_classes)';
 }

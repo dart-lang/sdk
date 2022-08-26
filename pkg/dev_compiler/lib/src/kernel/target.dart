@@ -57,12 +57,17 @@ class DevCompilerTarget extends Target {
   @override
   List<String> get extraRequiredLibraries => const [
         'dart:_runtime',
+        'dart:_js_shared_embedded_names',
+        'dart:_recipe_syntax',
+        'dart:_rti',
+        'dart:_dart2js_runtime_metrics',
         'dart:_debugger',
         'dart:_foreign_helper',
         'dart:_interceptors',
         'dart:_internal',
         'dart:_isolate_helper',
         'dart:_js_helper',
+        'dart:_js_names',
         'dart:_js_primitives',
         'dart:_metadata',
         'dart:_native_typed_data',
@@ -102,6 +107,7 @@ class DevCompilerTarget extends Target {
         'dart:_js_helper',
         'dart:_native_typed_data',
         'dart:_runtime',
+        'dart:_rti',
       ];
 
   @override
@@ -133,7 +139,9 @@ class DevCompilerTarget extends Target {
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      _allowedTestLibrary(importer);
+      _allowedTestLibrary(importer) ||
+      (importer.isScheme('package') &&
+          importer.path.startsWith('dart2js_runtime_metrics/'));
 
   @override
   bool get nativeExtensionExpectsString => false;
@@ -143,6 +151,13 @@ class DevCompilerTarget extends Target {
 
   @override
   bool get enableNoSuchMethodForwarders => true;
+
+  @override
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {
+    component.accept(StaticInteropStubCreator(
+        StaticInteropClassEraser(coreTypes, referenceFromIndex)));
+  }
 
   @override
   void performModularTransformationsOnLibraries(
@@ -157,7 +172,8 @@ class DevCompilerTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    var staticInteropClassEraser = StaticInteropClassEraser(coreTypes);
+    var staticInteropClassEraser =
+        StaticInteropClassEraser(coreTypes, referenceFromIndex);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       JsInteropChecks(

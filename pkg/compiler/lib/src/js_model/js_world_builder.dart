@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
@@ -9,12 +11,12 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/abstract_value_strategy.dart';
 import '../ir/closure.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/backend_usage.dart';
@@ -34,6 +36,7 @@ import '../universe/selector.dart';
 import 'closure.dart';
 import 'elements.dart';
 import 'element_map_impl.dart';
+import 'js_to_frontend_map.dart';
 import 'js_world.dart';
 
 class JsClosedWorldBuilder {
@@ -182,7 +185,7 @@ class JsClosedWorldBuilder {
       rtiNeed = jRtiNeed;
     }
 
-    map.registerClosureData(closureData);
+    (map as JsToFrontendMapImpl)._registerClosureData(closureData);
 
     BackendUsage backendUsage =
         _convertBackendUsage(map, closedWorld.backendUsage);
@@ -375,7 +378,7 @@ class JsClosedWorldBuilder {
     Map<ClassEntity, OutputUnit> convertClassMap(
         Map<ClassEntity, OutputUnit> classMap,
         Map<Local, OutputUnit> localFunctionMap) {
-      var result = <ClassEntity, OutputUnit>{};
+      final result = <ClassEntity /*!*/, OutputUnit>{};
       classMap.forEach((ClassEntity entity, OutputUnit unit) {
         ClassEntity backendEntity = map.toBackendClass(entity);
         if (backendEntity != null) {
@@ -389,7 +392,7 @@ class JsClosedWorldBuilder {
         // to the local function.
         if (entity is KLocalFunction) {
           var closureInfo = closureDataLookup.getClosureInfo(entity.node);
-          result[closureInfo.closureClassEntity] = unit;
+          result[closureInfo.closureClassEntity /*!*/] = unit;
         }
       });
       return result;
@@ -400,7 +403,7 @@ class JsClosedWorldBuilder {
     Map<MemberEntity, OutputUnit> convertMemberMap(
         Map<MemberEntity, OutputUnit> memberMap,
         Map<Local, OutputUnit> localFunctionMap) {
-      var result = <MemberEntity, OutputUnit>{};
+      final result = <MemberEntity, OutputUnit>{};
       memberMap.forEach((MemberEntity entity, OutputUnit unit) {
         MemberEntity backendEntity = map.toBackendMember(entity);
         if (backendEntity != null) {
@@ -414,9 +417,9 @@ class JsClosedWorldBuilder {
         // corresponding to the local function.
         if (entity is KLocalFunction) {
           var closureInfo = closureDataLookup.getClosureInfo(entity.node);
-          result[closureInfo.callMethod] = unit;
+          result[closureInfo.callMethod /*!*/] = unit;
           if (closureInfo.signatureMethod != null) {
-            result[closureInfo.signatureMethod] = unit;
+            result[closureInfo.signatureMethod /*!*/] = unit;
           }
         }
       });
@@ -428,7 +431,7 @@ class JsClosedWorldBuilder {
         map.toBackendLibrary,
         convertClassMap,
         convertMemberMap,
-        (m) => convertMap<ConstantValue, OutputUnit, OutputUnit>(
+        (m) => convertMap<ConstantValue /*!*/, OutputUnit, OutputUnit>(
             m, map.toBackendConstant, (v) => v));
   }
 }
@@ -500,107 +503,7 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
       rtiNeed.instantiationNeedsTypeArguments(functionType, typeArgumentCount);
 }
 
-/// Map from 'frontend' to 'backend' elements.
-///
-/// Frontend elements are what we read in, these typically represents concepts
-/// in Dart. Backend elements are what we generate, these may include elements
-/// that do not correspond to a Dart concept, such as closure classes.
-///
-/// Querying for the frontend element for a backend-only element throws an
-/// exception.
-abstract class JsToFrontendMap {
-  LibraryEntity toBackendLibrary(LibraryEntity library);
-
-  ClassEntity toBackendClass(ClassEntity cls);
-
-  /// Returns the backend member corresponding to [member]. If a member isn't
-  /// live, it doesn't have a corresponding backend member and `null` is
-  /// returned instead.
-  MemberEntity toBackendMember(MemberEntity member);
-
-  DartType toBackendType(DartType type, {bool allowFreeVariables = false});
-
-  ConstantValue toBackendConstant(ConstantValue value,
-      {bool allowNull = false});
-
-  /// Register [closureData] with this map.
-  ///
-  /// [ClosureData] holds the relation between local function and the backend
-  /// entities. Before this has been registered, type variables of local
-  /// functions cannot be converted into backend equivalents.
-  void registerClosureData(ClosureData closureData);
-
-  Set<LibraryEntity> toBackendLibrarySet(Iterable<LibraryEntity> set) {
-    return set.map(toBackendLibrary).toSet();
-  }
-
-  Set<ClassEntity> toBackendClassSet(Iterable<ClassEntity> set) {
-    // TODO(johnniwinther): Filter unused classes.
-    return set.map(toBackendClass).toSet();
-  }
-
-  Set<MemberEntity> toBackendMemberSet(Iterable<MemberEntity> set) {
-    return set.map(toBackendMember).where((MemberEntity member) {
-      // Members that are not live don't have a corresponding backend member.
-      return member != null;
-    }).toSet();
-  }
-
-  Set<FieldEntity> toBackendFieldSet(Iterable<FieldEntity> set) {
-    Set<FieldEntity> newSet = Set<FieldEntity>();
-    for (FieldEntity element in set) {
-      FieldEntity backendField = toBackendMember(element);
-      if (backendField != null) {
-        // Members that are not live don't have a corresponding backend member.
-        newSet.add(backendField);
-      }
-    }
-    return newSet;
-  }
-
-  Set<FunctionEntity> toBackendFunctionSet(Iterable<FunctionEntity> set) {
-    Set<FunctionEntity> newSet = Set<FunctionEntity>();
-    for (FunctionEntity element in set) {
-      FunctionEntity backendFunction = toBackendMember(element);
-      if (backendFunction != null) {
-        // Members that are not live don't have a corresponding backend member.
-        newSet.add(backendFunction);
-      }
-    }
-    return newSet;
-  }
-
-  Map<LibraryEntity, V> toBackendLibraryMap<V>(
-      Map<LibraryEntity, V> map, V convert(V value)) {
-    return convertMap(map, toBackendLibrary, convert);
-  }
-
-  Map<ClassEntity, V> toBackendClassMap<V>(
-      Map<ClassEntity, V> map, V convert(V value)) {
-    return convertMap(map, toBackendClass, convert);
-  }
-
-  Map<MemberEntity, V2> toBackendMemberMap<V1, V2>(
-      Map<MemberEntity, V1> map, V2 convert(V1 value)) {
-    return convertMap(map, toBackendMember, convert);
-  }
-}
-
-E identity<E>(E element) => element;
-
-Map<K, V2> convertMap<K, V1, V2>(
-    Map<K, V1> map, K convertKey(K key), V2 convertValue(V1 value)) {
-  Map<K, V2> newMap = {};
-  map.forEach((K key, V1 value) {
-    K newKey = convertKey(key);
-    V2 newValue = convertValue(value);
-    if (newKey != null && newValue != null) {
-      // Entities that are not used don't have a corresponding backend entity.
-      newMap[newKey] = newValue;
-    }
-  });
-  return newMap;
-}
+// TODO(48820): Possibly move contents of js_to_frontend_map.dart back here.
 
 class JsToFrontendMapImpl extends JsToFrontendMap {
   final JsKernelToElementMap _backend;
@@ -641,8 +544,7 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
     return _backend.members.getEntity(member.memberIndex);
   }
 
-  @override
-  void registerClosureData(ClosureData closureData) {
+  void _registerClosureData(ClosureData closureData) {
     assert(_closureData == null, "Closure data has already been registered.");
     _closureData = closureData;
   }
@@ -680,7 +582,8 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
 
 typedef _EntityConverter = Entity Function(Entity cls);
 
-class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
+class _TypeConverter
+    implements DartTypeVisitor<DartType /*!*/, _EntityConverter> {
   final DartTypes _dartTypes;
   final bool allowFreeVariables;
 
@@ -777,8 +680,10 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
     if (result == null && allowFreeVariables) {
       return type;
     }
-    assert(result != null,
-        "Function type variable $type not found in $_functionTypeVariables");
+    if (result == null) {
+      throw failedAt(CURRENT_ELEMENT_SPANNABLE,
+          "Function type variable $type not found in $_functionTypeVariables");
+    }
     return result;
   }
 
@@ -911,8 +816,8 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return InstantiationConstantValue(typeArguments, function);
   }
 
-  List<ConstantValue> _handleValues(List<ConstantValue> values) {
-    List<ConstantValue> result;
+  List<ConstantValue /*!*/ > _handleValues(List<ConstantValue /*!*/ > values) {
+    List<ConstantValue /*!*/ > result;
     for (int i = 0; i < values.length; i++) {
       var value = values[i];
       var newValue = value.accept(this, null);

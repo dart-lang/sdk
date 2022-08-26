@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "main_lib1.dart" as mai;
+import "dart:core" as core;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+import "org-dartlang-testcase:///main_lib2.dart";
+
+static method method1(mai::Class1<core::Object>* c1a, core::List<mai::Class1<core::Object>*>* c1b, mai2::Class2<core::Object>* c2a, core::List<mai2::Class2<core::Object>*>* c2b) → dynamic {}
+static method method2(mai::Class1<core::int*>* t1a, core::List<mai::Class1<core::int*>*>* t1b, mai2::Class2<core::int*>* t2a, core::List<mai2::Class2<core::int*>*>* t2b) → dynamic {}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+typedef Typedef1<T extends core::int> = mai::Class1<T>;
+class Class1<T extends core::Object> extends core::Object {
+  synthetic constructor •() → mai::Class1<mai::Class1::T>
+    : super core::Object::•()
+    ;
+}
+static method _#Typedef1#new#tearOff<T extends core::int>() → mai::Class1<mai::_#Typedef1#new#tearOff::T>
+  return new mai::Class1::•<mai::_#Typedef1#new#tearOff::T>();
+
+library /*isNonNullableByDefault*/;
+import self as mai2;
+import "dart:core" as core;
+
+typedef Typedef2<T extends core::int> = mai2::Class2<T>;
+class Class2<T extends core::Object> extends core::Object {
+  synthetic constructor •() → mai2::Class2<mai2::Class2::T>
+    : super core::Object::•()
+    ;
+}
+static method _#Typedef2#new#tearOff<T extends core::int>() → mai2::Class2<mai2::_#Typedef2#new#tearOff::T>
+  return new mai2::Class2::•<mai2::_#Typedef2#new#tearOff::T>();

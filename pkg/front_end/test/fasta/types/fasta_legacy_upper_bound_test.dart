@@ -66,7 +66,8 @@ void main() {
   final Ticker ticker = new Ticker();
   final CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()
-        ..packagesFileUri = Uri.base.resolve(".packages")));
+        ..packagesFileUri =
+            Uri.base.resolve(".dart_tool/package_config.json")));
   context.runInContext<void>(
       (_) => new FastaLegacyUpperBoundTest(ticker, context).test());
 }

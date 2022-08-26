@@ -93,6 +93,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Add cast',
   );
+  static const ADD_CALL_SUPER = FixKind(
+    'dart.fix.add.callSuper',
+    DartFixKindPriority.DEFAULT,
+    "Add 'super.{0}'",
+  );
   static const ADD_CONST = FixKind(
     'dart.fix.add.const',
     DartFixKindPriority.DEFAULT,
@@ -122,6 +127,11 @@ class DartFixKind {
     'dart.fix.add.diagnosticPropertyReference.multi',
     DartFixKindPriority.IN_FILE,
     'Add missing debug property references everywhere in file',
+  );
+  static const ADD_ENUM_CONSTANT = FixKind(
+    'dart.fix.add.enumConstant',
+    DartFixKindPriority.DEFAULT,
+    "Add enum constant '{0}'",
   );
   static const ADD_EOL_AT_END_OF_FILE = FixKind(
     'dart.fix.add.eolAtEndOfFile',
@@ -407,6 +417,16 @@ class DartFixKind {
     'dart.fix.convert.toGenericFunctionSyntax.multi',
     DartFixKindPriority.IN_FILE,
     "Convert to 'Function' syntax everywhere in file",
+  );
+  static const CONVERT_TO_FUNCTION_DECLARATION = FixKind(
+    'dart.fix.convert.toFunctionDeclaration',
+    DartFixKindPriority.DEFAULT,
+    'Convert to function declaration',
+  );
+  static const CONVERT_TO_FUNCTION_DECLARATION_MULTI = FixKind(
+    'dart.fix.convert.toFunctionDeclaration.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert to function declaration everywhere in file',
   );
   static const CONVERT_TO_IF_ELEMENT = FixKind(
     'dart.fix.convert.toIfElement',
@@ -1043,6 +1063,16 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Remove parentheses in getter invocation',
   );
+  static const REMOVE_PRINT = FixKind(
+    'dart.fix.remove.removePrint',
+    DartFixKindPriority.DEFAULT,
+    'Remove print statement',
+  );
+  static const REMOVE_PRINT_MULTI = FixKind(
+    'dart.fix.remove.removePrint.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove print statements in file',
+  );
   static const REMOVE_QUESTION_MARK = FixKind(
     'dart.fix.remove.questionMark',
     DartFixKindPriority.DEFAULT,
@@ -1097,6 +1127,16 @@ class DartFixKind {
     'dart.fix.remove.unnecessaryCast.multi',
     DartFixKindPriority.IN_FILE,
     'Remove all unnecessary casts in file',
+  );
+  static const REMOVE_UNNECESSARY_FINAL = FixKind(
+    'dart.fix.remove.unnecessaryFinal',
+    DartFixKindPriority.DEFAULT,
+    "Remove unnecessary 'final'",
+  );
+  static const REMOVE_UNNECESSARY_FINAL_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryFinal.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove all unnecessary 'final's in file",
   );
   static const REMOVE_UNNECESSARY_CONST = FixKind(
     'dart.fix.remove.unnecessaryConst',
@@ -1237,6 +1277,16 @@ class DartFixKind {
     'dart.fix.remove.unusedParameter.multi',
     DartFixKindPriority.IN_FILE,
     'Remove unused parameters everywhere in file',
+  );
+  static const REMOVE_VAR = FixKind(
+    'dart.fix.remove.var',
+    DartFixKindPriority.DEFAULT,
+    "Remove 'var'",
+  );
+  static const RENAME_METHOD_PARAMETER = FixKind(
+    'dart.fix.rename.methodParameter',
+    DartFixKindPriority.DEFAULT,
+    "Rename '{0}' to '{1}'",
   );
   static const RENAME_TO_CAMEL_CASE = FixKind(
     'dart.fix.rename.toCamelCase',
@@ -1594,6 +1644,11 @@ class DartFixKind {
     'dart.fix.flutter.wrap.text',
     DartFixKindPriority.DEFAULT,
     "Wrap in a 'Text' widget",
+  );
+  static const WRAP_IN_UNAWAITED = FixKind(
+    'dart.fix.wrap.unawaited',
+    DartFixKindPriority.DEFAULT,
+    "Wrap in 'unawaited'",
   );
 }
 

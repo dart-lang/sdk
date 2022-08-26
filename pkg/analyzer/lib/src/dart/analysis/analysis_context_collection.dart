@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macro;
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -14,6 +17,8 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/util/sdk.dart';
 
@@ -21,6 +26,12 @@ import 'package:analyzer/src/util/sdk.dart';
 class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
+
+  /// The instance of macro executor that is used for all macros.
+  final macro.MultiMacroExecutor macroExecutor = macro.MultiMacroExecutor();
+
+  /// The instance of the macro kernel builder.
+  final MacroKernelBuilder macroKernelBuilder = MacroKernelBuilder();
 
   /// The list of analysis contexts.
   @override
@@ -34,22 +45,37 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     bool enableIndex = false,
     required List<String> includedPaths,
     List<String>? excludedPaths,
+    List<String>? librarySummaryPaths,
     String? optionsFile,
     String? packagesFile,
     PerformanceLog? performanceLog,
     ResourceProvider? resourceProvider,
     bool retainDataForTesting = false,
     String? sdkPath,
+    String? sdkSummaryPath,
     AnalysisDriverScheduler? scheduler,
     FileContentCache? fileContentCache,
-    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
-    MacroKernelBuilder? macroKernelBuilder,
+    @Deprecated('Use updateAnalysisOptions2, which must be a function that '
+        'accepts a second parameter')
+        void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required ContextRoot contextRoot,
+      required DartSdk sdk,
+    })?
+        updateAnalysisOptions2,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
+
+    if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
+      throw ArgumentError(
+          'Either updateAnalysisOptions or updateAnalysisOptions2 must be '
+          'given, but not both.');
+    }
 
     var contextLocator = ContextLocator(
       resourceProvider: this.resourceProvider,
@@ -70,13 +96,18 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
         drainStreams: drainStreams,
         enableIndex: enableIndex,
+        librarySummaryPaths: librarySummaryPaths,
         performanceLog: performanceLog,
         retainDataForTesting: retainDataForTesting,
         sdkPath: sdkPath,
+        sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
+        // ignore: deprecated_member_use_from_same_package
         updateAnalysisOptions: updateAnalysisOptions,
+        updateAnalysisOptions2: updateAnalysisOptions2,
         fileContentCache: fileContentCache,
         macroKernelBuilder: macroKernelBuilder,
+        macroExecutor: macroExecutor,
       );
       contexts.add(context);
     }
@@ -107,6 +138,19 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     }
 
     throw StateError('Unable to find the context to $path');
+  }
+
+  void dispose({
+    bool forTesting = false,
+  }) {
+    for (var analysisContext in contexts) {
+      analysisContext.driver.dispose();
+    }
+    macroExecutor.close();
+    // If there are other collections, they will have to start it again.
+    if (!forTesting) {
+      KernelCompilationService.dispose();
+    }
   }
 
   /// Check every element with [_throwIfNotAbsoluteNormalizedPath].

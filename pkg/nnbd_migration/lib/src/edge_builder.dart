@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -280,8 +281,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (targetType != null) {
       var enclosingElement = baseElement!.enclosingElement;
       if (enclosingElement is ClassElement) {
-        if (targetType.type!.resolveToBound(typeProvider.dynamicType)
-                is InterfaceType &&
+        if (targetType.type.explicitBound is InterfaceType &&
             enclosingElement.typeParameters.isNotEmpty) {
           substitution = _decoratedClassHierarchy!
               .asInstanceOf(targetType, enclosingElement)
@@ -3970,4 +3970,15 @@ class _ConditionInfo {
       falseGuard: trueGuard,
       trueDemonstratesNonNullIntent: falseDemonstratesNonNullIntent,
       falseDemonstratesNonNullIntent: trueDemonstratesNonNullIntent);
+}
+
+extension on DartType? {
+  DartType? get explicitBound {
+    final self = this;
+    if (self is TypeParameterType &&
+        self.nullabilitySuffix == NullabilitySuffix.star) {
+      return self.element.bound.explicitBound;
+    }
+    return self;
+  }
 }

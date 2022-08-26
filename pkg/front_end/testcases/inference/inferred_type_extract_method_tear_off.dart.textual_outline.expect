@@ -1,10 +1,9 @@
-// @dart = 2.9
 library test;
 
 class C {
   bool g() => true;
 }
 
-C f() => null;
+C f() => throw '';
 var x = f().g;
 main() {}

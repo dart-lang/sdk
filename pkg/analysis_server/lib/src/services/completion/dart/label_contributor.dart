@@ -14,10 +14,7 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 /// scope. More concretely, this class produces completions in `break` and
 /// `continue` statements.
 class LabelContributor extends DartCompletionContributor {
-  LabelContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  LabelContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {

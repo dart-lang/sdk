@@ -64,6 +64,8 @@ main() {
     Expect.equals(2, C?.staticInt = 2);
     //               ^
     // [cfe] The class 'C' cannot be null.
+    //                ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(2, C.staticInt);
   }
   {
@@ -71,6 +73,8 @@ main() {
     Expect.equals(2, h.C?.staticInt = 2);
     //                 ^
     // [cfe] The class 'C' cannot be null.
+    //                  ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(2, h.C.staticInt);
   }
 
@@ -95,6 +99,8 @@ main() {
     F? f = (D?.staticE = g);
     //      ^
     // [cfe] The class 'D' cannot be null.
+    //       ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(f, g);
   }
   {
@@ -103,6 +109,8 @@ main() {
     h.F? f = (h.D?.staticE = g);
     //          ^
     // [cfe] The class 'D' cannot be null.
+    //           ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(f, g);
   }
   {
@@ -112,6 +120,8 @@ main() {
     //      ^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] The class 'D' cannot be null.
+    //       ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //         ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
   }
@@ -123,6 +133,8 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //         ^
     // [cfe] The class 'D' cannot be null.
+    //          ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //            ^
     // [cfe] A value of type 'E' can't be assigned to a variable of type 'F'.
   }
@@ -163,9 +175,13 @@ main() {
     Expect.equals(3, C?.staticInt += 2);
     //               ^
     // [cfe] The class 'C' cannot be null.
+    //                ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.equals(3, C?.staticInt);
     //               ^
     // [cfe] The class 'C' cannot be null.
+    //                ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   }
 
   // The static type of e1?.v op= e2 is the static type of e1.v op e2.
@@ -183,6 +199,8 @@ main() {
     F? f = (D?.staticE += 1);
     //      ^
     // [cfe] The class 'D' cannot be null.
+    //       ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(D.staticE, f);
   }
   {
@@ -190,6 +208,8 @@ main() {
     h.F? f = (h.D?.staticE += 1);
     //          ^
     // [cfe] The class 'D' cannot be null.
+    //           ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     Expect.identical(h.D.staticE, f);
   }
 
@@ -239,6 +259,8 @@ main() {
     F? f = (D?.staticE += nullC());
     //      ^
     // [cfe] The class 'D' cannot be null.
+    //       ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //                    ^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] A value of type 'C?' can't be assigned to a variable of type 'int'.
@@ -248,6 +270,8 @@ main() {
     h.F? f = (h.D?.staticE += h.nullC());
     //          ^
     // [cfe] The class 'D' cannot be null.
+    //           ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //                        ^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     //                          ^
@@ -259,6 +283,8 @@ main() {
     //      ^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] The class 'D' cannot be null.
+    //       ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //         ^
     // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
   }
@@ -269,6 +295,8 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //           ^
     // [cfe] The class 'D' cannot be null.
+    //            ^^
+    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //              ^
     // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
   }

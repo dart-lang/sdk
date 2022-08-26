@@ -5,15 +5,14 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -48,9 +47,11 @@ class AnalysisOptionsFileConfig {
     var buffer = StringBuffer();
 
     buffer.writeln('analyzer:');
-    buffer.writeln('  enable-experiment:');
-    for (var experiment in experiments) {
-      buffer.writeln('    - $experiment');
+    if (experiments.isNotEmpty) {
+      buffer.writeln('  enable-experiment:');
+      for (var experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
     }
     buffer.writeln('  language:');
     buffer.writeln('    strict-casts: $strictCasts');
@@ -70,7 +71,22 @@ class AnalysisOptionsFileConfig {
   }
 }
 
-class PubPackageAnalysisServerTest with ResourceProviderMixin {
+class BazelWorkspaceAnalysisServerTest extends ContextResolutionTest {
+  String get myPackageLibPath => '$myPackageRootPath/lib';
+
+  String get myPackageRootPath => '$workspaceRootPath/dart/my';
+
+  Folder get workspaceRoot => getFolder(workspaceRootPath);
+
+  String get workspaceRootPath => '/workspace';
+
+  @override
+  void createDefaultFiles() {
+    newFile('$workspaceRootPath/WORKSPACE', '');
+  }
+}
+
+class ContextResolutionTest with ResourceProviderMixin {
   final TestPluginManager pluginManager = TestPluginManager();
   late final MockServerChannel serverChannel;
   late final AnalysisServer server;
@@ -78,68 +94,13 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   final List<GeneralAnalysisService> _analysisGeneralServices = [];
   final Map<AnalysisService, List<String>> _analysisFileSubscriptions = {};
 
-  AnalysisDomainHandler get analysisDomain {
-    return server.handlers.whereType<AnalysisDomainHandler>().single;
-  }
-
-  CompletionDomainHandler get completionDomain {
-    return server.handlers.whereType<CompletionDomainHandler>().single;
-  }
-
-  List<String> get experiments => [
-        EnableString.enhanced_enums,
-        EnableString.named_arguments_anywhere,
-        EnableString.super_parameters,
-      ];
-
-  /// The path that is not in [workspaceRootPath], contains external packages.
-  String get packagesRootPath => '/packages';
-
   Folder get sdkRoot => newFolder('/sdk');
-
-  File get testFile => getFile(testFilePath);
-
-  analysis.AnalysisOptions get testFileAnalysisOptions {
-    var analysisDriver = server.getAnalysisDriver(testFile.path)!;
-    return analysisDriver.analysisOptions;
-  }
-
-  String get testFileContent => testFile.readAsStringSync();
-
-  String get testFilePath => '$testPackageLibPath/test.dart';
-
-  String get testPackageLibPath => '$testPackageRootPath/lib';
-
-  Folder get testPackageRoot => getFolder(testPackageRootPath);
-
-  String get testPackageRootPath => '$workspaceRootPath/test';
-
-  String get testPackageTestPath => '$testPackageRootPath/test';
-
-  String get workspaceRootPath => '/home';
-
-  Future<void> addAnalysisSubscription(
-    AnalysisService service,
-    File file,
-  ) async {
-    (_analysisFileSubscriptions[service] ??= []).add(file.path);
-    await handleSuccessfulRequest(
-      AnalysisSetSubscriptionsParams(
-        _analysisFileSubscriptions,
-      ).toRequest('0'),
-    );
-  }
 
   Future<void> addGeneralAnalysisSubscription(
     GeneralAnalysisService service,
   ) async {
     _analysisGeneralServices.add(service);
     await _setGeneralAnalysisSubscriptions();
-  }
-
-  /// TODO(scheglov) rename
-  void addTestFile(String content) {
-    newFile2(testFilePath, content);
   }
 
   void assertResponseFailure(
@@ -153,20 +114,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     );
   }
 
-  void deleteTestPackageAnalysisOptionsFile() {
-    deleteAnalysisOptionsYamlFile(testPackageRootPath);
-  }
-
-  void deleteTestPackageConfigJsonFile() {
-    deletePackageConfigJsonFile(testPackageRootPath);
-  }
-
-  /// Returns the offset of [search] in [testFileContent].
-  /// Fails if not found.
-  /// TODO(scheglov) Rename it.
-  int findOffset(String search) {
-    return offsetInFile(testFile, search);
-  }
+  void createDefaultFiles() {}
 
   Future<Response> handleRequest(Request request) async {
     return await serverChannel.sendRequest(request);
@@ -177,19 +125,6 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     var response = await handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
-  }
-
-  void modifyTestFile(String content) {
-    modifyFile(testFilePath, content);
-  }
-
-  /// Returns the offset of [search] in [file].
-  /// Fails if not found.
-  int offsetInFile(File file, String search) {
-    var content = file.readAsStringSync();
-    var offset = content.indexOf(search);
-    expect(offset, isNot(-1));
-    return offset;
   }
 
   void processNotification(Notification notification) {}
@@ -233,13 +168,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
       root: sdkRoot,
     );
 
-    writeTestPackageConfig();
-
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        experiments: experiments,
-      ),
-    );
+    createDefaultFiles();
 
     serverChannel.notifications.listen(processNotification);
 
@@ -248,13 +177,14 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
       resourceProvider,
       AnalysisServerOptions(),
       DartSdkManager(sdkRoot.path),
+      AnalyticsManager(NoopAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       InstrumentationService.NULL_SERVICE,
     );
 
     server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     server.pluginManager = pluginManager;
-    completionDomain.budgetDuration = const Duration(seconds: 30);
+    server.completionState.budgetDuration = const Duration(seconds: 30);
   }
 
   Future<void> tearDown() async {
@@ -267,6 +197,103 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     await server.onAnalysisComplete;
   }
 
+  Future<void> _setGeneralAnalysisSubscriptions() async {
+    await handleSuccessfulRequest(
+      AnalysisSetGeneralSubscriptionsParams(
+        _analysisGeneralServices,
+      ).toRequest('0'),
+    );
+  }
+}
+
+class PubPackageAnalysisServerTest extends ContextResolutionTest {
+  // If experiments are needed,
+  // add `import 'package:analyzer/src/dart/analysis/experiments.dart';`
+  // and list the necessary experiments here.
+  List<String> get experiments => [];
+
+  /// The path that is not in [workspaceRootPath], contains external packages.
+  String get packagesRootPath => '/packages';
+
+  File get testFile => getFile(testFilePath);
+
+  analysis.AnalysisOptions get testFileAnalysisOptions {
+    var analysisDriver = server.getAnalysisDriver(testFile.path)!;
+    return analysisDriver.analysisOptions;
+  }
+
+  String get testFileContent => testFile.readAsStringSync();
+
+  String get testFilePath => '$testPackageLibPath/test.dart';
+
+  String get testPackageLibPath => '$testPackageRootPath/lib';
+
+  Folder get testPackageRoot => getFolder(testPackageRootPath);
+
+  String get testPackageRootPath => '$workspaceRootPath/test';
+
+  String get testPackageTestPath => '$testPackageRootPath/test';
+
+  Folder get workspaceRoot => getFolder(workspaceRootPath);
+
+  String get workspaceRootPath => '/home';
+
+  Future<void> addAnalysisSubscription(
+    AnalysisService service,
+    File file,
+  ) async {
+    (_analysisFileSubscriptions[service] ??= []).add(file.path);
+    await handleSuccessfulRequest(
+      AnalysisSetSubscriptionsParams(
+        _analysisFileSubscriptions,
+      ).toRequest('0'),
+    );
+  }
+
+  /// TODO(scheglov) rename
+  void addTestFile(String content) {
+    newFile(testFilePath, content);
+  }
+
+  @override
+  void createDefaultFiles() {
+    writeTestPackageConfig();
+
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+      ),
+    );
+  }
+
+  void deleteTestPackageAnalysisOptionsFile() {
+    deleteAnalysisOptionsYamlFile(testPackageRootPath);
+  }
+
+  void deleteTestPackageConfigJsonFile() {
+    deletePackageConfigJsonFile(testPackageRootPath);
+  }
+
+  /// Returns the offset of [search] in [testFileContent].
+  /// Fails if not found.
+  /// TODO(scheglov) Rename it.
+  int findOffset(String search) {
+    return offsetInFile(testFile, search);
+  }
+
+  void modifyTestFile(String content) {
+    modifyFile(testFilePath, content);
+  }
+
+  /// Returns the offset of [search] in [file].
+  /// Fails if not found.
+  int offsetInFile(File file, String search) {
+    var content = file.readAsStringSync();
+    var offset = content.indexOf(search);
+    expect(offset, isNot(-1));
+    return offset;
+  }
+
   void writePackageConfig(Folder root, PackageConfigFileBuilder config) {
     newPackageConfigJsonFile(
       root.path,
@@ -275,7 +302,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
-    newAnalysisOptionsYamlFile2(
+    newAnalysisOptionsYamlFile(
       testPackageRootPath,
       config.toContent(),
     );
@@ -320,13 +347,5 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   void writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
-  }
-
-  Future<void> _setGeneralAnalysisSubscriptions() async {
-    await handleSuccessfulRequest(
-      AnalysisSetGeneralSubscriptionsParams(
-        _analysisGeneralServices,
-      ).toRequest('0'),
-    );
   }
 }

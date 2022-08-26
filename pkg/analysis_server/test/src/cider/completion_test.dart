@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/cider/completion.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show CompletionSuggestion, CompletionSuggestionKind, ElementKind;
@@ -24,7 +24,7 @@ class CiderCompletionComputerTest extends CiderServiceTest {
   final CiderCompletionCache _completionCache = CiderCompletionCache();
 
   late CiderCompletionComputer _computer;
-  void Function(ResolvedUnitResult)? _testResolvedUnit;
+  void Function(ResolvedForCompletionResultImpl)? _testResolvedUnit;
 
   late CiderCompletionResult _completionResult;
   late List<CompletionSuggestion> _suggestions;
@@ -112,7 +112,7 @@ import 'dart:math';
 
   Future<void> test_compute_updateImportedLibrary() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {}
 ''');
 
@@ -132,7 +132,7 @@ import 'a.dart';
     _assertHasClass(text: 'A');
 
     // Update the imported library, has 'B', but not 'A'.
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class B {}
 ''');
     _createFileResolver();
@@ -144,7 +144,7 @@ class B {}
 
   Future<void> test_compute_updateImports() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {}
 ''');
 
@@ -166,7 +166,7 @@ var a = ^;
   }
 
   Future<void> test_compute_uriContributor_disabled() async {
-    newFile2('/workspace/dart/test/lib/a.dart', '');
+    newFile('/workspace/dart/test/lib/a.dart', '');
     await _compute(r'''
 import '^';
 ''');
@@ -474,7 +474,8 @@ class A {
   }
 
   Future<void> test_limitedResolution_hasPart() async {
-    newFile2('/workspace/dart/test/lib/a.dart', r'''
+    newFile('/workspace/dart/test/lib/a.dart', r'''
+part of 'test.dart';
 class A {}
 ''');
 
@@ -488,7 +489,7 @@ part 'a.dart';
   }
 
   Future<void> test_limitedResolution_inPart_partOfName() async {
-    newFile2('/workspace/dart/test/lib/a.dart', r'''
+    newFile('/workspace/dart/test/lib/a.dart', r'''
 library my_lib;
 part 'test.dart';
 class A {}
@@ -504,7 +505,7 @@ part of my_lib;
   }
 
   Future<void> test_limitedResolution_inPart_partOfUri() async {
-    newFile2('/workspace/dart/test/lib/a.dart', r'''
+    newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'test.dart';
 class A {}
 ''');
@@ -599,12 +600,12 @@ void foo() {
 
   Future<void> test_warmUp_cachesImportedLibraries() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {}
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile2(bPath, r'''
+    newFile(bPath, r'''
 import 'a.dart';
 ''');
 
@@ -806,7 +807,7 @@ import 'a.dart';
   /// for completion we don't resolve unnecessary node.
   void _configureToCheckNotResolved({required Set<String> identifiers}) {
     _testResolvedUnit = (resolvedUnitResult) {
-      var unit = resolvedUnitResult.unit;
+      var unit = resolvedUnitResult.parsedUnit;
       unit.accept(
         FunctionAstVisitor(
           simpleIdentifier: (node) {
@@ -885,7 +886,7 @@ import 'a.dart';
     var location = lineInfo.getLocation(offset);
 
     content = content.substring(0, offset) + content.substring(offset + 1);
-    newFile2(testPath, content);
+    newFile(testPath, content);
 
     return _CompletionContext(
       content,

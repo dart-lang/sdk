@@ -4,8 +4,6 @@
 
 // Test that the test matrix in the SDK can be parsed correctly.
 
-// @dart = 2.9
-
 import 'dart:convert' show jsonDecode;
 import 'dart:io' show File, Platform;
 

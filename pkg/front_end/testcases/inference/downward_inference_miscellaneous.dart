@@ -1,7 +1,7 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 /*@testedFeatures=inference*/
 library test;
 
@@ -15,16 +15,16 @@ class A<T> {
 void main() {
   {
     // Variables, nested literals
-    var /*@ type=String* */ x = "hello";
-    var /*@ type=int* */ y = 3;
+    var /*@type=String*/ x = "hello";
+    var /*@type=int*/ y = 3;
     void f(List<Map<int, String>> l) {}
     ;
-    f(/*@ typeArgs=Map<int*, String*>* */ [
-      /*@ typeArgs=int*, String* */ {y: x}
+    f(/*@typeArgs=Map<int, String>*/ [
+      /*@typeArgs=int, String*/ {y: x}
     ]);
   }
   {
     int f(int x) => 0;
-    A<int> a = new /*@ typeArgs=int* */ A(f);
+    A<int> a = new /*@typeArgs=int*/ A(f);
   }
 }

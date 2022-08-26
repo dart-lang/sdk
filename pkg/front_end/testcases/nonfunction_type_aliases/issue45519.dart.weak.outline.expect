@@ -4,6 +4,8 @@ import "dart:core" as core;
 
 typedef G<invariant X extends core::Object? = dynamic> = (X%) → X%;
 typedef A<X extends (self::C<X>) → self::C<X> = (self::C<dynamic>) → self::C<dynamic>> = self::C<X>;
+typedef H<invariant X extends core::Object? = dynamic> = self::C<(X%) → X%>;
+typedef B<X extends self::C<(X) → X> = self::C<(dynamic) → dynamic>> = self::C<X>;
 class C<X extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::X%>
     ;
@@ -14,3 +16,7 @@ static method main() → dynamic
   ;
 static method _#A#new#tearOff<X extends (self::C<self::_#A#new#tearOff::X>) → self::C<self::_#A#new#tearOff::X> = (self::C<dynamic>) → self::C<dynamic>>() → self::C<self::_#A#new#tearOff::X>
   return new self::C::•<self::_#A#new#tearOff::X>();
+static method _#H#new#tearOff<invariant X extends core::Object? = dynamic>() → self::C<(self::_#H#new#tearOff::X%) → self::_#H#new#tearOff::X%>
+  return new self::C::•<(self::_#H#new#tearOff::X%) → self::_#H#new#tearOff::X%>();
+static method _#B#new#tearOff<X extends self::C<(self::_#B#new#tearOff::X) → self::_#B#new#tearOff::X> = self::C<(dynamic) → dynamic>>() → self::C<self::_#B#new#tearOff::X>
+  return new self::C::•<self::_#B#new#tearOff::X>();

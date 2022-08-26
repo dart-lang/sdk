@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.15
-
 library precedence;
 
 const EXPRESSION = 0;
@@ -18,7 +16,8 @@ const RELATIONAL = EQUALITY + 1;
 const SHIFT = RELATIONAL + 1;
 const ADDITIVE = SHIFT + 1;
 const MULTIPLICATIVE = ADDITIVE + 1;
-const UNARY = MULTIPLICATIVE + 1;
+const EXPONENTIATION = MULTIPLICATIVE + 1;
+const UNARY = EXPONENTIATION + 1;
 const CALL = UNARY + 1;
 const LEFT_HAND_SIDE = CALL + 1;
 const PRIMARY = LEFT_HAND_SIDE + 1;

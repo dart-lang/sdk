@@ -64,7 +64,7 @@ class ClassDescriptionRegistry {
     if (constructor == null) return null;
 
     for (var parameter in constructor.parameters) {
-      if (parameter.isNotOptional || parameter.hasRequired) {
+      if (parameter.isRequired || parameter.hasRequired) {
         return null;
       }
     }

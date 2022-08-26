@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -24,11 +24,11 @@ class DartTypeArgumentsSignatureComputer {
   final bool _isNonNullableByDefault;
   DartTypeArgumentsSignatureComputer(
     this._dartdocInfo,
-    CompilationUnit _unit,
-    int _offset,
+    CompilationUnit unit,
+    int offset,
     this.preferredFormats,
-  )   : _node = NodeLocator(_offset).searchWithin(_unit),
-        _isNonNullableByDefault = _unit.isNonNullableByDefault;
+  )   : _node = NodeLocator(offset).searchWithin(unit),
+        _isNonNullableByDefault = unit.isNonNullableByDefault;
 
   /// The [TypeArgumentList] node located by [compute].
   TypeArgumentList get argumentList => _argumentList;
@@ -98,7 +98,7 @@ class DartTypeArgumentsSignatureComputer {
       lsp.SignatureInformation(
         label: label,
         documentation: documentation != null
-            ? asStringOrMarkupContent(preferredFormats, documentation)
+            ? asMarkupContentOrString(preferredFormats, documentation)
             : null,
         parameters: parameters,
       ),

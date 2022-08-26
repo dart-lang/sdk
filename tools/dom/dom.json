@@ -12423,6 +12423,10 @@
     },
     "support_level": "untriaged"
   },
+  "MathMLElement": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "Matrix": {
     "members": {
       "Matrix": {},
@@ -16409,6 +16413,9 @@
         "support_level": "untriaged"
       },
       "close": {},
+      "connectionState": {
+        "support_level": "untriaged"
+      },
       "createAnswer": {},
       "createDTMFSender": {},
       "createDataChannel": {},
@@ -16437,6 +16444,9 @@
       "iceGatheringState": {},
       "localDescription": {},
       "onaddstream": {},
+      "onconnectionstatechange": {
+        "support_level": "untriaged"
+      },
       "ondatachannel": {},
       "onicecandidate": {},
       "oniceconnectionstatechange": {},

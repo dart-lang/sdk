@@ -20,7 +20,7 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
   void assertHasDeclaration(ElementKind kind, String className) {
     var result = findTopLevelResult(kind, className);
     if (result == null) {
-      fail('Not found: kind=$kind in="$className"\nin\n' + results.join('\n'));
+      fail('Not found: kind=$kind in="$className"\nin\n${results.join('\n')}');
     }
     this.result = result;
   }
@@ -28,7 +28,7 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
   Future findMemberDeclarations(String name) async {
     await waitForTasksFinished();
     var request = SearchFindMemberDeclarationsParams(name).toRequest('0');
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
     var result = SearchFindMemberDeclarationsResult.fromResponse(response);
     searchId = result.id;
     return waitForSearchResults();
@@ -227,7 +227,7 @@ enum B {
   Future<void> test_localVariable() async {
     addTestFile('''
 class A {
-  main() {
+  void f() {
     var foo = 42;
   }
 }
@@ -239,7 +239,7 @@ class A {
   Future<void> test_localVariable_forIn() async {
     addTestFile('''
 class A {
-  main() {
+  void f() {
     for (int foo in []) {
     }
   }

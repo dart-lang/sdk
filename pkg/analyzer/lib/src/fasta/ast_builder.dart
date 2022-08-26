@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         LocatedMessage,
         Message,
         MessageCode,
+        codeBuiltInIdentifierInDeclaration,
         messageAbstractClassMember,
         messageAbstractLateField,
         messageAbstractStaticField,
@@ -50,7 +51,7 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValue, StackListener;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, StringToken, SyntheticStringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
@@ -206,6 +207,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  Uri get importUri => uri;
+
+  @override
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled = false, List<LocatedMessage>? context}) {
     if (directives.isEmpty &&
@@ -244,14 +248,10 @@ class AstBuilder extends StackListener {
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
       if (macroToken != null) {
-        var feature = ExperimentalFeatures.macros;
-        handleRecoverableError(
-            templateExperimentNotEnabled.withArguments(
-              feature.enableString,
-              _versionAsString(ExperimentStatus.currentVersion),
-            ),
-            macroToken,
-            macroToken);
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.macros,
+          startToken: macroToken,
+        );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
       }
@@ -335,6 +335,9 @@ class AstBuilder extends StackListener {
   void beginIsOperatorType(Token asOperator) {}
 
   @override
+  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {}
+
+  @override
   void beginLiteralString(Token literalString) {
     assert(identical(literalString.kind, STRING_TOKEN));
     debugEvent("beginLiteralString");
@@ -399,14 +402,10 @@ class AstBuilder extends StackListener {
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
       if (macroToken != null) {
-        var feature = ExperimentalFeatures.macros;
-        handleRecoverableError(
-            templateExperimentNotEnabled.withArguments(
-              feature.enableString,
-              _versionAsString(ExperimentStatus.currentVersion),
-            ),
-            macroToken,
-            macroToken);
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.macros,
+          startToken: macroToken,
+        );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
       }
@@ -636,8 +635,11 @@ class AstBuilder extends StackListener {
     debugEvent("Arguments");
 
     var expressions = popTypedList2<Expression>(count);
-    ArgumentList arguments =
-        ast.argumentList(leftParenthesis, expressions, rightParenthesis);
+    ArgumentList arguments = ArgumentListImpl(
+      leftParenthesis: leftParenthesis,
+      arguments: expressions,
+      rightParenthesis: rightParenthesis,
+    );
 
     if (!enableNamedArgumentsAnywhere) {
       bool hasSeenNamedArgument = false;
@@ -670,8 +672,8 @@ class AstBuilder extends StackListener {
     assert(kind != Assert.Statement || optionalOrNull(';', semicolon));
     debugEvent("Assert");
 
-    var message = popIfNotNull(comma) as Expression?;
-    var condition = pop() as Expression;
+    var message = popIfNotNull(comma) as ExpressionImpl?;
+    var condition = pop() as ExpressionImpl;
     switch (kind) {
       case Assert.Expression:
         // The parser has already reported an error indicating that assert
@@ -680,19 +682,42 @@ class AstBuilder extends StackListener {
         if (message != null) {
           arguments.add(message);
         }
-        push(ast.functionExpressionInvocation(
+        push(
+          ast.functionExpressionInvocation(
             ast.simpleIdentifier(assertKeyword),
             null,
-            ast.argumentList(
-                leftParenthesis, arguments, leftParenthesis.endGroup!)));
+            ArgumentListImpl(
+              leftParenthesis: leftParenthesis,
+              arguments: arguments,
+              rightParenthesis: leftParenthesis.endGroup!,
+            ),
+          ),
+        );
         break;
       case Assert.Initializer:
-        push(ast.assertInitializer(assertKeyword, leftParenthesis, condition,
-            comma, message, leftParenthesis.endGroup!));
+        push(
+          AssertInitializerImpl(
+            assertKeyword: assertKeyword,
+            leftParenthesis: leftParenthesis,
+            condition: condition,
+            comma: comma,
+            message: message,
+            rightParenthesis: leftParenthesis.endGroup!,
+          ),
+        );
         break;
       case Assert.Statement:
-        push(ast.assertStatement(assertKeyword, leftParenthesis, condition,
-            comma, message, leftParenthesis.endGroup!, semicolon));
+        push(
+          AssertStatementImpl(
+            assertKeyword: assertKeyword,
+            leftParenthesis: leftParenthesis,
+            condition: condition,
+            comma: comma,
+            message: message,
+            rightParenthesis: leftParenthesis.endGroup!,
+            semicolon: semicolon,
+          ),
+        );
         break;
     }
   }
@@ -702,8 +727,13 @@ class AstBuilder extends StackListener {
     assert(optional('await', awaitKeyword));
     debugEvent("AwaitExpression");
 
-    var expression = pop() as Expression;
-    push(ast.awaitExpression(awaitKeyword, expression));
+    var expression = pop() as ExpressionImpl;
+    push(
+      AwaitExpressionImpl(
+        awaitKeyword: awaitKeyword,
+        expression: expression,
+      ),
+    );
   }
 
   @override
@@ -734,14 +764,9 @@ class AstBuilder extends StackListener {
         ),
       );
       if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
-        var feature = ExperimentalFeatures.triple_shift;
-        handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          operatorToken,
-          operatorToken,
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.triple_shift,
+          startToken: operatorToken,
         );
       }
     }
@@ -1289,25 +1314,18 @@ class AstBuilder extends StackListener {
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
       Token onKeyword, Token? showKeyword, Token? hideKeyword, Token token) {
     if (typeKeyword != null && !enableExtensionTypes) {
-      var feature = ExperimentalFeatures.extension_types;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          typeKeyword,
-          typeKeyword);
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.extension_types,
+        startToken: typeKeyword,
+      );
     }
 
-    if ((showKeyword != null || hideKeyword != null) && !enableExtensionTypes) {
-      var feature = ExperimentalFeatures.extension_types;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          (showKeyword ?? hideKeyword)!,
-          (showKeyword ?? hideKeyword)!);
+    final showOrHideKeyword = showKeyword ?? hideKeyword;
+    if (showOrHideKeyword != null && !enableExtensionTypes) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.extension_types,
+        startToken: showOrHideKeyword,
+      );
     }
 
     ShowClause? showClause = pop(NullValue.ShowClause) as ShowClause?;
@@ -1502,14 +1520,9 @@ class AstBuilder extends StackListener {
     debugEvent("FormalParameter");
 
     if (superKeyword != null && !enableSuperParameters) {
-      var feature = ExperimentalFeatures.super_parameters;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
-        ),
-        superKeyword,
-        superKeyword,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.super_parameters,
+        startToken: superKeyword,
       );
     }
 
@@ -1520,8 +1533,11 @@ class AstBuilder extends StackListener {
     var keyword = modifiers?.finalConstOrVarKeyword;
     var covariantKeyword = modifiers?.covariantKeyword;
     var requiredKeyword = modifiers?.requiredToken;
-    if (!enableNonNullable) {
-      reportNonNullableModifierError(requiredKeyword);
+    if (!enableNonNullable && requiredKeyword != null) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.non_nullable,
+        startToken: requiredKeyword,
+      );
     }
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata,
@@ -1808,37 +1824,48 @@ class AstBuilder extends StackListener {
     var asKeyword = pop(NullValue.As) as Token?;
     var prefix = pop(NullValue.Prefix) as SimpleIdentifier?;
     var configurations = pop() as List<Configuration>?;
-    var uri = pop() as StringLiteral;
+    var uri = pop() as StringLiteralImpl;
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, importKeyword);
 
     if (!enableMacros) {
       if (augmentToken != null) {
-        var feature = ExperimentalFeatures.macros;
-        handleRecoverableError(
-            templateExperimentNotEnabled.withArguments(
-              feature.enableString,
-              _versionAsString(ExperimentStatus.currentVersion),
-            ),
-            augmentToken,
-            augmentToken);
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.macros,
+          startToken: augmentToken,
+        );
         // Pretend that 'augment' didn't occur while this feature is incomplete.
         augmentToken = null;
       }
     }
 
-    directives.add(ast.importDirective(
-        comment,
-        metadata,
-        importKeyword,
-        uri,
-        configurations,
-        deferredKeyword,
-        asKeyword,
-        prefix,
-        combinators,
-        semicolon ?? Tokens.semicolon(),
-        augmentKeyword: augmentToken));
+    if (augmentToken != null) {
+      directives.add(
+        AugmentationImportDirectiveImpl(
+          comment: comment,
+          uri: uri,
+          importKeyword: importKeyword,
+          augmentKeyword: augmentToken,
+          metadata: metadata,
+          semicolon: semicolon ?? Tokens.semicolon(),
+        ),
+      );
+    } else {
+      directives.add(
+        ast.importDirective(
+          comment,
+          metadata,
+          importKeyword,
+          uri,
+          configurations,
+          deferredKeyword,
+          asKeyword,
+          prefix,
+          combinators,
+          semicolon ?? Tokens.semicolon(),
+        ),
+      );
+    }
   }
 
   @override
@@ -1917,6 +1944,24 @@ class AstBuilder extends StackListener {
     var statement = pop() as Statement;
     var labels = popTypedList2<Label>(labelCount);
     push(ast.labeledStatement(labels, statement));
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    final uri = pop() as StringLiteralImpl;
+    final metadata = pop() as List<Annotation>?;
+    final comment = _findComment(metadata, libraryKeyword);
+    directives.add(
+      LibraryAugmentationDirectiveImpl(
+        comment: comment,
+        metadata: metadata,
+        libraryKeyword: libraryKeyword,
+        augmentKeyword: augmentKeyword,
+        uri: uri,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -2019,14 +2064,9 @@ class AstBuilder extends StackListener {
     var typeArguments = pop() as TypeArgumentList?;
     if (typeArguments != null &&
         !_featureSet.isEnabled(Feature.generic_metadata)) {
-      var feature = Feature.generic_metadata;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        typeArguments.beginToken,
-        typeArguments.beginToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.generic_metadata,
+        startToken: typeArguments.beginToken,
       );
     }
     var name = pop() as Identifier;
@@ -2479,14 +2519,9 @@ class AstBuilder extends StackListener {
       var metadata = pop() as List<Annotation>?;
       var comment = _findComment(metadata, typedefKeyword);
       if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
-        var feature = Feature.nonfunction_type_aliases;
-        handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          equals,
-          equals,
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.nonfunction_type_aliases,
+          startToken: equals,
         );
       }
       declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
@@ -2608,9 +2643,15 @@ class AstBuilder extends StackListener {
     assert(optional('as', asOperator));
     debugEvent("AsOperator");
 
-    var type = pop() as TypeAnnotation;
-    var expression = pop() as Expression;
-    push(ast.asExpression(expression, asOperator, type));
+    var type = pop() as TypeAnnotationImpl;
+    var expression = pop() as ExpressionImpl;
+    push(
+      AsExpressionImpl(
+        expression: expression,
+        asOperator: asOperator,
+        type: type,
+      ),
+    );
   }
 
   @override
@@ -2618,23 +2659,24 @@ class AstBuilder extends StackListener {
     assert(token.type.isAssignmentOperator);
     debugEvent("AssignmentExpression");
 
-    var rhs = pop() as Expression;
-    var lhs = pop() as Expression;
+    var rhs = pop() as ExpressionImpl;
+    var lhs = pop() as ExpressionImpl;
     if (!lhs.isAssignable) {
       // TODO(danrubel): Update the BodyBuilder to report this error.
       handleRecoverableError(
           messageMissingAssignableSelector, lhs.beginToken, lhs.endToken);
     }
-    push(ast.assignmentExpression(lhs, token, rhs));
+    push(
+      AssignmentExpressionImpl(
+        leftHandSide: lhs,
+        operator: token,
+        rightHandSide: rhs,
+      ),
+    );
     if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
-      var feature = ExperimentalFeatures.triple_shift;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
-        ),
-        token,
-        token,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.triple_shift,
+        startToken: token,
       );
     }
   }
@@ -2649,6 +2691,15 @@ class AstBuilder extends StackListener {
 
     push(asyncToken ?? NullValue.FunctionBodyAsyncToken);
     push(starToken ?? NullValue.FunctionBodyStarToken);
+  }
+
+  @override
+  void handleAugmentSuperExpression(
+      Token augmentKeyword, Token superKeyword, IdentifierContext context) {
+    assert(optional('augment', augmentKeyword));
+    assert(optional('super', superKeyword));
+    debugEvent("AugmentSuperExpression");
+    throw UnimplementedError('AstBuilder.handleAugmentSuperExpression');
   }
 
   @override
@@ -2878,14 +2929,9 @@ class AstBuilder extends StackListener {
       Token token = tmpArguments != null
           ? tmpArguments.argumentList.beginToken
           : tmpConstructor!.beginToken;
-      var feature = ExperimentalFeatures.enhanced_enums;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
-        ),
-        token,
-        token,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.enhanced_enums,
+        startToken: token,
       );
     }
 
@@ -2934,14 +2980,9 @@ class AstBuilder extends StackListener {
     }
 
     if (!enableEnhancedEnums && optional(';', elementsEndToken)) {
-      var feature = ExperimentalFeatures.enhanced_enums;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
-        ),
-        elementsEndToken,
-        elementsEndToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.enhanced_enums,
+        startToken: elementsEndToken,
       );
     }
   }
@@ -2968,14 +3009,9 @@ class AstBuilder extends StackListener {
           : implementsClause != null
               ? implementsClause.implementsKeyword
               : typeParameters!.beginToken;
-      var feature = ExperimentalFeatures.enhanced_enums;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
-        ),
-        token,
-        token,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.enhanced_enums,
+        startToken: token,
       );
     }
 
@@ -3648,14 +3684,10 @@ class AstBuilder extends StackListener {
   @override
   void handleNewAsIdentifier(Token token) {
     if (!enableConstructorTearoffs) {
-      var feature = ExperimentalFeatures.constructor_tearoffs;
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          token,
-          token);
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.constructor_tearoffs,
+        startToken: token,
+      );
     }
   }
 
@@ -3687,7 +3719,10 @@ class AstBuilder extends StackListener {
   void handleNonNullAssertExpression(Token bang) {
     debugEvent('NonNullAssertExpression');
     if (!enableNonNullable) {
-      reportNonNullAssertExpressionNotEnabled(bang);
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.non_nullable,
+        startToken: bang,
+      );
     } else {
       push(ast.postfixExpression(pop() as Expression, bang));
     }
@@ -3766,6 +3801,10 @@ class AstBuilder extends StackListener {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
+    } else if (message.code == codeBuiltInIdentifierInDeclaration) {
+      // Allow e.g. 'class Function' in sdk.
+      if (importUri.isScheme("dart")) return;
+      if (uri.isScheme("org-dartlang-sdk")) return;
     }
     debugEvent("Error: ${message.problemMessage}");
     if (message.code.analyzerCodes == null && startToken is ErrorToken) {
@@ -3902,14 +3941,9 @@ class AstBuilder extends StackListener {
       push(ast.spreadElement(
           spreadOperator: spreadToken, expression: expression));
     } else {
-      var feature = Feature.spread_collections;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        spreadToken,
-        spreadToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.spread_collections,
+        startToken: spreadToken,
       );
       push(_invalidCollectionElement);
     }
@@ -3920,7 +3954,7 @@ class AstBuilder extends StackListener {
     debugEvent("StringJuxtaposition");
 
     var strings = popTypedList2<StringLiteral>(literalCount);
-    push(ast.adjacentStrings(strings));
+    push(AdjacentStringsImpl(strings: strings));
   }
 
   @override
@@ -3935,7 +3969,6 @@ class AstBuilder extends StackListener {
   void handleSuperExpression(Token superKeyword, IdentifierContext context) {
     assert(optional('super', superKeyword));
     debugEvent("SuperExpression");
-
     push(ast.superExpression(superKeyword));
   }
 
@@ -3986,14 +4019,10 @@ class AstBuilder extends StackListener {
     var typeArguments = pop() as TypeArgumentList;
     var receiver = pop() as Expression;
     if (!enableConstructorTearoffs) {
-      var feature = ExperimentalFeatures.constructor_tearoffs;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(ExperimentStatus.currentVersion),
-        ),
-        typeArguments.leftBracket,
-        typeArguments.rightBracket,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.constructor_tearoffs,
+        startToken: typeArguments.leftBracket,
+        endToken: typeArguments.rightBracket,
       );
     }
     push(ast.functionReference(
@@ -4169,14 +4198,9 @@ class AstBuilder extends StackListener {
         body: entry as CollectionElement,
       ));
     } else {
-      var feature = Feature.control_flow_collections;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        forToken,
-        forToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.control_flow_collections,
+        startToken: forToken,
       );
       push(_invalidCollectionElement);
     }
@@ -4202,14 +4226,9 @@ class AstBuilder extends StackListener {
         elseElement: elseElement,
       ));
     } else {
-      var feature = ExperimentalFeatures.control_flow_collections;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        ifToken,
-        ifToken,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.control_flow_collections,
+        startToken: ifToken,
       );
       push(_invalidCollectionElement);
     }
@@ -4218,14 +4237,9 @@ class AstBuilder extends StackListener {
   void reportErrorIfNullableType(Token? questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
-      var feature = ExperimentalFeatures.non_nullable;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        questionMark,
-        questionMark,
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.non_nullable,
+        startToken: questionMark,
       );
     }
   }
@@ -4238,33 +4252,8 @@ class AstBuilder extends StackListener {
     }
   }
 
-  void reportNonNullableModifierError(Token? modifierToken) {
-    if (modifierToken != null) {
-      var feature = ExperimentalFeatures.non_nullable;
-      handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
-          feature.enableString,
-          _versionAsString(feature.releaseVersion!),
-        ),
-        modifierToken,
-        modifierToken,
-      );
-    }
-  }
-
-  void reportNonNullAssertExpressionNotEnabled(Token bang) {
-    var feature = ExperimentalFeatures.non_nullable;
-    handleRecoverableError(
-      templateExperimentNotEnabled.withArguments(
-        feature.enableString,
-        _versionAsString(feature.releaseVersion!),
-      ),
-      bang,
-      bang,
-    );
-  }
-
-  Comment? _findComment(List<Annotation>? metadata, Token tokenAfterMetadata) {
+  CommentImpl? _findComment(
+      List<Annotation>? metadata, Token tokenAfterMetadata) {
     // Find the dartdoc tokens
     var dartdoc = parser.findDartDoc(tokenAfterMetadata);
     if (dartdoc == null) {
@@ -4320,13 +4309,34 @@ class AstBuilder extends StackListener {
     return ast.variableDeclaration(name, equals, initializer);
   }
 
+  void _reportFeatureNotEnabled({
+    required ExperimentalFeature feature,
+    required Token startToken,
+    Token? endToken,
+  }) {
+    final requiredVersion =
+        feature.releaseVersion ?? ExperimentStatus.currentVersion;
+    handleRecoverableError(
+      templateExperimentNotEnabled.withArguments(
+        feature.enableString,
+        _versionAsString(requiredVersion),
+      ),
+      startToken,
+      endToken ?? startToken,
+    );
+  }
+
   ArgumentListImpl _syntheticArgumentList(Token precedingToken) {
     var syntheticOffset = precedingToken.end;
     var left = SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset)
       ..previous = precedingToken;
     var right = SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset)
       ..previous = left;
-    return ast.argumentList(left, [], right);
+    return ArgumentListImpl(
+      leftParenthesis: left,
+      arguments: [],
+      rightParenthesis: right,
+    );
   }
 
   SimpleIdentifier _tmpSimpleIdentifier() {

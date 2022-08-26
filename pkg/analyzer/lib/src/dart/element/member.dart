@@ -24,7 +24,7 @@ class ConstructorMember extends ExecutableMember
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember(
-    TypeProviderImpl typeProvider,
+    TypeProviderImpl? typeProvider,
     ConstructorElement declaration,
     MapSubstitution substitution,
     bool isLegacy,
@@ -138,12 +138,12 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   /// their bounds.  The [substitution] includes replacing [declaration] type
   /// parameters with the provided fresh [typeParameters].
   ExecutableMember(
-    TypeProviderImpl typeProvider,
-    ExecutableElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
+    super.typeProvider,
+    ExecutableElement super.declaration,
+    super.substitution,
+    super.isLegacy,
     this.typeParameters,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+  );
 
   @override
   ExecutableElement get declaration => super.declaration as ExecutableElement;
@@ -177,6 +177,12 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   bool get isSynchronous => declaration.isSynchronous;
+
+  @override
+  LibraryElement get library => _declaration.library!;
+
+  @override
+  Source get librarySource => _declaration.librarySource!;
 
   @override
   List<ParameterElement> get parameters {
@@ -220,7 +226,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     ExecutableElement element,
     MapSubstitution substitution,
   ) {
-    TypeProviderImpl typeProvider;
+    TypeProviderImpl? typeProvider;
     var isLegacy = false;
     var combined = substitution;
     if (element is ExecutableMember) {
@@ -261,7 +267,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 class FieldFormalParameterMember extends ParameterMember
     implements FieldFormalParameterElement {
   factory FieldFormalParameterMember(
-    TypeProviderImpl typeProvider,
+    TypeProviderImpl? typeProvider,
     FieldFormalParameterElement declaration,
     MapSubstitution substitution,
     bool isLegacy,
@@ -280,18 +286,12 @@ class FieldFormalParameterMember extends ParameterMember
   }
 
   FieldFormalParameterMember._(
-    TypeProviderImpl typeProvider,
-    FieldFormalParameterElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super._(
-          typeProvider,
-          declaration,
-          substitution,
-          isLegacy,
-          typeParameters,
-        );
+    super.typeProvider,
+    FieldFormalParameterElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+    super.typeParameters,
+  ) : super._();
 
   @override
   FieldElement? get field {
@@ -320,11 +320,11 @@ class FieldMember extends VariableMember implements FieldElement {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember(
-    TypeProviderImpl typeProvider,
-    FieldElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+    super.typeProvider,
+    FieldElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+  );
 
   @override
   FieldElement get declaration => super.declaration as FieldElement;
@@ -359,6 +359,9 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   bool get isExternal => declaration.isExternal;
+
+  @override
+  LibraryElement get library => _declaration.library!;
 
   @override
   String get name => declaration.name;
@@ -406,8 +409,8 @@ class FieldMember extends VariableMember implements FieldElement {
 }
 
 class FunctionMember extends ExecutableMember implements FunctionElement {
-  FunctionMember(
-      TypeProviderImpl typeProvider, FunctionElement declaration, bool isLegacy)
+  FunctionMember(TypeProviderImpl? typeProvider, FunctionElement declaration,
+      bool isLegacy)
       : super(
           typeProvider,
           declaration,
@@ -441,7 +444,7 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
 /// parameters are known.
 abstract class Member implements Element {
   /// A type provider (might be legacy, might be null-safe).
-  final TypeProviderImpl _typeProvider;
+  final TypeProviderImpl? _typeProvider;
 
   /// The element on which the parameterized element was created.
   final Element _declaration;
@@ -458,6 +461,10 @@ abstract class Member implements Element {
       this.isLegacy) {
     if (_declaration is Member) {
       throw StateError('Members must be created from a declarations.');
+    }
+    if (_typeProvider == null && isLegacy) {
+      throw StateError(
+          'A type provider must be supplied for legacy conversion');
     }
   }
 
@@ -552,10 +559,10 @@ abstract class Member implements Element {
   ElementKind get kind => _declaration.kind;
 
   @override
-  LibraryElement get library => _declaration.library!;
+  LibraryElement? get library => _declaration.library;
 
   @override
-  Source get librarySource => _declaration.librarySource!;
+  Source? get librarySource => _declaration.librarySource;
 
   @override
   ElementLocation get location => _declaration.location!;
@@ -605,9 +612,14 @@ abstract class Member implements Element {
   String getExtendedDisplayName(String? shortName) =>
       _declaration.getExtendedDisplayName(shortName);
 
+  @Deprecated('Use isAccessibleIn2() instead')
   @override
   bool isAccessibleIn(LibraryElement? library) =>
       _declaration.isAccessibleIn(library);
+
+  @override
+  bool isAccessibleIn2(LibraryElement library) =>
+      _declaration.isAccessibleIn2(library);
 
   /// Use the given [visitor] to visit all of the [children].
   void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
@@ -642,7 +654,7 @@ abstract class Member implements Element {
   /// Otherwise, return the type unchanged.
   DartType _toLegacyType(DartType type) {
     if (isLegacy) {
-      return NullabilityEliminator.perform(_typeProvider, type);
+      return NullabilityEliminator.perform(_typeProvider!, type);
     } else {
       return type;
     }
@@ -720,7 +732,7 @@ abstract class Member implements Element {
 /// type parameters are known.
 class MethodMember extends ExecutableMember implements MethodElement {
   factory MethodMember(
-    TypeProviderImpl typeProvider,
+    TypeProviderImpl? typeProvider,
     MethodElement declaration,
     MapSubstitution substitution,
     bool isLegacy,
@@ -739,12 +751,12 @@ class MethodMember extends ExecutableMember implements MethodElement {
   }
 
   MethodMember._(
-    TypeProviderImpl typeProvider,
-    MethodElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super(typeProvider, declaration, substitution, isLegacy, typeParameters);
+    super.typeProvider,
+    MethodElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+    super.typeParameters,
+  );
 
   @override
   MethodElement get declaration => super.declaration as MethodElement;
@@ -799,7 +811,7 @@ class ParameterMember extends VariableMember
   final List<TypeParameterElement> typeParameters;
 
   factory ParameterMember(
-    TypeProviderImpl typeProvider,
+    TypeProviderImpl? typeProvider,
     ParameterElement declaration,
     MapSubstitution substitution,
     bool isLegacy,
@@ -820,12 +832,12 @@ class ParameterMember extends VariableMember
   /// Initialize a newly created element to represent a parameter, based on the
   /// [declaration], with applied [substitution].
   ParameterMember._(
-    TypeProviderImpl typeProvider,
-    ParameterElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
+    super.typeProvider,
+    ParameterElement super.declaration,
+    super.substitution,
+    super.isLegacy,
     this.typeParameters,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+  );
 
   @override
   ParameterElement get declaration => super.declaration as ParameterElement;
@@ -838,9 +850,6 @@ class ParameterMember extends VariableMember
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
-
-  @override
-  int get hashCode => declaration.hashCode;
 
   @override
   bool get isCovariant => declaration.isCovariant;
@@ -887,6 +896,33 @@ class ParameterMember extends VariableMember
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
   }
+
+  static ParameterElement from(
+      ParameterElement element, MapSubstitution substitution) {
+    TypeProviderImpl? typeProvider;
+    var isLegacy = false;
+    var combined = substitution;
+    if (element is ParameterMember) {
+      var member = element;
+      element = member.declaration;
+      typeProvider = member._typeProvider;
+
+      isLegacy = member.isLegacy;
+
+      var map = <TypeParameterElement, DartType>{};
+      for (var entry in member._substitution.map.entries) {
+        map[entry.key] = substitution.substituteType(entry.value);
+      }
+      map.addAll(substitution.map);
+      combined = Substitution.fromMap(map);
+    }
+
+    if (!isLegacy && combined.map.isEmpty) {
+      return element;
+    }
+
+    return ParameterMember(typeProvider, element, combined, isLegacy);
+  }
 }
 
 /// A property accessor element defined in a parameterized type where the values
@@ -894,7 +930,7 @@ class ParameterMember extends VariableMember
 class PropertyAccessorMember extends ExecutableMember
     implements PropertyAccessorElement {
   factory PropertyAccessorMember(
-    TypeProviderImpl typeProvider,
+    TypeProviderImpl? typeProvider,
     PropertyAccessorElement declaration,
     MapSubstitution substitution,
     bool isLegacy,
@@ -913,12 +949,12 @@ class PropertyAccessorMember extends ExecutableMember
   }
 
   PropertyAccessorMember._(
-    TypeProviderImpl typeProvider,
-    PropertyAccessorElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super(typeProvider, declaration, substitution, isLegacy, typeParameters);
+    super.typeProvider,
+    PropertyAccessorElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+    super.typeParameters,
+  );
 
   @override
   PropertyAccessorElement? get correspondingGetter {
@@ -1005,7 +1041,7 @@ class PropertyAccessorMember extends ExecutableMember
 class SuperFormalParameterMember extends ParameterMember
     implements SuperFormalParameterElement {
   factory SuperFormalParameterMember(
-    TypeProviderImpl typeProvider,
+    TypeProviderImpl? typeProvider,
     SuperFormalParameterElement declaration,
     MapSubstitution substitution,
     bool isLegacy,
@@ -1024,18 +1060,12 @@ class SuperFormalParameterMember extends ParameterMember
   }
 
   SuperFormalParameterMember._(
-    TypeProviderImpl typeProvider,
-    SuperFormalParameterElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-    List<TypeParameterElement> typeParameters,
-  ) : super._(
-          typeProvider,
-          declaration,
-          substitution,
-          isLegacy,
-          typeParameters,
-        );
+    super.typeProvider,
+    SuperFormalParameterElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+    super.typeParameters,
+  ) : super._();
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -1051,8 +1081,7 @@ class SuperFormalParameterMember extends ParameterMember
       return null;
     }
 
-    return ParameterMember(
-        _typeProvider, superConstructorParameter, _substitution, isLegacy);
+    return ParameterMember.from(superConstructorParameter, substitution);
   }
 
   @override
@@ -1063,11 +1092,11 @@ class SuperFormalParameterMember extends ParameterMember
 class TopLevelVariableMember extends VariableMember
     implements TopLevelVariableElement {
   TopLevelVariableMember(
-    TypeProviderImpl typeProvider,
-    VariableElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+    super.typeProvider,
+    super.declaration,
+    super.substitution,
+    super.isLegacy,
+  );
 
   @override
   TopLevelVariableElement get declaration =>
@@ -1091,6 +1120,9 @@ class TopLevelVariableMember extends VariableMember
 
   @override
   bool get isExternal => declaration.isExternal;
+
+  @override
+  LibraryElement get library => _declaration.library!;
 
   @override
   String get name => declaration.name;
@@ -1119,11 +1151,11 @@ abstract class VariableMember extends Member implements VariableElement {
   /// Initialize a newly created element to represent a variable, based on the
   /// [declaration], with applied [substitution].
   VariableMember(
-    TypeProviderImpl typeProvider,
-    VariableElement declaration,
-    MapSubstitution substitution,
-    bool isLegacy,
-  ) : super(typeProvider, declaration, substitution, isLegacy);
+    super.typeProvider,
+    VariableElement super.declaration,
+    super.substitution,
+    super.isLegacy,
+  );
 
   @override
   VariableElement get declaration => super.declaration as VariableElement;

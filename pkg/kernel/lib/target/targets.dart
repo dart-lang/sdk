@@ -16,11 +16,13 @@ class TargetFlags {
   final bool trackWidgetCreation;
   final bool enableNullSafety;
   final bool supportMirrors;
+  final bool compactAsync;
 
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.enableNullSafety = false,
-      this.supportMirrors = true});
+      this.supportMirrors = true,
+      this.compactAsync = true});
 
   @override
   bool operator ==(other) {
@@ -28,7 +30,8 @@ class TargetFlags {
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
         enableNullSafety == other.enableNullSafety &&
-        supportMirrors == other.supportMirrors;
+        supportMirrors == other.supportMirrors &&
+        compactAsync == other.compactAsync;
   }
 
   @override
@@ -37,6 +40,7 @@ class TargetFlags {
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ compactAsync.hashCode));
     return hash;
   }
 }
@@ -314,7 +318,8 @@ abstract class Target {
   /// transformation is not applied when compiling full kernel programs to
   /// prevent affecting the internal invariants of the compiler and accidentally
   /// slowing down compilation.
-  void performOutlineTransformations(Component component) {}
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {}
 
   /// Perform target-specific transformations on the given libraries that must
   /// run before constant evaluation.
@@ -546,6 +551,9 @@ abstract class Target {
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
   Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
+
+  Class? concreteAsyncResultClass(CoreTypes coreTypes) => null;
+  Class? concreteSyncStarResultClass(CoreTypes coreTypes) => null;
 
   ConstantsBackend get constantsBackend;
 
@@ -1004,8 +1012,10 @@ class TargetWrapper extends Target {
   }
 
   @override
-  void performOutlineTransformations(Component component) {
-    _target.performOutlineTransformations(component);
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {
+    _target.performOutlineTransformations(
+        component, coreTypes, referenceFromIndex);
   }
 
   @override
@@ -1070,8 +1080,10 @@ mixin SummaryMixin on Target {
   bool get excludeNonSources;
 
   @override
-  void performOutlineTransformations(Component component) {
-    super.performOutlineTransformations(component);
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {
+    super.performOutlineTransformations(
+        component, coreTypes, referenceFromIndex);
     if (!excludeNonSources) return;
 
     List<Library> libraries = new List.of(component.libraries);
@@ -1085,10 +1097,7 @@ mixin SummaryMixin on Target {
         // be computed as part of serialization, so we need to do that
         // preemptively here to avoid errors when serializing references to
         // elements of these libraries.
-        component.root
-            .getChildFromUri(library.importUri)
-            .bindTo(library.reference);
-        library.computeCanonicalNames();
+        library.bindCanonicalNames(component.root);
       }
     }
   }

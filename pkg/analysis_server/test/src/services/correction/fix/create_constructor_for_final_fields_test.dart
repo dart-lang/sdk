@@ -120,7 +120,7 @@ class MyWidget extends StatelessWidget {
 
   Future<void> test_inTopLevelMethod() async {
     await resolveTestCode('''
-main() {
+void f() {
   final int v;
   print(v);
 }

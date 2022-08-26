@@ -6,7 +6,7 @@
 
 import 'dart:convert';
 
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as binary;
@@ -122,7 +122,7 @@ infoTest(String program, bool useBinary, InfoCheck check) async {
     info = binary.decode(sink.list);
   } else {
     info = new AllInfoJsonCodec().decode(
-        json.decode(collector.getOutput("out.js", OutputType.dumpInfo)));
+        json.decode(collector.getOutput("out.js", api.OutputType.dumpInfo)));
   }
   check(info);
 }

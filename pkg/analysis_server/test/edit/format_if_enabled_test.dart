@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -17,23 +16,22 @@ void main() {
 }
 
 @reflectiveTest
-class FormatIfEnabledTest extends AbstractAnalysisTest {
+class FormatIfEnabledTest extends PubPackageAnalysisServerTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    handler = EditDomainHandler(server);
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_enabled() async {
-    newAnalysisOptionsYamlFile2(testFolder, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 code-style:
   format: true
 ''');
     addTestFile('''
 void f() { int x = 3; }
 ''');
-    newFile2('$testFolder/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A { A(); }
 ''');
     var edits = await _format();
@@ -61,8 +59,9 @@ void f() { int x =
 
   Future<List<SourceFileEdit>> _format() async {
     await waitForTasksFinished();
-    var request = EditFormatIfEnabledParams([testFolder]).toRequest('0');
-    var response = await waitResponse(request);
+    var request =
+        EditFormatIfEnabledParams([testPackageRoot.path]).toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     return EditFormatIfEnabledResult.fromResponse(response).edits;
   }
 }

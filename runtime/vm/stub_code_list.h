@@ -75,6 +75,7 @@ namespace dart {
   V(ICCallThroughCode)                                                         \
   V(MegamorphicCall)                                                           \
   V(FixAllocationStubTarget)                                                   \
+  V(FixParameterizedAllocationStubTarget)                                      \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
   V(DeoptimizeLazyFromThrow)                                                   \
@@ -139,10 +140,29 @@ namespace dart {
   V(AssertBoolean)                                                             \
   V(InstanceOf)                                                                \
   V(InstantiateType)                                                           \
+  V(InstantiateTypeNonNullableClassTypeParameter)                              \
+  V(InstantiateTypeNullableClassTypeParameter)                                 \
+  V(InstantiateTypeLegacyClassTypeParameter)                                   \
+  V(InstantiateTypeNonNullableFunctionTypeParameter)                           \
+  V(InstantiateTypeNullableFunctionTypeParameter)                              \
+  V(InstantiateTypeLegacyFunctionTypeParameter)                                \
   V(InstantiateTypeArguments)                                                  \
   V(InstantiateTypeArgumentsMayShareInstantiatorTA)                            \
   V(InstantiateTypeArgumentsMayShareFunctionTA)                                \
   V(NoSuchMethodDispatcher)                                                    \
+  V(Await)                                                                     \
+  V(InitAsync)                                                                 \
+  V(Resume)                                                                    \
+  V(ReturnAsync)                                                               \
+  V(ReturnAsyncNotFuture)                                                      \
+  V(InitAsyncStar)                                                             \
+  V(YieldAsyncStar)                                                            \
+  V(ReturnAsyncStar)                                                           \
+  V(InitSyncStar)                                                              \
+  V(YieldSyncStar)                                                             \
+  V(ReturnSyncStar)                                                            \
+  V(AsyncExceptionHandler)                                                     \
+  V(CloneSuspendState)                                                         \
   V(UnknownDartCode)
 
 }  // namespace dart

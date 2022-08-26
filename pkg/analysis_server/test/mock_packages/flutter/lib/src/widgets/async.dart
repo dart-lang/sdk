@@ -10,8 +10,8 @@ typedef AsyncWidgetBuilder<T> = Widget Function(
 class AsyncSnapshot<T> {}
 
 class StreamBuilder<T> {
-  final T initialData;
+  final T? initialData;
   final AsyncWidgetBuilder<T> builder;
   const StreamBuilder(
-      {Key key, this.initialData, Stream<T> stream, @required this.builder});
+      {Key? key, this.initialData, Stream<T>? stream, @required this.builder});
 }

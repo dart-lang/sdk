@@ -32,22 +32,22 @@ class Align extends SingleChildRenderObjectWidget {
   /// If non-null, sets its width to the child's width multiplied by this factor.
   ///
   /// Can be both greater and less than 1.0 but must be positive.
-  final double widthFactor;
+  final double? widthFactor;
 
   /// If non-null, sets its height to the child's height multiplied by this factor.
   ///
   /// Can be both greater and less than 1.0 but must be positive.
-  final double heightFactor;
+  final double? heightFactor;
 
   /// Creates an alignment widget.
   ///
   /// The alignment defaults to [Alignment.center].
   const Align({
-    Key key,
+    Key? key,
     this.alignment = Alignment.center,
     this.widthFactor,
     this.heightFactor,
-    Widget child,
+    Widget? child,
   })  : assert(alignment != null),
         assert(widthFactor == null || widthFactor >= 0.0),
         assert(heightFactor == null || heightFactor >= 0.0),
@@ -56,50 +56,51 @@ class Align extends SingleChildRenderObjectWidget {
 
 class AspectRatio extends SingleChildRenderObjectWidget {
   const AspectRatio({
-    Key key,
+    Key? key,
     @required double aspectRatio,
-    Widget child,
+    Widget? child,
   });
 }
 
 class Center extends StatelessWidget {
-  const Center({Key key, double heightFactor, Widget child});
+  const Center({Key? key, double? heightFactor, Widget? child});
 }
 
 class SizedBox extends SingleChildRenderObjectWidget {
-  const SizedBox({Key key, this.width, this.height, Widget child})
+  const SizedBox({Key? key, this.width, this.height, Widget? child})
       : super(key: key, child: child);
 
-  const SizedBox.expand({Key key, Widget child})
+  const SizedBox.expand({Key? key, Widget? child})
       : width = double.infinity,
         height = double.infinity,
         super(key: key, child: child);
 
-  const SizedBox.shrink({Key key, Widget child})
+  const SizedBox.shrink({Key? key, Widget? child})
       : width = 0.0,
         height = 0.0,
         super(key: key, child: child);
 
-  SizedBox.fromSize({Key key, Widget child, Size size})
+  SizedBox.fromSize({Key? key, Widget? child, Size? size})
       : width = size?.width,
         height = size?.height,
         super(key: key, child: child);
 
-  final double width;
+  final double? width;
 
-  final double height;
+  final double? height;
 }
 
 class ClipRect extends SingleChildRenderObjectWidget {
-  const ClipRect({Key key, Widget child}) : super(key: key, child: child);
+  const ClipRect({Key? key, Widget? child}) : super(key: key, child: child);
 
   /// Does not actually exist in Flutter.
-  const ClipRect.rect({Key key, Widget child}) : super(key: key, child: child);
+  const ClipRect.rect({Key? key, Widget? child})
+      : super(key: key, child: child);
 }
 
 class Column extends Flex {
   Column({
-    Key key,
+    Key? key,
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
     MainAxisSize mainAxisSize = MainAxisSize.max,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
@@ -112,7 +113,7 @@ class Column extends Flex {
 
 class Expanded extends StatelessWidget {
   const Expanded({
-    Key key,
+    Key? key,
     int flex = 1,
     @required Widget child,
   });
@@ -120,7 +121,7 @@ class Expanded extends StatelessWidget {
 
 class Flex extends Widget {
   Flex({
-    Key key,
+    Key? key,
     List<Widget> children = const <Widget>[],
   });
 }
@@ -129,15 +130,15 @@ class Padding extends SingleChildRenderObjectWidget {
   final EdgeInsetsGeometry padding;
 
   const Padding({
-    Key key,
+    Key? key,
     @required this.padding,
-    Widget child,
+    Widget? child,
   });
 }
 
 class Row extends Flex {
   Row({
-    Key key,
+    Key? key,
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
     MainAxisSize mainAxisSize = MainAxisSize.max,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
@@ -150,12 +151,12 @@ class Row extends Flex {
 
 class Transform extends SingleChildRenderObjectWidget {
   const Transform({
-    Key key,
+    Key? key,
     @required transform,
     origin,
     alignment,
     transformHitTests = true,
-    Widget child,
+    Widget? child,
   });
 }
 
@@ -163,5 +164,5 @@ typedef WidgetBuilder = Widget Function(BuildContext context);
 
 class Builder {
   final WidgetBuilder builder;
-  const Builder({Key key, @required this.builder});
+  const Builder({Key? key, @required this.builder});
 }

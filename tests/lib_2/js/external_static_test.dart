@@ -91,7 +91,7 @@ extension ExtensionNonJS on NonJSClass {
   external optionalParameterMethod([int a, int b = 0]);
   //       ^
   // [web] JS interop or Native class required for 'external' extension members.
-  external overridenMethod();
+  external overriddenMethod();
   //       ^
   // [web] JS interop or Native class required for 'external' extension members.
 
@@ -105,7 +105,7 @@ extension ExtensionNonJS on NonJSClass {
 }
 
 class NonJSClass {
-  void overridenMethod() => 5;
+  void overriddenMethod() => 5;
 }
 
 extension ExtensionGenericNonJS<T> on GenericNonJSClass<T> {

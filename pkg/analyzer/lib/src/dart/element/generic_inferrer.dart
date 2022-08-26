@@ -71,9 +71,8 @@ class GenericInferrer {
   /// type arguments are allowed to be instantiated with generic function types.
   final bool genericMetadataIsEnabled;
 
-  /// The set of type parameters for which a previous inference phase has
-  /// "fixed" a type; no further constraints will be added for types in this
-  /// list.
+  /// Map whose keys are type parameters for which a previous inference phase
+  /// has fixed a type, and whose values are the corresponding fixed types.
   ///
   /// Background: sometimes the upwards inference phase of generic type
   /// inference is capable of assigning a more specific type than the downwards
@@ -86,15 +85,15 @@ class GenericInferrer {
   ///
   /// Downwards inference provisionally considers the list to be a `List<num>`.
   /// Without this heuristic, upwards inference would refine the type to
-  /// `List<int>`, leading to a runtime failure.  So what we do is "fix" the
-  /// type parameter to `num` after downwards inference, preventing upwards
-  /// inference from doing any further refinement.
+  /// `List<int>`, leading to a runtime failure.  So what we do is fix the type
+  /// parameter to `num` after downwards inference, preventing upwards inference
+  /// from doing any further refinement.
   ///
   /// (Note that the heuristic isn't needed for type parameters whose variance
   /// is explicitly specified using the as-yet-unreleased "variance" feature,
   /// since type parameters whose variance is explicitly specified don't undergo
   /// implicit runtime checks).
-  final Set<TypeParameterElement> _fixedTypeParameters = {};
+  final Map<TypeParameterElement, DartType> _typesInferredSoFar = {};
 
   GenericInferrer(this._typeSystem, this._typeFormals,
       {this.errorReporter,
@@ -443,14 +442,17 @@ class GenericInferrer {
       }
 
       var constraints = _constraints[typeParam]!;
-      if (partial) {
+      var previouslyInferredType = _typesInferredSoFar[typeParam];
+      if (previouslyInferredType != null) {
+        inferredTypes[i] = previouslyInferredType;
+      } else if (partial) {
         var inferredType = _inferTypeParameterFromContext(
             constraints, extendsClause,
             isContravariant: typeParam.variance.isContravariant);
         inferredTypes[i] = inferredType;
         if (typeParam.isLegacyCovariant &&
-            UnknownInferredType.isKnown(inferredTypes[i])) {
-          _fixedTypeParameters.add(typeParam);
+            UnknownInferredType.isKnown(inferredType)) {
+          _typesInferredSoFar[typeParam] = inferredType;
         }
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
@@ -643,7 +645,8 @@ class GenericInferrer {
     if (success) {
       var constraints = gatherer.computeConstraints();
       for (var entry in constraints.entries) {
-        if (!entry.value.isEmpty && !_fixedTypeParameters.contains(entry.key)) {
+        if (!entry.value.isEmpty &&
+            !_typesInferredSoFar.containsKey(entry.key)) {
           var constraint = _constraints[entry.key]!;
           constraint.add(
             _TypeConstraint(origin, entry.key,
@@ -696,9 +699,7 @@ class _TypeConstraint extends _TypeRange {
   /// See [toString].
   final _TypeConstraintOrigin origin;
 
-  _TypeConstraint(this.origin, this.typeParameter,
-      {DartType? upper, DartType? lower})
-      : super(upper: upper, lower: lower);
+  _TypeConstraint(this.origin, this.typeParameter, {super.upper, super.lower});
 
   _TypeConstraint.fromExtends(
       TypeParameterElement element, DartType boundType, DartType extendsType,
@@ -732,8 +733,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
 
   _TypeConstraintFromArgument(
       this.argumentType, this.parameterType, this.parameterName,
-      {this.genericClass, required bool isNonNullableByDefault})
-      : super(isNonNullableByDefault: isNonNullableByDefault);
+      {this.genericClass, required super.isNonNullableByDefault});
 
   @override
   List<String> formatError() {
@@ -779,8 +779,7 @@ class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
 
   _TypeConstraintFromExtendsClause(
       this.typeParam, this.boundType, this.extendsType,
-      {required bool isNonNullableByDefault})
-      : super(isNonNullableByDefault: isNonNullableByDefault);
+      {required super.isNonNullableByDefault});
 
   @override
   List<String> formatError() {
@@ -798,8 +797,7 @@ class _TypeConstraintFromFunctionContext extends _TypeConstraintOrigin {
   final DartType functionType;
 
   _TypeConstraintFromFunctionContext(this.functionType, this.contextType,
-      {required bool isNonNullableByDefault})
-      : super(isNonNullableByDefault: isNonNullableByDefault);
+      {required super.isNonNullableByDefault});
 
   @override
   List<String> formatError() {
@@ -816,8 +814,7 @@ class _TypeConstraintFromReturnType extends _TypeConstraintOrigin {
   final DartType declaredType;
 
   _TypeConstraintFromReturnType(this.declaredType, this.contextType,
-      {required bool isNonNullableByDefault})
-      : super(isNonNullableByDefault: isNonNullableByDefault);
+      {required super.isNonNullableByDefault});
 
   @override
   List<String> formatError() {

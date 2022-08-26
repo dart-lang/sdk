@@ -271,7 +271,7 @@ void Assembler::bics(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), BIC, 1, rn, rd, o);
 }
 
-void Assembler::mvn(Register rd, Operand o, Condition cond) {
+void Assembler::mvn_(Register rd, Operand o, Condition cond) {
   EmitType01(cond, o.type(), MVN, 0, R0, rd, o);
 }
 
@@ -1541,10 +1541,6 @@ void Assembler::Drop(intptr_t stack_elements) {
   }
 }
 
-intptr_t Assembler::FindImmediate(int32_t imm) {
-  return object_pool_builder().FindImmediate(imm);
-}
-
 // Uses a code sequence that can easily be decoded.
 void Assembler::LoadWordFromPoolIndex(Register rd,
                                       intptr_t index,
@@ -1591,7 +1587,7 @@ void Assembler::CheckCodePointer() {
                           target::Instructions::HeaderSize() - kHeapObjectTag;
   mov(R0, Operand(PC));
   AddImmediate(R0, -offset);
-  ldr(IP, FieldAddress(CODE_REG, target::Code::saved_instructions_offset()));
+  ldr(IP, FieldAddress(CODE_REG, target::Code::instructions_offset()));
   cmp(R0, Operand(IP));
   b(&instructions_ok, EQ);
   bkpt(1);
@@ -2455,6 +2451,16 @@ void Assembler::PopList(RegList regs, Condition cond) {
   ldm(IA_W, SP, regs, cond);
 }
 
+void Assembler::PushQuad(FpuRegister reg, Condition cond) {
+  DRegister dreg = EvenDRegisterOf(reg);
+  vstmd(DB_W, SP, dreg, 2, cond);  // 2 D registers per Q register.
+}
+
+void Assembler::PopQuad(FpuRegister reg, Condition cond) {
+  DRegister dreg = EvenDRegisterOf(reg);
+  vldmd(IA_W, SP, dreg, 2, cond);  // 2 D registers per Q register.
+}
+
 void Assembler::PushRegisters(const RegisterSet& regs) {
   const intptr_t fpu_regs_count = regs.FpuRegisterCount();
   if (fpu_regs_count > 0) {
@@ -2516,6 +2522,36 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
       }
     }
     ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
+  }
+}
+
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  // Collect the longest descending sequences of registers and
+  // push them with a single STMDB instruction.
+  RegList pending_regs = 0;
+  Register lowest_pending_reg = kNumberOfCpuRegisters;
+  intptr_t num_pending_regs = 0;
+  for (Register reg : regs) {
+    if (reg >= lowest_pending_reg) {
+      ASSERT(pending_regs != 0);
+      if (num_pending_regs > 1) {
+        PushList(pending_regs);
+      } else {
+        Push(lowest_pending_reg);
+      }
+      pending_regs = 0;
+      num_pending_regs = 0;
+    }
+    pending_regs |= (1 << reg);
+    lowest_pending_reg = reg;
+    ++num_pending_regs;
+  }
+  if (pending_regs != 0) {
+    if (num_pending_regs > 1) {
+      PushList(pending_regs);
+    } else {
+      Push(lowest_pending_reg);
+    }
   }
 }
 
@@ -2774,12 +2810,16 @@ void Assembler::LoadDecodableImmediate(Register rd,
   }
 }
 
+void Assembler::LoadImmediate(Register rd, Immediate value, Condition cond) {
+  LoadImmediate(rd, value.value(), cond);
+}
+
 void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
   Operand o;
   if (Operand::CanHold(value, &o)) {
     mov(rd, o, cond);
   } else if (Operand::CanHold(~value, &o)) {
-    mvn(rd, o, cond);
+    mvn_(rd, o, cond);
   } else {
     LoadDecodableImmediate(rd, value, cond);
   }
@@ -2800,7 +2840,15 @@ void Assembler::LoadDImmediate(DRegister dd,
                                Condition cond) {
   ASSERT(scratch != PC);
   ASSERT(scratch != IP);
-  if (!vmovd(dd, value, cond)) {
+  if (vmovd(dd, value, cond)) return;
+
+  int64_t imm64 = bit_cast<int64_t, double>(value);
+  if (constant_pool_allowed()) {
+    intptr_t index = object_pool_builder().FindImmediate64(imm64);
+    intptr_t offset =
+        target::ObjectPool::element_offset(index) - kHeapObjectTag;
+    LoadDFromOffset(dd, PP, offset, cond);
+  } else {
     // A scratch register and IP are needed to load an arbitrary double.
     ASSERT(scratch != kNoRegister);
     int64_t imm64 = bit_cast<int64_t, double>(value);
@@ -2808,6 +2856,13 @@ void Assembler::LoadDImmediate(DRegister dd,
     LoadImmediate(scratch, Utils::High32Bits(imm64), cond);
     vmovdrr(dd, IP, scratch, cond);
   }
+}
+
+void Assembler::LoadQImmediate(QRegister qd, simd128_value_t value) {
+  ASSERT(constant_pool_allowed());
+  intptr_t index = object_pool_builder().FindImmediate128(value);
+  intptr_t offset = target::ObjectPool::element_offset(index) - kHeapObjectTag;
+  LoadMultipleDFromOffset(EvenDRegisterOf(qd), 2, PP, offset);
 }
 
 void Assembler::LoadFromOffset(Register reg,
@@ -3072,10 +3127,10 @@ void Assembler::AddImmediate(Register rd,
   } else {
     ASSERT(rn != IP);
     if (Operand::CanHold(~value, &o)) {
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       add(rd, rn, Operand(IP), cond);
     } else if (Operand::CanHold(~(-value), &o)) {
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       sub(rd, rn, Operand(IP), cond);
     } else if (value > 0) {
       LoadDecodableImmediate(IP, value, cond);
@@ -3101,11 +3156,11 @@ void Assembler::AddImmediateSetFlags(Register rd,
   } else {
     ASSERT(rn != IP);
     if (Operand::CanHold(~value, &o)) {
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       adds(rd, rn, Operand(IP), cond);
     } else if (Operand::CanHold(~(-value), &o)) {
       ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       subs(rd, rn, Operand(IP), cond);
     } else {
       LoadDecodableImmediate(IP, value, cond);
@@ -3135,11 +3190,11 @@ void Assembler::SubImmediateSetFlags(Register rd,
   } else {
     ASSERT(rn != IP);
     if (Operand::CanHold(~value, &o)) {
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       subs(rd, rn, Operand(IP), cond);
     } else if (Operand::CanHold(~(-value), &o)) {
       ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-      mvn(IP, o, cond);
+      mvn_(IP, o, cond);
       adds(rd, rn, Operand(IP), cond);
     } else {
       LoadDecodableImmediate(IP, value, cond);
@@ -3158,6 +3213,19 @@ void Assembler::AndImmediate(Register rd,
   } else {
     LoadImmediate(TMP, imm, cond);
     and_(rd, rs, Operand(TMP), cond);
+  }
+}
+
+void Assembler::OrImmediate(Register rd,
+                            Register rs,
+                            int32_t imm,
+                            Condition cond) {
+  Operand o;
+  if (Operand::CanHold(imm, &o)) {
+    orr(rd, rs, Operand(o), cond);
+  } else {
+    LoadImmediate(TMP, imm, cond);
+    orr(rd, rs, Operand(TMP), cond);
   }
 }
 
@@ -3238,6 +3306,10 @@ void Assembler::LeaveFrame(RegList regs, bool allow_pop_pc) {
 
 void Assembler::Ret(Condition cond /* = AL */) {
   READS_RETURN_ADDRESS_FROM_LR(bx(LR, cond));
+}
+
+void Assembler::SetReturnAddress(Register value) {
+  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(MoveRegister(LR, value));
 }
 
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
@@ -3516,6 +3588,14 @@ void Assembler::MaybeTraceAllocation(Register stats_addr_reg, Label* trace) {
   b(trace, NE);
 }
 
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Label* trace,
+                                     Register temp_reg,
+                                     JumpDistance distance) {
+  LoadAllocationStatsAddress(temp_reg, cid);
+  MaybeTraceAllocation(temp_reg, trace);
+}
+
 void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
@@ -3621,6 +3701,21 @@ void Assembler::TryAllocateArray(intptr_t cid,
   } else {
     b(failure);
   }
+}
+
+void Assembler::CopyMemoryWords(Register src,
+                                Register dst,
+                                Register size,
+                                Register temp) {
+  Label loop, done;
+  __ cmp(size, Operand(0));
+  __ b(&done, EQUAL);
+  __ Bind(&loop);
+  __ ldr(temp, Address(src, target::kWordSize, Address::PostIndex));
+  __ str(temp, Address(dst, target::kWordSize, Address::PostIndex));
+  __ subs(size, size, Operand(target::kWordSize));
+  __ b(&loop, NOT_ZERO);
+  __ Bind(&done);
 }
 
 void Assembler::GenerateUnRelocatedPcRelativeCall(Condition cond,

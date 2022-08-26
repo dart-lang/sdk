@@ -238,11 +238,13 @@ abstract class Uri {
   /// The `path` component is set from the [unencodedPath]
   /// argument. The path passed must not be encoded as this constructor
   /// encodes the path.
+  /// If omitted, the path defaults to being empty.
   ///
   /// The `query` component is set from the optional [queryParameters]
   /// argument.
-  factory Uri.http(String authority, String unencodedPath,
-      [Map<String, dynamic>? queryParameters]) = _Uri.http;
+  factory Uri.http(String authority,
+      [String unencodedPath,
+      Map<String, dynamic>? queryParameters]) = _Uri.http;
 
   /// Creates a new `https` URI from authority, path and query.
   ///
@@ -263,8 +265,9 @@ abstract class Uri {
   /// uri = Uri.https('example.org', '/a%2F');
   /// print(uri); // https://example.org/a%252F
   /// ```
-  factory Uri.https(String authority, String unencodedPath,
-      [Map<String, dynamic>? queryParameters]) = _Uri.https;
+  factory Uri.https(String authority,
+      [String unencodedPath,
+      Map<String, dynamic>? queryParameters]) = _Uri.https;
 
   /// Creates a new file URI from an absolute or relative file path.
   ///
@@ -1667,14 +1670,14 @@ class _Uri implements Uri {
   }
 
   /// Implementation of [Uri.http].
-  factory _Uri.http(String authority, String unencodedPath,
-      [Map<String, dynamic>? queryParameters]) {
+  factory _Uri.http(String authority,
+      [String unencodedPath = '', Map<String, dynamic>? queryParameters]) {
     return _makeHttpUri("http", authority, unencodedPath, queryParameters);
   }
 
   /// Implementation of [Uri.https].
-  factory _Uri.https(String authority, String unencodedPath,
-      [Map<String, dynamic>? queryParameters]) {
+  factory _Uri.https(String authority,
+      [String unencodedPath = '', Map<String, dynamic>? queryParameters]) {
     return _makeHttpUri("https", authority, unencodedPath, queryParameters);
   }
 

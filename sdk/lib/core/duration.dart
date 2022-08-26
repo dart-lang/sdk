@@ -331,6 +331,7 @@ class Duration implements Comparable<Duration> {
   /// ```
   String toString() {
     var microseconds = inMicroseconds;
+    var sign = (microseconds < 0) ? "-" : "";
 
     var hours = microseconds ~/ microsecondsPerHour;
     microseconds = microseconds.remainder(microsecondsPerHour);
@@ -348,7 +349,7 @@ class Duration implements Comparable<Duration> {
     var secondsPadding = seconds < 10 ? "0" : "";
 
     var paddedMicroseconds = microseconds.toString().padLeft(6, "0");
-    return "$hours:"
+    return "$sign${hours.abs()}:"
         "$minutesPadding$minutes:"
         "$secondsPadding$seconds.$paddedMicroseconds";
   }

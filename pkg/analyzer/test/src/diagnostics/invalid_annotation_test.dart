@@ -66,7 +66,7 @@ main() {
   }
 
   test_getter_importWithPrefix() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 library lib;
 get V => 0;
 ''');
@@ -81,7 +81,7 @@ main() {
   }
 
   test_importWithPrefix_notConstantVariable() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 library lib;
 final V = 0;
 ''');
@@ -96,7 +96,7 @@ main() {
   }
 
   test_importWithPrefix_notVariableOrConstructorInvocation() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 library lib;
 typedef V();
 ''');
@@ -145,7 +145,7 @@ void f() {
   }
 
   test_notClass_importWithPrefix() async {
-    newFile2('$testPackageLibPath/annotations.dart', r'''
+    newFile('$testPackageLibPath/annotations.dart', r'''
 class Property {
   final int value;
   const Property(this.value);

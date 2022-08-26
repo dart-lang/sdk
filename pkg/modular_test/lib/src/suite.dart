@@ -17,15 +17,7 @@ class ModularTest {
   final List<String> flags;
 
   ModularTest(this.modules, this.mainModule, this.flags) {
-    if (mainModule == null) {
-      throw ArgumentError("main module was null");
-    }
-    if (flags == null) {
-      throw ArgumentError("flags was null");
-    }
-    if (modules == null || modules.length == 0) {
-      throw ArgumentError("modules cannot be null or empty");
-    }
+    if (modules.isEmpty) throw ArgumentError("modules cannot be empty");
     for (var module in modules) {
       module._validate();
     }
@@ -52,7 +44,7 @@ class Module {
 
   /// The file containing the main entry method, if any. Stored as a relative
   /// [Uri] from [rootUri].
-  final Uri mainSource;
+  final Uri? mainSource;
 
   /// Whether this module is also available as a package import, where the
   /// package name matches the module name.
@@ -63,7 +55,7 @@ class Module {
 
   /// When [isPackage], the base where all package URIs are resolved against.
   /// Stored as a relative [Uri] from [rootUri].
-  final Uri packageBase;
+  final Uri? packageBase;
 
   /// Whether this is the main entry module of a test.
   bool isMain;
@@ -74,11 +66,11 @@ class Module {
 
   Module(this.name, this.dependencies, this.rootUri, this.sources,
       {this.mainSource,
-      this.isPackage: false,
-      this.isMain: false,
+      this.isPackage = false,
+      this.isMain = false,
       this.packageBase,
-      this.isShared: false,
-      this.isSdk: false}) {
+      this.isShared = false,
+      this.isSdk = false}) {
     if (!_validModuleName.hasMatch(name)) {
       throw ArgumentError("invalid module name: $name");
     }
@@ -122,7 +114,7 @@ class Module {
   String toString() => '[module $name]';
 
   String debugString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     buffer.write('   ');
     buffer.write(name);
     buffer.write(': ');
@@ -137,7 +129,7 @@ class Module {
   }
 }
 
-final RegExp _validModuleName = new RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
+final RegExp _validModuleName = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
 
 /// Helper to compute transitive dependencies from [module].
 Set<Module> computeTransitiveDependencies(Module module) {

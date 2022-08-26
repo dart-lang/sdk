@@ -1,0 +1,59 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Change a part in a non-outline changing way, then a outline-changing way.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        part 'part.dart';
+        main() {
+          print(baz());
+        }
+      part.dart: |
+        part of 'main.dart';
+        String foo() {
+          return "foo";
+        }
+      lib.dart: |
+        import 'main.dart';
+        String baz() {
+          return foo();
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - part.dart
+    sources:
+      part.dart: |
+        part of 'main.dart';
+        String foo() {
+          return "foo!";
+        }
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: true
+
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    errors: true # lib.dart calls foo, but foo no longer exists.
+    expectInitializeFromDill: false
+    invalidate:
+      - part.dart
+    sources:
+      part.dart: |
+        part of 'main.dart';
+        String bar() {
+          return "bar";
+        }
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: false # part changed its outline.

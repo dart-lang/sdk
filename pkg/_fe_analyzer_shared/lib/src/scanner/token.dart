@@ -55,9 +55,6 @@ class BeginToken extends SimpleToken {
   }
 
   @override
-  Token copy() => new BeginToken(type, offset, copyComments(precedingComments));
-
-  @override
   Token? get endGroup => endToken;
 
   /**
@@ -81,27 +78,7 @@ class CommentToken extends StringToken {
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
-  CommentToken(TokenType type, String value, int offset)
-      : super(type, value, offset);
-
-  @override
-  CommentToken copy() => new CommentToken(type, _value, offset);
-
-  /**
-   * Remove this comment token from the list.
-   *
-   * This is used when we decide to interpret the comment as syntax.
-   */
-  void remove() {
-    Token? previous = this.previous;
-    if (previous != null) {
-      previous.setNextWithoutSettingPrevious(next);
-      next?.previous = previous;
-    } else {
-      assert(parent!.precedingComments == this);
-      parent!.precedingComments = next as CommentToken?;
-    }
-  }
+  CommentToken(super.type, super.value, super.offset);
 }
 
 /**
@@ -112,11 +89,7 @@ class DocumentationCommentToken extends CommentToken {
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
-  DocumentationCommentToken(TokenType type, String value, int offset)
-      : super(type, value, offset);
-
-  @override
-  CommentToken copy() => new DocumentationCommentToken(type, _value, offset);
+  DocumentationCommentToken(super.type, super.value, super.offset);
 }
 
 enum KeywordStyle {
@@ -222,7 +195,7 @@ class Keyword extends TokenType {
   static const Keyword FOR = const Keyword("for", "FOR", KeywordStyle.reserved);
 
   static const Keyword FUNCTION =
-      const Keyword("Function", "FUNCTION", KeywordStyle.pseudo);
+      const Keyword("Function", "FUNCTION", KeywordStyle.builtIn);
 
   static const Keyword GET = const Keyword("get", "GET", KeywordStyle.builtIn);
 
@@ -482,10 +455,6 @@ class KeywordToken extends SimpleToken {
       : super(keyword, offset, precedingComment);
 
   @override
-  Token copy() =>
-      new KeywordToken(keyword, offset, copyComments(precedingComments));
-
-  @override
   bool get isIdentifier => keyword.isPseudo || keyword.isBuiltIn;
 
   @override
@@ -515,10 +484,6 @@ class LanguageVersionToken extends CommentToken {
 
   LanguageVersionToken.from(String text, int offset, this.major, this.minor)
       : super(TokenType.SINGLE_LINE_COMMENT, text, offset);
-
-  @override
-  LanguageVersionToken copy() =>
-      new LanguageVersionToken.from(lexeme, offset, major, minor);
 }
 
 /**
@@ -634,25 +599,6 @@ class SimpleToken implements Token {
   String? get stringValue => type.stringValue;
 
   @override
-  Token copy() =>
-      new SimpleToken(type, offset, copyComments(precedingComments));
-
-  @override
-  CommentToken? copyComments(CommentToken? token) {
-    if (token == null) {
-      return null;
-    }
-    CommentToken head = token.copy();
-    Token tail = head;
-    token = token.next as CommentToken?;
-    while (token != null) {
-      tail = tail.setNext(token.copy());
-      token = token.next as CommentToken?;
-    }
-    return head;
-  }
-
-  @override
   bool matchesAny(List<TokenType> types) {
     for (TokenType type in types) {
       if (this.type == type) {
@@ -707,20 +653,14 @@ class StringToken extends SimpleToken {
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
-  StringToken(TokenType type, String value, int offset,
-      [CommentToken? precedingComment])
-      : _value = StringUtilities.intern(value),
-        super(type, offset, precedingComment);
+  StringToken(super.type, String value, super.offset, [super.precedingComment])
+      : _value = StringUtilities.intern(value);
 
   @override
   bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
 
   @override
   String get lexeme => _value;
-
-  @override
-  Token copy() =>
-      new StringToken(type, _value, offset, copyComments(precedingComments));
 
   @override
   String value() => _value;
@@ -734,16 +674,10 @@ class SyntheticBeginToken extends BeginToken {
    * Initialize a newly created token to have the given [type] at the given
    * [offset].
    */
-  SyntheticBeginToken(TokenType type, int offset,
-      [CommentToken? precedingComment])
-      : super(type, offset, precedingComment);
+  SyntheticBeginToken(super.type, super.offset, [super.precedingComment]);
 
   @override
   Token? beforeSynthetic;
-
-  @override
-  Token copy() =>
-      new SyntheticBeginToken(type, offset, copyComments(precedingComments));
 
   @override
   bool get isSynthetic => true;
@@ -760,16 +694,13 @@ class SyntheticKeywordToken extends KeywordToken {
    * Initialize a newly created token to represent the given [keyword] at the
    * given [offset].
    */
-  SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
+  SyntheticKeywordToken(super.keyword, super.offset);
 
   @override
   Token? beforeSynthetic;
 
   @override
   int get length => 0;
-
-  @override
-  Token copy() => new SyntheticKeywordToken(keyword, offset);
 }
 
 /**
@@ -783,8 +714,7 @@ class SyntheticStringToken extends StringToken {
    * with the given [value] at the given [offset]. If the [length] is
    * not specified, then it defaults to the length of [value].
    */
-  SyntheticStringToken(TokenType type, String value, int offset, [this._length])
-      : super(type, value, offset);
+  SyntheticStringToken(super.type, super.value, super.offset, [this._length]);
 
   @override
   Token? beforeSynthetic;
@@ -794,16 +724,13 @@ class SyntheticStringToken extends StringToken {
 
   @override
   int get length => _length ?? super.length;
-
-  @override
-  Token copy() => new SyntheticStringToken(type, _value, offset, _length);
 }
 
 /**
  * A synthetic token.
  */
 class SyntheticToken extends SimpleToken {
-  SyntheticToken(TokenType type, int offset) : super(type, offset);
+  SyntheticToken(super.type, super.offset);
 
   @override
   Token? beforeSynthetic;
@@ -813,9 +740,6 @@ class SyntheticToken extends SimpleToken {
 
   @override
   int get length => 0;
-
-  @override
-  Token copy() => new SyntheticToken(type, offset);
 }
 
 /// A token used to replace another token in the stream, while still keeping the
@@ -839,9 +763,6 @@ class ReplacementToken extends SyntheticToken {
 
   @override
   int get length => 0;
-
-  @override
-  Token copy() => new ReplacementToken(type, replacedToken);
 }
 
 /**
@@ -854,7 +775,7 @@ abstract class Token implements SyntacticEntity {
   /**
    * Initialize a newly created token to have the given [type] and [offset].
    */
-  factory Token(TokenType type, int offset, [CommentToken? preceedingComment]) =
+  factory Token(TokenType type, int offset, [CommentToken? precedingComment]) =
       SimpleToken;
 
   /**
@@ -1040,18 +961,6 @@ abstract class Token implements SyntacticEntity {
    * Return the type of the token.
    */
   TokenType get type;
-
-  /**
-   * Return a newly created token that is a copy of this tokens
-   * including any [preceedingComment] tokens,
-   * but that is not a part of any token stream.
-   */
-  Token copy();
-
-  /**
-   * Copy a linked list of comment tokens identical to the given comment tokens.
-   */
-  CommentToken? copyComments(CommentToken? token);
 
   /**
    * Return `true` if this token has any one of the given [types].

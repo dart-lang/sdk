@@ -32,8 +32,14 @@ SECTION_HEADER_BSS = 0x80  # Contains uninitialized data
 # } FILHDR;
 FILE_HEADER_FORMAT = 'HHIIIHH'
 FILE_HEADER_SIZE = calcsize(FILE_HEADER_FORMAT)
-FILE_HEADER_MAGIC_X64 = 0x8664
-FILE_HEADER_MAGIC_IA32 = 0x014c
+FILE_HEADER_MAGICS = {
+    'x86': 0x014c,
+    'x64': 0x8664,
+    'arm': 0x1c0,
+    'arm64': 0xaa64,
+    'riscv32': 0x5032,
+    'riscv64': 0x5064,
+}
 FILE_HEADER_NUM_SECTIONS = 1
 FILE_HEADER_TIMESTAMP = 0
 FILE_HEADER_SIZE_OF_OPTIONAL = 0
@@ -112,12 +118,12 @@ def main():
         '--size_symbol_name',
         dest='size_name',
         help='Name of the symbol for the size of the binary data')
-    parser.add_argument(
-        '--64-bit', dest='use_64_bit', action='store_true', default=False)
+    parser.add_argument('--arch', dest='arch')
     parser.add_argument(
         '--executable', dest='executable', action='store_true', default=False)
 
     args = parser.parse_args()
+    use_64_bit = args.arch in ['x64', 'arm64', 'riscv64']
 
     with open(args.input, 'rb') as f:
         section_data = f.read()
@@ -130,7 +136,7 @@ def main():
     includes_size_name = (args.size_name != None)
 
     # Symbols on x86 are prefixed with '_'
-    symbol_prefix = b'' if args.use_64_bit else b'_'
+    symbol_prefix = b'_' if args.arch == 'x86' else b''
     num_symbols = 2 if includes_size_name else 1
     symbol_name = symbol_prefix + args.symbol_name.encode()
     size_symbol_name = None
@@ -138,8 +144,8 @@ def main():
         size_symbol = args.size_name if args.size_name else args.symbol_name + "Size"
         size_symbol_name = symbol_prefix + size_symbol.encode()
 
-    size_symbol_format = SIZE_SYMBOL_FORMAT_X64 if args.use_64_bit else SIZE_FORMAT
-    size_symbol_size = SIZE_SYMBOL_LENGTH_X64 if args.use_64_bit else SIZE_LENGTH
+    size_symbol_format = SIZE_SYMBOL_FORMAT_X64 if use_64_bit else SIZE_FORMAT
+    size_symbol_size = SIZE_SYMBOL_LENGTH_X64 if use_64_bit else SIZE_LENGTH
 
     # The symbol table is directly after the data section
     symbol_table_ptr = (FILE_HEADER_SIZE + SECTION_HEADER_SIZE + section_size +
@@ -166,7 +172,7 @@ def main():
         num_symbols * SYMBOL_TABLE_ENTRY_SIZE + SIZE_LENGTH + size_symbol_size +
         string_table_len)
 
-    FILE_HEADER_MAGIC = FILE_HEADER_MAGIC_X64 if args.use_64_bit else FILE_HEADER_MAGIC_IA32
+    FILE_HEADER_MAGIC = FILE_HEADER_MAGICS[args.arch]
 
     # Populate the file header. Basically constant except for the pointer to the
     # beginning of the symbol table.

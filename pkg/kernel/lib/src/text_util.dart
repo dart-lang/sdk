@@ -42,22 +42,50 @@ String qualifiedClassNameToString(Class node,
 }
 
 String qualifiedCanonicalNameToString(CanonicalName canonicalName,
-    {bool includeLibraryName: false}) {
+    {bool includeLibraryName: false, bool includeLibraryNamesInTypes: false}) {
   if (canonicalName.isRoot) {
     return '<root>';
   } else if (canonicalName.parent!.isRoot) {
-    return canonicalName.name;
+    // Library.
+    return 'library ${canonicalName.name}';
   } else if (canonicalName.parent!.parent!.isRoot) {
+    // Class or extension.
     if (!includeLibraryName) {
       return canonicalName.name;
     }
     String parentName = qualifiedCanonicalNameToString(canonicalName.parent!,
-        includeLibraryName: includeLibraryName);
+        includeLibraryName: includeLibraryName,
+        includeLibraryNamesInTypes: includeLibraryNamesInTypes);
     return '$parentName::${canonicalName.name}';
   } else {
-    String parentName = qualifiedCanonicalNameToString(canonicalName.parent!,
-        includeLibraryName: includeLibraryName);
-    return '$parentName.${canonicalName.name}';
+    // Constructor, field, procedure (factory, getter, setter etc), typedef;
+    // but we could technically be anywhere in the "hierarchy" --- at the
+    // @typedef for instance, or at the uri of a library for a private name.
+    CanonicalName parentNotPrivateUri = canonicalName.parent!;
+    if (canonicalName.name.startsWith("_")) {
+      parentNotPrivateUri = parentNotPrivateUri.parent!;
+    }
+    if (parentNotPrivateUri.name == CanonicalName.typedefsName) {
+      includeLibraryName = includeLibraryNamesInTypes;
+    }
+    if (parentNotPrivateUri.parent!.parent!.parent?.isRoot == true) {
+      // Parent is class (or extension).
+      String parentName = qualifiedCanonicalNameToString(
+          parentNotPrivateUri.parent!,
+          includeLibraryName: includeLibraryName,
+          includeLibraryNamesInTypes: includeLibraryNamesInTypes);
+      return "$parentName.${canonicalName.name}";
+    } else {
+      // Parent is library.
+      if (!includeLibraryName) {
+        return canonicalName.name;
+      }
+      String parentName = qualifiedCanonicalNameToString(
+          parentNotPrivateUri.parent!,
+          includeLibraryName: includeLibraryName,
+          includeLibraryNamesInTypes: includeLibraryNamesInTypes);
+      return '$parentName::${canonicalName.name}';
+    }
   }
 }
 

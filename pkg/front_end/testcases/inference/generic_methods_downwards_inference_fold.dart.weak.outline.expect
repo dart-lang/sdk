@@ -1,9 +1,10 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
-static method test() → void
+static method test(core::List<core::int> o) → void
   ;
-static method functionExpressionInvocation() → void
+static method functionExpressionInvocation(core::List<core::int> o) → void
   ;
 static method main() → dynamic
   ;

@@ -2,18 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library world_builder;
 
 import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../ir/static_type.dart';
+import '../ir/class_relation.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../universe/resolution_world_builder.dart' show ResolutionWorldBuilder;
 import '../world.dart' show World;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, StaticUse;
+import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
 
 /// The combined constraints on receivers all the dynamic call sites of the same
 /// selector.
@@ -165,7 +168,7 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
   }
 }
 
-class StrongModeConstraint {
+class StrongModeConstraint implements StrongModeConstraintInterface {
   final ClassEntity cls;
   final ClassRelation relation;
 
@@ -189,9 +192,14 @@ class StrongModeConstraint {
     return world.isInheritedIn(element, cls, relation);
   }
 
+  @override
   bool get isExact => relation == ClassRelation.exact;
 
+  @override
   bool get isThis => relation == ClassRelation.thisExpression;
+
+  @override
+  String get className => cls.name;
 
   @override
   bool operator ==(Object other) {

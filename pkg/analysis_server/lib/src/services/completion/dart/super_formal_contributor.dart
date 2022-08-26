@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:collection/collection.dart';
@@ -13,10 +11,7 @@ import 'package:collection/collection.dart';
 /// are based on the parameters declared by the invoked super-constructor.
 /// The enclosing declaration is expected to be a constructor.
 class SuperFormalContributor extends DartCompletionContributor {
-  SuperFormalContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  SuperFormalContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {

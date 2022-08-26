@@ -282,7 +282,7 @@ class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
     addTestSource('''
 import "a.dart" as t;
 import "dart:math" as math;
-main() {new ^ String x = "hello";}''');
+void f() {new ^ String x = "hello";}''');
     await computeSuggestions();
     assertSuggestLibraryPrefixes(['math', 't']);
   }
@@ -303,10 +303,10 @@ library testB;
 import "a.dart" as t;
 import "dart:math" as math;
 part "test.dart";
-main() {new ^ String x = "hello";}''');
+void f() {new ^ String x = "hello";}''');
     addTestSource('''
 part of testB;
-main() {new ^ String x = "hello";}''');
+void f() {new ^ String x = "hello";}''');
     await analyzeTestPackageFiles();
     await computeSuggestions();
     assertSuggestLibraryPrefixes(['math', 't']);
@@ -322,10 +322,10 @@ library testB;
 import "a.dart" as t;
 import "dart:math" as math;
 //part "$testFile"
-main() {new ^ String x = "hello";}''');
+void f() {new ^ String x = "hello";}''');
     addTestSource('''
 //part of testB;
-main() {new ^ String x = "hello";}''');
+void f() {new ^ String x = "hello";}''');
     await computeSuggestions();
     assertNoSuggestions();
   }

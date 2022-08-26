@@ -69,9 +69,6 @@ class ConvertClassToMixin extends CorrectionProducer {
       });
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertClassToMixin newInstance() => ConvertClassToMixin();
 }
 
 /// A visitor used to find all of the classes that define members referenced via

@@ -84,33 +84,31 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final argRes = argResults!;
+    final args = argRes.rest;
     if (args.isEmpty) {
       usageException('Missing argument: info.data');
-      print('usage: dart tool/library_size_split.dart '
-          'path-to-info.json [grouping.yaml]');
-      exit(1);
     }
 
-    var info = await infoFromFile(args.first);
+    final info = await infoFromFile(args.first);
 
-    var groupingFile = argResults['grouping'];
-    var groupingText = groupingFile != null
+    final groupingFile = argRes['grouping'];
+    final groupingText = groupingFile != null
         ? File(groupingFile).readAsStringSync()
         : defaultGrouping;
-    var groupingYaml = loadYaml(groupingText);
-    var groups = [];
+    final groupingYaml = loadYaml(groupingText);
+    final groups = [];
     for (var group in groupingYaml['groups']) {
       groups.add(_Group(
           group['name'], RegExp(group['regexp']), group['cluster'] ?? 0));
     }
 
-    var sizes = {};
+    final sizes = {};
     var allLibs = 0;
     for (LibraryInfo lib in info.libraries) {
       allLibs += lib.size;
       for (var group in groups) {
-        var match = group.matcher.firstMatch('${lib.uri}');
+        final match = group.matcher.firstMatch('${lib.uri}');
         if (match != null) {
           var name = group.name;
           if (name == null && match.groupCount > 0) name = match.group(1);
@@ -126,17 +124,17 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
       allConstants += constant.size;
     }
 
-    var all = sizes.keys.toList();
+    final all = sizes.keys.toList();
     all.sort((a, b) => sizes[a].compareTo(sizes[b]));
-    var realTotal = info.program.size;
+    final realTotal = info.program!.size;
     var longest = 0;
-    var rows = <_Row>[];
-    _addRow(String label, int value) {
+    final rows = <_Row>[];
+    addRow(String label, int value) {
       rows.add(_Row(label, value));
       longest = max(longest, label.length);
     }
 
-    _printRow(_Row row) {
+    printRow(_Row row) {
       if (row is _Divider) {
         print(' ${'-' * (longest + 18)}');
         return;
@@ -151,20 +149,20 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
 
     var lastCluster = 0;
     for (var name in all) {
-      var entry = sizes[name];
+      final entry = sizes[name];
       if (lastCluster < entry.cluster) {
         rows.add(const _Divider());
         lastCluster = entry.cluster;
       }
-      var size = entry.size;
-      _addRow(name, size);
+      final size = entry.size;
+      addRow(name, size);
     }
     rows.add(const _Divider());
-    _addRow("All libraries (excludes preambles, statics & consts)", allLibs);
-    _addRow("Shared consts", allConstants);
-    _addRow("Total accounted", allLibs + allConstants);
-    _addRow("Program Size", realTotal);
-    rows.forEach(_printRow);
+    addRow("All libraries (excludes preambles, statics & consts)", allLibs);
+    addRow("Shared consts", allConstants);
+    addRow("Total accounted", allLibs + allConstants);
+    addRow("Program Size", realTotal);
+    rows.forEach(printRow);
   }
 }
 
@@ -208,7 +206,7 @@ class _Divider extends _Row {
 }
 
 _pad(value, n, {bool right = false}) {
-  var s = '$value';
+  final s = '$value';
   if (s.length >= n) return s;
   var pad = ' ' * (n - s.length);
   return right ? '$s$pad' : '$pad$s';

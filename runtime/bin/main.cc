@@ -224,7 +224,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
     if (Dart_IsError(result)) goto failed;
 
-    if (isolate_group_data->kernel_buffer().get() != nullptr) {
+    if (isolate_group_data->kernel_buffer() != nullptr) {
       // Various core-library parts will send requests to the Loader to resolve
       // relative URIs and perform other related tasks. We need Loader to be
       // initialized for this to work because loading from Kernel binary
@@ -1378,6 +1378,12 @@ void main(int argc, char** argv) {
     if (should_run_user_program) {
       try_load_snapshots_lambda();
     }
+  } else if (script_name == nullptr &&
+             Options::gen_snapshot_kind() != SnapshotKind::kNone) {
+    Syslog::PrintErr(
+        "Snapshot generation should be done using the 'dart compile' "
+        "command.\n");
+    Platform::Exit(kErrorExitCode);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -1436,8 +1442,3 @@ int main(int argc, char** argv) {
   dart::bin::main(argc, argv);
   UNREACHABLE();
 }
-
-// TODO(riscv): Why is this missing from libc?
-#if defined(__riscv)
-char __libc_single_threaded = 0;
-#endif

@@ -145,7 +145,7 @@ abstract class TypeInferenceEngine {
     // Field types have all been inferred so we don't need to guard against
     // cyclic dependency.
     for (SourceConstructorBuilder builder in toBeInferred.values) {
-      builder.inferFormalTypes(typeSchemaEnvironment);
+      builder.inferFormalTypes(classHierarchy);
     }
     toBeInferred.clear();
     for (TypeDependency typeDependency in typeDependencies.values) {
@@ -163,11 +163,12 @@ abstract class TypeInferenceEngine {
         new TypeSchemaEnvironment(coreTypes, hierarchy);
   }
 
-  static Member? resolveInferenceNode(Member? member) {
+  static Member? resolveInferenceNode(
+      Member? member, ClassHierarchy hierarchy) {
     if (member is Field) {
       DartType type = member.type;
-      if (type is ImplicitFieldType) {
-        type.inferType();
+      if (type is InferredType) {
+        type.inferType(hierarchy);
       }
     }
     return member;
@@ -259,10 +260,10 @@ class FlowAnalysisResult {
 }
 
 /// CFE-specific implementation of [TypeOperations].
-class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
+class OperationsCfe extends Operations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
-  TypeOperationsCfe(this.typeEnvironment);
+  OperationsCfe(this.typeEnvironment);
 
   @override
   TypeClassification classifyType(DartType? type) {
@@ -289,7 +290,7 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
     return typeEnvironment.coreTypes.isBottom(type);
   }
 
-  // TODO(dmitryas): Consider checking for mutual subtypes instead of ==.
+  // TODO(cstefantsova): Consider checking for mutual subtypes instead of ==.
   @override
   bool isSameType(DartType type1, DartType type2) => type1 == type2;
 

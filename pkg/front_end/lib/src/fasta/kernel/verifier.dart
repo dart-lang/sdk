@@ -9,8 +9,6 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 
-import 'package:kernel/transformations/flags.dart' show TransformerFlag;
-
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import 'package:kernel/verifier.dart'
@@ -170,7 +168,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     if (containingMember == null) {
       problem(node, 'Super call outside of any member');
     } else {
-      if (containingMember.transformerFlags & TransformerFlag.superCalls == 0) {
+      if (!containingMember.containsSuperCalls) {
         problem(
             node, 'Super call in a member lacking TransformerFlag.superCalls');
       }
@@ -283,8 +281,8 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
 
-    // TODO(dmitryas): Investigate why some redirecting factory bodies retain
-    // the shape, but aren't of the RedirectingFactoryBody type.
+    // TODO(cstefantsova): Investigate why some redirecting factory bodies
+    // retain the shape, but aren't of the RedirectingFactoryBody type.
     bool hasBody = isRedirectingFactory(node) ||
         RedirectingFactoryBody.hasRedirectingFactoryBodyShape(node);
     bool hasFlag = node.isRedirectingFactory;
@@ -341,7 +339,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     // Don't check cases like foo(x as{TypeError} T).  In cases where foo comes
     // from a library with a different opt-in status than the current library,
     // the check may not be necessary.  For now, just skip all type-error casts.
-    // TODO(dmitryas): Implement a more precise analysis.
+    // TODO(cstefantsova): Implement a more precise analysis.
     bool isFromAnotherLibrary = remoteContext != null || isTypeCast;
 
     // Checking for non-legacy types in opt-out libraries.
@@ -352,7 +350,8 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
           node is InvalidType ||
           node is NeverType ||
           node is BottomType;
-      // TODO(dmitryas): Consider checking types coming from other libraries.
+      // TODO(cstefantsova): Consider checking types coming from other
+      // libraries.
       bool expectedLegacy = !isFromAnotherLibrary &&
           !currentLibrary.isNonNullableByDefault &&
           !neverLegacy;
@@ -367,7 +366,8 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     {
       Nullability nodeNullability =
           node is InvalidType ? Nullability.undetermined : node.nullability;
-      // TODO(dmitryas): Consider checking types coming from other libraries.
+      // TODO(cstefantsova): Consider checking types coming from other
+      // libraries.
       if (!isFromAnotherLibrary &&
           currentLibrary.isNonNullableByDefault &&
           nodeNullability == Nullability.legacy) {

@@ -107,7 +107,7 @@ class Flutter {
         builder.addSimpleInsertion(listLoc, '[');
       }
       var newChildArgSrc = childArgSrc.replaceAll(
-          RegExp('^$indentOld', multiLine: true), '$indentNew');
+          RegExp('^$indentOld', multiLine: true), indentNew);
       newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       builder.addSimpleReplacement(rangeNode(childArg), newChildArgSrc);
     }
@@ -266,7 +266,8 @@ class Flutter {
             parent is IfElement && parent.elseElement == node ||
             parent is ListLiteral ||
             parent is NamedExpression && parent.expression == node ||
-            parent is Statement) {
+            parent is Statement ||
+            parent is VariableDeclaration) {
           return node as Expression;
         }
       }

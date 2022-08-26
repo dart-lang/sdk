@@ -2,12 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:kernel/ast.dart' as ir;
 import 'common.dart';
 import 'elements/entities.dart';
 import 'js_model/closure.dart';
 import 'js_model/element_map.dart';
 import 'serialization/serialization.dart';
+
+export 'closure_migrated.dart'
+    show
+        BoxLocal,
+        JSEntity,
+        PrivatelyNamedJSEntity,
+        ThisLocal,
+        TypeVariableLocal;
 
 /// Class that provides information for how closures are rewritten/represented
 /// to preserve Dart semantics when compiled to JavaScript. Given a particular
@@ -287,7 +297,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// Returns the [local] for which [field] was created.
   Local getLocalForField(KernelToLocalsMap localsMap, FieldEntity field) {
     failedAt(field, "No local for $field.");
-    return null;
   }
 
   /// Convenience pointer to the field entity representation in the closure
@@ -315,83 +324,4 @@ class ClosureRepresentationInfo extends ScopeInfo {
   // ClosureClassMaps for situations other than closure class maps, and that's
   // just confusing.
   bool get isClosure => false;
-}
-
-/// A local variable that contains the box object holding the [BoxFieldElement]
-/// fields.
-class BoxLocal extends Local {
-  final ClassEntity container;
-
-  BoxLocal(this.container);
-
-  @override
-  String get name => container.name;
-
-  @override
-  bool operator ==(other) {
-    return other is BoxLocal && other.container == container;
-  }
-
-  @override
-  int get hashCode => container.hashCode;
-
-  @override
-  String toString() => 'BoxLocal($name)';
-}
-
-/// A local variable used encode the direct (uncaptured) references to [this].
-class ThisLocal extends Local {
-  final ClassEntity enclosingClass;
-
-  ThisLocal(this.enclosingClass);
-
-  @override
-  String get name => 'this';
-
-  @override
-  bool operator ==(other) {
-    return other is ThisLocal && other.enclosingClass == enclosingClass;
-  }
-
-  @override
-  int get hashCode => enclosingClass.hashCode;
-}
-
-/// A type variable as a local variable.
-class TypeVariableLocal implements Local {
-  final TypeVariableEntity typeVariable;
-
-  TypeVariableLocal(this.typeVariable);
-
-  @override
-  String get name => typeVariable.name;
-
-  @override
-  int get hashCode => typeVariable.hashCode;
-
-  @override
-  bool operator ==(other) {
-    if (other is! TypeVariableLocal) return false;
-    return typeVariable == other.typeVariable;
-  }
-
-  @override
-  String toString() {
-    StringBuffer sb = StringBuffer();
-    sb.write('type_variable_local(');
-    sb.write(typeVariable);
-    sb.write(')');
-    return sb.toString();
-  }
-}
-
-///
-/// Move the below classes to a JS model eventually.
-///
-abstract class JSEntity implements MemberEntity {
-  String get declaredName;
-}
-
-abstract class PrivatelyNamedJSEntity implements JSEntity {
-  Entity get rootOfScope;
 }

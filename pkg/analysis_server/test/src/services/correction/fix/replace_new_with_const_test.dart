@@ -26,7 +26,7 @@ class ReplaceNewWithConstBulkTest extends BulkFixProcessorTest {
 class A {
   const A();
 }
-main() {
+void f() {
   var a = new A();
   var b = new A();
 }
@@ -35,7 +35,7 @@ main() {
 class A {
   const A();
 }
-main() {
+void f() {
   var a = const A();
   var b = const A();
 }
@@ -48,7 +48,7 @@ class A {
   const A({A? parent});
   const A.a();
 }
-main() {
+void f() {
   var a = new A(
     parent: new A(),
   );
@@ -60,7 +60,7 @@ class A {
   const A({A? parent});
   const A.a();
 }
-main() {
+void f() {
   var a = new A(
     parent: const A(),
   );
@@ -74,7 +74,7 @@ class A {
   const A({A? parent});
   const A.a();
 }
-main() {
+void f() {
   var b = new A(
     parent: const A.a(),
   );
@@ -86,7 +86,7 @@ class A {
   const A({A? parent});
   const A.a();
 }
-main() {
+void f() {
   var b = const A(
     parent: const A.a(),
   );
@@ -108,7 +108,7 @@ class ReplaceNewWithConstTest extends FixProcessorLintTest {
 class C {
   const C();
 }
-main() {
+void f() {
   var c = new C();
   print(c);
 }
@@ -117,7 +117,7 @@ main() {
 class C {
   const C();
 }
-main() {
+void f() {
   var c = const C();
   print(c);
 }
@@ -129,7 +129,7 @@ main() {
 class C {
   const C();
 }
-main() {
+void f() {
   var c = C();
   print(c);
 }

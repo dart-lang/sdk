@@ -11,7 +11,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/dart2js.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/null_compiler_output.dart';
@@ -24,21 +24,22 @@ import 'package:expect/expect.dart';
 
 import '../helpers/memory_compiler.dart';
 
-class TestRandomAccessFileOutputProvider implements CompilerOutput {
+class TestRandomAccessFileOutputProvider implements api.CompilerOutput {
   final RandomAccessFileOutputProvider provider;
   List<String> outputs = <String>[];
 
   TestRandomAccessFileOutputProvider(this.provider);
 
   @override
-  OutputSink createOutputSink(String name, String extension, OutputType type) {
+  api.OutputSink createOutputSink(
+      String name, String extension, api.OutputType type) {
     outputs.add(fe.relativizeUri(provider.out,
         provider.createUri(name, extension, type), Platform.isWindows));
     return NullSink.outputProvider(name, extension, type);
   }
 
   @override
-  BinaryOutputSink createBinarySink(Uri uri) => new NullBinarySink(uri);
+  api.BinaryOutputSink createBinarySink(Uri uri) => new NullBinarySink(uri);
 }
 
 CompileFunc oldCompileFunc;
@@ -52,9 +53,9 @@ Future<Null> test(List<String> arguments, List<String> expectedOutput,
   print('dart2js ${options.join(' ')}');
   TestRandomAccessFileOutputProvider outputProvider;
   compileFunc = (CompilerOptions compilerOptions,
-      CompilerInput compilerInput,
-      CompilerDiagnostics compilerDiagnostics,
-      CompilerOutput compilerOutput) async {
+      api.CompilerInput compilerInput,
+      api.CompilerDiagnostics compilerDiagnostics,
+      api.CompilerOutput compilerOutput) async {
     return oldCompileFunc(
         compilerOptions,
         compilerInput,

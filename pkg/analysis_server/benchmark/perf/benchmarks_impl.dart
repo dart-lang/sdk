@@ -27,6 +27,7 @@ class AnalysisBenchmark extends Benchmark {
 
   @override
   Future<BenchMarkResult> run({
+    required String dartSdkPath,
     bool quick = false,
     bool verbose = false,
   }) async {
@@ -36,7 +37,7 @@ class AnalysisBenchmark extends Benchmark {
     if (verbose) {
       test.debugStdio();
     }
-    await test.setUp(getProjectRoots(quick: quick));
+    await test.setUp(dartSdkPath, getProjectRoots(quick: quick));
     await test.analysisFinished;
 
     stopwatch.stop();
@@ -74,8 +75,8 @@ class AnalysisBenchmark extends Benchmark {
     var completionCount = 0;
     var stopwatch = Stopwatch()..start();
 
-    Future _complete(int offset) async {
-      await test.complete(filePath, offset);
+    Future complete(int offset) async {
+      await test.complete(filePath, offset, isWarmUp: false);
       completionCount++;
     }
 
@@ -85,18 +86,17 @@ class AnalysisBenchmark extends Benchmark {
       var index =
           contents.indexOf(RegExp(r'\..*;$', multiLine: true), startIndex);
 
-      await _complete(index - 10);
-      await _complete(index - 1);
-      await _complete(index);
-      await _complete(index + 1);
-      await _complete(index + 10);
+      await complete(index - 10);
+      await complete(index - 1);
+      await complete(index);
+      await complete(index + 1);
+      await complete(index + 10);
 
       if (i + 1 < kGroupCount) {
         // mutate
         index = contents.indexOf(';', index);
-        contents = contents.substring(0, index + 1) +
-            ' ' +
-            contents.substring(index + 1);
+        contents =
+            '${contents.substring(0, index + 1)} ${contents.substring(index + 1)}';
         await test.updateFile(filePath, contents);
       }
     }
@@ -123,9 +123,8 @@ class AnalysisBenchmark extends Benchmark {
     for (var i = 0; i < kGroupCount; i++) {
       var startIndex = i * (contents.length ~/ (kGroupCount + 2));
       var index = contents.indexOf(';', startIndex);
-      contents = contents.substring(0, index + 1) +
-          ' ' +
-          contents.substring(index + 1);
+      contents =
+          '${contents.substring(0, index + 1)} ${contents.substring(index + 1)}';
       await test.updateFile(filePath, contents);
       await test.analysisFinished;
     }
@@ -156,6 +155,7 @@ class ColdAnalysisBenchmark extends Benchmark {
 
   @override
   Future<BenchMarkResult> run({
+    required String dartSdkPath,
     bool quick = false,
     bool verbose = false,
   }) async {
@@ -166,7 +166,7 @@ class ColdAnalysisBenchmark extends Benchmark {
     var stopwatch = Stopwatch()..start();
 
     var test = testConstructor();
-    await test.setUp(getProjectRoots(quick: quick));
+    await test.setUp(dartSdkPath, getProjectRoots(quick: quick));
     await test.analysisFinished;
 
     stopwatch.stop();

@@ -2,14 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import '../js_ast/js_ast.dart';
 
 /// The ES6 name for the Dart SDK.  All dart:* libraries are in this module.
 const String dartSdkModule = 'dart_sdk';
+
+/// Names expected to be used without renaming.
+///
+/// These are fixed by the dart:_rti library and are accessed through the
+/// `JsGetName` enum.
+abstract class FixedNames {
+  static const operatorIsPrefix = r'$is';
+  static const operatorSignature = r'$signature';
+  static const rtiName = r'$ti';
+  // TODO(48585) Fix this name.
+  static const futureClassName = 'TODO';
+  // TODO(48585) Fix this name.
+  static const listClassName = 'TODO';
+  static const rtiAsField = '_as';
+  static const rtiIsField = '_is';
+}
 
 /// Unique instance for temporary variables. Will be renamed consistently
 /// across the entire file. Different instances will be named differently
@@ -34,7 +48,7 @@ class TemporaryId extends Identifier {
   @override
   dynamic get sourceInformation => null;
   @override
-  set sourceInformation(Object obj) {}
+  set sourceInformation(Object? obj) {}
 
   TemporaryId(String name) : super(name);
 }
@@ -49,9 +63,8 @@ class MaybeQualifiedId extends Expression {
   final Identifier qualifier;
   final Expression name;
 
-  MaybeQualifiedId(this.qualifier, this.name) {
-    _expr = PropertyAccess(qualifier, name);
-  }
+  MaybeQualifiedId(this.qualifier, this.name)
+      : _expr = PropertyAccess(qualifier, name);
 
   /// Helper to create an [Identifier] from something that starts as a property.
   static Identifier identifier(LiteralString propertyName) =>
@@ -97,32 +110,32 @@ class NameListener {
 /// `function` or `instanceof`, and their `name` field controls whether they
 /// refer to the same variable.
 class TemporaryNamer extends LocalNamer {
-  _FunctionScope _scope;
+  _FunctionScope? _scope;
 
   /// Listener to be notified when a name is selected (rename or not) for an
   /// `Identifier`.
   ///
   /// Can be `null` when there is no listener attached.
-  final NameListener _nameListener;
+  final NameListener? _nameListener;
 
   TemporaryNamer(Node node, [this._nameListener])
       : _scope = _RenameVisitor.build(node).rootScope;
 
   @override
   String getName(Identifier node) {
-    var name = _scope.renames[identifierKey(node)] ?? node.name;
+    var name = _scope!.renames[identifierKey(node)] ?? node.name;
     _nameListener?.nameSelected(node, name);
     return name;
   }
 
   @override
   void enterScope(Node node) {
-    _scope = _scope.childScopes[node];
+    _scope = _scope!.childScopes[node];
   }
 
   @override
   void leaveScope() {
-    _scope = _scope.parent;
+    _scope = _scope!.parent;
   }
 }
 
@@ -131,7 +144,7 @@ class TemporaryNamer extends LocalNamer {
 /// We don't currently track ES6 block scopes.
 class _FunctionScope {
   /// The parent scope.
-  final _FunctionScope parent;
+  final _FunctionScope? parent;
 
   /// All names declared in this scope.
   final declared = HashSet<Object>();
@@ -157,7 +170,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
 
   final _FunctionScope globalScope = _FunctionScope(null);
   final _FunctionScope rootScope = _FunctionScope(null);
-  _FunctionScope scope;
+  _FunctionScope? scope;
 
   _RenameVisitor.build(Node root) {
     scope = rootScope;
@@ -169,11 +182,11 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   @override
   void declare(Identifier node) {
     var id = identifierKey(node);
-    var notAlreadyDeclared = scope.declared.add(id);
+    var notAlreadyDeclared = scope!.declared.add(id);
     // Normal identifiers can be declared multiple times, because we don't
     // implement block scope yet. However temps should only be declared once.
     assert(notAlreadyDeclared || node is! TemporaryId);
-    _markUsed(node, id, scope);
+    _markUsed(node, id, scope!);
   }
 
   @override
@@ -196,12 +209,14 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   void _markUsed(Identifier node, Object id, _FunctionScope declScope) {
     // If it needs rename, we can't add it to the used name set yet, instead we
     // will record all scopes it is visible in.
-    Set<_FunctionScope> usedIn;
+    Set<_FunctionScope>? usedIn;
     var rename = declScope != globalScope && needsRename(node);
     if (rename) {
       usedIn = pendingRenames.putIfAbsent(id, () => HashSet());
     }
-    for (var s = scope, end = declScope.parent; s != end; s = s.parent) {
+    for (var s = scope, end = declScope.parent;
+        s != end && s != null;
+        s = s.parent) {
       if (usedIn != null) {
         usedIn.add(s);
       } else {
@@ -213,16 +228,16 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     // Visit nested functions after all identifiers are declared.
-    scope.childScopes[node] = _FunctionScope(scope);
+    scope!.childScopes[node] = _FunctionScope(scope);
   }
 
   @override
   void visitClassExpression(ClassExpression node) {
-    scope.childScopes[node] = _FunctionScope(scope);
+    scope!.childScopes[node] = _FunctionScope(scope);
   }
 
   void _finishScopes() {
-    scope.childScopes.forEach((node, s) {
+    scope!.childScopes.forEach((node, s) {
       scope = s;
       if (node is FunctionExpression) {
         super.visitFunctionExpression(node);
@@ -230,7 +245,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
         super.visitClassExpression(node as ClassExpression);
       }
       _finishScopes();
-      scope = scope.parent;
+      scope = scope!.parent;
     });
   }
 
@@ -435,16 +450,15 @@ String toJSIdentifier(String name) {
   if (name.isEmpty) return r'$';
 
   // Escape any invalid characters
-  StringBuffer buffer;
+  StringBuffer? buffer;
   for (var i = 0; i < name.length; i++) {
     var ch = name[i];
     var needsEscape = ch == r'$' || invalidCharInIdentifier.hasMatch(ch);
-    if (needsEscape && buffer == null) {
-      buffer = StringBuffer(name.substring(0, i));
+    if (needsEscape) {
+      buffer ??= StringBuffer(name.substring(0, i));
     }
-    if (buffer != null) {
-      buffer.write(needsEscape ? '\$${ch.codeUnits.join("")}' : ch);
-    }
+
+    buffer?.write(needsEscape ? '\$${ch.codeUnits.join("")}' : ch);
   }
 
   var result = buffer != null ? '$buffer' : name;

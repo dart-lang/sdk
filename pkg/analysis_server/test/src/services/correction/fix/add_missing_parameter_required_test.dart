@@ -27,7 +27,7 @@ class AddMissingParameterRequiredTest extends FixProcessorTest {
 class A {
   A.named(int a) {}
 }
-main() {
+void f() {
   new A.named(1, 2.0);
 }
 ''');
@@ -35,7 +35,7 @@ main() {
 class A {
   A.named(int a, double d) {}
 }
-main() {
+void f() {
   new A.named(1, 2.0);
 }
 ''');
@@ -46,7 +46,7 @@ main() {
 class A {
   A(int a) {}
 }
-main() {
+void f() {
   new A(1, 2.0);
 }
 ''');
@@ -54,7 +54,7 @@ main() {
 class A {
   A(int a, double d) {}
 }
-main() {
+void f() {
   new A(1, 2.0);
 }
 ''');
@@ -63,13 +63,13 @@ main() {
   Future<void> test_function_hasNamed() async {
     await resolveTestCode('''
 test({int a = 0}) {}
-main() {
+void f() {
   test(1);
 }
 ''');
     await assertHasFix('''
 test(int i, {int a = 0}) {}
-main() {
+void f() {
   test(1);
 }
 ''');
@@ -78,13 +78,13 @@ main() {
   Future<void> test_function_hasOne() async {
     await resolveTestCode('''
 test(int a) {}
-main() {
+void f() {
   test(1, 2.0);
 }
 ''');
     await assertHasFix('''
 test(int a, double d) {}
-main() {
+void f() {
   test(1, 2.0);
 }
 ''');
@@ -93,13 +93,13 @@ main() {
   Future<void> test_function_hasZero() async {
     await resolveTestCode('''
 test() {}
-main() {
+void f() {
   test(1);
 }
 ''');
     await assertHasFix('''
 test(int i) {}
-main() {
+void f() {
   test(1);
 }
 ''');
@@ -109,7 +109,7 @@ main() {
     await resolveTestCode('''
 part of my_lib;
 test() {}
-main() {
+void f() {
   test(1);
 }
 ''');
@@ -120,7 +120,7 @@ main() {
     await resolveTestCode('''
 class A {
   test(int a) {}
-  main() {
+  void f() {
     test(1, 2.0);
   }
 }
@@ -128,7 +128,7 @@ class A {
     await assertHasFix('''
 class A {
   test(int a, double d) {}
-  main() {
+  void f() {
     test(1, 2.0);
   }
 }
@@ -139,7 +139,7 @@ class A {
     await resolveTestCode('''
 class A {
   test() {}
-  main() {
+  void f() {
     test(1);
   }
 }
@@ -147,7 +147,7 @@ class A {
     await assertHasFix('''
 class A {
   test(int i) {}
-  main() {
+  void f() {
     test(1);
   }
 }
@@ -166,7 +166,7 @@ class AddMissingParameterRequiredTest_Workspace
   }
 
   Future<void> test_function_inPackage_inWorkspace() async {
-    newFile2('/home/aaa/lib/a.dart', 'void test() {}');
+    newFile('/home/aaa/lib/a.dart', 'void test() {}');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -181,7 +181,7 @@ class AddMissingParameterRequiredTest_Workspace
     await resolveTestCode('''
 import 'package:aaa/a.dart';
 
-main() {
+void f() {
   test(42);
 }
 ''');
@@ -193,7 +193,7 @@ main() {
   }
 
   Future<void> test_function_inPackage_outsideWorkspace() async {
-    newFile2('/home/bbb/lib/b.dart', 'void test() {}');
+    newFile('/home/bbb/lib/b.dart', 'void test() {}');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -203,7 +203,7 @@ main() {
     await resolveTestCode('''
 import 'package:bbb/b.dart';
 
-main() {
+void f() {
   test(42);
 }
 ''');
@@ -212,7 +212,7 @@ main() {
 
   Future<void> test_method_inSdk() async {
     await resolveTestCode('''
-main() {
+void f() {
   42.abs(true);
 }
 ''');

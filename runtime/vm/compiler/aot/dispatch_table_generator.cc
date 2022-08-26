@@ -453,7 +453,7 @@ void DispatchTableGenerator::NumberSelectors() {
           if (function.IsDynamicFunction(/*allow_abstract=*/false)) {
             const bool on_null_interface = klass.IsObjectClass();
             const bool requires_args_descriptor =
-                function.IsGeneric() || function.HasOptionalParameters();
+                function.PrologueNeedsArgumentsDescriptor();
             // Get assigned selector ID for this function.
             const int32_t sid = selector_map_.SelectorId(function);
             if (sid == SelectorMap::kInvalidSelectorId) {

@@ -19,7 +19,7 @@ class A extends core::Object {
 class B extends self::A {
   synthetic constructor •() → self::B*
     ;
-  operator +(self::C* v) → self::A*
+  operator +(self::C* v) → self::B*
     ;
   operator -(core::int* i) → self::B*
     ;
@@ -34,7 +34,7 @@ class C extends self::B {
 }
 class Test extends core::Object {
   field self::B* member;
-  synthetic constructor •() → self::Test*
+  constructor •(self::B* member) → self::Test*
     ;
   static method test(self::Test* t) → void
     ;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -212,7 +212,7 @@ void f()
 
   Future<void> test_formatRange_expandsLeadingWhitespaceToNearestLine() async {
     const contents = '''
-void main()
+void f()
 {
 
 [[        print('test'); // line 2
@@ -221,7 +221,7 @@ void main()
 }
 ''';
     const expected = '''
-void main()
+void f()
 {
 
   print('test'); // line 2
@@ -355,12 +355,12 @@ int b;
 
   Future<void> test_lineLength_outsideWorkspaceFolders() async {
     const contents = '''
-main() {
+void f() {
   print('123456789 ''123456789 ''123456789 ');
 }
 ''';
     const expectedContents = '''
-main() {
+void f() {
   print(
       '123456789 '
       '123456789 '
@@ -385,12 +385,12 @@ main() {
 
   Future<void> test_lineLength_workspaceFolderSpecified() async {
     const contents = '''
-main() {
+void f() {
   print('123456789 ''123456789 ''123456789 ');
 }
 ''';
     const expectedContents = '''
-main() {
+void f() {
   print(
       '123456789 '
       '123456789 '
@@ -415,12 +415,12 @@ main() {
 
   Future<void> test_lineLength_workspaceFolderUnspecified() async {
     const contents = '''
-main() {
+void f() {
   print('123456789 ''123456789 ''123456789 ');
 }
 ''';
     const expectedContents = '''
-main() {
+void f() {
   print(
       '123456789 '
       '123456789 '
@@ -695,7 +695,7 @@ void f() {
   print('test');
 }
 ''';
-    newFile2(mainFilePath, contents);
+    newFile(mainFilePath, contents);
     await initialize();
     await expectFormattedContents(mainFileUri, contents, expected);
   }

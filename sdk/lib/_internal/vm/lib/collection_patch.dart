@@ -239,6 +239,28 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     _buckets = newBuckets;
   }
 
+  @override
+  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+    final hashCode = key.hashCode;
+    final buckets = _buckets;
+    final length = buckets.length;
+    final index = hashCode & (length - 1);
+    var entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && entry.key == key) {
+        return entry.value = update(entry.value);
+      }
+      entry = entry.next;
+    }
+    if (ifAbsent != null) {
+      V newValue = ifAbsent();
+      _addEntry(buckets, index, length, key, newValue, hashCode);
+      return newValue;
+    } else {
+      throw ArgumentError.value(key, "key", "Key not in map.");
+    }
+  }
+
   Set<K> _newKeySet() => new _HashSet<K>();
 }
 
@@ -427,6 +449,28 @@ class _IdentityHashMap<K, V> extends _HashMap<K, V> {
       entry = next;
     }
     return null;
+  }
+
+  @override
+  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+    final hashCode = identityHashCode(key);
+    final buckets = _buckets;
+    final length = buckets.length;
+    final index = hashCode & (length - 1);
+    var entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode && identical(entry.key, key)) {
+        return entry.value = update(entry.value);
+      }
+      entry = entry.next;
+    }
+    if (ifAbsent != null) {
+      V newValue = ifAbsent();
+      _addEntry(buckets, index, length, key, newValue, hashCode);
+      return newValue;
+    } else {
+      throw ArgumentError.value(key, "key", "Key not in map.");
+    }
   }
 
   Set<K> _newKeySet() => new _IdentityHashSet<K>();

@@ -49,7 +49,7 @@ enum E<T extends int> {
   }
 
   test_extends_optIn_fromOptOut_Null() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<X extends int> {}
 ''');
 
@@ -62,7 +62,7 @@ class A1<T extends Null> extends A<T> {}
   }
 
   test_extends_optIn_fromOptOut_otherTypeParameter() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 void foo<T extends U, U>() {
 }
 ''');
@@ -81,7 +81,7 @@ main() {
   }
 
   test_extensionOverride_optIn_fromOptOut_Null() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 extension E<X extends int> on List<X> {
   void m() {}
 }
@@ -146,7 +146,7 @@ void f(CB<F2> a) {}
   }
 
   test_instanceCreation_optIn_fromOptOut_Null() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<X extends int> {}
 ''');
 
@@ -222,7 +222,7 @@ void g() {
   }
 
   test_methodInvocation_optIn_fromOptOut_Null() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void m<X extends int>() {}
 ''');
@@ -340,7 +340,7 @@ foo(G g) {}
   }
 
   test_redirectingConstructor_optIn_fromOptOut_Null() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'test.dart';
 
 class A<X extends int> implements B {}

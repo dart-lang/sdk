@@ -15,10 +15,10 @@ void main(List<String> arguments) {
 
   var path = arguments[0];
 
-  if (new File(path).existsSync()) {
+  if (File(path).existsSync()) {
     formatFile(path);
-  } else if (new Directory(path).existsSync()) {
-    for (var entry in new Directory(path).listSync(recursive: true)) {
+  } else if (Directory(path).existsSync()) {
+    for (var entry in Directory(path).listSync(recursive: true)) {
       if (!entry.path.endsWith(".status")) continue;
 
       formatFile(entry.path);
@@ -28,8 +28,8 @@ void main(List<String> arguments) {
 
 void formatFile(String path) {
   try {
-    var statusFile = new StatusFile.read(path);
-    new File(path).writeAsStringSync(statusFile.serialize());
+    var statusFile = StatusFile.read(path);
+    File(path).writeAsStringSync(statusFile.serialize());
     print("Formatted $path");
   } on SyntaxError catch (error) {
     stderr.writeln("Could not parse $path:\n$error");

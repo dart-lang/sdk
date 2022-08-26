@@ -26,7 +26,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
 
   Future<void> computeHighlights(String pathname, String text) async {
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     sendAnalysisSetSubscriptions({
       AnalysisService.HIGHLIGHTS: [pathname]
@@ -52,6 +52,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
     int? servicesPort,
   }) {
     return server.start(
+        dartSdkPath: dartSdkPath,
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
         useAnalysisHighlight2: true);

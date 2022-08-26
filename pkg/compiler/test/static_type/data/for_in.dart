@@ -19,6 +19,7 @@ main() {
   forIn3(null);
   forIn4(null);
   forIn5(null);
+  forIn6(null, null);
 }
 
 forIn1(dynamic c) {
@@ -51,18 +52,18 @@ forIn3(o) {
   /*dynamic*/ o;
   for (var e in /*dynamic*/ o) {
     /*dynamic*/ e;
-    /*dynamic*/ o;
+    /*Iterable<dynamic>*/ o;
   }
-  /*dynamic*/ o;
+  /*Iterable<dynamic>*/ o;
 }
 
 forIn4(o) {
   /*dynamic*/ o;
   for (int e in /*dynamic*/ o) {
     /*int*/ e;
-    /*dynamic*/ o;
+    /*Iterable<dynamic>*/ o;
   }
-  /*dynamic*/ o;
+  /*Iterable<dynamic>*/ o;
 }
 
 forIn5(Class2<int> o) {
@@ -72,4 +73,17 @@ forIn5(Class2<int> o) {
     /*Class2<int>*/ o;
   }
   /*Class2<int>*/ o;
+}
+
+forIn6(o, p) {
+  /*dynamic*/ o;
+  /*dynamic*/ p;
+  for (int e in /*dynamic*/ o) {
+    /*int*/ e;
+    /*Iterable<dynamic>*/ o;
+  }
+  /*Iterable<dynamic>*/ o;
+  o = /*dynamic*/ p;
+  /*dynamic*/ o;
+  /*dynamic*/ p;
 }

@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 /// A predicate is a one-argument function that returns a boolean value.
 typedef _ElementPredicate = bool Function(Element argument);
@@ -23,9 +24,23 @@ class ChangeTo extends CorrectionProducer {
   /// The name to which the undefined name will be changed.
   String _proposedName = '';
 
-  /// Initialize a newly created instance that will propose elements of the
-  /// given [_kind].
-  ChangeTo(this._kind);
+  /// Initialize a newly created instance that will propose classes and mixins.
+  ChangeTo.annotation() : _kind = _ReplacementKind.annotation;
+
+  /// Initialize a newly created instance that will propose classes and mixins.
+  ChangeTo.classOrMixin() : _kind = _ReplacementKind.classOrMixin;
+
+  /// Initialize a newly created instance that will propose formal parameters.
+  ChangeTo.formalParameter() : _kind = _ReplacementKind.formalParameter;
+
+  /// Initialize a newly created instance that will propose functions.
+  ChangeTo.function() : _kind = _ReplacementKind.function;
+
+  /// Initialize a newly created instance that will propose getters and setters.
+  ChangeTo.getterOrSetter() : _kind = _ReplacementKind.getterOrSetter;
+
+  /// Initialize a newly created instance that will propose methods.
+  ChangeTo.method() : _kind = _ReplacementKind.method;
 
   @override
   List<Object> get fixArguments => [_proposedName];
@@ -43,6 +58,8 @@ class ChangeTo extends CorrectionProducer {
       await _proposeAnnotation(builder);
     } else if (_kind == _ReplacementKind.classOrMixin) {
       await _proposeClassOrMixin(builder, node);
+    } else if (_kind == _ReplacementKind.formalParameter) {
+      await _proposeFormalParameter(builder);
     } else if (_kind == _ReplacementKind.function) {
       await _proposeFunction(builder);
     } else if (_kind == _ReplacementKind.getterOrSetter) {
@@ -50,6 +67,15 @@ class ChangeTo extends CorrectionProducer {
     } else if (_kind == _ReplacementKind.method) {
       await _proposeMethod(builder);
     }
+  }
+
+  Iterable<ParameterElement> _formalParameterSuggestions(
+      FunctionTypedElement element,
+      Iterable<FormalParameter> formalParameters) {
+    return element.parameters.where((superParam) =>
+        superParam.isNamed &&
+        !formalParameters
+            .any((param) => superParam.name == param.identifier?.name));
   }
 
   Future<void> _proposeAnnotation(ChangeBuilder builder) async {
@@ -93,13 +119,7 @@ class ChangeTo extends CorrectionProducer {
         }
       }
       // If we have a close enough element, suggest to use it.
-      var foundElementName = finder._element?.name;
-      if (foundElementName != null) {
-        _proposedName = foundElementName;
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.node(node), _proposedName);
-        });
-      }
+      await _suggest(builder, node, finder._element?.name);
     }
   }
 
@@ -128,14 +148,51 @@ class ChangeTo extends CorrectionProducer {
         }
       }
       // if we have close enough element, suggest to use it
-      var foundElementName = finder._element?.displayName;
-      if (foundElementName != null) {
-        _proposedName = foundElementName;
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.node(node), _proposedName);
-        });
+      await _suggest(builder, node, finder._element?.displayName);
+    }
+  }
+
+  Future<void> _proposeFormalParameter(ChangeBuilder builder) async {
+    var parent = node.parent;
+    if (parent is! SuperFormalParameter) return;
+
+    var constructorDeclaration =
+        parent.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructorDeclaration == null) return;
+
+    var formalParameters = constructorDeclaration.parameters.parameters
+        .whereType<DefaultFormalParameter>();
+
+    var finder =
+        _ClosestElementFinder(parent.identifier.name, (Element e) => true);
+
+    var superInvocation = constructorDeclaration.initializers.lastOrNull;
+
+    if (superInvocation is SuperConstructorInvocation) {
+      var staticElement = superInvocation.staticElement;
+      if (staticElement == null) return;
+
+      var list = _formalParameterSuggestions(staticElement, formalParameters);
+      finder._updateList(list);
+    } else {
+      var targetClassNode = parent.thisOrAncestorOfType<ClassDeclaration>();
+      if (targetClassNode == null) return;
+
+      var targetClassElement = targetClassNode.declaredElement!;
+      var superType = targetClassElement.supertype;
+      if (superType == null) return;
+
+      for (var constructor in superType.constructors) {
+        if (constructor.name.isEmpty) {
+          var list = _formalParameterSuggestions(constructor, formalParameters);
+          finder._updateList(list);
+          break;
+        }
       }
     }
+
+    // If we have a close enough element, suggest to use it.
+    await _suggest(builder, node, finder._element?.name);
   }
 
   Future<void> _proposeFunction(ChangeBuilder builder) async {
@@ -170,13 +227,7 @@ class ChangeTo extends CorrectionProducer {
         }
       }
       // If we have a close enough element, suggest to use it.
-      var foundElementName = finder._element?.name;
-      if (foundElementName != null) {
-        _proposedName = foundElementName;
-        await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.node(node), _proposedName);
-        });
-      }
+      await _suggest(builder, node, finder._element?.name);
     }
   }
 
@@ -208,10 +259,20 @@ class ChangeTo extends CorrectionProducer {
   }
 
   Future<void> _proposeMethod(ChangeBuilder builder) async {
-    if (node.parent is MethodInvocation) {
-      var invocation = node.parent as MethodInvocation;
-      await _proposeClassOrMixinMember(builder, invocation.realTarget,
+    var parent = node.parent;
+    if (parent is MethodInvocation) {
+      await _proposeClassOrMixinMember(builder, parent.realTarget,
           (Element element) => element is MethodElement && !element.isOperator);
+    }
+  }
+
+  Future<void> _suggest(
+      ChangeBuilder builder, AstNode node, String? name) async {
+    if (name != null) {
+      _proposedName = name;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.node(node), _proposedName);
+      });
     }
   }
 
@@ -227,26 +288,6 @@ class ChangeTo extends CorrectionProducer {
       finder._updateList(getExtensionMembers(element));
     }
   }
-
-  /// Return an instance of this class that will propose classes and mixins.
-  /// Used as a tear-off in `FixProcessor`.
-  static ChangeTo annotation() => ChangeTo(_ReplacementKind.annotation);
-
-  /// Return an instance of this class that will propose classes and mixins.
-  /// Used as a tear-off in `FixProcessor`.
-  static ChangeTo classOrMixin() => ChangeTo(_ReplacementKind.classOrMixin);
-
-  /// Return an instance of this class that will propose functions. Used as a
-  /// tear-off in `FixProcessor`.
-  static ChangeTo function() => ChangeTo(_ReplacementKind.function);
-
-  /// Return an instance of this class that will propose getters and setters.
-  /// Used as a tear-off in `FixProcessor`.
-  static ChangeTo getterOrSetter() => ChangeTo(_ReplacementKind.getterOrSetter);
-
-  /// Return an instance of this class that will propose methods. Used as a
-  /// tear-off in `FixProcessor`.
-  static ChangeTo method() => ChangeTo(_ReplacementKind.method);
 }
 
 /// Helper for finding [Element] with name closest to the given.
@@ -292,6 +333,7 @@ class _ClosestElementFinder {
 enum _ReplacementKind {
   annotation,
   classOrMixin,
+  formalParameter,
   function,
   getterOrSetter,
   method

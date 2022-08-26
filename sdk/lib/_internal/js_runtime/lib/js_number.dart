@@ -531,8 +531,7 @@ class JSInt extends JSNumber implements int {
   }
 
   static int _clz32(int uint32) {
-    // TODO(sra): Use `Math.clz32(uint32)` (not available on IE11).
-    return 32 - _bitCount(_spread(uint32));
+    return JS('JSUInt31', 'Math.clz32(#)', uint32);
   }
 
   // Returns pow(this, e) % m.
@@ -682,47 +681,6 @@ class JSInt extends JSNumber implements int {
     if (y == 0) return x;
     if ((x == 1) || (y == 1)) return 1;
     return _binaryGcd(x, y, false);
-  }
-
-  // Assumes i is <= 32-bit and unsigned.
-  static int _bitCount(int i) {
-    // See "Hacker's Delight", section 5-1, "Counting 1-Bits".
-
-    // The basic strategy is to use "divide and conquer" to
-    // add pairs (then quads, etc.) of bits together to obtain
-    // sub-counts.
-    //
-    // A straightforward approach would look like:
-    //
-    // i = (i & 0x55555555) + ((i >>  1) & 0x55555555);
-    // i = (i & 0x33333333) + ((i >>  2) & 0x33333333);
-    // i = (i & 0x0F0F0F0F) + ((i >>  4) & 0x0F0F0F0F);
-    // i = (i & 0x00FF00FF) + ((i >>  8) & 0x00FF00FF);
-    // i = (i & 0x0000FFFF) + ((i >> 16) & 0x0000FFFF);
-    //
-    // The code below removes unnecessary &'s and uses a
-    // trick to remove one instruction in the first line.
-
-    i = _shru(i, 0) - (_shru(i, 1) & 0x55555555);
-    i = (i & 0x33333333) + (_shru(i, 2) & 0x33333333);
-    i = 0x0F0F0F0F & (i + _shru(i, 4));
-    i += _shru(i, 8);
-    i += _shru(i, 16);
-    return (i & 0x0000003F);
-  }
-
-  static int _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
-  static int _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
-  static int _ors(int a, int b) => JS('int', '# | #', a, b);
-
-  // Assumes i is <= 32-bit
-  static int _spread(int i) {
-    i = _ors(i, _shrs(i, 1));
-    i = _ors(i, _shrs(i, 2));
-    i = _ors(i, _shrs(i, 4));
-    i = _ors(i, _shrs(i, 8));
-    i = _shru(_ors(i, _shrs(i, 16)), 0);
-    return i;
   }
 
   Type get runtimeType => int;

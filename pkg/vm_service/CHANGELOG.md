@@ -1,5 +1,16 @@
 # Changelog
 
+## 9.0.0
+- Update to version `3.58` of the spec.
+- Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
+
+## 8.3.0
+- Update to version `3.57` of the spec.
+- Added optional `libraryFilters` parameter to `getSourceReport` RPC.
+
+## 8.2.2+1
+- Documentation update for `FieldRef` and `FuncRef`.
+
 ## 8.2.2
 - Updated the following optional fields to be nullable in `SocketStatistic`:
   - `endTime`
@@ -8,7 +19,7 @@
 
 ## 8.2.1
 - Changed type of `UriList.uris` from `dynamic` to `List<String?>?`.
-- Remove `example/vm_service_asserts.dart'
+- Remove `example/vm_service_asserts.dart'`
 
 ## 8.2.0
 - Update to version `3.56` of the spec.

@@ -27,46 +27,48 @@ import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/repository.dart';
 import 'package:test_runner/src/test_case.dart';
 
+import 'utils.dart';
+
 /// This class is reponsible for setting up the files necessary for this test
 /// as well as touching a file.
 class FileUtils {
-  Directory tempDir;
-  File testJs;
-  File testJsDeps;
-  File testDart;
-  File testSnapshot;
+  late Directory tempDir;
+  File? testJs;
+  File? testJsDeps;
+  File? testDart;
+  File? testSnapshot;
 
   FileUtils(
-      {bool createJs,
-      bool createJsDeps,
-      bool createDart,
-      bool createSnapshot}) {
+      {required bool createJs,
+      required bool createJsDeps,
+      required bool createDart,
+      required bool createSnapshot}) {
     tempDir = Directory.systemTemp
         .createTempSync('dart_skipping_dart2js_compilations');
     if (createJs) {
       testJs = _createFile(testJsFilePath);
-      _writeToFile(testJs, "test.js content");
+      _writeToFile(testJs!, "test.js content");
     }
     if (createSnapshot) {
       testSnapshot = _createFile(testSnapshotFilePath);
-      _writeToFile(testSnapshot, "dart2js snapshot");
+      _writeToFile(testSnapshot!, "dart2js snapshot");
     }
     if (createDart) {
       testDart = _createFile(testDartFilePath);
-      _writeToFile(testDart, "dart code");
+      _writeToFile(testDart!, "dart code");
     }
     if (createJsDeps) {
       testJsDeps = _createFile(testJsDepsFilePath);
       var path = Path(tempDir.path).append("test.dart").absolute;
-      _writeToFile(testJsDeps, "file://$path");
+      _writeToFile(testJsDeps!, "file://$path");
     }
   }
 
   void cleanup() {
-    if (testJs != null) testJs.deleteSync();
-    if (testJsDeps != null) testJsDeps.deleteSync();
-    if (testDart != null) testDart.deleteSync();
-    if (testSnapshot != null) testSnapshot.deleteSync();
+    if (testJs != null) testJs!.deleteSync();
+    if (testJsDeps != null) testJsDeps!.deleteSync();
+    if (testDart != null) testDart!.deleteSync();
+    if (testSnapshot != null) testSnapshot!.deleteSync();
 
     // if the script did run, it created this file, so we need to delete it
     var file = File(scriptOutputPath.toNativePath());
@@ -102,12 +104,9 @@ class FileUtils {
   }
 
   void _writeToFile(File file, String content) {
-    if (content != null) {
-      var fd =
-          File(file.resolveSymbolicLinksSync()).openSync(mode: FileMode.write);
-      fd.writeStringSync(content);
-      fd.closeSync();
-    }
+    File(file.resolveSymbolicLinksSync()).openSync(mode: FileMode.write)
+      ..writeStringSync(content)
+      ..closeSync();
   }
 
   String _readFile(File file) {
@@ -153,7 +152,7 @@ Command makeCompilationCommand(String testName, FileUtils fileUtils) {
   var bootstrapDeps = [Uri.parse("file://${fileUtils.testSnapshotFilePath}")];
   return CompilationCommand('dart2js', fileUtils.testJsFilePath.toNativePath(),
       bootstrapDeps, executable, arguments, {},
-      alwaysCompile: false);
+      alwaysCompile: false, workingDirectory: Directory.current.path);
 }
 
 void main() {
@@ -205,43 +204,37 @@ void main() {
     fs_upToDate.cleanup();
   }
 
-  void touchFilesAndRunTests() {
-    fs_notUpToDate_snapshot.touchFile(fs_notUpToDate_snapshot.testSnapshot);
-    fs_notUpToDate_dart.touchFile(fs_notUpToDate_dart.testDart);
-    fs_upToDate.touchFile(fs_upToDate.testJs);
+  Future<void> touchFilesAndRunTests() async {
+    fs_notUpToDate_snapshot.touchFile(fs_notUpToDate_snapshot.testSnapshot!);
+    fs_notUpToDate_dart.touchFile(fs_notUpToDate_dart.testDart!);
+    fs_upToDate.touchFile(fs_upToDate.testJs!);
 
     Future runTest(String name, FileUtils fileUtils, bool shouldRun) {
       var completedHandler = CommandCompletedHandler(fileUtils, shouldRun);
       var command = makeCompilationCommand(name, fileUtils) as ProcessCommand;
-      var process = RunningProcess(command, 60);
+      var process = RunningProcess(command, 60,
+          configuration: makeConfiguration([], 'dummy'));
       return process.run().then((CommandOutput output) {
         completedHandler.processCompletedTest(output);
       });
     }
 
-    // We run the tests in sequence, so that if one of them fails we clean up
-    // everything and throw.
-    runTest("fs_noTestJs", fs_noTestJs, true).then((_) {
-      return runTest("fs_noTestJsDeps", fs_noTestJsDeps, true);
-    }).then((_) {
-      return runTest("fs_noTestDart", fs_noTestDart, true);
-    }).then((_) {
-      return runTest("fs_noTestSnapshot", fs_noTestSnapshot, true);
-    }).then((_) {
-      return runTest("fs_notUpToDate_snapshot", fs_notUpToDate_snapshot, true);
-    }).then((_) {
-      return runTest("fs_notUpToDate_dart", fs_notUpToDate_dart, true);
-    }).then((_) {
+    try {
+      // We run the tests in sequence, so that if one of them fails we clean up
+      // everything and throw.
+      await runTest("fs_noTestJs", fs_noTestJs, true);
+      await runTest("fs_noTestJsDeps", fs_noTestJsDeps, true);
+      await runTest("fs_noTestDart", fs_noTestDart, true);
+      await runTest("fs_noTestSnapshot", fs_noTestSnapshot, true);
+      await runTest("fs_notUpToDate_snapshot", fs_notUpToDate_snapshot, true);
+      await runTest("fs_notUpToDate_dart", fs_notUpToDate_dart, true);
       // This is the only test where all dependencies are present and the
       // test.js file is newer than all the others. So we pass 'false' for
       // shouldRun.
-      return runTest("fs_upToDate", fs_upToDate, false);
-    }).catchError((error) {
+      await runTest("fs_upToDate", fs_upToDate, false);
+    } finally {
       cleanup();
-      throw error;
-    }).then((_) {
-      cleanup();
-    });
+    }
   }
 
   // We need to wait some time to make sure that the files we 'touch' get a

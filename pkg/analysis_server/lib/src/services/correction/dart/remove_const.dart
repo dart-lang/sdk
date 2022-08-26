@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -14,9 +13,6 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveConst extends _RemoveConst {
   @override
   FixKind get fixKind => DartFixKind.REMOVE_CONST;
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveConst newInstance() => RemoveConst();
 }
 
 class RemoveUnnecessaryConst extends _RemoveConst {
@@ -31,9 +27,6 @@ class RemoveUnnecessaryConst extends _RemoveConst {
 
   @override
   FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CONST_MULTI;
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnnecessaryConst newInstance() => RemoveUnnecessaryConst();
 }
 
 abstract class _RemoveConst extends CorrectionProducer {
@@ -44,7 +37,7 @@ abstract class _RemoveConst extends CorrectionProducer {
     Token? constToken;
     if (expression is InstanceCreationExpression) {
       constToken = expression.keyword;
-    } else if (expression is TypedLiteralImpl) {
+    } else if (expression is TypedLiteral) {
       constToken = expression.constKeyword;
     }
 

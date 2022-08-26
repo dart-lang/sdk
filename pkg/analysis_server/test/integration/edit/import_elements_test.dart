@@ -78,8 +78,8 @@ class AnalysisGetImportElementsIntegrationTest
   }
 
   Future<void> test_importElements_definingUnit() async {
-    writeFile(pathname, 'main() {}');
-    standardAnalysisSetup();
+    writeFile(pathname, 'void f() {}');
+    await standardAnalysisSetup();
     await analysisFinished;
     var provider = PhysicalResourceProvider.INSTANCE;
     var sdkPath = getSdkPath();
@@ -95,7 +95,7 @@ class AnalysisGetImportElementsIntegrationTest
 
   Future<void> test_importElements_noEdits() async {
     writeFile(pathname, '');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     await checkNoEdits(<ImportedElements>[]);
@@ -105,14 +105,14 @@ class AnalysisGetImportElementsIntegrationTest
     var libName = sourcePath('lib.dart');
     writeFile(libName, '''
 part 'test.dart';
-main() {}
+void f() {}
 ''');
     writeFile(pathname, '''
 part of 'lib.dart';
 
 class C {}
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     var provider = PhysicalResourceProvider.INSTANCE;
     var sdkPath = getSdkPath();

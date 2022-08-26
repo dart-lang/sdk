@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int field;
+  constructor •(core::int field) → self::Class
+    ;
+}
+extension Extension on self::Class {
+  get property = self::Extension|get#property;
+  get nullableProperty = self::Extension|get#nullableProperty;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  set property = self::Extension|set#property;
+}
+static method Extension|get#property(lowered final self::Class #this) → core::int
+  ;
+static method Extension|get#nullableProperty(lowered final self::Class #this) → core::int?
+  ;
+static method Extension|set#property(lowered final self::Class #this, core::int? value) → void
+  ;
+static method Extension|method(lowered final self::Class #this) → core::int
+  ;
+static method Extension|get#method(lowered final self::Class #this) → () → core::int
+  return () → core::int => self::Extension|method(#this);
+static method main() → dynamic
+  ;
+static get value() → core::int?
+  ;
+static method test(self::Class? c) → dynamic
+  ;

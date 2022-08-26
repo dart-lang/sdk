@@ -6,7 +6,7 @@ library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, ClassHierarchyMembers;
+    show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
@@ -41,12 +41,14 @@ import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 import '../kernel/combined_member_signature.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
+import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody, redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
+import '../identifiers.dart';
 import '../names.dart' show equalsName, noSuchMethodName;
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
@@ -55,7 +57,7 @@ import '../util/helpers.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
-import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
 Class initializeClass(
@@ -180,7 +182,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         } else if (declaration is SourceMemberBuilder) {
           SourceMemberBuilder memberBuilder = declaration;
           memberBuilder
-              .buildMembers((Member member, BuiltMemberKind memberKind) {
+              .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
             member.parent = cls;
             if (!memberBuilder.isPatch &&
                 !memberBuilder.isDuplicate &&
@@ -522,15 +524,23 @@ class SourceClassBuilder extends ClassBuilderImpl
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
   @override
-  List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments) {
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
 
     if (arguments == null && typeVariables != null) {
-      List<DartType> result = new List<DartType>.generate(typeVariables!.length,
-          (int i) => typeVariables![i].defaultType!.build(library),
+      // TODO(johnniwinther): Use i2b here when needed.
+      List<DartType> result = new List<DartType>.generate(
+          typeVariables!.length,
+          (int i) => typeVariables![i]
+              .defaultType!
+              // TODO(johnniwinther): Using [libraryBuilder] here instead of
+              // [library] preserves the nullability of the original
+              // declaration. Should we legacy erase this?
+              .buildAliased(
+                  libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
           growable: true);
       if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
@@ -551,7 +561,9 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     assert(arguments!.length == typeVariablesCount);
     List<DartType> result = new List<DartType>.generate(
-        arguments!.length, (int i) => arguments[i].build(library),
+        arguments!.length,
+        (int i) =>
+            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
         growable: true);
     return result;
   }
@@ -718,6 +730,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void checkSupertypes(
       CoreTypes coreTypes,
       ClassHierarchyBuilder hierarchyBuilder,
+      Class objectClass,
       Class enumClass,
       Class underscoreEnumClass,
       Class? macroClass) {
@@ -727,16 +740,17 @@ class SourceClassBuilder extends ClassBuilderImpl
     // Moreover, it checks that `FutureOr` and `void` are not among the
     // supertypes and that `Enum` is not implemented by non-abstract classes.
 
+    ClassHierarchyNode classHierarchyNode =
+        hierarchyBuilder.getNodeFromClass(cls);
     if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled && !isEnum) {
       bool hasEnumSuperinterface = false;
-      List<Supertype> interfaces =
-          hierarchyBuilder.getNodeFromClass(cls).superclasses;
+      List<Supertype> interfaces = classHierarchyNode.superclasses;
       for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
           hasEnumSuperinterface = true;
         }
       }
-      interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
+      interfaces = classHierarchyNode.interfaces;
       for (int i = 0; !hasEnumSuperinterface && i < interfaces.length; i++) {
         if (interfaces[i].classNode == enumClass) {
           hasEnumSuperinterface = true;
@@ -799,14 +813,13 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (macroClass != null && !cls.isMacro && !cls.isAbstract) {
       // TODO(johnniwinther): Merge this check with the loop above.
       bool isMacroFound = false;
-      List<Supertype> interfaces =
-          hierarchyBuilder.getNodeFromClass(cls).superclasses;
+      List<Supertype> interfaces = classHierarchyNode.superclasses;
       for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
         if (interfaces[i].classNode == macroClass) {
           isMacroFound = true;
         }
       }
-      interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
+      interfaces = classHierarchyNode.interfaces;
       for (int i = 0; !isMacroFound && i < interfaces.length; i++) {
         if (interfaces[i].classNode == macroClass) {
           isMacroFound = true;
@@ -855,6 +868,23 @@ class SourceClassBuilder extends ClassBuilderImpl
         superClass = decl;
       }
     }
+    if (classHierarchyNode.isMixinApplication) {
+      assert(mixedInTypeBuilder != null,
+          "No mixed in type builder for mixin application $this.");
+      ClassHierarchyNode mixedInNode = classHierarchyNode.mixedInNode!;
+      ClassHierarchyNode? mixinSuperClassNode =
+          mixedInNode.directSuperClassNode;
+      if (mixinSuperClassNode != null &&
+          mixinSuperClassNode.classBuilder.cls != objectClass &&
+          !mixedInNode.classBuilder.cls.isMixinDeclaration) {
+        addProblem(
+            templateMixinInheritsFromNotObject
+                .withArguments(mixedInNode.classBuilder.name),
+            mixedInTypeBuilder!.charOffset ?? TreeNode.noOffset,
+            noLength);
+      }
+    }
+
     if (interfaceBuilders == null) return;
 
     // Validate interfaces.
@@ -925,7 +955,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // the declaration's superclass constraints.
     InterfaceType supertype = cls.supertype!.asInterfaceType;
     Substitution substitution = Substitution.fromSupertype(cls.mixedInType!);
-    for (Supertype constraint in cls.mixedInClass!.superclassConstraints()) {
+    for (Supertype constraint in cls.mixedInClass!.onClause) {
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
       InterfaceType? implementedInterface = hierarchy.getTypeAsInstanceOf(
@@ -1320,99 +1350,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  void checkBoundsInSupertype(
-      Supertype supertype, TypeEnvironment typeEnvironment) {
-    Library library = libraryBuilder.library;
-
-    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        new InterfaceType(
-            supertype.classNode, library.nonNullable, supertype.typeArguments),
-        typeEnvironment,
-        libraryBuilder.isNonNullableByDefault
-            ? SubtypeCheckMode.withNullabilities
-            : SubtypeCheckMode.ignoringNullabilities,
-        allowSuperBounded: false,
-        isNonNullableByDefault: library.isNonNullableByDefault,
-        areGenericArgumentsAllowed:
-            libraryBuilder.libraryFeatures.genericMetadata.isEnabled);
-    for (TypeArgumentIssue issue in issues) {
-      DartType argument = issue.argument;
-      TypeParameter typeParameter = issue.typeParameter;
-      bool inferred = libraryBuilder.inferredTypes.contains(argument);
-      if (issue.isGenericTypeAsArgumentIssue) {
-        if (inferred) {
-          // Supertype can't be or contain super-bounded types, so null is
-          // passed for super-bounded hint here.
-          libraryBuilder.reportTypeArgumentIssue(
-              templateGenericFunctionTypeInferredAsActualTypeArgument
-                  .withArguments(argument, library.isNonNullableByDefault),
-              fileUri,
-              charOffset,
-              typeParameter: null,
-              superBoundedAttempt: null,
-              superBoundedAttemptInverted: null);
-        } else {
-          // Supertype can't be or contain super-bounded types, so null is
-          // passed for super-bounded hint here.
-          libraryBuilder.reportTypeArgumentIssue(
-              messageGenericFunctionTypeUsedAsActualTypeArgument,
-              fileUri,
-              charOffset,
-              typeParameter: null,
-              superBoundedAttempt: null,
-              superBoundedAttemptInverted: null);
-        }
-      } else {
-        void reportProblem(
-            Template<
-                    Message Function(DartType, DartType, String, String, String,
-                        String, bool)>
-                template) {
-          // Supertype can't be or contain super-bounded types, so null is
-          // passed for super-bounded hint here.
-          libraryBuilder.reportTypeArgumentIssue(
-              template.withArguments(
-                  argument,
-                  typeParameter.bound,
-                  typeParameter.name!,
-                  getGenericTypeName(issue.enclosingType!),
-                  supertype.classNode.name,
-                  name,
-                  library.isNonNullableByDefault),
-              fileUri,
-              charOffset,
-              typeParameter: typeParameter,
-              superBoundedAttempt: null,
-              superBoundedAttemptInverted: null);
-        }
-
-        if (inferred) {
-          reportProblem(templateIncorrectTypeArgumentInSupertypeInferred);
-        } else {
-          reportProblem(templateIncorrectTypeArgumentInSupertype);
-        }
-      }
-    }
-  }
-
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    libraryBuilder.checkBoundsInTypeParameters(
-        typeEnvironment, cls.typeParameters, fileUri);
-
-    // Check in supers.
-    if (cls.supertype != null) {
-      checkBoundsInSupertype(cls.supertype!, typeEnvironment);
-    }
-    if (cls.mixedInType != null) {
-      checkBoundsInSupertype(cls.mixedInType!, typeEnvironment);
-    }
-    // ignore: unnecessary_null_comparison
-    if (cls.implementedTypes != null) {
-      for (Supertype supertype in cls.implementedTypes) {
-        checkBoundsInSupertype(supertype, typeEnvironment);
-      }
-    }
-
     forEach((String name, Builder builder) {
       if (builder is SourceMemberBuilder) {
         builder.checkVariance(this, typeEnvironment);
@@ -1452,22 +1390,55 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  @override
-  int finishPatch() {
-    if (!isPatch) return 0;
-
+  int buildBodyNodes() {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    cls.annotations.forEach((m) => m.fileOffset = origin.cls.fileOffset);
+    if (isPatch) {
+      cls.annotations.forEach((m) => m.fileOffset = origin.cls.fileOffset);
+    }
 
     int count = 0;
-    scope.forEach((String name, Builder declaration) {
-      count += declaration.finishPatch();
-    });
-    constructorScope.forEach((String name, Builder declaration) {
-      count += declaration.finishPatch();
-    });
+
+    void buildMembers(String name, Builder builder) {
+      if (builder.parent != this) {
+        return;
+      }
+      Builder? current = builder;
+      while (current != null) {
+        if (current is SourceMemberBuilder) {
+          count +=
+              current.buildBodyNodes((Member member, BuiltMemberKind kind) {
+            _buildMember(current as SourceMemberBuilder, member, kind);
+          });
+        }
+        current = current.next;
+      }
+    }
+
+    scope.forEach(buildMembers);
+    constructorScope.forEach(buildMembers);
     return count;
+  }
+
+  void _buildMember(SourceMemberBuilder memberBuilder, Member member,
+      BuiltMemberKind memberKind) {
+    member.parent = cls;
+    if (!memberBuilder.isDuplicate &&
+        !memberBuilder.isConflictingSetter &&
+        !memberBuilder.isConflictingAugmentationMember) {
+      if (member is Procedure) {
+        cls.addProcedure(member);
+      } else if (member is Field) {
+        cls.addField(member);
+      } else if (member is Constructor) {
+        cls.addConstructor(member);
+      } else if (member is RedirectingFactory) {
+        cls.addRedirectingFactory(member);
+      } else {
+        unhandled("${member.runtimeType}", "getMember", member.fileOffset,
+            member.fileUri);
+      }
+    }
   }
 
   /// Return a map whose keys are the supertypes of this [SourceClassBuilder]
@@ -1821,8 +1792,43 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
           if (declaration is RedirectingFactoryBuilder) {
             // Compute the immediate redirection target, not the effective.
+
             ConstructorReferenceBuilder redirectionTarget =
                 declaration.redirectionTarget;
+            List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
+            Builder? target = redirectionTarget.target;
+            if (typeArguments != null && target is MemberBuilder) {
+              Object? redirectionTargetName = redirectionTarget.name;
+              if (redirectionTargetName is String) {
+                // Do nothing. This is the case of an identifier followed by
+                // type arguments, such as the following:
+                //   B<T>
+                //   B<T>.named
+              } else if (redirectionTargetName is QualifiedName) {
+                if (target.name.isEmpty) {
+                  // Do nothing. This is the case of a qualified
+                  // non-constructor prefix (for example, with a library
+                  // qualifier) followed by type arguments, such as the
+                  // following:
+                  //   lib.B<T>
+                } else if (target.name != redirectionTargetName.suffix.lexeme) {
+                  // Do nothing. This is the case of a qualified
+                  // non-constructor prefix followed by type arguments followed
+                  // by a constructor name, such as the following:
+                  //   lib.B<T>.named
+                } else {
+                  // TODO(cstefantsova,johnniwinther): Handle this in case in
+                  // ConstructorReferenceBuilder.resolveIn and unify with other
+                  // cases of handling of type arguments after constructor
+                  // names.
+                  addProblem(
+                      messageConstructorWithTypeArguments,
+                      redirectionTargetName.charOffset,
+                      redirectionTargetName.name.length);
+                }
+              }
+            }
+
             // ignore: unnecessary_null_comparison
             if (redirectionTarget != null) {
               Builder? targetBuilder = redirectionTarget.target;

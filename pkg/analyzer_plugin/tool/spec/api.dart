@@ -6,7 +6,7 @@
 /// for visiting those data structures.
 import 'dart:collection';
 
-import 'package:html/dom.dart' as dom;
+import 'package:analyzer_utilities/html_dom.dart' as dom;
 
 /// Toplevel container for the API.
 class Api extends ApiNode {

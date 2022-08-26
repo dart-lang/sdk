@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: camel_case_types
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -1743,7 +1745,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
 
   Future<void> _assertWriteType(String typeCode, {String? declarations}) async {
     var path = convertPath('/home/test/lib/test.dart');
-    var content = (declarations ?? '') + '$typeCode v;';
+    var content = '${declarations ?? ''}$typeCode v;';
     addSource(path, content);
 
     var f = await _getTopLevelAccessorElement(path, 'v');
@@ -1837,7 +1839,7 @@ void functionAfter() {
 }
 ''';
     var path = convertPath('/home/test/lib/test.dart');
-    newFile2(path, initialCode);
+    newFile(path, initialCode);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1889,7 +1891,7 @@ void functionAfter() {
 }
 ''';
     var path = convertPath('/home/test/lib/test.dart');
-    newFile2(path, initialCode);
+    newFile(path, initialCode);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1918,7 +1920,7 @@ void functionAfter() {
   Future<void> test_multipleEdits_concurrently() async {
     var initialCode = '00';
     var path = convertPath('/home/test/lib/test.dart');
-    newFile2(path, initialCode);
+    newFile(path, initialCode);
 
     var builder = await newBuilder();
     var future = Future.wait([
@@ -1936,7 +1938,7 @@ void functionAfter() {
   Future<void> test_multipleEdits_sequentially() async {
     var initialCode = '00';
     var path = convertPath('/home/test/lib/test.dart');
-    newFile2(path, initialCode);
+    newFile(path, initialCode);
 
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {

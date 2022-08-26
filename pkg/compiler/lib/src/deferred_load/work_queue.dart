@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'dart:collection' show Queue;
 
 import 'algorithm_state.dart';
@@ -65,7 +67,7 @@ class WorkQueue {
     var entityData = item.entityData;
     pendingWorkItems.remove(entityData);
     state.processEntity(entityData);
-    ImportSet oldSet = state.entityToSet[entityData];
+    ImportSet oldSet = state.entityToSet[entityData] ?? _importSets.emptySet;
     ImportSet newSet = _importSets.union(oldSet, item.importsToAdd);
     state.update(entityData, oldSet, newSet);
   }

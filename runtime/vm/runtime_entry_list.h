@@ -18,10 +18,12 @@ namespace dart {
   V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
+  V(AllocateSuspendState)                                                      \
   V(BoxDouble)                                                                 \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
+  V(CloneSuspendState)                                                         \
   V(DoubleToInteger)                                                           \
   V(FixCallersTarget)                                                          \
   V(FixCallersTargetMonomorphic)                                               \
@@ -51,7 +53,7 @@ namespace dart {
   V(ArgumentErrorUnboxedInt64)                                                 \
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
-  V(StackOverflow)                                                             \
+  V(InterruptOrStackOverflow)                                                  \
   V(Throw)                                                                     \
   V(DeoptimizeMaterialize)                                                     \
   V(RewindPostDeopt)                                                           \
@@ -61,6 +63,7 @@ namespace dart {
   V(LateFieldAssignedDuringInitializationError)                                \
   V(LateFieldNotInitializedError)                                              \
   V(CompileFunction)                                                           \
+  V(ResumeFrame)                                                               \
   V(SwitchableCallMiss)                                                        \
   V(NotLoaded)
 

@@ -29,8 +29,8 @@ if [ -z "$DART_CONFIGURATION" ];
 then
   DIRS=$( ls "$OUT_DIR" )
   # list of possible configurations in decreasing desirability
-  CONFIGS=("ReleaseX64" "ReleaseIA32" "DebugX64" "DebugIA32"
-    "ReleaseARM" "ReleaseARM64" "DebugARM" "DebugARM64" )
+  CONFIGS=("ReleaseX64" "ReleaseARM64" "ReleaseIA32" "DebugX64" "DebugIA32"
+    "ReleaseARM" "DebugARM" "DebugARM64" )
   DART_CONFIGURATION="None"
   for CONFIG in ${CONFIGS[*]}
   do

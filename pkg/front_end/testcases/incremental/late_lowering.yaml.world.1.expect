@@ -1,0 +1,24 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  part part.dart;
+  class _Class extends dart.core::Object { // from org-dartlang-test:///part.dart
+    field dart.core::int? _#_Class#_privateField = null;
+    field dart.core::bool _#_Class#_privateField#isSet = false;
+    synthetic constructor •() → main::_Class
+      : super dart.core::Object::•()
+      ;
+    get _privateField() → dart.core::int {
+      if(!this.{main::_Class::_#_Class#_privateField#isSet}{dart.core::bool}) {
+        this.{main::_Class::_#_Class#_privateField} = 1;
+        this.{main::_Class::_#_Class#_privateField#isSet} = true;
+      }
+      return let final dart.core::int? #t1 = this.{main::_Class::_#_Class#_privateField}{dart.core::int?} in #t1{dart.core::int};
+    }
+    set _privateField(dart.core::int library org-dartlang-test:///part.dart::_privateField#param) → void {
+      this.{main::_Class::_#_Class#_privateField#isSet} = true;
+      this.{main::_Class::_#_Class#_privateField} = library org-dartlang-test:///part.dart::_privateField#param;
+    }
+  }
+  static method main() → dynamic {}
+}

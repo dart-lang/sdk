@@ -74,8 +74,8 @@ main() {
     f() async* {
       int i = 0;
       while (true) {
-        yield i;
         list.add(i);
+        yield i;
         i++;
       }
     }

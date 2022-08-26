@@ -8,6 +8,7 @@
 #include "platform/globals.h"
 #include "vm/class_id.h"
 #include "vm/compiler/ffi/abi.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/zone_text_buffer.h"
 
@@ -55,6 +56,11 @@ const NativeArrayType& NativeType::AsArray() const {
 const NativeCompoundType& NativeType::AsCompound() const {
   ASSERT(IsCompound());
   return static_cast<const NativeCompoundType&>(*this);
+}
+
+const NativeStructType& NativeType::AsStruct() const {
+  ASSERT(IsStruct());
+  return static_cast<const NativeStructType&>(*this);
 }
 
 bool NativePrimitiveType::IsInt() const {
@@ -126,13 +132,10 @@ intptr_t NativePrimitiveType::AlignmentInBytesStack() const {
     case kAlignedToWordSize:
       // The default is to align stack arguments to word size.
       return compiler::target::kWordSize;
-    case kAlignedToWordSizeBut8AlignedTo8: {
-      // However, arm32 deviates slightly.
-      if (SizeInBytes() == 8) {
-        return 8;
-      }
-      return compiler::target::kWordSize;
-    }
+    case kAlignedToWordSizeAndValueSize:
+      // However, arm32+riscv32 align to the greater of word size or value size.
+      return Utils::Maximum(SizeInBytes(),
+                            static_cast<intptr_t>(compiler::target::kWordSize));
     case kAlignedToValueSize:
       // iOS on arm64 only aligns to size.
       return SizeInBytes();
@@ -582,6 +585,23 @@ static PrimitiveType fundamental_rep(Representation rep) {
 NativePrimitiveType& NativeType::FromUnboxedRepresentation(Zone* zone,
                                                            Representation rep) {
   return *new (zone) NativePrimitiveType(fundamental_rep(rep));
+}
+
+const NativeFunctionType* NativeFunctionType::FromUnboxedRepresentation(
+    Zone* zone,
+    intptr_t num_arguments,
+    Representation representation) {
+  const auto& intptr_type =
+      compiler::ffi::NativePrimitiveType::FromUnboxedRepresentation(
+          zone, representation);
+  auto& argument_representations =
+      *new (zone) ZoneGrowableArray<const compiler::ffi::NativeType*>(
+          zone, num_arguments);
+  for (intptr_t i = 0; i < num_arguments; i++) {
+    argument_representations.Add(&intptr_type);
+  }
+  return new (zone)
+      compiler::ffi::NativeFunctionType(argument_representations, intptr_type);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 

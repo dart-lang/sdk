@@ -94,7 +94,7 @@ class ListFactorySpecializer extends BaseSpecializer {
 
   TreeNode transformListEmptyFactory(StaticInvocation node) {
     final args = node.arguments;
-    assert(args.positional.length == 0);
+    assert(args.positional.isEmpty);
     final bool? growable =
         _getConstantOptionalArgument(args, 'growable', false);
     if (growable == null) {

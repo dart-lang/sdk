@@ -23,6 +23,7 @@ void main() {
     defineReflectiveTests(DartTryCatchSnippetProducerTest);
     defineReflectiveTests(DartWhileLoopSnippetProducerTest);
     defineReflectiveTests(DartClassSnippetProducerTest);
+    defineReflectiveTests(DartFunctionSnippetProducerTest);
     defineReflectiveTests(DartTestBlockSnippetProducerTest);
     defineReflectiveTests(DartTestGroupBlockSnippetProducerTest);
   });
@@ -51,8 +52,9 @@ class B {}''';
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 class A {}
   
@@ -96,8 +98,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   do {
@@ -139,8 +142,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   for (var element in collection) {
@@ -189,8 +193,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   for (var i = 0; i < count; i++) {
@@ -207,6 +212,160 @@ void f() {
         'length': 5,
         'suggestions': []
       }
+    ]);
+  }
+}
+
+@reflectiveTest
+class DartFunctionSnippetProducerTest extends DartSnippetProducerTest {
+  @override
+  final generator = DartFunctionSnippetProducer.newInstance;
+
+  @override
+  String get label => DartFunctionSnippetProducer.label;
+
+  @override
+  String get prefix => DartFunctionSnippetProducer.prefix;
+
+  Future<void> test_classMethod() async {
+    var code = r'''
+class A {
+  ^
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
+    expect(code, '''
+class A {
+  void name(params) {
+    
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 36);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 12},
+        ],
+        'length': 4,
+        'suggestions': []
+      },
+      {
+        'positions': [
+          {'file': testFile, 'offset': 17},
+        ],
+        'length': 4,
+        'suggestions': []
+      },
+      {
+        'positions': [
+          {'file': testFile, 'offset': 22},
+        ],
+        'length': 6,
+        'suggestions': []
+      },
+    ]);
+  }
+
+  Future<void> test_nested() async {
+    var code = r'''
+void a() {
+  ^
+}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
+    expect(code, '''
+void a() {
+  void name(params) {
+    
+  }
+}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 37);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 13},
+        ],
+        'length': 4,
+        'suggestions': []
+      },
+      {
+        'positions': [
+          {'file': testFile, 'offset': 18},
+        ],
+        'length': 4,
+        'suggestions': []
+      },
+      {
+        'positions': [
+          {'file': testFile, 'offset': 23},
+        ],
+        'length': 6,
+        'suggestions': []
+      },
+    ]);
+  }
+
+  Future<void> test_topLevel() async {
+    var code = r'''
+class A {}
+  
+^
+
+class B {}''';
+    final snippet = await expectValidSnippet(code);
+    expect(snippet.prefix, prefix);
+    expect(snippet.label, label);
+    expect(snippet.change.edits, hasLength(1));
+    code = withoutMarkers(code);
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
+    expect(code, '''
+class A {}
+  
+void name(params) {
+  
+}
+
+class B {}''');
+    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.offset, 36);
+    expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
+      {
+        'positions': [
+          {'file': testFile, 'offset': 14},
+        ],
+        'length': 4,
+        'suggestions': []
+      },
+      {
+        'positions': [
+          {'file': testFile, 'offset': 19},
+        ],
+        'length': 4,
+        'suggestions': []
+      },
+      {
+        'positions': [
+          {'file': testFile, 'offset': 24},
+        ],
+        'length': 6,
+        'suggestions': []
+      },
     ]);
   }
 }
@@ -232,8 +391,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   if (condition) {
@@ -267,8 +427,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   if (true) {
@@ -314,8 +475,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   if (condition) {
@@ -347,8 +509,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   if (true) {
@@ -419,8 +582,9 @@ class DartMainFunctionSnippetProducerTest extends DartSnippetProducerTest {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     final expectedParams = expectArgsParameter ? 'List<String> args' : '';
     expect(code, '''
 void main($expectedParams) {
@@ -492,8 +656,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   switch (expression) {
@@ -537,8 +702,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   if (true) {
@@ -595,8 +761,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   test('test name', () {
@@ -647,8 +814,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   group('group name', () {
@@ -698,8 +866,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   try {
@@ -733,8 +902,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   if (true) {
@@ -780,8 +950,9 @@ void f() {
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
     code = withoutMarkers(code);
-    snippet.change.edits
-        .forEach((edit) => code = SourceEdit.applySequence(code, edit.edits));
+    for (var edit in snippet.change.edits) {
+      code = SourceEdit.applySequence(code, edit.edits);
+    }
     expect(code, '''
 void f() {
   while (condition) {

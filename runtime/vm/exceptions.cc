@@ -149,7 +149,9 @@ class ExceptionHandlerFinder : public StackResource {
             handler_pc = temp_handler_pc;
             handler_sp = frame->sp();
             handler_fp = frame->fp();
-            if (is_optimized) {
+            if (is_optimized &&
+                (handler_pc !=
+                 StubCode::AsyncExceptionHandler().EntryPoint())) {
               pc_ = frame->pc();
               code_ = &Code::Handle(frame->LookupDartCode());
               CatchEntryMovesRefPtr* cached_catch_entry_moves =
@@ -578,14 +580,15 @@ static void JumpToExceptionHandler(Thread* thread,
                                    uword frame_pointer,
                                    const Object& exception_object,
                                    const Object& stacktrace_object) {
+  bool clear_deopt = false;
   uword remapped_pc = thread->pending_deopts().RemapExceptionPCForDeopt(
-      program_counter, frame_pointer);
+      program_counter, frame_pointer, &clear_deopt);
   thread->set_active_exception(exception_object);
   thread->set_active_stacktrace(stacktrace_object);
   thread->set_resume_pc(remapped_pc);
   uword run_exception_pc = StubCode::RunExceptionHandler().EntryPoint();
   Exceptions::JumpToFrame(thread, run_exception_pc, stack_pointer,
-                          frame_pointer, false /* do not clear deopt */);
+                          frame_pointer, clear_deopt);
 }
 
 NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.

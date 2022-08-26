@@ -28,6 +28,7 @@ library dart2js_info.bin.code_deps;
 import 'dart:collection';
 
 import 'package:args/command_runner.dart';
+import 'package:collection/collection.dart';
 
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/graph.dart';
@@ -55,20 +56,19 @@ class _SomePathQuery extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    var args = argResults!.rest;
     if (args.length < 3) {
       usageException("Missing arguments for some_path, expected: "
           "info.data <element-regexp-1> <element-regexp-2>");
-      return;
     }
 
     var info = await infoFromFile(args.first);
     var graph = graphFromInfo(info);
 
-    var source = info.functions
-        .firstWhere(_longNameMatcher(RegExp(args[1])), orElse: () => null);
-    var target = info.functions
-        .firstWhere(_longNameMatcher(RegExp(args[2])), orElse: () => null);
+    final source =
+        info.functions.firstWhereOrNull(_longNameMatcher(RegExp(args[1])));
+    final target =
+        info.functions.firstWhereOrNull(_longNameMatcher(RegExp(args[2])));
     print('query: some_path');
     if (source == null) {
       usageException("source '${args[1]}' not found in '${args[0]}'");
@@ -105,9 +105,9 @@ class SomePathQuery {
 
   SomePathQuery(this.source, this.target);
 
-  List<Info> run(Graph<Info> graph) {
-    var seen = <Info, Info>{source: null};
-    var queue = Queue<Info>();
+  List<Info> run(Graph<Info?> graph) {
+    var seen = <Info?, Info?>{source: null};
+    var queue = Queue<Info?>();
     queue.addLast(source);
     while (queue.isNotEmpty) {
       var node = queue.removeFirst();

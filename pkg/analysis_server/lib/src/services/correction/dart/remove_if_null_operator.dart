@@ -43,7 +43,4 @@ class RemoveIfNullOperator extends CorrectionProducer {
       builder.addDeletion(sourceRange);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveIfNullOperator newInstance() => RemoveIfNullOperator();
 }

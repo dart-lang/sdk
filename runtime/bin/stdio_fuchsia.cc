@@ -34,6 +34,16 @@ bool Stdin::SetEchoMode(intptr_t fd, bool enabled) {
   return false;
 }
 
+bool Stdin::GetEchoNewlineMode(intptr_t fd, bool* enabled) {
+  errno = ENOSYS;
+  return false;
+}
+
+bool Stdin::SetEchoNewlineMode(intptr_t fd, bool enabled) {
+  errno = ENOSYS;
+  return false;
+}
+
 bool Stdin::GetLineMode(intptr_t fd, bool* enabled) {
   errno = ENOSYS;
   return false;

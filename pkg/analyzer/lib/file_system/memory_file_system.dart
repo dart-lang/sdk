@@ -146,21 +146,12 @@ class MemoryResourceProvider implements ResourceProvider {
     _notifyWatchers(path, ChangeType.MODIFY);
   }
 
-  File newFile(
-    String path,
-    String content, [
-    @Deprecated('This parameter is not used and will be removed') int? stamp,
-  ]) {
+  File newFile(String path, String content) {
     var bytes = utf8.encode(content) as Uint8List;
-    // ignore: deprecated_member_use_from_same_package
-    return newFileWithBytes(path, bytes, stamp);
+    return newFileWithBytes(path, bytes);
   }
 
-  File newFileWithBytes(
-    String path,
-    List<int> bytes, [
-    @Deprecated('This parameter is not used and will be removed') int? stamp,
-  ]) {
+  File newFileWithBytes(String path, List<int> bytes) {
     _ensureAbsoluteAndNormalized(path);
     bytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
 
@@ -337,8 +328,7 @@ class _FolderData extends _ResourceData {
 
 /// An in-memory implementation of [File].
 class _MemoryFile extends _MemoryResource implements File {
-  _MemoryFile(MemoryResourceProvider provider, String path)
-      : super(provider, path);
+  _MemoryFile(super.provider, super.path);
 
   @override
   bool get exists {
@@ -434,8 +424,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
 /// An in-memory implementation of [Folder].
 class _MemoryFolder extends _MemoryResource implements Folder {
-  _MemoryFolder(MemoryResourceProvider provider, String path)
-      : super(provider, path);
+  _MemoryFolder(super.provider, super.path);
 
   @override
   bool get exists {

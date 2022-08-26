@@ -42,8 +42,7 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
 }
 
 class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
-  _TypePromotionDataExtractor(Uri uri, Map<Id, ActualData<DartType>> actualMap)
-      : super(uri, actualMap);
+  _TypePromotionDataExtractor(super.uri, super.actualMap);
 
   @override
   DartType? computeNodeValue(Id id, AstNode node) {

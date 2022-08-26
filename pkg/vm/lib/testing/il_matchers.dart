@@ -394,11 +394,13 @@ class Matchers {
 
   final _AnyMatcher any = const _AnyMatcher();
 
+  // ignore: non_constant_identifier_names
   InstructionMatcher Goto(String dest) =>
       InstructionMatcher._(op: 'Goto', matchers: {
         's': _ListMatcher([_blockRef(dest)])
       });
 
+  // ignore: non_constant_identifier_names
   InstructionMatcher Branch(InstructionMatcher compare,
           {String? ifTrue, String? ifFalse}) =>
       InstructionMatcher._(op: 'Branch', matchers: {

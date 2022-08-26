@@ -231,11 +231,11 @@ class Server {
       stdout.writeln('  none');
     } else {
       var requestsByMethod = <String, List<RequestData>>{};
-      _requestDataMap.values.forEach((RequestData requestData) {
+      for (var requestData in _requestDataMap.values) {
         requestsByMethod
             .putIfAbsent(requestData.method, () => <RequestData>[])
             .add(requestData);
-      });
+      }
       var keys = requestsByMethod.keys.toList();
       keys.sort();
       var maxCount = requestsByMethod.values
@@ -248,7 +248,7 @@ class Server {
         var minTime = -1;
         var maxTime = -1;
         var totalTime = 0;
-        requests.forEach((RequestData data) {
+        for (var data in requests) {
           if (data.responseTime == null) {
             noResponseCount++;
           } else {
@@ -258,7 +258,7 @@ class Server {
             maxTime = math.max(maxTime, time);
             totalTime += time;
           }
-        });
+        }
         var count = requests.length.toString();
         writeSpaces(countWidth - count.length);
         stdout.write('  ');
@@ -745,7 +745,7 @@ class Server {
   /// Handle a [line] of input read from stderr.
   void _handleStdErr(String line) {
     var trimmedLine = line.trim();
-    logger?.log(fromStderr, '$trimmedLine');
+    logger?.log(fromStderr, trimmedLine);
     throw StateError('Message received on stderr: "$trimmedLine"');
   }
 
@@ -765,7 +765,7 @@ class Server {
         trimmedLine.startsWith('The Dart VM service is listening on ')) {
       return;
     }
-    logger?.log(fromServer, '$trimmedLine');
+    logger?.log(fromServer, trimmedLine);
     var message = asMap(json.decoder.convert(trimmedLine) as Object);
     if (message.containsKey('id')) {
       // The message is a response.
@@ -807,7 +807,7 @@ class Server {
     }
     var line = json.encode(command);
     _process!.stdin.add(utf8.encoder.convert('$line\n'));
-    logger?.log(fromClient, '$line');
+    logger?.log(fromClient, line);
     return requestData;
   }
 }

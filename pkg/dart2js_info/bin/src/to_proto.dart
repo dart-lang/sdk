@@ -24,16 +24,16 @@ class ToProtoCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    if (argResults.rest.isEmpty) {
+    final args = argResults!;
+    if (args.rest.isEmpty) {
       usageException('Missing argument: <input-info>');
-      exit(1);
     }
 
-    String filename = argResults.rest[0];
+    String filename = args.rest[0];
     final info = await infoFromFile(filename);
-    if (argResults['inject-text']) injectText(info);
+    if (args['inject-text']) injectText(info);
     final proto = AllInfoProtoCodec().encode(info);
-    String outputFilename = argResults['out'] ?? '$filename.pb';
+    String outputFilename = args['out'] ?? '$filename.pb';
     final outputFile = File(outputFilename);
     await outputFile.writeAsBytes(proto.writeToBuffer(), mode: FileMode.write);
   }

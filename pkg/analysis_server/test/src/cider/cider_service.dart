@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -14,6 +15,8 @@ import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 
 class CiderServiceTest with ResourceProviderMixin {
+  final FileResolverTestData testData = FileResolverTestData();
+
   final StringBuffer logBuffer = StringBuffer();
   late PerformanceLog logger;
 
@@ -36,14 +39,16 @@ class CiderServiceTest with ResourceProviderMixin {
     )!;
 
     fileResolver = FileResolver(
-      logger,
-      resourceProvider,
-      workspace.createSourceFactory(sdk, null),
-      (String path) => _getDigest(path),
-      null,
+      logger: logger,
+      resourceProvider: resourceProvider,
+      sourceFactory: workspace.createSourceFactory(sdk, null),
+      getFileDigest: (String path) => _getDigest(path),
+      prefetchFiles: null,
       workspace: workspace,
+      byteStore: MemoryByteStore(),
+      isGenerated: (_) => false,
+      testData: testData,
     );
-    fileResolver.testView = FileResolverTestView();
   }
 
   void setUp() {
@@ -51,8 +56,8 @@ class CiderServiceTest with ResourceProviderMixin {
 
     logger = PerformanceLog(logBuffer);
 
-    newFile2('/workspace/WORKSPACE', '');
-    newFile2('/workspace/dart/test/BUILD', '');
+    newFile('/workspace/WORKSPACE', '');
+    newFile('/workspace/dart/test/BUILD', '');
     createFileResolver();
   }
 

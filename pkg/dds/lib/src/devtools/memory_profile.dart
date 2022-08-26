@@ -12,8 +12,6 @@ import 'package:collection/collection.dart';
 import 'package:devtools_shared/devtools_shared.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'service_registrations.dart' as service_registrations;
-
 class MemoryProfile {
   MemoryProfile(this.service, String profileFilename, this._verboseMode) {
     onConnectionClosed.listen(_handleConnectionStop);
@@ -77,7 +75,7 @@ class MemoryProfile {
 
   Future<Response?> getAdbMemoryInfo() async {
     return await callService(
-      service_registrations.flutterMemory.service,
+      flutterMemory.service,
       isolateId: _selectedIsolate.id,
     );
   }
@@ -221,7 +219,7 @@ class MemoryProfile {
   /// @throws Exception if no 'FlutterView'.
   Future<String?> getFlutterViewId(IsolateRef selectedIsolate) async {
     final flutterViewListResponse = await service!.callServiceExtension(
-      service_registrations.flutterListViews,
+      flutterListViews,
       isolateId: selectedIsolate.id,
     );
     final List<dynamic> views =
@@ -253,7 +251,7 @@ class MemoryProfile {
     final viewId = await getFlutterViewId(selectedIsolate);
 
     return await service!.callServiceExtension(
-      service_registrations.flutterEngineRasterCache,
+      flutterEngineRasterCache,
       args: {'viewId': viewId},
       isolateId: selectedIsolate.id,
     );

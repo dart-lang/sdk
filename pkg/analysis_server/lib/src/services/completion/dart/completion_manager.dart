@@ -8,7 +8,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/enum_constant_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
@@ -220,10 +219,8 @@ class DartCompletionManager {
         kinds.add(protocol.ElementKind.CONSTRUCTOR);
         kinds.add(protocol.ElementKind.ENUM_CONSTANT);
         kinds.add(protocol.ElementKind.EXTENSION);
-        // Static fields.
-        kinds.add(protocol.ElementKind.FIELD);
         kinds.add(protocol.ElementKind.FUNCTION);
-        // Static and top-level properties.
+        // Top-level properties.
         kinds.add(protocol.ElementKind.GETTER);
         kinds.add(protocol.ElementKind.SETTER);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
@@ -298,8 +295,6 @@ class DartCompletionRequest {
   /// Return the object used to resolve macros in Dartdoc comments.
   final DartdocDirectiveInfo dartdocDirectiveInfo;
 
-  final DocumentationCache? documentationCache;
-
   /// Return the object used to compute the values of the features used to
   /// compute relevance scores for suggestions.
   final FeatureComputer featureComputer;
@@ -342,7 +337,6 @@ class DartCompletionRequest {
     required int offset,
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
-    DocumentationCache? documentationCache,
   }) {
     var target = CompletionTarget.forOffset(enclosingNode, offset);
 
@@ -368,7 +362,6 @@ class DartCompletionRequest {
       content: fileContent,
       contextType: contextType,
       dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
-      documentationCache: documentationCache,
       featureComputer: featureComputer,
       libraryElement: libraryElement,
       offset: offset,
@@ -385,7 +378,6 @@ class DartCompletionRequest {
     required int offset,
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
-    DocumentationCache? documentationCache,
   }) {
     return DartCompletionRequest(
       analysisSession: resolvedUnit.session,
@@ -396,7 +388,6 @@ class DartCompletionRequest {
       offset: offset,
       dartdocDirectiveInfo: dartdocDirectiveInfo,
       completionPreference: completionPreference,
-      documentationCache: documentationCache,
     );
   }
 
@@ -406,7 +397,6 @@ class DartCompletionRequest {
     required this.content,
     required this.contextType,
     required this.dartdocDirectiveInfo,
-    required this.documentationCache,
     required this.featureComputer,
     required this.libraryElement,
     required this.offset,

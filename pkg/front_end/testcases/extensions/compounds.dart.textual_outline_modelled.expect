@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class {
   Class(this.field);
   Number field;
@@ -38,8 +37,8 @@ extension NumberExtension on Number {
 
 main() {}
 testExplicitIntProperties() {}
-testExplicitNullAwareIntProperties(IntClass v) {}
-testExplicitNullAwareProperties(Class v) {}
+testExplicitNullAwareIntProperties(IntClass? v) {}
+testExplicitNullAwareProperties(Class? v) {}
 testExplicitProperties() {}
 testIntProperties() {}
 testLocals() {}

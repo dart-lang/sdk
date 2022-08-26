@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,7 +13,6 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HoverTest);
-    defineReflectiveTests(HoverWithNullSafetyTest);
   });
 }
 
@@ -139,6 +138,29 @@ print();
     expect(hover, isNull);
   }
 
+  Future<void> test_nullableTypes() async {
+    final content = '''
+    String? [[a^bc]];
+    ''';
+
+    final expectedHoverContent = '''
+```dart
+String? abc
+```
+Type: `String?`
+*package:test/main.dart*
+    '''
+        .trim();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    expect(_getStringContents(hover), equals(expectedHoverContent));
+  }
+
   Future<void> test_plainText_simple() async {
     final content = '''
     /// This is a string.
@@ -207,7 +229,7 @@ Type: `String`
       Foo(String arg1, String arg2, [String arg3]);
     }
 
-    main() {
+    void f() {
       var a = Fo^o();
     }
     ''';
@@ -232,7 +254,7 @@ Type: `String`
       Foo(String a, String b);
     }
 
-    main() {
+    void f() {
       var a = Fo^o();
     }
     ''';
@@ -316,7 +338,7 @@ Type: `String`
     String [[a^bc]];
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize();
     final hover = await getHover(mainFileUri, positionFromMarker(content));
     expect(hover, isNotNull);
@@ -328,44 +350,15 @@ Type: `String`
 
   MarkupContent _getMarkupContents(Hover hover) {
     return hover.contents.map(
-      (t1) => throw 'Hover contents were String, not MarkupContent',
-      (t2) => t2,
+      (t1) => t1,
+      (t2) => throw 'Hover contents were String, not MarkupContent',
     );
   }
 
   String _getStringContents(Hover hover) {
     return hover.contents.map(
-      (t1) => t1,
-      (t2) => throw 'Hover contents were MarkupContent, not String',
+      (t1) => throw 'Hover contents were MarkupContent, not String',
+      (t2) => t2,
     );
-  }
-}
-
-@reflectiveTest
-class HoverWithNullSafetyTest extends HoverTest {
-  @override
-  String get testPackageLanguageVersion => latestLanguageVersion;
-
-  Future<void> test_nullableTypes() async {
-    final content = '''
-    String? [[a^bc]];
-    ''';
-
-    final expectedHoverContent = '''
-```dart
-String? abc
-```
-Type: `String?`
-*package:test/main.dart*
-    '''
-        .trim();
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    final hover = await getHover(mainFileUri, positionFromMarker(content));
-    expect(hover, isNotNull);
-    expect(hover!.range, equals(rangeFromMarkers(content)));
-    expect(hover.contents, isNotNull);
-    expect(_getStringContents(hover), equals(expectedHoverContent));
   }
 }

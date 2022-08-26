@@ -25,13 +25,8 @@ static method nullAwareMapSpread(core::Map<core::int, core::String>? map) → dy
     final core::Map<core::int, core::String> #t5 = <core::int, core::String>{};
     #t5.{core::Map::[]=}{Invariant}(0, "foo"){(core::int, core::String) → void};
     final core::Map<core::int, core::String>? #t6 = map;
-    if(!(#t6 == null)) {
-      core::Iterator<core::MapEntry<core::int, core::String>> :sync-for-iterator = #t6{core::Map<core::int, core::String>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::String>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int, core::String>>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<core::int, core::String> #t7 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int, core::String>};
-        #t5.{core::Map::[]=}{Invariant}(#t7.{core::MapEntry::key}{core::int}, #t7.{core::MapEntry::value}{core::String}){(core::int, core::String) → void};
-      }
-    }
+    if(!(#t6 == null))
+      #t5.{core::Map::addAll}{Invariant}(#t6{core::Map<core::int, core::String>}){(core::Map<core::int, core::String>) → void};
   } =>#t5;
 }
 static method main() → dynamic {

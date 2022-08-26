@@ -4,8 +4,8 @@
 
 /// Code for converting HTML into text, for use during code generation of
 /// analyzer and analysis server.
+import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/tools.dart';
-import 'package:html/dom.dart' as dom;
 
 final RegExp whitespace = RegExp(r'\s');
 
@@ -64,7 +64,7 @@ class _TextFormatter extends CodeGenerator {
         }
       }
     } else if (node is dom.Element) {
-      switch (node.localName) {
+      switch (node.name) {
         case 'br':
           lineBreak(false);
           break;
@@ -83,7 +83,7 @@ class _TextFormatter extends CodeGenerator {
           lineBreak(false);
           if (node.classes.contains('hangingIndent')) {
             resolveVerticalSpace();
-            indentSpecial('', '        ', () {
+            indentSpecial('', '       ', () {
               addAll(node.nodes);
               lineBreak(false);
             });
@@ -143,7 +143,7 @@ class _TextFormatter extends CodeGenerator {
         case 'head':
           break;
         default:
-          throw Exception('Unexpected HTML element: ${node.localName}');
+          throw Exception('Unexpected HTML element: ${node.name}');
       }
     } else {
       throw Exception('Unexpected HTML: $node');

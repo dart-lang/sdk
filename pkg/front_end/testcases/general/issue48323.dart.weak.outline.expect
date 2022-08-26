@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field <T extends core::Object? = dynamic>() →? void genericFunction;
+static method foo(() →? void arg) → void
+  ;
+static method main() → void
+  ;

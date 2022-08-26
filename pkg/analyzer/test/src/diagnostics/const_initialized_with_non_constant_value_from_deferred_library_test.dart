@@ -18,7 +18,7 @@ main() {
 class ConstInitializedWithNonConstantValueFromDeferredLibraryTest
     extends PubPackageResolutionTest {
   test_deferred() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 const V = 1;
 ''');
@@ -36,7 +36,7 @@ const B = a.V;
   }
 
   test_nested() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 const V = 1;
 ''');

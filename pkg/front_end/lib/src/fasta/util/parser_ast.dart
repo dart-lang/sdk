@@ -1293,7 +1293,8 @@ extension MixinMethodExtension on MixinMethodEnd {
     for (ParserAstNode child in children!) {
       if (child is TypeHandle ||
           child is NoTypeHandle ||
-          child is VoidKeywordHandle) {
+          child is VoidKeywordHandle ||
+          child is FunctionTypeEnd) {
         foundType = true;
       }
       if (foundType && child is IdentifierHandle) {
@@ -1312,7 +1313,8 @@ extension ExtensionMethodExtension on ExtensionMethodEnd {
     for (ParserAstNode child in children!) {
       if (child is TypeHandle ||
           child is NoTypeHandle ||
-          child is VoidKeywordHandle) {
+          child is VoidKeywordHandle ||
+          child is FunctionTypeEnd) {
         foundType = true;
       }
       if (foundType && child is IdentifierHandle) {

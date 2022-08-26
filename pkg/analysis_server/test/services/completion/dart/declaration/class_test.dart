@@ -228,7 +228,7 @@ $contextCode
 
     // imported, without prefix
     {
-      newFile2('$testPackageLibPath/a.dart', classCode);
+      newFile('$testPackageLibPath/a.dart', classCode);
       final response = await getTestCodeSuggestions('''
 import 'a.dart';
 
@@ -239,7 +239,7 @@ $contextCode
 
     // not imported
     {
-      newFile2('$testPackageLibPath/a.dart', classCode);
+      newFile('$testPackageLibPath/a.dart', classCode);
       final response = await getTestCodeSuggestions('''
 $contextCode
 ''');

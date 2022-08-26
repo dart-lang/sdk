@@ -88,6 +88,8 @@ class MakeFinal extends CorrectionProducer {
     } else if (node is VariableDeclaration &&
         parent is VariableDeclarationList) {
       list = parent;
+    } else if (node is VariableDeclarationList) {
+      list = node;
     } else {
       return;
     }
@@ -106,7 +108,4 @@ class MakeFinal extends CorrectionProducer {
       });
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static MakeFinal newInstance() => MakeFinal();
 }

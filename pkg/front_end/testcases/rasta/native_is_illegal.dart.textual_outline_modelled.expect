@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Bar {
   Bar get x native "Bar_get_x";
   f() native "Bar_f";

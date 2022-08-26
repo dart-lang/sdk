@@ -4,10 +4,8 @@
 
 library fasta.source_type_alias_builder;
 
-import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -24,6 +22,7 @@ import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
 import '../problems.dart' show unhandled;
 import '../scope.dart';
@@ -32,7 +31,7 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
-  final TypeBuilder? type;
+  final TypeBuilder type;
 
   final List<TypeVariableBuilder>? _typeVariables;
 
@@ -82,15 +81,15 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   bool get isNullAlias {
-    TypeDeclarationBuilder? typeDeclarationBuilder = type?.declaration;
+    TypeDeclarationBuilder? typeDeclarationBuilder = type.declaration;
     return typeDeclarationBuilder is ClassBuilder &&
         typeDeclarationBuilder.isNullClass;
   }
 
   Typedef build() {
-    typedef.type ??= buildThisType();
+    buildThisType();
 
-    TypeBuilder? type = this.type;
+    TypeBuilder type = this.type;
     if (type is FunctionTypeBuilder ||
         type is NamedTypeBuilder ||
         type is FixedTypeBuilder) {
@@ -120,38 +119,29 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     // detect cycles by detecting recursive calls to this method using an
     // instance of InvalidType that isn't identical to `const InvalidType()`.
     thisType = pendingTypeAliasMarker;
-    TypeBuilder? type = this.type;
+    DartType builtType = const InvalidType();
+    TypeBuilder type = this.type;
     // ignore: unnecessary_null_comparison
     if (type != null) {
-      DartType builtType = type.build(libraryBuilder);
-      if (builtType is FunctionType) {
-        // Set the `typedefType` if it hasn't already been set. It can already
-        // be set if this type alias is an alias of another typedef, in which
-        // we use the existing value. For instance
-        //
-        //    typedef void F(); // typedefType will be set to `F`.
-        //    typedef G = F; // The typedefType has already been set to `F`.
-        //
-        builtType.typedefType ??= thisTypedefType(typedef, libraryBuilder);
-      }
+      builtType = type.build(libraryBuilder, TypeUse.typedefAlias);
       // ignore: unnecessary_null_comparison
       if (builtType != null) {
         if (typeVariables != null) {
           for (TypeVariableBuilder tv in typeVariables!) {
             // Follow bound in order to find all cycles
-            tv.bound?.build(libraryBuilder);
+            tv.bound?.build(libraryBuilder, TypeUse.typeParameterBound);
           }
         }
         if (identical(thisType, cyclicTypeAliasMarker)) {
-          return thisType = const InvalidType();
+          builtType = const InvalidType();
         } else {
-          return thisType = builtType;
+          builtType = builtType;
         }
       } else {
-        return thisType = const InvalidType();
+        builtType = const InvalidType();
       }
     }
-    return thisType = const InvalidType();
+    return thisType = typedef.type ??= builtType;
   }
 
   TypedefType thisTypedefType(Typedef typedef, LibraryBuilder clientLibrary) {
@@ -190,15 +180,24 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments) {
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
 
     if (arguments == null && typeVariables != null) {
-      List<DartType> result = new List<DartType>.generate(typeVariables!.length,
-          (int i) => typeVariables![i].defaultType!.build(library),
+      // TODO(johnniwinther): Use i2b here when needed.
+      List<DartType> result = new List<DartType>.generate(
+          typeVariables!.length,
+          (int i) => typeVariables![i]
+              .defaultType!
+              // TODO(johnniwinther): Using [libraryBuilder] here instead of
+              // [library] preserves the nullability of the original
+              // declaration. We legacy erase it later, but should we legacy
+              // erase it now also?
+              .buildAliased(
+                  libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
           growable: true);
       if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
@@ -219,16 +218,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
     // arguments.length == typeVariables.length
     return new List<DartType>.generate(
-        arguments!.length, (int i) => arguments[i].build(library),
+        arguments!.length,
+        (int i) =>
+            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
         growable: true);
-  }
-
-  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    libraryBuilder.checkBoundsInTypeParameters(
-        typeEnvironment, typedef.typeParameters, fileUri);
-    libraryBuilder.checkBoundsInType(
-        typedef.type!, typeEnvironment, fileUri, type?.charOffset ?? charOffset,
-        allowSuperBounded: false);
   }
 
   void buildOutlineExpressions(
@@ -251,10 +244,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
       InterfaceType targetType = typedef.type as InterfaceType;
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
+          target,
+          tearOff,
           new Map<TypeParameter, DartType>.fromIterables(
               target.enclosingClass!.typeParameters, targetType.typeArguments),
-          target.function!,
-          tearOff.function,
           libraryBuilder: libraryBuilder));
     });
   }
@@ -275,14 +268,14 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Map<Procedure, Member>? _tearOffDependencies;
 
   void buildTypedefTearOffs(
-      SourceLibraryBuilder library, void Function(Procedure) f) {
+      SourceLibraryBuilder libraryBuilder, void Function(Procedure) f) {
     TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
     DartType? targetType = typedef.type;
     if (declaration is ClassBuilder &&
         targetType is InterfaceType &&
         typedef.typeParameters.isNotEmpty &&
-        !isProperRenameForClass(
-            library.loader.typeEnvironment, typedef, library.library)) {
+        !isProperRenameForClass(libraryBuilder.loader.typeEnvironment, typedef,
+            libraryBuilder.library)) {
       tearOffs = {};
       _tearOffDependencies = {};
       declaration
@@ -295,19 +288,31 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           Name targetName =
               new Name(constructorName, declaration.libraryBuilder.library);
           Reference? tearOffReference;
-          if (library.referencesFromIndexed != null) {
-            tearOffReference = library.referencesFromIndexed!
+          if (libraryBuilder.referencesFromIndexed != null) {
+            tearOffReference = libraryBuilder.referencesFromIndexed!
                 .lookupGetterReference(typedefTearOffName(name, constructorName,
-                    library.referencesFromIndexed!.library));
+                    libraryBuilder.referencesFromIndexed!.library));
           }
 
           Procedure tearOff = tearOffs![targetName] =
-              createTypedefTearOffProcedure(name, constructorName, library,
-                  target.fileUri, target.fileOffset, tearOffReference);
+              createTypedefTearOffProcedure(
+                  name,
+                  constructorName,
+                  libraryBuilder,
+                  target.fileUri,
+                  target.fileOffset,
+                  tearOffReference);
           _tearOffDependencies![tearOff] = target;
 
-          buildTypedefTearOffProcedure(tearOff, target, declaration.cls,
-              typedef.typeParameters, targetType.typeArguments, library);
+          buildTypedefTearOffProcedure(
+              tearOff: tearOff,
+              declarationConstructor: target,
+              // TODO(johnniwinther): Handle patched constructors.
+              implementationConstructor: target,
+              enclosingClass: declaration.cls,
+              typeParameters: typedef.typeParameters,
+              typeArguments: targetType.typeArguments,
+              libraryBuilder: libraryBuilder);
           f(tearOff);
         }
       });

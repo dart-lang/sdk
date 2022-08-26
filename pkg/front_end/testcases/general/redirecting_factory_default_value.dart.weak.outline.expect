@@ -7,7 +7,7 @@ class A extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::A::redirect]/*isLegacy*/;
   constructor •([core::int field = 42]) → self::A
     ;
-  static factory redirect([core::int field]) → self::A
+  static factory redirect([has-declared-initializer core::int field]) → self::A
     return new self::A::•(field);
 }
 static method main() → dynamic

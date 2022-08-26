@@ -4,23 +4,23 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
-import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
+import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 
-export 'package:analysis_server/src/utilities/progress.dart';
+export 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Converts an iterable using the provided function and skipping over any
 /// null values.
@@ -36,7 +36,7 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
 
   CommandHandler(this.server);
 
-  Future<ErrorOr<Object?>> handle(List<Object?>? arguments,
+  Future<ErrorOr<Object?>> handle(Map<String, Object?> parameters,
       ProgressReporter progress, CancellationToken cancellationToken);
 }
 
@@ -49,11 +49,17 @@ mixin Handler<P, R> {
 
   LspAnalysisServer get server;
 
+  ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
+      ServerErrorCodes.FileAnalysisFailed, 'Analysis failed for file', path);
+
   bool fileHasBeenModified(String path, num? clientVersion) {
     final serverDocIdentifier = server.getVersionedDocumentIdentifier(path);
     return clientVersion != null &&
         clientVersion != serverDocIdentifier.version;
   }
+
+  ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(
+      ServerErrorCodes.FileNotAnalyzed, 'File is not being analyzed', path);
 
   ErrorOr<LineInfo> getLineInfo(String path) {
     final lineInfo = server.getLineInfo(path);
@@ -66,19 +72,30 @@ mixin Handler<P, R> {
     }
   }
 
-  Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(String path) async {
+  /// Attempts to get a [ResolvedUnitResult] for [path] or an error.
+  ///
+  /// When [waitForInProgressContextRebuilds] is `true` and the file appears to not be
+  /// analyzed but analysis roots are currently being discovered, will wait for
+  /// discovery to complete and then try again (once) to get a result.
+  Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(
+    String path, {
+    bool waitForInProgressContextRebuilds = true,
+  }) async {
     final result = await server.getResolvedUnit(path);
     if (result == null) {
-      if (server.isAnalyzed(path)) {
-        // If the file was being analyzed and we got a null result, that usually
-        // indicators a parser or analysis failure, so provide a more specific
-        // message.
-        return error(ServerErrorCodes.FileAnalysisFailed,
-            'Analysis failed for file', path);
-      } else {
-        return error(ServerErrorCodes.FileNotAnalyzed,
-            'File is not being analyzed', path);
+      // Handle retry if allowed.
+      if (waitForInProgressContextRebuilds) {
+        await server.analysisContextsRebuilt;
+        return requireResolvedUnit(path,
+            waitForInProgressContextRebuilds: false);
       }
+
+      // If the file was being analyzed and we got a null result, that usually
+      // indicates a parser or analysis failure, so provide a more specific
+      // message.
+      return server.isAnalyzed(path)
+          ? analysisFailedError(path)
+          : fileNotAnalyzedError(path);
     } else if (!result.exists) {
       return error(
           ServerErrorCodes.InvalidFilePath, 'File does not exist', path);
@@ -86,19 +103,25 @@ mixin Handler<P, R> {
     return success(result);
   }
 
-  Future<ErrorOr<ParsedUnitResult>> requireUnresolvedUnit(String path) async {
+  Future<ErrorOr<ParsedUnitResult>> requireUnresolvedUnit(
+    String path, {
+    bool waitForInProgressContextRebuilds = true,
+  }) async {
     final result = await server.getParsedUnit(path);
     if (result == null) {
-      if (server.isAnalyzed(path)) {
-        // If the file was being analyzed and we got a null result, that usually
-        // indicators a parser or analysis failure, so provide a more specific
-        // message.
-        return error(ServerErrorCodes.FileAnalysisFailed,
-            'Analysis failed for file', path);
-      } else {
-        return error(ServerErrorCodes.FileNotAnalyzed,
-            'File is not being analyzed', path);
+      // Handle retry if allowed.
+      if (waitForInProgressContextRebuilds) {
+        await server.analysisContextsRebuilt;
+        return requireUnresolvedUnit(path,
+            waitForInProgressContextRebuilds: false);
       }
+
+      // If the file was being analyzed and we got a null result, that usually
+      // indicates a parser or analysis failure, so provide a more specific
+      // message.
+      return server.isAnalyzed(path)
+          ? analysisFailedError(path)
+          : fileNotAnalyzedError(path);
     }
     return success(result);
   }
@@ -138,13 +161,14 @@ abstract class MessageHandler<P, R>
   /// A handler that can parse and validate JSON params.
   LspJsonHandler<P> get jsonHandler;
 
-  FutureOr<ErrorOr<R>> handle(P params, CancellationToken token);
+  FutureOr<ErrorOr<R>> handle(
+      P params, MessageInfo message, CancellationToken token);
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
-  FutureOr<ErrorOr<R>> handleMessage(
-      IncomingMessage message, CancellationToken token) {
+  FutureOr<ErrorOr<R>> handleMessage(IncomingMessage message,
+      MessageInfo messageInfo, CancellationToken token) {
     final reporter = LspJsonReporter('params');
     final paramsJson = message.params as Map<String, Object?>?;
     if (!jsonHandler.validateParams(paramsJson, reporter)) {
@@ -159,8 +183,29 @@ abstract class MessageHandler<P, R>
 
     final params =
         paramsJson != null ? jsonHandler.convertParams(paramsJson) : null as P;
-    return handle(params, token);
+    return handle(params, messageInfo, token);
   }
+}
+
+/// Additional information about an incoming message (request or notification)
+/// provided to a handler.
+class MessageInfo {
+  /// Returns the amount of time (in milliseconds) since the client sent this
+  /// request or `null` if the client did not provide [clientRequestTime].
+  final int? timeSinceRequest;
+
+  OperationPerformanceImpl performance;
+
+  MessageInfo({required this.performance, this.timeSinceRequest});
+}
+
+mixin PositionalArgCommandHandler {
+  /// Parses "legacy" arguments passed a list, rather than in a map as a single
+  /// argument.
+  ///
+  /// This is provided for backwards compatibility and may not be provided by
+  /// all command handlers.
+  Map<String, Object?> parseArgList(List<Object?> arguments);
 }
 
 /// A message handler that handles all messages for a given server state.
@@ -178,14 +223,15 @@ abstract class ServerStateMessageHandler {
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
-  FutureOr<ErrorOr<Object?>> handleMessage(IncomingMessage message) async {
+  FutureOr<ErrorOr<Object?>> handleMessage(
+      IncomingMessage message, MessageInfo messageInfo) async {
     final handler = _messageHandlers[message.method];
     if (handler == null) {
       return handleUnknownMessage(message);
     }
 
     if (message is! RequestMessage) {
-      return handler.handleMessage(message, _notCancelableToken);
+      return handler.handleMessage(message, messageInfo, _notCancelableToken);
     }
 
     // Create a cancellation token that will allow us to cancel this request if
@@ -193,10 +239,10 @@ abstract class ServerStateMessageHandler {
     // check the token after `await` points).
     final token = _cancelHandler.createToken(message);
     try {
-      final result = await handler.handleMessage(message, token);
+      final result = await handler.handleMessage(message, messageInfo, token);
       // Do a final check before returning the result, because if the request was
-      // cancelled we can save the overhead of serialising everything to JSON
-      // and the client to deserialising the same in order to read the ID to see
+      // cancelled we can save the overhead of serializing everything to JSON
+      // and the client to deserializing the same in order to read the ID to see
       // that it was a request it didn't need (in the case of completions this
       // can be quite large).
       await Future.delayed(Duration.zero);

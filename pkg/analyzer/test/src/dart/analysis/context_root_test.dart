@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
@@ -29,7 +30,7 @@ class ContextRootTest with ResourceProviderMixin {
   void setUp() {
     rootPath = convertPath('/test/root');
     rootFolder = newFolder(rootPath);
-    workspace = BasicWorkspace.find(resourceProvider, {}, rootPath);
+    workspace = BasicWorkspace.find(resourceProvider, Packages.empty, rootPath);
     contextRoot = ContextRootImpl(resourceProvider, rootFolder, workspace);
     contextRoot.included.add(rootFolder);
   }
@@ -42,11 +43,11 @@ class ContextRootTest with ResourceProviderMixin {
     String excludePath = convertPath('/test/root/exclude');
     String cPath = convertPath('/test/root/exclude/c.dart');
 
-    newFile2(optionsPath, '');
-    newFile2(readmePath, '');
-    newFile2(aPath, '');
-    newFile2(bPath, '');
-    newFile2(cPath, '');
+    newFile(optionsPath, '');
+    newFile(readmePath, '');
+    newFile(aPath, '');
+    newFile(bPath, '');
+    newFile(cPath, '');
     contextRoot.excluded.add(newFolder(excludePath));
 
     expect(contextRoot.analyzedFiles(),
@@ -55,9 +56,9 @@ class ContextRootTest with ResourceProviderMixin {
 
   test_isAnalyzed_excludedByGlob_includedFile() {
     var rootPath = '/home/test';
-    var includedFile = newFile2('$rootPath/lib/a1.dart', '');
-    var excludedFile = newFile2('$rootPath/lib/a2.dart', '');
-    var implicitFile = newFile2('$rootPath/lib/b.dart', '');
+    var includedFile = newFile('$rootPath/lib/a1.dart', '');
+    var excludedFile = newFile('$rootPath/lib/a2.dart', '');
+    var implicitFile = newFile('$rootPath/lib/b.dart', '');
 
     var root = _createContextRoot(rootPath);
     root.included.add(includedFile);
@@ -80,14 +81,14 @@ class ContextRootTest with ResourceProviderMixin {
 
     var includedFolderPath = convertPath('$rootPath/lib/src/included');
     var includedFolder = getFolder(includedFolderPath);
-    var includedFile1 = newFile2('$includedFolderPath/a1.dart', '');
-    var includedFile2 = newFile2('$includedFolderPath/inner/a2.dart', '');
-    var excludedFile1 = newFile2('$includedFolderPath/a1.g.dart', '');
+    var includedFile1 = newFile('$includedFolderPath/a1.dart', '');
+    var includedFile2 = newFile('$includedFolderPath/inner/a2.dart', '');
+    var excludedFile1 = newFile('$includedFolderPath/a1.g.dart', '');
 
     var excludedFolderPath = convertPath('$rootPath/lib/src/not_included');
-    var excludedFile2 = newFile2('$excludedFolderPath/b.dart', '');
+    var excludedFile2 = newFile('$excludedFolderPath/b.dart', '');
 
-    var implicitFile = newFile2('$rootPath/lib/c.dart', '');
+    var implicitFile = newFile('$rootPath/lib/c.dart', '');
 
     var root = _createContextRoot(rootPath);
     root.included.add(includedFolder);
@@ -116,20 +117,20 @@ class ContextRootTest with ResourceProviderMixin {
   test_isAnalyzed_explicitlyExcluded_byFile() {
     var excludePath = convertPath('/test/root/exclude/c.dart');
     var siblingPath = convertPath('/test/root/exclude/d.dart');
-    contextRoot.excluded.add(newFile2(excludePath, ''));
+    contextRoot.excluded.add(newFile(excludePath, ''));
     expect(contextRoot.isAnalyzed(excludePath), isFalse);
     expect(contextRoot.isAnalyzed(siblingPath), isTrue);
   }
 
   test_isAnalyzed_explicitlyExcluded_byFile_analysisOptions() {
     var excludePath = convertPath('/test/root/analysis_options.yaml');
-    contextRoot.excluded.add(newFile2(excludePath, ''));
+    contextRoot.excluded.add(newFile(excludePath, ''));
     expect(contextRoot.isAnalyzed(excludePath), isFalse);
   }
 
   test_isAnalyzed_explicitlyExcluded_byFile_pubspec() {
     var excludePath = convertPath('/test/root/pubspec.yaml');
-    contextRoot.excluded.add(newFile2(excludePath, ''));
+    contextRoot.excluded.add(newFile(excludePath, ''));
     expect(contextRoot.isAnalyzed(excludePath), isFalse);
   }
 
@@ -247,7 +248,8 @@ class ContextRootTest with ResourceProviderMixin {
   ContextRootImpl _createContextRoot(String posixPath) {
     var rootPath = convertPath(posixPath);
     var rootFolder = newFolder(rootPath);
-    var workspace = BasicWorkspace.find(resourceProvider, {}, rootPath);
+    var workspace =
+        BasicWorkspace.find(resourceProvider, Packages.empty, rootPath);
     var contextRoot = ContextRootImpl(resourceProvider, rootFolder, workspace);
     contextRoot.included.add(rootFolder);
     return contextRoot;

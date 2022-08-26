@@ -6,7 +6,7 @@ import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerResult, scanString;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show ReplacementToken, Token, TokenType;
+    show ReplacementToken, StringToken, Token, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -162,7 +162,7 @@ abstract class TokenStreamRewriterTest {
   void test_replaceNextTokenWithSyntheticToken_1() {
     Token a = _makeToken(0, 'a');
     StringToken b = _makeToken(5, 'b');
-    b.precedingComments = new CommentToken.fromSubstring(
+    b.precedingComments = new CommentTokenImpl.fromSubstring(
         TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
         canonicalize: true);
     Token c = _makeToken(10, 'c');
@@ -186,7 +186,7 @@ abstract class TokenStreamRewriterTest {
   void test_replaceNextTokenWithSyntheticToken_2() {
     Token a = _makeToken(0, 'a');
     StringToken b = _makeToken(5, 'b');
-    b.precedingComments = new CommentToken.fromSubstring(
+    b.precedingComments = new CommentTokenImpl.fromSubstring(
         TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
         canonicalize: true);
     _link([a, b]);
@@ -208,7 +208,7 @@ abstract class TokenStreamRewriterTest {
   void test_replaceNextTokensWithSyntheticToken_1() {
     Token a = _makeToken(0, 'a');
     StringToken b = _makeToken(5, 'b');
-    b.precedingComments = new CommentToken.fromSubstring(
+    b.precedingComments = new CommentTokenImpl.fromSubstring(
         TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
         canonicalize: true);
     Token c = _makeToken(10, 'c');
@@ -236,7 +236,7 @@ abstract class TokenStreamRewriterTest {
   void test_replaceNextTokensWithSyntheticToken_2() {
     Token a = _makeToken(0, 'a');
     StringToken b = _makeToken(5, 'b');
-    b.precedingComments = new CommentToken.fromSubstring(
+    b.precedingComments = new CommentTokenImpl.fromSubstring(
         TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
         canonicalize: true);
     Token c = _makeToken(10, 'c');
@@ -338,7 +338,8 @@ abstract class TokenStreamRewriterTest {
   }
 
   StringToken _makeToken(int charOffset, String text) {
-    return new StringToken.fromString(TokenType.IDENTIFIER, text, charOffset);
+    return new StringTokenImpl.fromString(
+        TokenType.IDENTIFIER, text, charOffset);
   }
 }
 

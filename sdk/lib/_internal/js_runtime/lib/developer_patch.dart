@@ -48,6 +48,9 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
 }
 
 @patch
+bool get extensionStreamHasListener => false;
+
+@patch
 void _postEvent(String eventKind, String eventData) {
   // TODO.
 }

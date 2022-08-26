@@ -91,7 +91,4 @@ class ConvertToNamedArguments extends CorrectionProducer {
       });
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertToNamedArguments newInstance() => ConvertToNamedArguments();
 }

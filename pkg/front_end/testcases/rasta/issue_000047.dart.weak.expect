@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -8,6 +8,7 @@ library;
 //
 import self as self;
 
-typedef T = (dynamic) →* void;
-static method main() → (dynamic) →* void
-  return null;
+typedef T = (dynamic) → void;
+static method test() → (dynamic) → void
+  return throw "";
+static method main() → dynamic {}

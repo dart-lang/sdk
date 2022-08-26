@@ -1,0 +1,9 @@
+class SubNamed extends Super {
+  SubNamed.namedAnywhere(double x, String z, {super.y}) : super.named(z: z, x);
+}
+
+class Super {
+  Super.named(num x, {bool y = false, String? z});
+}
+
+main() {}

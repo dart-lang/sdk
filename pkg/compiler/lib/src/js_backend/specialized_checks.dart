@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../common/elements.dart' show ElementEnvironment, JCommonElements;
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/interceptor_data.dart' show InterceptorData;
-import '../ssa/nodes.dart' show HGraph;
 import '../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../world.dart' show JClosedWorld;
 
@@ -24,20 +25,20 @@ enum IsTestSpecialization {
 
 class SpecializedChecks {
   static IsTestSpecialization findIsTestSpecialization(
-      DartType dartType, HGraph graph, JClosedWorld closedWorld) {
+      DartType dartType, MemberEntity compiland, JClosedWorld closedWorld) {
     if (dartType is LegacyType) {
       DartType base = dartType.baseType;
       // `Never*` accepts only `null`.
       if (base is NeverType) return IsTestSpecialization.isNull;
       // `Object*` is top and should be handled by constant folding.
       if (base.isObject) return null;
-      return _findIsTestSpecialization(base, graph, closedWorld);
+      return _findIsTestSpecialization(base, compiland, closedWorld);
     }
-    return _findIsTestSpecialization(dartType, graph, closedWorld);
+    return _findIsTestSpecialization(dartType, compiland, closedWorld);
   }
 
   static IsTestSpecialization _findIsTestSpecialization(
-      DartType dartType, HGraph graph, JClosedWorld closedWorld) {
+      DartType dartType, MemberEntity compiland, JClosedWorld closedWorld) {
     if (dartType is InterfaceType) {
       ClassEntity element = dartType.element;
       JCommonElements commonElements = closedWorld.commonElements;
@@ -99,7 +100,7 @@ class SpecializedChecks {
           classHierarchy.isInstantiated(element) &&
           !interceptorData.isInterceptedClass(element) &&
           outputUnitData.hasOnlyNonDeferredImportPathsToClass(
-              graph.element, element)) {
+              compiland, element)) {
         assert(!dartType.isObject); // Checked above.
         return IsTestSpecialization.instanceof;
       }

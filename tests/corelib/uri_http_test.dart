@@ -10,10 +10,13 @@ void testHttpUri() {
   }
 
   check(new Uri.http("", ""), "http:");
+  check(new Uri.http(""), "http:");
   check(new Uri.http("@:", ""), "http://");
+  check(new Uri.http("@:"), "http://");
   check(new Uri.http("@:8080", ""), "http://:8080");
+  check(new Uri.http("@:8080"), "http://:8080");
   check(new Uri.http("@host:", ""), "http://host");
-  check(new Uri.http("@host:", ""), "http://host");
+  check(new Uri.http("@host:"), "http://host");
   check(new Uri.http("xxx:yyy@host:8080", ""), "http://xxx:yyy@host:8080");
   check(new Uri.http("host", "a"), "http://host/a");
   check(new Uri.http("host", "/a"), "http://host/a");
@@ -46,10 +49,13 @@ void testHttpsUri() {
   }
 
   check(new Uri.https("", ""), "https:");
+  check(new Uri.https(""), "https:");
   check(new Uri.https("@:", ""), "https://");
+  check(new Uri.https("@:"), "https://");
   check(new Uri.https("@:8080", ""), "https://:8080");
+  check(new Uri.https("@:8080"), "https://:8080");
   check(new Uri.https("@host:", ""), "https://host");
-  check(new Uri.https("@host:", ""), "https://host");
+  check(new Uri.https("@host:"), "https://host");
   check(new Uri.https("xxx:yyy@host:8080", ""), "https://xxx:yyy@host:8080");
   check(new Uri.https("host", "a"), "https://host/a");
   check(new Uri.https("host", "/a"), "https://host/a");

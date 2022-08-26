@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library compiler.src.inferrer.closure_tracer;
 
 import '../common/names.dart' show Identifiers, Names;
 import '../elements/entities.dart';
 import '../universe/selector.dart' show Selector;
 import 'debug.dart' as debug;
-import 'inferrer_engine.dart';
+import 'engine.dart';
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 

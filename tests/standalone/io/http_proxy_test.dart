@@ -7,8 +7,9 @@
 // OtherResources=certificates/trusted_certs.pem
 
 import "dart:async";
-import "dart:io";
 import 'dart:convert';
+import "dart:io";
+
 import "package:convert/convert.dart";
 import "package:crypto/crypto.dart";
 import "package:expect/expect.dart";

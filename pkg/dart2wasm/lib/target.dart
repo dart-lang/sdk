@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
+import 'package:_js_interop_checks/src/transformations/js_util_wasm_optimizer.dart';
+import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -18,21 +21,20 @@ import 'package:vm/transformations/ffi/definitions.dart'
 import 'package:vm/transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
 
-import 'package:dart2wasm/constants_backend.dart';
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmImmutableLinkedHashMap;
-  Class? _unmodifiableSet;
+  Class? _wasmImmutableLinkedHashSet;
   Class? _compactLinkedCustomHashMap;
-  Class? _compactLinkedHashSet;
+  Class? _compactLinkedCustomHashSet;
   Class? _oneByteString;
   Class? _twoByteString;
 
   @override
-  late final ConstantsBackend constantsBackend;
+  ConstantsBackend get constantsBackend => const ConstantsBackend();
 
   @override
   String get name => 'wasm';
@@ -42,17 +44,26 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => const <String>[
+        'dart:async',
         'dart:ffi',
         'dart:_internal',
+        'dart:_js_helper',
         'dart:typed_data',
         'dart:nativewrappers',
-        'dart:js_util_wasm',
+        'dart:js',
+        'dart:js_util',
+        'dart:wasm',
+        'dart:developer',
       ];
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
-        "dart:collection",
-        "dart:typed_data",
+        'dart:_js_helper',
+        'dart:collection',
+        'dart:typed_data',
+        'dart:js',
+        'dart:js_util',
+        'dart:wasm',
       ];
 
   void _patchHostEndian(CoreTypes coreTypes) {
@@ -70,6 +81,26 @@ class WasmTarget extends Target {
       ..parent = host;
   }
 
+  StaticInteropClassEraser _staticInteropClassEraser(
+          CoreTypes coreTypes, ReferenceFromIndex? referenceFromIndex) =>
+      StaticInteropClassEraser(coreTypes, referenceFromIndex,
+          libraryForJavaScriptObject: 'dart:_js_helper',
+          classNameOfJavaScriptObject: 'JSValue');
+
+  void _performJSInteropTransformations(
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> interopDependentLibraries,
+      ReferenceFromIndex? referenceFromIndex) {
+    final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
+    final staticInteropClassEraser =
+        _staticInteropClassEraser(coreTypes, referenceFromIndex);
+    for (Library library in interopDependentLibraries) {
+      jsUtilOptimizer.visitLibrary(library);
+      staticInteropClassEraser.visitLibrary(library);
+    }
+  }
+
   @override
   void performPreConstantEvaluationTransformations(
       Component component,
@@ -78,8 +109,14 @@ class WasmTarget extends Target {
       DiagnosticReporter diagnosticReporter,
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
-    constantsBackend = WasmConstantsBackend(coreTypes);
     _patchHostEndian(coreTypes);
+  }
+
+  @override
+  void performOutlineTransformations(Component component, CoreTypes coreTypes,
+      ReferenceFromIndex? referenceFromIndex) {
+    component.accept(StaticInteropStubCreator(
+        _staticInteropClassEraser(coreTypes, referenceFromIndex)));
   }
 
   @override
@@ -93,6 +130,16 @@ class WasmTarget extends Target {
       ReferenceFromIndex? referenceFromIndex,
       {void logger(String msg)?,
       ChangedStructureNotifier? changedStructureNotifier}) {
+    List<Library>? transitiveImportingJSInterop =
+        jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+            component, Uri.parse("package:js/js.dart"));
+    if (transitiveImportingJSInterop == null) {
+      logger?.call("Skipped JS interop transformations");
+    } else {
+      _performJSInteropTransformations(coreTypes, hierarchy,
+          transitiveImportingJSInterop, referenceFromIndex);
+      logger?.call("Transformed JS interop classes");
+    }
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
@@ -150,7 +197,7 @@ class WasmTarget extends Target {
   }
 
   @override
-  bool get supportsSetLiterals => false;
+  bool get supportsSetLiterals => true;
 
   @override
   int get enabledLateLowerings => LateLowering.all;
@@ -196,14 +243,14 @@ class WasmTarget extends Target {
 
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
-    return _compactLinkedHashSet ??=
-        coreTypes.index.getClass('dart:collection', '_CompactLinkedHashSet');
+    return _compactLinkedCustomHashSet ??= coreTypes.index
+        .getClass('dart:collection', '_CompactLinkedCustomHashSet');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
-    return _unmodifiableSet ??=
-        coreTypes.index.getClass('dart:collection', '_UnmodifiableSet');
+    return _wasmImmutableLinkedHashSet ??= coreTypes.index
+        .getClass('dart:collection', '_WasmImmutableLinkedHashSet');
   }
 
   @override

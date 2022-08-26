@@ -8,7 +8,7 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
     : self::Class::field = field, super core::Object::•()
     ;
   method returnTypeVariable() → self::Class::E% {
-    lowered self::Class::E? #result;
+    lowered has-declared-initializer self::Class::E? #result;
     lowered core::bool #result#isSet = false;
     function #result#get() → self::Class::E% {
       if(!#result#isSet) {
@@ -25,7 +25,7 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
   }
 }
 static method returnNonNullable(core::int value) → core::int {
-  lowered core::int? #result;
+  lowered has-declared-initializer core::int? #result;
   lowered core::bool #result#isSet = false;
   function #result#get() → core::int {
     if(!#result#isSet) {
@@ -41,7 +41,7 @@ static method returnNonNullable(core::int value) → core::int {
   return #result#get(){() → core::int};
 }
 static method returnNullable(core::int? value) → core::int? {
-  lowered core::int? #result;
+  lowered has-declared-initializer core::int? #result;
   lowered core::bool #result#isSet = false;
   function #result#get() → core::int? {
     if(!#result#isSet) {

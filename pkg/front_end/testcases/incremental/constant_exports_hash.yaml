@@ -11,19 +11,16 @@ worlds:
     errors: true
     sources:
       main.dart: |
-        // @dart=2.9
         export "lib1.dart" show x;
         export "lib2.dart" show x;
         main() {
           print("exports");
         }
       lib1.dart: |
-        // @dart=2.9
         x() {
           print("lib1.x!");
         }
       lib2.dart: |
-        // @dart=2.9
         x() {
           print("lib2.x!");
         }
@@ -35,19 +32,16 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         export "lib1.dart" show x;
         export "lib2.dart" show x;
         main() {
           print("exports!");
         }
       lib1.dart: |
-        // @dart=2.9
         x() {
           print("lib1.x!");
         }
       lib2.dart: |
-        // @dart=2.9
         x() {
           print("lib2.x!");
         }

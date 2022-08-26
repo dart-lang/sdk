@@ -34,25 +34,15 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
       return;
     }
 
-    // Find the build() method.
-    MethodDeclaration? buildMethod;
-    for (var member in widgetClass.members) {
-      if (member is MethodDeclaration && member.name.name == 'build') {
-        var parameters = member.parameters;
-        if (parameters != null && parameters.parameters.length == 1) {
-          buildMethod = member;
-          break;
-        }
-      }
-    }
-    if (buildMethod == null) {
-      return;
-    }
-
-    // Must be a StatelessWidget subclasses.
+    // Must be a StatelessWidget subclass.
     var widgetClassElement = widgetClass.declaredElement!;
     var superType = widgetClassElement.supertype;
     if (superType == null || !flutter.isExactlyStatelessWidgetType(superType)) {
+      return;
+    }
+
+    var buildMethod = _findBuildMethod(widgetClass);
+    if (buildMethod == null) {
       return;
     }
 
@@ -255,9 +245,17 @@ class FlutterConvertToStatefulWidget extends CorrectionProducer {
     });
   }
 
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static FlutterConvertToStatefulWidget newInstance() =>
-      FlutterConvertToStatefulWidget();
+  MethodDeclaration? _findBuildMethod(ClassDeclaration widgetClass) {
+    for (var member in widgetClass.members) {
+      if (member is MethodDeclaration && member.name.name == 'build') {
+        var parameters = member.parameters;
+        if (parameters != null && parameters.parameters.length == 1) {
+          return member;
+        }
+      }
+    }
+    return null;
+  }
 }
 
 class _FieldFinder extends RecursiveAstVisitor<void> {

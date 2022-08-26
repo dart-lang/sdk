@@ -25,7 +25,7 @@ int x;
   }
 
   test_class_prefix() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
     await _assertConst(r'''
@@ -35,7 +35,7 @@ p.A x;
   }
 
   test_class_prefix_deferred() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
     await _assertNeverConst(r'''
@@ -805,7 +805,7 @@ var x = a++;
   }
 
   test_prefixedIdentifier_importPrefix_deferred() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
     await _assertNotConst(r'''
@@ -815,7 +815,7 @@ var x = p.a + 1;
   }
 
   test_prefixedIdentifier_importPrefix_function() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 void f() {}
 ''');
     await _assertConst(r'''
@@ -825,7 +825,7 @@ var x = p.f;
   }
 
   test_prefixedIdentifier_importPrefix_topVar() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
     await _assertConst(r'''
@@ -920,7 +920,7 @@ var x = A.a + 1;
   }
 
   test_prefixedIdentifier_typedef_interfaceType() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef A = List<int>;
 ''');
     await _assertConst(r'''
@@ -978,7 +978,7 @@ var x = 'abc'.length;
   }
 
   test_propertyAccess_staticField_withPrefix_const() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const a = 0;
 }
@@ -990,7 +990,7 @@ var x = p.A.a + 1;
   }
 
   test_propertyAccess_staticField_withPrefix_deferred() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const a = 0;
 }
@@ -1002,7 +1002,7 @@ var x = p.A.a + 1;
   }
 
   test_propertyAccess_staticField_withPrefix_final() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static final a = 0;
 }
@@ -1024,7 +1024,7 @@ var x = A().a + 1;
   }
 
   test_propertyAccess_target_variable() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final a = 0;
   const A();

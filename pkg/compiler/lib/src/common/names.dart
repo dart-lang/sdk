@@ -249,6 +249,10 @@ class Uris {
   static final Uri dart__js_embedded_names =
       Uri(scheme: 'dart', path: '_js_embedded_names');
 
+  /// The URI for 'dart:_js_shared_embedded_names'.
+  static final Uri dart__js_shared_embedded_names =
+      Uri(scheme: 'dart', path: '_js_shared_embedded_names');
+
   /// The URI for 'dart:js'.
   static final Uri dart_js = Uri(scheme: 'dart', path: 'js');
 

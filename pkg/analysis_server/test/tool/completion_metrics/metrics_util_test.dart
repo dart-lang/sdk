@@ -161,6 +161,57 @@ void main() {
     });
   });
 
+  group('PercentileComputer', () {
+    test('empty', () {
+      var computer = PercentileComputer('empty', valueLimit: 2000);
+      expect(computer.median, equals(0));
+      expect(computer.valueCount, equals(0));
+    });
+
+    test('clear', () {
+      var computer = PercentileComputer('name', valueLimit: 2000);
+      computer.addValue(4);
+      computer.addValue(5);
+      computer.addValue(6);
+      computer.addValue(3000);
+
+      expect(computer.median, equals(5));
+      expect(computer.valueCount, equals(3));
+      expect(computer.aboveValueMaxCount, equals(1));
+      computer.clear();
+
+      expect(computer.median, equals(0));
+      expect(computer.valueCount, equals(0));
+      expect(computer.aboveValueMaxCount, equals(0));
+      expect(computer.aboveValueMaxSamples, isEmpty);
+    });
+
+    test('percentiles', () {
+      var computer = PercentileComputer('name', valueLimit: 2000);
+      for (var i = 0; i < 100; i++) {
+        computer.addValue(i);
+      }
+
+      expect(computer.median, equals(50));
+      expect(computer.p90, equals(90));
+      expect(computer.p95, equals(95));
+    });
+
+    test('values above maxValue', () {
+      var computer = PercentileComputer('name', valueLimit: 2000);
+
+      computer.addValue(1);
+      computer.addValue(2);
+      computer.addValue(3);
+      computer.addValue(2500);
+      computer.addValue(3000);
+
+      expect(computer.median, equals(2));
+      expect(computer.aboveValueMaxCount, equals(2));
+      expect(computer.aboveValueMaxSamples, equals([2500, 3000]));
+    });
+  });
+
   group('Place', () {
     test('none', () {
       var place = Place.none();

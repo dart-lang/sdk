@@ -11,7 +11,7 @@ import 'macro_lib.dart';
 import 'apply_lib_dep.dart';
 
 /*class: Class:
- appliedMacros=[Macro1.new],
+ appliedMacros=[Macro1.new()],
  macrosAreApplied
 */
 @Macro1()

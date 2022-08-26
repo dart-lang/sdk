@@ -234,6 +234,18 @@ ProcessedOptions analyzeCommandLine(String programName,
     });
   }
 
+  // In order to facilitate the roll out of CFE constants on Dart2js, we need to
+  // be able to support both passing '--no-defines' and also evaluating CFE
+  // constants when the target supports it. This is so we can easily enable or
+  // disable fully evaluating constants in the CFE with a flag. This can be
+  // deleted when the CFE fully evaluates constants for Dart2js in all cases.
+  Map<String, String>? environmentDefines;
+  if (noDefines && target.constantsBackend.supportsUnevaluatedConstants) {
+    // Pass a null environment.
+  } else {
+    environmentDefines = parsedOptions.defines;
+  }
+
   CompilerOptions compilerOptions = new CompilerOptions()
     ..compileSdk = compileSdk
     ..fileSystem = fileSystem
@@ -249,7 +261,7 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..verify = verify
     ..skipPlatformVerification = skipPlatformVerification
     ..explicitExperimentalFlags = explicitExperimentalFlags
-    ..environmentDefines = noDefines ? null : parsedOptions.defines
+    ..environmentDefines = environmentDefines
     ..nnbdMode = nnbdMode
     ..enableUnscheduledExperiments = enableUnscheduledExperiments
     ..additionalDills = linkDependencies

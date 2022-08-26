@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 library dart2js.src.options;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
@@ -85,19 +83,38 @@ class FeatureOptions {
   /// dump-info's output.
   FeatureOption newDumpInfo = FeatureOption('new-dump-info');
 
+  /// Whether to implement some simple async functions using Futures directly
+  /// to reduce generated code size.
+  FeatureOption simpleAsyncToFuture = FeatureOption('simple-async-to-future');
+
+  /// Whether or not the CFE should evaluate constants.
+  FeatureOption cfeConstants = FeatureOption('cfe-constants');
+
+  /// Whether or not to intern composite values during deserialization
+  /// (e.g. DartType).
+  FeatureOption internValues = FeatureOption('intern-composite-values');
+
+  /// Whether to use deferred serialization strategy. This changes serialized
+  /// data structure to allow map value deserialization to be deferred.
+  FeatureOption deferredSerialization = FeatureOption('deferred-serialization');
+
   /// [FeatureOption]s which are shipped and cannot be toggled.
-  late final List<FeatureOption> shipped = [
-    newHolders,
-    legacyJavaScript,
-  ];
+  late final List<FeatureOption> shipped = [newHolders, legacyJavaScript];
 
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
+    deferredSerialization,
     useContentSecurityPolicy,
   ];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [writeUtf8, newDumpInfo];
+  late final List<FeatureOption> canary = [
+    writeUtf8,
+    newDumpInfo,
+    simpleAsyncToFuture,
+    cfeConstants,
+    internValues,
+  ];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {
@@ -198,7 +215,7 @@ class CompilerOptions implements DiagnosticOptions {
   Uri? writeModularAnalysisUri;
 
   /// Helper to determine if compiler is being run just for modular analysis.
-  bool get modularMode => writeModularAnalysisUri != null;
+  bool get modularMode => writeModularAnalysisUri != null && !cfeOnly;
 
   List<Uri>? modularAnalysisInputs;
 

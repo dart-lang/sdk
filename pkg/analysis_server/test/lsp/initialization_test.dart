@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'dart:async';
+
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,11 +18,22 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InitializationTest);
+    defineReflectiveTests(SlowInitializationTest);
   });
 }
 
 @reflectiveTest
 class InitializationTest extends AbstractLspAnalysisServerTest {
+  /// Waits for any in-progress analysis context rebuild.
+  ///
+  /// Pumps the event queue before and after, to ensure any server code that
+  /// runs after the rebuild has had chance to run.
+  Future<void> get contextRebuildComplete async {
+    await pumpEventQueue(times: 5000);
+    await server.analysisContextsRebuilt;
+    await pumpEventQueue(times: 5000);
+  }
+
   TextDocumentRegistrationOptions registrationOptionsFor(
     List<Registration> registrations,
     Method method,
@@ -33,15 +46,15 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_bazelWorkspace() async {
     var workspacePath = '/home/user/ws';
     // Make it a Bazel workspace.
-    newFile2(convertPath('$workspacePath/WORKSPACE'), '');
+    newFile(convertPath('$workspacePath/WORKSPACE'), '');
 
     var packagePath = '$workspacePath/team/project1';
 
     // Make it a Blaze project.
-    newFile2(convertPath('$packagePath/BUILD'), '');
+    newFile(convertPath('$packagePath/BUILD'), '');
 
     final file1 = convertPath('$packagePath/lib/file1.dart');
-    newFile2(file1, '');
+    newFile(file1, '');
 
     await initialize(allowEmptyRootUri: true);
 
@@ -94,7 +107,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_completionRegistrations_withDartPlugin() async {
     // This tests for a bug that occurred with an analysis server plugin
     // that works on Dart files. When computing completion registrations we
-    // usually have seperate registrations for Dart + non-Dart to account for
+    // usually have separate registrations for Dart + non-Dart to account for
     // different trigger characters. However, the plugin types were all being
     // included in the non-Dart registration even if they included Dart.
     //
@@ -307,12 +320,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // request text document open/close and incremental updates.
     expect(initResult.capabilities.textDocumentSync, isNotNull);
     initResult.capabilities.textDocumentSync!.map(
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
     expect(initResult.capabilities.completionProvider, isNotNull);
     expect(initResult.capabilities.hoverProvider, isNotNull);
@@ -371,7 +384,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.capabilities, isNotNull);
 
-    // Ensure no static registrations. This list should include all server equivilents
+    // Ensure no static registrations. This list should include all server equivalents
     // of the dynamic registrations listed in `ClientDynamicRegistrations.supported`.
     expect(initResult.capabilities.textDocumentSync, isNull);
     expect(initResult.capabilities.completionProvider, isNull);
@@ -478,8 +491,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
             .registrations;
 
     final documentFilterSql =
-        DocumentFilter(scheme: 'file', pattern: '**/*.sql');
-    final documentFilterDart = DocumentFilter(language: 'dart', scheme: 'file');
+        TextDocumentFilterWithScheme(scheme: 'file', pattern: '**/*.sql');
+    final documentFilterDart =
+        TextDocumentFilterWithScheme(language: 'dart', scheme: 'file');
 
     expect(
       registrations,
@@ -495,13 +509,61 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  /// Tests that when there are no explicit analysis roots (instead they are
+  /// implied by open files), requests for open files are successful even if
+  /// sent _immediately_ after opening the file.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/3929
+  ///
+  /// This test uses getDocumentSymbols which requires a resolved result.
+  Future<void>
+      test_emptyAnalysisRoots_handlesFileRequestsImmediately_resolved() async {
+    const content = 'void f() {}';
+    final file1 = join(projectFolderPath, 'file1.dart');
+    final file1Uri = Uri.file(file1);
+    newFile(file1, content);
+    newPubspecYamlFile(projectFolderPath, '');
+
+    await initialize(allowEmptyRootUri: true);
+
+    unawaited(openFile(file1Uri, content)); // Don't wait
+    final result = await getDocumentSymbols(file1Uri);
+    final symbols = result.map(
+      (docSymbols) => docSymbols,
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(1));
+  }
+
+  /// Tests that when there are no explicit analysis roots (instead they are
+  /// implied by open files), requests for open files are successful even if
+  /// sent _immediately_ after opening the file.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/3929
+  ///
+  /// This test uses getSelectionRanges which requires only a parsed result.
+  Future<void>
+      test_emptyAnalysisRoots_handlesFileRequestsImmediately_unresolved() async {
+    const content = 'void f() {}';
+    final file1 = join(projectFolderPath, 'file1.dart');
+    final file1Uri = Uri.file(file1);
+    newFile(file1, content);
+    newPubspecYamlFile(projectFolderPath, '');
+
+    await initialize(allowEmptyRootUri: true);
+
+    unawaited(openFile(file1Uri, content)); // Don't wait
+    final result = await getSelectionRanges(file1Uri, [startOfDocPos]);
+    expect(result, hasLength(1));
+  }
+
   Future<void> test_emptyAnalysisRoots_multipleOpenFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
     final file1Uri = Uri.file(file1);
-    newFile2(file1, '');
+    newFile(file1, '');
     final file2 = join(projectFolderPath, 'file2.dart');
     final file2Uri = Uri.file(file2);
-    newFile2(file2, '');
+    newFile(file2, '');
     newPubspecYamlFile(projectFolderPath, '');
 
     await initialize(allowEmptyRootUri: true);
@@ -509,12 +571,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Opening both files should only add the project folder once.
     await openFile(file1Uri, '');
     await openFile(file2Uri, '');
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Closing only one of the files should not remove the project folder
     // since there are still open files.
     resetContextBuildCounter();
     await closeFile(file1Uri);
+    await pumpEventQueue(times: 5000);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
     expectNoContextBuilds();
 
@@ -522,6 +586,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // the context.
     resetContextBuildCounter();
     await closeFile(file2Uri);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([]));
     expect(server.contextManager.driverMap, hasLength(0));
     expectContextBuilds();
@@ -532,7 +597,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile2(nestedFilePath, '');
+    newFile(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
     await initialize(allowEmptyRootUri: true);
@@ -547,7 +612,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile2(nestedFilePath, '');
+    newFile(nestedFilePath, '');
     newPubspecYamlFile(projectFolderPath, '');
 
     // The project folder shouldn't be added to start with.
@@ -556,15 +621,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     // Opening a file nested within the project should add the project folder.
     await openFile(nestedFileUri, '');
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Ensure the file was cached in each driver. This happens as a result of
     // adding to priority files, but if that's done before the file is in an
     // analysis root it will not occur.
     // https://github.com/dart-lang/sdk/issues/37338
-    server.driverMap.values.forEach((driver) {
+    for (var driver in server.driverMap.values) {
       expect(driver.getCachedResult(nestedFilePath), isNotNull);
-    });
+    }
 
     // Closing the file should remove it.
     await closeFile(nestedFileUri);
@@ -631,13 +697,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Check some basic capabilities that are unlikely to change.
     expect(result.capabilities.textDocumentSync, isNotNull);
     result.capabilities.textDocumentSync!.map(
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a TextDocumentSyncOptions',
       (options) {
         // We'll always request open/closed notifications and incremental updates.
         expect(options.openClose, isTrue);
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
   }
 
@@ -736,7 +802,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_nonProjectFiles_basicWorkspace() async {
     final file1 = convertPath('/home/nonProject/file1.dart');
-    newFile2(file1, '');
+    newFile(file1, '');
 
     await initialize(allowEmptyRootUri: true);
 
@@ -747,10 +813,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_nonProjectFiles_bazelWorkspace() async {
     final file1 = convertPath('/home/nonProject/file1.dart');
-    newFile2(file1, '');
+    newFile(file1, '');
 
     // Make /home a bazel workspace.
-    newFile2(convertPath('/home/WORKSPACE'), '');
+    newFile(convertPath('/home/WORKSPACE'), '');
 
     await initialize(allowEmptyRootUri: true);
 
@@ -781,10 +847,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
     final file1Uri = Uri.file(file1);
-    newFile2(file1, '');
+    newFile(file1, '');
     final file2 = join(projectFolderPath, 'file2.dart');
     final file2Uri = Uri.file(file2);
-    newFile2(file2, '');
+    newFile(file2, '');
     newPubspecYamlFile(projectFolderPath, '');
 
     await initialize(
@@ -795,12 +861,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Opening both files should only add the project folder once.
     await openFile(file1Uri, '');
     await openFile(file2Uri, '');
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
     expect(server.contextManager.driverMap, hasLength(1));
 
     // Closing only one of the files should not remove the root or rebuild the context.
     resetContextBuildCounter();
     await closeFile(file1Uri);
+    await pumpEventQueue(times: 5000);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
     expect(server.contextManager.driverMap, hasLength(1));
     expectNoContextBuilds();
@@ -809,6 +877,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // the context.
     resetContextBuildCounter();
     await closeFile(file2Uri);
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([]));
     expect(server.contextManager.driverMap, hasLength(0));
     expectContextBuilds();
@@ -819,7 +888,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile2(nestedFilePath, '');
+    newFile(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
     await initialize(
@@ -837,7 +906,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
     final nestedFileUri = Uri.file(nestedFilePath);
-    newFile2(nestedFilePath, '');
+    newFile(nestedFilePath, '');
     newPubspecYamlFile(projectFolderPath, '');
 
     // The project folder shouldn't be added to start with.
@@ -850,15 +919,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Opening a file nested within the project should cause the project folder
     // to be added
     await openFile(nestedFileUri, '');
+    await contextRebuildComplete;
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
     // Ensure the file was cached in each driver. This happens as a result of
     // adding to priority files, but if that's done before the file is in an
     // analysis root it will not occur.
     // https://github.com/dart-lang/sdk/issues/37338
-    server.driverMap.values.forEach((driver) {
+    for (var driver in server.driverMap.values) {
       expect(driver.getCachedResult(nestedFilePath), isNotNull);
-    });
+    }
 
     // Closing the file should remove it.
     await closeFile(nestedFileUri);
@@ -895,15 +965,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.error, isNotNull);
     expect(response.error!.code, ErrorCodes.ServerNotInitialized);
   }
+}
 
-  String withTrailingSlash(String path) {
-    expect(path, isNot(endsWith('/')));
-    final pathSeparator = server.resourceProvider.pathContext.separator;
-    return '$path$pathSeparator';
-  }
-
-  Uri withTrailingSlashUri(Uri uri) {
-    expect(uri.path, isNot(endsWith('/')));
-    return uri.replace(path: '${uri.path}/');
-  }
+/// Runs all initialization tests with a resource provider that slowly
+/// initializes watchers to simulate delays in real fs watchers.
+@reflectiveTest
+class SlowInitializationTest extends InitializationTest {
+  @override
+  MemoryResourceProvider resourceProvider = MemoryResourceProvider(
+    // Force the in-memory file watchers to be slowly initialized to emulate
+    // the physical watchers (for test_concurrentContextRebuilds).
+    delayWatcherInitialization: Duration(milliseconds: 1),
+  );
 }

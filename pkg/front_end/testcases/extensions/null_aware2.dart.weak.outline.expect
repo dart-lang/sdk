@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? field;
+  synthetic constructor •() → self::Class
+    ;
+}
+extension Extension on self::Class {
+  get property = self::Extension|get#property;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  method testImplicitThis = self::Extension|testImplicitThis;
+  tearoff testImplicitThis = self::Extension|get#testImplicitThis;
+  set property = self::Extension|set#property;
+}
+static method Extension|get#property(lowered final self::Class #this) → core::int?
+  ;
+static method Extension|set#property(lowered final self::Class #this, core::int? value) → void
+  ;
+static method Extension|method(lowered final self::Class #this) → core::int?
+  ;
+static method Extension|get#method(lowered final self::Class #this) → () → core::int?
+  return () → core::int? => self::Extension|method(#this);
+static method Extension|testImplicitThis(lowered final self::Class #this) → dynamic
+  ;
+static method Extension|get#testImplicitThis(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|testImplicitThis(#this);
+static method main() → dynamic
+  ;
+static method test1(self::Class? c) → dynamic
+  ;
+static method test2(self::Class? c) → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

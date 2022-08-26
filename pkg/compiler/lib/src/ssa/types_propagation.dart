@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../common/elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -441,6 +443,20 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
       assert(!(input is HParameterValue && input.usedAsVariable()));
+      input.replaceAllUsersDominatedBy(instruction.next, instruction);
+    }
+    return outputType;
+  }
+
+  @override
+  AbstractValue visitLateReadCheck(HLateReadCheck instruction) {
+    HInstruction input = instruction.checkedInput;
+    AbstractValue inputType = input.instructionType;
+    AbstractValue outputType =
+        abstractValueDomain.excludeLateSentinel(inputType);
+    if (inputType != outputType) {
+      // Replace dominated uses of input with uses of this check so the uses
+      // benefit from the stronger type.
       input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
     return outputType;

@@ -10,7 +10,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/deferred_load/output_unit.dart';
+import 'package:compiler/src/deferred_load/output_unit.dart' show OutputUnit;
 import 'package:compiler/src/js_emitter/startup_emitter/fragment_merger.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
@@ -86,7 +86,7 @@ void main() {
 }
 
 // The main library imports lib1 and lib2 deferred and use lib1.foo1 and
-// lib2.foo2.  This should trigger seperate output units for main, lib1 and
+// lib2.foo2.  This should trigger separate output units for main, lib1 and
 // lib2.
 //
 // Both lib1 and lib2 import lib3 directly and

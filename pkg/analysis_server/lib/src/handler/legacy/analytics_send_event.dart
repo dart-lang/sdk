@@ -4,25 +4,21 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 
 /// The handler for the `analytics.sendEvent` request.
 class AnalyticsSendEventHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  AnalyticsSendEventHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  AnalyticsSendEventHandler(
+      super.server, super.request, super.cancellationToken);
 
   String get _clientId => server.options.clientId ?? 'client';
 
   @override
   Future<void> handle() async {
-    final analytics = server.analytics;
+    final analytics = server.options.analytics;
     if (analytics == null) {
       sendResult(AnalyticsSendEventResult());
       return;

@@ -10,26 +10,20 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:path/path.dart';
 import 'package:test_runner/src/multitest.dart';
 import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
 import 'package:test_runner/src/update_errors.dart';
-import 'package:test_runner/src/vendored_pkg/args/args.dart';
 
 import 'update_static_error_tests.dart' show runAnalyzer, runCfe;
 
 Future<List<StaticError>> getErrors(
     List<String> options, String filePath) async {
-  var analyzerErrors = await runAnalyzer(filePath, options);
-  if (analyzerErrors == null) {
-    exit(1);
-  }
-  var cfeErrors = await runCfe(filePath, options);
-  if (cfeErrors == null) {
-    exit(1);
-  }
+  var analyzerErrors = await runAnalyzer(File(filePath), options);
+  var cfeErrors = await runCfe(File(filePath), options);
   return [...analyzerErrors, ...cfeErrors];
 }
 
@@ -87,7 +81,7 @@ CleanedMultiTest removeMultiTestMarker(String test) {
       throw "internal error: cannot process line '$line'";
     } else if (matches.length == 1) {
       var match = matches.single;
-      var annotation = Annotation.tryParse(line);
+      var annotation = Annotation.tryParse(line)!;
       if (annotation.outcomes.length != 1) {
         throw UnableToConvertException("annotation has multiple outcomes");
       }
@@ -247,13 +241,13 @@ Future<void> main(List<String> arguments) async {
   var parser = ArgParser();
   parser.addFlag("verbose", abbr: "v", help: "print additional information");
   parser.addFlag("write", abbr: "w", help: "write output to input file");
-  parser.addOption("enable-experiment",
-      help: "Enable one or more experimental features", allowMultiple: true);
+  parser.addMultiOption("enable-experiment",
+      defaultsTo: <String>[], help: "Enable one or more experimental features");
 
   var results = parser.parse(arguments);
   if (results.rest.isEmpty) {
     print("Usage: convert_multi_test.dart [-v] [-w] <input files>");
-    print(parser.getUsage());
+    print(parser.usage);
     exitCode = 1;
     return;
   }

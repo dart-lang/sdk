@@ -9,7 +9,7 @@ declare_args() {
   #
   # This is used in rules that need to refer to `.git/logs/HEAD` to include
   # a hash in the version string. By default the folder is `.git`, but we define
-  # it as an argument so it can be overriden by users of `git-worktree` (See
+  # it as an argument so it can be overridden by users of `git-worktree` (See
   # Issue #33619).
   #
   # When using git-worktree, you can add

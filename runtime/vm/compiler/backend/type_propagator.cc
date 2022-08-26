@@ -853,7 +853,20 @@ bool CompileType::IsAssignableTo(const AbstractType& other) {
   if (other.IsTopTypeForSubtyping()) {
     return true;
   }
-  if (IsNone()) {
+  // If we allow comparisons against an uninstantiated type, then we can
+  // end up incorrectly optimizing away AssertAssignables where the incoming
+  // value and outgoing value have CompileTypes that would return true to the
+  // subtype check below, but at runtime are instantiated with different type
+  // argument vectors such that the relation does not hold for the runtime
+  // instantiated values.
+  //
+  // We might consider using an approximation of the uninstantiated type,
+  // like the instantiation to bounds, and compare to that. However, in
+  // vm/dart_2/regress_b_230945329_test.dart we have a case where the compared
+  // uninstantiated type is the same as the one in the CompileType. Thus, no
+  // approach will be able to distinguish the two types, and so we fail the
+  // comparison in all cases.
+  if (IsNone() || !other.IsInstantiated()) {
     return false;
   }
   if (is_nullable() && !Instance::NullIsAssignableTo(other)) {
@@ -936,6 +949,43 @@ bool CompileType::CanBeSmi() {
     return cid_ == kSmiCid;
   }
   return CanPotentiallyBeSmi(*ToAbstractType(), /*recurse=*/true);
+}
+
+bool CompileType::CanBeFuture() {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  ObjectStore* object_store = isolate_group->object_store();
+
+  if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
+    if ((cid_ == kNullCid) || (cid_ == kNeverCid)) {
+      return false;
+    }
+    const Class& cls = Class::Handle(isolate_group->class_table()->At(cid_));
+    return Class::IsSubtypeOf(
+        cls, TypeArguments::null_type_arguments(), Nullability::kNonNullable,
+        Type::Handle(object_store->non_nullable_future_rare_type()),
+        Heap::kNew);
+  }
+
+  AbstractType& type = AbstractType::Handle(ToAbstractType()->ptr());
+  if (type.IsTypeParameter()) {
+    type = TypeParameter::Cast(type).bound();
+  }
+  if (type.IsTypeParameter()) {
+    // Type parameter bounds can be cyclic, do not bother handling them here.
+    return true;
+  }
+  const intptr_t type_class_id = type.type_class_id();
+  if (type_class_id == kDynamicCid || type_class_id == kVoidCid ||
+      type_class_id == kInstanceCid || type_class_id == kFutureOrCid) {
+    return true;
+  }
+  if ((type_class_id == kNullCid) || (type_class_id == kNeverCid)) {
+    return false;
+  }
+  Type& future_type =
+      Type::Handle(object_store->non_nullable_future_rare_type());
+  future_type = future_type.ToNullability(Nullability::kNullable, Heap::kNew);
+  return type.IsSubtypeOf(future_type, Heap::kNew);
 }
 
 void CompileType::PrintTo(BaseTextBuffer* f) const {

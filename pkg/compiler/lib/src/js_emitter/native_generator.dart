@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.js_emitter.native_generator;
 
-import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/synced/embedded_names.dart' as embeddedNames;
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;

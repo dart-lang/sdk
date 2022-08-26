@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -13,8 +11,7 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 class DependencyValidator extends BasePubspecValidator {
-  DependencyValidator(ResourceProvider provider, Source source)
-      : super(provider, source);
+  DependencyValidator(super.provider, super.source);
 
   /// Validate the value of the required `name` field.
   void validate(ErrorReporter reporter, Map<dynamic, YamlNode> contents) {

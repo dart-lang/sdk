@@ -1,7 +1,9 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // @dart=2.9
+
 /*@testedFeatures=inference*/
 library test;
 
@@ -22,42 +24,42 @@ class Test {
   B member;
 
   static void test(Test t) {
-    t. /*@target=Test.member*/ member = /*@ typeArgs=B* */ f();
-    /*@ type=Test* */ /*@target=Test.member*/ t. /*@target=Test.member*/ member
-         ??= /*@ typeArgs=B* */ f();
-    /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
-        /*@target=B.+*/ += /*@ typeArgs=C* */ f();
-    /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
-        /*@target=B.**/ *= /*@ typeArgs=B* */ f();
-    /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
-        /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
-    /*@target=B.-*/ -- /*@ type=Test* */ t
+    t. /*@target=Test.member*/ member = /*@typeArgs=B**/ f();
+    /*@type=Test**/ /*@target=Test.member*/ t. /*@target=Test.member*/ member
+         ??= /*@typeArgs=B**/ f();
+    /*@type=Test**/ t. /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.+*/ += /*@typeArgs=C**/ f();
+    /*@type=Test**/ t. /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.**/ *= /*@typeArgs=B**/ f();
+    /*@type=Test**/ t. /*@target=Test.member*/ /*@target=Test.member*/ member
+        /*@target=B.&*/ &= /*@typeArgs=A**/ f();
+    /*@target=B.-*/ -- /*@type=Test**/ t
         . /*@target=Test.member*/ /*@target=Test.member*/ member;
-    /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
+    /*@type=Test**/ t. /*@target=Test.member*/ /*@target=Test.member*/ member
         /*@target=B.-*/ --;
-    var /*@ type=B* */ v1 =
-        t. /*@target=Test.member*/ member = /*@ typeArgs=B* */ f();
-    var /*@ type=B* */ v2 =
-        /*@ type=Test* */ /*@target=Test.member*/ t
+    var /*@type=B**/ v1 =
+        t. /*@target=Test.member*/ member = /*@typeArgs=B**/ f();
+    var /*@type=B**/ v2 =
+        /*@type=Test**/ /*@target=Test.member*/ t
                 . /*@target=Test.member*/ member
-             ??= /*@ typeArgs=B* */ f();
-    var /*@ type=A* */ v3 =
-        /*@ type=Test* */ t
+             ??= /*@typeArgs=B**/ f();
+    var /*@type=A**/ v3 =
+        /*@type=Test**/ t
                 . /*@target=Test.member*/ /*@target=Test.member*/ member
-            /*@target=B.+*/ += /*@ typeArgs=C* */ f();
-    var /*@ type=B* */ v4 =
-        /*@ type=Test* */ t
+            /*@target=B.+*/ += /*@typeArgs=C**/ f();
+    var /*@type=B**/ v4 =
+        /*@type=Test**/ t
                 . /*@target=Test.member*/ /*@target=Test.member*/ member
-            /*@target=B.**/ *= /*@ typeArgs=B* */ f();
-    var /*@ type=C* */ v5 =
-        /*@ type=Test* */ t
+            /*@target=B.**/ *= /*@typeArgs=B**/ f();
+    var /*@type=C**/ v5 =
+        /*@type=Test**/ t
                 . /*@target=Test.member*/ /*@target=Test.member*/ member
-            /*@target=B.&*/ &= /*@ typeArgs=A* */ f();
-    var /*@ type=B* */ v6 = /*@target=B.-*/ -- /*@ type=Test* */ t
+            /*@target=B.&*/ &= /*@typeArgs=A**/ f();
+    var /*@type=B**/ v6 = /*@target=B.-*/ -- /*@type=Test**/ t
         . /*@target=Test.member*/ /*@target=Test.member*/ member;
-    var /*@ type=B* */ v7 = /*@ type=Test* */ t
-        . /*@ type=B* */ /*@target=Test.member*/ /*@target=Test.member*/
-        /*@ type=B* */ member /*@target=B.-*/ --;
+    var /*@type=B**/ v7 = /*@type=Test**/ t
+        . /*@type=B**/ /*@target=Test.member*/ /*@target=Test.member*/
+        /*@type=B**/ member /*@target=B.-*/ --;
   }
 }
 

@@ -17,6 +17,7 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
 import 'core.dart';
+import 'experiments.dart';
 import 'sdk.dart';
 import 'utils.dart';
 
@@ -33,6 +34,7 @@ class AnalysisServer {
     this.cacheDirectoryPath,
     required this.commandName,
     required this.argResults,
+    this.enabledExperiments = const [],
   });
 
   final String? cacheDirectoryPath;
@@ -41,6 +43,7 @@ class AnalysisServer {
   final List<FileSystemEntity> analysisRoots;
   final String commandName;
   final ArgResults? argResults;
+  final List<String> enabledExperiments;
 
   Process? _process;
 
@@ -103,6 +106,8 @@ class AnalysisServer {
       sdkPath.path,
       if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',
       if (packagesFile != null) '--packages=${packagesFile!.path}',
+      if (enabledExperiments.isNotEmpty)
+        '--$experimentFlagName=${enabledExperiments.join(',')}'
     ];
 
     final process = await startDartProcess(sdk, command);

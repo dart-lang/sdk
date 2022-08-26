@@ -18,71 +18,10 @@
 namespace dart {
 namespace bin {
 
-class PosixConsole {
- public:
-  static const tcflag_t kInvalidFlag = -1;
-
-  static void Initialize() {
-    SaveMode(STDOUT_FILENO, &stdout_initial_c_lflag_);
-    SaveMode(STDERR_FILENO, &stderr_initial_c_lflag_);
-    SaveMode(STDIN_FILENO, &stdin_initial_c_lflag_);
-  }
-
-  static void Cleanup() {
-    RestoreMode(STDOUT_FILENO, stdout_initial_c_lflag_);
-    RestoreMode(STDERR_FILENO, stderr_initial_c_lflag_);
-    RestoreMode(STDIN_FILENO, stdin_initial_c_lflag_);
-    ClearLFlags();
-  }
-
- private:
-  static tcflag_t stdout_initial_c_lflag_;
-  static tcflag_t stderr_initial_c_lflag_;
-  static tcflag_t stdin_initial_c_lflag_;
-
-  static void ClearLFlags() {
-    stdout_initial_c_lflag_ = kInvalidFlag;
-    stderr_initial_c_lflag_ = kInvalidFlag;
-    stdin_initial_c_lflag_ = kInvalidFlag;
-  }
-
-  static void SaveMode(intptr_t fd, tcflag_t* flag) {
-    ASSERT(flag != NULL);
-    struct termios term;
-    int status = TEMP_FAILURE_RETRY(tcgetattr(fd, &term));
-    if (status != 0) {
-      return;
-    }
-    *flag = term.c_lflag;
-  }
-
-  static void RestoreMode(intptr_t fd, tcflag_t flag) {
-    if (flag == kInvalidFlag) {
-      return;
-    }
-    struct termios term;
-    int status = TEMP_FAILURE_RETRY(tcgetattr(fd, &term));
-    if (status != 0) {
-      return;
-    }
-    term.c_lflag = flag;
-    VOID_TEMP_FAILURE_RETRY(tcsetattr(fd, TCSANOW, &term));
-  }
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(PosixConsole);
-};
-
-tcflag_t PosixConsole::stdout_initial_c_lflag_ = PosixConsole::kInvalidFlag;
-tcflag_t PosixConsole::stderr_initial_c_lflag_ = PosixConsole::kInvalidFlag;
-tcflag_t PosixConsole::stdin_initial_c_lflag_ = PosixConsole::kInvalidFlag;
-
 void Console::SaveConfig() {
-  PosixConsole::Initialize();
 }
 
 void Console::RestoreConfig() {
-  PosixConsole::Cleanup();
 }
 
 }  // namespace bin

@@ -34,6 +34,7 @@ Trigger builds to check recipe changes
 Trigger builds to check recipe changes
 Trigger builds to check recipe changes
 Trigger builds to test builder configuration change
+Trigger mac builds now that the snoopy service is installed
 
 Analyzer branch commits:
 Force build on new analyzer-branch linux build with new workflow

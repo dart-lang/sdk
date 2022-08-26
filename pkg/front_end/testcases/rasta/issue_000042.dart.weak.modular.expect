@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -59,7 +59,7 @@ static method main() → dynamic {
   }
   try {
   }
-  on core::NoSuchMethodError* catch(no-exception-var) {
+  on core::NoSuchMethodError catch(no-exception-var) {
   }
 }
 

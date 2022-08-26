@@ -6,8 +6,10 @@ import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
@@ -18,26 +20,72 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
+import 'package:test/test.dart';
 
+import '../analysis/analyzer_state_printer.dart' as printer;
+import '../resolution/node_text_expectations.dart';
 import '../resolution/resolution.dart';
 
 /// [FileResolver] based implementation of [ResolutionTest].
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   static final String _testFile = '/workspace/dart/test/lib/test.dart';
 
-  final CiderCachedByteStore byteStore =
-      CiderCachedByteStore(20 * 1024 * 1024 /* 20 MB */);
+  final MemoryByteStore byteStore = MemoryByteStore();
+
+  final FileResolverTestData testData = FileResolverTestData();
 
   final StringBuffer logBuffer = StringBuffer();
   late PerformanceLog logger;
 
   late FileResolver fileResolver;
 
+  final printer.IdProvider _idProvider = printer.IdProvider();
+
+  FileSystemState get fsState => fileResolver.fsState!;
+
+  LibraryContext get libraryContext {
+    return fileResolver.libraryContext!;
+  }
+
   Folder get sdkRoot => newFolder('/sdk');
+
+  File get testFile => getFile(testFilePath);
+
+  @override
+  String get testFilePath => _testFile;
+
+  String get testPackageLibPath => '$testPackageRootPath/lib';
+
+  String get testPackageRootPath => '$workspaceRootPath/dart/test';
+
+  String get workspaceRootPath => '/workspace';
 
   @override
   void addTestFile(String content) {
-    newFile2(_testFile, content);
+    newFile(_testFile, content);
+  }
+
+  void assertStateString(
+    String expected, {
+    bool omitSdkFiles = true,
+  }) {
+    final buffer = StringBuffer();
+    printer.AnalyzerStatePrinter(
+      byteStore: byteStore,
+      idProvider: _idProvider,
+      libraryContext: libraryContext,
+      omitSdkFiles: omitSdkFiles,
+      resourceProvider: resourceProvider,
+      sink: buffer,
+      withKeysGetPut: true,
+    ).writeFileResolver(testData);
+    final actual = buffer.toString();
+
+    if (actual != expected) {
+      print(actual);
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
   }
 
   /// Create a new [FileResolver] into [fileResolver].
@@ -49,8 +97,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       convertPath(_testFile),
     )!;
 
-    byteStore.testView = CiderByteStoreTestView();
-    fileResolver = FileResolver.from(
+    fileResolver = FileResolver(
       logger: logger,
       resourceProvider: resourceProvider,
       byteStore: byteStore,
@@ -61,9 +108,9 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       getFileDigest: (String path) => _getDigest(path),
       workspace: workspace,
       prefetchFiles: null,
-      isGenerated: null,
+      isGenerated: (_) => false,
+      testData: testData,
     );
-    fileResolver.testView = FileResolverTestView();
   }
 
   Future<ErrorsResult> getTestErrors() async {
@@ -100,8 +147,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       root: sdkRoot,
     );
 
-    newFile2('/workspace/WORKSPACE', '');
-    newFile2('/workspace/dart/test/BUILD', r'''
+    newFile('/workspace/WORKSPACE', '');
+    newFile('/workspace/dart/test/BUILD', r'''
 dart_package(
   null_safety = True,
 )

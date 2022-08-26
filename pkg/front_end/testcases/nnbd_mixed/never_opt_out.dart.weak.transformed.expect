@@ -53,16 +53,16 @@ class C extends nev::A {
   synthetic constructor •() → self::C*
     : super nev::A::•()
     ;
-  method neverMethod(Null value) → Never*
+  method neverMethod(Never* value) → Never*
     return value;
   get neverProperty() → Never*
     return null;
-  set neverProperty(Null value) → void {}
-  method nullMethod(Null value) → Never*
+  set neverProperty(Never* value) → void {}
+  method nullMethod(Never* value) → Never*
     return value;
   get nullProperty() → Never*
     return null;
-  set nullProperty(Null value) → void {}
+  set nullProperty(Never* value) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -82,8 +82,8 @@ static method main() → dynamic {
   core::Type* typeNever = #C1;
   self::genericMethod<Never*>();
   new self::GenericClass::•<Never*>();
-  Never* localNever = null;
-  Null localNull = null;
+  has-declared-initializer Never* localNever = null;
+  has-declared-initializer Null localNull = null;
   dynamic inferredLocalNever = nev::optInNever;
   localNever = localNever;
   self::optOutNever = localNever;
@@ -132,7 +132,7 @@ static method main() → dynamic {
     dynamic boundedGenericMethodResult1 = nev::boundedGenericMethod1<Null>();
   });
   core::List<Null>* boundedGenericMethodResult2 = nev::boundedGenericMethod2<Null>();
-  dynamic dyn = null;
+  has-declared-initializer dynamic dyn = null;
   nev::optInNever = dyn as{TypeError,ForDynamic} Never;
 }
 static method throws(() →* void f) → dynamic {

@@ -69,7 +69,7 @@ class SnippetManagerTest extends AbstractSingleUnitTest {
 /// A snippet producer that always returns `false` from [isValid] and throws
 /// if [compute] is called.
 class _NotValidSnippetProducer extends SnippetProducer {
-  _NotValidSnippetProducer._(DartSnippetRequest request) : super(request);
+  _NotValidSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() {
@@ -96,7 +96,7 @@ class _TestDartSnippetManager extends DartSnippetManager {
 /// A snippet producer that always returns `true` from [isValid] and a simple
 /// snippet from [compute].
 class _ValidSnippetProducer extends SnippetProducer {
-  _ValidSnippetProducer._(DartSnippetRequest request) : super(request);
+  _ValidSnippetProducer._(super.request);
 
   @override
   Future<Snippet> compute() async {

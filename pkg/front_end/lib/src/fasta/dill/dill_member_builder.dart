@@ -266,7 +266,7 @@ class DillClassMember extends BuilderClassMember {
   @override
   bool get isInternalImplementation {
     Member member = memberBuilder.member;
-    return member is Field && member.isInternalImplementation;
+    return member.isInternalImplementation;
   }
 
   @override

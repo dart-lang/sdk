@@ -59,11 +59,11 @@ class ReplaceConditionalWithIfElse extends CorrectionProducer {
         var elseSrc = utils.getNodeText(conditional.elseExpression);
         var name = utils.getNodeText(leftSide);
         var src = '';
-        src += 'if ($conditionSrc) {' + eol;
-        src += prefix + indent + '$name = $thenSrc;' + eol;
-        src += prefix + '} else {' + eol;
-        src += prefix + indent + '$name = $elseSrc;' + eol;
-        src += prefix + '}';
+        src += 'if ($conditionSrc) {$eol';
+        src += '$prefix$indent$name = $thenSrc;$eol';
+        src += '$prefix} else {$eol';
+        src += '$prefix$indent$name = $elseSrc;$eol';
+        src += '$prefix}';
         builder.addSimpleReplacement(range.node(statement), src);
       });
     }
@@ -83,11 +83,11 @@ class ReplaceConditionalWithIfElse extends CorrectionProducer {
         var thenSrc = utils.getNodeText(conditional.thenExpression);
         var elseSrc = utils.getNodeText(conditional.elseExpression);
         var src = '';
-        src += 'if ($conditionSrc) {' + eol;
-        src += prefix + indent + 'return $thenSrc;' + eol;
-        src += prefix + '} else {' + eol;
-        src += prefix + indent + 'return $elseSrc;' + eol;
-        src += prefix + '}';
+        src += 'if ($conditionSrc) {$eol';
+        src += '$prefix${indent}return $thenSrc;$eol';
+        src += '$prefix} else {$eol';
+        src += '$prefix${indent}return $elseSrc;$eol';
+        src += '$prefix}';
         builder.addSimpleReplacement(range.node(statement), src);
       });
     }
@@ -126,18 +126,14 @@ class ReplaceConditionalWithIfElse extends CorrectionProducer {
           var elseSrc = utils.getNodeText(conditional.elseExpression);
           var name = variable.name.name;
           var src = eol;
-          src += prefix + 'if ($conditionSrc) {' + eol;
-          src += prefix + indent + '$name = $thenSrc;' + eol;
-          src += prefix + '} else {' + eol;
-          src += prefix + indent + '$name = $elseSrc;' + eol;
-          src += prefix + '}';
+          src += '${prefix}if ($conditionSrc) {$eol';
+          src += '$prefix$indent$name = $thenSrc;$eol';
+          src += '$prefix} else {$eol';
+          src += '$prefix$indent$name = $elseSrc;$eol';
+          src += '$prefix}';
           builder.addSimpleReplacement(range.endLength(statement, 0), src);
         });
       }
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ReplaceConditionalWithIfElse newInstance() =>
-      ReplaceConditionalWithIfElse();
 }

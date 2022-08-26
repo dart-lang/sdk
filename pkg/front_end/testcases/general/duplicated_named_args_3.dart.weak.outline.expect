@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object {
   synthetic constructor •() → self::C
     ;
-  static method m({core::int a}) → dynamic
+  static method m({has-declared-initializer core::int a}) → dynamic
     ;
 }
 static method test() → void

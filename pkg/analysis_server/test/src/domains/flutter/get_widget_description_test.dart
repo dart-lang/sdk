@@ -20,7 +20,7 @@ class GetWidgetDescriptionTest extends FlutterBase {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -37,29 +37,31 @@ void main() {
 
   Future<void> test_notInstanceCreation() async {
     addTestFile(r'''
-void main() {
+void f() {
   42;
 }
 ''');
 
     var response = await getWidgetDescriptionResponse('42');
-    expect(
-      response.error!.code,
-      RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
     );
   }
 
   Future<void> test_unresolvedInstanceCreation() async {
     addTestFile(r'''
-void main() {
+void f() {
   new Foo();
 }
 ''');
 
     var response = await getWidgetDescriptionResponse('new Foo');
-    expect(
-      response.error!.code,
-      RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
     );
   }
 }

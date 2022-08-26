@@ -135,14 +135,12 @@ class _PathNode {
     var part = parts[index];
 
     // Look for a non-glob child directory.
-    if (stringChildren.containsKey(part)) {
-      stringChildren[part].walk(parts, index + 1, result);
-    }
+    stringChildren[part]?.walk(parts, index + 1, result);
 
     // Look for any matching glob directories.
-    for (var regExp in regExpChildren.keys) {
-      if (regExp.hasMatch(part)) {
-        regExpChildren[regExp].walk(parts, index + 1, result);
+    for (var child in regExpChildren.entries) {
+      if (child.key.hasMatch(part)) {
+        child.value.walk(parts, index + 1, result);
       }
     }
   }

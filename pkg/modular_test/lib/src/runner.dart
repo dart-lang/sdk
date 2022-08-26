@@ -20,21 +20,21 @@ Future<void> runSuite(Uri suiteFolder, String suiteName, Options options,
     IOPipeline pipeline) async {
   var dir = Directory.fromUri(suiteFolder);
   var entries = (await dir.list(recursive: false).toList())
-      .where((e) => e is Directory)
-      .map((e) => new _PipelineTest(e.uri, suiteFolder, options, pipeline))
+      .whereType<Directory>()
+      .map((e) => _PipelineTest(e.uri, suiteFolder, options, pipeline))
       .toList();
 
   await generic.runSuite(
       entries,
-      new generic.RunnerOptions()
-        ..suiteName = suiteName
-        ..configurationName = options.configurationName
-        ..filter = options.filter
-        ..logDir = options.outputDirectory
-        ..shard = options.shard
-        ..shards = options.shards
-        ..verbose = options.verbose
-        ..reproTemplate = '%executable %script --verbose --filter %name');
+      generic.RunnerOptions(
+          suiteName: suiteName,
+          configurationName: options.configurationName,
+          filter: options.filter,
+          logDir: options.outputDirectory,
+          shard: options.shard,
+          shards: options.shards,
+          verbose: options.verbose,
+          reproTemplate: '%executable %script --verbose --filter %name'));
   await pipeline.cleanup();
 }
 
@@ -59,15 +59,15 @@ class _PipelineTest implements generic.Test {
 class Options {
   bool showSkipped = false;
   bool verbose = false;
-  String filter = null;
+  String? filter;
   int shards = 1;
   int shard = 1;
-  String configurationName;
-  Uri outputDirectory;
+  String? configurationName;
+  Uri? outputDirectory;
   bool useSdk = false;
 
   static Options parse(List<String> args) {
-    var parser = new ArgParser()
+    var parser = ArgParser()
       ..addFlag('verbose',
           abbr: 'v',
           defaultsTo: false,
@@ -92,7 +92,7 @@ class Options {
           help: 'configuration name to use for emitting jsonl result files.');
     ArgResults argResults = parser.parse(args);
     int shards = int.tryParse(argResults['shards']) ?? 1;
-    int shard;
+    int shard = 1;
     if (shards > 1) {
       shard = int.tryParse(argResults['shard']) ?? 1;
       if (shard <= 0 || shard >= shards) {
@@ -101,7 +101,7 @@ class Options {
         exit(1);
       }
     }
-    Uri toUri(s) => s == null ? null : Uri.base.resolveUri(Uri.file(s));
+    Uri? toUri(s) => s == null ? null : Uri.base.resolveUri(Uri.file(s));
     return Options()
       ..showSkipped = argResults['show-skipped']
       ..verbose = argResults['verbose']

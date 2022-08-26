@@ -1,3 +1,9 @@
+## 0.11.0
+- Using `AnalysisContextCollection` and `AnalysisContext` for analysis.
+
+## 0.10.0
+- Support version `4.x` of the `analyzer` package
+
 ## 0.9.0
 - Support version `3.x` of the `analyzer` package
 

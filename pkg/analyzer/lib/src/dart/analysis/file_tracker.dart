@@ -22,6 +22,8 @@ class FileTracker {
   /// The current file system state.
   final FileSystemState _fsState;
 
+  final StoredFileContentStrategy _fileContentStrategy;
+
   /// The set of added files.
   final addedFiles = <String>{};
 
@@ -45,7 +47,7 @@ class FileTracker {
   /// have any special relation with changed files.
   var _pendingFiles = <String>{};
 
-  FileTracker(this._logger, this._fsState);
+  FileTracker(this._logger, this._fsState, this._fileContentStrategy);
 
   /// Returns the path to exactly one that needs analysis.  Throws a
   /// [StateError] if no files need analysis.
@@ -108,7 +110,7 @@ class FileTracker {
 
   /// Adds the given [path] to the set of "changed files".
   void changeFile(String path) {
-    _fsState.markFileForReading(path);
+    _fileContentStrategy.markFileForReading(path);
     _changedFiles.add(path);
 
     if (addedFiles.contains(path)) {
@@ -126,18 +128,6 @@ class FileTracker {
     _pendingFiles.remove(path);
   }
 
-  /// Return the [FileState] suitable only when the file is used by itself.
-  /// If the file is in the set of changed files, it is refreshed first.
-  /// If the file is not in the set of changed files, it is not refreshed.
-  FileState getFile(String path) {
-    // Read any files that we were told were changed.
-    // But don't read the requested file explicitly.
-    // Read it only if it is in this set of changed files.
-    while (verifyChangedFilesIfNeeded()) {}
-
-    return _fsState.getFileForPath(path);
-  }
-
   /// Returns a boolean indicating whether the given [path] points to a file
   /// that requires analysis.
   bool isFilePending(String path) {
@@ -149,6 +139,7 @@ class FileTracker {
 
   /// Removes the given [path] from the set of "added files".
   void removeFile(String path) {
+    _fileContentStrategy.markFileForReading(path);
     addedFiles.remove(path);
     _pendingChangedFiles.remove(path);
     _pendingImportFiles.remove(path);
@@ -162,57 +153,67 @@ class FileTracker {
 
   /// Verify the API signature for the file with the given [path], and decide
   /// which linked libraries should be invalidated, and files reanalyzed.
-  FileState verifyApiSignature(String path) {
+  void verifyApiSignature(String path) {
     return _logger.run('Verify API signature of $path', () {
       _logger.writeln('Work in ${_fsState.contextName}');
 
       var file = _fsState.getFileForPath(path);
-      var apiChanged = file.refresh();
-      if (apiChanged) {
-        _logger.writeln('API signatures mismatch found.');
-        // TODO(scheglov) schedule analysis of only affected files
-        var pendingChangedFiles = <String>{};
-        var pendingImportFiles = <String>{};
-        var pendingErrorFiles = <String>{};
-        var pendingFiles = <String>{};
 
-        // Add the changed file.
-        if (addedFiles.contains(path)) {
-          pendingChangedFiles.add(path);
-        }
-
-        // Add files that directly import the changed file.
-        for (String addedPath in addedFiles) {
-          FileState addedFile = _fsState.getFileForPath(addedPath);
-          if (addedFile.importedFiles.contains(file)) {
-            pendingImportFiles.add(addedPath);
+      var changeKind = file.refresh();
+      switch (changeKind) {
+        case FileStateRefreshResult.nothing:
+          return;
+        case FileStateRefreshResult.contentChanged:
+          if (file.mightBeExecutedByMacroClass) {
+            break;
           }
-        }
-
-        // Add files with errors or warnings that might be fixed.
-        for (String addedPath in addedFiles) {
-          FileState addedFile = _fsState.getFileForPath(addedPath);
-          if (addedFile.hasErrorOrWarning) {
-            pendingErrorFiles.add(addedPath);
-          }
-        }
-
-        // Add all previous pending files.
-        pendingChangedFiles.addAll(_pendingChangedFiles);
-        pendingImportFiles.addAll(_pendingImportFiles);
-        pendingErrorFiles.addAll(_pendingErrorFiles);
-        pendingFiles.addAll(_pendingFiles);
-
-        // Add all the rest.
-        pendingFiles.addAll(addedFiles);
-
-        // Replace pending files.
-        _pendingChangedFiles = pendingChangedFiles;
-        _pendingImportFiles = pendingImportFiles;
-        _pendingErrorFiles = pendingErrorFiles;
-        _pendingFiles = pendingFiles;
+          return;
+        case FileStateRefreshResult.apiChanged:
+          break;
       }
-      return file;
+
+      _logger.writeln('API signatures mismatch found.');
+      // TODO(scheglov) schedule analysis of only affected files
+      var pendingChangedFiles = <String>{};
+      var pendingImportFiles = <String>{};
+      var pendingErrorFiles = <String>{};
+      var pendingFiles = <String>{};
+
+      // Add the changed file.
+      if (addedFiles.contains(path)) {
+        pendingChangedFiles.add(path);
+      }
+
+      // Add files that directly import the changed file.
+      for (String addedPath in addedFiles) {
+        FileState addedFile = _fsState.getFileForPath(addedPath);
+        if (addedFile.importedFiles.contains(file)) {
+          pendingImportFiles.add(addedPath);
+        }
+      }
+
+      // Add files with errors or warnings that might be fixed.
+      for (String addedPath in addedFiles) {
+        FileState addedFile = _fsState.getFileForPath(addedPath);
+        if (addedFile.hasErrorOrWarning) {
+          pendingErrorFiles.add(addedPath);
+        }
+      }
+
+      // Add all previous pending files.
+      pendingChangedFiles.addAll(_pendingChangedFiles);
+      pendingImportFiles.addAll(_pendingImportFiles);
+      pendingErrorFiles.addAll(_pendingErrorFiles);
+      pendingFiles.addAll(_pendingFiles);
+
+      // Add all the rest.
+      pendingFiles.addAll(addedFiles);
+
+      // Replace pending files.
+      _pendingChangedFiles = pendingChangedFiles;
+      _pendingImportFiles = pendingImportFiles;
+      _pendingErrorFiles = pendingErrorFiles;
+      _pendingFiles = pendingFiles;
     });
   }
 

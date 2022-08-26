@@ -60,7 +60,7 @@ void f() {
   }
 
   Future<void> test_lints() async {
-    newFile(mainFilePath, '''main() async => await 1;''');
+    newFile(mainFilePath, '''void f() async => await 1;''');
     newFile(analysisOptionsPath, '''
 linter:
   rules:
@@ -74,8 +74,8 @@ linter:
     final diagnostic = diagnostics.first;
     expect(diagnostic.code, equals('await_only_futures'));
     expect(diagnostic.range.start.line, equals(0));
-    expect(diagnostic.range.start.character, equals(16));
+    expect(diagnostic.range.start.character, equals(18));
     expect(diagnostic.range.end.line, equals(0));
-    expect(diagnostic.range.end.character, equals(21));
+    expect(diagnostic.range.end.character, equals(23));
   }
 }

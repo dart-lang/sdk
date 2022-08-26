@@ -38,7 +38,7 @@ C c = C.m();
   }
 
   test_definedInPrivateExtension() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class B {}
 
 extension _ on B {
@@ -57,7 +57,7 @@ f(B b) {
   }
 
   test_definedInUnnamedExtension() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class C {}
 
 extension on C {
@@ -228,14 +228,14 @@ main() {
   }
 
   test_static_conditionalAccess_defined() async {
-    // The conditional access operator '?.' can be used to access static
-    // methods.
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A {
   static void m() {}
 }
 f() { A?.m(); }
-''');
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 40, 2),
+    ]);
   }
 
   test_static_mixinApplication_superConstructorIsFactory() async {

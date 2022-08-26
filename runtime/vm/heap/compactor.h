@@ -41,12 +41,13 @@ class GCCompactor : public ValueObject,
   void ForwardCompressedPointer(uword heap_base, CompressedObjectPtr* ptr);
   void VisitTypedDataViewPointers(TypedDataViewPtr view,
                                   CompressedObjectPtr* first,
-                                  CompressedObjectPtr* last);
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last);
+                                  CompressedObjectPtr* last) override;
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override;
   void VisitCompressedPointers(uword heap_base,
                                CompressedObjectPtr* first,
-                               CompressedObjectPtr* last);
-  void VisitHandle(uword addr);
+                               CompressedObjectPtr* last) override;
+  bool CanVisitSuspendStatePointers(SuspendStatePtr suspend_state) override;
+  void VisitHandle(uword addr) override;
 
   Heap* heap_;
 
@@ -71,6 +72,12 @@ class GCCompactor : public ValueObject,
   // complete.
   Mutex typed_data_view_mutex_;
   MallocGrowableArray<TypedDataViewPtr> typed_data_views_;
+
+  // SuspendState objects with copied frame must be updated after sliding is
+  // complete.
+  bool can_visit_stack_frames_ = false;
+  Mutex postponed_suspend_states_mutex_;
+  MallocGrowableArray<SuspendStatePtr> postponed_suspend_states_;
 };
 
 }  // namespace dart

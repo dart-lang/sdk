@@ -19,8 +19,6 @@ import '../options.dart';
 import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 
-const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
-
 /// Keys for the [MessageTemplate]s.
 enum MessageKind {
   COMPILER_CRASHED,
@@ -63,7 +61,7 @@ class MessageTemplate {
   final String template;
 
   /// Should describe how to fix the problem. Elided when using --terse option.
-  final String howToFix;
+  final String? howToFix;
 
   ///  Examples will be checked by
   ///  pkg/compiler/test/message_kind_test.dart.
@@ -71,7 +69,7 @@ class MessageTemplate {
   ///  An example is either a String containing the example source code or a Map
   ///  from filenames to source code. In the latter case, the filename for the
   ///  main library code must be 'main.dart'.
-  final List examples;
+  final List? examples;
 
   /// Additional options needed for the examples to work.
   final List<String> options;
@@ -236,54 +234,50 @@ Please include the following information:
   @override
   String toString() => template;
 
-  Message message(Map<String, String> arguments, CompilerOptions options) {
-    return Message(this, arguments, options);
+  Message message(Map<String, String> arguments, DiagnosticOptions? options) {
+    // [options] is nullable for testing.
+    // TODO(sra): Provide a testing version of [DiagnosticOptions] to allow
+    // [options] to be non-nullable, and use composition in [CompilerOptions]
+    // rather than inheritance.
+    return Message(this, arguments, options?.terseDiagnostics ?? false);
   }
 
-  bool get hasHowToFix => howToFix != null && howToFix != DONT_KNOW_HOW_TO_FIX;
+  bool get hasHowToFix => howToFix != null;
 }
 
 class Message {
   final MessageTemplate template;
   final Map<String, String> arguments;
-  final CompilerOptions _options;
-  bool get terse => _options?.terseDiagnostics ?? false;
-  String message;
+  final bool terse;
+  late String message = _computeMessage();
 
-  Message(this.template, this.arguments, this._options) {
-    assert(() {
-      computeMessage();
-      return true;
-    }());
+  Message(this.template, this.arguments, this.terse) {
+    assert(message != ''); // Force message formating in 'dart2js_developer'.
   }
 
   MessageKind get kind => template.kind;
 
-  String computeMessage() {
-    if (message == null) {
-      message = template.template;
+  String _computeMessage() {
+    message = template.template;
+    arguments.forEach((String key, String value) {
+      message = message.replaceAll('#{$key}', value);
+    });
+    assert(
+        kind == MessageKind.GENERIC || !message.contains(RegExp(r'#\{.+\}')),
+        failedAt(CURRENT_ELEMENT_SPANNABLE,
+            'Missing arguments in error message: "$message"'));
+    if (!terse && template.hasHowToFix) {
+      String howToFix = template.howToFix!;
       arguments.forEach((String key, String value) {
-        message = message.replaceAll('#{$key}', value);
+        howToFix = howToFix.replaceAll('#{$key}', value);
       });
-      assert(
-          kind == MessageKind.GENERIC || !message.contains(RegExp(r'#\{.+\}')),
-          failedAt(CURRENT_ELEMENT_SPANNABLE,
-              'Missing arguments in error message: "$message"'));
-      if (!terse && template.hasHowToFix) {
-        String howToFix = template.howToFix;
-        arguments.forEach((String key, String value) {
-          howToFix = howToFix.replaceAll('#{$key}', value);
-        });
-        message = '$message\n$howToFix';
-      }
+      message = '$message\n$howToFix';
     }
     return message;
   }
 
   @override
-  String toString() {
-    return computeMessage();
-  }
+  String toString() => message;
 
   @override
   bool operator ==(other) {

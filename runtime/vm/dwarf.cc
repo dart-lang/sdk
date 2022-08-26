@@ -815,6 +815,9 @@ static constexpr char kResolvedFileRoot[] = "file:///";
 static constexpr intptr_t kResolvedFileRootLen = sizeof(kResolvedFileRoot) - 1;
 static constexpr char kResolvedSdkRoot[] = "org-dartlang-sdk:///sdk/";
 static constexpr intptr_t kResolvedSdkRootLen = sizeof(kResolvedSdkRoot) - 1;
+static constexpr char kResolvedGoogle3Root[] = "google3:///";
+static constexpr intptr_t kResolvedGoogle3RootLen =
+    sizeof(kResolvedGoogle3Root) - 1;
 
 static const char* ConvertResolvedURI(const char* str) {
   const intptr_t len = strlen(str);
@@ -830,6 +833,10 @@ static const char* ConvertResolvedURI(const char* str) {
       strncmp(str, kResolvedSdkRoot, kResolvedSdkRootLen) == 0) {
     // Leave "sdk/" as a prefix in the returned path.
     return str + (kResolvedSdkRootLen - 4);
+  }
+  if (len > kResolvedGoogle3RootLen &&
+      strncmp(str, kResolvedGoogle3Root, kResolvedGoogle3RootLen) == 0) {
+    return str + kResolvedGoogle3RootLen;  // Strip off the entire prefix.
   }
   return nullptr;
 }

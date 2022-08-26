@@ -1,0 +1,5 @@
+library test;
+
+typedef num FunctionReturningNum();
+test() {}
+main() {}

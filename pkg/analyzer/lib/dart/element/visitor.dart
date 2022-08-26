@@ -83,6 +83,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   const GeneralizingElementVisitor();
 
   @override
+  R? visitAugmentationImportElement(AugmentationImportElement element) =>
+      visitElement(element);
+
+  @override
   R? visitClassElement(ClassElement element) => visitElement(element);
 
   @override
@@ -129,6 +133,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R? visitLabelElement(LabelElement element) => visitElement(element);
 
   @override
+  R? visitLibraryAugmentationElement(LibraryAugmentationElement element) =>
+      visitElement(element);
+
+  @override
   R? visitLibraryElement(LibraryElement element) => visitElement(element);
 
   R? visitLocalElement(LocalElement element) {
@@ -157,6 +165,9 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   @override
   R? visitParameterElement(ParameterElement element) =>
       visitLocalElement(element);
+
+  @override
+  R? visitPartElement(PartElement element) => visitElement(element);
 
   @override
   R? visitPrefixElement(PrefixElement element) => visitElement(element);
@@ -200,6 +211,12 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   /// Initialize a newly created visitor.
   const RecursiveElementVisitor();
+
+  @override
+  R? visitAugmentationImportElement(AugmentationImportElement element) {
+    element.visitChildren(this);
+    return null;
+  }
 
   @override
   R? visitClassElement(ClassElement element) {
@@ -268,6 +285,12 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  R? visitLibraryAugmentationElement(LibraryAugmentationElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitLibraryElement(LibraryElement element) {
     element.visitChildren(this);
     return null;
@@ -293,6 +316,12 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitParameterElement(ParameterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitPartElement(PartElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -345,6 +374,9 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   const SimpleElementVisitor();
 
   @override
+  R? visitAugmentationImportElement(AugmentationImportElement element) => null;
+
+  @override
   R? visitClassElement(ClassElement element) => null;
 
   @override
@@ -380,6 +412,10 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitLabelElement(LabelElement element) => null;
 
   @override
+  R? visitLibraryAugmentationElement(LibraryAugmentationElement element) =>
+      null;
+
+  @override
   R? visitLibraryElement(LibraryElement element) => null;
 
   @override
@@ -393,6 +429,9 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitParameterElement(ParameterElement element) => null;
+
+  @override
+  R? visitPartElement(PartElement element) => null;
 
   @override
   R? visitPrefixElement(PrefixElement element) => null;
@@ -424,6 +463,10 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   /// Initialize a newly created visitor.
   const ThrowingElementVisitor();
+
+  @override
+  R? visitAugmentationImportElement(AugmentationImportElement element) =>
+      _throw(element);
 
   @override
   R? visitClassElement(ClassElement element) => _throw(element);
@@ -462,6 +505,10 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
   R? visitLabelElement(LabelElement element) => _throw(element);
 
   @override
+  R? visitLibraryAugmentationElement(LibraryAugmentationElement element) =>
+      _throw(element);
+
+  @override
   R? visitLibraryElement(LibraryElement element) => _throw(element);
 
   @override
@@ -476,6 +523,9 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitParameterElement(ParameterElement element) => _throw(element);
+
+  @override
+  R? visitPartElement(PartElement element) => _throw(element);
 
   @override
   R? visitPrefixElement(PrefixElement element) => _throw(element);

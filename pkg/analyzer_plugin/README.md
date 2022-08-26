@@ -1,4 +1,5 @@
-# analyzer_plugin
+[![pub package](https://img.shields.io/pub/v/analyzer_plugin.svg)](https://pub.dev/packages/analyzer_plugin)
+[![package publisher](https://img.shields.io/pub/publisher/analyzer_plugin.svg)](https://pub.dev/packages/analyzer_plugin/publisher)
 
 A framework for building plugins for the analysis server.
 

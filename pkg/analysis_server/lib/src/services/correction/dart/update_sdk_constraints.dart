@@ -16,8 +16,24 @@ class UpdateSdkConstraints extends CorrectionProducer {
   final String _minimumVersion;
 
   /// Initialize a newly created instance that will update the SDK constraints
-  /// to the [minimumVersion].
-  UpdateSdkConstraints(this._minimumVersion);
+  /// to '2.14.0'.
+  UpdateSdkConstraints.version_2_14_0() : _minimumVersion = '2.14.0';
+
+  /// Initialize a newly created instance that will update the SDK constraints
+  /// to '2.1.0'.
+  UpdateSdkConstraints.version_2_1_0() : _minimumVersion = '2.1.0';
+
+  /// Initialize a newly created instance that will update the SDK constraints
+  /// to '2.2.0'.
+  UpdateSdkConstraints.version_2_2_0() : _minimumVersion = '2.2.0';
+
+  /// Initialize a newly created instance that will update the SDK constraints
+  /// to '2.2.0'.
+  UpdateSdkConstraints.version_2_2_2() : _minimumVersion = '2.2.2';
+
+  /// Initialize a newly created instance that will update the SDK constraints
+  /// to '2.2.0'.
+  UpdateSdkConstraints.version_2_6_0() : _minimumVersion = '2.6.0';
 
   @override
   // Too nuanced to do unattended.
@@ -80,25 +96,4 @@ class UpdateSdkConstraints extends CorrectionProducer {
     }
     return null;
   }
-
-  /// Return an instance of this class that will update the SDK constraints to
-  /// '2.14.0'. Used as a tear-off in `FixProcessor`.
-  static UpdateSdkConstraints version_2_14_0() =>
-      UpdateSdkConstraints('2.14.0');
-
-  /// Return an instance of this class that will update the SDK constraints to
-  /// '2.1.0'. Used as a tear-off in `FixProcessor`.
-  static UpdateSdkConstraints version_2_1_0() => UpdateSdkConstraints('2.1.0');
-
-  /// Return an instance of this class that will update the SDK constraints to
-  /// '2.2.0'. Used as a tear-off in `FixProcessor`.
-  static UpdateSdkConstraints version_2_2_0() => UpdateSdkConstraints('2.2.0');
-
-  /// Return an instance of this class that will update the SDK constraints to
-  /// '2.2.0'. Used as a tear-off in `FixProcessor`.
-  static UpdateSdkConstraints version_2_2_2() => UpdateSdkConstraints('2.2.2');
-
-  /// Return an instance of this class that will update the SDK constraints to
-  /// '2.2.0'. Used as a tear-off in `FixProcessor`.
-  static UpdateSdkConstraints version_2_6_0() => UpdateSdkConstraints('2.6.0');
 }

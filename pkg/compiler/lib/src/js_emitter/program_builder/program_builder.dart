@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.js_emitter.program_builder;
 
 import '../../common.dart';
 import '../../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../../common/names.dart' show Names, Selectors;
-import '../../constants/values.dart'
-    show ConstantValue, InterceptorConstantValue;
+import '../../constants/values.dart';
 import '../../deferred_load/output_unit.dart'
     show deferredPartFileName, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
@@ -294,8 +295,12 @@ class ProgramBuilder {
   }
 
   js.Statement _buildInvokeMain() {
-    return MainCallStubGenerator.generateInvokeMain(_commonElements,
-        _task.emitter, _mainFunction, _backendUsage.requiresStartupMetrics);
+    return MainCallStubGenerator.generateInvokeMain(
+        _commonElements,
+        _task.emitter,
+        _mainFunction,
+        _backendUsage.requiresStartupMetrics,
+        _options);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {

@@ -25,3 +25,10 @@ macro class Macro3<T> implements Macro {
 class NonMacro {
   const NonMacro();
 }
+
+macro class Macro4 implements Macro {
+  final field;
+  final named;
+
+  const Macro4(this.field, {this.named});
+}

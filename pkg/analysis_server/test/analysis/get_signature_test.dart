@@ -45,13 +45,13 @@ class AnalysisSignatureTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_constructor() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass constructor doc
   MyClass(String name, {int length}) {}
 }
-main() {
+void f() {
   var a = new MyClass("Danny", /*^*/);
 }
 ''');
@@ -68,7 +68,7 @@ main() {
   }
 
   Future<void> test_constructor_factory() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass private constructor doc
@@ -78,7 +78,7 @@ class MyClass {
     return new MyClass._();
   }
 }
-main() {
+void f() {
   var a = new MyClass("Danny", /*^*/);
 }
 ''');
@@ -95,13 +95,13 @@ main() {
   }
 
   Future<void> test_constructor_named() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass.foo constructor doc
   MyClass.foo(String name, {int length}) {}
 }
-main() {
+void f() {
   var a = new MyClass.foo("Danny", /*^*/);
 }
 ''');
@@ -118,9 +118,9 @@ main() {
   }
 
   Future<void> test_does_not_walk_up_over_closure() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", () {
     /*^*/
   });
@@ -142,7 +142,7 @@ main() {
   }
 
   Future<void> test_error_function_unknown() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 someFunc(/*^*/);
 ''');
     var response = await prepareRawSignature('/*^*/');
@@ -154,7 +154,7 @@ someFunc(/*^*/);
   }
 
   Future<void> test_error_offset_invalid() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 a() {}
 ''');
     var response = await prepareRawSignatureAt(1000);
@@ -166,10 +166,10 @@ a() {}
   }
 
   Future<void> test_function_expression() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// f doc
 int Function(String) f(String s) => (int i) => int.parse(s) + i;
-main() {
+void f() {
   print(f('3'/*^*/)(2));
 }
 ''');
@@ -184,16 +184,16 @@ main() {
   }
 
   Future<void> test_function_from_other_file() async {
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 /// one doc
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 import 'other.dart';
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -212,10 +212,10 @@ main() {
   }
 
   Future<void> test_function_irrelevant_parens() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", (((1 * 2/*^*/))));
 }
 ''');
@@ -234,10 +234,10 @@ main() {
   }
 
   Future<void> test_function_named() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, {int length}) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -254,10 +254,10 @@ main() {
   }
 
   Future<void> test_function_named_with_default_int() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, {int length = 1}) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -276,10 +276,10 @@ main() {
   }
 
   Future<void> test_function_named_with_default_string() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, {String email = "a@b.c"}) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -299,12 +299,12 @@ main() {
 
   Future<void> test_function_nested_call_inner() async {
     // eg. foo(bar(1, 2));
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String one) {}
 /// two doc
 String two(String two) { return ""; }
-main() {
+void f() {
   one(two(/*^*/));
 }
 ''');
@@ -320,12 +320,12 @@ main() {
 
   Future<void> test_function_nested_call_outer() async {
     // eg. foo(bar(1, 2));
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String one) {}
 /// two doc
 String two(String two) { return ""; }
-main() {
+void f() {
   one(two(),/*^*/);
 }
 ''');
@@ -340,9 +340,9 @@ main() {
   }
 
   Future<void> test_function_no_dart_doc() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -361,10 +361,10 @@ main() {
   }
 
   Future<void> test_function_optional() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, [int length]) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -383,10 +383,10 @@ main() {
   }
 
   Future<void> test_function_optional_with_default() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, [int length = 11]) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -405,10 +405,10 @@ main() {
   }
 
   Future<void> test_function_required() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one(String name, int length) {}
-main() {
+void f() {
   one("Danny", /*^*/);
 }
 ''');
@@ -427,10 +427,10 @@ main() {
   }
 
   Future<void> test_function_zero_arguments() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// one doc
 one() {}
-main() {
+void f() {
   one(/*^*/);
 }
 ''');
@@ -463,7 +463,7 @@ main() {
   }
 
   Future<void> test_method_instance() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass constructor doc
@@ -471,7 +471,7 @@ class MyClass {
   /// MyClass instance method
   myMethod(String name, {int length}) {}
 }
-main() {
+void f() {
   var a = new MyClass("Danny");
   a.myMethod("Danny", /*^*/);
 }
@@ -489,7 +489,7 @@ main() {
   }
 
   Future<void> test_method_static() async {
-    newFile2(testFilePath, '''
+    newFile(testFilePath, '''
 /// MyClass doc
 class MyClass {
   /// MyClass constructor doc
@@ -497,7 +497,7 @@ class MyClass {
   /// MyClass static method
   static void myStaticMethod(String name, {int length}) {}
 }
-main() {
+void f() {
   MyClass.myStaticMethod("Danny", /*^*/);
 }
 ''');

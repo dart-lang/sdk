@@ -1,7 +1,7 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 
-static method topLevel([dynamic a]) → dynamic
+static method topLevel([has-declared-initializer dynamic a]) → dynamic
   ;
 static method main() → dynamic
   ;

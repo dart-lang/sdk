@@ -2,3 +2,8 @@ dependencies:
   a: [b, c]
   b: d
   main: [a, b]
+packages:
+  a: a/
+  b: b/
+  d: d/
+  c: c/

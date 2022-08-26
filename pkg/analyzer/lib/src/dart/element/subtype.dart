@@ -419,7 +419,7 @@ class SubtypeHelper {
     // The supertype must provide all required parameters to the subtype.
     while (fIndex < fParameters.length) {
       var fParameter = fParameters[fIndex++];
-      if (fParameter.isNotOptional) {
+      if (fParameter.isRequired) {
         return false;
       }
     }

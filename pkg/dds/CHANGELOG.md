@@ -1,5 +1,20 @@
+# 2.2.5
+- Updated `devtools_shared` version to 2.14.1.
+
+# 2.2.4
+- Fix an issue where DAP adapters could try to remove the same breakpoint multiple times.
+
+# 2.2.3
+- Internal DAP changes.
+
+# 2.2.2
+- Updated `vm_service` version to 9.0.0.
+
+# 2.2.1
+- Reduce latency of `streamListen` calls through improved locking behavior.
+
 # 2.2.0
-- Add support for serving DevTools via `package:dds/devtools_server.dart`
+- Add support for serving DevTools via `package:dds/devtools_server.dart`.
 
 # 2.1.7
 - Re-release 2.1.6+1.

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/build_integration.dart';
 
 /// Wraps a file system to create an overlay of files from multiple roots.
@@ -39,13 +40,14 @@ class MultiRootFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) =>
-      new MultiRootFileSystemEntity(this, uri);
+      MultiRootFileSystemEntity(this, uri);
 }
 
 /// Entity that searches the multiple roots and resolve a, possibly multi-root,
 /// entity to a plain entity under `multiRootFileSystem.original`.
 class MultiRootFileSystemEntity implements FileSystemEntity {
   final MultiRootFileSystem multiRootFileSystem;
+  @override
   final Uri uri;
   FileSystemEntity? _delegate;
   Future<FileSystemEntity> get delegate async =>
@@ -54,7 +56,7 @@ class MultiRootFileSystemEntity implements FileSystemEntity {
   Future<FileSystemEntity> _resolveEntity() async {
     if (uri.isScheme(multiRootFileSystem.markerScheme)) {
       if (!uri.isAbsolute) {
-        throw new FileSystemException(
+        throw FileSystemException(
             uri, "This MultiRootFileSystem only handles absolutes URIs: $uri");
       }
       var original = multiRootFileSystem.original;

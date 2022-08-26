@@ -1,0 +1,13 @@
+class Class<T> {}
+
+class ConcreteClass implements Class<ConcreteClass> {}
+
+class G<X extends Class<X>> {}
+
+main() {}
+test1() {}
+test2() {}
+test3() {}
+test4() {}
+test5() {}
+typedef F<X extends Class<X>> = X;

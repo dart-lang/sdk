@@ -22,7 +22,7 @@ class DeferredLibraryLayout extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final args = argResults!.rest;
     if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
@@ -36,8 +36,8 @@ _showLayout(String file) async {
   Map<OutputUnitInfo, Map<LibraryInfo, List<BasicInfo>>> hunkMembers = {};
   Map<LibraryInfo, Set<OutputUnitInfo>> libToHunks = {};
   void register(BasicInfo info) {
-    var unit = info.outputUnit;
-    var lib = _libOf(info);
+    final unit = info.outputUnit!;
+    final lib = _libOf(info);
     if (lib == null) return;
     libToHunks.putIfAbsent(lib, () => <OutputUnitInfo>{}).add(unit);
     hunkMembers
@@ -52,10 +52,10 @@ _showLayout(String file) async {
   info.fields.forEach(register);
   info.closures.forEach(register);
 
-  var dir = Directory.current.path;
+  final dir = Directory.current.path;
   hunkMembers.forEach((unit, map) {
-    print('Output unit ${unit.name ?? "main"}:');
-    if (unit.name == null || unit.name == 'main') {
+    print('Output unit ${unit.name}:');
+    if (unit.name == 'main') {
       print('  loaded by default');
     } else {
       print('  loaded by importing: ${unit.imports}');
@@ -63,18 +63,18 @@ _showLayout(String file) async {
 
     print('  contains:');
     map.forEach((lib, elements) {
-      var uri = lib.uri;
-      var shortUri = (uri.isScheme('file') && uri.path.startsWith(dir))
+      final uri = lib.uri;
+      final shortUri = (uri.isScheme('file') && uri.path.startsWith(dir))
           ? uri.path.substring(dir.length + 1)
           : '$uri';
 
       // If the entire library is in one chunk, just report the library name
       // otherwise report which functions are on this chunk.
-      if (libToHunks[lib].length == 1) {
+      if (libToHunks[lib]!.length == 1) {
         print('     - $shortUri');
       } else {
         print('     - $shortUri:');
-        for (var e in elements) {
+        for (final e in elements) {
           print('       - ${kindToString(e.kind)} ${e.name}');
         }
       }

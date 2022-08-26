@@ -60,7 +60,7 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
 
 Utils::CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(
     const char* filename) {
-  // |dir_prefix| includes the last path seperator.
+  // |dir_prefix| includes the last path separator.
   auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
 
   // First assume we're in dart-sdk/bin.

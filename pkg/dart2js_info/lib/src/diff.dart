@@ -38,7 +38,7 @@ class _InfoDiffer extends InfoVisitor<void> {
   final AllInfo _old;
   final AllInfo _new;
 
-  BasicInfo _other;
+  BasicInfo? _other;
 
   List<Diff> diffs = <Diff>[];
 
@@ -140,10 +140,8 @@ class _InfoDiffer extends InfoVisitor<void> {
   }
 
   bool _isDeferred(BasicInfo info) {
-    var outputUnit = info.outputUnit;
-    return outputUnit.name != null &&
-        outputUnit.name.isNotEmpty &&
-        outputUnit.name != 'main';
+    var outputUnit = info.outputUnit!;
+    return outputUnit.name.isNotEmpty && outputUnit.name != 'main';
   }
 
   void _diffList(List<BasicInfo> oldInfos, List<BasicInfo> newInfos) {
@@ -157,15 +155,15 @@ class _InfoDiffer extends InfoVisitor<void> {
     }
     for (var oldName in oldNames.keys) {
       if (newNames[oldName] == null) {
-        diffs.add(RemoveDiff(oldNames[oldName]));
+        diffs.add(RemoveDiff(oldNames[oldName]!));
       } else {
         _other = newNames[oldName];
-        oldNames[oldName].accept(this);
+        oldNames[oldName]!.accept(this);
       }
     }
     for (var newName in newNames.keys) {
       if (oldNames[newName] == null) {
-        diffs.add(AddDiff(newNames[newName]));
+        diffs.add(AddDiff(newNames[newName]!));
       }
     }
   }

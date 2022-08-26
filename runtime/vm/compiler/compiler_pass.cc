@@ -311,6 +311,7 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(WidenSmiToInt32);
   INVOKE_PASS(SelectRepresentations_Final);
+  INVOKE_PASS(CSE);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(TryCatchOptimization);
   INVOKE_PASS(EliminateEnvironments);

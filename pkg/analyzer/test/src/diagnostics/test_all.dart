@@ -137,9 +137,8 @@ import 'default_value_on_required_parameter_test.dart'
 import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
 import 'definitely_unassigned_late_local_variable_test.dart'
     as definitely_unassigned_late_local_variable;
+import 'deprecated_export_use_test.dart' as deprecated_export_use;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
-import 'deprecated_function_class_declaration_test.dart'
-    as deprecated_function_class_declaration;
 import 'deprecated_implements_function_test.dart'
     as deprecated_implements_function;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
@@ -476,6 +475,7 @@ import 'mixin_super_class_constraint_non_interface_test.dart'
 import 'mixin_with_non_class_superclass_test.dart'
     as mixin_with_non_class_superclass;
 import 'mixins_super_class_test.dart' as mixins_super_class;
+import 'mock_sdk_test.dart' as mock_sdk;
 import 'multiple_redirecting_constructor_invocations_test.dart'
     as multiple_redirecting_constructor_invocations;
 import 'multiple_super_initializers_test.dart' as multiple_super_initializers;
@@ -587,7 +587,6 @@ import 'override_on_non_overriding_setter_test.dart'
     as override_on_non_overriding_setter;
 import 'packed_annotation_alignment_test.dart' as packed_annotation_alignment;
 import 'packed_annotation_test.dart' as packed_annotation;
-import 'packed_nesting_non_packed_test.dart' as packed_nesting_non_packed;
 import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
 import 'positional_super_formal_parameter_with_positional_argument_test.dart'
@@ -751,6 +750,7 @@ import 'undefined_super_operator_test.dart' as undefined_super_operator;
 import 'undefined_super_setter_test.dart' as undefined_super_setter;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
+import 'unnecessary_final_test.dart' as unnecessary_final;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
 import 'unnecessary_import_test.dart' as unnecessary_import;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
@@ -887,8 +887,8 @@ main() {
     default_value_on_required_parameter.main();
     deferred_import_of_extension.main();
     definitely_unassigned_late_local_variable.main();
+    deprecated_export_use.main();
     deprecated_extends_function.main();
-    deprecated_function_class_declaration.main();
     deprecated_implements_function.main();
     deprecated_member_use.main();
     deprecated_mixin_function.main();
@@ -1104,6 +1104,7 @@ main() {
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
+    mock_sdk.main();
     multiple_redirecting_constructor_invocations.main();
     multiple_super_initializers.main();
     must_be_a_native_function_type.main();
@@ -1181,7 +1182,6 @@ main() {
     override_on_non_overriding_setter.main();
     packed_annotation.main();
     packed_annotation_alignment.main();
-    packed_nesting_non_packed.main();
     part_of_different_library.main();
     part_of_non_part.main();
     positional_super_formal_parameter_with_positional_argument.main();
@@ -1294,6 +1294,7 @@ main() {
     unignorable_ignore.main();
     unnecessary_import.main();
     unnecessary_cast.main();
+    unnecessary_final.main();
     unnecessary_ignore.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();

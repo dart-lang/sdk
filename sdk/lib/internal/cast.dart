@@ -186,8 +186,6 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
 
   CastSet(this._source, this._emptySet);
 
-  static Set<R> _defaultEmptySet<R>() => new Set<R>();
-
   Set<R> cast<R>() => new CastSet<S, R>(_source, _emptySet);
   bool add(T value) => _source.add(value as S);
 

@@ -27,7 +27,7 @@ class InstanceCreationTest extends PartialCodeTest {
     return <TestDescriptor>[
       TestDescriptor(
           '${keyword}_keyword',
-          '$keyword',
+          keyword,
           [
             ParserErrorCode.MISSING_IDENTIFIER,
             ParserErrorCode.EXPECTED_TOKEN,

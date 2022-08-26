@@ -12,7 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
-    show StringToken;
+    show StringTokenImpl;
 
 import 'package:kernel/ast.dart' show Source;
 
@@ -137,7 +137,7 @@ class CompilerContext {
   }
 
   void clear() {
-    StringToken.canonicalizer.clear();
+    StringTokenImpl.canonicalizer.clear();
     errors.clear();
     dependencies.clear();
   }

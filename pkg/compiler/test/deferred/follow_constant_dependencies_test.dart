@@ -37,7 +37,8 @@ void main() {
     for (String stringValue in ["cA", "cB", "cC"]) {
       StringConstantValue constant =
           allConstants.firstWhere((dynamic constant) {
-        return constant.isString && constant.stringValue == stringValue;
+        return constant is StringConstantValue &&
+            constant.stringValue == stringValue;
       });
       Expect.notEquals(
           null,
@@ -59,7 +60,7 @@ void main() {
 }
 
 // The main library imports lib1 and lib2 deferred and use lib1.foo1 and
-// lib2.foo2.  This should trigger seperate outputunits for main, lib1 and lib2.
+// lib2.foo2.  This should trigger separate outputunits for main, lib1 and lib2.
 //
 // Both lib1 and lib2 import lib3 directly and
 // both use lib3.foo3.  Therefore a shared output unit for lib1 and lib2 should

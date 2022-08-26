@@ -73,6 +73,19 @@ void f() {
         allowFixAllFixes: true);
   }
 
+  Future<void> test_previous_notKeyword() async {
+    await resolveTestCode('''
+int f(int i) {
+  return f((2));
+}
+''');
+    await assertHasFix('''
+int f(int i) {
+  return f(2);
+}
+''');
+  }
+
   Future<void> test_single() async {
     await resolveTestCode('''
 void f() {
@@ -82,6 +95,32 @@ void f() {
     await assertHasFix('''
 void f() {
   42;
+}
+''');
+  }
+
+  Future<void> test_space_existing() async {
+    await resolveTestCode('''
+int f() {
+  return (2);
+}
+''');
+    await assertHasFix('''
+int f() {
+  return 2;
+}
+''');
+  }
+
+  Future<void> test_space_no() async {
+    await resolveTestCode('''
+int f() {
+  return(2);
+}
+''');
+    await assertHasFix('''
+int f() {
+  return 2;
 }
 ''');
   }

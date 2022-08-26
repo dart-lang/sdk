@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'serialization.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'data_source.dart';
+import 'serialization.dart' show StringInterner;
 
 /// [DataSource] that reads data from a sequence of bytes.
 ///
@@ -10,10 +13,24 @@ part of 'serialization.dart';
 class BinaryDataSource implements DataSource {
   int _byteOffset = 0;
   final List<int> _bytes;
-  final StringInterner _stringInterner;
+  final StringInterner? _stringInterner;
+  late final Map<int, int> _deferredOffsetToSize;
 
-  BinaryDataSource(this._bytes, {StringInterner stringInterner})
-      : _stringInterner = stringInterner;
+  BinaryDataSource(this._bytes, {StringInterner? stringInterner})
+      : _stringInterner = stringInterner {
+    assert((_bytes as dynamic) != null); // TODO(48820): Remove when sound.
+    final deferredDataStart = readAtOffset(_bytes.length - 4, _readUint32);
+    _deferredOffsetToSize = readAtOffset(deferredDataStart, () {
+      final deferredSizesCount = readInt();
+      final result = <int, int>{};
+      for (var i = 0; i < deferredSizesCount; i++) {
+        final offset = readInt();
+        final size = readInt();
+        result[offset] = size;
+      }
+      return result;
+    });
+  }
 
   @override
   void begin(String tag) {}
@@ -31,7 +48,7 @@ class BinaryDataSource implements DataSource {
     _byteOffset += bytes.length;
     String string = utf8.decode(bytes);
     if (_stringInterner == null) return string;
-    return _stringInterner.internString(string);
+    return _stringInterner!.internString(string);
   }
 
   @override
@@ -61,6 +78,41 @@ class BinaryDataSource implements DataSource {
         "Expected one of $values, found index $index.");
     return values[index];
   }
+
+  @override
+  E readAtOffset<E>(int offset, E reader()) {
+    final offsetBefore = _byteOffset;
+    _byteOffset = offset;
+    final value = reader();
+    _byteOffset = offsetBefore;
+    return value;
+  }
+
+  int _readUint32() {
+    return (_readByte() << 24) |
+        (_readByte() << 16) |
+        (_readByte() << 8) |
+        _readByte();
+  }
+
+  @override
+  int readDeferred() {
+    final indexOffset = _byteOffset;
+    readInt(); // Read collision padding.
+    final dataOffset = _byteOffset;
+    final dataLength = _deferredOffsetToSize[indexOffset]!;
+    _byteOffset += dataLength;
+    return dataOffset;
+  }
+
+  @override
+  E readDeferredAsEager<E>(E reader()) {
+    readInt(); // Read collision padding.
+    return reader();
+  }
+
+  @override
+  int get length => _bytes.length;
 
   @override
   String get errorContext => ' Offset $_byteOffset in ${_bytes.length}.';

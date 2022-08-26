@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'dart:collection';
 
 import '../common.dart';
@@ -79,10 +81,10 @@ abstract class CodegenWorld extends BuiltWorld {
   void forEachStaticField(void Function(FieldEntity) f);
 
   /// Returns the types that are live as constant type literals.
-  Iterable<DartType> get constTypeLiterals;
+  Iterable<DartType /*!*/ > get constTypeLiterals;
 
   /// Returns the types that are live as constant type arguments.
-  Iterable<DartType> get liveTypeArguments;
+  Iterable<DartType /*!*/ > get liveTypeArguments;
 
   /// Returns a list of constants topologically sorted so that dependencies
   /// appear before the dependent constant.

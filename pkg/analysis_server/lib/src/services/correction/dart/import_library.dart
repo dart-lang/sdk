@@ -22,7 +22,31 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 class ImportLibrary extends MultiCorrectionProducer {
   final _ImportKind _importKind;
 
-  ImportLibrary(this._importKind);
+  /// Initialize a newly created instance that will add an import of
+  /// `dart:async`.
+  ImportLibrary.dartAsync() : _importKind = _ImportKind.dartAsync;
+
+  /// Initialize a newly created instance that will add an import for an
+  /// extension.
+  ImportLibrary.forExtension() : _importKind = _ImportKind.forExtension;
+
+  /// Initialize a newly created instance that will add an import for a member
+  /// of an extension.
+  ImportLibrary.forExtensionMember()
+      : _importKind = _ImportKind.forExtensionMember;
+
+  /// Initialize a newly created instance that will add an import for a
+  /// top-level function.
+  ImportLibrary.forFunction() : _importKind = _ImportKind.forFunction;
+
+  /// Initialize a newly created instance that will add an import for a
+  /// top-level variable.
+  ImportLibrary.forTopLevelVariable()
+      : _importKind = _ImportKind.forTopLevelVariable;
+
+  /// Initialize a newly created instance that will add an import for a type
+  /// (class or mixin).
+  ImportLibrary.forType() : _importKind = _ImportKind.forType;
 
   @override
   Stream<CorrectionProducer> get producers async* {
@@ -282,7 +306,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
       // Compute the fix kind.
       FixKind fixKind;
-      if (librarySource.uri.isScheme('dart')) {
+      if (libraryElement.isInSdk) {
         fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
       } else if (_isLibSrcPath(librarySource.fullName)) {
         // Bad: non-API.
@@ -358,31 +382,6 @@ class ImportLibrary extends MultiCorrectionProducer {
 
     return null;
   }
-
-  /// Return an instance of this class that will add an import of `dart:async`.
-  /// Used as a tear-off in `FixProcessor`.
-  static ImportLibrary dartAsync() => ImportLibrary(_ImportKind.dartAsync);
-
-  /// Return an instance of this class that will add an import for an extension.
-  /// Used as a tear-off in `FixProcessor`.
-  static ImportLibrary forExtension() =>
-      ImportLibrary(_ImportKind.forExtension);
-
-  static ImportLibrary forExtensionMember() =>
-      ImportLibrary(_ImportKind.forExtensionMember);
-
-  /// Return an instance of this class that will add an import for a top-level
-  /// function. Used as a tear-off in `FixProcessor`.
-  static ImportLibrary forFunction() => ImportLibrary(_ImportKind.forFunction);
-
-  /// Return an instance of this class that will add an import for a top-level
-  /// variable. Used as a tear-off in `FixProcessor`.
-  static ImportLibrary forTopLevelVariable() =>
-      ImportLibrary(_ImportKind.forTopLevelVariable);
-
-  /// Return an instance of this class that will add an import for a type (class
-  /// or mixin). Used as a tear-off in `FixProcessor`.
-  static ImportLibrary forType() => ImportLibrary(_ImportKind.forType);
 }
 
 /// A correction processor that can add an import using an absolute URI.

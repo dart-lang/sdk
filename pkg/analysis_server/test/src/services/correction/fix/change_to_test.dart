@@ -143,6 +143,57 @@ class BaseClass {}
 ''');
   }
 
+  Future<void> test_enum_constant() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+E e() {
+  return E.OEN;
+}
+''');
+    await assertHasFix('''
+enum E { ONE }
+
+E e() {
+  return E.ONE;
+}
+''');
+  }
+
+  Future<void> test_enum_getter() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+void f() {
+  E.ONE.indxe;
+}
+''');
+    await assertHasFix('''
+enum E { ONE }
+
+void f() {
+  E.ONE.index;
+}
+''');
+  }
+
+  Future<void> test_enum_method() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+void f() {
+  E.ONE.toStrong();
+}
+''');
+    await assertHasFix('''
+enum E { ONE }
+
+void f() {
+  E.ONE.toString();
+}
+''');
+  }
+
   Future<void> test_function_fromImport() async {
     await resolveTestCode('''
 void f() {
@@ -584,6 +635,132 @@ class A {
   void f() {
     myField = 42;
   }
+}
+''');
+  }
+
+  Future<void> test_super_formal_parameter() async {
+    await resolveTestCode('''
+class A {
+  A({int? one});
+}
+
+class B extends A {
+  B({super.oen});
+}
+''');
+    await assertHasFix('''
+class A {
+  A({int? one});
+}
+
+class B extends A {
+  B({super.one});
+}
+''');
+  }
+
+  Future<void> test_super_formal_parameter_initializer() async {
+    await resolveTestCode('''
+class A {
+  A.n1({int? one});
+}
+
+class B extends A {
+  B.n2({super.oen}) : super.n1();
+}
+''');
+    await assertHasFix('''
+class A {
+  A.n1({int? one});
+}
+
+class B extends A {
+  B.n2({super.one}) : super.n1();
+}
+''');
+  }
+
+  Future<void> test_super_formal_parameter_initializer_named() async {
+    await resolveTestCode('''
+class A {
+  A(int? one, {int? done});
+}
+
+class B extends A {
+  B.n({super.ne}) : super(1);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int? one, {int? done});
+}
+
+class B extends A {
+  B.n({super.done}) : super(1);
+}
+''');
+  }
+
+  Future<void> test_super_formal_parameter_name_empty() async {
+    await resolveTestCode('''
+class A {
+  A(int? one, {int? done});
+}
+
+class B extends A {
+  B(super.one, {super.ne});
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int? one, {int? done});
+}
+
+class B extends A {
+  B(super.one, {super.done});
+}
+''');
+  }
+
+  Future<void> test_super_formal_parameter_named() async {
+    await resolveTestCode('''
+class A {
+  A({int? one});
+}
+
+class B extends A {
+  B.n({super.oen});
+}
+''');
+    await assertHasFix('''
+class A {
+  A({int? one});
+}
+
+class B extends A {
+  B.n({super.one});
+}
+''');
+  }
+
+  Future<void> test_super_formal_parameter_used() async {
+    await resolveTestCode('''
+class A {
+  A({int? one, int? done});
+}
+
+class B extends A {
+  B({super.one, super.ne});
+}
+''');
+    await assertHasFix('''
+class A {
+  A({int? one, int? done});
+}
+
+class B extends A {
+  B({super.one, super.done});
 }
 ''');
   }

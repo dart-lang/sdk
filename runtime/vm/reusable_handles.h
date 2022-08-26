@@ -96,6 +96,8 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
   ReusableInstanceHandleScope reused_instance_handle(thread);
 #define REUSABLE_LIBRARY_HANDLESCOPE(thread)                                   \
   ReusableLibraryHandleScope reused_library_handle(thread);
+#define REUSABLE_LOADING_UNIT_HANDLESCOPE(thread)                              \
+  ReusableLoadingUnitHandleScope reused_loading_unit_handle(thread);
 #define REUSABLE_OBJECT_HANDLESCOPE(thread)                                    \
   ReusableObjectHandleScope reused_object_handle(thread);
 #define REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(thread)                            \

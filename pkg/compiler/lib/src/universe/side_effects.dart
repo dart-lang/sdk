@@ -257,7 +257,7 @@ class SideEffectsBuilder {
   final MemberEntity _member;
   final SideEffects _sideEffects = SideEffects.empty();
   final bool _free;
-  Set<SideEffectsBuilder> _depending;
+  Set<SideEffectsBuilder>? _depending;
 
   SideEffectsBuilder(this._member) : _free = false;
 

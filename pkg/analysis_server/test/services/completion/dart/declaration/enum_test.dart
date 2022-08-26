@@ -63,7 +63,7 @@ enum OtherEnum { foo02 }
   }
 
   Future<void> test_enumConstantName_imported_withPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 enum MyEnum { foo01 }
 enum OtherEnum { foo02 }
 ''');
@@ -126,7 +126,7 @@ void f() {
   }
 
   Future<void> test_enumName_imported_withPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 enum MyEnum { foo01 }
 ''');
 
@@ -162,7 +162,7 @@ void f() {
 
   @FailingTest(reason: 'element.kind is LIBRARY')
   Future<void> test_importPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
 
@@ -196,7 +196,7 @@ void f() {
   }
 
   Future<void> test_importPrefix_dot() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
 
@@ -254,7 +254,7 @@ void f() {
   }
 
   Future<void> test_nothing_imported_withPrefix() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
 
@@ -316,7 +316,7 @@ void f() {
 
     // imported
     {
-      newFile2('$testPackageLibPath/a.dart', '''
+      newFile('$testPackageLibPath/a.dart', '''
 $declaration
 ''');
       if (isProtocolVersion1) {
@@ -334,10 +334,10 @@ void f() {
 
     // not imported
     {
-      newFile2('$testPackageLibPath/a.dart', '''
+      newFile('$testPackageLibPath/a.dart', '''
 $declaration
 ''');
-      newFile2('$testPackageLibPath/context_type.dart', '''
+      newFile('$testPackageLibPath/context_type.dart', '''
 import 'a.dart'; // ignore: unused_import
 $declarationForContextType
 ''');

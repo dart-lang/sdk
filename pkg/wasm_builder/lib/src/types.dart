@@ -201,10 +201,6 @@ class RefType extends ValueType {
   const RefType.i31({bool nullable = I31HeapType.defaultNullability})
       : this._(HeapType.i31, nullable);
 
-  /// A (possibly nullable) reference to the `extern` heap type.
-  const RefType.extern({bool nullable = ExternHeapType.defaultNullability})
-      : this._(HeapType.extern, nullable);
-
   /// A (possibly nullable) reference to a custom heap type.
   RefType.def(DefType defType, {required bool nullable})
       : this(defType, nullable: nullable);
@@ -234,7 +230,7 @@ class RefType extends ValueType {
   @override
   String toString() {
     if (nullable == heapType.nullableByDefault) return "${heapType}ref";
-    return "ref${nullable ? " null " : " "}${heapType}";
+    return "ref${nullable ? " null " : " "}$heapType";
   }
 
   @override
@@ -266,9 +262,6 @@ abstract class HeapType implements Serializable {
   /// The `i31` heap type.
   static const i31 = I31HeapType._();
 
-  /// The `extern` heap type.
-  static const extern = ExternHeapType._();
-
   /// Whether this heap type is nullable by default, i.e. when written with the
   /// -`ref` shorthand. A `null` value here means the heap type has no default
   /// nullability, so the nullability of a reference has to be specified
@@ -295,7 +288,7 @@ class AnyHeapType extends HeapType {
   bool isSubtypeOf(HeapType other) => other == HeapType.any;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x6E);
+  void serialize(Serializer s) => s.writeByte(0x6F);
 
   @override
   String toString() => "any";
@@ -381,26 +374,6 @@ class I31HeapType extends HeapType {
   String toString() => "i31";
 }
 
-/// The `extern` heap type.
-class ExternHeapType extends HeapType {
-  const ExternHeapType._();
-
-  static const defaultNullability = true;
-
-  @override
-  bool? get nullableByDefault => defaultNullability;
-
-  @override
-  bool isSubtypeOf(HeapType other) =>
-      other == HeapType.any || other == HeapType.extern;
-
-  @override
-  void serialize(Serializer s) => s.writeByte(0x6F);
-
-  @override
-  String toString() => "extern";
-}
-
 /// A custom heap type.
 abstract class DefType extends HeapType {
   int? _index;
@@ -442,8 +415,7 @@ class FunctionType extends DefType {
   final List<ValueType> inputs;
   final List<ValueType> outputs;
 
-  FunctionType(this.inputs, this.outputs, {HeapType? superType})
-      : super(superType: superType);
+  FunctionType(this.inputs, this.outputs, {super.superType});
 
   @override
   bool isStructuralSubtypeOf(HeapType other) {
@@ -481,7 +453,7 @@ class FunctionType extends DefType {
 abstract class DataType extends DefType {
   final String name;
 
-  DataType(this.name, {HeapType? superType}) : super(superType: superType);
+  DataType(this.name, {super.superType});
 
   @override
   String toString() => name;
@@ -491,8 +463,7 @@ abstract class DataType extends DefType {
 class StructType extends DataType {
   final List<FieldType> fields = [];
 
-  StructType(String name, {Iterable<FieldType>? fields, HeapType? superType})
-      : super(name, superType: superType) {
+  StructType(super.name, {Iterable<FieldType>? fields, super.superType}) {
     if (fields != null) this.fields.addAll(fields);
   }
 
@@ -526,8 +497,7 @@ class StructType extends DataType {
 class ArrayType extends DataType {
   late final FieldType elementType;
 
-  ArrayType(String name, {FieldType? elementType, HeapType? superType})
-      : super(name, superType: superType) {
+  ArrayType(super.name, {FieldType? elementType, super.superType}) {
     if (elementType != null) this.elementType = elementType;
   }
 
@@ -557,7 +527,7 @@ class _WithMutability<T extends StorageType> implements Serializable {
   final T type;
   final bool mutable;
 
-  _WithMutability(this.type, this.mutable);
+  _WithMutability(this.type, {required this.mutable});
 
   @override
   void serialize(Serializer s) {
@@ -573,20 +543,20 @@ class _WithMutability<T extends StorageType> implements Serializable {
 ///
 /// It consists of a type and a mutability.
 class GlobalType extends _WithMutability<ValueType> {
-  GlobalType(ValueType type, {bool mutable = true}) : super(type, mutable);
+  GlobalType(super.type, {super.mutable = true});
 }
 
 /// A type for a struct field or an array element.
 ///
 /// It consists of a type and a mutability.
 class FieldType extends _WithMutability<StorageType> {
-  FieldType(StorageType type, {bool mutable = true}) : super(type, mutable);
+  FieldType(super.type, {super.mutable = true});
 
   /// The `i8` storage type as a field type.
-  FieldType.i8({bool mutable: true}) : this(PackedType.i8, mutable: mutable);
+  FieldType.i8({bool mutable = true}) : this(PackedType.i8, mutable: mutable);
 
   /// The `i16` storage type as a field type.
-  FieldType.i16({bool mutable: true}) : this(PackedType.i16, mutable: mutable);
+  FieldType.i16({bool mutable = true}) : this(PackedType.i16, mutable: mutable);
 
   bool isSubtypeOf(FieldType other) {
     if (mutable != other.mutable) return false;

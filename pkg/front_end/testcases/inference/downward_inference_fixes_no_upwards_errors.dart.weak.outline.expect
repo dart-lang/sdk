@@ -1,9 +1,10 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
 import "dart:math";
 
-static method f() → dynamic
+static method f(core::num x, dynamic y) → dynamic
   ;
 static method main() → dynamic
   ;

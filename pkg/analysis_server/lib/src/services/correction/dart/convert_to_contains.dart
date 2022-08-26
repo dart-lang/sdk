@@ -156,9 +156,6 @@ class ConvertToContains extends CorrectionProducer {
     // so we should never reach this point.
     return NegationStyle.none;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertToContains newInstance() => ConvertToContains();
 }
 
 /// An indication of whether the `contains` test should be negated, not negated,

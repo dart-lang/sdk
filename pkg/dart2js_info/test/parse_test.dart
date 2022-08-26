@@ -16,14 +16,14 @@ main() {
       var json = jsonDecode(helloWorld.readAsStringSync());
       var decoded = AllInfoJsonCodec().decode(json);
 
-      var program = decoded.program;
+      final program = decoded.program;
       expect(program, isNotNull);
 
-      expect(program.entrypoint, isNotNull);
-      expect(program.size, 94182);
+      expect(program!.entrypoint, isNotNull);
+      expect(program.size, 90362);
       expect(program.compilationMoment,
-          DateTime.parse("2021-09-27 15:32:00.380236"));
-      expect(program.compilationDuration, Duration(microseconds: 2848001));
+          DateTime.parse("2022-05-26 21:08:43.608041"));
+      expect(program.compilationDuration, Duration(microseconds: 3177312));
       expect(program.toJsonDuration, Duration(milliseconds: 3));
       expect(program.dumpInfoDuration, Duration(seconds: 0));
       expect(program.noSuchMethodEnabled, false);

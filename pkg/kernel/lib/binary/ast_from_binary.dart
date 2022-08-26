@@ -1671,9 +1671,9 @@ class BinaryBuilder {
     assert(tag == Tag.Procedure);
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
-    Procedure? node = reference.node as Procedure?;
-    if (alwaysCreateNewNamedNodes) {
-      node = null;
+    Procedure? node;
+    if (!alwaysCreateNewNamedNodes) {
+      node = reference.node as Procedure?;
     }
     Uri fileUri = readUriReference();
     int startFileOffset = readOffset();
@@ -1706,7 +1706,7 @@ class BinaryBuilder {
     }
     int transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
-    node.startFileOffset = startFileOffset;
+    node.fileStartOffset = startFileOffset;
     node.fileOffset = fileOffset;
     node.fileEndOffset = fileEndOffset;
     node.flags = flags;
@@ -2001,6 +2001,10 @@ class BinaryBuilder {
         return _readInstanceSet();
       case Tag.DynamicSet:
         return _readDynamicSet();
+      case Tag.AbstractSuperPropertyGet:
+        return _readAbstractSuperPropertyGet();
+      case Tag.AbstractSuperPropertySet:
+        return _readAbstractSuperPropertySet();
       case Tag.SuperPropertyGet:
         return _readSuperPropertyGet();
       case Tag.SuperPropertySet:
@@ -2033,6 +2037,8 @@ class BinaryBuilder {
         return _readEqualsNull();
       case Tag.EqualsCall:
         return _readEqualsCall();
+      case Tag.AbstractSuperMethodInvocation:
+        return _readAbstractSuperMethodInvocation();
       case Tag.SuperMethodInvocation:
         return _readSuperMethodInvocation();
       case Tag.StaticInvocation:
@@ -2209,11 +2215,27 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
+  Expression _readAbstractSuperPropertyGet() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new AbstractSuperPropertyGet.byReference(
+        readName(), readNonNullInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
+  Expression _readAbstractSuperPropertySet() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new AbstractSuperPropertySet.byReference(
+        readName(), readExpression(), readNonNullInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
   Expression _readSuperPropertyGet() {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertyGet.byReference(
-        readName(), readNullableInstanceMemberReference())
+        readName(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2221,7 +2243,7 @@ class BinaryBuilder {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperPropertySet.byReference(
-        readName(), readExpression(), readNullableInstanceMemberReference())
+        readName(), readExpression(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2347,11 +2369,19 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
+  Expression _readAbstractSuperMethodInvocation() {
+    int offset = readOffset();
+    addTransformerFlag(TransformerFlag.superCalls);
+    return new AbstractSuperMethodInvocation.byReference(
+        readName(), readArguments(), readNonNullInstanceMemberReference())
+      ..fileOffset = offset;
+  }
+
   Expression _readSuperMethodInvocation() {
     int offset = readOffset();
     addTransformerFlag(TransformerFlag.superCalls);
     return new SuperMethodInvocation.byReference(
-        readName(), readArguments(), readNullableInstanceMemberReference())
+        readName(), readArguments(), readNonNullInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2602,7 +2632,8 @@ class BinaryBuilder {
   }
 
   Expression _readAwaitExpression() {
-    return new AwaitExpression(readExpression());
+    int offset = readOffset();
+    return new AwaitExpression(readExpression())..fileOffset = offset;
   }
 
   Expression _readFunctionExpression() {
@@ -2805,6 +2836,7 @@ class BinaryBuilder {
 
   Statement _readSwitchStatement() {
     int offset = readOffset();
+    bool isExplicitlyExhaustive = readByte() == 1;
     Expression expression = readExpression();
     int count = readUInt30();
     List<SwitchCase> cases;
@@ -2824,7 +2856,9 @@ class BinaryBuilder {
       _readSwitchCaseInto(cases[i]);
     }
     switchCaseStack.length -= count;
-    return new SwitchStatement(expression, cases)..fileOffset = offset;
+    return new SwitchStatement(expression, cases,
+        isExplicitlyExhaustive: isExplicitlyExhaustive)
+      ..fileOffset = offset;
   }
 
   Statement _readContinueSwitchStatement() {
@@ -3088,7 +3122,6 @@ class BinaryBuilder {
     int totalParameterCount = readUInt30();
     List<DartType> positional = readDartTypeList();
     List<NamedType> named = readNamedTypeList();
-    TypedefType? typedefType = readDartTypeOption() as TypedefType?;
     assert(positional.length + named.length == totalParameterCount);
     DartType returnType = readDartType();
     typeParameterStack.length = typeParameterStackHeight;
@@ -3096,8 +3129,7 @@ class BinaryBuilder {
         positional, returnType, Nullability.values[nullabilityIndex],
         typeParameters: typeParameters,
         requiredParameterCount: requiredParameterCount,
-        namedParameters: named,
-        typedefType: typedefType);
+        namedParameters: named);
   }
 
   DartType _readSimpleFunctionType() {
@@ -3210,7 +3242,7 @@ class BinaryBuilder {
     // The [VariableDeclaration] instance is not created at this point yet,
     // so `null` is temporarily set as the parent of the annotation nodes.
     List<Expression> annotations = readAnnotationList(null);
-    int flags = readByte();
+    int flags = readUInt30();
     VariableDeclaration node = new VariableDeclaration(
         readStringOrNullIfEmpty(),
         type: readDartType(),

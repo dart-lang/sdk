@@ -41,7 +41,9 @@ static int OpenTraceFD() {
 }
 
 TimelineEventSystraceRecorder::TimelineEventSystraceRecorder()
-    : TimelineEventPlatformRecorder(), systrace_fd_(OpenTraceFD()) {}
+    : TimelineEventPlatformRecorder(), systrace_fd_(OpenTraceFD()) {
+  Timeline::set_recorder_discards_clock_values(true);
+}
 
 TimelineEventSystraceRecorder::~TimelineEventSystraceRecorder() {
   if (systrace_fd_ >= 0) {

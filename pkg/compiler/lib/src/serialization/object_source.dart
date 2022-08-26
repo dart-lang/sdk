@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of 'serialization.dart';
+import 'data_source.dart';
+import 'tags.dart' show Tag;
 
 /// [DataSource] that read from a list of objects, useful for debugging
 /// inconsistencies between serialization and deserialization.
@@ -15,9 +16,9 @@ class ObjectDataSource implements DataSource {
   ObjectDataSource(this._data);
 
   T _read<T>() {
-    dynamic value = _data[_index++];
-    assert(value is T, "Expected $T value, found $value.$errorContext");
-    return value;
+    Object? value = _data[_index++];
+    if (value is T) return value;
+    throw StateError('Expected $T value, found $value.$errorContext');
   }
 
   @override
@@ -48,6 +49,31 @@ class ObjectDataSource implements DataSource {
 
   @override
   int readInt() => _read();
+
+  @override
+  E readAtOffset<E>(int offset, E reader()) {
+    final indexBefore = _index;
+    _index = offset;
+    final value = reader();
+    _index = indexBefore;
+    return value;
+  }
+
+  @override
+  int readDeferred() {
+    final dataOffset = _index;
+    _index += readInt();
+    return dataOffset;
+  }
+
+  @override
+  E readDeferredAsEager<E>(E reader()) {
+    readInt(); // Read and throw away the length.
+    return reader();
+  }
+
+  @override
+  int get length => _data.length;
 
   @override
   String get errorContext {

@@ -49,13 +49,13 @@ class ModularStep {
   final bool notOnSdk;
 
   ModularStep(
-      {this.needsSources: true,
-      this.dependencyDataNeeded: const [],
-      this.moduleDataNeeded: const [],
-      this.resultData,
-      this.onlyOnMain: false,
-      this.onlyOnSdk: false,
-      this.notOnSdk: false});
+      {this.needsSources = true,
+      this.dependencyDataNeeded = const [],
+      this.moduleDataNeeded = const [],
+      this.resultData = const [],
+      this.onlyOnMain = false,
+      this.onlyOnSdk = false,
+      this.notOnSdk = false});
 
   /// Notifies that the step was not executed, but cached instead.
   void notifyCached(Module module) {}
@@ -94,13 +94,13 @@ abstract class Pipeline<S extends ModularStep> {
     // or by the same step on a dependency.
     Map<DataId, S> previousKinds = {};
     for (var step in steps) {
-      if (step.resultData == null || step.resultData.isEmpty) {
+      if (step.resultData.isEmpty) {
         _validationError(
             "'${step.runtimeType}' needs to declare what data it produces.");
       }
       for (var resultKind in step.resultData) {
         if (previousKinds.containsKey(resultKind) &&
-            !areMutuallyExclusive(step, previousKinds[resultKind])) {
+            !areMutuallyExclusive(step, previousKinds[resultKind]!)) {
           _validationError("Cannot produce the same data on two modular steps."
               " '$resultKind' was previously produced by "
               "'${previousKinds[resultKind].runtimeType}' but "
@@ -151,7 +151,7 @@ abstract class Pipeline<S extends ModularStep> {
       await _recursiveRun(
           step, dependency, computedData, transitiveDependencies, flags);
       deps.add(dependency);
-      deps.addAll(transitiveDependencies[dependency]);
+      deps.addAll(transitiveDependencies[dependency]!);
     }
 
     if ((step.onlyOnMain && !module.isMain) ||
@@ -163,15 +163,15 @@ abstract class Pipeline<S extends ModularStep> {
     deps.forEach((dep) {
       visibleData[dep] = {};
       for (var dataId in step.dependencyDataNeeded) {
-        if (computedData[dep].contains(dataId)) {
-          visibleData[dep].add(dataId);
+        if (computedData[dep]!.contains(dataId)) {
+          visibleData[dep]!.add(dataId);
         }
       }
     });
     visibleData[module] = {};
     for (var dataId in step.moduleDataNeeded) {
-      if (computedData[module].contains(dataId)) {
-        visibleData[module].add(dataId);
+      if (computedData[module]!.contains(dataId)) {
+        visibleData[module]!.add(dataId);
       }
     }
     await runStep(step, module, visibleData, flags);

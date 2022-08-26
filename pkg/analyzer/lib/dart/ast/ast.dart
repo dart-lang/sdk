@@ -39,6 +39,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
+import 'package:meta/meta.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
@@ -364,6 +365,8 @@ abstract class AstVisitor<R> {
 
   R? visitAssignmentExpression(AssignmentExpression node);
 
+  R? visitAugmentationImportDirective(AugmentationImportDirective node);
+
   R? visitAwaitExpression(AwaitExpression node);
 
   R? visitBinaryExpression(BinaryExpression node);
@@ -504,6 +507,8 @@ abstract class AstVisitor<R> {
 
   R? visitLabeledStatement(LabeledStatement node);
 
+  R? visitLibraryAugmentationDirective(LibraryAugmentationDirective node);
+
   R? visitLibraryDirective(LibraryDirective node);
 
   R? visitLibraryIdentifier(LibraryIdentifier node);
@@ -612,6 +617,29 @@ abstract class AstVisitor<R> {
   R? visitWithClause(WithClause node);
 
   R? visitYieldStatement(YieldStatement node);
+}
+
+/// An augmentation import directive.
+///
+///    importDirective ::=
+///        [Annotation] 'import' 'augment' [StringLiteral] ';'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class AugmentationImportDirective implements UriBasedDirective {
+  /// The token representing the 'augment' keyword.
+  Token get augmentKeyword;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  @override
+  AugmentationImportElement? get element;
+
+  /// The token representing the 'import' keyword.
+  Token get importKeyword;
+
+  /// Return the semicolon terminating the directive.
+  Token get semicolon;
 }
 
 /// An await expression.
@@ -1497,6 +1525,7 @@ abstract class Directive implements AnnotatedNode {
 
   /// Return the token representing the keyword that introduces this directive
   /// ('import', 'export', 'library' or 'part').
+  @Deprecated('Use specific xyzToken instead')
   Token get keyword;
 }
 
@@ -1676,6 +1705,9 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 abstract class ExportDirective implements NamespaceDirective {
   @override
   ExportElement? get element;
+
+  /// The token representing the 'export' keyword.
+  Token get exportKeyword;
 }
 
 /// A node that represents an expression.
@@ -2069,6 +2101,9 @@ abstract class FormalParameter implements AstNode {
 
   /// Return `true` if this parameter was declared with the 'const' modifier.
   bool get isConst;
+
+  /// Indicates whether the parameter has an explicit type.
+  bool get isExplicitlyTyped;
 
   /// Return `true` if this parameter was declared with the 'final' modifier.
   ///
@@ -2727,6 +2762,7 @@ abstract class ImplicitCallReference implements MethodReferenceExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ImportDirective implements NamespaceDirective {
+  @Deprecated('This kind of syntactic equality is rarely useful')
   static Comparator<ImportDirective> COMPARATOR =
       (ImportDirective import1, ImportDirective import2) {
     //
@@ -2843,6 +2879,9 @@ abstract class ImportDirective implements NamespaceDirective {
 
   @override
   ImportElement? get element;
+
+  /// The token representing the 'import' keyword.
+  Token get importKeyword;
 
   /// Return the prefix to be used with the imported names, or `null` if the
   /// imported names are not prefixed.
@@ -3106,6 +3145,24 @@ abstract class LabeledStatement implements Statement {
 
   /// Return the statement with which the labels are being associated.
   Statement get statement;
+}
+
+/// A library augmentation directive.
+///
+///    libraryAugmentationDirective ::=
+///        [metadata] 'library' 'augment' [StringLiteral] ';'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LibraryAugmentationDirective implements UriBasedDirective {
+  /// Return the token representing the 'augment' keyword.
+  Token get augmentKeyword;
+
+  /// Return the token representing the 'library' keyword.
+  Token get libraryKeyword;
+
+  /// Return the semicolon terminating the directive.
+  Token get semicolon;
 }
 
 /// A library directive.
@@ -4470,6 +4527,7 @@ abstract class TypeParameterList implements AstNode {
 /// A directive that references a URI.
 ///
 ///    uriBasedDirective ::=
+///        [LibraryAugmentationDirective]
 ///        [ExportDirective]
 ///      | [ImportDirective]
 ///      | [PartDirective]
@@ -4481,6 +4539,7 @@ abstract class UriBasedDirective implements Directive {
 
   /// Return the content of the [uri], or `null` if the AST structure has not
   /// been resolved, or if the [uri] has a string interpolation.
+  /// TODO(scheglov) Deprecate and remove it.
   String? get uriContent;
 
   /// Return the element associated with the [uri] of this directive, or `null`
@@ -4489,9 +4548,11 @@ abstract class UriBasedDirective implements Directive {
   ///
   /// Examples of the latter case include a directive that contains an invalid
   /// URL or a URL that does not exist.
+  /// TODO(scheglov) Deprecate and remove it.
   Element? get uriElement;
 
   /// Return the source to which the [uri] was resolved.
+  /// TODO(scheglov) Deprecate and remove it.
   Source? get uriSource;
 }
 

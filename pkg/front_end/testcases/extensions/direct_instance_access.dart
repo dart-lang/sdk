@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 class Class {
   var field;
 }
@@ -67,11 +67,11 @@ extension Extension on Class {
 }
 
 class GenericClass<T> {
-  T field;
+  T? field;
 }
 
 extension GenericExtension<T> on GenericClass<T> {
-  T readGetter() {
+  T? readGetter() {
     return property;
   }
 
@@ -79,11 +79,11 @@ extension GenericExtension<T> on GenericClass<T> {
     property = value;
   }
 
-  writeSetterOptional([T value]) {
+  writeSetterOptional([T? value]) {
    property = value;
   }
 
-  writeSetterNamed({T value}) {
+  writeSetterNamed({T? value}) {
     property = value;
   }
 
@@ -91,17 +91,17 @@ extension GenericExtension<T> on GenericClass<T> {
    property = value;
   }
 
-  genericWriteSetterOptional<S extends T>([S value]) {
+  genericWriteSetterOptional<S extends T>([S? value]) {
     property = value;
   }
 
-  genericWriteSetterNamed<S extends T>({S value}) {
+  genericWriteSetterNamed<S extends T>({S? value}) {
    property = value;
   }
 
-  T get property => this.field;
+  T? get property => this.field;
 
-  void set property(T value) {
+  void set property(T? value) {
     this.field = value;
   }
 

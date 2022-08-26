@@ -19,7 +19,7 @@ main() {
   group('debug mode', () {
     test('reports the VM Service URI to the client', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(simpleBreakpointProgram);
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       await client.hitBreakpoint(testFile, breakpointLine);
@@ -31,7 +31,7 @@ main() {
 
     test('exposes VM services to the client', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(simpleBreakpointProgram);
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       // Capture our test service registration.
@@ -68,7 +68,7 @@ main() {
 
     test('exposes VM service extensions to the client', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(serviceExtensionProgram);
+      final testFile = dap.createTestFile(serviceExtensionProgram);
 
       // Capture our test service registration.
       final serviceExtensionAddedFuture = client.serviceExtensionAddedEvents

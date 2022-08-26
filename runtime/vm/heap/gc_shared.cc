@@ -37,7 +37,9 @@ void GCLinkedLists::FlushInto(GCLinkedLists* to) {
 }
 
 Heap::Space SpaceForExternal(FinalizerEntryPtr raw_entry) {
-  ASSERT(!raw_entry->untag()->value().IsSmi());
+  // Not Smi, these cannot be integers. They either need to be valid Expando
+  // keys (Finalizer) or Finalizable (NativeFinalizer).
+  ASSERT(raw_entry->untag()->value().IsHeapObject());
   return raw_entry->untag()->value()->IsOldObject() ? Heap::kOld : Heap::kNew;
 }
 

@@ -6,12 +6,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
 import '../core.dart';
+import '../experiments.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
@@ -74,7 +76,14 @@ class AnalyzeCommand extends DartdevCommand {
         help: 'The path to the package resolution configuration file, which '
             'supplies a mapping of package names\ninto paths.',
         hide: !verbose,
-      );
+      )
+      ..addOption(
+        'sdk-path',
+        valueHelp: 'path',
+        help: 'The path to the Dart SDK.',
+        hide: !verbose,
+      )
+      ..addExperimentalFlags();
   }
 
   @override
@@ -104,25 +113,62 @@ class AnalyzeCommand extends DartdevCommand {
     final machineFormat = args['format'] == 'machine';
     final jsonFormat = args['format'] == 'json';
 
+    io.Directory sdkPath;
+    if (args.wasParsed('sdk-path')) {
+      sdkPath = io.Directory(args['sdk-path'] as String);
+      if (!sdkPath.existsSync()) {
+        usageException('Invalid Dart SDK path: ${sdkPath.path}');
+      }
+      final snapshotPath = path.join(
+        sdkPath.path,
+        'bin',
+        'snapshots',
+        'analysis_server.dart.snapshot',
+      );
+      if (!io.File(snapshotPath).existsSync()) {
+        usageException(
+            'Invalid Dart SDK path has no analysis_server.dart.snapshot file: '
+            '${sdkPath.path}');
+      }
+    } else {
+      sdkPath = io.Directory(sdk.sdkPath);
+    }
+
+    final experimentNames = {
+      for (var experiment in args.enabledExperiments)
+        if (experiment.startsWith('no-'))
+          experiment.substring(3)
+        else
+          experiment
+    };
+    final unknownExperiments =
+        experimentNames.difference(ExperimentStatus.knownFeatures.keys.toSet());
+    if (unknownExperiments.isNotEmpty) {
+      final unknownExperimentsText =
+          unknownExperiments.map((e) => "'$e'").join(', ');
+      usageException('Unknown experiment(s): $unknownExperimentsText');
+    }
+
     final targetsNames =
         targets.map((entity) => path.basename(entity.path)).join(', ');
-
-    var progress =
+    final progress =
         machineFormat ? null : log.progress('Analyzing $targetsNames');
 
     final AnalysisServer server = AnalysisServer(
       _packagesFile(),
-      io.Directory(sdk.sdkPath),
+      sdkPath,
       targets,
       cacheDirectoryPath: args['cache'],
       commandName: 'analyze',
       argResults: args,
+      enabledExperiments: args.enabledExperiments,
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {
-      // Record the issues found (but filter out to do comments).
-      errors.addAll(fileErrors.errors
-          .where((AnalysisError error) => error.type != 'TODO'));
+      // Record the issues found (but filter out to do comments unless they've
+      // been upgraded from INFO).
+      errors.addAll(fileErrors.errors.where((AnalysisError error) =>
+          error.type != 'TODO' || error.severity != 'INFO'));
     });
 
     await server.start();

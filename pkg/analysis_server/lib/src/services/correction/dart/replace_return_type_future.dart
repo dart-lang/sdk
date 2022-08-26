@@ -41,9 +41,6 @@ class ReplaceReturnTypeFuture extends CorrectionProducer {
     });
   }
 
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceReturnTypeFuture newInstance() => ReplaceReturnTypeFuture();
-
   static TypeAnnotation? _getTypeAnnotation(AstNode node) {
     var function = node.thisOrAncestorOfType<FunctionDeclaration>();
     if (function != null) {

@@ -4,6 +4,7 @@
 
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -17,6 +18,7 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -165,8 +167,8 @@ class Driver implements CommandLineStarter {
 
     // These are used to do part file analysis across sources.
     var dartFiles = <String>{};
-    var libraryFiles = <FileState>{};
-    var danglingParts = <FileState>{};
+    final analyzedFiles = <FileState>{};
+    final partFiles = <FileState>{};
 
     // Note: This references analysisDriver via closure, so it will change over
     // time during the following analysis.
@@ -336,20 +338,13 @@ class Driver implements CommandLineStarter {
           dartFiles.add(path);
           var file = analysisDriver.fsState.getFileForPath(path);
 
-          if (file.isPart) {
-            if (!libraryFiles.contains(file.library)) {
-              danglingParts.add(file);
-            }
-            continue;
-          }
-          libraryFiles.add(file);
-
-          var status = await _runAnalyzer(file, options, formatter);
-          allResult = allResult.max(status);
-
-          // Mark previously dangling parts as no longer dangling.
-          for (var part in file.partedFiles) {
-            danglingParts.remove(part);
+          final kind = file.kind;
+          if (kind is LibraryFileStateKind) {
+            var status = await _runAnalyzer(file, options, formatter);
+            allResult = allResult.max(status);
+            analyzedFiles.addAll(kind.files);
+          } else if (kind is PartFileStateKind) {
+            partFiles.add(file);
           }
         }
       }
@@ -363,8 +358,10 @@ class Driver implements CommandLineStarter {
     }
 
     // Any dangling parts still in this list were definitely dangling.
-    for (var partFile in danglingParts) {
-      reportPartError(partFile.path);
+    for (var partFile in partFiles) {
+      if (!analyzedFiles.contains(partFile)) {
+        reportPartError(partFile.path);
+      }
     }
 
     formatter.flush();
@@ -420,11 +417,6 @@ class Driver implements CommandLineStarter {
   bool _shouldBeFatal(ErrorSeverity severity, CommandLineOptions options) {
     if (severity == ErrorSeverity.ERROR) {
       return true;
-    } else if (severity == ErrorSeverity.WARNING &&
-        (options.warningsAreFatal || options.infosAreFatal)) {
-      return true;
-    } else if (severity == ErrorSeverity.INFO && options.infosAreFatal) {
-      return true;
     } else {
       return false;
     }
@@ -452,11 +444,6 @@ class Driver implements CommandLineStarter {
         _equalMaps(newOptions.declaredVariables, previous.declaredVariables) &&
         newOptions.log == previous.log &&
         newOptions.disableHints == previous.disableHints &&
-        newOptions.showPackageWarnings == previous.showPackageWarnings &&
-        newOptions.showPackageWarningsPrefix ==
-            previous.showPackageWarningsPrefix &&
-        newOptions.showSdkWarnings == previous.showSdkWarnings &&
-        newOptions.lints == previous.lints &&
         newOptions.defaultLanguageVersion == previous.defaultLanguageVersion &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
         _equalLists(
@@ -558,7 +545,7 @@ class _AnalysisContextProvider {
       packagesFile: _commandLineOptions!.defaultPackagesPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions!.dartSdkPath,
-      updateAnalysisOptions: _updateAnalysisOptions,
+      updateAnalysisOptions2: _updateAnalysisOptions,
       fileContentCache: _fileContentCache,
     );
 
@@ -583,7 +570,11 @@ class _AnalysisContextProvider {
     _analysisContext = _collection!.contextFor(path);
   }
 
-  void _updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
+  void _updateAnalysisOptions({
+    required AnalysisOptionsImpl analysisOptions,
+    required ContextRoot contextRoot,
+    required DartSdk sdk,
+  }) {
     _commandLineOptions!.updateAnalysisOptions(analysisOptions);
   }
 }

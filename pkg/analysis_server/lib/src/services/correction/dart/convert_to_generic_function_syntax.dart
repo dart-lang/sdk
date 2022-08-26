@@ -40,7 +40,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
       } else if (node is FormalParameterList) {
         // It would be confusing for this assist to alter a surrounding context
         // when the selection is inside a parameter list.
-        return null;
+        return;
       }
     }
   }
@@ -113,8 +113,4 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
       builder.addSimpleReplacement(range.node(node), replacement);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertToGenericFunctionSyntax newInstance() =>
-      ConvertToGenericFunctionSyntax();
 }

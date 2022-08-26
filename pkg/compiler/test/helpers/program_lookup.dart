@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'package:compiler/src/common/elements.dart';
-import 'package:compiler/src/deferred_load/output_unit.dart';
+import 'package:compiler/src/deferred_load/output_unit.dart' show OutputUnit;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_backend/namer.dart';

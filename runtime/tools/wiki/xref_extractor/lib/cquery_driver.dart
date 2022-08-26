@@ -196,5 +196,5 @@ class _JsonRpcParser {
   static const CH0 = 48;
   static const CH9 = 57;
   static const CR = 13;
-  static const LF = 10;
+  static const LF = 10; // ignore: unused_field
 }

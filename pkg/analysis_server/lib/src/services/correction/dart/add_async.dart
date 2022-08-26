@@ -11,12 +11,16 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddAsync extends CorrectionProducer {
+  // todo(pq): consider adding a variation that adds an `await` as well
+
   /// A flag indicating whether this producer is producing a fix in the case
   /// where a function is missing a return at the end.
   final bool isForMissingReturn;
 
   /// Initialize a newly created producer.
-  AddAsync(this.isForMissingReturn);
+  AddAsync() : isForMissingReturn = false;
+
+  AddAsync.missingReturn() : isForMissingReturn = true;
 
   @override
   // Not predictably the correct action.
@@ -77,12 +81,6 @@ class AddAsync extends CorrectionProducer {
     }
     return false;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddAsync missingReturn() => AddAsync(true);
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddAsync newInstance() => AddAsync(false);
 }
 
 /// An AST visitor used to find return statements in function bodies.

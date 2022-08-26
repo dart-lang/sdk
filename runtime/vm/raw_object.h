@@ -158,11 +158,11 @@ class UntaggedObject {
   // bit fields for storing tags.
   enum TagBits {
     kCardRememberedBit = 0,
-    kOldAndNotMarkedBit = 1,      // Incremental barrier target.
-    kNewBit = 2,                  // Generational barrier target.
-    kOldBit = 3,                  // Incremental barrier source.
-    kOldAndNotRememberedBit = 4,  // Generational barrier source.
-    kCanonicalBit = 5,
+    kCanonicalBit = 1,
+    kOldAndNotMarkedBit = 2,      // Incremental barrier target.
+    kNewBit = 3,                  // Generational barrier target.
+    kOldBit = 4,                  // Incremental barrier source.
+    kOldAndNotRememberedBit = 5,  // Generational barrier source.
     kReservedTagPos = 6,
     kReservedTagSize = 2,
 
@@ -601,15 +601,25 @@ class UntaggedObject {
     }
   }
 
-  template <typename type,
-            typename compressed_type,
-            std::memory_order order = std::memory_order_relaxed>
+  template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedArrayPointer(compressed_type const* addr, type value) {
     reinterpret_cast<std::atomic<compressed_type>*>(
         const_cast<compressed_type*>(addr))
         ->store(static_cast<compressed_type>(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
+    }
+  }
+
+  template <typename type, typename compressed_type, std::memory_order order>
+  void StoreCompressedArrayPointer(compressed_type const* addr,
+                                   type value,
+                                   Thread* thread) {
+    reinterpret_cast<std::atomic<compressed_type>*>(
+        const_cast<compressed_type*>(addr))
+        ->store(static_cast<compressed_type>(value), order);
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, thread);
     }
   }
 
@@ -863,6 +873,10 @@ inline intptr_t ObjectPtr::GetClassId() const {
   void set_##accessor_name(intptr_t index, type value) {                       \
     StoreArrayPointer<type, order>(&array_name()[index], value);               \
   }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
+    StoreArrayPointer<type, order>(&array_name()[index], value, thread);       \
+  }                                                                            \
                                                                                \
  protected:                                                                    \
   type* array_name() { OPEN_ARRAY_START(type, type); }                         \
@@ -880,6 +894,11 @@ inline intptr_t ObjectPtr::GetClassId() const {
   void set_##accessor_name(intptr_t index, type value) {                       \
     StoreCompressedArrayPointer<type, Compressed##type, order>(                \
         &array_name()[index], value);                                          \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
+    StoreCompressedArrayPointer<type, Compressed##type, order>(                \
+        &array_name()[index], value, thread);                                  \
   }                                                                            \
                                                                                \
  protected:                                                                    \
@@ -1155,6 +1174,7 @@ class UntaggedFunction : public UntaggedObject {
   /* a forwarder which performs type checks for arguments of a dynamic call */ \
   /* (i.e., those checks omitted by the caller for interface calls). */        \
   V(DynamicInvocationForwarder)                                                \
+  /* A `dart:ffi` call or callback trampoline. */                              \
   V(FfiTrampoline)
 
   enum Kind {
@@ -1306,7 +1326,14 @@ class UntaggedFunction : public UntaggedObject {
   VISIT_TO(unoptimized_code);
 
   UnboxedParameterBitmap unboxed_parameters_info_;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME) ||                                      \
+    (defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT))
   TokenPosition token_pos_;
+#endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   TokenPosition end_token_pos_;
 #endif
 
@@ -1327,14 +1354,13 @@ class UntaggedFunction : public UntaggedObject {
   JIT_FUNCTION_COUNTERS(DECLARE)
 #undef DECLARE
 
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   AtomicBitFieldContainer<uint8_t> packed_fields_;
 
   static constexpr intptr_t kMaxOptimizableBits = 1;
 
   using PackedOptimizable =
       BitField<decltype(packed_fields_), bool, 0, kMaxOptimizableBits>;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 class UntaggedClosureData : public UntaggedObject {
@@ -2230,16 +2256,30 @@ class UntaggedExceptionHandlers : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
-  // Number of exception handler entries.
-  int32_t num_entries_;
+  // Number of exception handler entries and
+  // async handler.
+  uint32_t packed_fields_;
 
-  // Array with [num_entries_] entries. Each entry is an array of all handled
+  // Async handler is used in the async/async* functions.
+  // It's an implicit exception handler (stub) which runs when
+  // exception is not handled within the function.
+  using AsyncHandlerBit = BitField<decltype(packed_fields_), bool, 0, 1>;
+  using NumEntriesBits = BitField<decltype(packed_fields_),
+                                  uint32_t,
+                                  AsyncHandlerBit::kNextBit,
+                                  31>;
+
+  intptr_t num_entries() const {
+    return NumEntriesBits::decode(packed_fields_);
+  }
+
+  // Array with [num_entries] entries. Each entry is an array of all handled
   // exception types.
   COMPRESSED_POINTER_FIELD(ArrayPtr, handled_types_data)
   VISIT_FROM(handled_types_data)
   VISIT_TO(handled_types_data)
 
-  // Exception handler info of length [num_entries_].
+  // Exception handler info of length [num_entries].
   const ExceptionHandlerInfo* data() const {
     OPEN_ARRAY_START(ExceptionHandlerInfo, intptr_t);
   }
@@ -2864,6 +2904,13 @@ class UntaggedPointerBase : public UntaggedInstance {
   uint8_t* data_;
 
  private:
+  template <typename T>
+  friend void CopyTypedDataBaseWithSafepointChecks(
+      Thread*,
+      const T&,
+      const T&,
+      intptr_t);  // Access _data for memmove with safepoint checkins.
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(PointerBase);
 };
 
@@ -2886,6 +2933,11 @@ class UntaggedTypedDataBase : public UntaggedPointerBase {
       intptr_t,
       ExternalTypedDataPtr,
       ExternalTypedDataPtr);  // initialize fields.
+  friend void InitializeExternalTypedDataWithSafepointChecks(
+      Thread*,
+      intptr_t,
+      const ExternalTypedData&,
+      const ExternalTypedData&);  // initialize fields.
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataBase);
 };
@@ -3253,6 +3305,44 @@ class UntaggedStackTrace : public UntaggedInstance {
   bool skip_sync_start_in_parent_stack;
 };
 
+class UntaggedSuspendState : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(SuspendState);
+
+  NOT_IN_PRECOMPILED(intptr_t frame_capacity_);
+  intptr_t frame_size_;
+  uword pc_;
+
+  // Holds function-specific object which is returned from
+  // SuspendState.init* method.
+  // For async functions: _Future instance.
+  // For async* functions: _AsyncStarStreamController instance.
+  COMPRESSED_POINTER_FIELD(InstancePtr, function_data)
+
+  COMPRESSED_POINTER_FIELD(ClosurePtr, then_callback)
+  COMPRESSED_POINTER_FIELD(ClosurePtr, error_callback)
+  VISIT_FROM(function_data)
+  VISIT_TO(error_callback)
+
+ public:
+  uword pc() const { return pc_; }
+
+  intptr_t frame_capacity() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return frame_size_;
+#else
+    return frame_capacity_;
+#endif
+  }
+
+  static intptr_t payload_offset() {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedSuspendState, payload);
+  }
+
+  // Variable length payload follows here.
+  uint8_t* payload() { OPEN_ARRAY_START(uint8_t, uint8_t); }
+  const uint8_t* payload() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+};
+
 // VM type for capturing JS regular expressions.
 class UntaggedRegExp : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(RegExp);
@@ -3345,20 +3435,21 @@ class UntaggedFinalizerBase : public UntaggedInstance {
   // to null on isolate shutdown. See Isolate::finalizers_.
   Isolate* isolate_;
 
-  COMPRESSED_POINTER_FIELD(ObjectPtr, detachments)
-  VISIT_FROM(detachments)
-  COMPRESSED_POINTER_FIELD(LinkedHashSetPtr, all_entries)
-  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
-
 // With compressed pointers, the first field in a subclass is at offset 28.
 // If the fields would be public, the first field in a subclass is at offset 32.
 // On Windows, it is always at offset 32, no matter public/private.
 // This makes it 32 for all OSes.
 // We can't use ALIGN8 on the first fields of the subclasses because they use
 // the COMPRESSED_POINTER_FIELD macro to define it.
+// Placed before the first fields so it is not included between from() and to().
 #ifdef DART_COMPRESSED_POINTERS
-  uint32_t align_next_field;
+  uint32_t align_first_field_in_subclass;
 #endif
+
+  COMPRESSED_POINTER_FIELD(ObjectPtr, detachments)
+  VISIT_FROM(detachments)
+  COMPRESSED_POINTER_FIELD(LinkedHashSetPtr, all_entries)
+  COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
 
   template <typename GCVisitorType>
   friend void MournFinalized(GCVisitorType* visitor);

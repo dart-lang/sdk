@@ -23,7 +23,7 @@ class InlineLocalTest extends RefactoringTest {
 
   Future<void> test_access() async {
     await indexTestUnit('''
-main() {
+void f() {
   int test = 1 + 2;
   print(test);
   print(test);
@@ -39,10 +39,10 @@ main() {
 
   Future<void> test_bad_selectionMethod() async {
     await indexTestUnit(r'''
-main() {
+void f() {
 }
 ''');
-    _createRefactoring('main() {');
+    _createRefactoring('f() {');
     var status = await refactoring.checkInitialConditions();
     _assert_fatalError_selection(status);
   }
@@ -59,7 +59,7 @@ void f(int test) {
 
   Future<void> test_bad_selectionVariable_hasAssignments_1() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   int test = 0;
   test = 1;
 }
@@ -72,7 +72,7 @@ main() {
 
   Future<void> test_bad_selectionVariable_hasAssignments_2() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   int test = 0;
   test += 1;
 }
@@ -85,7 +85,7 @@ main() {
 
   Future<void> test_bad_selectionVariable_notInBlock() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   if (true)
     int test = 0;
 }
@@ -97,7 +97,7 @@ main() {
 
   Future<void> test_bad_selectionVariable_notInitialized() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   int test;
 }
 ''');
@@ -112,7 +112,7 @@ class A {
   foo() {}
   bar() {}
 }
-main() {
+void f() {
   A test = new A()..foo();
   test..bar();
 }
@@ -124,7 +124,7 @@ class A {
   foo() {}
   bar() {}
 }
-main() {
+void f() {
   new A()..foo()..bar();
 }
 ''');
@@ -136,7 +136,7 @@ class A {
   foo() {}
   bar() {}
 }
-main() {
+void f() {
   A test = new A()..foo();
   test.bar();
 }
@@ -148,7 +148,7 @@ class A {
   foo() {}
   bar() {}
 }
-main() {
+void f() {
   (new A()..foo()).bar();
 }
 ''');
@@ -180,7 +180,7 @@ void f(int p) {
 
   Future<void> test_OK_intoStringInterpolation_binaryExpression() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   int test = 1 + 2;
   print('test = $test');
   print('test = ${test}');
@@ -191,7 +191,7 @@ process(x) {}
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   print('test = ${1 + 2}');
   print('test = ${1 + 2}');
   print('test = ${process(1 + 2)}');
@@ -202,7 +202,7 @@ process(x) {}
 
   Future<void> test_OK_intoStringInterpolation_simpleIdentifier() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   int foo = 1 + 2;
   int test = foo;
   print('test = $test');
@@ -214,7 +214,7 @@ process(x) {}
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   int foo = 1 + 2;
   print('test = $foo');
   print('test = ${foo}');
@@ -226,7 +226,7 @@ process(x) {}
 
   Future<void> test_OK_intoStringInterpolation_string_differentQuotes() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   String a = "aaa";
   String b = '$a bbb';
 }
@@ -234,7 +234,7 @@ main() {
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   String b = '${"aaa"} bbb';
 }
 ''');
@@ -242,7 +242,7 @@ main() {
 
   Future<void> test_OK_intoStringInterpolation_string_doubleQuotes() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   String a = "aaa";
   String b = "$a bbb";
 }
@@ -250,7 +250,7 @@ main() {
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   String b = "aaa bbb";
 }
 ''');
@@ -259,7 +259,7 @@ main() {
   Future<void>
       test_OK_intoStringInterpolation_string_multiLineIntoMulti_leadingSpaces() async {
     await indexTestUnit(r"""
-main() {
+void f() {
   String a = '''\ \
 a
 a''';
@@ -271,7 +271,7 @@ bbb''';
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r"""
-main() {
+void f() {
   String b = '''
 a
 a
@@ -283,7 +283,7 @@ bbb''';
   Future<void>
       test_OK_intoStringInterpolation_string_multiLineIntoMulti_unixEOL() async {
     await indexTestUnit(r"""
-main() {
+void f() {
   String a = '''
 a
 a
@@ -296,7 +296,7 @@ bbb''';
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r"""
-main() {
+void f() {
   String b = '''
 a
 a
@@ -309,7 +309,7 @@ bbb''';
   Future<void>
       test_OK_intoStringInterpolation_string_multiLineIntoMulti_windowsEOL() async {
     await indexTestUnit(r"""
-main() {
+void f() {
   String a = '''
 a
 a
@@ -323,7 +323,7 @@ bbb''';
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r"""
-main() {
+void f() {
   String b = '''
 a
 a
@@ -337,7 +337,7 @@ bbb''';
   Future<void>
       test_OK_intoStringInterpolation_string_multiLineIntoSingle() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   String a = """aaa""";
   String b = "$a bbb";
 }
@@ -345,7 +345,7 @@ main() {
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   String b = "${"""aaa"""} bbb";
 }
 ''');
@@ -353,7 +353,7 @@ main() {
 
   Future<void> test_OK_intoStringInterpolation_string_raw() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   String a = r'an $ignored interpolation';
   String b = '$a bbb';
 }
@@ -361,7 +361,7 @@ main() {
     _createRefactoring('a =');
     // we don't unwrap raw strings
     return assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   String b = '${r'an $ignored interpolation'} bbb';
 }
 ''');
@@ -370,7 +370,7 @@ main() {
   Future<void>
       test_OK_intoStringInterpolation_string_singleLineIntoMulti_doubleQuotes() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   String a = "aaa";
   String b = """$a bbb""";
 }
@@ -378,7 +378,7 @@ main() {
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   String b = """aaa bbb""";
 }
 ''');
@@ -387,7 +387,7 @@ main() {
   Future<void>
       test_OK_intoStringInterpolation_string_singleLineIntoMulti_singleQuotes() async {
     await indexTestUnit(r"""
-main() {
+void f() {
   String a = 'aaa';
   String b = '''$a bbb''';
 }
@@ -395,7 +395,7 @@ main() {
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r"""
-main() {
+void f() {
   String b = '''aaa bbb''';
 }
 """);
@@ -403,7 +403,7 @@ main() {
 
   Future<void> test_OK_intoStringInterpolation_string_singleQuotes() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   String a = 'aaa';
   String b = '$a bbb';
 }
@@ -411,7 +411,7 @@ main() {
     _createRefactoring('a =');
     // validate change
     return assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   String b = 'aaa bbb';
 }
 ''');
@@ -419,7 +419,7 @@ main() {
 
   Future<void> test_OK_intoStringInterpolation_stringInterpolation() async {
     await indexTestUnit(r'''
-main() {
+void f() {
   String a = 'aaa';
   String b = '$a bbb';
   String c = '$b ccc';
@@ -428,7 +428,7 @@ main() {
     _createRefactoring('b =');
     // validate change
     return assertSuccessfulRefactoring(r'''
-main() {
+void f() {
   String a = 'aaa';
   String c = '$a bbb ccc';
 }
@@ -438,7 +438,7 @@ main() {
   /// https://code.google.com/p/dart/issues/detail?id=18587
   Future<void> test_OK_keepNextCommentedLine() async {
     await indexTestUnit('''
-main() {
+void f() {
   int test = 1 + 2;
   // foo
   print(test);
@@ -448,7 +448,7 @@ main() {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
   // foo
   print(1 + 2);
   // bar
@@ -458,7 +458,7 @@ main() {
 
   Future<void> test_OK_noUsages_1() async {
     await indexTestUnit('''
-main() {
+void f() {
   int test = 1 + 2;
   print(0);
 }
@@ -466,7 +466,7 @@ main() {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
   print(0);
 }
 ''');
@@ -474,21 +474,21 @@ main() {
 
   Future<void> test_OK_noUsages_2() async {
     await indexTestUnit('''
-main() {
+void f() {
   int test = 1 + 2;
 }
 ''');
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
 }
 ''');
   }
 
   Future<void> test_OK_oneUsage() async {
     await indexTestUnit('''
-main() {
+void f() {
   int test = 1 + 2;
   print(test);
 }
@@ -496,7 +496,7 @@ main() {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -504,7 +504,7 @@ main() {
 
   Future<void> test_OK_parenthesis_decrement_intoNegate() async {
     await indexTestUnit('''
-main() {
+void f() {
   var a = 1;
   var test = --a;
   var b = -test;
@@ -513,7 +513,7 @@ main() {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
   var a = 1;
   var b = -(--a);
 }
@@ -523,7 +523,7 @@ main() {
   Future<void> test_OK_parenthesis_instanceCreation_intoList() async {
     await indexTestUnit('''
 class A {}
-main() {
+void f() {
   var test = new A();
   var list = [test];
 }
@@ -532,7 +532,7 @@ main() {
     // validate change
     return assertSuccessfulRefactoring('''
 class A {}
-main() {
+void f() {
   var list = [new A()];
 }
 ''');
@@ -540,7 +540,7 @@ main() {
 
   Future<void> test_OK_parenthesis_intoIndexExpression_index() async {
     await indexTestUnit('''
-main() {
+void f() {
   var items = [];
   var test = 1 + 2;
   items[test] * 5;
@@ -549,7 +549,7 @@ main() {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
   var items = [];
   items[1 + 2] * 5;
 }
@@ -576,7 +576,7 @@ f(m, x, y) {
 
   Future<void> test_OK_parenthesis_negate_intoNegate() async {
     await indexTestUnit('''
-main() {
+void f() {
   var a = 1;
   var test = -a;
   var b = -test;
@@ -585,7 +585,7 @@ main() {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
   var a = 1;
   var b = -(-a);
 }
@@ -594,7 +594,7 @@ main() {
 
   Future<void> test_OK_parenthesis_plus_intoMultiply() async {
     await indexTestUnit('''
-main() {
+void f() {
   var test = 1 + 2;
   print(test * 3);
 }
@@ -602,7 +602,7 @@ main() {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
   print((1 + 2) * 3);
 }
 ''');
@@ -610,7 +610,7 @@ main() {
 
   Future<void> test_OK_twoUsages() async {
     await indexTestUnit('''
-main() {
+void f() {
   int test = 1 + 2;
   print(test);
   print(test);
@@ -619,7 +619,7 @@ main() {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
-main() {
+void f() {
   print(1 + 2);
   print(1 + 2);
 }

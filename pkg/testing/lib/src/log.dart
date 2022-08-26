@@ -28,7 +28,7 @@ final String cursorUp = enableAnsiEscapes ? cursorUpCodes : "";
 
 final String eraseLine = enableAnsiEscapes ? eraseLineCodes : "";
 
-final Stopwatch wallclock = new Stopwatch()..start();
+final Stopwatch wallclock = Stopwatch()..start();
 
 bool _isVerbose = const bool.fromEnvironment("verbose");
 
@@ -195,13 +195,13 @@ class StdoutLogger implements Logger {
   void noticeFrameworkCatchError(error, StackTrace stackTrace) {}
 }
 
-String pad(Object o, int pad, {String filler: " "}) {
+String pad(Object o, int pad, {String filler = " "}) {
   String result = (filler * pad) + "$o";
   return result.substring(result.length - pad);
 }
 
 String numberedLines(String text) {
-  StringBuffer result = new StringBuffer();
+  StringBuffer result = StringBuffer();
   int lineNumber = 1;
   List<String> lines = splitLines(text);
   int pad = "${lines.length}".length;
@@ -217,5 +217,5 @@ String numberedLines(String text) {
 }
 
 List<String> splitLines(String text) {
-  return text.split(new RegExp('^', multiLine: true));
+  return text.split(RegExp('^', multiLine: true));
 }

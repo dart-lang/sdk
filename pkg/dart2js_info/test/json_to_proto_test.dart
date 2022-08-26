@@ -20,9 +20,9 @@ main() {
       final proto = AllInfoProtoCodec().encode(decoded);
 
       expect(proto.program.entrypointId, isNotNull);
-      expect(proto.program.size, 94182);
+      expect(proto.program.size, 90362);
       expect(proto.program.compilationMoment.toInt(),
-          DateTime.parse("2021-09-27 15:32:00.380236").microsecondsSinceEpoch);
+          DateTime.parse("2022-05-26 21:08:43.608041").microsecondsSinceEpoch);
       expect(proto.program.toProtoDuration.toInt(),
           Duration(milliseconds: 3).inMicroseconds);
       expect(proto.program.dumpInfoDuration.toInt(),
@@ -47,31 +47,31 @@ main() {
         final value = info.value;
         if (value.hasLibraryInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.library]));
+              startsWith(expectedPrefixes[InfoKind.library]!));
         } else if (value.hasClassInfo()) {
-          expect(
-              value.serializedId, startsWith(expectedPrefixes[InfoKind.clazz]));
+          expect(value.serializedId,
+              startsWith(expectedPrefixes[InfoKind.clazz]!));
         } else if (value.hasClassTypeInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.classType]));
+              startsWith(expectedPrefixes[InfoKind.classType]!));
         } else if (value.hasFunctionInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.function]));
+              startsWith(expectedPrefixes[InfoKind.function]!));
         } else if (value.hasFieldInfo()) {
-          expect(
-              value.serializedId, startsWith(expectedPrefixes[InfoKind.field]));
+          expect(value.serializedId,
+              startsWith(expectedPrefixes[InfoKind.field]!));
         } else if (value.hasConstantInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.constant]));
+              startsWith(expectedPrefixes[InfoKind.constant]!));
         } else if (value.hasOutputUnitInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.outputUnit]));
+              startsWith(expectedPrefixes[InfoKind.outputUnit]!));
         } else if (value.hasTypedefInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.typedef]));
+              startsWith(expectedPrefixes[InfoKind.typedef]!));
         } else if (value.hasClosureInfo()) {
           expect(value.serializedId,
-              startsWith(expectedPrefixes[InfoKind.closure]));
+              startsWith(expectedPrefixes[InfoKind.closure]!));
         }
       }
     });

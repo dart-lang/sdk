@@ -11,13 +11,11 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       lib1.dart: |
-        // @dart=2.9
         import 'main.dart';
         extension Extension1 on A {
           baz() => 42;
         }
       lib2.dart: |
-        // @dart=2.9
         import 'main.dart';
         import 'lib1.dart';
         export 'main.dart';
@@ -27,7 +25,6 @@ worlds:
           a.boz();
         }
       main.dart: |
-        // @dart=2.9
         import 'lib1.dart';
         import 'lib2.dart';
         class A {
@@ -48,7 +45,6 @@ worlds:
       - lib2.dart
     sources:
       lib2.dart: |
-        // @dart=2.9
         import 'main.dart';
         import 'lib1.dart';
         export 'main.dart';
@@ -68,7 +64,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'lib1.dart';
         import 'lib2.dart';
         class A {

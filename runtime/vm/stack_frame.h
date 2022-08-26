@@ -159,6 +159,9 @@ class StackFrame : public ValueObject {
   // fields fp_ and sp_ when they return the respective frame objects.
   friend class FrameSetIterator;
   friend class StackFrameIterator;
+  // UntaggedSuspendState::VisitSuspendStatePointers creates a temporary
+  // StackFrame objects for the copied frames of the suspended functions.
+  friend class UntaggedSuspendState;
   friend class ProfilerDartStackWalker;
   DISALLOW_COPY_AND_ASSIGN(StackFrame);
 };

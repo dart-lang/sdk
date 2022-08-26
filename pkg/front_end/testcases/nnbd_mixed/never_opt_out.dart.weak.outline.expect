@@ -52,17 +52,17 @@ class C extends nev::A {
   field Never* nullField;
   synthetic constructor •() → self::C*
     ;
-  method neverMethod(Null value) → Never*
+  method neverMethod(Never* value) → Never*
     ;
   get neverProperty() → Never*
     ;
-  set neverProperty(Null value) → void
+  set neverProperty(Never* value) → void
     ;
-  method nullMethod(Null value) → Never*
+  method nullMethod(Never* value) → Never*
     ;
   get nullProperty() → Never*
     ;
-  set nullProperty(Null value) → void
+  set nullProperty(Never* value) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

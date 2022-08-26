@@ -6,6 +6,8 @@
 class LintNames {
   static const String always_declare_return_types =
       'always_declare_return_types';
+  static const String always_put_control_body_on_new_line =
+      'always_put_control_body_on_new_line';
   static const String always_require_non_null_named_parameters =
       'always_require_non_null_named_parameters';
   static const String always_specify_types = 'always_specify_types';
@@ -27,6 +29,8 @@ class LintNames {
   static const String avoid_redundant_argument_values =
       'avoid_redundant_argument_values';
   static const String avoid_relative_lib_imports = 'avoid_relative_lib_imports';
+  static const String avoid_renaming_method_parameters =
+      'avoid_renaming_method_parameters';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';
   static const String avoid_returning_null_for_future =
@@ -51,6 +55,7 @@ class LintNames {
   static const String diagnostic_describe_all_properties =
       'diagnostic_describe_all_properties';
   static const String directives_ordering = 'directives_ordering';
+  static const String discarded_futures = 'discarded_futures';
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
@@ -91,6 +96,8 @@ class LintNames {
   static const String prefer_final_in_for_each = 'prefer_final_in_for_each';
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_final_parameters = 'prefer_final_parameters';
+  static const String prefer_function_declarations_over_variables =
+      'prefer_function_declarations_over_variables';
   static const String prefer_for_elements_to_map_fromIterable =
       'prefer_for_elements_to_map_fromIterable';
   static const String prefer_generic_function_type_aliases =

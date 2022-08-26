@@ -38,7 +38,7 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
-static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
+static method throws(() → dynamic f, {has-declared-initializer core::bool inSoundModeOnly}) → dynamic
   ;
 static method _#DA2#new#tearOff<unrelated X extends core::num>() → self::A
   return new self::A::•();

@@ -26,7 +26,7 @@ class Foo {
 }
 ''');
 
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await sendAnalysisSetGeneralSubscriptions(
         [GeneralAnalysisService.ANALYZED_FILES]);

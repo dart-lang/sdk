@@ -42,19 +42,22 @@ function git-cl-try-vm-ffi {
   echo "git-cl-try-vm-ffi"
   git cl try -B dart/try                                     \
      -b vm-ffi-android-debug-arm-try                         \
-     -b vm-ffi-android-debug-arm64-try                       \
+     -b vm-ffi-android-debug-arm64c-try                      \
      -b vm-ffi-android-product-arm-try                       \
-     -b vm-ffi-android-product-arm64-try                     \
+     -b vm-ffi-android-product-arm64c-try                    \
      -b vm-ffi-android-release-arm-try                       \
-     -b vm-ffi-android-release-arm64-try
+     -b vm-ffi-android-release-arm64c-try                    \
 }
 function git-cl-try-vm-precomp {
   echo "git-cl-try-vm-precomp"
   git cl try -B dart/try                                     \
-     -b vm-kernel-precomp-android-release-arm64-try          \
+     -b vm-kernel-precomp-android-release-arm64c-try          \
      -b vm-kernel-precomp-android-release-arm_x64-try        \
+     -b vm-kernel-precomp-dwarf-linux-product-x64-try        \
      -b vm-kernel-precomp-linux-debug-simarm_x64-try         \
+     -b vm-kernel-precomp-linux-debug-simriscv64-try         \
      -b vm-kernel-precomp-linux-debug-x64-try                \
+     -b vm-kernel-precomp-linux-debug-x64c-try               \
      -b vm-kernel-precomp-linux-product-x64-try              \
      -b vm-kernel-precomp-linux-release-simarm-try           \
      -b vm-kernel-precomp-linux-release-simarm64-try         \
@@ -74,6 +77,7 @@ function git-cl-try-vm-san {
    -b vm-kernel-precomp-asan-linux-release-x64-try           \
    -b vm-kernel-precomp-msan-linux-release-x64-try           \
    -b vm-kernel-precomp-tsan-linux-release-x64-try           \
+   -b vm-kernel-ubsan-linux-release-x64-try
 }
 function git-cl-try-vm-all {
   echo "git-cl-try-vm-all"

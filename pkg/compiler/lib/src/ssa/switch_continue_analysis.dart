@@ -72,7 +72,7 @@ class SwitchContinueAnalysis extends ir.Visitor<bool>
   @override
   bool visitIfStatement(ir.IfStatement ifStatement) {
     return ifStatement.then.accept(this) ||
-        (ifStatement.otherwise != null && ifStatement.otherwise.accept(this));
+        (ifStatement.otherwise != null && ifStatement.otherwise!.accept(this));
   }
 
   @override
@@ -109,7 +109,7 @@ class SwitchContinueAnalysis extends ir.Visitor<bool>
 
   @override
   bool visitFunctionNode(ir.FunctionNode node) {
-    return node.body.accept(this);
+    return node.body!.accept(this);
   }
 
   @override

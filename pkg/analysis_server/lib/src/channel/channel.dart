@@ -61,7 +61,7 @@ abstract class ClientCommunicationChannel {
 /// Instances of the class [JsonStreamDecoder] convert JSON strings to values.
 class JsonStreamDecoder extends Converter<String, Object?> {
   @override
-  Object? convert(String text) => json.decode(text);
+  Object? convert(String input) => json.decode(input);
 
   @override
   ChunkedConversionSink<String> startChunkedConversion(Sink<Object?> sink) =>
@@ -73,7 +73,7 @@ class JsonStreamDecoder extends Converter<String, Object?> {
 class NotificationConverter
     extends Converter<Map<String, Object?>, Notification> {
   @override
-  Notification convert(Map json) => Notification.fromJson(json);
+  Notification convert(Map input) => Notification.fromJson(input);
 
   @override
   ChunkedConversionSink<Map<String, Object?>> startChunkedConversion(
@@ -84,7 +84,7 @@ class NotificationConverter
 /// Instances of the class [ResponseConverter] convert JSON maps to [Response]s.
 class ResponseConverter extends Converter<Map<String, Object?>, Response?> {
   @override
-  Response? convert(Map<String, Object?> json) => Response.fromJson(json);
+  Response? convert(Map<String, Object?> input) => Response.fromJson(input);
 
   @override
   ChunkedConversionSink<Map<String, Object?>> startChunkedConversion(

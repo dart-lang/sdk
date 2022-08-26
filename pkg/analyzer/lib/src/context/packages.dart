@@ -3,78 +3,37 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/util/uri.dart';
-import 'package:package_config/src/packages_file.dart'
-    as package_config_packages_file;
+import 'package:package_config/package_config_types.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Find [Packages] starting from the given [start] resource.
 ///
-/// Looks for `.dart_tool/package_config.json` or `.packages` in the given
-/// and parent directories.
+/// Looks for `.dart_tool/package_config.json` in the given and parent
+/// directories.
 Packages findPackagesFrom(ResourceProvider provider, Resource start) {
   var startFolder = start is Folder ? start : start.parent;
   for (var current in startFolder.withAncestors) {
-    try {
-      var jsonFile = current
-          .getChildAssumingFolder('.dart_tool')
-          .getChildAssumingFile('package_config.json');
-      if (jsonFile.exists) {
-        return parsePackageConfigJsonFile(provider, jsonFile);
-      }
-    } catch (e) {
-      return Packages.empty;
-    }
-
-    try {
-      var dotFile = current.getChildAssumingFile('.packages');
-      if (dotFile.exists) {
-        return parseDotPackagesFile(provider, dotFile);
-      }
-    } catch (e) {
-      return Packages.empty;
+    var jsonFile = current
+        .getChildAssumingFolder('.dart_tool')
+        .getChildAssumingFile('package_config.json');
+    if (jsonFile.exists) {
+      return parsePackageConfigJsonFile(provider, jsonFile);
     }
   }
   return Packages.empty;
 }
 
-/// Parse the [file] as a `.packages` file.
-Packages parseDotPackagesFile(ResourceProvider provider, File file) {
-  var uri = file.toUri();
-  var content = file.readAsBytesSync();
-  // TODO(srawlins): Replacing these two imports with public imports currently
-  // requires a sweeping breaking change, from synchronous code to asynchronous,
-  // including in our public APIs. When synchronous public APIs become
-  // available, use those.
-  // See https://github.com/dart-lang/package_config/issues/95.
-  var packageConfig = package_config_packages_file.parse(
-      content, uri, (Object error) => throw error);
-
-  var map = <String, Package>{};
-  for (var package in packageConfig.packages) {
-    var libUri = package.packageUriRoot;
-    var libPath = fileUriToNormalizedPath(
-      provider.pathContext,
-      libUri,
-    );
-    var libFolder = provider.getFolder(libPath);
-    map[package.name] = Package(
-      name: package.name,
-      rootFolder: libFolder,
-      libFolder: libFolder,
-      languageVersion: null,
-    );
-  }
-
-  return Packages(map);
-}
-
 /// Parse the [file] as a `package_config.json` file.
 Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
-  var uri = file.toUri();
-  var content = file.readAsStringSync();
-  var jsonConfig = parsePackageConfigJson(uri, content);
+  PackageConfig jsonConfig;
+  try {
+    var uri = file.toUri();
+    var content = file.readAsStringSync();
+    jsonConfig = PackageConfig.parseString(content, uri);
+  } catch (e) {
+    return Packages.empty;
+  }
 
   var map = <String, Package>{};
   for (var jsonPackage in jsonConfig.packages) {
@@ -82,12 +41,12 @@ Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
 
     var rootPath = fileUriToNormalizedPath(
       provider.pathContext,
-      jsonPackage.rootUri,
+      jsonPackage.root,
     );
 
     var libPath = fileUriToNormalizedPath(
       provider.pathContext,
-      jsonPackage.packageUri,
+      jsonPackage.packageUriRoot,
     );
 
     Version? languageVersion;
@@ -109,30 +68,6 @@ Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
   }
 
   return Packages(map);
-}
-
-/// Check the content of the [file], and parse it as either `.packages` file,
-/// or as a `package_config.json` file, depending on its content (not its
-/// location).  OTOH, if the file has the `.packages` format, still look
-/// for a `.dart_tool/package_config.json` relative to the specified [file].
-Packages parsePackagesFile(ResourceProvider provider, File file) {
-  try {
-    var content = file.readAsStringSync();
-    var isJson = content.trimLeft().startsWith('{');
-    if (isJson) {
-      return parsePackageConfigJsonFile(provider, file);
-    } else {
-      var relativePackageConfigFile = file.parent
-          .getChildAssumingFolder('.dart_tool')
-          .getChildAssumingFile('package_config.json');
-      if (relativePackageConfigFile.exists) {
-        return parsePackageConfigJsonFile(provider, relativePackageConfigFile);
-      }
-      return parseDotPackagesFile(provider, file);
-    }
-  } catch (e) {
-    return Packages.empty;
-  }
 }
 
 class Package {

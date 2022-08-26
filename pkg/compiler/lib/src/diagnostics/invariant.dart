@@ -35,16 +35,6 @@ assertDebugMode(String message) {
 ///
 ///     failedAt(position, message);
 ///
-/// or, if the enclosing function requires a result or control flow:
-///
-///     throw failedAt(position, message);
-///
-bool failedAt(Spannable spannable, [String message]) {
-  // TODO(johnniwinther): Use [spannable] and [message] to provide better
-  // information on assertion errors.
-  if (spannable == null) {
-    throw SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
-        'Spannable was null for failedAt. Use CURRENT_ELEMENT_SPANNABLE.');
-  }
+Never failedAt(Spannable spannable, [String? message]) {
   throw SpannableAssertionFailure(spannable, message);
 }

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -87,14 +87,14 @@ import "dart:core" as core;
 
 import "dart:collection" as collection;
 
-typedef VoidFunction = () →* void;
+typedef VoidFunction = () → void;
 class Fisk extends core::Object {
-  synthetic constructor •() → self::Fisk*
+  synthetic constructor •() → self::Fisk
     : super core::Object::•()
     ;
   method it1(dynamic x) → dynamic {
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -116,7 +116,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -128,7 +128,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t3 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -142,7 +142,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
@@ -158,7 +158,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     for (1 in x) {
          ^";
       {
-        core::Iterator<dynamic>* :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+        core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           final dynamic #t5 = :sync-for-iterator.{core::Iterator::current}{dynamic};
           {
@@ -176,21 +176,11 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
   }
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main(dynamic arguments) → dynamic {
   new self::Fisk::•();
   {
-    core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    core::Iterator<dynamic> :sync-for-iterator = (arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t6 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
@@ -204,7 +194,7 @@ static method main(dynamic arguments) → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    core::Iterator<dynamic> :sync-for-iterator = (arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
@@ -216,7 +206,7 @@ static method main(dynamic arguments) → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    core::Iterator<dynamic> :sync-for-iterator = (arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t8 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
@@ -230,7 +220,7 @@ static method main(dynamic arguments) → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    core::Iterator<dynamic> :sync-for-iterator = (arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t9 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
@@ -246,7 +236,7 @@ static method main(dynamic arguments) → dynamic {
   for (1 in arguments) {
        ^";
     {
-      core::Iterator<dynamic>* :sync-for-iterator = (arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      core::Iterator<dynamic> :sync-for-iterator = (arguments as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {

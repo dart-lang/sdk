@@ -1,43 +1,36 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Complex extends core::Object /*hasConstConstructor*/  {
-  final field core::double* real;
-  final field core::double* imaginary;
-  const constructor •(core::double* real, core::double* imaginary) → self::Complex*
+  final field core::double real;
+  final field core::double imaginary;
+  const constructor •(core::double real, core::double imaginary) → self::Complex
     : self::Complex::real = real, self::Complex::imaginary = imaginary, super core::Object::•()
     ;
-  method add(self::Complex* other) → self::Complex*
+  method add(self::Complex other) → self::Complex
     ;
-  method sub(self::Complex* other) → self::Complex*
+  method sub(self::Complex other) → self::Complex
     ;
-  method negate() → self::Complex*
+  method negate() → self::Complex
     ;
-  get hashCode() → core::int*
+  get hashCode() → core::int
     ;
-  operator ==(core::Object* other) → core::bool*
+  operator ==(core::Object other) → core::bool
     ;
-  method toString() → core::String*
+  method toString() → core::String
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Operators on self::Complex* {
+extension Operators on self::Complex {
   operator + = self::Operators|+;
   operator - = self::Operators|-;
   operator unary- = self::Operators|unary-;
 }
-static method Operators|+(lowered final self::Complex* #this, self::Complex* other) → self::Complex*
+static method Operators|+(lowered final self::Complex #this, self::Complex other) → self::Complex
   ;
-static method Operators|-(lowered final self::Complex* #this, self::Complex* other) → self::Complex*
+static method Operators|-(lowered final self::Complex #this, self::Complex other) → self::Complex
   ;
-static method Operators|unary-(lowered final self::Complex* #this) → self::Complex*
+static method Operators|unary-(lowered final self::Complex #this) → self::Complex
   ;
 static method main() → dynamic
   ;
@@ -45,7 +38,7 @@ static method implicit() → dynamic
   ;
 static method explicit() → dynamic
   ;
-static method errors(self::Complex* c) → void
+static method errors(self::Complex c) → void
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

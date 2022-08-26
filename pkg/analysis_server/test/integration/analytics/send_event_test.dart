@@ -15,7 +15,7 @@ void main() {
 @reflectiveTest
 class SendEventTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_send_event() async {
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     // Disable analytics.
     var result1 = await sendAnalyticsIsEnabled();

@@ -23,14 +23,14 @@ class DeferredLibrarySize extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final args = argResults!.rest;
     if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
     // TODO(het): Would be faster to only parse the 'outputUnits' part
-    var info = await infoFromFile(args.first);
-    var sizeByImport = getSizeByImport(info);
-    printSizes(sizeByImport, info.program.size);
+    final info = await infoFromFile(args.first);
+    final sizeByImport = getSizeByImport(info);
+    printSizes(sizeByImport, info.program!.size);
   }
 }
 
@@ -47,7 +47,7 @@ class ImportSize {
 }
 
 void printSizes(Map<String, int> sizeByImport, int programSize) {
-  var importSizes = <ImportSize>[];
+  final importSizes = <ImportSize>[];
   sizeByImport.forEach((import, size) {
     importSizes.add(ImportSize(import, size));
   });
@@ -56,7 +56,7 @@ void printSizes(Map<String, int> sizeByImport, int programSize) {
   int longest = importSizes.fold('Percent of code deferred'.length,
       (longest, importSize) => max(longest, importSize.import.length));
 
-  _printRow(label, data, {int width = 15}) {
+  printRow(label, data, {int width = 15}) {
     print('${label.toString().padRight(longest + 1)}'
         '${data.toString().padLeft(width)}');
   }
@@ -66,27 +66,27 @@ void printSizes(Map<String, int> sizeByImport, int programSize) {
   print('-' * (longest + 16));
   for (var importSize in importSizes) {
     // TODO(het): split into specific and shared size
-    _printRow(importSize.import, importSize.size);
+    printRow(importSize.import, importSize.size);
   }
   print('-' * (longest + 16));
 
-  var mainChunkSize = sizeByImport['main'];
-  var deferredSize = programSize - mainChunkSize;
-  var percentDeferred = (deferredSize * 100 / programSize).toStringAsFixed(2);
-  _printRow('Main chunk size', mainChunkSize);
-  _printRow('Deferred code size', deferredSize);
-  _printRow('Percent of code deferred', '$percentDeferred%');
+  final mainChunkSize = sizeByImport['main']!;
+  final deferredSize = programSize - mainChunkSize;
+  final percentDeferred = (deferredSize * 100 / programSize).toStringAsFixed(2);
+  printRow('Main chunk size', mainChunkSize);
+  printRow('Deferred code size', deferredSize);
+  printRow('Percent of code deferred', '$percentDeferred%');
 }
 
 Map<String, int> getSizeByImport(AllInfo info) {
   var sizeByImport = <String, int>{};
-  for (var outputUnit in info.outputUnits) {
-    if (outputUnit.name == 'main' || outputUnit.name == null) {
+  for (final outputUnit in info.outputUnits) {
+    if (outputUnit.name == 'main') {
       sizeByImport['main'] = outputUnit.size;
     } else {
-      for (var import in outputUnit.imports) {
-        sizeByImport.putIfAbsent(import, () => 0);
-        sizeByImport[import] += outputUnit.size;
+      for (final import in outputUnit.imports) {
+        sizeByImport.update(import, (value) => value + outputUnit.size,
+            ifAbsent: () => outputUnit.size);
       }
     }
   }

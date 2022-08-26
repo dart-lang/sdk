@@ -28,40 +28,33 @@ class WebSocketClient extends Client {
     socket.done.then((_) => close());
   }
 
-  Future<void> disconnect() async {
-    if (socket != null) {
-      await socket.close();
-    }
-  }
+  Future<void> disconnect() => socket.close();
 
   void onWebSocketMessage(message) {
     if (message is String) {
-      Map map;
+      dynamic jsonObj;
       try {
-        map = json.decode(message);
+        jsonObj = json.decode(message);
       } catch (e) {
         socket.close(parseErrorCode, 'Message parse error: $e');
         return;
       }
-      if (map is! Map) {
+      if (jsonObj is! Map<String, dynamic>) {
         socket.close(notMapErrorCode, 'Message must be a JSON map.');
         return;
       }
-      try {
-        final rpc = Message.fromJsonRpc(this, map);
-        switch (rpc.type) {
-          case MessageType.Request:
-            onRequest(rpc);
-            break;
-          case MessageType.Notification:
-            onNotification(rpc);
-            break;
-          case MessageType.Response:
-            onResponse(rpc);
-            break;
-        }
-      } on dynamic catch (e) {
-        socket.close(idErrorCode, e.message);
+      final Map<String, dynamic> map = jsonObj;
+      final rpc = Message.fromJsonRpc(this, map);
+      switch (rpc.type) {
+        case MessageType.Request:
+          onRequest(rpc);
+          break;
+        case MessageType.Notification:
+          onNotification(rpc);
+          break;
+        case MessageType.Response:
+          onResponse(rpc);
+          break;
       }
     } else {
       socket.close(binaryMessageErrorCode, 'Message must be a string.');
@@ -80,7 +73,7 @@ class WebSocketClient extends Client {
           socket.add(result.payload);
           break;
         case ResponsePayloadKind.Utf8String:
-          socket.addUtf8Text(result.payload);
+          socket.addUtf8Text(result.payload as List<int>);
           break;
       }
     } on StateError catch (_) {
@@ -272,7 +265,7 @@ class Server {
         : '/${requestPathSegments.sublist(1).join('/')}';
   }
 
-  Future _requestHandler(HttpRequest request) async {
+  Future<void> _requestHandler(HttpRequest request) async {
     if (!_originCheck(request)) {
       // This is a cross origin attempt to connect
       request.response.statusCode = HttpStatus.forbidden;
@@ -283,10 +276,10 @@ class Server {
     if (request.method == 'PUT') {
       // PUT requests are forwarded to DevFS for processing.
 
-      List fsNameList;
-      List? fsPathList;
-      List? fsPathBase64List;
-      List? fsUriBase64List;
+      List<String> fsNameList;
+      List<String>? fsPathList;
+      List<String>? fsPathBase64List;
+      List<String>? fsUriBase64List;
       Object? fsName;
       Object? fsPath;
       Uri? fsUri;
@@ -327,11 +320,8 @@ class Server {
         return;
       }
 
-      if (result != null) {
-        request.response.headers.contentType =
-            HttpRequestClient.jsonContentType;
-        request.response.write(result);
-      }
+      request.response.headers.contentType = HttpRequestClient.jsonContentType;
+      request.response.write(result);
       request.response.close();
       return;
     }
@@ -383,7 +373,7 @@ class Server {
       request.response.close();
       return;
     }
-    final asset = assets[path];
+    final asset = assets![path];
     if (asset != null) {
       // Serving up a static asset (e.g. .css, .html, .png).
       request.response.headers.contentType = ContentType.parse(asset.mimeType);
@@ -398,12 +388,12 @@ class Server {
     client.onRequest(message); // exception free, no need to try catch
   }
 
-  Future<void> _dumpServiceInfoToFile(String serviceInfoFilenameLocal) async {
+  Future<File> _dumpServiceInfoToFile(String serviceInfoFilenameLocal) async {
     final serviceInfo = <String, dynamic>{
       'uri': serverAddress.toString(),
     };
     final file = File.fromUri(Uri.parse(serviceInfoFilenameLocal));
-    return file.writeAsString(json.encode(serviceInfo)) as Future<void>;
+    return file.writeAsString(json.encode(serviceInfo));
   }
 
   Future<Server> startup() async {

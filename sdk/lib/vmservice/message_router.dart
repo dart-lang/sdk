@@ -74,9 +74,9 @@ class Response {
   dynamic decodeJson() {
     switch (kind) {
       case ResponsePayloadKind.String:
-        return json.decode(payload);
+        return json.decode(payload as String);
       case ResponsePayloadKind.Utf8String:
-        return json.fuse(utf8).decode(payload);
+        return json.fuse(utf8).decode(payload as List<int>);
       case ResponsePayloadKind.Binary:
         throw 'Binary responses can not be decoded';
     }

@@ -4,43 +4,6 @@
 
 part of 'serialization.dart';
 
-/// Enum values used for identifying different kinds of serialized data.
-///
-/// This is used to for debugging data inconsistencies between serialization
-/// and deserialization.
-enum DataKind {
-  bool,
-  uint30,
-  string,
-  enumValue,
-  uri,
-  libraryNode,
-  classNode,
-  typedefNode,
-  memberNode,
-  treeNode,
-  typeParameterNode,
-  dartType,
-  dartTypeNode,
-  sourceSpan,
-  constant,
-  import,
-  double,
-  int,
-}
-
-/// Enum used for identifying the enclosing entity of a member in serialization.
-enum MemberContextKind { library, cls }
-
-/// Enum used for identifying [Local] subclasses in serialization.
-enum LocalKind {
-  jLocal,
-  thisLocal,
-  boxLocal,
-  anonymousClosureLocal,
-  typeVariableLocal,
-}
-
 /// Enum used for identifying [ir.TreeNode] subclasses in serialization.
 enum _TreeNodeKind {
   cls,
@@ -65,64 +28,6 @@ enum _TypeParameterKind {
   cls,
   functionNode,
 }
-
-/// Class used for encoding tags in [ObjectDataSink] and [ObjectDataSource].
-class Tag {
-  final String value;
-
-  Tag(this.value);
-
-  @override
-  int get hashCode => value.hashCode * 13;
-
-  @override
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is! Tag) return false;
-    return value == other.value;
-  }
-
-  @override
-  String toString() => 'Tag($value)';
-}
-
-/// Enum used for identifying [DartType] subclasses in serialization.
-enum DartTypeKind {
-  none,
-  legacyType,
-  nullableType,
-  neverType,
-  voidType,
-  typeVariable,
-  functionTypeVariable,
-  functionType,
-  interfaceType,
-  dynamicType,
-  erasedType,
-  anyType,
-  futureOr,
-}
-
-/// Enum used for identifying [ir.DartType] subclasses in serialization.
-enum DartTypeNodeKind {
-  none,
-  voidType,
-  typeParameterType,
-  functionType,
-  functionTypeVariable,
-  interfaceType,
-  typedef,
-  dynamicType,
-  invalidType,
-  thisInterfaceType,
-  exactInterfaceType,
-  doesNotComplete,
-  neverType,
-  futureOrType,
-  nullType,
-}
-
-const String functionTypeNodeTag = 'function-type-node';
 
 class DartTypeNodeWriter
     extends ir.DartTypeVisitor1<void, List<ir.TypeParameter>> {
@@ -212,7 +117,7 @@ class DartTypeNodeWriter
       ..addAll(node.typeParameters);
     _sink.writeInt(node.typeParameters.length);
     for (ir.TypeParameter parameter in node.typeParameters) {
-      _sink.writeString(parameter.name);
+      _sink.writeString(parameter.name!);
       _sink._writeDartTypeNode(parameter.bound, functionTypeVariables);
       _sink._writeDartTypeNode(parameter.defaultType, functionTypeVariables);
     }
@@ -226,8 +131,6 @@ class DartTypeNodeWriter
       _sink.writeBool(parameter.isRequired);
       _sink._writeDartTypeNode(parameter.type, functionTypeVariables);
     }
-    _sink._writeDartTypeNode(node.typedefType, functionTypeVariables,
-        allowNull: true);
     _sink.end(functionTypeNodeTag);
   }
 
@@ -257,68 +160,5 @@ class DartTypeNodeWriter
     _sink.writeTypedefNode(node.typedefNode);
     _sink.writeEnum(node.nullability);
     visitTypes(node.typeArguments, functionTypeVariables);
-  }
-}
-
-/// Data sink helper that canonicalizes [E] values using indices.
-class IndexedSink<E> {
-  final DataSink _sink;
-  Map<E, int> cache;
-
-  IndexedSink(this._sink, {this.cache}) {
-    // [cache] slot 0 is pre-allocated to `null`.
-    this.cache ??= {null: 0};
-  }
-
-  /// Write a reference to [value] to the data sink.
-  ///
-  /// If [value] has not been canonicalized yet, [writeValue] is called to
-  /// serialize the [value] itself.
-  void write(E value, void writeValue(E value)) {
-    const int pending = -1;
-    int index = cache[value];
-    if (index == null) {
-      index = cache.length;
-      _sink.writeInt(index);
-      cache[value] = pending; // Increments length to allocate slot.
-      writeValue(value);
-      cache[value] = index;
-    } else if (index == pending) {
-      throw ArgumentError("Cyclic dependency on cached value: $value");
-    } else {
-      _sink.writeInt(index);
-    }
-  }
-}
-
-/// Data source helper reads canonicalized [E] values through indices.
-class IndexedSource<E> {
-  final DataSource _sourceReader;
-  List<E> cache;
-
-  IndexedSource(this._sourceReader, {this.cache}) {
-    // [cache] slot 0 is pre-allocated to `null`.
-    this.cache ??= [null];
-  }
-
-  /// Reads a reference to an [E] value from the data source.
-  ///
-  /// If the value hasn't yet been read, [readValue] is called to deserialize
-  /// the value itself.
-  E read(E readValue()) {
-    int index = _sourceReader.readInt();
-    if (index >= cache.length) {
-      assert(index == cache.length);
-      cache.add(null); // placeholder.
-      E value = readValue();
-      cache[index] = value;
-      return value;
-    } else {
-      E value = cache[index];
-      if (value == null && index != 0) {
-        throw StateError('Unfilled index $index of $E');
-      }
-      return value;
-    }
   }
 }

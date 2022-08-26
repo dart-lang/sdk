@@ -116,7 +116,7 @@ abstract class int extends num {
   /// Shift the bits of this integer to the left by [shiftAmount].
   ///
   /// Shifting to the left makes the number larger, effectively multiplying
-  /// the number by `pow(2, shiftIndex)`.
+  /// the number by `pow(2, shiftAmount)`.
   ///
   /// There is no limit on the size of the result. It may be relevant to
   /// limit intermediate values by using the "and" operator with a suitable
@@ -136,7 +136,7 @@ abstract class int extends num {
   ///
   /// Shifting to the right makes the number smaller and drops the least
   /// significant bits, effectively doing an integer division by
-  /// `pow(2, shiftIndex)`.
+  /// `pow(2, shiftAmount)`.
   ///
   /// It is an error if [shiftAmount] is negative.
   ///

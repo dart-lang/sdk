@@ -20,7 +20,7 @@ class UndefinedShownNameTest extends PubPackageResolutionTest
 
 mixin UndefinedShownNameTestCases on PubPackageResolutionTest {
   test_export() async {
-    newFile2('$testPackageLibPath/lib1.dart', '');
+    newFile('$testPackageLibPath/lib1.dart', '');
     await assertErrorsInCode(r'''
 export 'lib1.dart' show a;
 ''', [
@@ -29,7 +29,7 @@ export 'lib1.dart' show a;
   }
 
   test_import() async {
-    newFile2('$testPackageLibPath/lib1.dart', '');
+    newFile('$testPackageLibPath/lib1.dart', '');
     await assertErrorsInCode(r'''
 import 'lib1.dart' show a;
 ''', [

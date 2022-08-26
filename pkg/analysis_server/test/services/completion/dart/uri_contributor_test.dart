@@ -75,9 +75,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_export_package2() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    newFile2('$fooRootPath/lib/foo.dart', 'library foo;');
-    newFile2('$fooRootPath/lib/baz/too.dart', 'library too;');
-    newFile2('$barRootPath/lib/bar.dart', 'library bar;');
+    newFile('$fooRootPath/lib/foo.dart', 'library foo;');
+    newFile('$fooRootPath/lib/baz/too.dart', 'library too;');
+    newFile('$barRootPath/lib/bar.dart', 'library bar;');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -144,9 +144,9 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('import "^" import');
     await computeSuggestions();
@@ -162,9 +162,9 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file2() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('import "..^" import');
     await computeSuggestions();
@@ -180,9 +180,9 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file_child() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('import "foo/^" import');
     await computeSuggestions();
@@ -197,10 +197,10 @@ class UriContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_import_file_outside_lib() async {
-    newFile2('$testPackageLibPath/other.dart', '');
-    newFile2('$testPackageLibPath/foo/bar.dart', '');
-    newFile2('$testPackageRootPath/blat.dart', '');
-    newFile2('$testPackageRootPath/bin/boo.dart', '');
+    newFile('$testPackageLibPath/other.dart', '');
+    newFile('$testPackageLibPath/foo/bar.dart', '');
+    newFile('$testPackageRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/bin/boo.dart', '');
 
     addTestSource('import "../^" import');
     await computeSuggestions();
@@ -218,10 +218,10 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file_parent() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
-    newFile2('$workspaceRootPath/aaa/boo.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
+    newFile('$workspaceRootPath/aaa/boo.dart', '');
 
     addTestSource('import "../^" import');
     await computeSuggestions();
@@ -238,9 +238,9 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file_parent2() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('import "../b^" import');
     await computeSuggestions();
@@ -265,8 +265,8 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_import_only_dart_files() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newAnalysisOptionsYamlFile2(testPackageRootPath, '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newAnalysisOptionsYamlFile(testPackageRootPath, '');
 
     addTestSource('import "package:^";');
     await computeSuggestions();
@@ -276,9 +276,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_package() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    newFile2('$fooRootPath/lib/foo.dart', '');
-    newFile2('$fooRootPath/lib/baz/too.dart', '');
-    newFile2('$barRootPath/lib/bar.dart', '');
+    newFile('$fooRootPath/lib/foo.dart', '');
+    newFile('$fooRootPath/lib/baz/too.dart', '');
+    newFile('$barRootPath/lib/bar.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -304,9 +304,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_package2() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    newFile2('$fooRootPath/lib/foo.dart', '');
-    newFile2('$fooRootPath/lib/baz/too.dart', '');
-    newFile2('$barRootPath/lib/bar.dart', '');
+    newFile('$fooRootPath/lib/foo.dart', '');
+    newFile('$fooRootPath/lib/baz/too.dart', '');
+    newFile('$barRootPath/lib/bar.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -323,9 +323,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_package2_raw() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    newFile2('$fooRootPath/lib/foo.dart', '');
-    newFile2('$fooRootPath/lib/baz/too.dart', '');
-    newFile2('$barRootPath/lib/bar.dart', '');
+    newFile('$fooRootPath/lib/foo.dart', '');
+    newFile('$fooRootPath/lib/baz/too.dart', '');
+    newFile('$barRootPath/lib/bar.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -342,9 +342,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_package2_with_trailing() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    newFile2('$fooRootPath/lib/foo.dart', '');
-    newFile2('$fooRootPath/lib/baz/too.dart', '');
-    newFile2('$barRootPath/lib/bar.dart', '');
+    newFile('$fooRootPath/lib/foo.dart', '');
+    newFile('$fooRootPath/lib/baz/too.dart', '');
+    newFile('$barRootPath/lib/bar.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -379,9 +379,9 @@ class UriContributorTest extends DartCompletionContributorTest {
   Future<void> test_import_package_raw() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    newFile2('$fooRootPath/lib/foo.dart', '');
-    newFile2('$fooRootPath/lib/baz/too.dart', '');
-    newFile2('$barRootPath/lib/bar.dart', '');
+    newFile('$fooRootPath/lib/foo.dart', '');
+    newFile('$fooRootPath/lib/baz/too.dart', '');
+    newFile('$barRootPath/lib/bar.dart', '');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -479,9 +479,9 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_part_file() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('library x; part "^" import');
     await computeSuggestions();
@@ -497,9 +497,9 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_part_file2() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('library x; part "..^" import');
     await computeSuggestions();
@@ -515,9 +515,9 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_part_file_child() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('library x; part "foo/^" import');
     await computeSuggestions();
@@ -533,9 +533,9 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_part_file_parent() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('library x; part "../^" import');
     await computeSuggestions();
@@ -567,9 +567,9 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('import "^" import');
     await computeSuggestions();
@@ -585,9 +585,9 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file2() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('import "..^" import');
     await computeSuggestions();
@@ -603,9 +603,9 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file_child() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('import "foo/^" import');
     await computeSuggestions();
@@ -621,9 +621,9 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file_parent() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('import "../^" import');
     await computeSuggestions();
@@ -639,9 +639,9 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   Future<void> test_import_file_parent2() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('import "../b^" import');
     await computeSuggestions();
@@ -657,9 +657,9 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   Future<void> test_part_file() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('library x; part "^" import');
     await computeSuggestions();
@@ -675,9 +675,9 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   Future<void> test_part_file2() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('library x; part "..^" import');
     await computeSuggestions();
@@ -693,9 +693,9 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   Future<void> test_part_file_child() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('library x; part "foo/^" import');
     await computeSuggestions();
@@ -711,9 +711,9 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   Future<void> test_part_file_parent() async {
     testFile = convertPath('$testPackageRootPath/test.dart');
-    newFile2('$testPackageRootPath/other.dart', '');
-    newFile2('$testPackageRootPath/foo/bar.dart', '');
-    newFile2('$workspaceRootPath/blat.dart', '');
+    newFile('$testPackageRootPath/other.dart', '');
+    newFile('$testPackageRootPath/foo/bar.dart', '');
+    newFile('$workspaceRootPath/blat.dart', '');
 
     addTestSource('library x; part "../^" import');
     await computeSuggestions();

@@ -11,13 +11,11 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'lib.dart';
         main() {
           foo();
         }
       lib.dart: |
-        // @dart=2.9
         import 'nonexisting.dart';
         foo() {}
     expectedLibraryCount: 2
@@ -29,7 +27,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'lib.dart';
         main() {
           foo();
@@ -44,7 +41,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'lib.dart';
         import 'lib2.dart';
         main() {
@@ -52,7 +48,6 @@ worlds:
           bar();
         }
       lib2.dart: |
-        // @dart=2.9
         bar() {
           print("hello");
         }
@@ -65,7 +60,6 @@ worlds:
       - lib2.dart
     sources:
       lib2.dart: |
-        // @dart=2.9
         bar() {
           print("hello2");
         }
@@ -79,7 +73,6 @@ worlds:
       - lib.dart
     sources:
       lib.dart: |
-        // @dart=2.9
         foo() {}
     expectInitializeFromDill: false
     expectedLibraryCount: 3

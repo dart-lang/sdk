@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*Debugger:stepOver*/
 void main() {
   /*nb*/ int a;
@@ -16,7 +14,7 @@ void main() {
   /*s:5*/ print(a);
   var d = /*s:6*/ 42;
   /*s:7*/ print(d);
-  int e = /*s:8*/ 41, f, g = /*s:9*/ 42;
+  int? e = /*s:8*/ 41, f, g = /*s:9*/ 42;
   /*s:10*/ print(e);
   /*s:11*/ print(f);
   /*s:12*/ print(g);

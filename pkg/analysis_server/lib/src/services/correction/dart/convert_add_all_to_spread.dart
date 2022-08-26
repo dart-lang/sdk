@@ -107,7 +107,7 @@ class ConvertAddAllToSpread extends CorrectionProducer {
         // TODO(brianwilkerson) Consider adding a cleanup for the empty list
         //  case. We can essentially remove the whole invocation because it does
         //  nothing.
-        return null;
+        return;
       }
       var startOffset = elements.first.offset;
       var endOffset = elements.last.end;
@@ -135,7 +135,4 @@ class ConvertAddAllToSpread extends CorrectionProducer {
       builder.addDeletion(range.node(invocation));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertAddAllToSpread newInstance() => ConvertAddAllToSpread();
 }

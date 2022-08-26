@@ -10,9 +10,16 @@
 ///      main: [b, expect]
 ///    flags:
 ///      - constant-update-2018
+///    packages:
+///      c: .
+///      a: a
 ///
-/// Where the dependencies section describe how modules depend on one another,
-/// and the flags section show what flags are needed to run that specific test.
+///
+/// Where:
+///   - the dependencies section describe how modules depend on one another,
+///   - the flags section show what flags are needed to run that specific test,
+///   - the packages section is used to create a package structure on top of the
+///     declared modules.
 ///
 /// When defining dependencies:
 ///   - Each name corresponds to a module.
@@ -21,9 +28,24 @@
 ///   - If a module has a single dependency, it can be written as a single
 ///     value.
 ///
+/// When defining packages:
+///   - The name corresponds to a package name, this doesn't need to match
+///     the name of the module. That said, it's common for some modules
+///     and packages to share their name (especially for the default set of
+///     packages included by the framework, like package:expect).
+///   - The value is a path to the folder containing the libraries of that
+///     package.
+///
+/// The packages entry is optional.  If this is not specified, the test will
+/// still have a default set of packages, like package:expect and package:meta.
+/// If the packages entry is specified, it will be extended with the definitions
+/// of the default set of packages as well. Thus, the list of packages provided
+/// is expected to be disjoint with those in the default set. The default set is
+/// defined directly in the code of `loader.dart`.
+///
 /// The logic in this library mostly treats these names as strings, separately
-/// `loader.dart` is responsible for validating and attaching this dependency
-/// information to a set of module definitions.
+/// `loader.dart` is responsible for validating, attaching dependency
+/// information to a set of module definitions, and resolving package paths.
 ///
 /// The framework is agnostic of what the flags are, but at this time we only
 /// use the name of experimental language features. These are then used to
@@ -50,15 +72,15 @@ TestSpecification parseTestSpecification(String contents) {
     if (key is! String) {
       _invalidSpecification("key: '$key' is not a string");
     }
-    normalizedMap[key] = [];
+    final values = normalizedMap[key] = [];
     if (value is String) {
-      normalizedMap[key].add(value);
+      values.add(value);
     } else if (value is List) {
       value.forEach((entry) {
         if (entry is! String) {
           _invalidSpecification("entry: '$entry' is not a string");
         }
-        normalizedMap[key].add(entry);
+        values.add(entry);
       });
     } else {
       _invalidSpecification(
@@ -76,7 +98,17 @@ TestSpecification parseTestSpecification(String contents) {
     _invalidSpecification(
         "flags: '$flags' expected to be string or list of strings");
   }
-  return new TestSpecification(normalizedFlags, normalizedMap);
+
+  Map<String, String> normalizedPackages = {};
+  final packages = spec['packages'];
+  if (packages != null) {
+    if (packages is Map) {
+      normalizedPackages.addAll(packages.cast<String, String>());
+    } else {
+      _invalidSpecification("packages is not a map");
+    }
+  }
+  return TestSpecification(normalizedFlags, normalizedMap, normalizedPackages);
 }
 
 /// Data specifying details about a modular test including dependencies and
@@ -96,11 +128,17 @@ class TestSpecification {
   /// (for instance, the module of `package:expect` or the sdk itself).
   final Map<String, List<String>> dependencies;
 
-  TestSpecification(this.flags, this.dependencies);
+  /// Map of package name to a relative path.
+  ///
+  /// The paths in this map are meant to be resolved relative to the location
+  /// where this test specification was defined.
+  final Map<String, String> packages;
+
+  TestSpecification(this.flags, this.dependencies, this.packages);
 }
 
 _invalidSpecification(String message) {
-  throw new InvalidSpecificationError(message);
+  throw InvalidSpecificationError(message);
 }
 
 class InvalidSpecificationError extends Error {

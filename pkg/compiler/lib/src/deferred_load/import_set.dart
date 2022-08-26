@@ -59,12 +59,12 @@ class ImportSetLattice {
   final Map<ImportEntity, _DeferredImport> _importIndex = {};
 
   /// The canonical instance representing the empty import set.
-  final ImportSet _emptySet = ImportSet.empty();
+  final ImportSet emptySet = _EmptyImportSet();
 
   /// The [ImportSet] representing the main output unit.
-  ImportSet _mainSet;
+  late ImportSet _mainSet;
   ImportSet get mainSet {
-    assert(_mainSet != null && _mainSet.unit != null);
+    assert(_mainSet.unit != null);
     return _mainSet;
   }
 
@@ -79,14 +79,14 @@ class ImportSetLattice {
   /// [ImportEntity].
   ImportSet _singleton(ImportEntity import) {
     // Ensure we have import in the index.
-    return _emptySet._add(_wrap(import));
+    return emptySet._add(_wrap(import));
   }
 
   /// A helper method to convert a [Set<ImportEntity>] to an [ImportSet].
   ImportSet setOfImportsToImportSet(Set<ImportEntity> setOfImports) {
     List<_DeferredImport> imports = setOfImports.map(_wrap).toList();
     imports.sort((a, b) => a.index - b.index);
-    var result = _emptySet;
+    var result = emptySet;
     for (var import in imports) {
       result = result._add(import);
     }
@@ -122,8 +122,8 @@ class ImportSetLattice {
 
   /// Get the import set that includes the union of [a] and [b].
   ImportSet union(ImportSet a, ImportSet b) {
-    if (a == null || a.isEmpty) return b;
-    if (b == null || b.isEmpty) return a;
+    if (a is _EmptyImportSet) return b;
+    if (b is _EmptyImportSet) return a;
 
     // Create the union by merging the imports in canonical order. The sets are
     // basically lists linked by the `_previous` field in reverse order. We do a
@@ -135,11 +135,11 @@ class ImportSetLattice {
     List<_DeferredImport> imports = [];
 
     while (true) {
-      if (a.isEmpty) {
+      if (a is! _NonEmptyImportSet) {
         result = b;
         break;
       }
-      if (b.isEmpty || identical(a, b)) {
+      if (b is! _NonEmptyImportSet || identical(a, b)) {
         result = a;
         break;
       }
@@ -179,7 +179,7 @@ class ImportSetLattice {
 
       // Try and apply any [ImportSetTransition]s that have not yet been
       // applied to this [ImportSet].
-      var candidateTransitions = allCandidateTransitions[originalImportSet];
+      var candidateTransitions = allCandidateTransitions[originalImportSet]!;
       for (var transition in candidateTransitions) {
         if (originalImportSet.containsAll(transition.source)) {
           importSet = union(importSet, transition.transitions);
@@ -219,25 +219,20 @@ class ImportSetLattice {
 }
 
 /// A canonical set of deferred imports.
-class ImportSet {
-  /// Last element added to set.
-  ///
-  /// This set comprises [_import] appended onto [_previous]. *Note*: [_import]
-  /// is the last element in the set in the canonical order imposed by
-  /// [ImportSetLattice].
-  final _DeferredImport _import; // `null` for empty ImportSet
-  /// The set containing all previous elements.
-  final ImportSet _previous;
-  final int length;
+abstract class ImportSet {
+  /// Links to other import sets in the lattice by adding one import.
+  final Map<_DeferredImport, _NonEmptyImportSet> _transitions = Maplet();
 
-  bool get isEmpty => _import == null;
-  bool get isNotEmpty => _import != null;
+  /// The output unit corresponding to this set of imports, if any.
+  OutputUnit? unit;
+
+  int get length;
 
   /// Returns an iterable over the imports in this set in canonical order.
   Iterable<_DeferredImport> collectImports() {
     List<_DeferredImport> result = [];
     ImportSet current = this;
-    while (current.isNotEmpty) {
+    while (current is _NonEmptyImportSet) {
       result.add(current._import);
       current = current._previous;
     }
@@ -245,25 +240,12 @@ class ImportSet {
     return result.reversed;
   }
 
-  /// Links to other import sets in the lattice by adding one import.
-  final Map<_DeferredImport, ImportSet> _transitions = Maplet();
-
-  ImportSet.empty()
-      : _import = null,
-        _previous = null,
-        length = 0;
-
-  ImportSet(this._import, this._previous, this.length);
-
-  /// The output unit corresponding to this set of imports, if any.
-  OutputUnit unit;
-
   /// Returns true if this [ImportSet] contains all of [other].
   bool containsAll(ImportSet other) {
     var current = this;
     while (true) {
-      if (other.isEmpty) return true;
-      if (current.isEmpty) return false;
+      if (other is! _NonEmptyImportSet) return true;
+      if (current is! _NonEmptyImportSet) return false;
 
       if (current._import.index > other._import.index) {
         current = current._previous;
@@ -282,8 +264,10 @@ class ImportSet {
   /// this current set. This should only be called from [ImportSetLattice],
   /// since it is where we preserve this invariant.
   ImportSet _add(_DeferredImport import) {
-    assert(_import == null || import.index > _import.index);
-    return _transitions[import] ??= ImportSet(import, this, length + 1);
+    var self = this;
+    assert(self is! _NonEmptyImportSet || import.index > self._import.index);
+    return _transitions[import] ??=
+        _NonEmptyImportSet(import, this, length + 1);
   }
 
   @override
@@ -301,4 +285,26 @@ class ImportSet {
   /// Note: Not for performance sensitive code.
   Set<ImportEntity> toSet() =>
       collectImports().map((i) => i.declaration).toSet();
+}
+
+class _NonEmptyImportSet extends ImportSet {
+  /// Last element added to set.
+  ///
+  /// This set comprises [_import] appended onto [_previous]. *Note*: [_import]
+  /// is the last element in the set in the canonical order imposed by
+  /// [ImportSetLattice].
+  final _DeferredImport _import; // `null` for empty ImportSet
+
+  /// The set containing all previous elements.
+  final ImportSet _previous;
+
+  @override
+  final int length;
+
+  _NonEmptyImportSet(this._import, this._previous, this.length);
+}
+
+class _EmptyImportSet extends ImportSet {
+  @override
+  int get length => 0;
 }

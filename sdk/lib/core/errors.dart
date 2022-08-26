@@ -96,12 +96,19 @@ class Error {
 
   /// Throws [error] with associated stack trace [stackTrace].
   ///
-  /// If [error] extends [Error] and has not yet been thrown,
-  /// its [stackTrace] is set as well, just as if it was thrown by a `throw`.
-  /// The actual stack trace captured along with the [error],
-  /// or set on [error] if it is an [Error],
-  /// may not be the [stackTrace] object itself,
-  /// but will be a stack trace with the same content.
+  /// Behaves like `throw error` would
+  /// if the [current stack trace][StackTrace.current] was [stackTrace]
+  /// at the time of the `throw`.
+  ///
+  /// Like for a `throw`, if [error] extends [Error], and it has not been
+  /// thrown before, its [Error.stackTrace] property will be set to
+  /// the [stackTrace].
+  ///
+  /// This function does not guarantee to preserve the identity of [stackTrace].
+  /// The [StackTrace] object that is caught by a `try`/`catch` of
+  /// this error, or which is set as the [Error.stackTrace] of an [error],
+  /// may not be the same [stackTrace] object provided as argument,
+  /// but it will have the same contents according to [StackTrace.toString].
   @Since("2.16")
   static Never throwWithStackTrace(Object error, StackTrace stackTrace) {
     checkNotNullable(error, "error");

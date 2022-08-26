@@ -91,7 +91,4 @@ class AddLate extends CorrectionProducer {
       builder.addSimpleInsertion(offset, 'late ');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddLate newInstance() => AddLate();
 }

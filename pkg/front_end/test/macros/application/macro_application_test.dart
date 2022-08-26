@@ -6,9 +6,6 @@ import 'dart:io' show Directory, File, Platform;
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolatedExecutor;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, LibraryId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -60,7 +57,6 @@ class MacroTestConfig extends TestConfig {
   final Directory dataDir;
   final MacroSerializer macroSerializer;
   final bool generateExpectations;
-  final Map<Uri, Uri> precompiledMacroUris = {};
 
   MacroTestConfig(this.dataDir, this.macroSerializer,
       {required this.generateExpectations})
@@ -71,10 +67,6 @@ class MacroTestConfig extends TestConfig {
 
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
-    options.macroExecutorProvider = () async {
-      return await isolatedExecutor.start(SerializationMode.byteDataServer);
-    };
-    options.precompiledMacroUris = precompiledMacroUris;
     options.macroTarget = new VmTarget(new TargetFlags());
     options.macroSerializer = macroSerializer;
   }
@@ -148,6 +140,30 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
+    if (library.importUri ==
+        testResultData.compilerResult.kernelTargetForTesting!.loader.firstUri) {
+      if (macroApplicationData.typesApplicationOrder.isNotEmpty) {
+        sb.write('\nTypes Order:');
+        for (ApplicationDataForTesting application
+            in macroApplicationData.typesApplicationOrder) {
+          sb.write('\n ${application}');
+        }
+      }
+      if (macroApplicationData.declarationsApplicationOrder.isNotEmpty) {
+        sb.write('\nDeclarations Order:');
+        for (ApplicationDataForTesting application
+            in macroApplicationData.declarationsApplicationOrder) {
+          sb.write('\n ${application}');
+        }
+      }
+      if (macroApplicationData.definitionApplicationOrder.isNotEmpty) {
+        sb.write('\nDefinition Order:');
+        for (ApplicationDataForTesting application
+            in macroApplicationData.definitionApplicationOrder) {
+          sb.write('\n ${application}');
+        }
+      }
+    }
     for (SourceLibraryBuilder sourceLibraryBuilder
         in macroApplicationData.libraryTypesResult.keys) {
       if (sourceLibraryBuilder.library == library) {
@@ -186,54 +202,82 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = new StringBuffer();
-    List<DeclarationCode> mergedClassAugmentations = [];
+
+    StringBuffer typesSources = new StringBuffer();
+    List<DeclarationCode> mergedClassTypes = [];
     for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.classTypesResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
           if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
+            if (result.libraryAugmentations.isNotEmpty) {
+              typesSources.write(
+                  '\n${codeToString(result.libraryAugmentations.single)}');
+            }
+            mergedClassTypes
+                .addAll(result.classAugmentations[entry.key.name] ?? const []);
           }
-          mergedClassAugmentations
-              .addAll(result.classAugmentations[entry.key.name] ?? const []);
         }
       }
     }
-    for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
-        in macroApplicationData.classDeclarationsResults.entries) {
+    if (mergedClassTypes.isNotEmpty) {
+      typesSources.write('\naugment class ${cls.name} {');
+      for (var result in mergedClassTypes) {
+        typesSources.write('\n${codeToString(result)}');
+      }
+      typesSources.write('\n}');
+    }
+    if (typesSources.isNotEmpty) {
+      sb.write('types:');
+      sb.write(typesSources);
+    }
+
+    StringBuffer declarationsSources = new StringBuffer();
+    for (MapEntry<SourceClassBuilder, List<String>> entry
+        in macroApplicationData.classDeclarationsSources.entries) {
       if (entry.key.cls == cls) {
-        for (MacroExecutionResult result in entry.value) {
-          if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
+        for (String result in entry.value) {
+          if (result.isNotEmpty) {
+            declarationsSources.write('\n${result}');
           }
-          mergedClassAugmentations
-              .addAll(result.classAugmentations[entry.key.name] ?? const []);
         }
       }
     }
+    if (declarationsSources.isNotEmpty) {
+      sb.write('declarations:');
+      sb.write(declarationsSources);
+    }
+
+    StringBuffer definitionsSources = new StringBuffer();
+    List<DeclarationCode> mergedClassDefinitions = [];
     for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.classDefinitionsResults.entries) {
       if (entry.key.cls == cls) {
         for (MacroExecutionResult result in entry.value) {
           if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
+            definitionsSources
+                .write('\n${codeToString(result.libraryAugmentations.single)}');
           }
-          mergedClassAugmentations
+          mergedClassDefinitions
               .addAll(result.classAugmentations[entry.key.name] ?? const []);
         }
       }
     }
-    if (mergedClassAugmentations.isNotEmpty) {
-      sb.write('\naugment class ${cls.name} {');
-      for (var result in mergedClassAugmentations) {
-        sb.write('\n${codeToString(result)}');
+    if (mergedClassDefinitions.isNotEmpty) {
+      definitionsSources.write('\naugment class ${cls.name} {');
+      for (var result in mergedClassDefinitions) {
+        definitionsSources.write('\n${codeToString(result)}');
       }
-      sb.write('\n}');
+      definitionsSources.write('\n}');
     }
+    if (definitionsSources.isNotEmpty) {
+      sb.write('definitions:');
+      sb.write(definitionsSources);
+    }
+
     if (sb.isNotEmpty) {
       Id id = new ClassId(cls.name);
-      registry.registerValue(
-          cls.fileUri, cls.fileOffset, id, sb.toString(), cls);
+      registry.registerValue(cls.fileUri, cls.fileOffset, id, '\n$sb', cls);
     }
   }
 
@@ -250,69 +294,64 @@ class MacroDataComputer extends DataComputer<String> {
         .dataForTesting!
         .macroApplicationData;
     StringBuffer sb = StringBuffer();
-    List<DeclarationCode> mergedAugmentations = [];
+
+    StringBuffer typesSources = new StringBuffer();
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.memberTypesResults.entries) {
       if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
           if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
-          }
-          if (member.enclosingClass != null) {
-            mergedAugmentations.addAll(
-                result.classAugmentations[member.enclosingClass!.name] ??
-                    const []);
+            if (result.libraryAugmentations.isNotEmpty) {
+              typesSources.write(
+                  '\n${codeToString(result.libraryAugmentations.single)}');
+            }
           }
         }
       }
     }
-    for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
-        in macroApplicationData.memberDeclarationsResults.entries) {
+    if (typesSources.isNotEmpty) {
+      sb.write('types:');
+      sb.write(typesSources);
+    }
+
+    StringBuffer declarationsSources = new StringBuffer();
+    for (MapEntry<MemberBuilder, List<String>> entry
+        in macroApplicationData.memberDeclarationsSources.entries) {
       if (_isMember(entry.key, member)) {
-        for (MacroExecutionResult result in entry.value) {
-          if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
-          }
-          if (member.enclosingClass != null) {
-            mergedAugmentations.addAll(
-                result.classAugmentations[member.enclosingClass!.name] ??
-                    const []);
+        for (String result in entry.value) {
+          if (result.isNotEmpty) {
+            declarationsSources.write('\n${result}');
           }
         }
       }
     }
+    if (declarationsSources.isNotEmpty) {
+      sb.write('declarations:');
+      sb.write(declarationsSources);
+    }
+
+    StringBuffer definitionsSources = new StringBuffer();
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.memberDefinitionsResults.entries) {
       if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
           if (result.libraryAugmentations.isNotEmpty) {
-            sb.write('\n${codeToString(result.libraryAugmentations.single)}');
-          }
-          if (member.enclosingClass != null) {
-            mergedAugmentations.addAll(
-                result.classAugmentations[member.enclosingClass!.name] ??
-                    const []);
+            definitionsSources
+                .write('\n${codeToString(result.libraryAugmentations.single)}');
           }
         }
       }
     }
-    if (mergedAugmentations.isNotEmpty) {
-      if (member.enclosingClass != null) {
-        sb.write('\naugment class ${member.enclosingClass!.name} {');
-      }
-      for (DeclarationCode augmentation in mergedAugmentations) {
-        sb.write('\n${codeToString(augmentation)}');
-      }
-      if (member.enclosingClass != null) {
-        sb.write('\n}');
-      }
+    if (definitionsSources.isNotEmpty) {
+      sb.write('definitions:');
+      sb.write(definitionsSources);
     }
     if (sb.isNotEmpty) {
       Id id = computeMemberId(member);
       MemberBuilder memberBuilder =
           lookupMemberBuilder(testResultData.compilerResult, member)!;
       registry.registerValue(memberBuilder.fileUri!, memberBuilder.charOffset,
-          id, sb.toString(), member);
+          id, '\n$sb', member);
     }
   }
 }

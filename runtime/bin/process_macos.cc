@@ -168,7 +168,7 @@ class ExitCodeHandler {
 
     // Fork to wake up waitpid.
     if (TEMP_FAILURE_RETRY(fork()) == 0) {
-      exit(0);
+      _Exit(0);
     }
 
     monitor_->Notify();
@@ -437,7 +437,7 @@ class ProcessStarter {
     int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
     if (bytes_read != sizeof(msg)) {
       perror("Failed receiving notification message");
-      exit(1);
+      _Exit(1);
     }
     if (Process::ModeIsAttached(mode_)) {
       ExecProcess();
@@ -535,13 +535,15 @@ class ProcessStarter {
           execvp(path_, const_cast<char* const*>(program_arguments_));
           ReportChildError();
         } else {
-          // Exit the intermeiate process.
-          exit(0);
+          // Exit the intermeiate process. Avoid any atexit callbacks
+          // to prevent deadlocks.
+          _Exit(0);
         }
       }
     } else {
-      // Exit the intermeiate process.
-      exit(0);
+      // Exit the intermeiate process. Avoid any atexit callbacks
+      // to prevent deadlocks.
+      _Exit(0);
     }
   }
 
@@ -695,7 +697,8 @@ class ProcessStarter {
                                strlen(os_error_message) + 1);
     }
     close(exec_control_[1]);
-    exit(1);
+    // Avoid calling any atexit callbacks to prevent deadlocks.
+    _Exit(1);
   }
 
   void ReportPid(int pid) {

@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo<T1 extends FutureOr<self::A::foo::S1%> = FutureOr<dynamic>, S1 extends FutureOr<self::A::foo::T1%> = FutureOr<dynamic>>(self::A::foo::T1% t, self::A::foo::S1% s) → dynamic {}
+  method bar<T2 extends FutureOr<self::A::bar::S2> = FutureOr<FutureOr<core::Object>>, S2 extends FutureOr<core::Object>>(self::A::bar::T2 t, self::A::bar::S2 s) → dynamic {}
+  method baz<U3 extends FutureOr<self::A::baz::T3> = FutureOr<FutureOr<FutureOr<core::Object>>>, T3 extends FutureOr<self::A::baz::S3> = FutureOr<FutureOr<core::Object>>, S3 extends FutureOr<core::Object>>(self::A::baz::U3 u, self::A::baz::T3 t, self::A::baz::S3 s) → dynamic {}
+}
+static method main() → dynamic {}

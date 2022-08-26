@@ -41,10 +41,10 @@ class C<out T extends Contravariant<Middle>> {}
 
 class D {
   C<Contravariant<Lower>> method1() {
+//^
+// [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C'.
   //^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                             ^
-  // [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C' in the return type.
     return C<Contravariant<Lower>>();
     //     ^
     // [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C'.
@@ -57,10 +57,10 @@ void testCall(Iterable<Contravariant<Middle>> x) {}
 
 main() {
   C<Contravariant<Lower>> c = new C<Contravariant<Lower>>();
+//^
+// [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C'.
   //^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  //                      ^
-  // [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C'.
   //                              ^
   // [cfe] Type argument 'Contravariant<Lower>' doesn't conform to the bound 'Contravariant<Middle>' of the type variable 'T' on 'C'.
   //                                ^^^^^^^^^^^^^^^^^^^^

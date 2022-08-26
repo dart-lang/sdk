@@ -22,15 +22,15 @@ class ToBinaryCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    if (argResults.rest.isEmpty) {
+    final args = argResults!;
+    if (args.rest.isEmpty) {
       usageException('Missing argument: <input-info>');
-      exit(1);
     }
 
-    String filename = argResults.rest[0];
+    String filename = args.rest[0];
     AllInfo info = await infoFromFile(filename);
-    if (argResults['inject-text']) injectText(info);
-    String outputFilename = argResults['out'] ?? '$filename.data';
+    if (args['inject-text']) injectText(info);
+    String outputFilename = args['out'] ?? '$filename.data';
     var outstream = File(outputFilename).openWrite();
     binary.encode(info, outstream);
     await outstream.done;

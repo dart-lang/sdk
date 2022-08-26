@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 class Class<T> {
+  T get value => throw '';
   T direct;
   void Function(T) functionArgument;
   T Function() functionReturn;
   T Function(T) functionArgumentReturn;
+
+  Class(this.direct, this.functionArgument, this.functionReturn,
+      this.functionArgumentReturn);
 
   void method(Class<T> other) {
     direct;
@@ -17,11 +19,11 @@ class Class<T> {
 
     functionArgument;
     this.functionArgument;
-    other. /*as: void Function(T)*/ functionArgument;
+    other. /*as: void Function(T%)!*/ functionArgument;
 
-    functionArgument(null);
-    this.functionArgument(null);
-    other. /*as: void Function(T)*/ functionArgument(null);
+    functionArgument(value);
+    this.functionArgument(value);
+    other. /*as: void Function(T%)!*/ functionArgument(value);
 
     functionReturn;
     this.functionReturn;
@@ -33,10 +35,10 @@ class Class<T> {
 
     functionArgumentReturn;
     this.functionArgumentReturn;
-    other. /*as: T Function(T)*/ functionArgumentReturn;
+    other. /*as: T% Function(T%)!*/ functionArgumentReturn;
 
-    functionArgumentReturn(null);
-    this.functionArgumentReturn(null);
-    other. /*as: T Function(T)*/ functionArgumentReturn(null);
+    functionArgumentReturn(value);
+    this.functionArgumentReturn(value);
+    other. /*as: T% Function(T%)!*/ functionArgumentReturn(value);
   }
 }

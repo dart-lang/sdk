@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/fix_all.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
@@ -12,7 +11,6 @@ import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.da
 import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/validate_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 
 /// Handles workspace/executeCommand messages by delegating to a specific handler
@@ -20,7 +18,8 @@ import 'package:analysis_server/src/lsp/progress.dart';
 class ExecuteCommandHandler
     extends MessageHandler<ExecuteCommandParams, Object?> {
   final Map<String, CommandHandler> commandHandlers;
-  ExecuteCommandHandler(LspAnalysisServer server)
+
+  ExecuteCommandHandler(super.server)
       : commandHandlers = {
           Commands.sortMembers: SortMembersCommandHandler(server),
           Commands.organizeImports: OrganizeImportsCommandHandler(server),
@@ -28,8 +27,7 @@ class ExecuteCommandHandler
           Commands.performRefactor: PerformRefactorCommandHandler(server),
           Commands.validateRefactor: ValidateRefactorCommandHandler(server),
           Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
-        },
-        super(server);
+        };
 
   @override
   Method get handlesMessage => Method.workspace_executeCommand;
@@ -39,8 +37,8 @@ class ExecuteCommandHandler
       ExecuteCommandParams.jsonHandler;
 
   @override
-  Future<ErrorOr<Object?>> handle(
-      ExecuteCommandParams params, CancellationToken cancellationToken) async {
+  Future<ErrorOr<Object?>> handle(ExecuteCommandParams params,
+      MessageInfo message, CancellationToken token) async {
     final handler = commandHandlers[params.command];
     if (handler == null) {
       return error(ServerErrorCodes.UnknownCommand,
@@ -53,6 +51,26 @@ class ExecuteCommandHandler
         : server.clientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
-    return handler.handle(params.arguments, progress, cancellationToken);
+
+    // To make parsing arguments easier in commands, instead of a
+    // `List<Object?>` we now use `Map<String, Object?>`.
+    //
+    // However, some handlers still support the list for compatibility so we
+    // must allow the to convert a `List` to a `Map`.
+    final arguments = params.arguments ?? const [];
+    Map<String, Object?> commandParams;
+    if (arguments.length == 1 && arguments[0] is Map<String, Object?>) {
+      commandParams = arguments.single as Map<String, Object?>;
+    } else if (handler is PositionalArgCommandHandler) {
+      final argHandler = handler as PositionalArgCommandHandler;
+      commandParams = argHandler.parseArgList(arguments);
+    } else {
+      return ErrorOr.error(ResponseError(
+        code: ServerErrorCodes.InvalidCommandArguments,
+        message: '${params.command} requires a single Map argument',
+      ));
+    }
+
+    return handler.handle(commandParams, progress, token);
   }
 }

@@ -433,7 +433,8 @@ class ExpressionLifter extends Transformer {
         new EqualsCall(expr.right, new BoolLiteral(true),
             interfaceTarget: objectEquals,
             functionType: objectEquals.getterType as FunctionType))));
-    var then, otherwise;
+    Statement then;
+    Statement? otherwise;
     if (expr.operatorEnum == LogicalExpressionOperator.AND) {
       then = rightBody;
       otherwise = null;
@@ -618,7 +619,9 @@ class ExpressionLifter extends Transformer {
   @override
   TreeNode visitFunctionNode(FunctionNode node) {
     var nestedRewriter = new RecursiveContinuationRewriter(
-        continuationRewriter.helper, _staticTypeContext);
+        continuationRewriter.helper,
+        _staticTypeContext,
+        continuationRewriter.desugarAsync);
     return nestedRewriter.transform(node);
   }
 

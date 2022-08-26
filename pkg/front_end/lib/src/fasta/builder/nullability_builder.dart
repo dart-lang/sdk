@@ -58,17 +58,20 @@ class NullabilityBuilder {
     // ignore: unnecessary_null_comparison
     assert(libraryBuilder != null);
 
-    Nullability ifOmitted = libraryBuilder.isNonNullableByDefault
-        ? Nullability.nonNullable
-        : Nullability.legacy;
     switch (_syntacticNullability) {
       case SyntacticNullability.legacy:
         return Nullability.legacy;
       case SyntacticNullability.nullable:
+        return libraryBuilder.isNonNullableByDefault
+            ? Nullability.nullable
+            // This is an error case.
+            : Nullability.legacy;
       case SyntacticNullability.inherent:
         return Nullability.nullable;
       case SyntacticNullability.omitted:
-        return ifOmitted;
+        return libraryBuilder.isNonNullableByDefault
+            ? Nullability.nonNullable
+            : Nullability.legacy;
     }
   }
 

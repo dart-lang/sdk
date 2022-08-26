@@ -9,7 +9,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 import 'resolved_ast_printer.dart';
@@ -109,7 +111,7 @@ void checkElementText(
   // Print the actual text to simplify copy/paste into the expectation.
   // if (actualText != expected) {
   //   print('-------- Actual --------');
-  //   print(actualText + '------------------------');
+  //   print('$actualText------------------------');
   // }
 
   expect(actualText, expected);
@@ -135,6 +137,8 @@ class _ElementWriter {
   });
 
   void writeLibraryElement(LibraryElement e) {
+    e as LibraryElementImpl;
+
     _writelnWithIndent('library');
     _withIndent(() {
       var name = e.name;
@@ -160,18 +164,16 @@ class _ElementWriter {
         _writeUnitElement(e.definingCompilationUnit);
       });
 
-      _writeElements('parts', e.parts, (CompilationUnitElement e) {
-        _writelnWithIndent(e.uri!);
-        _withIndent(() {
-          _writeMetadata(e);
-          _writeUnitElement(e);
-        });
-      });
+      _writeElements('parts', e.parts2, _writePartElement);
 
       if (withExportScope) {
-        _writelnWithIndent('exportScope');
+        _writelnWithIndent('exportedReferences');
         _withIndent(() {
-          _writeExportScope(e);
+          _writeExportedReferences(e);
+        });
+        _writelnWithIndent('exportNamespace');
+        _withIndent(() {
+          _writeExportNamespace(e);
         });
       }
     });
@@ -214,6 +216,8 @@ class _ElementWriter {
       selfUriStr: selfUriStr,
       sink: buffer,
       indent: indent,
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49101
+      withParameterElements: false,
       withOffsets: true,
     );
   }
@@ -263,6 +267,10 @@ class _ElementWriter {
     }
 
     _writeIf(e.isGenerator, '*');
+
+    if (e is ExecutableElementImpl && e.invokesSuperSelf) {
+      buffer.write(' invokesSuperSelf');
+    }
   }
 
   void _writeClassElement(ClassElement e) {
@@ -411,7 +419,23 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
-      expect(e.nameOffset, isPositive);
+      if (!e.isTempAugmentation) {
+        expect(e.nameOffset, isPositive);
+      }
+    }
+  }
+
+  void _writeDirectiveUri(DirectiveUri uri) {
+    if (uri is DirectiveUriWithUnit) {
+      _writelnWithIndent('${uri.unit.source.uri}');
+    } else if (uri is DirectiveUriWithSource) {
+      _writelnWithIndent("source '${uri.source.uri}'");
+    } else if (uri is DirectiveUriWithRelativeUri) {
+      _writelnWithIndent("relativeUri '${uri.relativeUri}'");
+    } else if (uri is DirectiveUriWithRelativeUriString) {
+      _writelnWithIndent("relativeUriString '${uri.relativeUriString}'");
+    } else {
+      _writelnWithIndent('noRelativeUriString');
     }
   }
 
@@ -447,6 +471,23 @@ class _ElementWriter {
     }
   }
 
+  void _writeExportedReferences(LibraryElementImpl e) {
+    final exportedReferences = e.exportedReferences.toList();
+    exportedReferences.sortBy((e) => e.reference.toString());
+
+    for (final exported in exportedReferences) {
+      _writeIndentedLine(() {
+        if (exported is ExportedReferenceDeclared) {
+          buffer.write('declared ');
+        } else if (exported is ExportedReferenceExported) {
+          buffer.write('exported${exported.indexes} ');
+        }
+        // TODO(scheglov) Use the same writer as for resolved AST.
+        buffer.write(exported.reference);
+      });
+    }
+  }
+
   void _writeExportElement(ExportElement e) {
     _writeIndentedLine(() {
       _writeUri(e.exportedLibrary?.source);
@@ -460,7 +501,7 @@ class _ElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeExportScope(LibraryElement e) {
+  void _writeExportNamespace(LibraryElement e) {
     var map = e.exportNamespace.definedNames;
     var names = map.keys.toList()..sort();
     for (var name in names) {
@@ -684,7 +725,21 @@ class _ElementWriter {
     _writeElements('parameters', elements, _writeParameterElement);
   }
 
+  void _writePartElement(PartElement e) {
+    final uri = e.uri;
+    _writeDirectiveUri(uri);
+
+    _withIndent(() {
+      _writeMetadata(e);
+      if (uri is DirectiveUriWithUnit) {
+        _writeUnitElement(uri.unit);
+      }
+    });
+  }
+
   void _writePropertyAccessorElement(PropertyAccessorElement e) {
+    e as PropertyAccessorElementImpl;
+
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
@@ -710,7 +765,9 @@ class _ElementWriter {
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
     } else {
-      expect(e.nameOffset, isPositive);
+      if (!e.isTempAugmentation) {
+        expect(e.nameOffset, isPositive);
+      }
       _assertNonSyntheticElementSelf(e);
     }
 
@@ -743,6 +800,8 @@ class _ElementWriter {
   }
 
   void _writePropertyInducingElement(PropertyInducingElement e) {
+    e as PropertyInducingElementImpl;
+
     DartType type = e.type;
     expect(type, isNotNull);
 
@@ -756,7 +815,9 @@ class _ElementWriter {
         _assertSyntheticAccessorEnclosing(e, e.setter!);
       }
 
-      expect(e.nameOffset, isPositive);
+      if (!e.isTempAugmentation) {
+        expect(e.nameOffset, isPositive);
+      }
       _assertNonSyntheticElementSelf(e);
     }
 
@@ -915,7 +976,7 @@ class _ElementWriter {
       if (uri.isScheme('file')) {
         uriStr = uri.pathSegments.last;
       }
-      buffer.write('$uriStr');
+      buffer.write(uriStr);
     } else {
       buffer.write('<unresolved>');
     }

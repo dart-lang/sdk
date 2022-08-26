@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 /// This tool builds a program with a deferred graph isomorphic to the provided
 /// graph, or generates permutations of bits and the associated files to
 /// generate complex deferred graphs.

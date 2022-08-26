@@ -18,8 +18,7 @@ void main() {
 }
 
 class _VerifyTests extends VerifyTests {
-  _VerifyTests(String testDirPath, {List<String>? excludedPaths})
-      : super(testDirPath, excludedPaths: excludedPaths);
+  _VerifyTests(super.testDirPath, {super.excludedPaths});
 
   @override
   bool isExpensive(Resource resource) => resource.shortName == 'integration';

@@ -2,15 +2,24 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+include: package:lints/recommended.yaml
+
 analyzer:
   errors:
     todo: ignore
+    avoid_function_literals_in_foreach_calls: ignore
+    avoid_renaming_method_parameters: ignore
     # Allow deprecated calls from within the same package
     deprecated_member_use_from_same_package: ignore
+    constant_identifier_names: ignore
+    non_constant_identifier_names: ignore
+    prefer_void_to_null: ignore
 
 linter:
   rules:
-    - annotate_overrides
-    - prefer_final_fields
-    - prefer_if_null_operators
-    - prefer_null_aware_operators
+    # Not enforced by the lints package at any version.
+    - always_declare_return_types
+    - depend_on_referenced_packages
+    - directives_ordering
+    - prefer_single_quotes
+    - prefer_relative_imports

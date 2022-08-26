@@ -11,14 +11,14 @@ class ToStringMacro implements ClassDeclarationsMacro {
   const ToStringMacro();
 
   @override
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
     if (!methods.any((m) => m.identifier.name == 'toString')) {
       Iterable<FieldDeclaration> fields = await builder.fieldsOf(clazz);
       Uri dartCore = Uri.parse('dart:core');
       Identifier stringClass =
-          await builder.resolveIdentifier(dartCore, 'String');
+      await builder.resolveIdentifier(dartCore, 'String');
       List<Object> parts = [stringClass, '''
  toString() {
     return "${clazz.identifier.name}('''
@@ -44,7 +44,7 @@ class InjectMacro implements ClassDeclarationsMacro {
   const InjectMacro();
 
   @override
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
     if (!methods.any((m) => m.identifier.name == 'injectedMethod')) {

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -49,13 +49,13 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
     ]);
 
     var contextRoot = ContextRootImpl(resourceProvider, barFolder,
-        BasicWorkspace.find(resourceProvider, {}, barFolder.path));
+        BasicWorkspace.find(resourceProvider, Packages.empty, barFolder.path));
 
     MockAnalysisDriver driver = MockAnalysisDriver();
     driver.resourceProvider = resourceProvider;
     driver.sourceFactory = sourceFactory;
     driver.analysisContext =
-        DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
+        DriverBasedAnalysisContext(resourceProvider, contextRoot);
 
     uriConverter = DriverBasedUriConverter(driver);
   }
@@ -103,7 +103,7 @@ class MockAnalysisDriver implements AnalysisDriver {
   late final SourceFactory sourceFactory;
 
   @override
-  AnalysisContext? analysisContext;
+  DriverBasedAnalysisContext? analysisContext;
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

@@ -6,26 +6,27 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// The handler for the `completion.getSuggestionDetails` request.
-class CompletionGetSuggestionDetailsHandler extends LegacyHandler {
+class CompletionGetSuggestionDetailsHandler extends CompletionHandler {
   /// The identifiers of the latest `getSuggestionDetails` request.
   /// We use it to abort previous requests.
   int _latestGetSuggestionDetailsId = 0;
 
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  CompletionGetSuggestionDetailsHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  CompletionGetSuggestionDetailsHandler(
+      super.server, super.request, super.cancellationToken);
 
   @override
   Future<void> handle() async {
+    if (completionIsDisabled) {
+      return;
+    }
+
     var params = CompletionGetSuggestionDetailsParams.fromRequest(request);
 
     var file = params.file;

@@ -4,6 +4,7 @@
 
 #include "vm/compiler/backend/il.h"
 
+#include "platform/assert.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/compiler/aot/dispatch_table_generator.h"
@@ -2404,6 +2405,12 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
             shift_with_range->set_shift_range(
                 new Range(RangeBoundary::FromConstant(shift_amount),
                           RangeBoundary::FromConstant(shift_amount)));
+          }
+          if (!MayThrow()) {
+            ASSERT(!shift->MayThrow());
+          }
+          if (!CanDeoptimize()) {
+            ASSERT(!shift->CanDeoptimize());
           }
           flow_graph->InsertBefore(this, shift, env(), FlowGraph::kValue);
           return shift;
@@ -5117,7 +5124,7 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
   // better optimized by the compiler.
   //
   // TODO(dartbug.com/37291): Allow this optimization, but accumulate affected
-  // InstanceCallInstrs and the corresponding reciever cids during compilation.
+  // InstanceCallInstrs and the corresponding receiver cids during compilation.
   // After compilation, add receiver checks to the ICData for those call sites.
   if (Targets().is_empty()) return this;
 
@@ -5474,10 +5481,36 @@ LocationSummary* InstantiateTypeInstr::MakeLocationSummary(Zone* zone,
 }
 
 void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  auto& stub = Code::ZoneHandle(StubCode::InstantiateType().ptr());
+  if (type().IsTypeParameter()) {
+    const auto& type_parameter = TypeParameter::Cast(type());
+    const bool is_function_parameter = type_parameter.IsFunctionTypeParameter();
+
+    switch (type_parameter.nullability()) {
+      case Nullability::kNonNullable:
+        stub = is_function_parameter
+                   ? StubCode::InstantiateTypeNonNullableFunctionTypeParameter()
+                         .ptr()
+                   : StubCode::InstantiateTypeNonNullableClassTypeParameter()
+                         .ptr();
+        break;
+      case Nullability::kNullable:
+        stub =
+            is_function_parameter
+                ? StubCode::InstantiateTypeNullableFunctionTypeParameter().ptr()
+                : StubCode::InstantiateTypeNullableClassTypeParameter().ptr();
+        break;
+      case Nullability::kLegacy:
+        stub =
+            is_function_parameter
+                ? StubCode::InstantiateTypeLegacyFunctionTypeParameter().ptr()
+                : StubCode::InstantiateTypeLegacyClassTypeParameter().ptr();
+        break;
+    }
+  }
   __ LoadObject(InstantiateTypeABI::kTypeReg, type());
-  compiler->GenerateStubCall(source(), StubCode::InstantiateType(),
-                             UntaggedPcDescriptors::kOther, locs(), deopt_id(),
-                             env());
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
 }
 
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
@@ -6480,6 +6513,11 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx < TargetAddressIndex()) {
+    // All input handles are passed as Tagged values on the stack to
+    // FfiCallInstr, which passes "handles", i.e. pointers, to these.
+    if (marshaller_.IsHandle(marshaller_.ArgumentIndex(idx))) {
+      return kTagged;
+    }
     return marshaller_.RepInFfiCall(idx);
   } else if (idx == TargetAddressIndex()) {
     return kUnboxedFfiIntPtr;
@@ -6532,21 +6570,21 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
 
 void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                                   const Register saved_fp,
-                                  const Register temp) {
-  if (compiler::Assembler::EmittingComments()) {
-    __ Comment("EmitParamMoves");
-  }
+                                  const Register temp0,
+                                  const Register temp1) {
+  __ Comment("EmitParamMoves");
 
   // Moves for return pointer.
   const auto& return_location =
       marshaller_.Location(compiler::ffi::kResultIndex);
   if (return_location.IsPointerToMemory()) {
+    __ Comment("return_location.IsPointerToMemory");
     const auto& pointer_location =
         return_location.AsPointerToMemory().pointer_location();
     const auto& pointer_register =
         pointer_location.IsRegisters()
             ? pointer_location.AsRegisters().reg_at(0)
-            : temp;
+            : temp0;
     __ MoveRegister(pointer_register, SPREG);
     __ AddImmediate(pointer_register, marshaller_.PassByPointerStackOffset(
                                           compiler::ffi::kResultIndex));
@@ -6567,10 +6605,13 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
        arg_index++) {
     const intptr_t num_defs = marshaller_.NumDefinitions(arg_index);
     const auto& arg_target = marshaller_.Location(arg_index);
+    __ Comment("arg_index %" Pd " arg_target %s", arg_index,
+               arg_target.ToCString());
 
     // First deal with moving all individual definitions passed in to the
     // FfiCall to the right native location based on calling convention.
     for (intptr_t i = 0; i < num_defs; i++) {
+      __ Comment("  def_index %" Pd, def_index);
       const Location origin = rebase.Rebase(locs()->in(def_index));
       const Representation origin_rep =
           RequiredInputRepresentation(def_index) == kTagged
@@ -6586,13 +6627,52 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
               ? arg_target.AsPointerToMemory().pointer_location()
               : /*arg_target.IsStack()*/ arg_target.Split(zone_, num_defs, i);
 
-      ConstantTemporaryAllocator temp_alloc(temp);
+      ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
         // Can't occur because we currently don't inline FFI trampolines (see
         // http://dartbug.com/45055), which means all incomming arguments
         // originate from parameters and thus are non-constant.
         UNREACHABLE();
+      }
+
+      // Handles are passed into FfiCalls as Tagged values on the stack, and
+      // then we pass pointers to these handles to the native function here.
+      if (marshaller_.IsHandle(arg_index)) {
+        ASSERT(compiler::target::LocalHandle::ptr_offset() == 0);
+        ASSERT(compiler::target::LocalHandle::InstanceSize() ==
+               compiler::target::kWordSize);
+        ASSERT(num_defs == 1);
+        ASSERT(origin.IsStackSlot());
+        if (def_target.IsRegisters()) {
+          __ AddImmediate(def_target.AsLocation().reg(), origin.base_reg(),
+                          origin.stack_index() * compiler::target::kWordSize);
+        } else {
+          ASSERT(def_target.IsStack());
+          const auto& target_stack = def_target.AsStack();
+          __ AddImmediate(temp0, origin.base_reg(),
+                          origin.stack_index() * compiler::target::kWordSize);
+          __ StoreToOffset(temp0,
+                           compiler::Address(target_stack.base_register(),
+                                             target_stack.offset_in_bytes()));
+        }
       } else {
+#if defined(INCLUDE_IL_PRINTER)
+        __ Comment("def_target %s <- origin %s %s", def_target.ToCString(),
+                   origin.ToCString(), RepresentationToCString(origin_rep));
+#endif  // defined(INCLUDE_IL_PRINTER)
+#ifdef DEBUG
+        // Stack arguments split are in word-size chunks. These chunks can copy
+        // too much. However, that doesn't matter in practise because we process
+        // the stack in order.
+        // It only matters for the last chunk, it should not overwrite what was
+        // already on the stack.
+        if (def_target.IsStack()) {
+          const auto& def_target_stack = def_target.AsStack();
+          ASSERT(def_target_stack.offset_in_bytes() +
+                     def_target.payload_type().SizeInBytes() <=
+                 marshaller_.RequiredStackSpaceInBytes());
+        }
+#endif
         compiler->EmitMoveToNative(def_target, origin, origin_rep, &temp_alloc);
       }
       def_index++;
@@ -6603,6 +6683,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     // Note that the step above has already moved the pointer into the expected
     // native location.
     if (arg_target.IsPointerToMemory()) {
+      __ Comment("arg_target.IsPointerToMemory");
       NoTemporaryAllocator temp_alloc;
       const auto& pointer_loc =
           arg_target.AsPointerToMemory().pointer_location();
@@ -6610,11 +6691,11 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       // TypedData/Pointer data pointed to in temp.
       const auto& dst = compiler::ffi::NativeRegistersLocation(
           zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
-          temp);
+          temp0);
       compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
-      __ LoadField(temp,
+      __ LoadField(temp0,
                    compiler::FieldAddress(
-                       temp, compiler::target::PointerBase::data_offset()));
+                       temp0, compiler::target::PointerBase::data_offset()));
 
       // Copy chuncks.
       const intptr_t sp_offset =
@@ -6624,23 +6705,23 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       // space on the stack.
       for (intptr_t i = 0; i < arg_target.payload_type().SizeInBytes();
            i += compiler::target::kWordSize) {
-        __ LoadMemoryValue(TMP, temp, i);
-        __ StoreMemoryValue(TMP, SPREG, i + sp_offset);
+        __ LoadMemoryValue(temp1, temp0, i);
+        __ StoreMemoryValue(temp1, SPREG, i + sp_offset);
       }
 
       // Store the stack address in the argument location.
-      __ MoveRegister(temp, SPREG);
-      __ AddImmediate(temp, sp_offset);
+      __ MoveRegister(temp0, SPREG);
+      __ AddImmediate(temp0, sp_offset);
       const auto& src = compiler::ffi::NativeRegistersLocation(
           zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
-          temp);
+          temp0);
+      __ Comment("pointer_loc %s <- src %s", pointer_loc.ToCString(),
+                 src.ToCString());
       compiler->EmitNativeMove(pointer_loc, src, &temp_alloc);
     }
   }
 
-  if (compiler::Assembler::EmittingComments()) {
-    __ Comment("EmitParamMovesEnd");
-  }
+  __ Comment("EmitParamMovesEnd");
 }
 
 void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
@@ -6720,107 +6801,6 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
   __ Comment("EmitReturnMovesEnd");
 }
 
-static Location FirstArgumentLocation() {
-#ifdef TARGET_ARCH_IA32
-  return Location::StackSlot(0, SPREG);
-#else
-  return Location::RegisterLocation(CallingConventions::ArgumentRegisters[0]);
-#endif
-}
-
-LocationSummary* EnterHandleScopeInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/0,
-                                 /*num_temps=*/0, LocationSummary::kCall);
-  summary->set_out(0,
-                   Location::RegisterLocation(CallingConventions::kReturnReg));
-  return summary;
-}
-
-void EnterHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
-
-  if (kind_ == Kind::kGetTopHandleScope) {
-    __ LoadMemoryValue(CallingConventions::kReturnReg, THR,
-                       compiler::target::Thread::api_top_scope_offset());
-    return;
-  }
-
-  Location arg_loc = FirstArgumentLocation();
-  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
-  NoTemporaryAllocator no_temp;
-  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
-  __ CallCFunction(
-      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
-                                 &kEnterHandleScopeRuntimeEntry)));
-  __ LeaveCFrame();
-}
-
-LocationSummary* ExitHandleScopeInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/0,
-                                 /*num_temps=*/0, LocationSummary::kCall);
-  return summary;
-}
-
-void ExitHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
-
-  Location arg_loc = FirstArgumentLocation();
-  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
-  NoTemporaryAllocator no_temp;
-  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
-  __ CallCFunction(
-      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
-                                 &kExitHandleScopeRuntimeEntry)));
-  __ LeaveCFrame();
-}
-
-LocationSummary* AllocateHandleInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  LocationSummary* summary =
-      new (zone) LocationSummary(zone, /*num_inputs=*/1,
-                                 /*num_temps=*/0, LocationSummary::kCall);
-
-  Location arg_loc = FirstArgumentLocation();
-  // Assign input to a register that does not conflict with anything if
-  // argument is passed on the stack.
-  const Register scope_reg =
-      arg_loc.IsStackSlot() ? CallingConventions::kSecondNonArgumentRegister
-                            : arg_loc.reg();
-
-  summary->set_in(kScope, Location::RegisterLocation(scope_reg));
-  summary->set_out(0,
-                   Location::RegisterLocation(CallingConventions::kReturnReg));
-  return summary;
-}
-
-Representation AllocateHandleInstr::RequiredInputRepresentation(
-    intptr_t idx) const {
-  ASSERT(idx == kScope);
-  return kUnboxedIntPtr;
-}
-
-void AllocateHandleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(kEnterHandleScopeRuntimeEntry.is_leaf());
-
-  Location arg_loc = FirstArgumentLocation();
-  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
-  if (arg_loc.IsStackSlot()) {
-    NoTemporaryAllocator no_temp;
-    compiler->EmitMove(arg_loc, locs()->in(kScope), &no_temp);
-  }
-  __ CallCFunction(
-      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
-                                 &kAllocateHandleRuntimeEntry)));
-  __ LeaveCFrame();
-}
-
 LocationSummary* RawStoreFieldInstr::MakeLocationSummary(
     Zone* zone,
     bool is_optimizing) const {
@@ -6851,6 +6831,32 @@ void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register base_reg = locs()->in(kBase).reg();
   const Register value_reg = locs()->in(kValue).reg();
   compiler->assembler()->StoreMemoryValue(value_reg, base_reg, offset_);
+}
+
+const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
+  const Function& function = compiler->parsed_function().function();
+  ASSERT(function.IsSuspendableFunction());
+  if (function.IsCompactAsyncFunction()) {
+    if (!value()->Type()->CanBeFuture()) {
+      return Code::ZoneHandle(compiler->zone(),
+                              compiler->isolate_group()
+                                  ->object_store()
+                                  ->return_async_not_future_stub());
+    }
+    return Code::ZoneHandle(
+        compiler->zone(),
+        compiler->isolate_group()->object_store()->return_async_stub());
+  } else if (function.IsCompactAsyncStarFunction()) {
+    return Code::ZoneHandle(
+        compiler->zone(),
+        compiler->isolate_group()->object_store()->return_async_star_stub());
+  } else if (function.IsCompactSyncStarFunction()) {
+    return Code::ZoneHandle(
+        compiler->zone(),
+        compiler->isolate_group()->object_store()->return_sync_star_stub());
+  } else {
+    UNREACHABLE();
+  }
 }
 
 void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
@@ -6951,6 +6957,128 @@ Representation FfiCallInstr::representation() const {
 // TODO(http://dartbug.com/48543): integrate with register allocator directly.
 DEFINE_BACKEND(LoadThread, (Register out)) {
   __ MoveRegister(out, THR);
+}
+
+LocationSummary* CCallInstr::MakeLocationSummaryInternal(
+    Zone* zone,
+    const RegList temps) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/Utils::CountOneBitsWord(temps),
+                                 LocationSummary::kNativeLeafCall);
+
+  intptr_t reg_i = 0;
+  for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
+    if ((temps & (1 << reg)) != 0) {
+      summary->set_temp(reg_i,
+                        Location::RegisterLocation(static_cast<Register>(reg)));
+      reg_i++;
+    }
+  }
+
+  summary->set_in(TargetAddressIndex(),
+                  Location::RegisterLocation(
+                      CallingConventions::kFirstNonArgumentRegister));
+
+  const auto& argument_locations =
+      native_calling_convention_.argument_locations();
+  for (intptr_t i = 0, n = argument_locations.length(); i < n; ++i) {
+    const auto& argument_location = *argument_locations.At(i);
+    if (argument_location.IsRegisters()) {
+      const auto& reg_location = argument_location.AsRegisters();
+      ASSERT(reg_location.num_regs() == 1);
+      summary->set_in(i, reg_location.AsLocation());
+    } else if (argument_location.IsFpuRegisters()) {
+      UNIMPLEMENTED();
+    } else if (argument_location.IsStack()) {
+      summary->set_in(i, Location::Any());
+    } else {
+      UNIMPLEMENTED();
+    }
+  }
+  const auto& return_location = native_calling_convention_.return_location();
+  ASSERT(return_location.IsRegisters());
+  summary->set_out(0, return_location.AsLocation());
+  return summary;
+}
+
+CCallInstr::CCallInstr(
+    Zone* zone,
+    const compiler::ffi::NativeCallingConvention& native_calling_convention,
+    InputsArray* inputs)
+    : Definition(DeoptId::kNone),
+      zone_(zone),
+      native_calling_convention_(native_calling_convention),
+      inputs_(inputs) {
+#ifdef DEBUG
+  const intptr_t num_inputs =
+      native_calling_convention.argument_locations().length() + 1;
+  ASSERT(num_inputs == inputs->length());
+#endif
+  for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
+    SetInputAt(i, (*inputs_)[i]);
+  }
+}
+
+Representation CCallInstr::RequiredInputRepresentation(intptr_t idx) const {
+  if (idx < native_calling_convention_.argument_locations().length()) {
+    const auto& argument_type =
+        native_calling_convention_.argument_locations().At(idx)->payload_type();
+    ASSERT(argument_type.IsExpressibleAsRepresentation());
+    return argument_type.AsRepresentation();
+  }
+  ASSERT(idx == TargetAddressIndex());
+  return kUnboxedFfiIntPtr;
+}
+
+void CCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
+                                Register saved_fp,
+                                Register temp0) {
+  if (native_calling_convention_.StackTopInBytes() == 0) {
+    return;
+  }
+
+  ConstantTemporaryAllocator temp_alloc(temp0);
+  compiler::ffi::FrameRebase rebase(zone_, /*old_base=*/FPREG,
+                                    /*new_base=*/saved_fp,
+                                    /*stack_delta=*/0);
+
+  __ Comment("EmitParamMoves");
+  const auto& argument_locations =
+      native_calling_convention_.argument_locations();
+  for (intptr_t i = 0, n = argument_locations.length(); i < n; ++i) {
+    const auto& argument_location = *argument_locations.At(i);
+    if (argument_location.IsRegisters()) {
+      const auto& reg_location = argument_location.AsRegisters();
+      ASSERT(reg_location.num_regs() == 1);
+      const Location src_loc = rebase.Rebase(locs()->in(i));
+      const Representation src_rep = RequiredInputRepresentation(i);
+      compiler->EmitMoveToNative(argument_location, src_loc, src_rep,
+                                 &temp_alloc);
+    } else if (argument_location.IsFpuRegisters()) {
+      UNIMPLEMENTED();
+    } else if (argument_location.IsStack()) {
+      const Location src_loc = rebase.Rebase(locs()->in(i));
+      const Representation src_rep = RequiredInputRepresentation(i);
+#if defined(INCLUDE_IL_PRINTER)
+      __ Comment("Param %" Pd ": %s %s -> %s", i, src_loc.ToCString(),
+                 RepresentationToCString(src_rep),
+                 argument_location.ToCString());
+#endif
+      compiler->EmitMoveToNative(argument_location, src_loc, src_rep,
+                                 &temp_alloc);
+    } else {
+      UNIMPLEMENTED();
+    }
+  }
+  __ Comment("EmitParamMovesEnd");
+}
+
+Representation CCallInstr::representation() const {
+  const auto& return_type =
+      native_calling_convention_.return_location().payload_type();
+  ASSERT(return_type.IsExpressibleAsRepresentation());
+  return return_type.AsRepresentation();
 }
 
 // SIMD
@@ -7110,7 +7238,7 @@ struct SimdOpInfo {
   Representation inputs[4];
 };
 
-// Make representaion from type name used by SIMD_OP_LIST.
+// Make representation from type name used by SIMD_OP_LIST.
 #define REP(T) (kUnboxed##T)
 static const Representation kUnboxedBool = kTagged;
 static const Representation kUnboxedInt8 = kUnboxedInt32;
@@ -7160,6 +7288,95 @@ Representation SimdOpInstr::RequiredInputRepresentation(intptr_t idx) const {
 
 bool SimdOpInstr::HasMask() const {
   return simd_op_information[kind()].has_mask;
+}
+
+LocationSummary* Call1ArgStubInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  switch (stub_id_) {
+    case StubId::kCloneSuspendState:
+      locs->set_in(
+          0, Location::RegisterLocation(CloneSuspendStateStubABI::kSourceReg));
+      break;
+    case StubId::kInitAsync:
+    case StubId::kInitAsyncStar:
+    case StubId::kInitSyncStar:
+      locs->set_in(0, Location::RegisterLocation(
+                          InitSuspendableFunctionStubABI::kTypeArgsReg));
+      break;
+  }
+  locs->set_out(0, Location::RegisterLocation(CallingConventions::kReturnReg));
+  return locs;
+}
+
+void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ObjectStore* object_store = compiler->isolate_group()->object_store();
+  Code& stub = Code::ZoneHandle(compiler->zone());
+  switch (stub_id_) {
+    case StubId::kCloneSuspendState:
+      stub = object_store->clone_suspend_state_stub();
+      break;
+    case StubId::kInitAsync:
+      stub = object_store->init_async_stub();
+      break;
+    case StubId::kInitAsyncStar:
+      stub = object_store->init_async_star_stub();
+      break;
+    case StubId::kInitSyncStar:
+      stub = object_store->init_sync_star_stub();
+      break;
+  }
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
+}
+
+LocationSummary* SuspendInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(SuspendStubABI::kArgumentReg));
+  locs->set_out(0, Location::RegisterLocation(CallingConventions::kReturnReg));
+  return locs;
+}
+
+void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Use deopt_id as a yield index.
+  compiler->EmitYieldPositionMetadata(source(), deopt_id());
+
+  ObjectStore* object_store = compiler->isolate_group()->object_store();
+  Code& stub = Code::ZoneHandle(compiler->zone());
+  switch (stub_id_) {
+    case StubId::kAwait:
+      stub = object_store->await_stub();
+      break;
+    case StubId::kYieldAsyncStar:
+      stub = object_store->yield_async_star_stub();
+      break;
+    case StubId::kYieldSyncStar:
+      stub = object_store->yield_sync_star_stub();
+      break;
+  }
+  compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
+                             locs(), deopt_id(), env());
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+  // On x86 (X64 and IA32) mismatch between calls and returns
+  // significantly regresses performance. So suspend stub
+  // does not return directly to the caller. Instead, a small
+  // epilogue is generated right after the call to suspend stub,
+  // and resume stub adjusts resume PC to skip this epilogue.
+  const intptr_t start = compiler->assembler()->CodeSize();
+  __ LeaveFrame();
+  __ ret();
+  RELEASE_ASSERT(compiler->assembler()->CodeSize() - start ==
+                 SuspendStubABI::kResumePcDistance);
+  compiler->EmitCallsiteMetadata(source(), resume_deopt_id(),
+                                 UntaggedPcDescriptors::kOther, locs(), env());
+#endif
 }
 
 #undef __

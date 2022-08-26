@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
@@ -13,10 +11,12 @@ import 'package:testing/testing.dart';
 
 class Data {
   Uri uri;
-  Directory outDir;
-  String testFileName;
-  AnnotatedCode code;
-  List<String> d8Output;
+  late Directory outDir;
+  late String testFileName;
+  late AnnotatedCode code;
+  late List<String> d8Output;
+
+  Data(this.uri);
 }
 
 abstract class ChainContextWithCleanupHelper extends ChainContext {
@@ -26,12 +26,12 @@ abstract class ChainContextWithCleanupHelper extends ChainContext {
   Future<void> cleanUp(TestDescription description, Result result) {
     if (debugging() && result.outcome != Expectation.Pass) {
       print('Not cleaning up: Running in debug-mode for non-passing test.');
-      return null;
+      return Future.value();
     }
 
     var data = cleanupHelper.remove(description);
-    data?.outDir?.deleteSync(recursive: true);
-    return null;
+    data?.outDir.deleteSync(recursive: true);
+    return Future.value();
   }
 
   bool debugging() => false;
@@ -45,7 +45,7 @@ class Setup extends Step<TestDescription, Data, ChainContext> {
 
   @override
   Future<Result<Data>> run(TestDescription input, ChainContext context) async {
-    var data = Data()..uri = input.uri;
+    var data = Data(input.uri);
     if (context is ChainContextWithCleanupHelper) {
       context.cleanupHelper[input] = data;
     }
@@ -99,8 +99,12 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
 }
 
 File findInOutDir(String relative) {
-  var outerDir = sdkRoot.path;
-  for (var outDir in const ['out/ReleaseX64', 'xcodebuild/ReleaseX64']) {
+  var outerDir = sdkRoot!.path;
+  for (var outDir in const [
+    'out/ReleaseX64',
+    'xcodebuild/ReleaseX64',
+    'xcodebuild/ReleaseARM64'
+  ]) {
     var tryPath = p.join(outerDir, outDir, relative);
     var file = File(tryPath);
     if (file.existsSync()) return file;

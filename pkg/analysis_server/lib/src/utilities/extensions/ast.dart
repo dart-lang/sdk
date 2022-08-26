@@ -7,6 +7,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 
+extension AnnotatedNodeExtensions on AnnotatedNode {
+  /// Return the first token in this node that is not a comment.
+  Token get firstNonCommentToken {
+    final metadata = this.metadata;
+    if (metadata.isEmpty) {
+      return firstTokenAfterCommentAndMetadata;
+    }
+    return metadata.beginToken!;
+  }
+}
+
 extension AstNodeExtensions on AstNode {
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -19,10 +20,11 @@ import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
-class MethodInvocationResolver {
+class MethodInvocationResolver with ScopeHelpers {
   /// Resolver visitor is separated from the elements resolver, which calls
   /// this method resolver. If we rewrite a [MethodInvocation] node, we put
   /// the resulting [FunctionExpressionInvocation] into the original node
@@ -74,6 +76,9 @@ class MethodInvocationResolver {
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
         _extensionResolver = _resolver.extensionResolver,
         _inferenceHelper = inferenceHelper;
+
+  @override
+  ErrorReporter get errorReporter => _resolver.errorReporter;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -332,10 +337,9 @@ class MethodInvocationResolver {
             resolver: _resolver,
             node: node,
             argumentList: node.argumentList,
-            rawType: rawType is FunctionType ? rawType : null,
             contextType: contextType,
             whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+        .resolveInvocation(rawType: rawType is FunctionType ? rawType : null);
     _inferenceHelper.recordStaticType(node, staticStaticType,
         contextType: contextType);
   }
@@ -352,7 +356,7 @@ class MethodInvocationResolver {
     }
     element ??= classElement.getGetter(name);
     element ??= classElement.getMethod(name);
-    if (element != null && element.isAccessibleIn(_definingLibrary)) {
+    if (element != null && element.isAccessibleIn2(_definingLibrary)) {
       return element;
     }
     return null;
@@ -478,10 +482,9 @@ class MethodInvocationResolver {
             resolver: _resolver,
             node: node,
             argumentList: node.argumentList,
-            rawType: rawType,
             whyNotPromotedList: whyNotPromotedList,
             contextType: contextType)
-        .resolveInvocation();
+        .resolveInvocation(rawType: rawType);
   }
 
   void _resolveReceiverFunctionBounded(
@@ -553,10 +556,9 @@ class MethodInvocationResolver {
               resolver: _resolver,
               node: node,
               argumentList: node.argumentList,
-              rawType: null,
               contextType: contextType,
               whyNotPromotedList: whyNotPromotedList)
-          .resolveInvocation();
+          .resolveInvocation(rawType: null);
 
       _resolver.errorReporter.reportErrorForNode(
         HintCode.RECEIVER_OF_TYPE_NEVER,
@@ -574,10 +576,9 @@ class MethodInvocationResolver {
               resolver: _resolver,
               node: node,
               argumentList: node.argumentList,
-              rawType: null,
               contextType: contextType,
               whyNotPromotedList: whyNotPromotedList)
-          .resolveInvocation();
+          .resolveInvocation(rawType: null);
       return;
     }
   }
@@ -588,7 +589,13 @@ class MethodInvocationResolver {
       String name,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
-    var element = nameNode.scopeLookupResult!.getter;
+    final scopeLookupResult = nameNode.scopeLookupResult!;
+    reportDeprecatedExportUseGetter(
+      scopeLookupResult: scopeLookupResult,
+      node: nameNode,
+    );
+
+    var element = scopeLookupResult.getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
@@ -658,7 +665,7 @@ class MethodInvocationResolver {
     // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
-      var imports = _definingLibrary.getImportsWithPrefix(prefix);
+      var imports = prefix.imports;
       if (imports.length == 1 && imports[0].isDeferred) {
         var importedLibrary = imports[0].importedLibrary;
         var element = importedLibrary?.loadLibraryFunction;
@@ -672,7 +679,13 @@ class MethodInvocationResolver {
       }
     }
 
-    var element = prefix.scope.lookup(name).getter;
+    final scopeLookupResult = prefix.scope.lookup(name);
+    reportDeprecatedExportUseGetter(
+      scopeLookupResult: scopeLookupResult,
+      node: nameNode,
+    );
+
+    var element = scopeLookupResult.getter;
     element = _resolver.toLegacyElement(element);
     nameNode.staticElement = element;
 
@@ -872,15 +885,6 @@ class MethodInvocationResolver {
     }
   }
 
-  /// If the given [type] is a type parameter, replace with its bound.
-  /// Otherwise, return the original type.
-  DartType _resolveTypeParameter(DartType type) {
-    if (type is TypeParameterType) {
-      return type.resolveToBound(_resolver.typeProvider.objectType);
-    }
-    return type;
-  }
-
   /// We have identified that [node] is not a real [MethodInvocation],
   /// because it does not invoke a method, but instead invokes the result
   /// of a getter execution, or implicitly invokes the `call` method of
@@ -889,7 +893,7 @@ class MethodInvocationResolver {
   void _rewriteAsFunctionExpressionInvocation(
       MethodInvocationImpl node, DartType getterReturnType,
       {required DartType? contextType}) {
-    var targetType = _resolveTypeParameter(getterReturnType);
+    var targetType = _typeSystem.resolveToBound(getterReturnType);
     _inferenceHelper.recordStaticType(node.methodName, targetType,
         contextType: contextType);
 

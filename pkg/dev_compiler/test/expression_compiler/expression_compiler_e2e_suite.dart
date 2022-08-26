@@ -2,17 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Directory, File, Platform;
 
 import 'package:browser_launcher/browser_launcher.dart' as browser;
-import 'package:dev_compiler/dev_compiler.dart';
 import 'package:dev_compiler/src/compiler/module_builder.dart';
+import 'package:dev_compiler/src/compiler/shared_command.dart'
+    show SharedCompilerOptions;
 import 'package:dev_compiler/src/kernel/command.dart';
+import 'package:dev_compiler/src/kernel/compiler.dart' show ProgramCompiler;
+import 'package:dev_compiler/src/kernel/expression_compiler.dart'
+    show ExpressionCompiler;
 import 'package:dev_compiler/src/kernel/module_metadata.dart';
+import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/compute_platform_binaries_location.dart' as fe;
 import 'package:front_end/src/fasta/incremental_serializer.dart' as fe;
@@ -28,9 +31,9 @@ class DevelopmentIncrementalCompiler extends fe.IncrementalCompiler {
   Uri entryPoint;
 
   DevelopmentIncrementalCompiler(fe.CompilerOptions options, this.entryPoint,
-      [Uri initializeFrom,
-      bool outlineOnly,
-      fe.IncrementalSerializer incrementalSerializer])
+      [Uri? initializeFrom,
+      bool? outlineOnly,
+      fe.IncrementalSerializer? incrementalSerializer])
       : super(
             fe.CompilerContext(
                 fe.ProcessedOptions(options: options, inputs: [entryPoint])),
@@ -40,7 +43,7 @@ class DevelopmentIncrementalCompiler extends fe.IncrementalCompiler {
 
   DevelopmentIncrementalCompiler.fromComponent(fe.CompilerOptions options,
       this.entryPoint, Component componentToInitializeFrom,
-      [bool outlineOnly, fe.IncrementalSerializer incrementalSerializer])
+      [bool? outlineOnly, fe.IncrementalSerializer? incrementalSerializer])
       : super.fromComponent(
             fe.CompilerContext(
                 fe.ProcessedOptions(options: options, inputs: [entryPoint])),
@@ -94,7 +97,7 @@ class SetupCompilerOptions {
 }
 
 class TestCompilationResult {
-  final String result;
+  final String? result;
   final bool isSuccess;
 
   TestCompilationResult(this.result, this.isSuccess);
@@ -104,16 +107,16 @@ class TestCompiler {
   final SetupCompilerOptions setup;
   final Component component;
   final ExpressionCompiler evaluator;
-  final ModuleMetadata metadata;
+  final ModuleMetadata? metadata;
   final source_maps.SingleMapping sourceMap;
 
   TestCompiler._(this.setup, this.component, this.evaluator, this.metadata,
       this.sourceMap);
 
   static Future<TestCompiler> init(SetupCompilerOptions setup,
-      {Uri input,
-      Uri output,
-      Uri packages,
+      {required Uri input,
+      required Uri output,
+      Uri? packages,
       Map<String, bool> experiments = const {}}) async {
     // Initialize the incremental compiler and module component.
     // TODO: extend this for multi-module compilations by storing separate
@@ -129,7 +132,7 @@ class TestCompiler {
     // Initialize DDC.
     var moduleName = p.basenameWithoutExtension(output.toFilePath());
 
-    var classHierarchy = compilerResult.classHierarchy;
+    var classHierarchy = compilerResult.classHierarchy!;
     var compilerOptions = SharedCompilerOptions(
         replCompile: true,
         moduleName: moduleName,
@@ -184,17 +187,17 @@ class TestCompiler {
     }
     setup.diagnosticMessages.clear();
 
-    var sourceMap = source_maps.SingleMapping.fromJson(code.sourceMap);
+    var sourceMap = source_maps.SingleMapping.fromJson(code.sourceMap!);
     return TestCompiler._(
         setup, component, evaluator, code.metadata, sourceMap);
   }
 
   Future<TestCompilationResult> compileExpression(
-      {Uri input,
-      int line,
-      int column,
-      Map<String, String> scope,
-      String expression}) async {
+      {required Uri input,
+      required int line,
+      required int column,
+      required Map<String, String> scope,
+      required String expression}) async {
     var libraryUri = metadataForLibraryUri(input);
     var jsExpression = await evaluator.compileExpressionToJs(
         libraryUri.importUri, line, column, scope, expression);
@@ -211,7 +214,7 @@ class TestCompiler {
   }
 
   LibraryMetadata metadataForLibraryUri(Uri libraryUri) =>
-      metadata.libraries.entries
+      metadata!.libraries.entries
           .firstWhere((entry) => entry.value.fileUri == '$libraryUri')
           .value;
 }
@@ -221,16 +224,16 @@ class TestDriver {
   final Directory chromeDir;
   final wip.WipConnection connection;
   final wip.WipDebugger debugger;
-  TestCompiler compiler;
-  Uri htmlBootstrapper;
-  Uri input;
-  String moduleFormatString;
-  Uri output;
-  Uri packagesFile;
-  String preemptiveBp;
-  SetupCompilerOptions setup;
-  String source;
-  Directory testDir;
+  late TestCompiler compiler;
+  late Uri htmlBootstrapper;
+  late Uri input;
+  late String moduleFormatString;
+  late Uri output;
+  late Uri packagesFile;
+  late String preemptiveBp;
+  late SetupCompilerOptions setup;
+  late String source;
+  late Directory testDir;
 
   TestDriver._(this.chrome, this.chromeDir, this.connection, this.debugger);
 
@@ -242,8 +245,12 @@ class TestDriver {
     // Try to start Chrome on an empty page with a single empty tab.
     // TODO(#45713): Headless Chrome crashes the Windows bots, so run in
     // standard mode until it's fixed.
-    browser.Chrome chrome;
+    browser.Chrome? chrome;
     var retries = 3;
+    // It is possible for chrome to start and be ready while still printing
+    // messages to stderr which results in a Dart exception being thrown. For
+    // that reason, it is important to check `chrome == null` so we don't
+    // accidentally start multiple instances.
     while (chrome == null && retries-- > 0) {
       try {
         chrome = await browser.Chrome.startWithDebugPort(['about:blank'],
@@ -254,23 +261,27 @@ class TestDriver {
         await Future.delayed(Duration(seconds: 5));
       }
     }
+    if (chrome == null) {
+      throw Exception('Unable to launch Chrome.');
+    }
 
     // Connect to the first 'normal' tab.
-    var tab = await chrome.chromeConnection
-        .getTab((tab) => !tab.isBackgroundPage && !tab.isChromeExtension);
+    var tab = await chrome.chromeConnection.getTab(
+        (tab) => !tab.isBackgroundPage && !tab.isChromeExtension,
+        retryFor: Duration(seconds: 5));
     if (tab == null) {
       throw Exception('Unable to connect to Chrome tab');
     }
 
     var connection = await tab.connect().timeout(Duration(seconds: 5),
-        onTimeout: () => throw Exception('Unable to connect to WIP tab'));
+        onTimeout: (() => throw Exception('Unable to connect to WIP tab')));
 
     await connection.page.enable().timeout(Duration(seconds: 5),
-        onTimeout: () => throw Exception('Unable to enable WIP tab page'));
+        onTimeout: (() => throw Exception('Unable to enable WIP tab page')));
 
     var debugger = connection.debugger;
     await debugger.enable().timeout(Duration(seconds: 5),
-        onTimeout: () => throw Exception('Unable to enable WIP debugger'));
+        onTimeout: (() => throw Exception('Unable to enable WIP debugger')));
     return TestDriver._(chrome, chromeDir, connection, debugger);
   }
 
@@ -279,9 +290,9 @@ class TestDriver {
   /// Depends on SDK artifacts (such as the sound and unsound dart_sdk.js
   /// files) generated from the 'dartdevc_test' target.
   Future<void> initSource(SetupCompilerOptions setup, String source,
-      {Map<String, bool> experiments}) async {
+      {Map<String, bool> experiments = const {}}) async {
     // Perform setup sanity checks.
-    var summaryPath = setup.options.sdkSummary.toFilePath();
+    var summaryPath = setup.options.sdkSummary!.toFilePath();
     if (!File(summaryPath).existsSync()) {
       throw StateError('Unable to find SDK summary at path: $summaryPath.');
     }
@@ -325,7 +336,7 @@ class TestDriver {
 
     htmlBootstrapper = testDir.uri.resolve('bootstrapper.html');
     var bootstrapFile = File(htmlBootstrapper.toFilePath())..createSync();
-    var moduleName = compiler.metadata.name;
+    var moduleName = compiler.metadata!.name;
     var mainLibraryName = compiler.metadataForLibraryUri(input).name;
 
     switch (setup.moduleFormat) {
@@ -405,8 +416,8 @@ class TestDriver {
 
         break;
       default:
-        throw Exception(
-            'Unsupported module format for SDK evaluation tests: ${setup.moduleFormat}');
+        throw Exception('Unsupported module format for SDK evaluation tests: '
+            '${setup.moduleFormat}');
     }
 
     await setBreakpointsActive(debugger, true);
@@ -422,10 +433,10 @@ class TestDriver {
   }
 
   Future<void> finish() async {
-    await chrome?.close();
+    await chrome.close();
     // Chrome takes a while to free its claim on chromeDir, so wait a bit.
     await Future.delayed(Duration(milliseconds: 500));
-    chromeDir?.deleteSync(recursive: true);
+    chromeDir.deleteSync(recursive: true);
   }
 
   Future<void> cleanupTest() async {
@@ -436,10 +447,10 @@ class TestDriver {
   }
 
   Future<void> check(
-      {String breakpointId,
-      String expression,
-      String expectedError,
-      String expectedResult}) async {
+      {required String breakpointId,
+      required String expression,
+      String? expectedError,
+      String? expectedResult}) async {
     assert(expectedError == null || expectedResult == null,
         'Cannot expect both an error and result.');
 
@@ -460,14 +471,15 @@ class TestDriver {
     // breakpoint.
     await connection.page.navigate('$htmlBootstrapper').timeout(
         Duration(seconds: 5),
-        onTimeout: () => throw Exception(
-            'Unable to navigate to page bootstrap script: $htmlBootstrapper'));
+        onTimeout: (() => throw Exception(
+            'Unable to navigate to page bootstrap script: $htmlBootstrapper')));
 
     // Poll until the script is found, or timeout after a few seconds.
     var script = (await scriptController.stream.first.timeout(
             Duration(seconds: 5),
-            onTimeout: () => throw Exception(
-                'Unable to find JS script corresponding to test file $output in ${debugger.scripts}.')))
+            onTimeout: (() => throw Exception(
+                'Unable to find JS script corresponding to test file '
+                '$output in ${debugger.scripts}.'))))
         .script;
     await scriptSub.cancel();
     await scriptController.close();
@@ -488,8 +500,9 @@ class TestDriver {
                 'Unable to find JS preemptive pause event in $output.'))
         .first
         .timeout(Duration(seconds: 5),
-            onTimeout: () => throw Exception(
-                'Unable to find JS pause event corresponding to line ($dartLine -> $location) in $output.'));
+            onTimeout: (() => throw Exception(
+                'Unable to find JS pause event corresponding to line '
+                '($dartLine -> $location) in $output.')));
     await pauseSub.cancel();
     await pauseController.close();
 
@@ -521,7 +534,7 @@ class TestDriver {
     }
 
     var evalResult = await debugger.evaluateOnCallFrame(
-        frame.callFrameId, result.result,
+        frame.callFrameId, result.result!,
         returnByValue: false);
 
     await debugger.removeBreakpoint(bp.breakpointId);
@@ -533,7 +546,7 @@ class TestDriver {
     expect(
         result,
         const TypeMatcher<TestCompilationResult>()
-            .having((_) => value, 'result', _matches(expectedResult)));
+            .having((_) => value, 'result', _matches(expectedResult!)));
   }
 
   /// Generate simple string representation of a RemoteObject that closely
@@ -548,7 +561,7 @@ class TestDriver {
     String str;
     switch (obj.type) {
       case 'function':
-        str = obj.description;
+        str = obj.description ?? '';
         break;
       case 'object':
         if (obj.subtype == 'null') {
@@ -556,10 +569,10 @@ class TestDriver {
         }
         var properties =
             await connection.runtime.getProperties(obj, ownProperties: true);
-        var filteredProps = <String, String>{};
+        var filteredProps = <String, String?>{};
         for (var prop in properties) {
           if (prop.value != null && prop.name != '__proto__') {
-            filteredProps[prop.name] = await stringifyRemoteObject(prop.value);
+            filteredProps[prop.name] = await stringifyRemoteObject(prop.value!);
           }
         }
         str = '${obj.description} $filteredProps';
@@ -583,8 +596,8 @@ class TestDriver {
           .getProperties(scope.object, ownProperties: true);
       for (var prop in response) {
         var propKey = prop.name;
-        var propValue = '${prop.value.value}';
-        if (prop.value.type == 'string') {
+        var propValue = '${prop.value!.value}';
+        if (prop.value!.type == 'string') {
           propValue = "'$propValue'";
         } else if (propValue == 'null') {
           propValue = propKey;
@@ -628,13 +641,14 @@ class TestDriver {
       for (var entry in lineEntry.entries) {
         if (entry.sourceUrlId != null &&
             entry.sourceLine == dartLine &&
-            compiler.sourceMap.urls[entry.sourceUrlId] == inputSourceUrl) {
+            compiler.sourceMap.urls[entry.sourceUrlId!] == inputSourceUrl) {
           return wip.WipLocation.fromValues(script.scriptId, lineEntry.line);
         }
       }
     }
     throw StateError(
-        'Unable to extract WIP Location from ${script.url} for Dart line $dartLine.');
+        'Unable to extract WIP Location from ${script.url} for Dart line '
+        '$dartLine.');
   }
 }
 
@@ -659,5 +673,5 @@ Future setBreakpointsActive(wip.WipDebugger debugger, bool active) async {
   await debugger.sendCommand('Debugger.setBreakpointsActive', params: {
     'active': active
   }).timeout(Duration(seconds: 5),
-      onTimeout: () => throw Exception('Unable to set breakpoint activity'));
+      onTimeout: (() => throw Exception('Unable to set breakpoint activity')));
 }

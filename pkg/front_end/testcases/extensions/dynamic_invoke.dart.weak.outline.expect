@@ -1,23 +1,14 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     ;
-  method noSuchMethod(core::Invocation* i) → dynamic
+  method noSuchMethod(core::Invocation i) → dynamic
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension ClassExtension on self::Class* {
+extension ClassExtension on self::Class {
   method method = self::ClassExtension|method;
   tearoff method = self::ClassExtension|get#method;
 }
@@ -25,14 +16,14 @@ extension Extension on dynamic {
   method method = self::Extension|method;
   tearoff method = self::Extension|get#method;
 }
-static method ClassExtension|method(lowered final self::Class* #this) → core::int*
+static method ClassExtension|method(lowered final self::Class #this) → core::int
   ;
-static method ClassExtension|get#method(lowered final self::Class* #this) → () →* core::int*
-  return () → core::int* => self::ClassExtension|method(#this);
-static method Extension|method(lowered final dynamic #this) → core::int*
+static method ClassExtension|get#method(lowered final self::Class #this) → () → core::int
+  return () → core::int => self::ClassExtension|method(#this);
+static method Extension|method(lowered final dynamic #this) → core::int
   ;
-static method Extension|get#method(lowered final dynamic #this) → () →* core::int*
-  return () → core::int* => self::Extension|method(#this);
+static method Extension|get#method(lowered final dynamic #this) → () → core::int
+  return () → core::int => self::Extension|method(#this);
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

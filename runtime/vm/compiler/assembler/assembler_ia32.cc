@@ -9,6 +9,7 @@
 
 #include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/tags.h"
@@ -320,7 +321,7 @@ void Assembler::rep_movsw() {
   EmitUint8(0xA5);
 }
 
-void Assembler::rep_movsl() {
+void Assembler::rep_movsd() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
   EmitUint8(0xA5);
@@ -1873,6 +1874,12 @@ void Assembler::PopRegister(Register r) {
   popl(r);
 }
 
+void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
+  for (Register reg : regs) {
+    PushRegister(reg);
+  }
+}
+
 void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   const intptr_t value = imm.value();
   if (value == 0) {
@@ -1887,6 +1894,18 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
   } else {
     SubImmediate(reg, Immediate(-value));
   }
+}
+
+void Assembler::AddImmediate(Register dest, Register src, int32_t value) {
+  if (dest == src) {
+    AddImmediate(dest, value);
+    return;
+  }
+  if (value == 0) {
+    MoveRegister(dest, src);
+    return;
+  }
+  leal(dest, Address(src, value));
 }
 
 void Assembler::SubImmediate(Register reg, const Immediate& imm) {
@@ -2443,10 +2462,6 @@ static const intptr_t kNumberOfVolatileCpuRegisters = 3;
 static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
     EAX, ECX, EDX};
 
-// XMM0 is used only as a scratch register in the optimized code. No need to
-// save it.
-static const intptr_t kNumberOfVolatileXmmRegisters = kNumberOfXmmRegisters - 1;
-
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   ASSERT(!entry.is_leaf());
@@ -2472,12 +2487,12 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
       __ pushl(volatile_cpu_registers[i]);
     }
 
-    // Preserve all XMM registers except XMM0
-    __ subl(ESP, Immediate((kNumberOfXmmRegisters - 1) * kFpuRegisterSize));
+    // Preserve all XMM registers.
+    __ subl(ESP, Immediate(kNumberOfXmmRegisters * kFpuRegisterSize));
     // Store XMM registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       __ movups(Address(ESP, offset), xmm_reg);
       offset += kFpuRegisterSize;
@@ -2507,13 +2522,13 @@ LeafRuntimeScope::~LeafRuntimeScope() {
     // We need to restore it before restoring registers.
     const intptr_t kPushedRegistersSize =
         kNumberOfVolatileCpuRegisters * target::kWordSize +
-        kNumberOfVolatileXmmRegisters * kFpuRegisterSize;
+        kNumberOfXmmRegisters * kFpuRegisterSize;
     __ leal(ESP, Address(EBP, -kPushedRegistersSize));
 
-    // Restore all XMM registers except XMM0
+    // Restore all XMM registers.
     // XMM registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 1; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       __ movups(xmm_reg, Address(ESP, offset));
       offset += kFpuRegisterSize;
@@ -2598,8 +2613,8 @@ void Assembler::MoveMemoryToMemory(Address dst, Address src, Register tmp) {
 
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
                                      Label* trace,
+                                     Register temp_reg,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
   Address state_address(kNoRegister, 0);
@@ -2636,7 +2651,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, distance));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp_reg, distance));
     movl(instance_reg, Address(THR, target::Thread::top_offset()));
     addl(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
@@ -2669,7 +2684,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, distance));
+    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, failure, temp_reg, distance));
     movl(instance, Address(THR, target::Thread::top_offset()));
     movl(end_address, instance);
 
@@ -2696,6 +2711,27 @@ void Assembler::TryAllocateArray(intptr_t cid,
   }
 }
 
+void Assembler::CopyMemoryWords(Register src,
+                                Register dst,
+                                Register size,
+                                Register temp) {
+  // This loop is equivalent to
+  //   shrl(size, Immediate(target::kWordSizeLog2));
+  //   rep_movsd();
+  // but shows better performance on certain micro-benchmarks.
+  Label loop, done;
+  cmpl(size, Immediate(0));
+  j(EQUAL, &done, kNearJump);
+  Bind(&loop);
+  movl(temp, Address(src, 0));
+  addl(src, Immediate(target::kWordSize));
+  movl(Address(dst, 0), temp);
+  addl(dst, Immediate(target::kWordSize));
+  subl(size, Immediate(target::kWordSize));
+  j(NOT_ZERO, &loop, kNearJump);
+  Bind(&done);
+}
+
 void Assembler::PushCodeObject() {
   ASSERT(IsNotTemporaryScopedHandle(code_));
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2711,6 +2747,10 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   if (frame_size != 0) {
     subl(ESP, Immediate(frame_size));
   }
+}
+
+void Assembler::LeaveDartFrame() {
+  LeaveFrame();
 }
 
 // On entry to a function compiled for OSR, the caller's frame pointer, the
@@ -2734,7 +2774,7 @@ void Assembler::EnterStubFrame() {
 }
 
 void Assembler::LeaveStubFrame() {
-  LeaveFrame();
+  LeaveDartFrame();
 }
 
 void Assembler::EnterCFrame(intptr_t frame_space) {

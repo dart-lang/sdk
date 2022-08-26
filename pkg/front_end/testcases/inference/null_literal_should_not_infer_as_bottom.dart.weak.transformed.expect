@@ -8,7 +8,7 @@ static method test() → dynamic {
   (core::Object*) →* Null f = (core::Object* x) → Null => null;
   core::String* y = f(42){(core::Object*) →* Null};
   f = (core::Object* x) → Null => "hello" as{TypeError} Null;
-  dynamic g = null;
+  has-declared-initializer dynamic g = null;
   g = "hello";
   g{dynamic}.foo();
   self::h = "hello";

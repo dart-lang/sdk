@@ -7,9 +7,9 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
@@ -51,13 +51,14 @@ class CiderCompletionComputer {
     required String path,
     required int line,
     required int column,
-    @visibleForTesting void Function(ResolvedUnitResult)? testResolvedUnit,
+    @visibleForTesting
+        void Function(ResolvedForCompletionResultImpl)? testResolvedUnit,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
-      var resolvedUnit = await performance.runAsync(
+      final resolvedUnit = await performance.runAsync(
         'resolution',
         (performance) async {
-          return _fileResolver.resolve2(
+          return _fileResolver.resolveForCompletion(
             completionLine: line,
             completionColumn: column,
             path: path,
@@ -70,12 +71,20 @@ class CiderCompletionComputer {
         testResolvedUnit(resolvedUnit);
       }
 
+      final analysisSession = resolvedUnit.analysisSession;
+      final enclosingNode = resolvedUnit.parsedUnit;
+
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;
 
-      _dartCompletionRequest = DartCompletionRequest.forResolvedUnit(
-        resolvedUnit: resolvedUnit,
+      _dartCompletionRequest = DartCompletionRequest(
+        analysisSession: analysisSession,
+        filePath: resolvedUnit.path,
+        fileContent: resolvedUnit.content,
+        unitElement: resolvedUnit.unitElement,
+        enclosingNode: enclosingNode,
         offset: offset,
+        dartdocDirectiveInfo: null,
       );
 
       var suggestions = await performance.runAsync(

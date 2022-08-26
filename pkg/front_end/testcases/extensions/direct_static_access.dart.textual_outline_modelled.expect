@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class<T> {
   static var field;
 }
@@ -8,8 +7,8 @@ extension Extension<T> on Class<T> {
   getterCallsFromInstanceContext(T value) {}
   invocationsFromInstanceContext(T value) {}
   static fieldAccessFromStaticContext() {}
-  static genericWriteSetterNamed<S>({S value}) {}
-  static genericWriteSetterOptional<S>([S value]) {}
+  static genericWriteSetterNamed<S>({S? value}) {}
+  static genericWriteSetterOptional<S>([S? value]) {}
   static genericWriteSetterRequired<S>(S value) {}
   static get property => Class.field;
   static get tearOffGetterGenericNamed => genericWriteSetterNamed;

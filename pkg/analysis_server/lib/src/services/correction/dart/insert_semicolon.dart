@@ -35,7 +35,4 @@ class InsertSemicolon extends CorrectionProducer {
     final node = this.node;
     return node is SimpleIdentifier && node.name == 'await';
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static InsertSemicolon newInstance() => InsertSemicolon();
 }

@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class NumProperty extends self::DiagnosticsProperty {
+  constructor •({core::bool showName = true}) → self::NumProperty
+    ;
+  constructor lazy({core::bool showName = true}) → self::NumProperty
+    ;
+}
+class DiagnosticsProperty extends self::DiagnosticsNode {
+  constructor •({core::bool showName = true}) → self::DiagnosticsProperty
+    ;
+  constructor lazy({core::bool showName = true}) → self::DiagnosticsProperty
+    ;
+}
+abstract class DiagnosticsNode extends core::Object {
+  final field core::bool showName;
+  constructor •({core::bool showName = true}) → self::DiagnosticsNode
+    ;
+}
+static method main() → void
+  ;

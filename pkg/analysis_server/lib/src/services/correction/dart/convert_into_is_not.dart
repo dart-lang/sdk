@@ -85,7 +85,4 @@ class ConvertIntoIsNot extends CorrectionProducer {
       builder.addSimpleInsertion(isExpression_final.isOperator.end, '!');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertIntoIsNot newInstance() => ConvertIntoIsNot();
 }

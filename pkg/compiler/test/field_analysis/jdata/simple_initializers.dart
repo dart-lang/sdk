@@ -166,7 +166,10 @@ class Class1 {
   /*member: Class1.field7b:constant=StringConstant("foo")*/
   var field7b = 'foo';
 
-  /*member: Class1.field8a:initial=DoubleConstant(0.5)*/
+  /*member: Class1.field8a:
+   allocator,
+   initial=DoubleConstant(0.5)
+  */
   var field8a = 0.5;
 
   /*member: Class1.field8b:constant=DoubleConstant(0.5)*/
@@ -178,10 +181,10 @@ class Class1 {
   /*member: Class1.field9b:constant=ListConstant([])*/
   var field9b = const [];
 
-  /*spec.member: Class1.field9c:initial=ListConstant(<int*>[IntConstant(0), IntConstant(1)])*/
+  /*member: Class1.field9c:initial=ListConstant(<int*>[IntConstant(0), IntConstant(1)])*/
   var field9c = const [0, 1];
 
-  /*spec.member: Class1.field9d:constant=ListConstant(<int*>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
+  /*member: Class1.field9d:constant=ListConstant(<int*>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
   var field9d = const [0, 1, 2];
 
   /*member: Class1.field10a:initial=MapConstant({})*/
@@ -190,10 +193,10 @@ class Class1 {
   /*member: Class1.field10b:constant=MapConstant({})*/
   var field10b = const {};
 
-  /*spec.member: Class1.field10c:initial=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
+  /*member: Class1.field10c:initial=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
   var field10c = const {0: 1, 2: 3};
 
-  /*spec.member: Class1.field10d:constant=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
+  /*member: Class1.field10d:constant=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
   var field10d = const {0: 1, 2: 3, 4: 5};
 
   /*member: Class1.field11a:initial=ConstructedConstant(Symbol(_name=StringConstant("foo")))*/
@@ -258,7 +261,10 @@ class Class2 {
   /*member: Class2.field7b:constant=StringConstant("foo")*/
   var field7b;
 
-  /*member: Class2.field8a:initial=DoubleConstant(0.5)*/
+  /*member: Class2.field8a:
+   allocator,
+   initial=DoubleConstant(0.5)
+  */
   var field8a;
 
   /*member: Class2.field8b:constant=DoubleConstant(0.5)*/
@@ -270,10 +276,10 @@ class Class2 {
   /*member: Class2.field9b:constant=ListConstant([])*/
   var field9b;
 
-  /*spec.member: Class2.field9c:initial=ListConstant(<int*>[IntConstant(0), IntConstant(1)])*/
+  /*member: Class2.field9c:initial=ListConstant(<int*>[IntConstant(0), IntConstant(1)])*/
   var field9c;
 
-  /*spec.member: Class2.field9d:constant=ListConstant(<int*>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
+  /*member: Class2.field9d:constant=ListConstant(<int*>[IntConstant(0), IntConstant(1), IntConstant(2)])*/
   var field9d;
 
   /*member: Class2.field10a:initial=MapConstant({})*/
@@ -282,10 +288,10 @@ class Class2 {
   /*member: Class2.field10b:constant=MapConstant({})*/
   var field10b;
 
-  /*spec.member: Class2.field10c:initial=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
+  /*member: Class2.field10c:initial=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3)})*/
   var field10c;
 
-  /*spec.member: Class2.field10d:constant=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
+  /*member: Class2.field10d:constant=MapConstant(<int*, int*>{IntConstant(0): IntConstant(1), IntConstant(2): IntConstant(3), IntConstant(4): IntConstant(5)})*/
   var field10d;
 
   /*member: Class2.field11a:initial=ConstructedConstant(Symbol(_name=StringConstant("foo")))*/

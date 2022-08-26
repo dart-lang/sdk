@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
@@ -43,11 +42,11 @@ import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart'
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
-/// The server moves to this state when a critical unrecoverrable error (for
+/// The server moves to this state when a critical unrecoverable error (for
 /// example, inconsistent document state between server/client) occurs and will
 /// reject all messages.
 class FailureStateMessageHandler extends ServerStateMessageHandler {
-  FailureStateMessageHandler(LspAnalysisServer server) : super(server);
+  FailureStateMessageHandler(super.server);
 
   @override
   FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
@@ -119,7 +118,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
         'Server already initialized');
     registerHandler(ShutdownMessageHandler(server));
     registerHandler(ExitMessageHandler(server));
-    registerHandler(IntializedMessageHandler(
+    registerHandler(InitializedMessageHandler(
       server,
       openWorkspacePaths,
     ));

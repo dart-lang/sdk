@@ -8,7 +8,7 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import '../helpers/memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
@@ -56,7 +56,7 @@ void main() {
     OutputCollector collector = new OutputCollector();
     await runCompiler(
         memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
-    String jsOutput = collector.getOutput('', OutputType.js);
+    String jsOutput = collector.getOutput('', api.OutputType.js);
 
     void has(String text) {
       Expect.isTrue(jsOutput.contains(text), "output should contain '$text'");

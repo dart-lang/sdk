@@ -95,7 +95,8 @@ class InvocationInferenceHelper {
       } else {
         var name = constructorIdentifier.name;
         rawElement = typeElement.getNamedConstructor(name);
-        if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
+        if (rawElement != null &&
+            !rawElement.isAccessibleIn2(definingLibrary)) {
           rawElement = null;
         }
       }
@@ -174,10 +175,9 @@ class InvocationInferenceHelper {
       resolver: _resolver,
       node: node,
       argumentList: node.argumentList,
-      rawType: rawType,
       contextType: contextType,
       whyNotPromotedList: whyNotPromotedList,
-    ).resolveInvocation();
+    ).resolveInvocation(rawType: rawType);
 
     recordStaticType(node, returnType, contextType: contextType);
   }

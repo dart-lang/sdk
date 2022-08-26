@@ -8,7 +8,7 @@ import '../io/code_output.dart'
     show BufferedCodeOutput, SourceLocations, SourceLocationsProvider;
 import '../io/source_information.dart'
     show SourceLocation, SourceInformation, SourceInformationStrategy;
-import 'js.dart';
+import 'js.dart' show Node;
 
 /// [SourceInformationStrategy] that can associate source information with
 /// JavaScript output.
@@ -31,7 +31,8 @@ class JavaScriptSourceInformationStrategy extends SourceInformationStrategy {
 class SourceInformationReader {
   const SourceInformationReader();
 
-  SourceInformation getSourceInformation(Node node) => node.sourceInformation;
+  SourceInformation? getSourceInformation(Node node) =>
+      node.sourceInformation as SourceInformation?;
 }
 
 /// An observer of code positions of printed JavaScript [Node]s.
@@ -48,7 +49,7 @@ class CodePositionListener {
   ///
   /// The nodes are seen in post-traversal order.
   void onPositions(
-      Node node, int startPosition, int endPosition, int closingPosition) {}
+      Node node, int startPosition, int endPosition, int? closingPosition) {}
 }
 
 /// Interface for creating [SourceMapper]s for multiple source information
@@ -77,7 +78,7 @@ abstract class SourceMapper {
 
   /// Associate [codeOffset] with an inlining call at [sourceLocation].
   void registerPush(
-      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName);
+      int codeOffset, SourceLocation? sourceLocation, String inlinedMethodName);
 
   /// Associate [codeOffset] with an inlining return.
   ///
@@ -99,8 +100,8 @@ class SourceLocationsMapper implements SourceMapper {
   }
 
   @override
-  void registerPush(
-      int codeOffset, SourceLocation sourceLocation, String inlinedMethodName) {
+  void registerPush(int codeOffset, SourceLocation? sourceLocation,
+      String inlinedMethodName) {
     sourceLocations.addPush(codeOffset, sourceLocation, inlinedMethodName);
   }
 

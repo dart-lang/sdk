@@ -5,8 +5,6 @@
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -15,10 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// produces suggestions for expressions of the form `p.^`, where `p` is a
 /// prefix.
 class LibraryMemberContributor extends DartCompletionContributor {
-  LibraryMemberContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  LibraryMemberContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {

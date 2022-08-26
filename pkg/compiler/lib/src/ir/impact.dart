@@ -6,8 +6,9 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../serialization/serialization.dart';
+import 'class_relation.dart';
 import 'constants.dart';
-import 'impact_data.dart';
+import 'impact_data.dart' show ImpactData;
 import 'runtime_type_analysis.dart';
 import 'static_type.dart';
 import 'static_type_cache.dart';
@@ -31,22 +32,22 @@ abstract class ImpactRegistry {
   void registerNullLiteral();
 
   void registerListLiteral(ir.DartType elementType,
-      {bool isConst, bool isEmpty});
+      {required bool isConst, required bool isEmpty});
 
   void registerSetLiteral(ir.DartType elementType,
-      {bool isConst, bool isEmpty});
+      {required bool isConst, required bool isEmpty});
 
   void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
-      {bool isConst, bool isEmpty});
+      {required bool isConst, required bool isEmpty});
 
   void registerStaticTearOff(
-      ir.Procedure procedure, ir.LibraryDependency import);
+      ir.Procedure procedure, ir.LibraryDependency? import);
 
-  void registerStaticGet(ir.Member member, ir.LibraryDependency import);
+  void registerStaticGet(ir.Member member, ir.LibraryDependency? import);
 
-  void registerStaticSet(ir.Member member, ir.LibraryDependency import);
+  void registerStaticSet(ir.Member member, ir.LibraryDependency? import);
 
-  void registerAssert({bool withMessage});
+  void registerAssert({required bool withMessage});
 
   void registerGenericInstantiation(
       ir.FunctionType expressionType, List<ir.DartType> typeArguments);
@@ -83,7 +84,7 @@ abstract class ImpactRegistry {
 
   void registerCatchType(ir.DartType type);
 
-  void registerTypeLiteral(ir.DartType type, ir.LibraryDependency import);
+  void registerTypeLiteral(ir.DartType type, ir.LibraryDependency? import);
 
   void registerFieldInitialization(ir.Field node);
 
@@ -108,18 +109,18 @@ abstract class ImpactRegistry {
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments,
-      ir.LibraryDependency import,
-      {bool isConst});
+      ir.LibraryDependency? import,
+      {required bool isConst});
 
   void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
-      ir.LibraryDependency import);
+      ir.LibraryDependency? import);
 
   void registerStaticInvocation(
       ir.Procedure target,
       int positionalArguments,
       List<String> namedArguments,
       List<ir.DartType> typeArguments,
-      ir.LibraryDependency import);
+      ir.LibraryDependency? import);
 
   void registerLocalFunctionInvocation(
       ir.FunctionDeclaration localFunction,
@@ -175,18 +176,15 @@ abstract class ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments);
 
-  // TODO(johnniwinther): Change [node] to `InstanceGet` when the old method
-  // invocation encoding is no longer used.
-  void registerRuntimeTypeUse(ir.Expression node, RuntimeTypeUseKind kind,
-      ir.DartType receiverType, ir.DartType argumentType);
+  void registerRuntimeTypeUse(RuntimeTypeUseKind kind, ir.DartType receiverType,
+      ir.DartType? argumentType);
 
-  // TODO(johnniwinther): Remove these when CFE provides constants.
   void registerConstructorNode(ir.Constructor node);
   void registerFieldNode(ir.Field node);
   void registerProcedureNode(ir.Procedure node);
   void registerStaticInvocationNode(ir.StaticInvocation node);
   void registerSwitchStatementNode(ir.SwitchStatement node);
-  void registerConstConstructorInvocationNode(ir.ConstructorInvocation node);
+  void registerConstSymbolConstructorInvocationNode();
 }
 
 class ImpactBuilderData {
@@ -194,7 +192,7 @@ class ImpactBuilderData {
 
   final ir.Member node;
   final ImpactData impactData;
-  final Map<ir.Expression, TypeMap> typeMapsForTesting;
+  final Map<ir.Expression, TypeMap>? typeMapsForTesting;
   final StaticTypeCache cachedStaticTypes;
 
   ImpactBuilderData(this.node, this.impactData, this.typeMapsForTesting,
@@ -220,7 +218,7 @@ class ImpactBuilderData {
 
 class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   final ImpactRegistry registry;
-  final ir.LibraryDependency import;
+  final ir.LibraryDependency? import;
   final ir.ConstantExpression expression;
   final ir.StaticTypeContext staticTypeContext;
 
@@ -252,7 +250,8 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   @override
   void visitInstantiationConstant(ir.InstantiationConstant node) {
     registry.registerGenericInstantiation(
-        node.tearOffConstant.getType(staticTypeContext), node.types);
+        node.tearOffConstant.getType(staticTypeContext) as ir.FunctionType,
+        node.types);
     visitConstant(node.tearOffConstant);
   }
 

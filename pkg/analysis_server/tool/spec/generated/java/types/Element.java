@@ -66,8 +66,8 @@ public class Element {
    * A bit-map containing the following flags:
    *
    * - 0x01 - set if the element is explicitly or implicitly abstract
-   * - 0x02 - set if the element was declared to be ‘const’
-   * - 0x04 - set if the element was declared to be ‘final’
+   * - 0x02 - set if the element was declared to be 'const'
+   * - 0x04 - set if the element was declared to be 'final'
    * - 0x08 - set if the element is a static member of a class or is a top-level function or field
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated
@@ -167,8 +167,8 @@ public class Element {
    * A bit-map containing the following flags:
    *
    * - 0x01 - set if the element is explicitly or implicitly abstract
-   * - 0x02 - set if the element was declared to be ‘const’
-   * - 0x04 - set if the element was declared to be ‘final’
+   * - 0x02 - set if the element was declared to be 'const'
+   * - 0x04 - set if the element was declared to be 'final'
    * - 0x08 - set if the element is a static member of a class or is a top-level function or field
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated

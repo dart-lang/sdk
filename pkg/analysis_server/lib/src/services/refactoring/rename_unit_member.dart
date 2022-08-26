@@ -142,21 +142,21 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   void _findFlutterStateClass() {
     if (Flutter.instance.isStatefulWidgetDeclaration(element)) {
-      var oldStateName = oldName + 'State';
+      var oldStateName = '${oldName}State';
       var library = element.library!;
       _flutterWidgetState =
-          library.getType(oldStateName) ?? library.getType('_' + oldStateName);
+          library.getType(oldStateName) ?? library.getType('_$oldStateName');
     }
   }
 
   void _updateFlutterWidgetStateName() {
     final flutterWidgetState = _flutterWidgetState;
     if (flutterWidgetState != null) {
-      var flutterWidgetStateNewName = newName + 'State';
+      var flutterWidgetStateNewName = '${newName}State';
       // If the State was private, ensure that it stays private.
       if (flutterWidgetState.name.startsWith('_') &&
           !flutterWidgetStateNewName.startsWith('_')) {
-        flutterWidgetStateNewName = '_' + flutterWidgetStateNewName;
+        flutterWidgetStateNewName = '_$flutterWidgetStateNewName';
       }
       _flutterWidgetStateNewName = flutterWidgetStateNewName;
     }
@@ -248,11 +248,11 @@ class _BaseUnitMemberValidator {
 /// Helper to check if the created element will cause any conflicts.
 class _CreateUnitMemberValidator extends _BaseUnitMemberValidator {
   _CreateUnitMemberValidator(
-    SearchEngine searchEngine,
-    LibraryElement library,
-    ElementKind elementKind,
-    String name,
-  ) : super(searchEngine, library, elementKind, name);
+    super.searchEngine,
+    super.library,
+    super.elementKind,
+    super.name,
+  );
 
   Future<RefactoringStatus> validate() async {
     _validateWillConflict();

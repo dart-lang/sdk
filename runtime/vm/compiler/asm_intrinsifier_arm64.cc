@@ -1021,7 +1021,7 @@ void AsmIntrinsifier::Double_mulFromInteger(Assembler* assembler,
   __ LoadDFieldFromOffset(V0, R0, target::Double::value_offset());
   __ fmuld(V0, V0, V1);
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kNearJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(normal_ir_body);
@@ -1039,7 +1039,7 @@ void AsmIntrinsifier::DoubleFromInteger(Assembler* assembler,
   __ scvtfdw(V0, R0);
 #endif
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kNearJump, R0, R1);
   __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
   __ ret();
   __ Bind(normal_ir_body);
@@ -1243,33 +1243,27 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ CompareImmediate(R1, kNumPredefinedCids);
   __ b(&use_declaration_type, HI);
 
+  __ LoadIsolateGroup(R2);
+  __ LoadFromOffset(R2, R2, target::IsolateGroup::object_store_offset());
+
   __ CompareImmediate(R1, kDoubleCid);
   __ b(&not_double, NE);
-
-  __ LoadIsolateGroup(R0);
-  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
-  __ LoadFromOffset(R0, R0, target::ObjectStore::double_type_offset());
+  __ LoadFromOffset(R0, R2, target::ObjectStore::double_type_offset());
   __ ret();
 
   __ Bind(&not_double);
   JumpIfNotInteger(assembler, R1, R0, &not_integer);
-  __ LoadIsolateGroup(R0);
-  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
-  __ LoadFromOffset(R0, R0, target::ObjectStore::int_type_offset());
+  __ LoadFromOffset(R0, R2, target::ObjectStore::int_type_offset());
   __ ret();
 
   __ Bind(&not_integer);
   JumpIfNotString(assembler, R1, R0, &not_string);
-  __ LoadIsolateGroup(R0);
-  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
-  __ LoadFromOffset(R0, R0, target::ObjectStore::string_type_offset());
+  __ LoadFromOffset(R0, R2, target::ObjectStore::string_type_offset());
   __ ret();
 
   __ Bind(&not_string);
   JumpIfNotType(assembler, R1, R0, &use_declaration_type);
-  __ LoadIsolateGroup(R0);
-  __ LoadFromOffset(R0, R0, target::IsolateGroup::object_store_offset());
-  __ LoadFromOffset(R0, R0, target::ObjectStore::type_type_offset());
+  __ LoadFromOffset(R0, R2, target::ObjectStore::type_type_offset());
   __ ret();
 
   __ Bind(&use_declaration_type);
@@ -1278,8 +1272,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
       R3,
       FieldAddress(R2, target::Class::num_type_arguments_offset(), kTwoBytes),
       kTwoBytes);
-  __ CompareImmediate(R3, 0);
-  __ b(normal_ir_body, NE);
+  __ cbnz(normal_ir_body, R3);
 
   __ LoadCompressed(R0,
                     FieldAddress(R2, target::Class::declaration_type_offset()));
@@ -1819,7 +1812,7 @@ static void TryAllocateString(Assembler* assembler,
   // negative length: call to runtime to produce error.
   __ tbnz(failure, length_reg, compiler::target::kBitsPerWord - 1);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R0, failure));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, R0));
   __ mov(R6, length_reg);  // Save the length register.
   if (cid == kOneByteStringCid) {
     // Untag length.
@@ -2105,17 +2098,19 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
 #else
   __ add(R1, R2, Operand(R1, LSL, target::kWordSizeLog2 - 1));
 #endif
-  __ LoadCompressed(R0, FieldAddress(R1, target::RegExp::function_offset(
-                                             kOneByteStringCid, sticky)));
+  __ LoadCompressed(FUNCTION_REG,
+                    FieldAddress(R1, target::RegExp::function_offset(
+                                         kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.
   __ eor(R5, R5, Operand(R5));
 
   // Tail-call the function.
-  __ LoadCompressed(CODE_REG,
-                    FieldAddress(R0, target::Function::code_offset()));
-  __ ldr(R1, FieldAddress(R0, target::Function::entry_point_offset()));
+  __ LoadCompressed(
+      CODE_REG, FieldAddress(FUNCTION_REG, target::Function::code_offset()));
+  __ ldr(R1,
+         FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ br(R1);
 }
 

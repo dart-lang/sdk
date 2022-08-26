@@ -26,7 +26,6 @@ class PubCommand {
 
   final InstrumentationService _instrumentationService;
   late final ProcessRunner _processRunner;
-  late final String _pubPath;
   late final String _pubEnvironmentValue;
 
   /// Active processes that should be killed when shutting down.
@@ -42,18 +41,13 @@ class PubCommand {
   var _lastQueuedCommand = Future<void>.value();
 
   PubCommand(this._instrumentationService, this._processRunner) {
-    _pubPath = path.join(
-      path.dirname(Platform.resolvedExecutable),
-      Platform.isWindows ? 'pub.bat' : 'pub',
-    );
-
     // When calling the `pub` command, we must add an identifier to the
     // PUB_ENVIRONMENT environment variable (joined with colons).
-    const _pubEnvString = 'analysis_server.pub_api';
+    const pubEnvString = 'analysis_server.pub_api';
     final existingPubEnv = Platform.environment[_pubEnvironmentKey];
     _pubEnvironmentValue = [
       if (existingPubEnv?.isNotEmpty ?? false) existingPubEnv,
-      _pubEnvString,
+      pubEnvString,
     ].join(':');
   }
 
@@ -92,10 +86,10 @@ class PubCommand {
 
   /// Terminates any in-process commands with [ProcessSignal.sigterm].
   void shutdown() {
-    _activeProcesses.forEach((process) {
+    for (var process in _activeProcesses) {
       _instrumentationService.logInfo('Terminating process ${process.pid}');
       process.kill();
-    });
+    }
   }
 
   /// Runs a pub command and decodes JSON from `stdout`.
@@ -114,10 +108,9 @@ class PubCommand {
     await lastCommand.catchError((_) {});
 
     try {
-      final command = [_pubPath, ...args];
-
-      _instrumentationService.logInfo('Starting pub command $command');
-      final process = await _processRunner.start(_pubPath, args,
+      _instrumentationService.logInfo('Starting pub command $args');
+      final process = await _processRunner.start(
+          Platform.resolvedExecutable, ['pub', ...args],
           workingDirectory: workingDirectory,
           environment: {_pubEnvironmentKey: _pubEnvironmentValue});
       _activeProcesses.add(process);

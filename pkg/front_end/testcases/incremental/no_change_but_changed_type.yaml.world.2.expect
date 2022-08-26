@@ -1,0 +1,29 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  abstract class TestMixin<T extends dart.core::Object? = dynamic> extends dart.core::Object /*isMixinDeclaration*/  {
+    method test(covariant-by-class dart.async::Future<lib::TestMixin::T%> fetch) → dart.async::Future<lib::TestMixin::T%> async /* futureValueType= lib::TestMixin::T% */ {
+      final lib::TestMixin::T% response = await fetch;
+      return response;
+    }
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  abstract class _Class2&Object&TestMixin extends dart.core::Object implements lib::TestMixin<dart.core::String> /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+    const synthetic constructor •() → main::_Class2&Object&TestMixin
+      : super dart.core::Object::•()
+      ;
+    method /* from org-dartlang-test:///lib.dart */ test(covariant-by-class dart.async::Future<dart.core::String> fetch) → dart.async::Future<dart.core::String> async /* futureValueType= dart.core::String */ {
+      final dart.core::String response = await fetch;
+      return response;
+    }
+  }
+  class Class2 extends main::_Class2&Object&TestMixin {
+    synthetic constructor •() → main::Class2
+      : super main::_Class2&Object&TestMixin::•()
+      ;
+  }
+}

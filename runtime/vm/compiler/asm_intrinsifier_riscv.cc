@@ -151,8 +151,19 @@ void AsmIntrinsifier::Integer_equal(Assembler* assembler,
 
 void AsmIntrinsifier::Smi_bitLength(Assembler* assembler,
                                     Label* normal_ir_body) {
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
+  __ lx(A0, Address(SP, 0 * target::kWordSize));
+  __ SmiUntag(A0);
+
+  // XOR with sign bit to complement bits if value is negative.
+  __ srai(A1, A0, XLEN - 1);
+  __ xor_(A0, A0, A1);
+
+  __ CountLeadingZeroes(A0, A0);
+
+  __ li(TMP, XLEN);
+  __ sub(A0, TMP, A0);
+  __ SmiTag(A0);
+  __ ret();
 }
 
 void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
@@ -234,11 +245,12 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ andi(T5, T2, target::kBitsPerWord - 1);  // T5 = bit shift
   __ li(T6, target::kBitsPerWord);
   __ sub(T6, T6, T5);  // T6 = carry bit shift
+  __ sub(T1, T1, T4);  // T1 = words to process
 
   __ slli(TMP, T4, target::kWordSizeLog2);
   __ add(T0, T0, TMP);  // T0 = &src_digits[word_shift]
 
-  __ li(T2, 0);  // carry
+  // T2 = carry
   __ lx(T2, FieldAddress(T0, target::TypedData::payload_offset()));
   __ srl(T2, T2, T5);
   __ addi(T0, T0, target::kWordSize);
@@ -1048,7 +1060,23 @@ void AsmIntrinsifier::Double_div(Assembler* assembler, Label* normal_ir_body) {
 // Left is double, right is integer (Mint or Smi)
 void AsmIntrinsifier::Double_mulFromInteger(Assembler* assembler,
                                             Label* normal_ir_body) {
-  // TODO(riscv)
+  // Only smis allowed.
+  __ lx(A1, Address(SP, 0 * target::kWordSize));
+  __ BranchIfNotSmi(A1, normal_ir_body, Assembler::kNearJump);
+  // Is Smi.
+  __ SmiUntag(A1);
+#if XLEN == 32
+  __ fcvtdw(FA1, A1);
+#else
+  __ fcvtdl(FA1, A1);
+#endif
+  __ lx(A0, Address(SP, 1 * target::kWordSize));
+  __ LoadDFieldFromOffset(FA0, A0, target::Double::value_offset());
+  __ fmuld(FA0, FA0, FA1);
+  const Class& double_class = DoubleClass();
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kNearJump, A0, A1);
+  __ StoreDFieldToOffset(FA0, A0, target::Double::value_offset());
+  __ ret();
   __ Bind(normal_ir_body);
 }
 
@@ -1064,7 +1092,7 @@ void AsmIntrinsifier::DoubleFromInteger(Assembler* assembler,
   __ fcvtdl(FA0, A0);
 #endif
   const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, A0, TMP);
+  __ TryAllocate(double_class, normal_ir_body, Assembler::kNearJump, A0, TMP);
   __ StoreDFieldToOffset(FA0, A0, target::Double::value_offset());
   __ ret();
   __ Bind(normal_ir_body);
@@ -1102,7 +1130,40 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
 
 void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
                                       Label* normal_ir_body) {
-  // TODO(riscv)
+  Label double_hash;
+
+  __ lx(A0, Address(SP, 0 * target::kWordSize));
+  __ LoadDFieldFromOffset(FA0, A0, target::Double::value_offset());
+
+#if XLEN == 32
+  __ fcvtwd(A1, FA0);
+  __ fcvtdw(FA1, A1);
+#else
+  __ fcvtld(A1, FA0);
+  __ fcvtdl(FA1, A1);
+#endif
+  __ feqd(TMP, FA0, FA1);
+  __ beqz(TMP, &double_hash, Assembler::kNearJump);  // Not integer.
+
+  __ SmiTag(A0, A1);
+  __ SmiUntag(TMP, A0);
+  __ bne(TMP, A1, normal_ir_body, Assembler::kNearJump);  // Not Smi.
+  __ ret();
+
+  __ Bind(&double_hash);
+#if XLEN == 32
+  __ lx(A0, Address(SP, 0 * target::kWordSize));
+  __ lw(A1, Address(A0, target::Double::value_offset() + 4));
+  __ lw(A0, Address(A0, target::Double::value_offset() + 0));
+#else
+  __ fmvxd(A0, FA0);
+  __ srli(A1, A0, 32);
+#endif
+  __ xor_(A0, A0, A1);
+  __ AndImmediate(A0, A0, target::kSmiMax);
+  __ SmiTag(A0);
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 
@@ -1119,16 +1180,239 @@ void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
   __ ret();
 }
 
+static void RangeCheck(Assembler* assembler,
+                       Register val,
+                       Register tmp,
+                       intptr_t low,
+                       intptr_t high,
+                       Condition cc,
+                       Label* target) {
+  __ AddImmediate(tmp, val, -low);
+  __ CompareImmediate(tmp, high - low);
+  __ BranchIf(cc, target);
+}
+
+const Condition kIfNotInRange = HI;
+const Condition kIfInRange = LS;
+
+static void JumpIfInteger(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kSmiCid, kMintCid, kIfInRange, target);
+}
+
+static void JumpIfNotInteger(Assembler* assembler,
+                             Register cid,
+                             Register tmp,
+                             Label* target) {
+  RangeCheck(assembler, cid, tmp, kSmiCid, kMintCid, kIfNotInRange, target);
+}
+
+static void JumpIfString(Assembler* assembler,
+                         Register cid,
+                         Register tmp,
+                         Label* target) {
+  RangeCheck(assembler, cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+             kIfInRange, target);
+}
+
+static void JumpIfNotString(Assembler* assembler,
+                            Register cid,
+                            Register tmp,
+                            Label* target) {
+  RangeCheck(assembler, cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+             kIfNotInRange, target);
+}
+
+static void JumpIfNotList(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kArrayCid, kGrowableObjectArrayCid,
+             kIfNotInRange, target);
+}
+
+static void JumpIfType(Assembler* assembler,
+                       Register cid,
+                       Register tmp,
+                       Label* target) {
+  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfInRange,
+             target);
+}
+
+static void JumpIfNotType(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kTypeCid, kFunctionTypeCid, kIfNotInRange,
+             target);
+}
+
 // Return type quickly for simple types (not parameterized and not signature).
 void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
                                         Label* normal_ir_body) {
-  // TODO(riscv)
+  Label use_declaration_type, not_double, not_integer, not_string;
+  __ lx(A0, Address(SP, 0 * target::kWordSize));
+  __ LoadClassIdMayBeSmi(A1, A0);
+
+  __ CompareImmediate(A1, kClosureCid);
+  __ BranchIf(EQ, normal_ir_body);  // Instance is a closure.
+
+  __ CompareImmediate(A1, kNumPredefinedCids);
+  __ BranchIf(HI, &use_declaration_type, Assembler::kNearJump);
+
+  __ LoadIsolateGroup(A0);
+  __ LoadFromOffset(A0, A0, target::IsolateGroup::object_store_offset());
+
+  __ CompareImmediate(A1, kDoubleCid);
+  __ BranchIf(NE, &not_double, Assembler::kNearJump);
+  __ LoadFromOffset(A0, A0, target::ObjectStore::double_type_offset());
+  __ ret();
+
+  __ Bind(&not_double);
+  JumpIfNotInteger(assembler, A1, TMP, &not_integer);
+  __ LoadFromOffset(A0, A0, target::ObjectStore::int_type_offset());
+  __ ret();
+
+  __ Bind(&not_integer);
+  JumpIfNotString(assembler, A1, TMP, &not_string);
+  __ LoadFromOffset(A0, A0, target::ObjectStore::string_type_offset());
+  __ ret();
+
+  __ Bind(&not_string);
+  JumpIfNotType(assembler, A1, TMP, &use_declaration_type);
+  __ LoadFromOffset(A0, A0, target::ObjectStore::type_type_offset());
+  __ ret();
+
+  __ Bind(&use_declaration_type);
+  __ LoadClassById(T2, A1);
+  __ lh(T3, FieldAddress(T2, target::Class::num_type_arguments_offset()));
+  __ bnez(T3, normal_ir_body, Assembler::kNearJump);
+
+  __ LoadCompressed(A0,
+                    FieldAddress(T2, target::Class::declaration_type_offset()));
+  __ beq(A0, NULL_REG, normal_ir_body, Assembler::kNearJump);
+  __ ret();
+
   __ Bind(normal_ir_body);
+}
+
+// Compares cid1 and cid2 to see if they're syntactically equivalent. If this
+// can be determined by this fast path, it jumps to either equal_* or not_equal.
+// If classes are equivalent but may be generic, then jumps to
+// equal_may_be_generic. Clobbers scratch.
+static void EquivalentClassIds(Assembler* assembler,
+                               Label* normal_ir_body,
+                               Label* equal_may_be_generic,
+                               Label* equal_not_generic,
+                               Label* not_equal,
+                               Register cid1,
+                               Register cid2,
+                               Register scratch,
+                               bool testing_instance_cids) {
+  Label not_integer, not_integer_or_string, not_integer_or_string_or_list;
+
+  // Check if left hand side is a closure. Closures are handled in the runtime.
+  __ CompareImmediate(cid1, kClosureCid);
+  __ BranchIf(EQ, normal_ir_body);
+
+  // Check whether class ids match. If class ids don't match types may still be
+  // considered equivalent (e.g. multiple string implementation classes map to a
+  // single String type).
+  __ beq(cid1, cid2, equal_may_be_generic);
+
+  // Class ids are different. Check if we are comparing two string types (with
+  // different representations), two integer types, two list types or two type
+  // types.
+  __ CompareImmediate(cid1, kNumPredefinedCids);
+  __ BranchIf(HI, not_equal);
+
+  // Check if both are integer types.
+  JumpIfNotInteger(assembler, cid1, scratch, &not_integer);
+
+  // First type is an integer. Check if the second is an integer too.
+  JumpIfInteger(assembler, cid2, scratch, equal_not_generic);
+  // Integer types are only equivalent to other integer types.
+  __ j(not_equal, Assembler::kNearJump);
+
+  __ Bind(&not_integer);
+  // Check if both are String types.
+  JumpIfNotString(assembler, cid1, scratch,
+                  testing_instance_cids ? &not_integer_or_string : not_equal);
+
+  // First type is String. Check if the second is a string too.
+  JumpIfString(assembler, cid2, scratch, equal_not_generic);
+  // String types are only equivalent to other String types.
+  __ j(not_equal, Assembler::kNearJump);
+
+  if (testing_instance_cids) {
+    __ Bind(&not_integer_or_string);
+    // Check if both are List types.
+    JumpIfNotList(assembler, cid1, scratch, &not_integer_or_string_or_list);
+
+    // First type is a List. Check if the second is a List too.
+    JumpIfNotList(assembler, cid2, scratch, not_equal);
+    ASSERT(compiler::target::Array::type_arguments_offset() ==
+           compiler::target::GrowableObjectArray::type_arguments_offset());
+    __ j(equal_may_be_generic, Assembler::kNearJump);
+
+    __ Bind(&not_integer_or_string_or_list);
+    // Check if the first type is a Type. If it is not then types are not
+    // equivalent because they have different class ids and they are not String
+    // or integer or List or Type.
+    JumpIfNotType(assembler, cid1, scratch, not_equal);
+
+    // First type is a Type. Check if the second is a Type too.
+    JumpIfType(assembler, cid2, scratch, equal_not_generic);
+    // Type types are only equivalent to other Type types.
+    __ j(not_equal, Assembler::kNearJump);
+  }
 }
 
 void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
                                                 Label* normal_ir_body) {
-  // TODO(riscv)
+  __ lx(A0, Address(SP, 1 * target::kWordSize));
+  __ lx(A1, Address(SP, 0 * target::kWordSize));
+  __ LoadClassIdMayBeSmi(T2, A1);
+  __ LoadClassIdMayBeSmi(A1, A0);
+
+  Label equal_may_be_generic, equal, not_equal;
+  EquivalentClassIds(assembler, normal_ir_body, &equal_may_be_generic, &equal,
+                     &not_equal, A1, T2, TMP,
+                     /* testing_instance_cids = */ true);
+
+  __ Bind(&equal_may_be_generic);
+  // Classes are equivalent and neither is a closure class.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(A0, A1);
+  __ lw(T0,
+        FieldAddress(
+            A0,
+            target::Class::host_type_arguments_field_offset_in_words_offset()));
+  __ CompareImmediate(T0, target::Class::kNoTypeArguments);
+  __ BranchIf(EQ, &equal, Assembler::kNearJump);
+
+  // Compare type arguments, host_type_arguments_field_offset_in_words in A0.
+  __ lx(A0, Address(SP, 1 * target::kWordSize));
+  __ lx(A1, Address(SP, 0 * target::kWordSize));
+  __ slli(T0, T0, target::kCompressedWordSizeLog2);
+  __ add(A0, A0, T0);
+  __ add(A1, A1, T0);
+  __ lx(A0, FieldAddress(A0, 0));
+  __ lx(A1, FieldAddress(A1, 0));
+  __ bne(A0, A1, normal_ir_body, Assembler::kNearJump);
+  // Fall through to equal case if type arguments are equal.
+
+  __ Bind(&equal);
+  __ LoadObject(A0, CastHandle<Object>(TrueObject()));
+  __ Ret();
+
+  __ Bind(&not_equal);
+  __ LoadObject(A0, CastHandle<Object>(FalseObject()));
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 
@@ -1163,7 +1447,60 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
 
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
-  // TODO(riscv)
+  Label equal, not_equal, equiv_cids_may_be_generic, equiv_cids, check_legacy;
+
+  __ lx(A0, Address(SP, 1 * target::kWordSize));
+  __ lx(A1, Address(SP, 0 * target::kWordSize));
+  __ beq(A1, A0, &equal);
+
+  // A1 might not be a Type object, so check that first (A0 should be though,
+  // since this is a method on the Type class).
+  __ LoadClassIdMayBeSmi(T3, A1);
+  __ CompareImmediate(T3, kTypeCid);
+  __ BranchIf(NE, normal_ir_body);
+
+  // Check if types are syntactically equal.
+  __ LoadTypeClassId(T3, A1);
+  __ LoadTypeClassId(T4, A0);
+  // We are not testing instance cids, but type class cids of Type instances.
+  EquivalentClassIds(assembler, normal_ir_body, &equiv_cids_may_be_generic,
+                     &equiv_cids, &not_equal, T3, T4, TMP,
+                     /* testing_instance_cids = */ false);
+
+  __ Bind(&equiv_cids_may_be_generic);
+  // Compare type arguments in Type instances.
+  __ LoadCompressed(T3, FieldAddress(A1, target::Type::arguments_offset()));
+  __ LoadCompressed(T4, FieldAddress(A0, target::Type::arguments_offset()));
+  __ CompareObjectRegisters(T3, T4);
+  __ BranchIf(NE, normal_ir_body);
+  // Fall through to check nullability if type arguments are equal.
+
+  // Check nullability.
+  __ Bind(&equiv_cids);
+  __ lbu(A0, FieldAddress(A0, target::Type::nullability_offset()));
+  __ lbu(A1, FieldAddress(A1, target::Type::nullability_offset()));
+  __ bne(A0, A1, &check_legacy);
+  // Fall through to equal case if nullability is strictly equal.
+
+  __ Bind(&equal);
+  __ LoadObject(A0, CastHandle<Object>(TrueObject()));
+  __ ret();
+
+  // At this point the nullabilities are different, so they can only be
+  // syntactically equivalent if they're both either kNonNullable or kLegacy.
+  // These are the two largest values of the enum, so we can just do a < check.
+  ASSERT(target::Nullability::kNullable < target::Nullability::kNonNullable &&
+         target::Nullability::kNonNullable < target::Nullability::kLegacy);
+  __ Bind(&check_legacy);
+  __ CompareImmediate(A1, target::Nullability::kNonNullable);
+  __ BranchIf(LT, &not_equal);
+  __ CompareImmediate(A0, target::Nullability::kNonNullable);
+  __ BranchIf(GE, &equal);
+
+  __ Bind(&not_equal);
+  __ LoadObject(A0, CastHandle<Object>(FalseObject()));
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 
@@ -1179,7 +1516,13 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
 
 void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
-  // TODO(riscv)
+  __ lx(A0, Address(SP, 1 * target::kWordSize));
+  __ lx(A1, Address(SP, 0 * target::kWordSize));
+  __ bne(A0, A1, normal_ir_body, Assembler::kNearJump);
+
+  __ LoadObject(A0, CastHandle<Object>(TrueObject()));
+  __ ret();
+
   __ Bind(normal_ir_body);
 }
 
@@ -1510,7 +1853,7 @@ static void TryAllocateString(Assembler* assembler,
   // negative length: call to runtime to produce error.
   __ bltz(length_reg, failure);
 
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, TMP, failure));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, TMP));
   __ mv(T0, length_reg);  // Save the length register.
   if (cid == kOneByteStringCid) {
     // Untag length.
@@ -1770,16 +2113,16 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ AddImmediate(T1, -kOneByteStringCid);
   __ slli(T1, T1, target::kWordSizeLog2);
   __ add(T1, T1, T2);
-  __ lx(T0, FieldAddress(T1, target::RegExp::function_offset(kOneByteStringCid,
-                                                             sticky)));
+  __ lx(FUNCTION_REG, FieldAddress(T1, target::RegExp::function_offset(
+                                           kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in T0, the argument descriptor in S4, and IC-Data in S5.
   __ li(S5, 0);
 
   // Tail-call the function.
-  __ lx(CODE_REG, FieldAddress(T0, target::Function::code_offset()));
-  __ lx(T1, FieldAddress(T0, target::Function::entry_point_offset()));
+  __ lx(CODE_REG, FieldAddress(FUNCTION_REG, target::Function::code_offset()));
+  __ lx(T1, FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
   __ jr(T1);
 }
 

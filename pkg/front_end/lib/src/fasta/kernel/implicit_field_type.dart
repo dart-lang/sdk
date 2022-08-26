@@ -7,105 +7,92 @@ library fasta.implicit_type;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:front_end/src/fasta/source/source_enum_builder.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/assumptions.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/printer.dart';
 
+import '../builder/type_builder.dart';
 import '../constant_context.dart';
 import '../fasta_codes.dart';
 import '../problems.dart' show unsupported;
 import '../builder/builder.dart';
 import '../source/source_field_builder.dart';
 import '../type_inference/type_inferrer.dart';
-import '../type_inference/type_schema.dart';
 import 'body_builder.dart';
 
-abstract class ImplicitFieldType extends DartType {
-  SourceFieldBuilder get fieldBuilder;
+abstract class InferredType extends DartType {
+  Uri? get fileUri;
+  int? get charOffset;
 
-  ImplicitFieldType._();
+  InferredType._();
 
-  factory ImplicitFieldType(
+  factory InferredType.fromFieldInitializer(
           SourceFieldBuilder fieldBuilder, Token? initializerToken) =
       _ImplicitFieldTypeRoot;
 
-  @override
-  Nullability get declaredNullability => unsupported(
-      "declaredNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
+  factory InferredType.fromInferableTypeUse(InferableTypeUse inferableTypeUse) =
+      _InferredTypeUse;
 
   @override
-  Nullability get nullability =>
-      unsupported("nullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
+  Nullability get declaredNullability =>
+      unsupported("declaredNullability", charOffset ?? -1, fileUri);
+
+  @override
+  Nullability get nullability {
+    unsupported("nullability", charOffset ?? -1, fileUri);
+  }
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {
-    throw unsupported("accept", fieldBuilder.charOffset, fieldBuilder.fileUri);
+    throw unsupported("accept", charOffset ?? -1, fileUri);
   }
 
   @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, arg) {
-    throw unsupported("accept1", fieldBuilder.charOffset, fieldBuilder.fileUri);
+    throw unsupported("accept1", charOffset ?? -1, fileUri);
   }
 
   @override
   Never visitChildren(Visitor<dynamic> v) {
-    unsupported("visitChildren", fieldBuilder.charOffset, fieldBuilder.fileUri);
+    unsupported("visitChildren", charOffset ?? -1, fileUri);
   }
 
   @override
-  ImplicitFieldType withDeclaredNullability(Nullability nullability) {
-    return unsupported(
-        "withNullability", fieldBuilder.charOffset, fieldBuilder.fileUri);
+  InferredType withDeclaredNullability(Nullability nullability) {
+    return unsupported("withNullability", charOffset ?? -1, fileUri);
   }
 
   @override
-  ImplicitFieldType toNonNull() {
-    return unsupported(
-        "toNonNullable", fieldBuilder.charOffset, fieldBuilder.fileUri);
+  InferredType toNonNull() {
+    return unsupported("toNonNullable", charOffset ?? -1, fileUri);
   }
 
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('<implicit-field-type:$fieldBuilder>');
-  }
+  DartType inferType(ClassHierarchyBase hierarchy);
 
-  void addOverride(ImplicitFieldType other);
-
-  DartType checkInferred(DartType type);
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
-  bool equals(Object other, Assumptions? assumptions) {
-    if (identical(this, other)) return true;
-    return other is ImplicitFieldType && fieldBuilder == other.fieldBuilder;
-  }
-
-  @override
-  int get hashCode => fieldBuilder.hashCode;
-
-  DartType inferType();
-
-  DartType computeType();
+  DartType computeType(ClassHierarchyBase hierarchy);
 }
 
-class _ImplicitFieldTypeRoot extends ImplicitFieldType {
-  @override
+class _ImplicitFieldTypeRoot extends InferredType {
   final SourceFieldBuilder fieldBuilder;
-  List<ImplicitFieldType>? _overriddenFields;
+
   Token? initializerToken;
   bool isStarted = false;
 
   _ImplicitFieldTypeRoot(this.fieldBuilder, this.initializerToken) : super._();
 
   @override
-  DartType inferType() {
-    return fieldBuilder.inferType();
+  Uri get fileUri => fieldBuilder.fileUri;
+
+  @override
+  int get charOffset => fieldBuilder.charOffset;
+
+  @override
+  DartType inferType(ClassHierarchyBase hierarchy) {
+    return fieldBuilder.inferType(hierarchy);
   }
 
   @override
-  DartType computeType() {
+  DartType computeType(ClassHierarchyBase hierarchy) {
     if (isStarted) {
       fieldBuilder.libraryBuilder.addProblem(
           templateCantInferTypeDueToCircularity
@@ -113,25 +100,14 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
           fieldBuilder.charOffset,
           fieldBuilder.name.length,
           fieldBuilder.fileUri);
-      return fieldBuilder.fieldType = const InvalidType();
+      DartType type = const InvalidType();
+      fieldBuilder.type.registerInferredType(type);
+      return type;
     }
     isStarted = true;
     DartType? inferredType;
     Builder? parent = fieldBuilder.parent;
-    if (_overriddenFields != null) {
-      for (ImplicitFieldType overridden in _overriddenFields!) {
-        DartType overriddenType = overridden.inferType();
-        if (!fieldBuilder.libraryBuilder.isNonNullableByDefault) {
-          overriddenType = legacyErasure(overriddenType);
-        }
-        if (inferredType == null) {
-          inferredType = overriddenType;
-        } else if (inferredType != overriddenType) {
-          inferredType = const InvalidType();
-        }
-      }
-      return inferredType!;
-    } else if (parent is SourceEnumBuilder &&
+    if (parent is SourceEnumBuilder &&
         parent.elementBuilders.contains(fieldBuilder)) {
       inferredType = parent.buildElement(
           fieldBuilder, parent.libraryBuilder.loader.coreTypes);
@@ -159,10 +135,8 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
           bodyBuilder.parseFieldInitializer(initializerToken!);
       initializerToken = null;
 
-      ExpressionInferenceResult result = typeInferrer.inferExpression(
-          initializer, const UnknownType(), true,
-          isVoidAllowed: true);
-      inferredType = typeInferrer.inferDeclarationType(result.inferredType);
+      inferredType =
+          typeInferrer.inferImplicitFieldType(bodyBuilder, initializer);
     } else {
       inferredType = const DynamicType();
     }
@@ -170,32 +144,66 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
   }
 
   @override
-  void addOverride(ImplicitFieldType other) {
-    (_overriddenFields ??= []).add(other);
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<implicit-field-type:$fieldBuilder>');
   }
 
   @override
-  DartType checkInferred(DartType type) {
-    if (_overriddenFields != null) {
-      for (ImplicitFieldType overridden in _overriddenFields!) {
-        DartType overriddenType = overridden.inferType();
-        if (!fieldBuilder.libraryBuilder.isNonNullableByDefault) {
-          overriddenType = legacyErasure(overriddenType);
-        }
-        if (type != overriddenType) {
-          String name = fieldBuilder.fullNameForErrors;
-          fieldBuilder.classBuilder!.addProblem(
-              templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
-              fieldBuilder.charOffset,
-              name.length,
-              wasHandled: true);
-          return const InvalidType();
-        }
-      }
-    }
-    return type;
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) return true;
+    return other is _ImplicitFieldTypeRoot &&
+        fieldBuilder == other.fieldBuilder;
   }
+
+  @override
+  int get hashCode => fieldBuilder.hashCode;
 
   @override
   String toString() => 'ImplicitFieldType(${toStringInternal()})';
+}
+
+class _InferredTypeUse extends InferredType {
+  final InferableTypeUse inferableTypeUse;
+
+  _InferredTypeUse(this.inferableTypeUse) : super._();
+
+  @override
+  int? get charOffset => inferableTypeUse.typeBuilder.charOffset;
+
+  @override
+  Uri? get fileUri => inferableTypeUse.typeBuilder.fileUri;
+
+  @override
+  DartType computeType(ClassHierarchyBase hierarchy) {
+    return inferType(hierarchy);
+  }
+
+  @override
+  DartType inferType(ClassHierarchyBase hierarchy) {
+    return inferableTypeUse.inferType(hierarchy);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('<inferred-type:${inferableTypeUse.typeBuilder}>');
+  }
+
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) return true;
+    return other is _InferredTypeUse &&
+        inferableTypeUse.typeBuilder == other.inferableTypeUse.typeBuilder;
+  }
+
+  @override
+  int get hashCode => inferableTypeUse.typeBuilder.hashCode;
+
+  @override
+  String toString() => 'InferredTypeUse(${toStringInternal()})';
 }

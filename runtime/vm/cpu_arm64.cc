@@ -12,18 +12,13 @@
 #include "vm/simulator.h"
 
 #if !defined(USING_SIMULATOR)
-#if !defined(DART_HOST_OS_FUCHSIA)
-#include <sys/syscall.h>
-#else
+#if defined(DART_HOST_OS_FUCHSIA)
 #include <zircon/syscalls.h>
-#endif
-#include <unistd.h>
-#endif
-
-#if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
+#elif defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
 #include <libkern/OSCacheControl.h>
 #elif defined(DART_HOST_OS_WINDOWS)
 #include <processthreadsapi.h>
+#endif
 #endif
 
 namespace dart {

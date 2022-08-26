@@ -7,7 +7,7 @@ import 'dart:math' as math;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show analyzeQuote, Quote, firstQuoteLength, lastQuoteLength;
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart' as char;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
+import 'package:analysis_server/lsp_protocol/protocol.dart'
     show SemanticTokenTypes, SemanticTokenModifiers;
 import 'package:analysis_server/src/lsp/constants.dart'
     show CustomSemanticTokenModifiers, CustomSemanticTokenTypes;
@@ -84,9 +84,9 @@ class DartUnitHighlightsComputer {
         }
         commentToken = commentToken.next;
       }
-      if (token.type == TokenType.EOF) {
+      if (token.isEof) {
         // Only exit the loop *after* processing the EOF token as it may
-        // have preceeding comments.
+        // have preceding comments.
         break;
       }
       token = token.next;
@@ -517,7 +517,7 @@ class DartUnitHighlightsComputer {
       _regions.add(HighlightRegion(type, offset, length));
     }
     if (_computeSemanticTokens) {
-      // Use default mappings if an overriden type/modifiers were not supplied.
+      // Use default mappings if an overridden type/modifiers were not supplied.
       semanticTokenType ??= highlightRegionTokenTypes[type];
       semanticTokenModifiers ??= highlightRegionTokenModifiers[type];
       if (semanticTokenType != null) {
@@ -714,6 +714,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    super.visitDeclaredIdentifier(node);
+  }
+
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
@@ -753,7 +759,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExportDirective(ExportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.exportKeyword, HighlightRegionType.BUILT_IN);
     _addRegions_configurations(node.configurations);
     super.visitExportDirective(node);
   }
@@ -910,7 +916,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.importKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.deferredKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.asKeyword, HighlightRegionType.BUILT_IN);
@@ -972,7 +978,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.libraryKeyword, HighlightRegionType.BUILT_IN);
     super.visitLibraryDirective(node);
   }
 
@@ -1014,7 +1021,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     if (type != null) {
       if (type.isDynamic && node.name.name == 'dynamic') {
         computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
-        return null;
+        return;
       }
     }
     super.visitNamedType(node);
@@ -1047,7 +1054,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPartDirective(PartDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.partKeyword, HighlightRegionType.BUILT_IN);
     super.visitPartDirective(node);
   }
 

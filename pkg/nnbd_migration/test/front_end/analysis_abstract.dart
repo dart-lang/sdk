@@ -16,14 +16,14 @@ class AbstractAnalysisTest extends AbstractContextTest {
   AbstractAnalysisTest();
 
   void addAnalysisOptionsFile(String content) {
-    newFile2(
+    newFile(
         resourceProvider.pathContext
             .join(projectPath!, 'analysis_options.yaml'),
         content);
   }
 
   String? addTestFile(String content) {
-    newFile2(testFile!, content);
+    newFile(testFile!, content);
     testCode = content;
     return testFile;
   }

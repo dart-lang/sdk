@@ -3,6 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+Declarations Order:
+ topLevelFunction1:FunctionDeclarationsMacro2.new()
+ topLevelFunction2:FunctionDeclarationsMacro2.new()
+ topLevelFunction3:FunctionDeclarationsMacro2.new()
+ topLevelFunction4:FunctionDeclarationsMacro2.new()
+Definition Order:
+ topLevelFunction1:FunctionDefinitionMacro2.new()
+ topLevelFunction2:FunctionDefinitionMacro2.new()
+ topLevelFunction3:FunctionDefinitionMacro2.new()
+ topLevelFunction4:FunctionDefinitionMacro2.new()
 Definitions:
 import 'org-dartlang-test:///a/b/c/main.dart' as prefix0;
 
@@ -25,8 +35,7 @@ augment prefix0.D2 topLevelFunction4(prefix0.D1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
   throw 42;
-}
-*/
+}*/
 
 import 'package:macro/macro.dart';
 
@@ -45,8 +54,11 @@ class D1 {}
 class D2 {}
 
 /*member: topLevelFunction1:
+declarations:
+
 void topLevelFunction1GeneratedMethod_es() {}
 
+definitions:
 augment A topLevelFunction1(A a, ) {
   print('isExactly=true');
   print('isSubtype=true');
@@ -57,8 +69,11 @@ augment A topLevelFunction1(A a, ) {
 external A topLevelFunction1(A a);
 
 /*member: topLevelFunction2:
+declarations:
+
 void topLevelFunction2GeneratedMethod_s() {}
 
+definitions:
 augment B2 topLevelFunction2(B1 a, ) {
   print('isExactly=false');
   print('isSubtype=true');
@@ -69,8 +84,11 @@ augment B2 topLevelFunction2(B1 a, ) {
 external B2 topLevelFunction2(B1 a);
 
 /*member: topLevelFunction3:
+declarations:
+
 void topLevelFunction3GeneratedMethod_() {}
 
+definitions:
 augment C2 topLevelFunction3(C1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
@@ -81,8 +99,11 @@ augment C2 topLevelFunction3(C1 a, ) {
 external C2 topLevelFunction3(C1 a);
 
 /*member: topLevelFunction4:
+declarations:
+
 void topLevelFunction4GeneratedMethod_() {}
 
+definitions:
 augment D2 topLevelFunction4(D1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');

@@ -80,7 +80,7 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
     if (node.returnType.accept1(this, visitedTypedefs)) return true;
     for (TypeParameter typeParameter in node.typeParameters) {
       if (typeParameter.bound.accept1(this, visitedTypedefs)) return true;
-      // TODO(dmitryas): Check defaultTypes as well if they cause cascading
+      // TODO(cstefantsova): Check defaultTypes as well if they cause cascading
       // errors.
     }
     for (DartType parameter in node.positionalParameters) {
@@ -88,9 +88,6 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
     }
     for (NamedType parameter in node.namedParameters) {
       if (parameter.type.accept1(this, visitedTypedefs)) return true;
-    }
-    if (node.typedefType != null && visitedTypedefs.add(node.typedefType!)) {
-      if (node.typedefType!.accept1(this, visitedTypedefs)) return true;
     }
     return false;
   }

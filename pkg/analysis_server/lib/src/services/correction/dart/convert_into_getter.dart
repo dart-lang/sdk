@@ -51,18 +51,15 @@ class ConvertIntoGetter extends CorrectionProducer {
     var code = '';
     var typeAnnotation = fieldList.type;
     if (typeAnnotation != null) {
-      code += utils.getNodeText(typeAnnotation) + ' ';
+      code += '${utils.getNodeText(typeAnnotation)} ';
     }
     code += 'get';
-    code += ' ' + utils.getNodeText(field.name);
-    code += ' => ' + utils.getNodeText(initializer);
+    code += ' ${utils.getNodeText(field.name)}';
+    code += ' => ${utils.getNodeText(initializer)}';
     code += ';';
     var replacementRange = range.startEnd(finalKeyword, fieldDeclaration);
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(replacementRange, code);
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertIntoGetter newInstance() => ConvertIntoGetter();
 }

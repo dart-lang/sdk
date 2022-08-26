@@ -1,8 +1,8 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static field core::List<core::double*>* a;
-static field core::double* b;
+static field core::List<core::double> a;
+static field core::double b;
 static method main() → dynamic
   ;

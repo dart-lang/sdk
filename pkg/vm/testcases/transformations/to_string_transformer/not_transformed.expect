@@ -24,8 +24,8 @@ class FooEnum extends core::_Enum /*isEnum*/  {
   static const field self::FooEnum A = #C4;
   static const field self::FooEnum B = #C7;
   static const field self::FooEnum C = #C10;
-  const constructor •(core::int index, core::String name) → self::FooEnum
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::FooEnum
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "FooEnum.${this.{core::_Enum::_name}{core::String}}";
@@ -45,19 +45,21 @@ class Base1 extends core::Object {
     : super core::Object::•()
     ;
 }
-class Base2 extends self::Base1 {
-  synthetic constructor •() → self::Base2
-    : super self::Base1::•()
-    ;
+abstract class Base2 extends self::Base1 /*isMixinDeclaration*/  {
 }
-abstract class _Base3&Object&Base2 extends core::Object implements self::Base2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  const synthetic constructor •() → self::_Base3&Object&Base2
+abstract class _Base3&Object&Base1 extends core::Object implements self::Base1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Base3&Object&Base1
     : super core::Object::•()
     ;
 }
-class Base3 extends self::_Base3&Object&Base2 {
+abstract class _Base3&Object&Base1&Base2 extends self::_Base3&Object&Base1 implements self::Base2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Base3&Object&Base1&Base2
+    : super self::_Base3&Object&Base1::•()
+    ;
+}
+class Base3 extends self::_Base3&Object&Base1&Base2 {
   synthetic constructor •() → self::Base3
-    : super self::_Base3&Object&Base2::•()
+    : super self::_Base3&Object&Base1&Base2::•()
     ;
 }
 class KeepInherited extends core::Object implements self::Base3 {

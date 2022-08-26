@@ -6,6 +6,7 @@ import 'dart:io' as io;
 import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
@@ -14,7 +15,8 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
+import 'package:analysis_server/src/server/performance.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -27,7 +29,6 @@ import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -61,6 +62,9 @@ abstract class AbstractAnalysisServer {
   /// The options of this server instance.
   AnalysisServerOptions options;
 
+  /// The object through which analytics are to be sent.
+  final AnalyticsManager analyticsManager;
+
   /// The builder for attachments that should be included into crash reports.
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
 
@@ -89,10 +93,6 @@ abstract class AbstractAnalysisServer {
 
   DeclarationsTracker? declarationsTracker;
   DeclarationsTrackerData? declarationsTrackerData;
-
-  /// A map from analysis contexts to the documentation cache associated with
-  /// each context.
-  Map<AnalysisContext, DocumentationCache> documentationForContext = {};
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
@@ -124,6 +124,9 @@ abstract class AbstractAnalysisServer {
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
 
+  /// Performance about recent requests.
+  final ServerRecentPerformance recentPerformance = ServerRecentPerformance();
+
   RequestStatisticsHelper? requestStatistics;
 
   PerformanceLog? analysisPerformanceLogger;
@@ -146,6 +149,7 @@ abstract class AbstractAnalysisServer {
     this.options,
     this.sdkManager,
     this.diagnosticServer,
+    this.analyticsManager,
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
@@ -218,6 +222,7 @@ abstract class AbstractAnalysisServer {
       resourceProvider,
       sdkManager,
       options.packagesFile,
+      options.enabledExperiments,
       byteStore,
       fileContentCache,
       analysisPerformanceLogger,
@@ -251,7 +256,6 @@ abstract class AbstractAnalysisServer {
 
   void addContextsToDeclarationsTracker() {
     declarationsTracker?.discardContexts();
-    documentationForContext.clear();
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext!);
     }
@@ -325,26 +329,6 @@ abstract class AbstractAnalysisServer {
             ?.getContext(session.analysisContext)
             ?.dartdocDirectiveInfo ??
         DartdocDirectiveInfo();
-  }
-
-  /// Return the object used to cache the documentation for elements in the
-  /// context that produced the [result], or `null` if there is no cache for the
-  /// context.
-  DocumentationCache? getDocumentationCacheFor(ResolvedUnitResult result) {
-    return getDocumentationCacheForSession(result.session);
-  }
-
-  /// Return the object used to cache the documentation for elements in the
-  /// context that produced the [session], or `null` if there is no cache for
-  /// the context.
-  DocumentationCache? getDocumentationCacheForSession(AnalysisSession session) {
-    var context = session.analysisContext;
-    var tracker = declarationsTracker?.getContext(context);
-    if (tracker == null) {
-      return null;
-    }
-    return documentationForContext.putIfAbsent(
-        context, () => DocumentationCache(tracker.dartdocDirectiveInfo));
   }
 
   /// Return a [Future] that completes with the [Element] at the given
@@ -503,7 +487,7 @@ abstract class AbstractAnalysisServer {
 
     try {
       await driver.applyPendingFileChanges();
-      return driver.resolveForCompletion(
+      return await driver.resolveForCompletion(
         path: path,
         offset: offset,
         performance: performance,
@@ -524,7 +508,16 @@ abstract class AbstractAnalysisServer {
 
   @mustCallSuper
   void shutdown() {
+    // For now we record plugins only on shutdown. We might want to record them
+    // every time the set of plugins changes, in which case we'll need to listen
+    // to the `PluginManager.pluginsChanged` stream.
+    analyticsManager.changedPlugins(pluginManager);
+    // For now we record context-dependent information only on shutdown. We
+    // might want to record it on start-up as well.
+    analyticsManager.createdAnalysisContexts(contextManager.analysisContexts);
+
     pubPackageService.shutdown();
+    analyticsManager.shutdown();
   }
 
   /// Return the path to the location of the byte store on disk, or `null` if
@@ -542,4 +535,19 @@ abstract class AbstractAnalysisServer {
     }
     return null;
   }
+}
+
+class ServerRecentPerformance {
+  /// The maximum number of performance measurements to keep.
+  static const int performanceListMaxLength = 50;
+
+  /// A list of code completion performance measurements for the latest
+  /// completion operation up to [performanceListMaxLength] measurements.
+  final RecentBuffer<CompletionPerformance> completion =
+      RecentBuffer<CompletionPerformance>(performanceListMaxLength);
+
+  /// A [RecentBuffer] for performance information about the most recent
+  /// requests.
+  final RecentBuffer<RequestPerformance> requests =
+      RecentBuffer(performanceListMaxLength);
 }

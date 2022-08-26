@@ -10,35 +10,62 @@ type: newworld
 modules:
   moduleA:
     moduleA/a.dart: |
-      // @dart=2.9
       export 'package:moduleB/b.dart';
 
       class A { }
-    moduleA/.packages: |
-      moduleA:.
-      moduleB:../moduleB
+    moduleA/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "moduleA",
+            "rootUri": ".."
+          },
+          {
+            "name": "moduleB",
+            "rootUri": "../../moduleB"
+          }
+        ]
+      }
   moduleB:
     moduleB/b.dart: |
-      // @dart=2.9
       class B {
         int foo = 42;
       }
-    moduleB/.packages: |
-      moduleB:.
+    moduleB/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "moduleB",
+            "rootUri": ".."
+          }
+        ]
+      }
 worlds:
   - entry: main.dart
     fromComponent: true
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:moduleA/a.dart";
 
         main() {
           A a = new A();
         }
-      .packages: |
-        moduleA:moduleA
-        moduleB:moduleB
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "moduleA",
+              "rootUri": "../moduleA"
+            },
+            {
+              "name": "moduleB",
+              "rootUri": "../moduleB"
+            }
+          ]
+        }
     modules:
       - moduleA
       - moduleB

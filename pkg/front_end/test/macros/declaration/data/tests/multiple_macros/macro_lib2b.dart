@@ -12,7 +12,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'macro_lib2a.dart';
 
 /*class: Macro2b:
- appliedMacros=[Macro2a.new],
+ appliedMacros=[Macro2a.new()],
  macrosAreApplied
 */
 @Macro2a()

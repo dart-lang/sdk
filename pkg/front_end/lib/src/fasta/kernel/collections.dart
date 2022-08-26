@@ -782,10 +782,15 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
 /// [onConvertMapEntry] is called when a [ForMapEntry], [ForInMapEntry], or
 /// [IfMapEntry] is converted to a [ForElement], [ForInElement], or [IfElement],
 /// respectively.
-Expression convertToElement(MapLiteralEntry entry, InferenceHelper? helper,
-    void onConvertMapEntry(TreeNode from, TreeNode to)) {
+Expression convertToElement(
+  MapLiteralEntry entry,
+  InferenceHelper? helper,
+  void onConvertMapEntry(TreeNode from, TreeNode to), {
+  DartType? actualType,
+}) {
   if (entry is SpreadMapEntry) {
     return new SpreadElement(entry.expression, isNullAware: entry.isNullAware)
+      ..elementType = actualType
       ..fileOffset = entry.expression.fileOffset;
   }
   if (entry is IfMapEntry) {

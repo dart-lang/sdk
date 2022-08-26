@@ -38,20 +38,20 @@ class RuntimeTypeUseData {
 
   /// The static type of the receiver expression. This is set in the static type
   /// visitor.
-  ir.DartType receiverType;
+  ir.DartType? receiverType;
 
   /// The property get for the right occurrence of `.runtimeType` when [kind]
   /// is `RuntimeTypeUseKind.equals`.
   // TODO(johnniwinther): Change this to `InstanceGet` when the old method
   // invocation encoding is no longer used.
-  final ir.Expression rightRuntimeTypeExpression;
+  final ir.Expression? rightRuntimeTypeExpression;
 
   /// The argument expression if [kind] is `RuntimeTypeUseKind.equals`.
-  final ir.Expression argument;
+  final ir.Expression? argument;
 
   /// The static type of the argument expression. This is set in the static type
   /// visitor.
-  ir.DartType argumentType;
+  ir.DartType? argumentType;
 
   RuntimeTypeUseData(this.kind, this.leftRuntimeTypeExpression, this.receiver,
       this.rightRuntimeTypeExpression, this.argument);
@@ -64,7 +64,6 @@ class RuntimeTypeUseData {
       case RuntimeTypeUseKind.equals:
         return receiverType != null && argumentType != null;
     }
-    throw UnsupportedError("Unexpected RuntimeTypeUseKind $kind.");
   }
 
   @override
@@ -85,7 +84,7 @@ class RuntimeTypeUseData {
 // old method invocation encoding is no longer used.
 RuntimeTypeUseData computeRuntimeTypeUse(
     Map<ir.Expression, RuntimeTypeUseData> cache, ir.Expression node) {
-  RuntimeTypeUseData receiverData = cache[node];
+  RuntimeTypeUseData? receiverData = cache[node];
   if (receiverData != null) return receiverData;
 
   /// Returns `true` if [node] is of the form `e.runtimeType`.
@@ -96,29 +95,30 @@ RuntimeTypeUseData computeRuntimeTypeUse(
   }
 
   /// Returns `true` if [node] is of the form `e.toString()`.
-  bool isInvokeToString(ir.TreeNode node) {
+  bool isInvokeToString(ir.TreeNode? node) {
     return node is ir.InstanceInvocation && node.name.text == 'toString';
   }
 
   assert(isGetRuntimeType(node));
   // TODO(johnniwinther): Replace this with `node.receiver` when the old method
   // invocation encoding is no longer used.
-  _RuntimeTypeAccess runtimeTypeAccess = _getRuntimeTypeAccess(node);
-  assert(runtimeTypeAccess != null);
+  _RuntimeTypeAccess runtimeTypeAccess = _getRuntimeTypeAccess(node)!;
 
   // TODO(johnniwinther): Change [receiverGet] and [argumentGet] to
   // `InstanceGet` when the old method invocation encoding is no longer used.
   // TODO(johnniwinther): Special-case `this.runtimeType`.
-  ir.Expression receiverGet;
-  ir.Expression receiver;
-  ir.Expression argumentGet;
-  ir.Expression argument;
-  RuntimeTypeUseKind kind;
+  late final ir.Expression receiverGet;
+  late final ir.Expression receiver;
+  ir.Expression? argumentGet;
+  ir.Expression? argument;
+  RuntimeTypeUseKind? kind;
 
+  final nodeParent = node.parent;
+  final nodeParentParent = nodeParent?.parent;
   if (runtimeTypeAccess.receiver is ir.VariableGet &&
-      node.parent is ir.ConditionalExpression &&
-      node.parent.parent is ir.Let) {
-    NullAwareExpression nullAware = getNullAwareExpression(node.parent.parent);
+      nodeParent is ir.ConditionalExpression &&
+      nodeParentParent is ir.Let) {
+    NullAwareExpression? nullAware = getNullAwareExpression(nodeParentParent);
     if (nullAware != null) {
       // The node is of the form:
       //
@@ -127,8 +127,8 @@ RuntimeTypeUseData computeRuntimeTypeUse(
 
       if (nullAware.parent is ir.VariableDeclaration &&
           nullAware.parent.parent is ir.Let) {
-        NullAwareExpression outer =
-            getNullAwareExpression(nullAware.parent.parent);
+        NullAwareExpression? outer =
+            getNullAwareExpression(nullAware.parent.parent!);
         if (outer != null &&
             outer.receiver == nullAware.let &&
             isInvokeToString(outer.expression)) {
@@ -147,14 +147,14 @@ RuntimeTypeUseData computeRuntimeTypeUse(
           receiverGet = node;
         }
       } else if (_isObjectMethodInvocation(nullAware.parent)) {
-        _EqualsInvocation equalsInvocation =
+        _EqualsInvocation? equalsInvocation =
             _getEqualsInvocation(nullAware.parent);
         if (equalsInvocation != null &&
             equalsInvocation.left == nullAware.let) {
           // Detected
           //
           //  e0?.runtimeType == other
-          _RuntimeTypeAccess otherGetRuntimeType =
+          _RuntimeTypeAccess? otherGetRuntimeType =
               _getRuntimeTypeAccess(equalsInvocation.right);
           if (otherGetRuntimeType != null) {
             // Detected
@@ -173,7 +173,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
             argumentGet = otherGetRuntimeType.node;
           }
 
-          NullAwareExpression otherNullAware =
+          NullAwareExpression? otherNullAware =
               getNullAwareExpression(equalsInvocation.right);
           if (otherNullAware != null &&
               isGetRuntimeType(otherNullAware.expression)) {
@@ -210,15 +210,15 @@ RuntimeTypeUseData computeRuntimeTypeUse(
         }
       } else if (nullAware.parent is ir.Arguments &&
           _isObjectMethodInvocation(nullAware.parent.parent)) {
-        _EqualsInvocation equalsInvocation =
+        _EqualsInvocation? equalsInvocation =
             _getEqualsInvocation(nullAware.parent.parent);
         if (equalsInvocation != null &&
             equalsInvocation.right == nullAware.let) {
           // [nullAware] is the right hand side of ==.
 
-          _RuntimeTypeAccess otherGetRuntimeType =
+          _RuntimeTypeAccess? otherGetRuntimeType =
               _getRuntimeTypeAccess(equalsInvocation.left);
-          NullAwareExpression otherNullAware =
+          NullAwareExpression? otherNullAware =
               getNullAwareExpression(equalsInvocation.left);
 
           if (otherGetRuntimeType != null) {
@@ -282,9 +282,9 @@ RuntimeTypeUseData computeRuntimeTypeUse(
         receiverGet = node;
       }
     }
-  } else if (node.parent is ir.VariableDeclaration &&
-      node.parent.parent is ir.Let) {
-    NullAwareExpression nullAware = getNullAwareExpression(node.parent.parent);
+  } else if (nodeParent is ir.VariableDeclaration &&
+      nodeParentParent is ir.Let) {
+    NullAwareExpression? nullAware = getNullAwareExpression(nodeParentParent);
     if (nullAware != null && isInvokeToString(nullAware.expression)) {
       // Detected
       //
@@ -298,14 +298,14 @@ RuntimeTypeUseData computeRuntimeTypeUse(
       receiver = runtimeTypeAccess.receiver;
       receiverGet = node;
     }
-  } else if (_isObjectMethodInvocation(node.parent)) {
-    _EqualsInvocation equalsInvocation = _getEqualsInvocation(node.parent);
+  } else if (_isObjectMethodInvocation(nodeParent)) {
+    _EqualsInvocation? equalsInvocation = _getEqualsInvocation(nodeParent);
     if (equalsInvocation != null && equalsInvocation.left == node) {
       // [node] is the left hand side of ==.
 
-      _RuntimeTypeAccess otherGetRuntimeType =
+      _RuntimeTypeAccess? otherGetRuntimeType =
           _getRuntimeTypeAccess(equalsInvocation.right);
-      NullAwareExpression nullAware =
+      NullAwareExpression? nullAware =
           getNullAwareExpression(equalsInvocation.right);
       if (otherGetRuntimeType != null) {
         // Detected
@@ -337,7 +337,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
         argument = nullAware.receiver;
         argumentGet = nullAware.expression;
       }
-    } else if (isInvokeToString(node.parent)) {
+    } else if (isInvokeToString(nodeParent)) {
       // Detected
       //
       //     e.runtimeType.toString()
@@ -346,15 +346,15 @@ RuntimeTypeUseData computeRuntimeTypeUse(
       receiver = runtimeTypeAccess.receiver;
       receiverGet = node;
     }
-  } else if (node.parent is ir.Arguments &&
-      _isObjectMethodInvocation(node.parent.parent)) {
-    _EqualsInvocation _equalsInvocation =
-        _getEqualsInvocation(node.parent.parent);
+  } else if (nodeParent is ir.Arguments &&
+      _isObjectMethodInvocation(nodeParentParent)) {
+    _EqualsInvocation? _equalsInvocation =
+        _getEqualsInvocation(nodeParentParent);
     if (_equalsInvocation != null && _equalsInvocation.right == node) {
       // [node] is the right hand side of ==.
-      _RuntimeTypeAccess otherGetRuntimeType =
+      _RuntimeTypeAccess? otherGetRuntimeType =
           _getRuntimeTypeAccess(_equalsInvocation.left);
-      NullAwareExpression nullAware =
+      NullAwareExpression? nullAware =
           getNullAwareExpression(_equalsInvocation.left);
 
       if (otherGetRuntimeType != null) {
@@ -388,7 +388,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
         argumentGet = node;
       }
     }
-  } else if (node.parent is ir.StringConcatenation) {
+  } else if (nodeParent is ir.StringConcatenation) {
     // Detected
     //
     //     '${e.runtimeType}'
@@ -415,7 +415,6 @@ RuntimeTypeUseData computeRuntimeTypeUse(
     cache[argumentGet] = data;
   }
 
-  assert(receiverGet != null, "Missing receiverGet in $data for $node.");
   assert(!(argument != null && argumentGet == null),
       "Missing argumentGet in $data for $node.");
   assert(
@@ -424,13 +423,13 @@ RuntimeTypeUseData computeRuntimeTypeUse(
 }
 
 /// Returns `true` if [node] is a potential invocation of an Object method.
-bool _isObjectMethodInvocation(ir.TreeNode node) {
+bool _isObjectMethodInvocation(ir.TreeNode? node) {
   return node is ir.InstanceInvocation || node is ir.EqualsCall;
 }
 
 /// Returns the [_RuntimeTypeAccess] corresponding to [node] if it is an access
 /// of `.runtimeType`, and `null` otherwise.
-_RuntimeTypeAccess _getRuntimeTypeAccess(ir.TreeNode node) {
+_RuntimeTypeAccess? _getRuntimeTypeAccess(ir.TreeNode node) {
   if (node is ir.InstanceGet && node.name.text == 'runtimeType') {
     return _RuntimeTypeAccess(node, node.receiver);
   } else if (node is ir.DynamicGet && node.name.text == 'runtimeType') {
@@ -448,7 +447,7 @@ class _RuntimeTypeAccess {
 
 /// Returns the [_EqualsInvocation] corresponding to [node] if it is a call to
 /// of `==`, and `null` otherwise.
-_EqualsInvocation _getEqualsInvocation(ir.TreeNode node) {
+_EqualsInvocation? _getEqualsInvocation(ir.TreeNode? node) {
   if (node is ir.EqualsCall) {
     return _EqualsInvocation(node, node.left, node.right);
   }

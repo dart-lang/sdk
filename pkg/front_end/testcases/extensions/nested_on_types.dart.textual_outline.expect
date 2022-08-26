@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A<T> {}
 
 extension Extension<T> on A<A<T>> {

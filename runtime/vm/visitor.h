@@ -64,6 +64,15 @@ class ObjectPointerVisitor {
     return shared_class_table_;
   }
 
+  // Returns true if pointers of the given SuspendState object can be visited.
+  // Compactor overrides this method in order to postpone visiting SuspendState
+  // objects with evacuated frames, as visiting them may touch other Dart
+  // objects (array of InstructionsTables) which have inconsistent state
+  // until compaction is finished.
+  virtual bool CanVisitSuspendStatePointers(SuspendStatePtr suspend_state) {
+    return true;
+  }
+
  private:
   IsolateGroup* isolate_group_;
   const char* gc_root_type_;

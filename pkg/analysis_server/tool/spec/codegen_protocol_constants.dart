@@ -11,13 +11,13 @@ import 'from_html.dart';
 final GeneratedFile clientTarget = GeneratedFile(
     '../analysis_server_client/lib/src/protocol/protocol_constants.dart',
     (String pkgPath) async {
-  var visitor = CodegenVisitor(readApi(pkgPath));
+  var visitor = _CodegenVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
 final GeneratedFile serverTarget = GeneratedFile(
     'lib/protocol/protocol_constants.dart', (String pkgPath) async {
-  var visitor = CodegenVisitor(readApi(pkgPath));
+  var visitor = _CodegenVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
@@ -53,8 +53,8 @@ Iterable<String> _split(String first) {
 
 /// A visitor that produces Dart code defining constants associated with the
 /// API.
-class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
-  CodegenVisitor(Api api) : super(api) {
+class _CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
+  _CodegenVisitor(super.api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';
@@ -110,7 +110,7 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
   List<_Constant> constants = <_Constant>[];
 
   /// Initialize a newly created visitor to visit the given [api].
-  _ConstantVisitor(Api api) : super(api);
+  _ConstantVisitor(super.api);
 
   @override
   void visitNotification(Notification notification) {
@@ -143,13 +143,13 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
     if (type == null) {
       return;
     }
-    type.fields.forEach((TypeObjectField field) {
+    for (var field in type.fields) {
       var name = field.name;
       var components = <String>[];
       components.add(parentName);
       components.addAll(_split(name));
       var fieldConstantName = _fromComponents(components);
       constants.add(_Constant(fieldConstantName, "'$name'"));
-    });
+    }
   }
 }

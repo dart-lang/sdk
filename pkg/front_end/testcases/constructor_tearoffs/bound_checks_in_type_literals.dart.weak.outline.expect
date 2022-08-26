@@ -21,7 +21,7 @@ class C<T extends core::num> extends core::Object {
 static field core::Type test3;
 static method test() → dynamic
   ;
-static method test2([core::Type t]) → dynamic
+static method test2([has-declared-initializer core::Type t]) → dynamic
   ;
 static method main() → dynamic
   ;

@@ -647,9 +647,9 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
       LocalVariable* variable = pf.ParameterVariable(i);
       if (variable->is_captured()) {
         LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
-        ASSERT((function.HasOptionalParameters() &&
+        ASSERT((function.MakesCopyOfParameters() &&
                 raw_parameter.owner() == scope) ||
-               (!function.HasOptionalParameters() &&
+               (!function.MakesCopyOfParameters() &&
                 raw_parameter.owner() == nullptr));
         ASSERT(!raw_parameter.is_captured());
 
@@ -662,6 +662,70 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
       }
     }
     body += Drop();  // The context.
+  }
+  return body;
+}
+
+Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
+    const Function& dart_function) {
+  Fragment body;
+  if (dart_function.IsCompactAsyncFunction()) {
+    const auto& result_type =
+        AbstractType::Handle(Z, dart_function.result_type());
+    auto& type_args = TypeArguments::ZoneHandle(Z);
+    if (result_type.IsType() &&
+        (Class::Handle(Z, result_type.type_class()).IsFutureClass() ||
+         result_type.IsFutureOrType())) {
+      ASSERT(result_type.IsFinalized());
+      type_args = result_type.arguments();
+    }
+
+    body += TranslateInstantiatedTypeArguments(type_args);
+    body += B->Call1ArgStub(TokenPosition::kNoSource,
+                            Call1ArgStubInstr::StubId::kInitAsync);
+    body += Drop();
+  } else if (dart_function.IsCompactAsyncStarFunction()) {
+    const auto& result_type =
+        AbstractType::Handle(Z, dart_function.result_type());
+    auto& type_args = TypeArguments::ZoneHandle(Z);
+    if (result_type.IsType() &&
+        (result_type.type_class() == IG->object_store()->stream_class())) {
+      ASSERT(result_type.IsFinalized());
+      type_args = result_type.arguments();
+    }
+
+    body += TranslateInstantiatedTypeArguments(type_args);
+    body += B->Call1ArgStub(TokenPosition::kNoSource,
+                            Call1ArgStubInstr::StubId::kInitAsyncStar);
+    body += Drop();
+    body += NullConstant();
+    body += B->Suspend(TokenPosition::kNoSource,
+                       SuspendInstr::StubId::kYieldAsyncStar);
+    body += Drop();
+  } else if (dart_function.IsCompactSyncStarFunction()) {
+    const auto& result_type =
+        AbstractType::Handle(Z, dart_function.result_type());
+    auto& type_args = TypeArguments::ZoneHandle(Z);
+    if (result_type.IsType() &&
+        (result_type.type_class() == IG->object_store()->iterable_class())) {
+      ASSERT(result_type.IsFinalized());
+      type_args = result_type.arguments();
+    }
+
+    body += TranslateInstantiatedTypeArguments(type_args);
+    body += B->Call1ArgStub(TokenPosition::kNoSource,
+                            Call1ArgStubInstr::StubId::kInitSyncStar);
+    body += Drop();
+    body += NullConstant();
+    body += B->Suspend(TokenPosition::kNoSource,
+                       SuspendInstr::StubId::kYieldSyncStar);
+    body += Drop();
+    // Clone context if there are any captured parameter variables, so
+    // each invocation of .iterator would get its own copy of parameters.
+    const LocalScope* scope = parsed_function()->scope();
+    if (scope->num_context_variables() > 0) {
+      body += CloneContext(scope->context_slots());
+    }
   }
   return body;
 }
@@ -885,6 +949,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // objects than necessary during GC.
   const Fragment body =
       ClearRawParameters(dart_function) + B->BuildNullAssertions() +
+      InitSuspendableFunction(dart_function) +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
   auto extra_entry_point_style = ChooseEntryPointStyle(
@@ -1133,6 +1198,16 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(
       return BuildInstanceSet(position);
     case kDynamicSet:
       return BuildDynamicSet(position);
+    case kAbstractSuperPropertyGet:
+      // Abstract super property getters must be converted into super property
+      // getters during mixin transformation.
+      UNREACHABLE();
+      break;
+    case kAbstractSuperPropertySet:
+      // Abstract super property setters must be converted into super property
+      // setters during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperPropertyGet:
       return BuildSuperPropertyGet(position);
     case kSuperPropertySet:
@@ -1153,6 +1228,11 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(
       return BuildEqualsCall(position);
     case kEqualsNull:
       return BuildEqualsNull(position);
+    case kAbstractSuperMethodInvocation:
+      // Abstract super method invocations must be converted into super
+      // method invocations during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperMethodInvocation:
       return BuildSuperMethodInvocation(position);
     case kStaticInvocation:
@@ -1222,6 +1302,8 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(
       return BuildLibraryPrefixAction(position, Symbols::LoadLibrary());
     case kCheckLibraryIsLoaded:
       return BuildLibraryPrefixAction(position, Symbols::CheckLoaded());
+    case kAwaitExpression:
+      return BuildAwaitExpression(position);
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -1442,6 +1524,10 @@ StreamingFlowGraphBuilder::yield_continuations() {
 
 Value* StreamingFlowGraphBuilder::stack() {
   return flow_graph_builder_->stack_;
+}
+
+void StreamingFlowGraphBuilder::set_stack(Value* top) {
+  flow_graph_builder_->stack_ = top;
 }
 
 void StreamingFlowGraphBuilder::Push(Definition* definition) {
@@ -4302,6 +4388,24 @@ Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
   return instructions;
 }
 
+Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
+    TokenPosition* position) {
+  ASSERT(parsed_function()->function().IsCompactAsyncFunction() ||
+         parsed_function()->function().IsCompactAsyncStarFunction());
+  Fragment instructions;
+
+  const TokenPosition pos = ReadPosition();  // read file offset.
+  if (position != nullptr) *position = pos;
+
+  instructions += BuildExpression();  // read operand.
+
+  if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
+    instructions += DebugStepCheck(pos);
+  }
+  instructions += B->Suspend(pos, SuspendInstr::StubId::kAwait);
+  return instructions;
+}
+
 Fragment StreamingFlowGraphBuilder::BuildExpressionStatement(
     TokenPosition* position) {
   Fragment instructions = BuildExpression(position);  // read expression.
@@ -4479,7 +4583,6 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement(
 
 Fragment StreamingFlowGraphBuilder::BuildWhileStatement(
     TokenPosition* position) {
-  ASSERT(block_expression_depth() == 0);  // no while in block-expr
   loop_depth_inc();
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
@@ -4496,8 +4599,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement(
     body_entry += Goto(join);
 
     Fragment loop(join);
-    ASSERT(B->GetStackDepth() == 0);
-    loop += CheckStackOverflow(pos);
+    loop += CheckStackOverflow(pos);  // may have non-empty stack
     loop.current->LinkTo(condition.entry);
 
     entry = Goto(join).entry;
@@ -4510,7 +4612,6 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildDoStatement(TokenPosition* position) {
-  ASSERT(block_expression_depth() == 0);  // no do-while in block-expr
   loop_depth_inc();
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
@@ -4527,8 +4628,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement(TokenPosition* position) {
 
   JoinEntryInstr* join = BuildJoinEntry();
   Fragment loop(join);
-  ASSERT(B->GetStackDepth() == 0);
-  loop += CheckStackOverflow(pos);
+  loop += CheckStackOverflow(pos);  // may have non-empty stack
   loop += body;
   loop <<= condition.entry;
 
@@ -4686,6 +4786,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
     TokenPosition* position) {
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
+  ReadBool();  // read exhaustive flag.
 
   // We need the number of cases. So start by getting that, then go back.
   intptr_t offset = ReaderOffset();
@@ -5100,7 +5201,6 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch(TokenPosition* position) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
-  ASSERT(block_expression_depth() == 0);  // no try-finally in block-expr
   // Note on streaming:
   // We only stream this TryFinally if we can stream everything inside it,
   // so creating a "TryFinallyBlock" with a kernel binary offset instead of an
@@ -5163,6 +5263,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
 
   // Fill in the body of the catch.
   catch_depth_inc();
+
   const Array& handler_types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
   handler_types.SetAt(0, Object::dynamic_type());
   // Note: rethrow will actually force mark the handler as needing a stacktrace.
@@ -5170,6 +5271,15 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
                                           /* needs_stacktrace = */ false,
                                           /* is_synthesized = */ true);
   SetOffset(finalizer_offset);
+
+  // Try/finally might occur in control flow collections with non-empty
+  // expression stack (via desugaring of 'await for'). Note that catch-block
+  // generated for finally always throws so there is no merge.
+  // Save and reset expression stack around catch body in order to maintain
+  // correct stack depth, as catch entry drops expression stack.
+  Value* const saved_stack_top = stack();
+  set_stack(nullptr);
+
   finally_body += BuildStatementWithBranchCoverage();  // read finalizer
   if (finally_body.is_open()) {
     finally_body += LoadLocal(CurrentException());
@@ -5178,6 +5288,9 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
         RethrowException(TokenPosition::kNoSource, try_handler_index);
     Drop();
   }
+
+  ASSERT(stack() == nullptr);
+  set_stack(saved_stack_top);
   catch_depth_dec();
 
   return Fragment(try_body.entry, after_try);
@@ -5188,8 +5301,114 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement(
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
 
-  uint8_t flags = ReadByte();          // read flags.
-  ASSERT(flags == kNativeYieldFlags);  // Must have been desugared.
+  const uint8_t flags = ReadByte();  // read flags.
+
+  if ((flags & kYieldStatementFlagNative) == 0) {
+    Fragment instructions;
+    const bool is_yield_star = (flags & kYieldStatementFlagYieldStar) != 0;
+
+    // Load :suspend_state variable using low-level FP-relative load
+    // in order to avoid confusing SSA construction (which cannot
+    // track its value as it is modified implicitly by stubs).
+    LocalVariable* suspend_state = parsed_function()->suspend_state_var();
+    ASSERT(suspend_state != nullptr);
+    instructions += IntConstant(0);
+    instructions += B->LoadFpRelativeSlot(
+        compiler::target::frame_layout.FrameSlotForVariable(suspend_state) *
+            compiler::target::kWordSize,
+        CompileType::Dynamic(), kTagged);
+    instructions += LoadNativeField(Slot::SuspendState_function_data());
+
+    instructions += BuildExpression();  // read expression.
+    if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
+      instructions += DebugStepCheck(pos);
+    }
+
+    if (parsed_function()->function().IsCompactAsyncStarFunction()) {
+      // In the async* functions, generate the following code for yield <expr>:
+      //
+      // _AsyncStarStreamController controller = :suspend_state._functionData;
+      // if (controller.add(<expr>)) {
+      //   return;
+      // }
+      // suspend();
+      //
+      // Generate the following code for yield* <expr>:
+      //
+      // _AsyncStarStreamController controller = :suspend_state._functionData;
+      // controller.addStream(<expr>);
+      // if (suspend()) {
+      //   return;
+      // }
+      //
+
+      auto& add_method = Function::ZoneHandle(Z);
+      if (is_yield_star) {
+        add_method =
+            IG->object_store()->async_star_stream_controller_add_stream();
+      } else {
+        add_method = IG->object_store()->async_star_stream_controller_add();
+      }
+      instructions += StaticCall(TokenPosition::kNoSource, add_method, 2,
+                                 ICData::kNoRebind);
+
+      if (is_yield_star) {
+        // Discard result of _AsyncStarStreamController.addStream().
+        instructions += Drop();
+        // Suspend and test value passed to the resumed async* body.
+        instructions += NullConstant();
+        instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
+      } else {
+        // Test value returned by _AsyncStarStreamController.add().
+      }
+
+      TargetEntryInstr* exit;
+      TargetEntryInstr* continue_execution;
+      instructions += BranchIfTrue(&exit, &continue_execution, false);
+
+      Fragment do_exit(exit);
+      do_exit += TranslateFinallyFinalizers(nullptr, -1);
+      do_exit += NullConstant();
+      do_exit += Return(TokenPosition::kNoSource);
+
+      instructions = Fragment(instructions.entry, continue_execution);
+      if (!is_yield_star) {
+        instructions += NullConstant();
+        instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldAsyncStar);
+        instructions += Drop();
+      }
+
+    } else if (parsed_function()->function().IsCompactSyncStarFunction()) {
+      // In the sync* functions, generate the following code for yield <expr>:
+      //
+      // _SyncStarIterator iterator = :suspend_state._functionData;
+      // iterator._current = <expr>;
+      // suspend();
+      //
+      // Generate the following code for yield* <expr>:
+      //
+      // _SyncStarIterator iterator = :suspend_state._functionData;
+      // iterator._yieldStarIterable = <expr>;
+      // suspend();
+      //
+      auto& field = Field::ZoneHandle(Z);
+      if (is_yield_star) {
+        field = IG->object_store()->sync_star_iterator_yield_star_iterable();
+      } else {
+        field = IG->object_store()->sync_star_iterator_current();
+      }
+      instructions += B->StoreInstanceFieldGuarded(field);
+      instructions += NullConstant();
+      instructions += B->Suspend(pos, SuspendInstr::StubId::kYieldSyncStar);
+      instructions += Drop();
+    } else {
+      UNREACHABLE();
+    }
+
+    return instructions;
+  }
+
+  ASSERT(flags == kYieldStatementFlagNative);  // Must have been desugared.
 
   // Setup yield/continue point:
   //
@@ -5427,36 +5646,67 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           lib.AddMetadata(function, func_decl_offset);
         }
 
-        function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                                   FunctionNodeHelper::kSync);
-        switch (function_node_helper.dart_async_marker_) {
-          case FunctionNodeHelper::kSyncStar:
-            function.set_modifier(UntaggedFunction::kSyncGen);
-            break;
-          case FunctionNodeHelper::kAsync:
-            function.set_modifier(UntaggedFunction::kAsync);
-            break;
-          case FunctionNodeHelper::kAsyncStar:
-            function.set_modifier(UntaggedFunction::kAsyncGen);
-            break;
-          default:
-            // no special modifier
-            break;
-        }
-        function.set_is_generated_body(function_node_helper.async_marker_ ==
-                                       FunctionNodeHelper::kSyncYielding);
-        // sync* functions contain two nested synthetic functions, the first of
-        // which (sync_op_gen) is a regular sync function so we need to manually
-        // label it generated:
-        if (function.parent_function() != Function::null()) {
-          const auto& parent = Function::Handle(function.parent_function());
-          if (parent.IsSyncGenerator()) {
-            function.set_is_generated_body(true);
+        if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
+          function.set_modifier(UntaggedFunction::kAsync);
+          function.set_is_debuggable(true);
+          function.set_is_inlinable(false);
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactAsyncFunction());
+        } else if (function_node_helper.async_marker_ ==
+                   FunctionNodeHelper::kAsyncStar) {
+          function.set_modifier(UntaggedFunction::kAsyncGen);
+          function.set_is_debuggable(true);
+          function.set_is_inlinable(false);
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactAsyncStarFunction());
+        } else if (function_node_helper.async_marker_ ==
+                   FunctionNodeHelper::kSyncStar) {
+          function.set_modifier(UntaggedFunction::kSyncGen);
+          function.set_is_debuggable(true);
+          function.set_is_inlinable(false);
+          function.set_is_visible(true);
+          ASSERT(function.IsCompactSyncStarFunction());
+        } else {
+          ASSERT((function_node_helper.async_marker_ ==
+                  FunctionNodeHelper::kSync) ||
+                 (function_node_helper.async_marker_ ==
+                  FunctionNodeHelper::kSyncYielding));
+          function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
+                                     FunctionNodeHelper::kSync);
+          switch (function_node_helper.dart_async_marker_) {
+            case FunctionNodeHelper::kSyncStar:
+              function.set_modifier(UntaggedFunction::kSyncGen);
+              break;
+            case FunctionNodeHelper::kAsync:
+              function.set_modifier(UntaggedFunction::kAsync);
+              break;
+            case FunctionNodeHelper::kAsyncStar:
+              function.set_modifier(UntaggedFunction::kAsyncGen);
+              break;
+            default:
+              // no special modifier
+              break;
           }
-        }
-        // Note: Is..() methods use the modifiers set above, so order matters.
-        if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-          function.set_is_inlinable(!FLAG_lazy_async_stacks);
+          function.set_is_generated_body(function_node_helper.async_marker_ ==
+                                         FunctionNodeHelper::kSyncYielding);
+          // sync* functions contain two nested synthetic functions,
+          // the first of which (sync_op_gen) is a regular sync function so we
+          // need to manually label it generated:
+          if (function.parent_function() != Function::null()) {
+            const auto& parent = Function::Handle(function.parent_function());
+            if (parent.IsSyncGenerator() &&
+                !parent.IsCompactSyncStarFunction()) {
+              function.set_is_generated_body(true);
+            }
+          }
+          // Note: Is..() methods use the modifiers set above, so order
+          // matters.
+          if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+            function.set_is_inlinable(false);
+          }
+          ASSERT(!function.IsCompactAsyncFunction());
+          ASSERT(!function.IsCompactAsyncStarFunction());
+          ASSERT(!function.IsCompactSyncStarFunction());
         }
 
         // If the start token position is synthetic, the end token position

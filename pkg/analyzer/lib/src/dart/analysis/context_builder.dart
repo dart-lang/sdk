@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as macro;
 import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -13,7 +15,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
     show ByteStore, MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverScheduler;
+    show AnalysisDriver, AnalysisDriverScheduler, AnalysisDriverTestView;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
@@ -57,13 +59,26 @@ class ContextBuilderImpl implements ContextBuilder {
     AnalysisDriverScheduler? scheduler,
     String? sdkPath,
     String? sdkSummaryPath,
-    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    @Deprecated('Use updateAnalysisOptions2')
+        void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
+    void Function({
+      required AnalysisOptionsImpl analysisOptions,
+      required ContextRoot contextRoot,
+      required DartSdk sdk,
+    })?
+        updateAnalysisOptions2,
     FileContentCache? fileContentCache,
     MacroKernelBuilder? macroKernelBuilder,
+    macro.MultiMacroExecutor? macroExecutor,
   }) {
     // TODO(scheglov) Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
+    if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
+      throw ArgumentError(
+          'Either updateAnalysisOptions or updateAnalysisOptions2 must be '
+          'given, but not both.');
+    }
 
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(StringBuffer());
@@ -101,7 +116,16 @@ class ContextBuilderImpl implements ContextBuilder {
     var options = _getAnalysisOptions(contextRoot, sourceFactory);
     if (updateAnalysisOptions != null) {
       updateAnalysisOptions(options);
+    } else if (updateAnalysisOptions2 != null) {
+      updateAnalysisOptions2(
+        analysisOptions: options,
+        contextRoot: contextRoot,
+        sdk: sdk,
+      );
     }
+
+    final analysisContext =
+        DriverBasedAnalysisContext(resourceProvider, contextRoot);
 
     var driver = AnalysisDriver(
       scheduler: scheduler,
@@ -113,17 +137,16 @@ class ContextBuilderImpl implements ContextBuilder {
       packages: _createPackageMap(
         contextRoot: contextRoot,
       ),
+      analysisContext: analysisContext,
       enableIndex: enableIndex,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
       macroKernelBuilder: macroKernelBuilder,
+      macroExecutor: macroExecutor,
+      declaredVariables: declaredVariables,
+      testView: retainDataForTesting ? AnalysisDriverTestView() : null,
     );
-
-    if (declaredVariables != null) {
-      driver.declaredVariables = declaredVariables;
-      driver.configure();
-    }
 
     // AnalysisDriver reports results into streams.
     // We need to drain these streams to avoid memory leak.
@@ -132,11 +155,7 @@ class ContextBuilderImpl implements ContextBuilder {
       driver.exceptions.drain<void>();
     }
 
-    DriverBasedAnalysisContext context =
-        DriverBasedAnalysisContext(resourceProvider, contextRoot, driver);
-    driver.configure(analysisContext: context);
-
-    return context;
+    return analysisContext;
   }
 
   /// Return [Packages] to analyze the [contextRoot].
@@ -145,9 +164,9 @@ class ContextBuilderImpl implements ContextBuilder {
   Packages _createPackageMap({
     required ContextRoot contextRoot,
   }) {
-    var configFile = contextRoot.packagesFile;
-    if (configFile != null) {
-      return parsePackagesFile(resourceProvider, configFile);
+    var packagesFile = contextRoot.packagesFile;
+    if (packagesFile != null) {
+      return parsePackageConfigJsonFile(resourceProvider, packagesFile);
     } else {
       return Packages.empty;
     }

@@ -4,7 +4,7 @@ import self as self;
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/const_default.lib.dart";
 
 static method main() → dynamic {
-  dynamic dyn = null;
+  has-declared-initializer dynamic dyn = null;
 }
 library const_default.lib.dart /*isNonNullableByDefault*/;
 import self as self;

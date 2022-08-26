@@ -57,9 +57,6 @@ class ConvertQuotes extends _ConvertQuotes {
       }
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertQuotes newInstance() => ConvertQuotes();
 }
 
 class ConvertToDoubleQuotes extends _ConvertQuotes {
@@ -80,9 +77,6 @@ class ConvertToDoubleQuotes extends _ConvertQuotes {
 
   @override
   bool get _fromDouble => false;
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertToDoubleQuotes newInstance() => ConvertToDoubleQuotes();
 }
 
 class ConvertToSingleQuotes extends _ConvertQuotes {
@@ -103,9 +97,6 @@ class ConvertToSingleQuotes extends _ConvertQuotes {
 
   @override
   bool get _fromDouble => true;
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertToSingleQuotes newInstance() => ConvertToSingleQuotes();
 }
 
 abstract class _ConvertQuotes extends CorrectionProducer {

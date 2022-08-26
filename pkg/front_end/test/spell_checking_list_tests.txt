@@ -175,6 +175,7 @@ datatypes
 day
 days
 db
+dbenchmark
 ddart
 dds
 debugger
@@ -182,7 +183,6 @@ declarative
 decrease
 decrements
 dectcem
-defintions
 deleting
 denylist
 depended
@@ -222,6 +222,7 @@ downstream
 draw
 dry
 dsemi
+dskip
 dumping
 dumps
 dupe
@@ -322,6 +323,7 @@ hkt
 home
 hoo
 hook
+horizontally
 hosted
 hosting
 hot
@@ -340,6 +342,7 @@ implemen
 implementor
 implementors
 imprecision
+improvement
 inclosure
 inconsistencies
 increasing
@@ -441,6 +444,7 @@ noted
 nottest
 null'ed
 numerator
+nums
 ob
 obool
 observable
@@ -459,6 +463,7 @@ operate
 ops
 optimal
 oracle
+ot
 outbound
 outliers
 overhead
@@ -490,6 +495,7 @@ portions
 pp
 preliminary
 prematurely
+prerequisite
 press
 pretends
 printouts
@@ -514,6 +520,7 @@ quot
 quux
 quuz
 reality
+recompilation
 recompiles
 redir
 redirections
@@ -602,6 +609,7 @@ stat
 stats
 stay
 std
+stopwatches
 stress
 stringy
 strip
@@ -620,6 +628,7 @@ sup
 supermixin
 supplement
 suspension
+swallow
 t\b\f\u
 t\u
 ta
@@ -709,6 +718,7 @@ y's
 year
 yxxx
 yy
+zeroth
 zipf's
 zyx
 zz

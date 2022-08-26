@@ -44,7 +44,7 @@ main(List<String> args) async {
     // Compile script to Kernel IR.
     await run('pkg/vm/tool/gen_kernel', <String>[
       '--aot',
-      '--packages=$sdkDir/.packages',
+      '--packages=$sdkDir/.dart_tool/package_config.json',
       '--platform=$platformDill',
       '-o',
       scriptDill,

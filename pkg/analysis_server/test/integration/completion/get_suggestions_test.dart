@@ -42,7 +42,7 @@ class GetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_getSuggestions() async {
     setTestSource('test.dart', r'''
 String test = '';
-main() {
+void f() {
   test.^
 }
 ''');
@@ -63,7 +63,7 @@ main() {
   Future<void> test_getSuggestions_onlyOverlay() async {
     setTestSource('test.dart', r'''
 String test = '';
-main() {
+void f() {
   test.^
 }
 ''');
@@ -86,11 +86,11 @@ main() {
   Future<void> test_getSuggestions_onlyOverlay_noWait() async {
     setTestSource('test.dart', r'''
 String test = '';
-main() {
+void f() {
   test.^
 }
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     // Create an overlay but do not write the file to "disk"
     //   writeFile(pathname, text);
@@ -110,7 +110,7 @@ main() {
     // Do not write the file to "disk"
     //   writeFile(pathname, text);
     // Don't wait for any results except the completion notifications
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     // Missing file and no overlay
     //sendAnalysisUpdateContent({path: new AddContentOverlay(content)});

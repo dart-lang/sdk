@@ -110,10 +110,11 @@ abstract class C8 extends mai::C5 implements mai::C7 {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract forwarding-stub method method2([covariant-by-declaration core::String* a, core::num* b]) → dynamic;
+  abstract forwarding-stub method method2([covariant-by-declaration core::String* a = #C2, core::num* b = #C2]) → dynamic;
 }
 static method main() → dynamic {}
 
 constants  {
   #C1 = "hello"
+  #C2 = null
 }

@@ -26,7 +26,7 @@ class AvailableSuggestionSetsTest extends AvailableSuggestionsBase {
 
     // Create the file, should get the set.
     {
-      newFile2(path, r'''
+      newFile(path, r'''
 class A {}
 ''');
       var set = await waitForSetWithUri(uriStr);
@@ -35,7 +35,7 @@ class A {}
 
     // Update the file, should get the updated set.
     {
-      newFile2(path, r'''
+      newFile(path, r'''
 class B {}
 ''');
       removeSet(uriStr);
@@ -52,7 +52,7 @@ class B {}
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
-    newFile2(path, r'''
+    newFile(path, r'''
 class A {
   A.a();
 }
@@ -120,7 +120,7 @@ class A {
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
-    newFile2(path, r'''
+    newFile(path, r'''
 abstract class A {
   A.a();
   factory A.b() => _B();
@@ -195,12 +195,12 @@ class _B extends A {
     var b_path = convertPath('/home/test/lib/b.dart');
     var a_uriStr = 'package:test/a.dart';
 
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 part 'b.dart';
 class A {}
 ''');
 
-    newFile2(b_path, r'''
+    newFile(b_path, r'''
 part of 'a.dart';
 class B {}
 ''');
@@ -264,7 +264,7 @@ class B {}
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
-    newFile2(path, r'''
+    newFile(path, r'''
 enum MyEnum {
   aaa,
   bbb,
@@ -355,7 +355,7 @@ enum MyEnum {
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
-    newFile2(path, r'''
+    newFile(path, r'''
 var boolV = false;
 var intV = 0;
 var doubleV = 0.1;
@@ -473,7 +473,7 @@ var stringV = 'hi';
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
-    newFile2(path, r'''
+    newFile(path, r'''
 typedef MyAlias = double;
 ''');
 
@@ -509,7 +509,7 @@ typedef MyAlias = double;
     var path = convertPath('/home/test/lib/a.dart');
     var uriStr = 'package:test/a.dart';
 
-    newFile2(path, r'''
+    newFile(path, r'''
 typedef MyAlias = void Function();
 ''');
 

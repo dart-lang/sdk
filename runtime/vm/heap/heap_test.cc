@@ -512,7 +512,8 @@ ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
 class HeapTestHelper {
  public:
   static void Scavenge(Thread* thread) {
-    thread->heap()->CollectNewSpaceGarbage(thread, GCReason::kDebugging);
+    thread->heap()->CollectNewSpaceGarbage(thread, GCType::kScavenge,
+                                           GCReason::kDebugging);
   }
   static void MarkSweep(Thread* thread) {
     thread->heap()->CollectOldSpaceGarbage(thread, GCType::kMarkSweep,
@@ -717,6 +718,67 @@ ISOLATE_UNIT_TEST_CASE(ArrayTruncationRaces) {
       list.Add(element, Heap::kOld);
     }
     lists.SetAt(i % kNumLists, list);
+  }
+}
+
+class ConcurrentForceGrowthScopeTask : public ThreadPool::Task {
+ public:
+  ConcurrentForceGrowthScopeTask(Isolate* isolate,
+                                 Monitor* monitor,
+                                 intptr_t* done_count)
+      : isolate_(isolate), monitor_(monitor), done_count_(done_count) {}
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    {
+      Thread* thread = Thread::Current();
+      StackZone stack_zone(thread);
+
+      GrowableObjectArray& accumulate =
+          GrowableObjectArray::Handle(GrowableObjectArray::New());
+      Object& element = Object::Handle();
+      for (intptr_t i = 0; i < 1000; i++) {
+        // Lots of entering and leaving ForceGrowth scopes. Previously, this
+        // would have been data races on the per-Heap force-growth flag.
+        {
+          ForceGrowthScope force_growth(thread);
+          GrowableObjectArrayPtr unsafe_accumulate = accumulate.ptr();
+          element = Array::New(0);
+          accumulate = unsafe_accumulate;
+        }
+        accumulate.Add(element);
+      }
+    }
+    Thread::ExitIsolateAsHelper();
+    // Notify the main thread that this thread has exited.
+    {
+      MonitorLocker ml(monitor_);
+      *done_count_ += 1;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+  Monitor* monitor_;
+  intptr_t* done_count_;
+};
+
+ISOLATE_UNIT_TEST_CASE(ConcurrentForceGrowthScope) {
+  intptr_t task_count = 8;
+  Monitor monitor;
+  intptr_t done_count = 0;
+
+  for (intptr_t i = 0; i < task_count; i++) {
+    Dart::thread_pool()->Run<ConcurrentForceGrowthScopeTask>(
+        thread->isolate(), &monitor, &done_count);
+  }
+
+  {
+    MonitorLocker ml(&monitor);
+    while (done_count < task_count) {
+      ml.WaitWithSafepointCheck(thread);
+    }
   }
 }
 

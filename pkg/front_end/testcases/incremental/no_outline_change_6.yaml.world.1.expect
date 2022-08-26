@@ -3,7 +3,7 @@ library from "org-dartlang-test:///libA.dart" as libA {
 
   import "org-dartlang-test:///main.dart";
 
-  static method whatever(main::Foo* foo) → dynamic {
+  static method whatever(main::Foo foo) → dynamic {
     dart.core::print(foo);
   }
 }
@@ -11,7 +11,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:8:32: Error: Expected ';' after this.
+// org-dartlang-test:///main.dart:7:32: Error: Expected ';' after this.
 //   toString() { return '$message' } // missing ;
 //                                ^
 //
@@ -20,50 +20,30 @@ library from "org-dartlang-test:///main.dart" as main {
 
   class Foo extends dart.core::Object {
     final field dynamic message;
-    constructor •(dynamic message) → main::Foo*
+    constructor •(dynamic message) → main::Foo
       : main::Foo::message = message, super dart.core::Object::•()
       ;
     @#C1
-    method toString() → dart.core::String* {
+    method toString() → dart.core::String {
       return "${this.{main::Foo::message}{dynamic}}";
     }
-    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   class CompilationStrategy extends dart.core::_Enum /*isEnum*/  {
-    static const field dart.core::List<main::CompilationStrategy*>* values = #C14;
-    static const field main::CompilationStrategy* direct = #C4;
-    static const field main::CompilationStrategy* toKernel = #C7;
-    static const field main::CompilationStrategy* toData = #C10;
-    static const field main::CompilationStrategy* fromData = #C13;
-    const constructor •(dart.core::int* index, dart.core::String* name) → main::CompilationStrategy*
-      : super dart.core::_Enum::•(index, name)
+    static const field dart.core::List<main::CompilationStrategy> values = #C14;
+    static const field main::CompilationStrategy direct = #C4;
+    static const field main::CompilationStrategy toKernel = #C7;
+    static const field main::CompilationStrategy toData = #C10;
+    static const field main::CompilationStrategy fromData = #C13;
+    const constructor •(dart.core::int #index, dart.core::String #name) → main::CompilationStrategy
+      : super dart.core::_Enum::•(#index, #name)
       ;
-    method toString() → dart.core::String*
+    method toString() → dart.core::String
       return "CompilationStrategy.${this.{dart.core::_Enum::_name}{dart.core::String}}";
-    abstract member-signature get index() → dart.core::int*; -> dart.core::_Enum::index
-    abstract member-signature get _name() → dart.core::String*; -> dart.core::_Enum::_name
-    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
-    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
-    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   static method main() → dynamic {
-    main::Foo* foo = new main::Foo::•("hello");
+    main::Foo foo = new main::Foo::•("hello");
     libA::whatever(foo);
-    main::CompilationStrategy* compilationStrategy = #C4;
+    main::CompilationStrategy compilationStrategy = #C4;
     dart.core::print(compilationStrategy);
   }
 }
@@ -83,3 +63,11 @@ constants  {
   #C13 = main::CompilationStrategy {index:#C11, _name:#C12}
   #C14 = <main::CompilationStrategy*>[#C4, #C7, #C10, #C13]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///main.dart:
+- CompilationStrategy. (from org-dartlang-test:///main.dart:17:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+

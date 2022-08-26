@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show jsonEncode;
+
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -19,6 +21,39 @@ import 'package:kernel/kernel.dart'
 import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+final String emptyPackageConfig = jsonEncode({
+  "configVersion": 2,
+  "packages": [],
+});
+
+final String fooBarPackageConfig = jsonEncode({
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "foo",
+      "rootUri": "bar",
+    },
+  ],
+});
+final String fooBazPackageConfig = jsonEncode({
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "foo",
+      "rootUri": "baz",
+    },
+  ],
+});
+final String fooBazDotDotPackageConfig = jsonEncode({
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "foo",
+      "rootUri": "../baz",
+    },
+  ],
+});
 
 void main() {
   CompilerContext.runWithDefaultOptions((_) {
@@ -117,13 +152,15 @@ class ProcessedOptionsTest {
 
   Future<void> test_getUriTranslator_explicitLibrariesSpec() async {
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('');
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(emptyPackageConfig);
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///libraries.json'))
         .writeAsStringSync('{"none":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
     var raw = new CompilerOptions()
-      ..packagesFileUri = Uri.parse('org-dartlang-test:///.packages')
+      ..packagesFileUri =
+          Uri.parse('org-dartlang-test:///.dart_tool/package_config.json')
       ..fileSystem = fileSystem
       ..librariesSpecificationUri =
           Uri.parse('org-dartlang-test:///libraries.json');
@@ -135,15 +172,17 @@ class ProcessedOptionsTest {
 
   Future<void> test_getUriTranslator_inferredLibrariesSpec() async {
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('');
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(emptyPackageConfig);
     fileSystem
         .entityForUri(
             Uri.parse('org-dartlang-test:///mysdk/lib/libraries.json'))
         .writeAsStringSync('{"none":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFileUri = Uri.parse('org-dartlang-test:///.packages')
+      ..packagesFileUri =
+          Uri.parse('org-dartlang-test:///.dart_tool/package_config.json')
       ..compileSdk = true
       ..sdkRoot = Uri.parse('org-dartlang-test:///mysdk/');
     var processed = new ProcessedOptions(options: raw);
@@ -154,15 +193,17 @@ class ProcessedOptionsTest {
 
   Future<void> test_getUriTranslator_notInferredLibrariesSpec() async {
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('');
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(emptyPackageConfig);
     fileSystem
         .entityForUri(
             Uri.parse('org-dartlang-test:///mysdk/lib/libraries.json'))
         .writeAsStringSync('{"none":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFileUri = Uri.parse('org-dartlang-test:///.packages')
+      ..packagesFileUri =
+          Uri.parse('org-dartlang-test:///.dart_tool/package_config.json')
       ..compileSdk = false // libraries.json is only inferred if true
       ..sdkRoot = Uri.parse('org-dartlang-test:///mysdk/');
     var processed = new ProcessedOptions(options: raw);
@@ -178,17 +219,18 @@ class ProcessedOptionsTest {
   }
 
   Future<void> test_getUriTranslator_explicitPackagesFile() async {
-    // This .packages file should be ignored.
+    // This .dart_tool/package_config.json file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('foo:bar\n');
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBarPackageConfig);
     // This one should be used.
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///explicit.packages'))
-        .writeAsStringSync('foo:baz\n');
+        .entityForUri(Uri.parse('org-dartlang-test:///explicit.json'))
+        .writeAsStringSync(fooBazPackageConfig);
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFileUri = Uri.parse('org-dartlang-test:///explicit.packages');
+      ..packagesFileUri = Uri.parse('org-dartlang-test:///explicit.json');
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'baz', uriTranslator.packages);
@@ -196,36 +238,38 @@ class ProcessedOptionsTest {
 
   Future<void>
       test_getUriTranslator_explicitPackagesFile_withBaseLocation() async {
-    // This .packages file should be ignored.
+    // This .dart_tool/package_config.json file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('foo:bar\n');
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBarPackageConfig);
     // This one should be used.
     fileSystem
         .entityForUri(
-            Uri.parse('org-dartlang-test:///base/location/explicit.packages'))
-        .writeAsStringSync('foo:baz\n');
+            Uri.parse('org-dartlang-test:///base/location/explicit.json'))
+        .writeAsStringSync(fooBazPackageConfig);
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..packagesFileUri =
-          Uri.parse('org-dartlang-test:///base/location/explicit.packages');
+          Uri.parse('org-dartlang-test:///base/location/explicit.json');
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'base/location/baz', uriTranslator.packages);
   }
 
   Future<void> test_getUriTranslator_implicitPackagesFile_ambiguous() async {
-    // This .packages file should be ignored.
+    // This .dart_tool/package_config.json file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('foo:bar\n');
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBarPackageConfig);
     // This one should be used.
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///explicit.packages'))
-        .writeAsStringSync('foo:baz\n');
+        .entityForUri(Uri.parse('org-dartlang-test:///explicit.json'))
+        .writeAsStringSync(fooBazPackageConfig);
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..packagesFileUri = Uri.parse('org-dartlang-test:///explicit.packages');
+      ..packagesFileUri = Uri.parse('org-dartlang-test:///explicit.json');
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();
     checkPackageExpansion('foo', 'baz', uriTranslator.packages);
@@ -236,18 +280,29 @@ class ProcessedOptionsTest {
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///base/location/'))
         .createDirectory();
-    // Packages directory should be ignored (.packages file takes precedence).
+    // Packages directory should be ignored (.dart_tool/package_config.json is
+    // the only one that will be automatically found).
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///base/location/packages/'))
         .createDirectory();
     // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('foo:bar\n');
-    // This one should be used.
+        .writeAsStringSync("foo:packages1");
+    // This .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///base/location/.packages'))
-        .writeAsStringSync('foo:baz\n');
+        .writeAsStringSync("foo:packages2");
+    // This .dart_tool/package_config.json file should be ignored.
+    fileSystem
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBarPackageConfig);
+    // This one should be used.
+    fileSystem
+        .entityForUri(Uri.parse(
+            'org-dartlang-test:///base/location/.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBazDotDotPackageConfig);
     var raw = new CompilerOptions()..fileSystem = fileSystem;
     var processed = new ProcessedOptions(
         options: raw,
@@ -261,14 +316,16 @@ class ProcessedOptionsTest {
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///base/location/'))
         .createDirectory();
-    // This .packages file should be ignored.
+    // This .dart_tool/package_config.json file should be ignored.
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('foo:bar\n');
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBarPackageConfig);
     // This one should be used.
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///base/.packages'))
-        .writeAsStringSync('foo:baz\n');
+        .entityForUri(Uri.parse(
+            'org-dartlang-test:///base/.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBazDotDotPackageConfig);
     var raw = new CompilerOptions()..fileSystem = fileSystem;
     var processed = new ProcessedOptions(
         options: raw,
@@ -289,12 +346,23 @@ class ProcessedOptionsTest {
         .entityForUri(Uri.parse('org-dartlang-test:///base/location/packages/'))
         .createDirectory();
 
+    // .packages is deprecated and should be ignored.
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('foo:bar\n');
+        .writeAsStringSync('foo:packages1\n');
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///base/.packages'))
-        .writeAsStringSync('foo:baz\n');
+        .writeAsStringSync('foo:packages2\n');
+
+    // .dart_tool/package_config.json
+    fileSystem
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBarPackageConfig);
+    fileSystem
+        .entityForUri(Uri.parse(
+            'org-dartlang-test:///base/.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBazDotDotPackageConfig);
     var raw = new CompilerOptions()..fileSystem = fileSystem;
     var processed = new ProcessedOptions(
         options: raw,
@@ -309,7 +377,7 @@ class ProcessedOptionsTest {
         .entityForUri(Uri.parse('org-dartlang-test:///base/location/'))
         .createDirectory();
     var errors = [];
-    // .packages file should be ignored.
+    // There is no .dart_tool/package_config.json file.
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..onDiagnostic = errors.add;
@@ -323,10 +391,12 @@ class ProcessedOptionsTest {
 
   Future<void> test_getUriTranslator_noPackages() async {
     var errors = <DiagnosticMessage>[];
-    // .packages file should be ignored.
+    // .dart_tool/package_config.json file should be ignored when specifying
+    // empty Uri.
     fileSystem
-        .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
-        .writeAsStringSync('foo:bar\n');
+        .entityForUri(
+            Uri.parse('org-dartlang-test:///.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBarPackageConfig);
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..packagesFileUri = new Uri()

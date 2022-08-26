@@ -9,8 +9,8 @@ import 'package:expect/expect.dart';
 class Super<T extends num> {}
 
 class Malbounded extends Super
-//    ^
-// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Super' in the supertype 'Super' of class 'Malbounded'.
+//                       ^
+// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Super'.
     <String>
 //   ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS

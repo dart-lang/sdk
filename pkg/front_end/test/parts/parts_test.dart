@@ -13,7 +13,7 @@ Future<void> main() async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = computePlatformBinariesLocation()
-    ..packagesFileUri = Uri.base.resolve('.packages');
+    ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json');
   for (FileSystemEntity dir in dataDir.listSync()) {
     if (dir is Directory) {
       print('Compiling ${dir.path}');

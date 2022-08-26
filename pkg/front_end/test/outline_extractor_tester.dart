@@ -18,7 +18,7 @@ import 'package:package_config/package_config.dart';
 Future<void> main(List<String> args) async {
   if (args.length != 1) throw "Wants 1 argument.";
   Uri input = Uri.base.resolve(args.single);
-  Uri packageUri = input.resolve(".packages");
+  Uri packageUri = input.resolve(".dart_tool/package_config.json");
   Stopwatch stopwatch = new Stopwatch()..start();
   PackageConfig packageFile = await loadPackageConfigUri(packageUri);
   print("Read packages file in ${stopwatch.elapsedMilliseconds} ms");
@@ -236,7 +236,7 @@ class Strategy extends EquivalenceStrategy {
   }
 
   @override
-  bool checkProcedure_startFileOffset(
+  bool checkProcedure_fileStartOffset(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
     return true;
   }

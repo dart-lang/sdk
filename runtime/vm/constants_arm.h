@@ -316,8 +316,11 @@ const Register PP = R5;  // Caches object pool pointer in generated code.
 const Register DISPATCH_TABLE_REG = NOTFP;  // Dispatch table register.
 const Register SPREG = SP;                  // Stack pointer register.
 const Register FPREG = FP;                  // Frame pointer register.
+const Register IC_DATA_REG = R9;            // ICData/MegamorphicCache register.
 const Register ARGS_DESC_REG = R4;
 const Register CODE_REG = R6;
+// Set when calling Dart functions in JIT mode, used by LazyCompileStub.
+const Register FUNCTION_REG = R0;
 const Register THR = R10;  // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R8;
 
@@ -345,6 +348,7 @@ struct InstantiationABI {
   static const Register kFunctionTypeArgumentsReg = R1;
   static const Register kResultTypeArgumentsReg = R0;
   static const Register kResultTypeReg = R0;
+  static const Register kScratchReg = R8;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the
@@ -431,7 +435,6 @@ struct InitStaticFieldABI {
 
 // Registers used inside the implementation of InitLateStaticFieldStub.
 struct InitLateStaticFieldInternalRegs {
-  static const Register kFunctionReg = R0;
   static const Register kAddressReg = R3;
   static const Register kScratchReg = R4;
 };
@@ -445,7 +448,6 @@ struct InitInstanceFieldABI {
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
-  static const Register kFunctionReg = R0;
   static const Register kAddressReg = R3;
   static const Register kScratchReg = R4;
 };
@@ -531,6 +533,60 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = R0;
 };
 
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
+struct SuspendStubABI {
+  static const Register kArgumentReg = R0;
+  static const Register kTempReg = R1;
+  static const Register kFrameSizeReg = R2;
+  static const Register kSuspendStateReg = R3;
+  static const Register kFunctionDataReg = R4;
+  static const Register kSrcFrameReg = R8;
+  static const Register kDstFrameReg = R9;
+};
+
+// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,
+// InitSyncStarStub).
+struct InitSuspendableFunctionStubABI {
+  static const Register kTypeArgsReg = R0;
+};
+
+// ABI for ResumeStub
+struct ResumeStubABI {
+  static const Register kSuspendStateReg = R2;
+  static const Register kTempReg = R0;
+  // Registers for the frame copying (the 1st part).
+  static const Register kFrameSizeReg = R1;
+  static const Register kSrcFrameReg = R3;
+  static const Register kDstFrameReg = R4;
+  // Registers for control transfer.
+  // (the 2nd part, can reuse registers from the 1st part)
+  static const Register kResumePcReg = R1;
+  // Can also reuse kSuspendStateReg but should not conflict with CODE_REG/PP.
+  static const Register kExceptionReg = R3;
+  static const Register kStackTraceReg = R4;
+};
+
+// ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
+// ReturnAsyncStarStub, ReturnSyncStarStub).
+struct ReturnStubABI {
+  static const Register kSuspendStateReg = R2;
+};
+
+// ABI for AsyncExceptionHandlerStub.
+struct AsyncExceptionHandlerStubABI {
+  static const Register kSuspendStateReg = R2;
+};
+
+// ABI for CloneSuspendStateStub.
+struct CloneSuspendStateStubABI {
+  static const Register kSourceReg = R0;
+  static const Register kDestinationReg = R1;
+  static const Register kTempReg = R2;
+  static const Register kFrameSizeReg = R3;
+  static const Register kSrcFrameReg = R4;
+  static const Register kDstFrameReg = R8;
+};
+
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
 // table calls (though normal functions will not expect or use this
 // register). This ABI is added to distinguish memory corruption errors from
@@ -550,6 +606,7 @@ const RegList kAllFpuRegistersList = (1 << kNumberOfFpuRegisters) - 1;
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
+const RegList kAbiVolatileCpuRegs = kAbiArgumentCpuRegs | (1 << IP) | (1 << LR);
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 const RegList kAbiPreservedCpuRegs =
     (1 << R4) | (1 << R5) | (1 << R6) | (1 << R8) | (1 << R10) | (1 << R11);
@@ -573,6 +630,8 @@ constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
 constexpr int kNumberOfDartAvailableCpuRegs =
     kNumberOfCpuRegisters - kNumberOfReservedCpuRegisters;
+// No reason to prefer certain registers on ARM.
+constexpr int kRegisterAllocationBias = 0;
 const intptr_t kStoreBufferWrapperSize = 24;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
@@ -611,11 +670,11 @@ class CallingConventions {
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
-      kAlignedToWordSizeBut8AlignedTo8;
+      kAlignedToWordSizeAndValueSize;
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
-      kAlignedToWordSizeBut8AlignedTo8;
+      kAlignedToWordSizeAndValueSize;
 
   // How fields in compounds are aligned.
 #if defined(DART_TARGET_OS_MACOS_IOS)

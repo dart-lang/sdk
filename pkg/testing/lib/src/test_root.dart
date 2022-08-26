@@ -56,11 +56,11 @@ class TestRoot {
   List<RegExp> get excludedFromAnalysis => analyze.exclude;
 
   Iterable<Dart> get dartSuites {
-    return new List<Dart>.from(suites.where((Suite suite) => suite is Dart));
+    return List<Dart>.from(suites.whereType<Dart>());
   }
 
   Iterable<Chain> get toolChains {
-    return new List<Chain>.from(suites.where((Suite suite) => suite is Chain));
+    return List<Chain>.from(suites.whereType<Chain>());
   }
 
   String toString() {
@@ -68,7 +68,7 @@ class TestRoot {
   }
 
   static Future<TestRoot> fromUri(Uri uri) async {
-    String jsonText = await new File.fromUri(uri).readAsString();
+    String jsonText = await File.fromUri(uri).readAsString();
     Map data = json.decode(jsonText);
 
     addDefaults(data);
@@ -76,14 +76,14 @@ class TestRoot {
     Uri packages = uri.resolve(data["packages"]);
 
     List<Suite> suites = data["suites"]
-        .map<Suite>((json) => new Suite.fromJsonMap(uri, json))
+        .map<Suite>((json) => Suite.fromJsonMap(uri, json))
         .toList();
 
     Analyze analyze = await Analyze.fromJsonMap(uri, data["analyze"], suites);
 
     suites.add(analyze);
 
-    return new TestRoot(packages, suites);
+    return TestRoot(packages, suites);
   }
 
   static void addDefaults(Map data) {

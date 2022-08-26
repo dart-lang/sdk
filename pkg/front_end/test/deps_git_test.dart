@@ -23,21 +23,19 @@ import 'utils/io_utils.dart' show computeRepoDirUri;
 final Uri repoDir = computeRepoDirUri();
 
 Set<String> allowlistedExternalDartFiles = {
-  "third_party/pkg/charcode/lib/ascii.dart",
-
-  "third_party/pkg_tested/package_config/lib/package_config.dart",
-  "third_party/pkg_tested/package_config/lib/package_config_types.dart",
-  "third_party/pkg_tested/package_config/lib/src/discovery.dart",
-  "third_party/pkg_tested/package_config/lib/src/errors.dart",
-  "third_party/pkg_tested/package_config/lib/src/package_config_impl.dart",
-  "third_party/pkg_tested/package_config/lib/src/package_config_io.dart",
-  "third_party/pkg_tested/package_config/lib/src/package_config_json.dart",
-  "third_party/pkg_tested/package_config/lib/src/package_config.dart",
-  "third_party/pkg_tested/package_config/lib/src/packages_file.dart",
-  "third_party/pkg_tested/package_config/lib/src/util.dart",
+  "third_party/pkg/package_config/lib/package_config.dart",
+  "third_party/pkg/package_config/lib/package_config_types.dart",
+  "third_party/pkg/package_config/lib/src/discovery.dart",
+  "third_party/pkg/package_config/lib/src/errors.dart",
+  "third_party/pkg/package_config/lib/src/package_config_impl.dart",
+  "third_party/pkg/package_config/lib/src/package_config_io.dart",
+  "third_party/pkg/package_config/lib/src/package_config_json.dart",
+  "third_party/pkg/package_config/lib/src/package_config.dart",
+  "third_party/pkg/package_config/lib/src/packages_file.dart",
+  "third_party/pkg/package_config/lib/src/util.dart",
 
   // TODO(johnniwinther): Fix to allow dependency of package:package_config.
-  "third_party/pkg_tested/package_config/lib/src/util_io.dart",
+  "third_party/pkg/package_config/lib/src/util_io.dart",
 
   // TODO(CFE-team): These files should not be included.
   // The package isn't even in pubspec.yaml.
@@ -49,11 +47,11 @@ Future<void> main() async {
   Ticker ticker = new Ticker(isVerbose: false);
   CompilerOptions compilerOptions = getOptions();
 
-  Uri dotPackagesUri = repoDir.resolve(".packages");
-  if (!new File.fromUri(dotPackagesUri).existsSync()) {
-    throw "Couldn't find .packages";
+  Uri packageConfigUri = repoDir.resolve(".dart_tool/package_config.json");
+  if (!new File.fromUri(packageConfigUri).existsSync()) {
+    throw "Couldn't find .dart_tool/package_config.json";
   }
-  compilerOptions.packagesFileUri = dotPackagesUri;
+  compilerOptions.packagesFileUri = packageConfigUri;
 
   ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
 
@@ -123,7 +121,7 @@ Future<void> main() async {
   // * Everything else is an error.
 
   // Remove white-listed non-dart files.
-  otherNonDartUris.remove(dotPackagesUri);
+  otherNonDartUris.remove(packageConfigUri);
   otherNonDartUris.remove(repoDir.resolve("sdk/lib/libraries.json"));
   otherNonDartUris.remove(repoDir.resolve(".dart_tool/package_config.json"));
 

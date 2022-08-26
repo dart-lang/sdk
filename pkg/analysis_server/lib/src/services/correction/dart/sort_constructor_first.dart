@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -32,7 +33,7 @@ class SortConstructorFirst extends CorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       var deletionRange = range.endEnd(
-        constructor.beginToken.previous!,
+        constructor.firstNonCommentToken.previous!,
         constructor.endToken,
       );
 
@@ -43,7 +44,4 @@ class SortConstructorFirst extends CorrectionProducer {
       );
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static SortConstructorFirst newInstance() => SortConstructorFirst();
 }

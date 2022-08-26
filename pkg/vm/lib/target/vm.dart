@@ -41,6 +41,7 @@ class VmTarget extends Target {
   Class? _twoByteString;
   Class? _smi;
   Class? _double; // _Double, not double.
+  Class? _syncStarIterable;
 
   VmTarget(this.flags);
 
@@ -186,7 +187,7 @@ class VmTarget extends Target {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     transformAsync.transformLibraries(
         new TypeEnvironment(coreTypes, hierarchy), libraries,
-        productMode: productMode);
+        productMode: productMode, desugarAsync: !flags.compactAsync);
     logger?.call("Transformed async methods");
 
     lowering.transformLibraries(
@@ -208,7 +209,7 @@ class VmTarget extends Target {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     transformAsync.transformProcedure(
         new TypeEnvironment(coreTypes, hierarchy), procedure,
-        productMode: productMode);
+        productMode: productMode, desugarAsync: !flags.compactAsync);
     logger?.call("Transformed async functions");
 
     lowering.transformProcedure(
@@ -231,7 +232,9 @@ class VmTarget extends Target {
           _fixedLengthList(
               coreTypes,
               coreTypes.typeLegacyRawType,
-              arguments.types.map((t) => new TypeLiteral(t)).toList(),
+              arguments.types
+                  .map<Expression>((t) => new TypeLiteral(t))
+                  .toList(),
               arguments.fileOffset),
           _fixedLengthList(coreTypes, const DynamicType(), arguments.positional,
               arguments.fileOffset),
@@ -245,7 +248,7 @@ class VmTarget extends Target {
                       arg.value)
                     ..fileOffset = arg.fileOffset;
                 })), keyType: coreTypes.symbolLegacyRawType)
-                  ..isConst = (arguments.named.length == 0)
+                  ..isConst = (arguments.named.isEmpty)
                   ..fileOffset = arguments.fileOffset
               ], types: [
                 coreTypes.symbolLegacyRawType,
@@ -389,7 +392,7 @@ class VmTarget extends Target {
     // handling, the current approach seems sufficient.
 
     // The 0-element list must be exactly 'const[]'.
-    if (elements.length == 0) {
+    if (elements.isEmpty) {
       return new ListLiteral([], typeArgument: typeArgument)..isConst = true;
     }
 
@@ -492,6 +495,16 @@ class VmTarget extends Target {
     }
     return _oneByteString ??=
         coreTypes.index.getClass('dart:core', '_OneByteString');
+  }
+
+  @override
+  Class? concreteAsyncResultClass(CoreTypes coreTypes) =>
+      coreTypes.futureImplClass;
+
+  @override
+  Class? concreteSyncStarResultClass(CoreTypes coreTypes) {
+    return _syncStarIterable ??=
+        coreTypes.index.getClass('dart:async', '_SyncStarIterable');
   }
 
   @override

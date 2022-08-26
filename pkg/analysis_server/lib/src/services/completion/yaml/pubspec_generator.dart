@@ -6,7 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
-import 'package:analyzer/file_system/file_system.dart';
 
 /// An object that represents the location of a package name.
 class PubPackageNameProducer extends KeyValueProducer {
@@ -133,8 +132,7 @@ class PubspecGenerator extends YamlCompletionGenerator {
 
   /// Initialize a newly created suggestion generator for pubspec files.
   PubspecGenerator(
-      ResourceProvider resourceProvider, PubPackageService pubPackageService)
-      : super(resourceProvider, pubPackageService);
+      super.resourceProvider, PubPackageService super.pubPackageService);
 
   @override
   Producer get topLevelProducer => pubspecProducer;

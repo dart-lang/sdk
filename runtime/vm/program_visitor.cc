@@ -218,13 +218,11 @@ void ProgramVisitor::WalkProgram(Zone* zone,
   auto const heap = isolate_group->heap();
   ProgramWalker walker(zone, heap, visitor);
 
-  // Walk through the libraries and patches, looking for visitable objects.
+  // Walk through the libraries looking for visitable objects.
   const auto& libraries =
       GrowableObjectArray::Handle(zone, object_store->libraries());
   auto& lib = Library::Handle(zone);
   auto& cls = Class::Handle(zone);
-  auto& entry = Object::Handle(zone);
-  auto& patches = GrowableObjectArray::Handle(zone);
 
   for (intptr_t i = 0; i < libraries.Length(); i++) {
     lib ^= libraries.At(i);
@@ -232,11 +230,6 @@ void ProgramVisitor::WalkProgram(Zone* zone,
     while (it.HasNext()) {
       cls = it.GetNextClass();
       walker.AddToWorklist(cls);
-    }
-    patches = lib.used_scripts();
-    for (intptr_t j = 0; j < patches.Length(); j++) {
-      entry = patches.At(j);
-      walker.AddToWorklist(entry);
     }
   }
 
@@ -1221,7 +1214,11 @@ class CodeKeyValueTrait {
     if (pair->UncheckedEntryPointOffset() != key->UncheckedEntryPointOffset()) {
       return false;
     }
-    return Instructions::Equals(pair->instructions(), key->instructions());
+    if (!Instructions::Equals(pair->instructions(), key->instructions())) {
+      return false;
+    }
+    return LoadingUnit::LoadingUnitOf(*pair) ==
+           LoadingUnit::LoadingUnitOf(*key);
   }
 };
 #endif
@@ -1436,30 +1433,50 @@ void ProgramVisitor::Dedup(Thread* thread) {
 }
 
 #if defined(DART_PRECOMPILER)
-class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
+class AssignLoadingUnitsCodeVisitor : public ObjectVisitor {
  public:
   explicit AssignLoadingUnitsCodeVisitor(Zone* zone)
       : heap_(Thread::Current()->heap()),
+        code_(Code::Handle(zone)),
         func_(Function::Handle(zone)),
         cls_(Class::Handle(zone)),
         lib_(Library::Handle(zone)),
         unit_(LoadingUnit::Handle(zone)),
         obj_(Object::Handle(zone)) {}
 
+  void VisitObject(ObjectPtr obj) {
+    if (obj->IsCode()) {
+      code_ ^= obj;
+      VisitCode(code_);
+    }
+  }
+
   void VisitCode(const Code& code) {
     intptr_t id;
     if (code.IsFunctionCode()) {
       func_ ^= code.function();
-      cls_ = func_.Owner();
+      obj_ = func_.Owner();
+      cls_ ^= obj_.ptr();
       lib_ = cls_.library();
-      unit_ = lib_.loading_unit();
-      id = unit_.id();
+      if (lib_.IsNull()) {
+        // E.g., dynamic.
+        id = LoadingUnit::kRootId;
+      } else {
+        unit_ = lib_.loading_unit();
+        if (unit_.IsNull()) {
+          return;  // Assignment remains LoadingUnit::kIllegalId
+        }
+        id = unit_.id();
+      }
     } else if (code.IsAllocationStubCode()) {
       cls_ ^= code.owner();
       lib_ = cls_.library();
       unit_ = lib_.loading_unit();
+      if (unit_.IsNull()) {
+        return;  // Assignment remains LoadingUnit::kIllegalId
+      }
       id = unit_.id();
-    } else if (code.IsStubCode()) {
+    } else if (code.IsTypeTestStubCode() || code.IsStubCode()) {
       id = LoadingUnit::kRootId;
     } else {
       UNREACHABLE();
@@ -1491,6 +1508,7 @@ class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
 
  private:
   Heap* heap_;
+  Code& code_;
   Function& func_;
   Class& cls_;
   Library& lib_;
@@ -1500,31 +1518,16 @@ class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
 
 void ProgramVisitor::AssignUnits(Thread* thread) {
   StackZone stack_zone(thread);
-  Zone* zone = stack_zone.GetZone();
+  Heap* heap = thread->heap();
 
-  // VM stubs.
-  Instructions& inst = Instructions::Handle(zone);
-  Code& code = Code::Handle(zone);
-  for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-    inst = StubCode::EntryAt(i).instructions();
-    thread->heap()->SetLoadingUnit(inst.ptr(), LoadingUnit::kRootId);
-  }
+  // Oddballs.
+  heap->SetLoadingUnit(Object::null(), LoadingUnit::kRootId);
+  heap->SetLoadingUnit(Object::empty_object_pool().ptr(), LoadingUnit::kRootId);
 
-  // Isolate stubs.
-  ObjectStore* object_store = thread->isolate_group()->object_store();
-  ObjectPtr* from = object_store->from();
-  ObjectPtr* to = object_store->to_snapshot(Snapshot::kFullAOT);
-  for (ObjectPtr* p = from; p <= to; p++) {
-    if ((*p)->IsHeapObject() && (*p)->IsCode()) {
-      code ^= *p;
-      inst = code.instructions();
-      thread->heap()->SetLoadingUnit(inst.ptr(), LoadingUnit::kRootId);
-    }
-  }
-
-  // Function code / allocation stubs.
-  AssignLoadingUnitsCodeVisitor visitor(zone);
-  WalkProgram(zone, thread->isolate_group(), &visitor);
+  AssignLoadingUnitsCodeVisitor visitor(thread->zone());
+  HeapIterationScope iter(thread);
+  iter.IterateVMIsolateObjects(&visitor);
+  iter.IterateObjects(&visitor);
 }
 
 class ProgramHashVisitor : public CodeVisitor {

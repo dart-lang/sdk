@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+import 'package:js_shared/synced/embedded_names.dart'
+    show RtiUniverseFieldNames;
 
 import '../js_ast/js_ast.dart';
 
 /// Simplify `(args) => (() => { ... })()` to `(args) => { ... }`.
 // TODO(jmesserly): find a better home for this function
 Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
-  if (fn.body is Block && fn.body.statements.length == 1) {
+  if (fn.body.statements.length == 1) {
     var stat = fn.body.statements.single;
     if (stat is Return && stat.value is Call) {
       var call = stat.value as Call;
@@ -52,4 +53,22 @@ class SourceInformationClearer extends BaseVisitorVoid {
     node.visitChildren(this);
     node.sourceInformation = null;
   }
+}
+
+/// Returns an expression that creates the initial Rti Universe.
+///
+/// This needs to be kept in sync with `_Universe.create` in `dart:_rti`.
+Expression createRtiUniverse() {
+  Property initField(String name, String value) =>
+      Property(js.string(name), js(value));
+
+  var universeFields = [
+    initField(RtiUniverseFieldNames.evalCache, 'new Map()'),
+    initField(RtiUniverseFieldNames.typeRules, '{}'),
+    initField(RtiUniverseFieldNames.erasedTypes, '{}'),
+    initField(RtiUniverseFieldNames.typeParameterVariances, '{}'),
+    initField(RtiUniverseFieldNames.sharedEmptyArray, '[]'),
+  ];
+
+  return ObjectInitializer(universeFields);
 }

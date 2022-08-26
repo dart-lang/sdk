@@ -106,16 +106,16 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
     var annotation = Annotation.tryParse(line);
     if (annotation != null) {
       testsAsLines.putIfAbsent(
-          annotation.key, () => List<String>.from(testsAsLines["none"]));
+          annotation.key, () => List<String>.from(testsAsLines["none"]!));
       // Add line to test with annotation.key as key, empty line to the rest.
-      for (var key in testsAsLines.keys) {
-        testsAsLines[key].add(annotation.key == key ? line : "");
+      for (var entry in testsAsLines.entries) {
+        entry.value.add(annotation.key == entry.key ? line : "");
       }
       outcomes.putIfAbsent(annotation.key, () => <String>{});
       if (annotation.rest != 'continued') {
         for (var nextOutcome in annotation.outcomes) {
           if (_multitestOutcomes.contains(nextOutcome)) {
-            outcomes[annotation.key].add(nextOutcome);
+            outcomes[annotation.key]!.add(nextOutcome);
           } else {
             DebugLogger.warning(
                 "${filePath.toNativePath()}: Invalid expectation "
@@ -140,9 +140,8 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
   }
 
   // Check that every test (other than the none case) has at least one outcome.
-  var invalidTests = outcomes.keys
-      .where((test) => test != 'none' && outcomes[test].isEmpty)
-      .toList();
+  var invalidTests =
+      outcomes.keys.where((test) => test != 'none' && outcomes[test]!.isEmpty);
   for (var test in invalidTests) {
     DebugLogger.warning(
         "${filePath.toNativePath()}: Test $test has no valid expectation. "
@@ -153,8 +152,8 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
   }
 
   // Copy all the tests into the output map tests, as multiline strings.
-  for (var key in testsAsLines.keys) {
-    tests[key] = testsAsLines[key].join(lineSeparator);
+  for (var entry in testsAsLines.entries) {
+    tests[entry.key] = entry.value.join(lineSeparator);
   }
 }
 
@@ -174,7 +173,6 @@ List<TestFile> splitMultitest(
 
   var sourceDir = multitest.path.directoryPath;
   var targetDir = _createMultitestDirectory(outputDir, suiteDir, sourceDir);
-  assert(targetDir != null);
 
   // Copy all the relative imports of the multitest.
   var importsToCopy = _findAllRelativeImports(multitest.path);
@@ -196,11 +194,11 @@ List<TestFile> splitMultitest(
   var baseFilename = multitest.path.filenameWithoutExtension;
 
   var testFiles = <TestFile>[];
-  for (var test in tests.keys) {
-    var sectionFilePath = targetDir.append('${baseFilename}_$test.dart');
-    _writeFile(sectionFilePath.toNativePath(), tests[test]);
+  for (var test in tests.entries) {
+    var sectionFilePath = targetDir.append('${baseFilename}_${test.key}.dart');
+    _writeFile(sectionFilePath.toNativePath(), test.value);
 
-    var outcome = outcomes[test];
+    var outcome = outcomes[test.key]!;
     var hasStaticWarning = outcome.contains('static type warning');
     var hasRuntimeError = outcome.contains('runtime error');
     var hasSyntaxError = outcome.contains('syntax error');
@@ -214,7 +212,7 @@ List<TestFile> splitMultitest(
     }
 
     // Create a [TestFile] for each split out section test.
-    testFiles.add(multitest.split(sectionFilePath, test, tests[test],
+    testFiles.add(multitest.split(sectionFilePath, test.key, test.value,
         hasSyntaxError: hasSyntaxError,
         hasCompileError: hasCompileError,
         hasRuntimeError: hasRuntimeError,
@@ -243,7 +241,7 @@ void _writeFile(String filePath, String content) {
 class Annotation {
   /// Parses the annotation in [line] or returns `null` if the line isn't a
   /// multitest annotation.
-  static Annotation tryParse(String line) {
+  static Annotation? tryParse(String line) {
     // Do an early return with "null" if this is not a valid multitest
     // annotation.
     if (!line.contains(multitestMarker)) return null;
@@ -290,7 +288,7 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
     for (var line in file.readAsLinesSync()) {
       var match = relativeImportRegExp.firstMatch(line);
       if (match == null) continue;
-      var relativePath = match.group(3);
+      var relativePath = match.group(3)!;
 
       // If a multitest deliberately imports a non-existent file, don't try to
       // include it.

@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*Debugger:stepOver*/
-
 void main() {
   /*bl*/
   /*sl:1*/ var i = 42.42;
@@ -19,6 +16,7 @@ void main() {
   /*bc:7*/ if (i is! int) {
     /*bc:8*/ print('i is not int');
   }
+  // ignore: unnecessary_type_check
   /*bc:9*/ if (hex is int) {
     /*bc:10*/ print('hex is int');
     // ignore: unnecessary_cast
@@ -29,6 +27,7 @@ void main() {
       print("but it's not even even!");
     }
   }
+  // ignore: unnecessary_type_check
   /*bc:14*/ if (hex is! int) {
     print('hex is not int');
   }

@@ -946,7 +946,7 @@ void main() {new A().f^}''');
     assertNotSuggested('r');
     assertNotSuggested('x');
 
-    // imported elements are portially filtered
+    // imported elements are partially filtered
     //assertNotSuggested('A');
     assertNotSuggested('_B');
     //assertNotSuggested('C');
@@ -1084,7 +1084,7 @@ void main() {new A().f^}''');
   }
 
   Future<void> test_Block_unimported() async {
-    newFile2('$workspaceRootPath/myBar/bar.dart', 'class Foo2 { Foo2() { } }');
+    newFile('$workspaceRootPath/myBar/bar.dart', 'class Foo2 { Foo2() { } }');
     addSource(
         '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
     addTestSource('class C {foo(){F^}}');
@@ -2511,7 +2511,7 @@ g(F.^
     assertSuggestGetter('length', 'int');
   }
 
-  Future<void> test_local_propogatedType() async {
+  Future<void> test_local_propagatedType() async {
     addTestSource('foo() {var x = "bar"; x.^}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
@@ -3068,16 +3068,17 @@ void main() {C.^ print("something");}''');
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/home/test/lib/a.dart', '''
+    final a = newFile('/home/test/lib/a.dart', '''
         library libA;
         import 'b.dart';
-        part "$testFile";
+        part 'test.dart';
         class A { }
         var m;''');
     addTestSource('''
         part of libA;
         class B { B.bar(int x); }
         main() {new ^}''');
+    await resolveFile(a.path);
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);

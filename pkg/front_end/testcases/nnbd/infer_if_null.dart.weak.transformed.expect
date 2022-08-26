@@ -49,7 +49,7 @@ static method test2(self::A2 a) → dynamic {
   core::String s = let final self::A2 #t7 = a in let final core::String? #t8 = #t7.{self::A2::foo}{core::String?} in #t8 == null ?{core::String} #t7.{self::A2::foo} = "bar" : #t8{core::String};
 }
 static method test3() → dynamic {
-  core::String? s = null;
+  has-declared-initializer core::String? s = null;
   core::String s2 = let final core::String? #t9 = s in #t9 == null ?{core::String} s = "bar" : #t9{core::String};
 }
 static method test4() → dynamic {

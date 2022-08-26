@@ -15,5 +15,5 @@ class Class extends core::Object {
 }
 
 constants  {
-  #C1 = #lib1::InjectMacro {}
+  #C1 = mac::InjectMacro {}
 }

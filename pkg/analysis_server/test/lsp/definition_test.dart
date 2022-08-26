@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -22,7 +22,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       fo^o();
     }
     ''';
@@ -55,6 +55,62 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(loc.uri, equals(referencedFileUri.toString()));
   }
 
+  Future<void> test_atDeclaration_class() async {
+    final contents = '''
+class [[^A]] {}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_constructorNamed() async {
+    final contents = '''
+class A {
+  A.[[^named]]() {}
+}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_constructorNamed_typeName() async {
+    final contents = '''
+class [[A]] {
+  ^A.named() {}
+}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_defaultConstructor() async {
+    final contents = '''
+class A {
+  [[^A]]() {}
+}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_function() async {
+    final contents = '''
+void [[^f]]() {}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_atDeclaration_method() async {
+    final contents = '''
+class A {
+  void [[^f]]() {}
+}
+    ''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_comment_adjacentReference() async {
     /// Computing Dart navigation locates a node at the provided offset then
     /// returns all navigation regions inside it. This test ensures we filter
@@ -64,7 +120,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     /// Te^st
     ///
     /// References [String].
-    main() {}
+    void f() {}
     ''';
 
     await initialize();
@@ -89,7 +145,7 @@ class A {
     await testContents(contents);
   }
 
-  Future<void> test_constructor_named() async {
+  Future<void> test_constructorNamed() async {
     final contents = '''
 f() {
   final a = A.named^();
@@ -97,6 +153,20 @@ f() {
 
 class A {
   A.[[named]]();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_constructorNamed_typeName() async {
+    final contents = '''
+f() {
+  final a = A^.named();
+}
+
+class [[A]] {
+  A.named();
 }
 ''';
 
@@ -115,7 +185,7 @@ class A {
     );
     configureTestPlugin(respondWith: pluginResult);
 
-    newFile2(pluginAnalyzedFilePath, '');
+    newFile(pluginAnalyzedFilePath, '');
     await initialize();
     final res = await getDefinitionAsLocation(
         pluginAnalyzedFileUri, lsp.Position(line: 0, character: 0));
@@ -144,7 +214,7 @@ class A {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       Icons.[[ad^d]]();
     }
     ''';
@@ -187,7 +257,7 @@ class A {
     final mainContents = '''
     import 'referenced.dart';
 
-    main() {
+    void f() {
       [[fo^o]]();
     }
     ''';
@@ -227,7 +297,7 @@ class A {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
     final res = await getDefinitionAsLocation(pubspecFileUri, startOfDocPos);
@@ -238,7 +308,7 @@ class A {
     final mainContents = '''
     import 'lib.dart';
 
-    main() {
+    void f() {
       Icons.[[ad^d]]();
     }
     ''';
@@ -284,6 +354,46 @@ class A {
     );
   }
 
+  Future<void> test_partFilename() async {
+    final mainContents = '''
+part 'pa^rt.dart';
+    ''';
+
+    final partContents = '''
+part of 'main.dart';
+    ''';
+
+    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(partFileUri, withoutMarkers(partContents));
+    final res = await getDefinitionAsLocation(
+        mainFileUri, positionFromMarker(mainContents));
+
+    expect(res.single.uri, equals(partFileUri.toString()));
+  }
+
+  Future<void> test_partOfFilename() async {
+    final mainContents = '''
+part 'part.dart';
+    ''';
+
+    final partContents = '''
+part of 'ma^in.dart';
+    ''';
+
+    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(partFileUri, withoutMarkers(partContents));
+    final res = await getDefinitionAsLocation(
+        partFileUri, positionFromMarker(partContents));
+
+    expect(res.single.uri, equals(mainFileUri.toString()));
+  }
+
   Future<void> test_sameLine() async {
     final contents = '''
 int plusOne(int [[value]]) => 1 + val^ue;
@@ -311,7 +421,7 @@ class [[A]] {}
 }
 ''';
 
-    newFile2(mainFilePath, withoutMarkers(contents));
+    newFile(mainFilePath, withoutMarkers(contents));
     await testContents(contents, inOpenFile: false);
   }
 

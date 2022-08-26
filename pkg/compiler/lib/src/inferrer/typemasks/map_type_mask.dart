@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 part of masks;
 
 /// A [MapTypeMask] is a [TypeMask] for a specific allocation
@@ -15,8 +17,9 @@ class MapTypeMask extends AllocationTypeMask {
   @override
   final TypeMask forwardTo;
 
+  final ir.Node /*?*/ _allocationNode;
   @override
-  final ir.Node allocationNode;
+  ir.Node get allocationNode => _allocationNode /*!*/;
 
   @override
   final MemberEntity allocationElement;
@@ -27,21 +30,19 @@ class MapTypeMask extends AllocationTypeMask {
   // The key type of this map.
   final TypeMask keyType;
 
-  const MapTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
-      this.keyType, this.valueType);
+  const MapTypeMask(this.forwardTo, this._allocationNode,
+      this.allocationElement, this.keyType, this.valueType);
 
   /// Deserializes a [MapTypeMask] object from [source].
   factory MapTypeMask.readFromDataSource(
       DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
-    ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
     TypeMask keyType = TypeMask.readFromDataSource(source, domain);
     TypeMask valueType = TypeMask.readFromDataSource(source, domain);
     source.end(tag);
-    return MapTypeMask(
-        forwardTo, allocationNode, allocationElement, keyType, valueType);
+    return MapTypeMask(forwardTo, null, allocationElement, keyType, valueType);
   }
 
   /// Serializes this [MapTypeMask] to [sink].
@@ -50,7 +51,6 @@ class MapTypeMask extends AllocationTypeMask {
     sink.writeEnum(TypeMaskKind.map);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);
-    sink.writeTreeNodeOrNull(allocationNode);
     sink.writeMemberOrNull(allocationElement);
     keyType.writeToDataSink(sink);
     valueType.writeToDataSink(sink);

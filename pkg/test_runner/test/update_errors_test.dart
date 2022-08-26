@@ -645,10 +645,10 @@ class A {
 }
 
 void expectUpdate(String original,
-    {List<StaticError> errors,
-    Set<ErrorSource> remove,
-    bool includeContext,
-    String expected}) {
+    {List<StaticError>? errors,
+    Set<ErrorSource>? remove,
+    bool? includeContext,
+    String? expected}) {
   errors ??= const [];
   remove ??= ErrorSource.all.toSet();
   includeContext ??= false;
@@ -659,7 +659,7 @@ void expectUpdate(String original,
     // Not using Expect.equals() because the diffs it shows aren't helpful for
     // strings this large.
     var actualLines = actual.split("\n");
-    var expectedLines = expected.split("\n");
+    var expectedLines = expected!.split("\n");
 
     // Figure out which leading lines do match so we can ignore those and
     // highlight the offending ones.

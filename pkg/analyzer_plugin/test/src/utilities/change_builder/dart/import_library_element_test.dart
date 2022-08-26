@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: camel_case_types
+
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -44,7 +46,7 @@ import 'dart:math';
   }
 
   Future<void> test_withoutPrefix() async {
-    newFile2('/home/test/lib/a.dart', 'class A {}');
+    newFile('/home/test/lib/a.dart', 'class A {}');
 
     await _assertImportLibraryElement(
       initialCode: r'''
@@ -56,8 +58,8 @@ import 'package:test/a.dart';
   }
 
   Future<void> test_withoutPrefix_exported() async {
-    newFile2('/home/test/lib/a.dart', 'class A {}');
-    newFile2('/home/test/lib/b.dart', r'''
+    newFile('/home/test/lib/a.dart', 'class A {}');
+    newFile('/home/test/lib/b.dart', r'''
 export 'a.dart';
 ''');
     await _assertImportLibraryElement(
@@ -70,7 +72,7 @@ import 'package:test/b.dart';
   }
 
   Future<void> test_withoutPrefix_hasInvalidImport() async {
-    newFile2('/home/test/lib/a.dart', 'class A {}');
+    newFile('/home/test/lib/a.dart', 'class A {}');
 
     await _assertImportLibraryElement(
       initialCode: r'''
@@ -83,10 +85,10 @@ import 'package:test/a.dart';
   }
 
   Future<void> test_withoutPrefix_referencedNames_sameElements() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 class A {}
 ''');
-    newFile2('/home/test/lib/b.dart', r'''
+    newFile('/home/test/lib/b.dart', r'''
 export 'a.dart';
 
 class B {}
@@ -104,8 +106,8 @@ B b;
   }
 
   Future<void> test_withoutPrefix_twoImports_sameElement() async {
-    newFile2('/home/test/lib/a.dart', 'class C {}');
-    newFile2('/home/test/lib/b.dart', r'''
+    newFile('/home/test/lib/a.dart', 'class C {}');
+    newFile('/home/test/lib/b.dart', r'''
 export 'package:test/a.dart';
 ''');
 
@@ -129,7 +131,7 @@ import 'package:test/b.dart';
   }
 
   Future<void> test_withPrefix() async {
-    newFile2('/home/test/lib/a.dart', 'class A {}');
+    newFile('/home/test/lib/a.dart', 'class A {}');
 
     await _assertImportLibraryElement(
       initialCode: r'''
@@ -142,8 +144,8 @@ import 'package:test/a.dart' as p;
   }
 
   Future<void> test_withPrefix_twoImports_sameElement() async {
-    newFile2('/home/test/lib/a.dart', 'class C {}');
-    newFile2('/home/test/lib/b.dart', r'''
+    newFile('/home/test/lib/a.dart', 'class C {}');
+    newFile('/home/test/lib/b.dart', r'''
 export 'package:test/a.dart';
 ''');
 
@@ -172,10 +174,10 @@ import 'package:test/b.dart' as p;
 @reflectiveTest
 class ImportLibraryElement_newImport_withoutPrefix_Test extends _Base {
   Future<void> test_constructorName_name() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 int foo;
 ''');
-    newFile2('/home/test/lib/b.dart', r'''
+    newFile('/home/test/lib/b.dart', r'''
 class B {
   B.foo();
 }
@@ -202,8 +204,8 @@ main() {
   }
 
   Future<void> test_exported() async {
-    newFile2('/home/test/lib/a.dart', 'class A {}');
-    newFile2('/home/test/lib/b.dart', r'''
+    newFile('/home/test/lib/a.dart', 'class A {}');
+    newFile('/home/test/lib/b.dart', r'''
 export 'a.dart';
 ''');
     await _assertImportLibraryElement(
@@ -217,8 +219,8 @@ import 'package:test/b.dart';
   }
 
   Future<void> test_exported_differentUri() async {
-    newFile2('/home/test/lib/a.dart', 'class A {}');
-    newFile2('/home/test/lib/b.dart', r'''
+    newFile('/home/test/lib/a.dart', 'class A {}');
+    newFile('/home/test/lib/b.dart', r'''
 export 'a.dart';
 ''');
     await _assertImportLibraryElement(
@@ -235,10 +237,10 @@ import 'package:test/b.dart';
   }
 
   Future<void> test_methodInvocation_name() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 int foo;
 ''');
-    newFile2('/home/test/lib/b.dart', r'''
+    newFile('/home/test/lib/b.dart', r'''
 class B {
   static void foo() {}
 }
@@ -265,11 +267,11 @@ main() {
   }
 
   Future<void> test_noConflict_otherImport_hide() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 ''');
-    newFile2('/home/test/lib/b.dart', 'class B {}');
+    newFile('/home/test/lib/b.dart', 'class B {}');
     await _assertImportLibraryElement(
       initialCode: r'''
 import 'package:test/a.dart' hide B;
@@ -284,11 +286,11 @@ import 'package:test/b.dart';
   }
 
   Future<void> test_noConflict_otherImport_show() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
 ''');
-    newFile2('/home/test/lib/b.dart', 'class B {}');
+    newFile('/home/test/lib/b.dart', 'class B {}');
     await _assertImportLibraryElement(
       initialCode: r'''
 import 'package:test/a.dart' show A;
@@ -303,7 +305,7 @@ import 'package:test/b.dart';
   }
 
   Future<void> test_noShadow_syntacticScope_localVariable() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 var foo = 0;
 ''');
     await _assertImportLibraryElement(
@@ -335,7 +337,7 @@ void g() {
   }
 
   Future<void> test_noShadow_syntacticScope_typeParameter() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 class A {}
 ''');
     await _assertImportLibraryElement(
@@ -357,10 +359,10 @@ class C<A> {
   }
 
   Future<void> test_prefixedIdentifier_identifier() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 int foo;
 ''');
-    newFile2('/home/test/lib/b.dart', r'''
+    newFile('/home/test/lib/b.dart', r'''
 class B {
   static int foo;
 }
@@ -387,7 +389,7 @@ main() {
   }
 
   Future<void> test_thisName_notShadowed_localVariable_otherFunction() async {
-    newFile2('/home/test/lib/a.dart', 'int foo = 0;');
+    newFile('/home/test/lib/a.dart', 'int foo = 0;');
     await _assertImportLibraryElement(
       initialCode: r'''
 void f() {
@@ -415,8 +417,8 @@ void g() {
   }
 
   Future<void> test_unrelated() async {
-    newFile2('/home/test/lib/a.dart', 'class A {}');
-    newFile2('/home/test/lib/b.dart', 'class B {}');
+    newFile('/home/test/lib/a.dart', 'class A {}');
+    newFile('/home/test/lib/b.dart', 'class B {}');
     await _assertImportLibraryElement(
       initialCode: r'''
 import 'package:test/a.dart';
@@ -466,7 +468,7 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
     }
 
     var path = convertPath('/home/test/lib/test.dart');
-    newFile2(path, initialCode);
+    newFile(path, initialCode);
 
     var requestedResult =
         await (await session).getLibraryByUri(uriStr) as LibraryElementResult;

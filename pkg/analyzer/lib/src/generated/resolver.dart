@@ -73,6 +73,7 @@ import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
+import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
 
@@ -258,10 +259,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// unit containing the node being visited. The [typeProvider] is the object
   /// used to access the types from the core library. The [errorListener] is the
   /// error listener that will be informed of any errors that are found during
-  /// resolution. The [nameScope] is the scope used to resolve identifiers in
-  /// the node that will first be visited.  If `null` or unspecified, a new
-  /// [LibraryScope] will be created based on [definingLibrary] and
-  /// [typeProvider].
+  /// resolution.
   ///
   /// TODO(paulberry): make [featureSet] a required parameter (this will be a
   /// breaking change).
@@ -1547,6 +1545,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             resolver: this,
             node: node,
             argumentList: node.argumentList,
+            contextType: null,
+            whyNotPromotedList: whyNotPromotedList)
+        .resolveInvocation(
             rawType: receiverContextType == null
                 ? null
                 : FunctionTypeImpl(
@@ -1556,10 +1557,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
                             null, receiverContextType, ParameterKind.REQUIRED)
                       ],
                     returnType: DynamicTypeImpl.instance,
-                    nullabilitySuffix: NullabilitySuffix.none),
-            contextType: null,
-            whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+                    nullabilitySuffix: NullabilitySuffix.none));
 
     extensionResolver.resolveOverride(node, whyNotPromotedList);
   }
@@ -2172,10 +2170,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             resolver: this,
             node: node,
             argumentList: node.argumentList,
-            rawType: node.staticElement?.type,
             contextType: null,
             whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+        .resolveInvocation(rawType: node.staticElement?.type);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -2282,10 +2279,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             resolver: this,
             node: node,
             argumentList: node.argumentList,
-            rawType: node.staticElement?.type,
             contextType: null,
             whyNotPromotedList: whyNotPromotedList)
-        .resolveInvocation();
+        .resolveInvocation(rawType: node.staticElement?.type);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
@@ -2491,6 +2487,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           isLate: parent.isLate,
           isImplicitlyTyped: declaredType == null);
     }
+    _checkTopLevelCycle(node);
   }
 
   @override
@@ -2538,6 +2535,27 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitYieldStatement(YieldStatement node) {
     _yieldStatementResolver.resolve(node);
+  }
+
+  void _checkTopLevelCycle(VariableDeclaration node) {
+    var element = node.declaredElement;
+    if (element is! PropertyInducingElementImpl) {
+      return;
+    }
+    // Errors on const are reported separately with
+    // [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT].
+    if (element.isConst) {
+      return;
+    }
+    var error = element.typeInferenceError;
+    if (error == null) {
+      return;
+    }
+    if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
+      var argumentsText = error.arguments.join(', ');
+      errorReporter.reportErrorForNode(CompileTimeErrorCode.TOP_LEVEL_CYCLE,
+          node.name, [node.name.name, argumentsText]);
+    }
   }
 
   /// Creates a union of `T | Future<T>`, unless `T` is already a
@@ -2910,7 +2928,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// [definingLibrary] is the element for the library containing the node being
   /// visited.
   /// [source] is the source representing the compilation unit containing the
-  /// node being visited
+  /// node being visited.
   /// [typeProvider] is the object used to access the types from the core
   /// library.
   /// [errorListener] is the error listener that will be informed of any errors
@@ -3820,7 +3838,9 @@ class _SwitchExhaustiveness {
   }
 
   static Element? _referencedElement(Expression expression) {
-    if (expression is PrefixedIdentifier) {
+    if (expression is ParenthesizedExpression) {
+      return _referencedElement(expression.expression);
+    } else if (expression is PrefixedIdentifier) {
       return expression.staticElement;
     } else if (expression is PropertyAccess) {
       return expression.propertyName.staticElement;

@@ -79,16 +79,14 @@ class EntryRange {
 class ErrorEntry extends GenericEntry {
   /// Initialize a newly created log entry.
   ErrorEntry(
-      int index, int timeStamp, String entryKind, List<String> components)
-      : super(index, timeStamp, entryKind, components);
+      super.index, super.timeStamp, super.entryKind, super.components);
 }
 
 /// A log entry representing an Ex entry.
 class ExceptionEntry extends GenericEntry {
   /// Initialize a newly created log entry.
   ExceptionEntry(
-      int index, int timeStamp, String entryKind, List<String> components)
-      : super(index, timeStamp, entryKind, components);
+      super.index, super.timeStamp, super.entryKind, super.components);
 }
 
 /// A representation of a generic log entry.
@@ -101,8 +99,7 @@ class GenericEntry extends LogEntry {
 
   /// Initialize a newly created generic log entry to have the given
   /// [timeStamp], [entryKind] and list of [components]
-  GenericEntry(int index, int timeStamp, this.entryKind, this.components)
-      : super(index, timeStamp);
+  GenericEntry(super.index, super.timeStamp, this.entryKind, this.components);
 
   @override
   String get kind => entryKind;
@@ -124,9 +121,8 @@ class GenericPluginEntry extends GenericEntry with PluginEntryMixin {
   final List<String> pluginData;
 
   /// Initialize a newly created log entry.
-  GenericPluginEntry(int index, int timeStamp, String entryKind,
-      List<String> components, this.pluginData)
-      : super(index, timeStamp, entryKind, components);
+  GenericPluginEntry(super.index, super.timeStamp, super.entryKind,
+      super.components, this.pluginData);
 }
 
 /// A representation of an instrumentation log.
@@ -387,7 +383,7 @@ abstract class JsonBasedEntry extends LogEntry {
 
   /// Initialize a newly created log entry to have the given [timeStamp] and
   /// [data].
-  JsonBasedEntry(int index, int timeStamp, this.data) : super(index, timeStamp);
+  JsonBasedEntry(super.index, super.timeStamp, this.data);
 
   @override
   void _appendDetails(StringBuffer buffer) {
@@ -450,12 +446,12 @@ abstract class JsonBasedEntry extends LogEntry {
       buffer.write('}');
     } else if (object is List) {
       buffer.write('[<br>');
-      object.forEach((element) {
+      for (var element in object) {
         var newIndent = indent + singleIndent;
         buffer.write(newIndent);
         _format(buffer, newIndent, element as Object);
         buffer.write('<br>');
-      });
+      }
       buffer.write(indent);
       buffer.write(']');
     }
@@ -473,8 +469,7 @@ abstract class JsonBasedPluginEntry extends JsonBasedEntry
   /// [notificationData] and to be associated with the plugin with the given
   /// [pluginData].
   JsonBasedPluginEntry(
-      int index, int timeStamp, Map notificationData, this.pluginData)
-      : super(index, timeStamp, notificationData);
+      super.index, super.timeStamp, super.notificationData, this.pluginData);
 }
 
 /// A single entry in an instrumentation log.
@@ -671,8 +666,7 @@ class MalformedLogEntry extends LogEntry {
 class NotificationEntry extends JsonBasedEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [notificationData].
-  NotificationEntry(int index, int timeStamp, Map notificationData)
-      : super(index, timeStamp, notificationData);
+  NotificationEntry(super.index, super.timeStamp, super.notificationData);
 
   /// Return the event field of the request.
   String get event => data['event'] as String;
@@ -724,17 +718,15 @@ mixin PluginEntryMixin {
 /// A log entry representing an PluginErr entry.
 class PluginErrorEntry extends GenericPluginEntry {
   /// Initialize a newly created log entry.
-  PluginErrorEntry(int index, int timeStamp, String entryKind,
-      List<String> components, List<String> pluginData)
-      : super(index, timeStamp, entryKind, components, pluginData);
+  PluginErrorEntry(super.index, super.timeStamp, super.entryKind,
+      super.components, super.pluginData);
 }
 
 /// A log entry representing an PluginEx entry.
 class PluginExceptionEntry extends GenericPluginEntry {
   /// Initialize a newly created log entry.
-  PluginExceptionEntry(int index, int timeStamp, String entryKind,
-      List<String> components, List<String> pluginData)
-      : super(index, timeStamp, entryKind, components, pluginData);
+  PluginExceptionEntry(super.index, super.timeStamp, super.entryKind,
+      super.components, super.pluginData);
 }
 
 /// A log entry representing a notification that was sent from a plugin to the
@@ -743,8 +735,7 @@ class PluginNotificationEntry extends JsonBasedPluginEntry {
   /// Initialize a newly created notification to have the given [timeStamp] and
   /// [notificationData].
   PluginNotificationEntry(
-      int index, int timeStamp, Map notificationData, List<String> pluginData)
-      : super(index, timeStamp, notificationData, pluginData);
+      super.index, super.timeStamp, super.notificationData, super.pluginData);
 
   /// Return the event field of the notification.
   String get event => data['event'] as String;
@@ -769,8 +760,7 @@ class PluginRequestEntry extends JsonBasedPluginEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [requestData].
   PluginRequestEntry(
-      int index, int timeStamp, Map requestData, List<String> pluginData)
-      : super(index, timeStamp, requestData, pluginData);
+      super.index, super.timeStamp, super.requestData, super.pluginData);
 
   /// Return the id field of the request.
   String get id => data['id'] as String;
@@ -798,8 +788,7 @@ class PluginResponseEntry extends JsonBasedPluginEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [responseData].
   PluginResponseEntry(
-      int index, int timeStamp, Map responseData, List<String> pluginData)
-      : super(index, timeStamp, responseData, pluginData);
+      super.index, super.timeStamp, super.responseData, super.pluginData);
 
   /// Return the id field of the response.
   String get id => data['id'] as String;
@@ -823,8 +812,7 @@ class PluginResponseEntry extends JsonBasedPluginEntry {
 class RequestEntry extends JsonBasedEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [requestData].
-  RequestEntry(int index, int timeStamp, Map requestData)
-      : super(index, timeStamp, requestData);
+  RequestEntry(super.index, super.timeStamp, super.requestData);
 
   /// Return the clientRequestTime field of the request.
   int get clientRequestTime => data['clientRequestTime'] as int;
@@ -854,8 +842,7 @@ class RequestEntry extends JsonBasedEntry {
 class ResponseEntry extends JsonBasedEntry {
   /// Initialize a newly created response to have the given [timeStamp] and
   /// [responseData].
-  ResponseEntry(int index, int timeStamp, Map responseData)
-      : super(index, timeStamp, responseData);
+  ResponseEntry(super.index, super.timeStamp, super.responseData);
 
   /// Return the id field of the response.
   String get id => data['id'] as String;
@@ -891,8 +878,7 @@ class TaskEntry extends LogEntry {
   /// Initialize a newly created entry with the given [index] and [timeStamp] to
   /// represent the execution of an analysis task in the given [context] that is
   /// described by the given [description].
-  TaskEntry(int index, int timeStamp, this.context, this.description)
-      : super(index, timeStamp);
+  TaskEntry(super.index, super.timeStamp, this.context, this.description);
 
   @override
   String get kind => 'Task';

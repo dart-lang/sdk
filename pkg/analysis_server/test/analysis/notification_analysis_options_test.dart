@@ -26,7 +26,7 @@ class AnalysisOptionsFileNotificationTest extends PubPackageAnalysisServerTest {
   Map<File, List<AnalysisError>> filesErrors = {};
 
   final testSource = '''
-main() {
+void f() {
   var x = '';
   int y = x; // Not assignable in strong-mode
   print(y);
@@ -39,7 +39,7 @@ main() {
   List<AnalysisError> get testFileErrors => filesErrors[testFile]!;
 
   void addOptionsFile(String contents) {
-    optionsFile = newAnalysisOptionsYamlFile2(testPackageRootPath, contents);
+    optionsFile = newAnalysisOptionsYamlFile(testPackageRootPath, contents);
   }
 
   @override
@@ -65,7 +65,7 @@ analyzer:
 ''');
 
     addTestFile('''
-main() {
+void f() {
   String unused = "";
 }
 ''');
@@ -90,7 +90,7 @@ analyzer:
 ''');
 
     addTestFile('''
-main() {
+void f() {
   String unused = "";
 }
 ''');

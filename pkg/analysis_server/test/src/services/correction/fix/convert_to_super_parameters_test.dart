@@ -508,4 +508,50 @@ class B extends A {
 }
 ''');
   }
+
+  Future<void> test_super_defaultValue() async {
+    await resolveTestCode('''
+class Foo {
+  Foo({this.value = 10});
+  final int? value;
+}
+
+class Bar extends Foo {
+  Bar({int? value}) : super(value: value);
+}
+''');
+    await assertHasFix('''
+class Foo {
+  Foo({this.value = 10});
+  final int? value;
+}
+
+class Bar extends Foo {
+  Bar({super.value = null});
+}
+''');
+  }
+
+  Future<void> test_super_defaultValue_final() async {
+    await resolveTestCode('''
+class Foo {
+  Foo({this.value = 10});
+  final int? value;
+}
+
+class Bar extends Foo {
+  Bar({final int? value}) : super(value: value);
+}
+''');
+    await assertHasFix('''
+class Foo {
+  Foo({this.value = 10});
+  final int? value;
+}
+
+class Bar extends Foo {
+  Bar({super.value = null});
+}
+''');
+  }
 }

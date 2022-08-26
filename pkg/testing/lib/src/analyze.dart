@@ -33,7 +33,7 @@ class Analyze extends Suite {
       : super("analyze", "analyze", null);
 
   Future<Null> run(Uri packages, List<Uri>? extraUris) {
-    List<Uri> allUris = new List<Uri>.from(uris);
+    List<Uri> allUris = List<Uri>.from(uris);
     if (extraUris != null) {
       allUris.addAll(extraUris);
     }
@@ -52,7 +52,7 @@ class Analyze extends Suite {
     }).toList();
 
     List<RegExp> exclude =
-        json["exclude"].map<RegExp>((p) => new RegExp(p)).toList();
+        json["exclude"].map<RegExp>((p) => RegExp(p)).toList();
 
     Map? gitGrep = json["git grep"];
     List<String>? gitGrepPathspecs;
@@ -60,12 +60,13 @@ class Analyze extends Suite {
     if (gitGrep != null) {
       gitGrepPathspecs = gitGrep["pathspecs"] == null
           ? const <String>["."]
-          : new List<String>.from(gitGrep["pathspecs"]);
-      if (gitGrep["patterns"] != null)
-        gitGrepPatterns = new List<String>.from(gitGrep["patterns"]);
+          : List<String>.from(gitGrep["pathspecs"]);
+      if (gitGrep["patterns"] != null) {
+        gitGrepPatterns = List<String>.from(gitGrep["patterns"]);
+      }
     }
 
-    return new Analyze(
+    return Analyze(
         optionsUri, uris, exclude, gitGrepPathspecs, gitGrepPatterns);
   }
 
@@ -89,9 +90,9 @@ class AnalyzerDiagnostic {
 
   final String message;
 
-  static final Pattern potentialSplitPattern = new RegExp(r"\\|\|");
+  static final Pattern potentialSplitPattern = RegExp(r"\\|\|");
 
-  static final Pattern unescapePattern = new RegExp(r"\\(.)");
+  static final Pattern unescapePattern = RegExp(r"\\(.)");
 
   AnalyzerDiagnostic(this.kind, this.detailedKind, this.code, this.uri,
       this.line, this.startColumn, this.endColumn, this.message);
@@ -120,13 +121,13 @@ class AnalyzerDiagnostic {
     }
     addPart();
     if (parts.length != 8) {
-      return new AnalyzerDiagnostic.malformed(line);
+      return AnalyzerDiagnostic.malformed(line);
     }
-    return new AnalyzerDiagnostic(
+    return AnalyzerDiagnostic(
         parts[0],
         parts[1],
         parts[2],
-        Uri.base.resolveUri(new Uri.file(parts[3])),
+        Uri.base.resolveUri(Uri.file(parts[3])),
         int.parse(parts[4]),
         int.parse(parts[5]),
         int.parse(parts[6]),
@@ -145,10 +146,10 @@ class AnalyzerDiagnostic {
 Stream<AnalyzerDiagnostic> parseAnalyzerOutput(
     Stream<List<int>> stream) async* {
   Stream<String> lines =
-      stream.transform(utf8.decoder).transform(new LineSplitter());
+      stream.transform(utf8.decoder).transform(LineSplitter());
   await for (String line in lines) {
     if (line.startsWith(">>> ")) continue;
-    yield new AnalyzerDiagnostic.fromLine(line);
+    yield AnalyzerDiagnostic.fromLine(line);
   }
 }
 
@@ -163,7 +164,7 @@ Future<Null> analyzeUris(
   if (uris.isEmpty) return;
   String topLevel;
   try {
-    topLevel = new Uri.directory(
+    topLevel = Uri.directory(
             (await git("rev-parse", <String>["--show-toplevel"])).trimRight())
         .toFilePath(windows: false);
   } catch (e) {
@@ -183,17 +184,17 @@ Future<Null> analyzeUris(
         : path;
   }
 
-  Set<String> filesToAnalyze = new Set<String>();
+  Set<String> filesToAnalyze = Set<String>();
 
   for (Uri uri in uris) {
-    if (await new Directory.fromUri(uri).exists()) {
-      await for (FileSystemEntity entity in new Directory.fromUri(uri)
-          .list(recursive: true, followLinks: false)) {
+    if (await Directory.fromUri(uri).exists()) {
+      await for (FileSystemEntity entity
+          in Directory.fromUri(uri).list(recursive: true, followLinks: false)) {
         if (entity is File && entity.path.endsWith(".dart")) {
           filesToAnalyze.add(toFilePath(entity.uri));
         }
       }
-    } else if (await new File.fromUri(uri).exists()) {
+    } else if (await File.fromUri(uri).exists()) {
       filesToAnalyze.add(toFilePath(uri));
     } else {
       throw "File not found: ${uri}";
@@ -212,7 +213,7 @@ Future<Null> analyzeUris(
 
   const String analyzerPath = "pkg/analyzer_cli/bin/analyzer.dart";
   Uri analyzer = Uri.base.resolve(analyzerPath);
-  if (!await new File.fromUri(analyzer).exists()) {
+  if (!await File.fromUri(analyzer).exists()) {
     throw "Couldn't find '$analyzerPath' in '${toFilePath(Uri.base)}'";
   }
   List<String> arguments = <String>[
@@ -233,14 +234,14 @@ Future<Null> analyzeUris(
   } else {
     print("Running dartanalyzer.");
   }
-  Stopwatch sw = new Stopwatch()..start();
+  Stopwatch sw = Stopwatch()..start();
   Process process = await startDart(
       analyzer, const <String>["--batch"], dartArguments..remove("-c"));
   process.stdin.writeln(arguments.join(" "));
   process.stdin.close();
 
   bool hasOutput = false;
-  Set<String> seen = new Set<String>();
+  Set<String> seen = Set<String>();
 
   processAnalyzerOutput(Stream<AnalyzerDiagnostic> diagnostics) async {
     await for (AnalyzerDiagnostic diagnostic in diagnostics) {

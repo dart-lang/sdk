@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_SERVICE_H_
 #define RUNTIME_VM_SERVICE_H_
 
+#include <atomic>
+
 #include "include/dart_tools_api.h"
 
 #include "vm/allocation.h"
@@ -15,7 +17,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 3
-#define SERVICE_PROTOCOL_MINOR_VERSION 56
+#define SERVICE_PROTOCOL_MINOR_VERSION 57
 
 class Array;
 class EmbedderServiceHandler;
@@ -69,21 +71,24 @@ class RingServiceIdZone : public ServiceIdZone {
 class StreamInfo {
  public:
   explicit StreamInfo(const char* id)
-      : id_(id), enabled_(false), include_private_members_(false) {}
+      : id_(id), enabled_(0), include_private_members_(false) {}
 
   const char* id() const { return id_; }
 
-  void set_enabled(bool value) { enabled_ = value; }
-  bool enabled() const { return enabled_; }
+  void set_enabled(bool value) { enabled_ = value ? 1 : 0; }
+  bool enabled() const { return enabled_ != 0; }
 
   void set_include_private_members(bool value) {
     include_private_members_ = value;
   }
   bool include_private_members() const { return include_private_members_; }
 
+  // This may get access by multiple threads, but relaxed access is ok.
+  static intptr_t enabled_offset() { return OFFSET_OF(StreamInfo, enabled_); }
+
  private:
   const char* id_;
-  bool enabled_;
+  std::atomic<intptr_t> enabled_;
   bool include_private_members_;
 };
 

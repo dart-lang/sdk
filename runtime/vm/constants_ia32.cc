@@ -13,6 +13,9 @@ namespace dart {
 const char* const cpu_reg_names[kNumberOfCpuRegisters] = {
     "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
 
+const char* const cpu_reg_byte_names[kNumberOfCpuRegisters] = {
+    "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"};
+
 const char* const cpu_reg_abi_names[kNumberOfCpuRegisters] = {
     "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
 

@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:test/test.dart';
+
 import 'expression_compiler_e2e_suite.dart';
 
 const simpleClassSource = '''
@@ -355,6 +354,63 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           breakpointId: 'bp',
           expression: 'e != E2.id2 && E.id2 != E2.id2',
           expectedResult: 'true');
+    });
+  });
+
+  group('Automatically inserted argument null checks', () {
+    var source = r'''
+      main() {
+        // Breakpoint: bp
+        print('hello world');
+      }
+    ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('do not cause a crash in the expression compiler', () async {
+      // Compiling an expression that contains a method with a non-nullable
+      // parameter was causing a compiler crash due to the lack of a source
+      // location and the use of the wrong null literal value. This verifies
+      // the expression compiler can safely compile this pattern.
+      await driver.check(
+          breakpointId: 'bp',
+          expression: '((){bool fn(bool b) {return b;} return fn(true);})()',
+          expectedResult: 'true');
+    });
+  });
+
+  group('Synthetic variables', () {
+    var source = r'''
+      dynamic couldReturnNull() => null;
+
+      main() {
+        var i = couldReturnNull() ?? 10;
+        // Breakpoint: bp
+        print(i);
+      }
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('do not cause a crash in the expression compiler', () async {
+      // The null aware code in the test source causes the compiler to introduce
+      // a let statement that includes a synthetic variable declaration.
+      // That variable has no name and was causing a crash in the expression
+      // compiler https://github.com/dart-lang/sdk/issues/49373.
+      await driver.check(
+          breakpointId: 'bp', expression: 'true', expectedResult: 'true');
     });
   });
 }

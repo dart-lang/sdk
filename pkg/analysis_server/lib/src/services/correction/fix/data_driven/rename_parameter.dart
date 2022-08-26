@@ -23,6 +23,9 @@ class RenameParameter extends Change<_Data> {
   RenameParameter({required this.newName, required this.oldName});
 
   @override
+  // The private type of the [data] parameter is dictated by the signature of
+  // the super-method and the class's super-class.
+  // ignore: library_private_types_in_public_api
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     if (data is _InvocationData) {
       builder.addSimpleReplacement(range.node(data.nameNode), newName);
@@ -62,6 +65,9 @@ class RenameParameter extends Change<_Data> {
   }
 
   @override
+  // The private return type is dictated by the signature of the super-method
+  // and the class's super-class.
+  // ignore: library_private_types_in_public_api
   _Data validate(DataDrivenFix fix) {
     var node = fix.node;
     if (node is SimpleIdentifier) {

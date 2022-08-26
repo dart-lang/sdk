@@ -506,7 +506,7 @@ class TypeConstraintGatherer {
     // The supertype must provide all required parameters to the subtype.
     while (fIndex < fParameters.length) {
       var fParameter = fParameters[fIndex++];
-      if (fParameter.isNotOptional) {
+      if (fParameter.isRequired) {
         _constraints.length = rewind;
         return false;
       }

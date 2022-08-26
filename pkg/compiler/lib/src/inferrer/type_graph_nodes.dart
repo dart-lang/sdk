@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library compiler.src.inferrer.type_graph_nodes;
 
 import 'dart:collection' show IterableBase;
@@ -18,7 +20,7 @@ import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
 import 'locals_handler.dart' show ArgumentsTypes;
-import 'inferrer_engine.dart';
+import 'engine.dart';
 import 'type_system.dart';
 
 /// Common class for all nodes in the graph. The current nodes are:
@@ -1754,10 +1756,6 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
 
   /// The length after the container has been traced.
   int inferredLength;
-
-  /// Whether this list goes through a growable check.
-  /// We conservatively assume it does.
-  bool checksGrowable = true;
 
   ListTypeInformation(
       AbstractValueDomain abstractValueDomain,

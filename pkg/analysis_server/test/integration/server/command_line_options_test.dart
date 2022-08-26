@@ -43,24 +43,25 @@ class OptionsPackagesIntegrationTest
 ''');
 
     return server.start(
+      dartSdkPath: dartSdkPath,
       diagnosticPort: diagnosticPort,
       servicesPort: servicesPort,
       packagesFile: packagesPath,
     );
   }
 
-  Future<void> test_it() {
+  Future<void> test_it() async {
     var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 import 'package:foo/foo.dart';
-void main() {
+void f() {
   my_foo;
 }
 ''');
-    standardAnalysisSetup();
-    return analysisFinished.then((_) {
-      var errors = existingErrorsForFile(pathname);
-      expect(errors, isEmpty);
-    });
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var errors = existingErrorsForFile(pathname);
+    expect(errors, isEmpty);
   }
 }

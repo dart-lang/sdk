@@ -859,23 +859,51 @@ class NodeCreator {
         ]);
       case ExpressionKind.StringLiteral:
         return StringLiteral('foo');
+      case ExpressionKind.AbstractSuperMethodInvocation:
+        return _createOneOf(_pendingExpressions, kind, index, [
+          () => AbstractSuperMethodInvocation(
+              _createName(), _createArguments(), _needProcedure())
+            ..fileOffset = _needFileOffset(),
+          () => AbstractSuperMethodInvocation(
+              _createName(), _createArguments(), _needProcedure())
+            ..fileOffset = _needFileOffset(),
+        ]);
       case ExpressionKind.SuperMethodInvocation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => SuperMethodInvocation(_createName(), _createArguments())
+          () => SuperMethodInvocation(
+              _createName(), _createArguments(), _needProcedure())
             ..fileOffset = _needFileOffset(),
           () => SuperMethodInvocation(
               _createName(), _createArguments(), _needProcedure())
             ..fileOffset = _needFileOffset(),
         ]);
+      case ExpressionKind.AbstractSuperPropertyGet:
+        return _createOneOf(_pendingExpressions, kind, index, [
+          () => AbstractSuperPropertyGet(_createName(), _needProcedure())
+            ..fileOffset = _needFileOffset(),
+          () => AbstractSuperPropertyGet(_createName(), _needField())
+            ..fileOffset = _needFileOffset(),
+        ]);
+      case ExpressionKind.AbstractSuperPropertySet:
+        return _createOneOf(_pendingExpressions, kind, index, [
+          () => AbstractSuperPropertySet(
+              _createName(), _createExpression(), _needProcedure())
+            ..fileOffset = _needFileOffset(),
+          () => AbstractSuperPropertySet(
+              _createName(), _createExpression(), _needField())
+            ..fileOffset = _needFileOffset(),
+        ]);
       case ExpressionKind.SuperPropertyGet:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => SuperPropertyGet(_createName())..fileOffset = _needFileOffset(),
+          () => SuperPropertyGet(_createName(), _needProcedure())
+            ..fileOffset = _needFileOffset(),
           () => SuperPropertyGet(_createName(), _needField())
             ..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.SuperPropertySet:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => SuperPropertySet(_createName(), _createExpression(), null)
+          () => SuperPropertySet(
+              _createName(), _createExpression(), _needProcedure())
             ..fileOffset = _needFileOffset(),
           () =>
               SuperPropertySet(_createName(), _createExpression(), _needField())

@@ -7,6 +7,15 @@ class AliasedElementTag {
   static const int genericFunctionElement = 1;
 }
 
+enum DirectiveUriKind {
+  withLibrary,
+  withUnit,
+  withSource,
+  withRelativeUri,
+  withRelativeUriString,
+  withNothing,
+}
+
 class Tag {
   static const int Nothing = 0;
   static const int Something = 1;

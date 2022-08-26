@@ -22,11 +22,11 @@ List<String> get dartArguments =>
 Stream<FileBasedTestDescription> listTests(List<Uri> testRoots,
     {Pattern? pattern}) {
   StreamController<FileBasedTestDescription> controller =
-      new StreamController<FileBasedTestDescription>();
+      StreamController<FileBasedTestDescription>();
   Map<Uri, StreamSubscription?> subscriptions = <Uri, StreamSubscription>{};
   for (Uri testRootUri in testRoots) {
     subscriptions[testRootUri] = null;
-    Directory testRoot = new Directory.fromUri(testRootUri);
+    Directory testRoot = Directory.fromUri(testRootUri);
     testRoot.exists().then((bool exists) {
       if (exists) {
         Stream<FileSystemEntity> stream =
@@ -62,7 +62,7 @@ Stream<FileBasedTestDescription> listTests(List<Uri> testRoots,
 Uri computePackageConfig() {
   String? path = Platform.packageConfig;
   if (path != null) return Uri.base.resolve(path);
-  return Uri.base.resolve(".packages");
+  return Uri.base.resolve(".dart_tool/package_config.json");
 }
 
 // TODO(eernst): Use `bool.hasEnvironment` below when possible;
@@ -75,10 +75,10 @@ const _dartSdk = (String.fromEnvironment("DART_SDK", defaultValue: "1") ==
 Uri computeDartSdk() {
   String? dartSdkPath = Platform.environment["DART_SDK"] ?? _dartSdk;
   if (dartSdkPath != null) {
-    return Uri.base.resolveUri(new Uri.file(dartSdkPath));
+    return Uri.base.resolveUri(Uri.file(dartSdkPath));
   } else {
     return Uri.base
-        .resolveUri(new Uri.file(Platform.resolvedExecutable))
+        .resolveUri(Uri.file(Platform.resolvedExecutable))
         .resolve("../");
   }
 }

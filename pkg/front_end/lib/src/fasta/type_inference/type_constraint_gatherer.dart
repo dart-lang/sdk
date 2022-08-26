@@ -45,6 +45,18 @@ abstract class TypeConstraintGatherer {
   void addLowerBound(
       TypeConstraint constraint, DartType lower, Library clientLibrary);
 
+  /// Applies all the argument constraints implied by trying to make
+  /// [actualTypes] assignable to [formalTypes].
+  void constrainArguments(
+      List<DartType> formalTypes, List<DartType> actualTypes) {
+    assert(formalTypes.length == actualTypes.length);
+    for (int i = 0; i < formalTypes.length; i++) {
+      // Try to pass each argument to each parameter, recording any type
+      // parameter bounds that were implied by this assignment.
+      tryConstrainLower(formalTypes[i], actualTypes[i]);
+    }
+  }
+
   Member? getInterfaceMember(Class class_, Name name, {bool setter: false});
 
   InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,

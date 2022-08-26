@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -156,8 +158,9 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
           // We also leave HIf nodes in place when one branch is dead.
           HInstruction condition = current.inputs.first;
           if (condition is HConstant) {
-            bool isTrue = condition.constant.isTrue;
-            successor = isTrue ? current.thenBlock : current.elseBlock;
+            successor = condition.constant is TrueConstantValue
+                ? current.thenBlock
+                : current.elseBlock;
           }
         }
         if (successor != null && successor.id > current.block.id) {
@@ -401,10 +404,10 @@ class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
 
 /// Remove [HPrimitiveCheck] instructions from the graph in '--trust-primitives'
 /// mode.
-class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
+class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor with CodegenPhase {
   final CompilerOptions _options;
 
-  SsaTrustedCheckRemover(this._options);
+  SsaTrustedPrimitiveCheckRemover(this._options);
 
   @override
   void visitGraph(HGraph graph) {
@@ -432,6 +435,56 @@ class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
   void visitBoolConversion(HBoolConversion instruction) {
     instruction.block.rewrite(instruction, instruction.checkedInput);
     instruction.block.remove(instruction);
+  }
+}
+
+/// Remove trusted late variable checks.
+class SsaTrustedLateCheckRemover extends HBaseVisitor with CodegenPhase {
+  final AbstractValueDomain _abstractValueDomain;
+
+  SsaTrustedLateCheckRemover(this._abstractValueDomain);
+
+  @override
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  @override
+  void visitBasicBlock(HBasicBlock block) {
+    HInstruction instruction = block.first;
+    while (instruction != null) {
+      HInstruction next = instruction.next;
+      instruction.accept(this);
+      instruction = next;
+    }
+  }
+
+  @override
+  void visitLateCheck(HLateCheck instruction) {
+    if (!instruction.isTrusted) return;
+    final inputs = instruction.inputs.toList();
+    instruction.block.rewrite(instruction, instruction.checkedInput);
+    instruction.block.remove(instruction);
+    // TODO(sra): There might be a unused name.
+
+    // Remove pure unused inputs.
+    for (HInstruction input in inputs) {
+      if (input.usedBy.isNotEmpty) continue;
+      HBasicBlock block = input.block;
+      if (block == null) continue; // Already removed.
+      if (input.isPure(_abstractValueDomain)) {
+        // Special cases that are removed properly by other phases.
+        if (input is HParameterValue) continue;
+        if (input is HLocalValue) continue;
+        if (input is HPhi) continue;
+        block.remove(input);
+        continue;
+      }
+      if (input is HFieldGet) {
+        if (input.canThrow(_abstractValueDomain)) continue;
+        block.remove(input);
+      }
+    }
   }
 }
 
@@ -772,6 +825,23 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     // at use in the check.
     if (instruction.usedBy.isEmpty) {
       visitInstruction(instruction);
+    }
+  }
+
+  @override
+  void visitLateReadCheck(HLateReadCheck instruction) {
+    // If the checked value is used, the input might still have one use
+    // (i.e. this HLateReadCheck), but it cannot be generated at use, since we
+    // will rely on non-generate-at-use to assign the value to a variable.
+    //
+    // However, if the checked value is unused then the input may be generated
+    // at use in the check.
+    if (instruction.usedBy.isEmpty) {
+      visitInstruction(instruction);
+    } else {
+      // The name argument can be generated at use. If present, it is either a
+      // string constant or a reference to a string.
+      analyzeInputs(instruction, 1);
     }
   }
 
@@ -1176,17 +1246,17 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
     if (node.usedBy.length <= 1) return;
     ConstantValue constant = node.constant;
 
-    if (constant.isNull) {
+    if (constant is NullConstantValue) {
       _handleNull(node);
       return;
     }
 
-    if (constant.isInt) {
+    if (constant is IntConstantValue) {
       _handleInt(node, constant);
       return;
     }
 
-    if (constant.isString) {
+    if (constant is StringConstantValue) {
       _handleString(node, constant);
       return;
     }
@@ -1264,6 +1334,8 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
 
       // TODO(sra): Check if a.x="s" can avoid or specialize a write barrier.
       if (instruction is HFieldSet) return true;
+
+      if (instruction is HLateCheck) return true;
 
       // TODO(sra): Determine if other uses result in faster JavaScript code.
       return false;

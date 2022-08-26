@@ -96,7 +96,7 @@ class CreateField extends CorrectionProducer {
     if (targetClassElement == null) {
       return;
     }
-    if (targetClassElement.librarySource.uri.isScheme('dart')) {
+    if (targetClassElement.library.isInSdk) {
       return;
     }
     utils.targetClassElement = targetClassElement;
@@ -137,7 +137,4 @@ class CreateField extends CorrectionProducer {
       });
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static CreateField newInstance() => CreateField();
 }

@@ -1,8 +1,7 @@
 name: native_stack_traces
+version: 0.4.6
 description: Utilities for working with non-symbolic stack traces.
-version: 0.4.5
-
-homepage: https://github.com/dart-lang/sdk/tree/master/pkg/native_stack_traces
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/native_stack_traces
 
 environment:
   sdk: '>=2.14.0 <3.0.0'
@@ -14,5 +13,9 @@ dependencies:
   args: ^2.0.0
   path: ^1.8.0
 
+# We use 'any' version constraints here as we get our package versions from
+# the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
+# best practice for packages is to specify their compatible version ranges.
+# See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
-  lints: ^1.0.0
+  lints: any

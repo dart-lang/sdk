@@ -1,4 +1,3 @@
-// @dart = 2.9
 extension<R, T> on R Function(T) {
   Type get returnType => R;
   Type get parameterType => T;

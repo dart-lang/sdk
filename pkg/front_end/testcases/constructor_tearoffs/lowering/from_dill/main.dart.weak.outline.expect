@@ -9,7 +9,7 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
-static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
+static method throws(() → dynamic f, {has-declared-initializer core::bool inSoundModeOnly}) → dynamic
   ;
 
 library /*isNonNullableByDefault*/;

@@ -54,10 +54,10 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       bool warnOnWeakCode = false,
       bool allowErrors = false}) async {
     for (var path in migratedInput.keys) {
-      newFile2(path, migratedInput[path]!);
+      newFile(path, migratedInput[path]!);
     }
     for (var path in input.keys) {
-      newFile2(path, input[path]!);
+      newFile(path, input[path]!);
     }
     var listener = TestMigrationListener();
     var migration = NullabilityMigration(listener,
@@ -802,6 +802,42 @@ abstract class C {
     // migration would consider the LHS of `x = f()` to have context type
     // non-nullable `int`, so it would add a null check to the value returned
     // from `f`.
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_at_required_to_required_in_redirecting_factory() async {
+    // Redirecting factory constructors have special logic to suppress some of
+    // the usual heuristics for adding `required`, since it's allowed for a
+    // redirecting factory constructor to have a non-required non-nullable
+    // argument with no default.  But we need to make sure that we still convert
+    // `@required` to `required`.
+    addMetaPackage();
+    var content = r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  int get v;
+  A._();
+  factory A({@required int v}) = B._;
+}
+class B extends A {
+  @override
+  final int v;
+  B._({this.v}) : super._();
+}
+''';
+    var expected = r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  int? get v;
+  A._();
+  factory A({required int v}) = B._;
+}
+class B extends A {
+  @override
+  final int? v;
+  B._({this.v}) : super._();
+}
+''';
     await _checkSingleFileChanges(content, expected);
   }
 
@@ -6497,6 +6533,27 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49106')
+  Future<void> test_map_read_does_not_require_index_cast() async {
+    var content = '''
+int f(Map<String, int> m, Object o) => m[o];
+''';
+    var expected = '''
+int? f(Map<String, int> m, Object o) => m[o];
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_map_write_requires_index_cast() async {
+    var content = '''
+void f(Map<String, int> m, Object o, int i) => m[o] = i;
+''';
+    var expected = '''
+void f(Map<String, int> m, Object o, int i) => m[o as String] = i;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_methodInvocation_extension_invocation() async {
     var content = '''
 extension on bool {
@@ -8695,7 +8752,7 @@ f() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_typedef_assign_null_type_formal_with_paramter() async {
+  Future<void> test_typedef_assign_null_type_formal_with_parameter() async {
     var content = '''
 typedef F<R> = Function<T>(T);
 
@@ -9462,6 +9519,52 @@ import 'package:collection/collection.dart' show IterableNullableExtension;
 
 Iterable<Map<String?, int>> f(Iterable<Map<String?, int>?> it)
     => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_whereNotNull_iterable_dynamic() async {
+    var content = '''
+f(Iterable<dynamic> it) => it.where((s) => s != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+f(Iterable<dynamic> it) => it.whereNotNull();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49103')
+  Future<void> test_whereNotNull_iterable_U() async {
+    var content = '''
+f<U>(Iterable<U> it) => it.where((s) => s != null);
+''';
+    // whereNotNull cannot be used in this case, because its signature is:
+    //
+    //   extension IterableNullableExtension<T extends Object> on Iterable<T?> {
+    //     Iterable<T> whereNotNull() => ...;
+    //   }
+    //
+    // When the type system tries to solve for a substitution T=... that makes
+    // the extension apply, it gets T=U, but that doesn't work because U is not
+    // a subtype of Object.
+    //
+    // So the migration tool shouldn't change the `where` to `whereNotNull`.
+    var expected = '''
+f<U>(Iterable<U> it) => it.where((s) => s != null);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_whereNotNull_iterable_U_extends_object() async {
+    var content = '''
+f<U extends Object>(Iterable<U> it) => it.where((s) => s != null);
+''';
+    var expected = '''
+import 'package:collection/collection.dart' show IterableNullableExtension;
+
+f<U extends Object>(Iterable<U> it) => it.whereNotNull();
 ''';
     await _checkSingleFileChanges(content, expected);
   }

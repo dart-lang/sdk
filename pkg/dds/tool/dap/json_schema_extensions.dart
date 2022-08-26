@@ -72,9 +72,11 @@ extension JsonTypeExtensions on JsonType {
         ? _toDartType(dollarRef!)
         : oneOf != null
             ? _toDartUnionType(oneOf!.map((item) => item.asDartType()).toList())
-            : type!.valueEquals('array')
-                ? 'List<${items!.asDartType()}>'
-                : type!.map(_toDartType, _toDartUnionType);
+            : type == null
+                ? refName
+                : type!.valueEquals('array')
+                    ? 'List<${items!.asDartType()}>'
+                    : type!.map(_toDartType, _toDartUnionType);
 
     return isOptional ? '$dartType?' : dartType;
   }
@@ -85,7 +87,21 @@ extension JsonTypeExtensions on JsonType {
   /// Whether this type represents a List.
   bool get isList => type?.valueEquals('array') ?? false;
 
-  /// Whether this type is a simple value that does not need any special handling.
+  /// Whether this type is a simple value like `String`, `bool`, `int`.
+  bool get isSimpleValue => isSimple && asDartType() != 'Map<String, Object?>';
+
+  /// If this type is an alias to a simple value type, returns that type.
+  /// Otherwise, returns `null`.
+  JsonType? get aliasFor {
+    final targetType = dollarRef != null ? root.typeFor(this) : null;
+    if (targetType == null) {
+      return null;
+    }
+    return targetType.isSimpleValue ? targetType : null;
+  }
+
+  /// Whether this type is a simple type that needs no special handling for
+  /// deserialisation (such as `String`, `bool`, `int`, `Map<String, Object?>`).
   bool get isSimple {
     const _dartSimpleTypes = {
       'bool',
@@ -95,7 +111,8 @@ extension JsonTypeExtensions on JsonType {
       'Map<String, Object?>',
       'Null',
     };
-    return _dartSimpleTypes.contains(asDartType());
+    return type != null &&
+        _dartSimpleTypes.contains(type!.map(_toDartType, _toDartUnionType));
   }
 
   /// Whether this type is a Union type using JSON schema's "oneOf" of where its

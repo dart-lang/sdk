@@ -19,7 +19,7 @@
 library meta;
 
 /// Used to annotate a function `f`. Indicates that `f` always throws an
-/// exception. Any functions that override `f`, in class inheritence, are also
+/// exception. Any functions that override `f`, in class inheritance, are also
 /// expected to conform to this contract.
 ///
 /// Tools, such as the analyzer, can use this to understand whether a block of

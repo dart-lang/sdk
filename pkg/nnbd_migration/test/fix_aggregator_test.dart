@@ -1413,6 +1413,7 @@ class C {
 
   Future<void>
       test_parameter_field_formal_addExplicitType_declared_with_final() async {
+    verifyNoTestUnitErrors = false;
     await analyze('''
 class C {
   int x;

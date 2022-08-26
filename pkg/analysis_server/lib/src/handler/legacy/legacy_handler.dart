@@ -6,11 +6,34 @@ import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
+
+/// A request handler for the completion domain.
+abstract class CompletionHandler extends LegacyHandler {
+  /// Initialize a newly created handler to be able to service requests for the
+  /// [server].
+  CompletionHandler(super.server, super.request, super.cancellationToken);
+
+  /// Return `true` if completion is disabled and the handler should return. If
+  /// `true` is returned then a response will already have been returned, so
+  /// subclasses should not return a second response.
+  bool get completionIsDisabled {
+    if (!server.options.featureSet.completion) {
+      sendResponse(Response.invalidParameter(
+        request,
+        'request',
+        'The completion feature is not enabled',
+      ));
+      return true;
+    }
+    return false;
+  }
+}
 
 /// A request handler for the legacy protocol.
 abstract class LegacyHandler {
@@ -52,5 +75,10 @@ abstract class LegacyHandler {
   /// and whose body if the given [result].
   void sendResult(ResponseResult result) {
     sendResponse(result.toResponse(request.id));
+  }
+
+  /// Send a notification built from the given [params].
+  void sendSearchResults(SearchResultsParams params) {
+    server.sendNotification(params.toNotification());
   }
 }

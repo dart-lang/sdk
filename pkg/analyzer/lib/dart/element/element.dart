@@ -49,7 +49,20 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
+
+/// A library augmentation import directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class AugmentationImportElement implements UriReferencedElement {
+  /// Returns the augmentation library that this element imports.
+  LibraryAugmentationElement get augmentation;
+
+  @override
+  LibraryOrAugmentationElement get enclosingElement;
+}
 
 /// An element that represents a class or a mixin. The class can be defined by
 /// either a class declaration (with a class body), a mixin application (without
@@ -384,7 +397,7 @@ abstract class ClassMemberElement implements Element {
 /// An element representing a compilation unit.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class CompilationUnitElement implements Element, UriReferencedElement {
+abstract class CompilationUnitElement implements UriReferencedElement {
   /// Return a list containing all of the top-level accessors (getters and
   /// setters) contained in this compilation unit.
   List<PropertyAccessorElement> get accessors;
@@ -395,6 +408,10 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 
   @override
   LibraryElement get enclosingElement;
+
+  /// Return the library, or library augmentation that encloses this unit.
+  @experimental
+  LibraryOrAugmentationElement get enclosingElement2;
 
   /// Return a list containing all of the enums contained in this compilation
   /// unit.
@@ -407,11 +424,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// Return a list containing all of the top-level functions contained in this
   /// compilation unit.
   List<FunctionElement> get functions;
-
-  /// Return `true` if this compilation unit defines a top-level function named
-  /// `loadLibrary`.
-  @Deprecated('Not useful for clients')
-  bool get hasLoadLibraryFunction;
 
   /// Return the [LineInfo] for the [source].
   LineInfo get lineInfo;
@@ -430,11 +442,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// Return a list containing all of the type aliases contained in this
   /// compilation unit.
   List<TypeAliasElement> get typeAliases;
-
-  /// Return a list containing all of the classes contained in this compilation
-  /// unit.
-  @Deprecated('Use classes instead')
-  List<ClassElement> get types;
 
   /// Return the enum defined in this compilation unit that has the given
   /// [name], or `null` if this compilation unit does not define an enum with
@@ -497,6 +504,47 @@ abstract class ConstructorElement
   InterfaceType get returnType;
 }
 
+/// Meaning of a URI referenced in a directive.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUri {}
+
+/// [DirectiveUriWithSource] that references a [LibraryElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithLibrary extends DirectiveUriWithSource {
+  LibraryElement get library;
+}
+
+/// [DirectiveUriWithRelativeUriString] that can be parsed into a relative URI.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithRelativeUri
+    extends DirectiveUriWithRelativeUriString {
+  Uri get relativeUri;
+}
+
+/// [DirectiveUri] for which we can get its relative URI string.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithRelativeUriString extends DirectiveUri {
+  String get relativeUriString;
+}
+
+/// [DirectiveUriWithRelativeUri] that resolves to a [Source].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
+  Source get source;
+}
+
+/// [DirectiveUriWithSource] that references a [CompilationUnitElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
+  CompilationUnitElement get unit;
+}
+
 /// The base class for all of the elements in the element model. Generally
 /// speaking, the element model is a semantic model of the program that
 /// represents things that are declared with a name and hence can be referenced
@@ -520,13 +568,6 @@ abstract class ConstructorElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Element implements AnalysisTarget {
-  /// A comparator that can be used to sort elements by their name offset.
-  /// Elements with a smaller offset will be sorted to be before elements with a
-  /// larger name offset.
-  static final Comparator<Element> SORT_BY_OFFSET =
-      (Element firstElement, Element secondElement) =>
-          firstElement.nameOffset - secondElement.nameOffset;
-
   /// Return the analysis context in which this element is defined.
   AnalysisContext get context;
 
@@ -726,9 +767,17 @@ abstract class Element implements AnalysisTarget {
   /// A declaration <i>m</i> is accessible to library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
-  ///
-  /// TODO(migration): should not be nullable
+  @Deprecated('Use isAccessibleIn2() instead')
   bool isAccessibleIn(LibraryElement? library);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// accessible to code in the given [library]. This is defined by the Dart
+  /// Language Specification in section 6.2:
+  /// <blockquote>
+  /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
+  /// declared in <i>L</i> or if <i>m</i> is public.
+  /// </blockquote>
+  bool isAccessibleIn2(LibraryElement library);
 
   /// Return either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such
@@ -871,70 +920,78 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ElementKind implements Comparable<ElementKind> {
-  static const ElementKind CLASS = ElementKind('CLASS', 0, "class");
+  static const ElementKind AUGMENTATION_IMPORT =
+      ElementKind('AUGMENTATION_IMPORT', 0, "augmentation import");
+
+  static const ElementKind CLASS = ElementKind('CLASS', 1, "class");
 
   static const ElementKind COMPILATION_UNIT =
-      ElementKind('COMPILATION_UNIT', 1, "compilation unit");
+      ElementKind('COMPILATION_UNIT', 2, "compilation unit");
 
   static const ElementKind CONSTRUCTOR =
-      ElementKind('CONSTRUCTOR', 2, "constructor");
+      ElementKind('CONSTRUCTOR', 3, "constructor");
 
-  static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 3, "<dynamic>");
+  static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 4, "<dynamic>");
 
-  static const ElementKind ENUM = ElementKind('ENUM', 4, "enum");
+  static const ElementKind ENUM = ElementKind('ENUM', 5, "enum");
 
-  static const ElementKind ERROR = ElementKind('ERROR', 5, "<error>");
+  static const ElementKind ERROR = ElementKind('ERROR', 6, "<error>");
 
   static const ElementKind EXPORT =
-      ElementKind('EXPORT', 6, "export directive");
+      ElementKind('EXPORT', 7, "export directive");
 
-  static const ElementKind EXTENSION = ElementKind('EXTENSION', 7, "extension");
+  static const ElementKind EXTENSION = ElementKind('EXTENSION', 8, "extension");
 
-  static const ElementKind FIELD = ElementKind('FIELD', 8, "field");
+  static const ElementKind FIELD = ElementKind('FIELD', 9, "field");
 
-  static const ElementKind FUNCTION = ElementKind('FUNCTION', 9, "function");
+  static const ElementKind FUNCTION = ElementKind('FUNCTION', 10, "function");
 
   static const ElementKind GENERIC_FUNCTION_TYPE =
-      ElementKind('GENERIC_FUNCTION_TYPE', 10, 'generic function type');
+      ElementKind('GENERIC_FUNCTION_TYPE', 11, 'generic function type');
 
-  static const ElementKind GETTER = ElementKind('GETTER', 11, "getter");
+  static const ElementKind GETTER = ElementKind('GETTER', 12, "getter");
 
   static const ElementKind IMPORT =
-      ElementKind('IMPORT', 12, "import directive");
+      ElementKind('IMPORT', 13, "import directive");
 
-  static const ElementKind LABEL = ElementKind('LABEL', 13, "label");
+  static const ElementKind LABEL = ElementKind('LABEL', 14, "label");
 
-  static const ElementKind LIBRARY = ElementKind('LIBRARY', 14, "library");
+  static const ElementKind LIBRARY = ElementKind('LIBRARY', 15, "library");
+
+  static const ElementKind LIBRARY_AUGMENTATION =
+      ElementKind('LIBRARY_AUGMENTATION', 16, "library augmentation");
 
   static const ElementKind LOCAL_VARIABLE =
-      ElementKind('LOCAL_VARIABLE', 15, "local variable");
+      ElementKind('LOCAL_VARIABLE', 17, "local variable");
 
-  static const ElementKind METHOD = ElementKind('METHOD', 16, "method");
+  static const ElementKind METHOD = ElementKind('METHOD', 18, "method");
 
-  static const ElementKind NAME = ElementKind('NAME', 17, "<name>");
+  static const ElementKind NAME = ElementKind('NAME', 19, "<name>");
 
-  static const ElementKind NEVER = ElementKind('NEVER', 18, "<never>");
+  static const ElementKind NEVER = ElementKind('NEVER', 20, "<never>");
 
   static const ElementKind PARAMETER =
-      ElementKind('PARAMETER', 19, "parameter");
+      ElementKind('PARAMETER', 21, "parameter");
 
-  static const ElementKind PREFIX = ElementKind('PREFIX', 20, "import prefix");
+  static const ElementKind PART = ElementKind('PART', 22, "part");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 21, "setter");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 23, "import prefix");
+
+  static const ElementKind SETTER = ElementKind('SETTER', 24, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 22, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 25, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 23, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 26, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 24, "type parameter");
+      ElementKind('TYPE_PARAMETER', 27, "type parameter");
 
   static const ElementKind TYPE_ALIAS =
-      ElementKind('TYPE_ALIAS', 25, "type alias");
+      ElementKind('TYPE_ALIAS', 28, "type alias");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 26, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 29, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
@@ -956,6 +1013,7 @@ class ElementKind implements Comparable<ElementKind> {
     NAME,
     NEVER,
     PARAMETER,
+    PART,
     PREFIX,
     SETTER,
     TOP_LEVEL_VARIABLE,
@@ -1021,6 +1079,8 @@ abstract class ElementLocation {
 /// * ThrowingElementVisitor which implements every visit method by throwing an
 ///   exception.
 abstract class ElementVisitor<R> {
+  R? visitAugmentationImportElement(AugmentationImportElement element);
+
   R? visitClassElement(ClassElement element);
 
   R? visitCompilationUnitElement(CompilationUnitElement element);
@@ -1043,6 +1103,8 @@ abstract class ElementVisitor<R> {
 
   R? visitLabelElement(LabelElement element);
 
+  R? visitLibraryAugmentationElement(LibraryAugmentationElement element);
+
   R? visitLibraryElement(LibraryElement element);
 
   R? visitLocalVariableElement(LocalVariableElement element);
@@ -1052,6 +1114,8 @@ abstract class ElementVisitor<R> {
   R? visitMultiplyDefinedElement(MultiplyDefinedElement element);
 
   R? visitParameterElement(ParameterElement element);
+
+  R? visitPartElement(PartElement element);
 
   R? visitPrefixElement(PrefixElement element);
 
@@ -1122,7 +1186,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
 /// An export directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ExportElement implements Element, UriReferencedElement {
+abstract class ExportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the export directive in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
@@ -1278,7 +1342,7 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 /// A single import directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ImportElement implements Element, UriReferencedElement {
+abstract class ImportElement implements UriReferencedElement {
   /// Return a list containing the combinators that were specified as part of
   /// the import directive in the order in which they were specified.
   List<NamespaceCombinator> get combinators;
@@ -1296,12 +1360,6 @@ abstract class ImportElement implements Element, UriReferencedElement {
   /// Return the prefix that was specified as part of the import directive, or
   /// `null` if there was no prefix specified.
   PrefixElement? get prefix;
-
-  /// Return the offset of the prefix of this import in the file that contains
-  /// this import directive, or `-1` if this import is synthetic, does not have
-  /// a prefix, or otherwise does not have an offset.
-  @Deprecated('Use prefix.nameOffset instead')
-  int get prefixOffset;
 }
 
 /// A label associated with a statement.
@@ -1315,17 +1373,20 @@ abstract class LabelElement implements Element {
   String get name;
 }
 
+/// A library augmentation.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LibraryAugmentationElement extends LibraryOrAugmentationElement {
+  /// Returns the library that is augmented by this augmentation.
+  LibraryOrAugmentationElement get augmented;
+}
+
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryElement implements _ExistingElement {
-  /// Returns a list containing all of the extension elements accessible within
-  /// this library.
-  List<ExtensionElement> get accessibleExtensions;
-
-  /// Return the compilation unit that defines this library.
-  CompilationUnitElement get definingCompilationUnit;
-
+abstract class LibraryElement
+    implements LibraryOrAugmentationElement, _ExistingElement {
   /// Return the entry point for this library, or `null` if this library does
   /// not have an entry point. The entry point is defined to be a zero argument
   /// top-level function whose name is `main`.
@@ -1338,26 +1399,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// The export [Namespace] of this library.
   Namespace get exportNamespace;
 
-  /// Return a list containing all of the exports defined in this library.
-  List<ExportElement> get exports;
-
-  /// The set of features available to this library.
-  ///
-  /// Determined by the combination of the language version for the enclosing
-  /// package, enabled experiments, and the presence of a `// @dart` language
-  /// version override comment at the top of the file.
-  FeatureSet get featureSet;
-
-  /// Return `true` if the defining compilation unit of this library contains at
-  /// least one import directive whose URI uses the "dart-ext" scheme.
-  @Deprecated('Support for dart-ext is replaced with FFI')
-  bool get hasExtUri;
-
-  /// Return `true` if this library defines a top-level function named
-  /// `loadLibrary`.
-  @Deprecated('Not useful for clients')
-  bool get hasLoadLibraryFunction;
-
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
   String get identifier;
@@ -1366,9 +1407,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// library. This includes all of the libraries that are imported using a
   /// prefix and those that are imported without a prefix.
   List<LibraryElement> get importedLibraries;
-
-  /// Return a list containing all of the imports defined in this library.
-  List<ImportElement> get imports;
 
   /// Return `true` if this library is an application that can be run in the
   /// browser.
@@ -1383,11 +1421,6 @@ abstract class LibraryElement implements _ExistingElement {
   /// Return `true` if this library is part of the SDK.
   bool get isInSdk;
 
-  bool get isNonNullableByDefault;
-
-  /// The language version for this library.
-  LibraryLanguageVersion get languageVersion;
-
   /// Return the element representing the synthetic function `loadLibrary` that
   /// is implicitly defined for this library if the library is imported using a
   /// deferred import.
@@ -1401,33 +1434,19 @@ abstract class LibraryElement implements _ExistingElement {
   /// Return a list containing all of the compilation units that are included in
   /// this library using a `part` directive. This does not include the defining
   /// compilation unit that contains the `part` directives.
+  @Deprecated('Use parts2 instead')
   List<CompilationUnitElement> get parts;
 
-  /// Return a list containing elements for each of the prefixes used to
-  /// `import` libraries into this library. Each prefix can be used in more
-  /// than one `import` directive.
-  List<PrefixElement> get prefixes;
+  /// Returns the list of `part` directives of this library.
+  List<PartElement> get parts2;
 
   /// The public [Namespace] of this library.
   Namespace get publicNamespace;
-
-  /// Return the name lookup scope for this library. It consists of elements
-  /// that are either declared in the library, or imported into it.
-  Scope get scope;
-
-  @override
-  AnalysisSession get session;
 
   /// Return the top-level elements defined in each of the compilation units
   /// that are included in this library. This includes both public and private
   /// elements, but does not include imports, exports, or synthetic elements.
   Iterable<Element> get topLevelElements;
-
-  /// Return the [TypeProvider] that is used in this library.
-  TypeProvider get typeProvider;
-
-  /// Return the [TypeSystem] that is used in this library.
-  TypeSystem get typeSystem;
 
   /// Return a list containing all of the compilation units this library
   /// consists of. This includes the defining compilation unit and units
@@ -1436,6 +1455,7 @@ abstract class LibraryElement implements _ExistingElement {
 
   /// Return a list containing all of the imports that share the given [prefix],
   /// or an empty array if there are no such imports.
+  @Deprecated('Use PrefixElement.imports instead')
   List<ImportElement> getImportsWithPrefix(PrefixElement prefix);
 
   /// Return the class defined in this library that has the given [name], or
@@ -1467,6 +1487,59 @@ class LibraryLanguageVersion {
   Version get effective {
     return override ?? package;
   }
+}
+
+/// Shared interface between [LibraryElement] and [LibraryAugmentationElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LibraryOrAugmentationElement implements Element {
+  /// Returns a list containing all of the extension elements accessible within
+  /// this library.
+  List<ExtensionElement> get accessibleExtensions;
+
+  /// Returns the augmentation imports specified in this library.
+  @experimental
+  List<AugmentationImportElement> get augmentationImports;
+
+  /// Return the compilation unit that defines this library.
+  CompilationUnitElement get definingCompilationUnit;
+
+  /// Return a list containing all of the exports defined in this library.
+  List<ExportElement> get exports;
+
+  /// The set of features available to this library.
+  ///
+  /// Determined by the combination of the language version for the enclosing
+  /// package, enabled experiments, and the presence of a `// @dart` language
+  /// version override comment at the top of the file.
+  FeatureSet get featureSet;
+
+  /// Return a list containing all of the imports defined in this library.
+  List<ImportElement> get imports;
+
+  bool get isNonNullableByDefault;
+
+  /// The language version for this library.
+  LibraryLanguageVersion get languageVersion;
+
+  /// Return a list containing elements for each of the prefixes used to
+  /// `import` libraries into this library. Each prefix can be used in more
+  /// than one `import` directive.
+  List<PrefixElement> get prefixes;
+
+  /// Return the name lookup scope for this library. It consists of elements
+  /// that are either declared in the library, or imported into it.
+  Scope get scope;
+
+  @override
+  AnalysisSession get session;
+
+  /// Return the [TypeProvider] that is used in this library.
+  TypeProvider get typeProvider;
+
+  /// Return the [TypeSystem] that is used in this library.
+  TypeSystem get typeSystem;
 }
 
 /// An element that can be (but is not required to be) defined within a method
@@ -1556,10 +1629,12 @@ abstract class ParameterElement
   /// parameters are always positional, unless the experiment 'non-nullable' is
   /// enabled, in which case named parameters can also be required.
   ///
-  /// Note: regardless of the state of the 'non-nullable' experiment, this will
-  /// return `false` for a named parameter that is annotated with the
-  /// `@required` annotation.
-  // TODO(brianwilkerson) Rename this to `isRequired`.
+  /// Note: regardless of the state of the 'non-nullable' experiment, the
+  /// presence or absence of the `@required` annotation does not change the
+  /// meaning of this getter. The parameter `{@required int x}` will return
+  /// `false` and the parameter `{@required required int x}` will return
+  /// `true`
+  @Deprecated('Use isRequired instead')
   bool get isNotOptional;
 
   /// Return `true` if this parameter is an optional parameter. Optional
@@ -1582,6 +1657,15 @@ abstract class ParameterElement
   /// Return `true` if this parameter is a positional parameter. Positional
   /// parameters can either be required or optional.
   bool get isPositional;
+
+  /// Return `true` if this parameter is either a required positional
+  /// parameter, or a named parameter with the `required` keyword.
+  ///
+  /// Note: the presence or absence of the `@required` annotation does not
+  /// change the meaning of this getter. The parameter `{@required int x}`
+  /// will return `false` and the parameter `{@required required int x}`
+  /// will return `true`.
+  bool get isRequired;
 
   /// Return `true` if this parameter is both a required and named parameter.
   /// Named parameters that are annotated with the `@required` annotation are
@@ -1622,12 +1706,27 @@ abstract class ParameterElement
   });
 }
 
+/// A 'part' directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PartElement implements _ExistingElement {
+  /// The interpretation of the URI specified in the directive.
+  DirectiveUri get uri;
+}
+
 /// A prefix used to import one or more libraries into another library.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement implements _ExistingElement {
   @override
   LibraryElement get enclosingElement;
+
+  /// Return the library, or library augmentation that encloses this element.
+  @experimental
+  LibraryOrAugmentationElement get enclosingElement2;
+
+  /// Return the imports that share this prefix.
+  List<ImportElement> get imports;
 
   @override
   String get name;

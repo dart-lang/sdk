@@ -126,7 +126,7 @@ void f() {
   Future<void> test_function_hasNamed() async {
     await resolveTestCode('''
 test({int a = 0}) {}
-main() {
+void f() {
   test(1);
 }
 ''');
@@ -136,7 +136,7 @@ main() {
   Future<void> test_function_hasZero() async {
     await resolveTestCode('''
 test() {}
-main() {
+void f() {
   test(1);
 }
 ''');
@@ -144,7 +144,7 @@ main() {
     //  I'm leaving the test as is to keep it passing.
     await assertHasFix('''
 test([int i]) {}
-main() {
+void f() {
   test(1);
 }
 ''');
@@ -154,7 +154,7 @@ main() {
     await resolveTestCode('''
 class A {
   test(int a) {}
-  main() {
+  void f() {
     test(1, 2.0);
   }
 }
@@ -162,7 +162,7 @@ class A {
     await assertHasFix('''
 class A {
   test(int a, [double d]) {}
-  main() {
+  void f() {
     test(1, 2.0);
   }
 }

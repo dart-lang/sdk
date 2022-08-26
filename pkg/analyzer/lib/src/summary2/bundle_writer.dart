@@ -18,6 +18,8 @@ import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/element_flags.dart';
+import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
@@ -91,10 +93,7 @@ class BundleWriter {
     );
   }
 
-  void writeLibraryElement(
-    LibraryElementImpl libraryElement,
-    List<Reference> exports,
-  ) {
+  void writeLibraryElement(LibraryElementImpl libraryElement) {
     var libraryOffset = _sink.offset;
     _classMembersLengths = <int>[];
 
@@ -105,13 +104,15 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
     _writeList(libraryElement.imports, _writeImportElement);
     _writeList(libraryElement.exports, _writeExportElement);
+    for (final partElement in libraryElement.parts2) {
+      _resolutionSink._writeAnnotationList(partElement.metadata);
+    }
     _resolutionSink.writeElement(libraryElement.entryPoint);
     LibraryElementFlags.write(_sink, libraryElement);
-    _sink.writeUInt30(libraryElement.units.length);
-    for (var unitElement in libraryElement.units) {
-      _writeUnitElement(unitElement);
-    }
-    _writeReferences(exports);
+    _writeUnitElement(libraryElement.definingCompilationUnit);
+    _writeList(libraryElement.parts2, _writePartElement);
+
+    _writeExportedReferences(libraryElement.exportedReferences);
 
     _libraries.add(
       _Library(
@@ -128,6 +129,11 @@ class BundleWriter {
 
     _sink._writeStringReference(element.name);
     ClassElementFlags.write(_sink, element);
+
+    _sink.writeList<MacroApplicationError>(
+      element.macroApplicationErrors,
+      (x) => x.write(_sink),
+    );
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -168,6 +174,42 @@ class BundleWriter {
     });
   }
 
+  void _writeDirectiveUri(DirectiveUri element) {
+    void writeWithUriString(DirectiveUriWithRelativeUriString element) {
+      _sink._writeStringReference(element.relativeUriString);
+    }
+
+    void writeWithRelativeUri(DirectiveUriWithRelativeUri element) {
+      writeWithUriString(element);
+      _sink._writeStringReference('${element.relativeUri}');
+    }
+
+    void writeWithSource(DirectiveUriWithSource element) {
+      writeWithRelativeUri(element);
+      _sink._writeStringReference('${element.source.uri}');
+    }
+
+    if (element is DirectiveUriWithLibrary) {
+      // TODO(scheglov) implement
+      throw UnimplementedError();
+    } else if (element is DirectiveUriWithUnit) {
+      _sink.writeByte(DirectiveUriKind.withUnit.index);
+      writeWithSource(element);
+      _writeUnitElement(element.unit);
+    } else if (element is DirectiveUriWithSource) {
+      _sink.writeByte(DirectiveUriKind.withSource.index);
+      writeWithSource(element);
+    } else if (element is DirectiveUriWithRelativeUri) {
+      _sink.writeByte(DirectiveUriKind.withRelativeUri.index);
+      writeWithRelativeUri(element);
+    } else if (element is DirectiveUriWithRelativeUriString) {
+      _sink.writeByte(DirectiveUriKind.withRelativeUriString.index);
+      writeWithUriString(element);
+    } else {
+      _sink.writeByte(DirectiveUriKind.withNothing.index);
+    }
+  }
+
   void _writeEnumElement(ClassElement element) {
     element as EnumElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
@@ -193,6 +235,22 @@ class BundleWriter {
       );
       _writeList(element.constructors, _writeConstructorElement);
       _writeList(element.methods, _writeMethodElement);
+    });
+  }
+
+  void _writeExportedReferences(List<ExportedReference> elements) {
+    _writeList<ExportedReference>(elements, (exported) {
+      final index = _references._indexOfReference(exported.reference);
+      if (exported is ExportedReferenceDeclared) {
+        _sink.writeByte(0);
+        _sink.writeUInt30(index);
+      } else if (exported is ExportedReferenceExported) {
+        _sink.writeByte(1);
+        _sink.writeUInt30(index);
+        _sink.writeUint30List(exported.indexes);
+      } else {
+        throw UnimplementedError('(${exported.runtimeType}) $exported');
+      }
     });
   }
 
@@ -371,6 +429,10 @@ class BundleWriter {
     });
   }
 
+  void _writePartElement(PartElement element) {
+    _writeDirectiveUri(element.uri);
+  }
+
   void _writePropertyAccessorElement(PropertyAccessorElement element) {
     element as PropertyAccessorElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
@@ -380,16 +442,6 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.returnType);
     _writeList(element.parameters, _writeParameterElement);
-  }
-
-  void _writeReferences(List<Reference> references) {
-    var length = references.length;
-    _sink.writeUInt30(length);
-
-    for (var reference in references) {
-      var index = _references._indexOfReference(reference);
-      _sink.writeUInt30(index);
-    }
   }
 
   void _writeTopLevelVariableElement(TopLevelVariableElement element) {
@@ -445,10 +497,8 @@ class BundleWriter {
     unitElement as CompilationUnitElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeStringReference('${unitElement.source.uri}');
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
-    _resolutionSink._writeAnnotationList(unitElement.metadata);
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
@@ -502,14 +552,10 @@ class ResolutionSink extends _SummaryDataWriter {
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
   ResolutionSink({
-    required ByteSink sink,
-    required StringIndexer stringIndexer,
+    required super.sink,
+    required super.stringIndexer,
     required _BundleWriterReferences references,
-  })  : _references = references,
-        super(
-          sink: sink,
-          stringIndexer: stringIndexer,
-        );
+  }) : _references = references;
 
   /// TODO(scheglov) Triage places where we write elements.
   /// Some of then cannot be members, e.g. type names.

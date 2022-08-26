@@ -55,3 +55,10 @@ Future<void> yieldToMessageLoop({String name}) async {
   _namedPrint(name)('Await done.');
   return null;
 }
+
+// Uses [object] to guarantee it is reachable.
+@pragma('vm:never-inline')
+void reachabilityFence(Object object) {
+  // Make sure [object] parameter is used and not tree shaken.
+  object.toString();
+}

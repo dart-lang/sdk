@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/flutter/flutter_domain.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../analysis_abstract.dart';
+import '../../../analysis_server_base.dart';
 import '../../utilities/mock_packages.dart';
 
 @reflectiveTest
-class FlutterBase extends AbstractAnalysisTest {
+class FlutterBase extends PubPackageAnalysisServerTest {
   FlutterWidgetProperty getProperty(
     FlutterGetWidgetDescriptionResult result,
     String name,
@@ -32,32 +31,29 @@ class FlutterBase extends AbstractAnalysisTest {
 
   Future<Response> getWidgetDescriptionResponse(String search) async {
     var request = FlutterGetWidgetDescriptionParams(
-      testFile,
+      testFile.path,
       findOffset(search),
     ).toRequest('0');
-    return await waitResponse(request);
+    return await handleRequest(request);
   }
 
   @override
   Future<void> setUp() async {
     super.setUp();
-    projectPath = convertPath('/home');
-    testFile = convertPath('/home/test/lib/test.dart');
 
-    newPubspecYamlFile('/home/test', '');
+    newPubspecYamlFile(testPackageRootPath, '');
 
     var metaLib = MockPackages.instance.addMeta(resourceProvider);
     var flutterLib = MockPackages.instance.addFlutter(resourceProvider);
     newPackageConfigJsonFile(
       '/home/test',
       (PackageConfigFileBuilder()
-            ..add(name: 'test', rootPath: '/home/test')
+            ..add(name: 'test', rootPath: testPackageRootPath)
             ..add(name: 'meta', rootPath: metaLib.parent.path)
             ..add(name: 'flutter', rootPath: flutterLib.parent.path))
           .toContent(toUriStr: toUriStr),
     );
 
-    await createProject();
-    handler = server.handlers.whereType<FlutterDomainHandler>().single;
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 }

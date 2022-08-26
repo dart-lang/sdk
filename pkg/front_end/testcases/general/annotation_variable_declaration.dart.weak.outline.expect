@@ -16,9 +16,9 @@ class Baz extends core::Object {
     ;
   static factory bazFactory(dynamic factoryFormal) → self::Baz
     ;
-  method fisk(dynamic formal1, dynamic formal2, dynamic formal3, dynamic formal4, [dynamic optional]) → dynamic
+  method fisk(dynamic formal1, dynamic formal2, dynamic formal3, dynamic formal4, [dynamic optional = null]) → dynamic
     ;
-  method hest({dynamic named}) → dynamic
+  method hest({dynamic named = null}) → dynamic
     ;
 }
 static const field core::int foo = 42;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 /// Source information system mapping that attempts a semantic mapping between
 /// offsets of JavaScript code points to offsets of Dart code points.
 
@@ -250,7 +252,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
         if (node is ir.LocalFunction) {
           return _buildBody(node, node.function.body);
         } else if (node is ir.Member && node.function != null) {
-          return _buildBody(node, node.function.body);
+          return _buildBody(node, node.function /*!*/ .body);
         }
         break;
       default:
@@ -499,9 +501,4 @@ class KernelSourceLocation extends AbstractSourceLocation {
   KernelSourceLocation(ir.Location location, this.offset, this.sourceName)
       : sourceUri = location.file,
         super.fromLocation(location);
-
-  KernelSourceLocation.fromOther(KernelSourceLocation other, this.sourceName)
-      : sourceUri = other.sourceUri,
-        offset = other.offset,
-        super.fromOther(other);
 }

@@ -25,7 +25,7 @@ class A {
   A(int a, {int b = 0}) {}
 }
 
-main() {
+void f() {
   new A(1, b: 2, named: 3.0);
 }
 ''');
@@ -34,7 +34,7 @@ class A {
   A(int a, {int b = 0, required double named}) {}
 }
 
-main() {
+void f() {
   new A(1, b: 2, named: 3.0);
 }
 ''');
@@ -46,7 +46,7 @@ class A {
   A(int a) {}
 }
 
-main() {
+void f() {
   new A(1, named: 2.0);
 }
 ''');
@@ -55,7 +55,7 @@ class A {
   A(int a, {required double named}) {}
 }
 
-main() {
+void f() {
   new A(1, named: 2.0);
 }
 ''');
@@ -67,7 +67,7 @@ class A {
   A() {}
 }
 
-main() {
+void f() {
   new A(named: 42);
 }
 ''');
@@ -76,7 +76,7 @@ class A {
   A({required int named}) {}
 }
 
-main() {
+void f() {
   new A(named: 42);
 }
 ''');
@@ -88,7 +88,7 @@ class A {
   A.aaa() {}
 }
 
-main() {
+void f() {
   new A.aaa(named: 42);
 }
 ''');
@@ -97,7 +97,7 @@ class A {
   A.aaa({required int named}) {}
 }
 
-main() {
+void f() {
   new A.aaa(named: 42);
 }
 ''');
@@ -107,14 +107,14 @@ main() {
     await resolveTestCode('''
 test(int a, {int b: 0}) {}
 
-main() {
+void f() {
   test(1, b: 2, named: 3.0);
 }
 ''');
     await assertHasFix('''
 test(int a, {int b: 0, required double named}) {}
 
-main() {
+void f() {
   test(1, b: 2, named: 3.0);
 }
 ''');
@@ -124,14 +124,14 @@ main() {
     await resolveTestCode('''
 test(int a) {}
 
-main() {
+void f() {
   test(1, named: 2.0);
 }
 ''');
     await assertHasFix('''
 test(int a, {required double named}) {}
 
-main() {
+void f() {
   test(1, named: 2.0);
 }
 ''');
@@ -141,14 +141,14 @@ main() {
     await resolveTestCode('''
 test() {}
 
-main() {
+void f() {
   test(named: 42);
 }
 ''');
     await assertHasFix('''
 test({required int named}) {}
 
-main() {
+void f() {
   test(named: 42);
 }
 ''');
@@ -159,7 +159,7 @@ main() {
 class A {
   test(int a, {int b: 0}) {}
 
-  main() {
+  void f() {
     test(1, b: 2, named: 3.0);
   }
 }
@@ -168,7 +168,7 @@ class A {
 class A {
   test(int a, {int b: 0, required double named}) {}
 
-  main() {
+  void f() {
     test(1, b: 2, named: 3.0);
   }
 }
@@ -180,7 +180,7 @@ class A {
 class A {
   test(int a, [int b = 0]) {}
 
-  main() {
+  void f() {
     test(1, 2, named: 3.0);
   }
 }
@@ -193,7 +193,7 @@ class A {
 class A {
   test(int a) {}
 
-  main() {
+  void f() {
     test(1, named: 2.0);
   }
 }
@@ -202,7 +202,7 @@ class A {
 class A {
   test(int a, {required double named}) {}
 
-  main() {
+  void f() {
     test(1, named: 2.0);
   }
 }
@@ -214,7 +214,7 @@ class A {
 class A {
   test() {}
 
-  main() {
+  void f() {
     test(named: 42);
   }
 }
@@ -223,7 +223,7 @@ class A {
 class A {
   test({required int named}) {}
 
-  main() {
+  void f() {
     test(named: 42);
   }
 }

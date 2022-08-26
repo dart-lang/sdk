@@ -176,6 +176,7 @@ abstract class DartType {
   ///
   /// For any other type, returns `this`. Applies recursively -- if the bound is
   /// itself a type parameter, that is resolved too.
+  @Deprecated('Use TypeSystem.resolveToBound() instead')
   DartType resolveToBound(DartType objectType);
 }
 

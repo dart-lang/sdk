@@ -17,7 +17,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiTypeMismatch,
         templateFfiFieldInitializer,
         templateFfiPackedAnnotation,
-        templateFfiPackedNestingNonPacked,
         templateFfiSizeAnnotation,
         templateFfiSizeAnnotationDimensions,
         templateFfiStructGeneric;
@@ -261,15 +260,15 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final nativeTypeCfe = NativeTypeCfe(
               this, node.getThisType(coreTypes, Nullability.nonNullable))
           as AbiSpecificNativeTypeCfe;
-      if (nativeTypeCfe.abiSpecificTypes.length == 0) {
+      if (nativeTypeCfe.abiSpecificTypes.isEmpty) {
         // Annotation missing, multiple annotations, or invalid mapping.
         diagnosticReporter.report(messageFfiAbiSpecificIntegerMappingInvalid,
             node.fileOffset, node.name.length, node.location!.file);
       }
-      if (node.typeParameters.length != 0 ||
-          node.procedures.where((Procedure e) => !e.isSynthetic).length != 0 ||
-          node.fields.length != 0 ||
-          node.redirectingFactories.length != 0 ||
+      if (node.typeParameters.isNotEmpty ||
+          node.procedures.where((Procedure e) => !e.isSynthetic).isNotEmpty ||
+          node.fields.isNotEmpty ||
+          node.redirectingFactories.isNotEmpty ||
           node.constructors.length != 1 ||
           !node.constructors.single.isConst) {
         // We want exactly one constructor, no other members and no type arguments.
@@ -307,7 +306,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   /// Returns packing if any.
   int? _checkCompoundClass(Class node) {
-    if (node.typeParameters.length > 0) {
+    if (node.typeParameters.isNotEmpty) {
       diagnosticReporter.report(
           templateFfiStructGeneric.withArguments(
               node.superclass!.name, node.name),
@@ -431,7 +430,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       } else if (isPointerType(type) ||
           isCompoundSubtype(type) ||
           isArrayType(type)) {
-        if (nativeTypeAnnos.length != 0) {
+        if (nativeTypeAnnos.isNotEmpty) {
           diagnosticReporter.report(
               templateFfiFieldNoAnnotation.withArguments(f.name.text),
               f.fileOffset,
@@ -440,10 +439,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           // This class is invalid, but continue reporting other errors on it.
           success = false;
         }
-        if (isCompoundSubtype(type)) {
-          final clazz = (type as InterfaceType).classNode;
-          _checkPacking(node, packing, clazz, f);
-        } else if (isArrayType(type)) {
+        if (isArrayType(type)) {
           final sizeAnnotations = _getArraySizeAnnotations(f);
           if (sizeAnnotations.length == 1) {
             final singleElementType = arraySingleElementType(type);
@@ -453,10 +449,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               // An error on the type will already have been reported.
               success = false;
             } else {
-              if (isCompoundSubtype(singleElementType)) {
-                final clazz = singleElementType.classNode;
-                _checkPacking(node, packing, clazz, f);
-              }
               final dimensions = sizeAnnotations.single;
               if (arrayDimensions(type) != dimensions.length) {
                 diagnosticReporter.report(
@@ -513,35 +505,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
     }
     return success;
-  }
-
-  void _checkPacking(Class outerClass, int? outerClassPacking, Class fieldClass,
-      Member errorNode) {
-    if (outerClassPacking == null) {
-      // Outer struct has no packing, nesting anything is fine.
-      return;
-    }
-
-    final fieldPackingAnnotations = _getPackedAnnotations(fieldClass);
-    bool error = false;
-    if (fieldPackingAnnotations.isEmpty) {
-      // Outer struct has packing but inner one doesn't.
-      error = true;
-    } else {
-      final fieldPacking = fieldPackingAnnotations.first;
-      if (fieldPacking > outerClassPacking) {
-        // Outer struct has stricter packing than the inner.
-        error = true;
-      }
-    }
-    if (error) {
-      diagnosticReporter.report(
-          templateFfiPackedNestingNonPacked.withArguments(
-              fieldClass.name, outerClass.name),
-          errorNode.fileOffset,
-          errorNode.name.text.length,
-          errorNode.fileUri);
-    }
   }
 
   void _checkConstructors(Class node, IndexedClass? indexedClass) {
@@ -669,7 +632,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     final packingAnnotations = _getPackedAnnotations(node);
     final packing =
-        (!packingAnnotations.isEmpty) ? packingAnnotations.first : null;
+        (packingAnnotations.isNotEmpty) ? packingAnnotations.first : null;
 
     final compoundType = () {
       if (types.whereType<InvalidNativeTypeCfe>().isNotEmpty) {
@@ -784,7 +747,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return result;
   }
 
-  /// Must only be called if all the depencies are already in the cache.
+  /// Must only be called if all the dependencies are already in the cache.
   CompoundNativeTypeCfe _compoundAnnotatedNativeTypeCfe(Class compoundClass) {
     final layoutConstant = _compoundAnnotatedFields(compoundClass)!;
     final fieldTypes = layoutConstant

@@ -24,12 +24,20 @@ class _WasmTransformer extends Transformer {
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
+  final Library _coreLibrary;
+  final InterfaceType _nonNullableTypeType;
 
   StaticTypeContext get typeContext =>
       _cachedTypeContext ??= StaticTypeContext(_currentMember!, env);
 
+  CoreTypes get coreTypes => env.coreTypes;
+
   _WasmTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : env = TypeEnvironment(coreTypes, hierarchy);
+      : env = TypeEnvironment(coreTypes, hierarchy),
+        _nonNullableTypeType = coreTypes.index
+            .getClass('dart:core', '_Type')
+            .getThisType(coreTypes, Nullability.nonNullable),
+        _coreLibrary = coreTypes.index.getLibrary('dart:core');
 
   @override
   defaultMember(Member node) {
@@ -41,6 +49,50 @@ class _WasmTransformer extends Transformer {
     _currentMember = null;
     _cachedTypeContext = null;
     return result;
+  }
+
+  /// We can reuse a superclass' `_typeArguments` method if the subclass and the
+  /// superclass have the exact same type parameters in the exact same order.
+  bool canReuseSuperMethod(Class cls) {
+    Supertype supertype = cls.supertype!;
+    if (cls.typeParameters.length != supertype.typeArguments.length) {
+      return false;
+    }
+    for (int i = 0; i < cls.typeParameters.length; i++) {
+      TypeParameter parameter = cls.typeParameters[i];
+      DartType arg = supertype.typeArguments[i];
+      if (arg is! TypeParameterType || arg.parameter != parameter) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  TreeNode visitClass(Class cls) {
+    // For every concrete class whose type parameters do not match the type
+    // parameters of it's super class we embed a special virtual function
+    // `_getTypeArguments`.  When generating code for `_getTypeArguments`, we
+    // read the `TypeParameter`s off the instantiated object and generate a
+    // `List<Type>` to pass to `_getRuntimeType` which then returns a reified
+    // `Type` object.
+    if (!cls.isAbstract &&
+        cls != coreTypes.objectClass &&
+        !canReuseSuperMethod(cls)) {
+      Procedure getTypeArguments = Procedure(
+          Name("_typeArguments", _coreLibrary),
+          ProcedureKind.Getter,
+          FunctionNode(
+            null,
+            returnType: InterfaceType(coreTypes.listClass,
+                Nullability.nonNullable, [_nonNullableTypeType]),
+          ),
+          isExternal: true,
+          fileUri: cls.fileUri)
+        ..isNonNullableByDefault = true;
+      cls.addProcedure(getTypeArguments);
+    }
+    return super.visitClass(cls);
   }
 
   @override
@@ -81,7 +133,7 @@ class _WasmTransformer extends Transformer {
         initializer: InstanceGet(
             InstanceAccessKind.Instance, iterable, Name('iterator'),
             interfaceTarget: coreTypes.iterableGetIterator,
-            resultType: coreTypes.iterableGetIterator.function.returnType)
+            resultType: iteratorType)
           ..fileOffset = iterable.fileOffset,
         type: iteratorType)
       ..fileOffset = iterable.fileOffset;
@@ -89,18 +141,18 @@ class _WasmTransformer extends Transformer {
     final condition = InstanceInvocation(InstanceAccessKind.Instance,
         VariableGet(iterator), Name('moveNext'), Arguments(const []),
         interfaceTarget: coreTypes.iteratorMoveNext,
-        functionType: coreTypes.iteratorMoveNext.function
-            .computeFunctionType(Nullability.nonNullable))
+        functionType: coreTypes.iteratorMoveNext.getterType as FunctionType)
       ..fileOffset = iterable.fileOffset;
 
     final variable = stmt.variable
       ..initializer = (InstanceGet(
           InstanceAccessKind.Instance, VariableGet(iterator), Name('current'),
           interfaceTarget: coreTypes.iteratorGetCurrent,
-          resultType: coreTypes.iteratorGetCurrent.function.returnType)
+          resultType: elementType)
         ..fileOffset = stmt.bodyOffset);
 
-    final Block body = Block([variable, stmt.body]);
+    final Block body = Block([variable, stmt.body])
+      ..fileOffset = stmt.fileOffset;
 
     return Block([iterator, ForStatement(const [], condition, const [], body)])
         .accept<TreeNode>(this);

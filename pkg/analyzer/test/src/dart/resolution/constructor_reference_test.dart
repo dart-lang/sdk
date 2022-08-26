@@ -242,6 +242,21 @@ ConstructorReference
 ''');
   }
 
+  test_alias_generic_with_inferred_type_parameter() async {
+    await assertErrorsInCode('''
+class C<T> {
+  final T x;
+  C(this.x);
+}
+typedef Direct<T> = C<T>;
+void main() {
+  var x = const <C<int> Function(int)>[Direct.new];
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+    ]);
+  }
+
   test_alias_genericWithBound_unnamed() async {
     await assertNoErrorsInCode('''
 class A<T> {
@@ -830,7 +845,7 @@ ConstructorReference
   }
 
   test_prefixedAlias_generic_unnamed() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A<T> {
   A();
 }
@@ -886,7 +901,7 @@ ConstructorReference
   }
 
   test_prefixedClass_generic_named() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A<T> {
   A.foo();
 }
@@ -941,7 +956,7 @@ ConstructorReference
   }
 
   test_prefixedClass_generic_targetOfFunctionCall() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A<T> {
   A();
 }
@@ -999,7 +1014,7 @@ ConstructorReference
   }
 
   test_prefixedClass_generic_unnamed() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A<T> {
   A();
 }
@@ -1388,7 +1403,7 @@ ConstructorReference
   }
 
   test_prefixedAlias_nonGeneric_named() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A.foo();
 }
@@ -1430,7 +1445,7 @@ ConstructorReference
   }
 
   test_prefixedAlias_nonGeneric_unnamed() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A();
 }
@@ -1472,7 +1487,7 @@ ConstructorReference
   }
 
   test_prefixedClass_nonGeneric_named() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A.foo();
 }
@@ -1513,7 +1528,7 @@ ConstructorReference
   }
 
   test_prefixedClass_nonGeneric_unnamed() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A();
 }

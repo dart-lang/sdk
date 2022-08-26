@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.kernel.env;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
@@ -18,12 +20,13 @@ import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
 import '../ir/util.dart';
+import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
-import '../ssa/type_builder.dart';
 import '../universe/member_usage.dart';
 import 'element_map.dart';
+import 'element_map_interfaces.dart' show memberIsIgnorable;
 
 /// Environment for fast lookup of component libraries.
 class KProgramEnv {
@@ -537,8 +540,8 @@ abstract class KClassData {
 
   InterfaceType get thisType;
   InterfaceType get jsInteropType;
-  InterfaceType get rawType;
-  InterfaceType get instantiationToBounds;
+  InterfaceType /*?*/ get rawType;
+  InterfaceType /*?*/ get instantiationToBounds;
   InterfaceType get supertype;
   InterfaceType get mixedInType;
   List<InterfaceType> get interfaces;
@@ -666,7 +669,7 @@ abstract class KFunctionDataMixin implements KFunctionData {
   List<TypeVariableType> _typeVariables;
 
   @override
-  List<TypeVariableType> getFunctionTypeVariables(
+  List<TypeVariableType> /*!*/ getFunctionTypeVariables(
       covariant KernelToElementMap elementMap) {
     if (_typeVariables == null) {
       if (functionNode.typeParameters.isEmpty) {
@@ -774,12 +777,29 @@ class KConstructorDataImpl extends KFunctionDataImpl
 
 abstract class KFieldData extends KMemberData {
   DartType getFieldType(IrToElementMap elementMap);
+
+  /// `true` if this field is the backing field for a `late` or `late final`
+  /// instance field.
+  bool get isLateBackingField;
+
+  /// `true` if this field is the backing field for a `late final` instance
+  /// field.
+  bool get isLateFinalBackingField;
 }
 
 class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   DartType _type;
 
-  KFieldDataImpl(ir.Field node) : super(node);
+  @override
+  final bool isLateBackingField;
+
+  @override
+  final bool isLateFinalBackingField;
+
+  KFieldDataImpl(ir.Field node,
+      {/*required*/ this.isLateBackingField,
+      /*required*/ this.isLateFinalBackingField})
+      : super(node);
 
   @override
   ir.Field get node => super.node;

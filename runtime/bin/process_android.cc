@@ -435,7 +435,7 @@ class ProcessStarter {
     int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
     if (bytes_read != sizeof(msg)) {
       perror("Failed receiving notification message");
-      exit(1);
+      _exit(1);
     }
     if (Process::ModeIsAttached(mode_)) {
       ExecProcess();
@@ -568,13 +568,15 @@ class ProcessStarter {
           execvp(realpath, const_cast<char* const*>(program_arguments_));
           ReportChildError();
         } else {
-          // Exit the intermediate process.
-          exit(0);
+          // Exit the intermediate process. Avoid calling any atexit callbacks
+          // to avoid potential issues (e.g. deadlocks).
+          _exit(0);
         }
       }
     } else {
-      // Exit the intermediate process.
-      exit(0);
+      // Exit the intermediate process. Avoid calling any atexit callbacks
+      // to avoid potential issues (e.g. deadlocks).
+      _exit(0);
     }
   }
 

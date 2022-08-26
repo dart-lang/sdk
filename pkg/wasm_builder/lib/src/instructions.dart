@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: non_constant_identifier_names
+
 import 'module.dart';
 import 'serialize.dart';
 import 'types.dart';
@@ -114,6 +116,11 @@ class Instructions with SerializerMixin {
   /// Column width for the instructions.
   int instructionColumnWidth = 50;
 
+  /// The maximum number of stack slots for which to print the types after each
+  /// instruction. When the stack is higher than this, some elements in the
+  /// middle of the stack are left out.
+  int maxStackShown = 10;
+
   int _indent = 1;
   final List<String> _traceLines = [];
 
@@ -149,7 +156,16 @@ class Instructions with SerializerMixin {
       instr = instr.length > instructionColumnWidth - 2
           ? instr.substring(0, instructionColumnWidth - 4) + "... "
           : instr.padRight(instructionColumnWidth);
-      final String stack = reachableAfter ? _stackTypes.join(', ') : "-";
+      final int stackHeight = _stackTypes.length;
+      final String stack = reachableAfter
+          ? stackHeight <= maxStackShown
+              ? _stackTypes.join(', ')
+              : [
+                  ..._stackTypes.sublist(0, maxStackShown ~/ 2),
+                  "... ${stackHeight - maxStackShown} omitted ...",
+                  ..._stackTypes.sublist(stackHeight - (maxStackShown + 1) ~/ 2)
+                ].join(', ')
+          : "-";
       final String line = "$byteOffset$instr$stack\n";
       _indent += indentAfter;
 
@@ -1234,7 +1250,8 @@ class Instructions with SerializerMixin {
   /// Emit a `br_on_cast_static_fail` instruction.
   void br_on_cast_static_fail(Label label, DefType targetType) {
     assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyCast((inputs) => [RefType.def(targetType, nullable: false)],
+    assert(_verifyCastStatic(
+        (inputs) => [RefType.def(targetType, nullable: false)],
         trace: ['br_on_cast_static_fail', label, targetType]));
     writeBytes(const [0xFB, 0x47]);
     _writeLabel(label);

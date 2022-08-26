@@ -7,6 +7,8 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -45,6 +47,9 @@ var experimentalEnableBazelWatching = true;
 /// Class that maintains a mapping from included/excluded paths to a set of
 /// folders that should correspond to analysis contexts.
 abstract class ContextManager {
+  /// Return the analysis contexts that are currently defined.
+  List<AnalysisContext> get analysisContexts;
+
   /// Get the callback interface used to create, destroy, and update contexts.
   ContextManagerCallbacks get callbacks;
 
@@ -183,10 +188,8 @@ class ContextManagerImpl implements ContextManager {
   final Map<Folder, AnalysisDriver> driverMap =
       HashMap<Folder, AnalysisDriver>();
 
-  /// Stream subscription we are using to watch each analysis root directory for
-  /// changes.
-  final Map<Folder, StreamSubscription<WatchEvent>> changeSubscriptions =
-      <Folder, StreamSubscription<WatchEvent>>{};
+  /// Subscriptions to watch included resources for changes.
+  final List<StreamSubscription<WatchEvent>> watcherSubscriptions = [];
 
   /// For each folder, stores the subscription to the Bazel workspace so that we
   /// can establish watches for the generated files.
@@ -208,16 +211,21 @@ class ContextManagerImpl implements ContextManager {
   /// clean up when we destroy a context.
   final bazelWatchedPathsPerFolder = <Folder, _BazelWatchedFiles>{};
 
+  /// Experiments which have been enabled (or disabled) via the
+  /// `--enable-experiment` command-line option.
+  final List<String> _enabledExperiments;
+
   /// Information about the current/last queued context rebuild.
   ///
   /// This is used when a new build is requested to cancel any in-progress
   /// rebuild and wait for it to terminate before starting the next.
-  final _CancellingTaskQueue currentContextRebuild = _CancellingTaskQueue();
+  final _CancellingTaskQueue _currentContextRebuild = _CancellingTaskQueue();
 
   ContextManagerImpl(
       this.resourceProvider,
       this.sdkManager,
       this.packagesFile,
+      this._enabledExperiments,
       this._byteStore,
       this._fileContentCache,
       this._performanceLog,
@@ -231,6 +239,10 @@ class ContextManagerImpl implements ContextManager {
           .listen((events) => _handleBazelWatchEvents(events));
     }
   }
+
+  @override
+  List<AnalysisContext> get analysisContexts =>
+      _collection?.contexts.cast<AnalysisContext>() ?? const [];
 
   @override
   DriverBasedAnalysisContext? getContextFor(String path) {
@@ -458,6 +470,18 @@ class ContextManagerImpl implements ContextManager {
           sdkPath: sdkManager.defaultSdkDirectory,
           packagesFile: packagesFile,
           fileContentCache: _fileContentCache,
+          updateAnalysisOptions2: ({
+            required analysisOptions,
+            required contextRoot,
+            required sdk,
+          }) {
+            if (_enabledExperiments.isNotEmpty) {
+              analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
+                sdkLanguageVersion: sdk.languageVersion,
+                flags: _enabledExperiments,
+              );
+            }
+          },
         );
 
         for (var analysisContext in collection.contexts) {
@@ -468,10 +492,16 @@ class ContextManagerImpl implements ContextManager {
           var rootFolder = analysisContext.contextRoot.root;
           driverMap[rootFolder] = driver;
 
-          var watcher = rootFolder.watch();
-          watchers.add(watcher);
-          changeSubscriptions[rootFolder] = watcher.changes
-              .listen(_handleWatchEvent, onError: _handleWatchInterruption);
+          for (final included in analysisContext.contextRoot.included) {
+            final watcher = included.watch();
+            watchers.add(watcher);
+            watcherSubscriptions.add(
+              watcher.changes.listen(
+                _handleWatchEvent,
+                onError: _handleWatchInterruption,
+              ),
+            );
+          }
 
           _watchBazelFilesIfNeeded(rootFolder, driver);
 
@@ -535,11 +565,23 @@ class ContextManagerImpl implements ContextManager {
       // rest of this method, we will need to start again.
       var needsBuild = true;
       final temporaryWatcherSubscriptions = temporaryWatchers
-          .map((watcher) => watcher.changes.listen((event) {
-                if (shouldRestartBuild(event.path)) {
+          .map((watcher) => watcher.changes.listen(
+                (event) {
+                  if (shouldRestartBuild(event.path)) {
+                    needsBuild = true;
+                  }
+                },
+                onError: (error, stackTrace) {
+                  // Errors in the watcher such as "Directory watcher closed
+                  // unexpectedly" on Windows when the buffer overflows also
+                  // require that we restarted to be consistent.
                   needsBuild = true;
-                }
-              }))
+                  _instrumentationService.logError(
+                    'Temporary watcher error; restarting context build.\n'
+                    '$error\n$stackTrace',
+                  );
+                },
+              ))
           .toList();
 
       try {
@@ -575,14 +617,13 @@ class ContextManagerImpl implements ContextManager {
       callbacks.afterContextsCreated();
     }
 
-    return currentContextRebuild.queue(performContextRebuildGuarded);
+    return _currentContextRebuild.queue(performContextRebuildGuarded);
   }
 
   /// Clean up and destroy the context associated with the given folder.
   void _destroyAnalysisContext(DriverBasedAnalysisContext context) {
     context.driver.dispose();
     var rootFolder = context.contextRoot.root;
-    changeSubscriptions.remove(rootFolder)?.cancel();
     var watched = bazelWatchedPathsPerFolder.remove(rootFolder);
     if (watched != null) {
       for (var path in watched.paths) {
@@ -597,6 +638,9 @@ class ContextManagerImpl implements ContextManager {
   void _destroyAnalysisContexts() {
     var collection = _collection;
     if (collection != null) {
+      for (final subscription in watcherSubscriptions) {
+        subscription.cancel();
+      }
       for (var analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
       }

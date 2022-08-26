@@ -31,7 +31,4 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
       builder.addDeletion(SourceRange(offset, i - offset));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveAbstract newInstance() => RemoveAbstract();
 }

@@ -4,23 +4,14 @@ publish_to: none
 environment:
   sdk: '>=2.12.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
-  front_end:
-    path: ../front_end
-  kernel:
-    path: ../kernel
-  vm:
-    path: ../vm
-  wasm_builder:
-    path: ../wasm_builder
+  _js_interop_checks: any
+  front_end: any
+  kernel: any
+  vm: any
+  wasm_builder: any
 
-dependency_overrides:
-  # Packages with source in the SDK
-  front_end:
-    path: ../front_end
-  kernel:
-    path: ../kernel
-  vm:
-    path: ../vm
-  wasm_builder:
-    path: ../wasm_builder
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  lints: any

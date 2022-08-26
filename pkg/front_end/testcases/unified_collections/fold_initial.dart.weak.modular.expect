@@ -33,7 +33,7 @@ static method foldInitialSpread1() → void {
   dynamic initial = <core::int*>[0, 1, 2];
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t3 = <core::int*>[];
-    for (final dynamic #t4 in initial as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+    for (final has-declared-initializer dynamic #t4 in initial as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
       final core::int* #t5 = #t4 as{TypeError} core::int*;
       #t3.{core::List::add}{Invariant}(#t5){(core::int*) →* void};
     }
@@ -46,7 +46,7 @@ static method foldInitialSpread1() → void {
   self::expect(core::List::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t6 = col::LinkedHashSet::•<core::int*>();
-    for (final dynamic #t7 in initial as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+    for (final has-declared-initializer dynamic #t7 in initial as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
       final core::int* #t8 = #t7 as{TypeError} core::int*;
       #t6.{core::Set::add}{Invariant}(#t8){(core::int*) →* core::bool*};
     }
@@ -62,7 +62,7 @@ static method foldInitialSpread2() → void {
   core::Iterable<core::num*>* initial = <core::num*>[0, 1, 2];
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t9 = <core::int*>[];
-    for (final dynamic #t10 in initial) {
+    for (final has-declared-initializer dynamic #t10 in initial) {
       final core::int* #t11 = #t10 as{TypeError} core::int*;
       #t9.{core::List::add}{Invariant}(#t11){(core::int*) →* void};
     }
@@ -75,7 +75,7 @@ static method foldInitialSpread2() → void {
   self::expect(core::List::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t12 = col::LinkedHashSet::•<core::int*>();
-    for (final dynamic #t13 in initial) {
+    for (final has-declared-initializer dynamic #t13 in initial) {
       final core::int* #t14 = #t13 as{TypeError} core::int*;
       #t12.{core::Set::add}{Invariant}(#t14){(core::int*) →* core::bool*};
     }
@@ -91,7 +91,7 @@ static method foldInitialSpread3() → void {
   core::List<core::num*>* initial = <core::num*>[0, 1, 2];
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t15 = <core::int*>[];
-    for (final dynamic #t16 in initial) {
+    for (final has-declared-initializer dynamic #t16 in initial) {
       final core::int* #t17 = #t16 as{TypeError} core::int*;
       #t15.{core::List::add}{Invariant}(#t17){(core::int*) →* void};
     }
@@ -104,7 +104,7 @@ static method foldInitialSpread3() → void {
   self::expect(core::List::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t18 = col::LinkedHashSet::•<core::int*>();
-    for (final dynamic #t19 in initial) {
+    for (final has-declared-initializer dynamic #t19 in initial) {
       final core::int* #t20 = #t19 as{TypeError} core::int*;
       #t18.{core::Set::add}{Invariant}(#t20){(core::int*) →* core::bool*};
     }

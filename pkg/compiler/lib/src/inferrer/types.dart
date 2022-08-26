@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library types;
 
 import 'package:kernel/ast.dart' as ir;
@@ -11,16 +13,17 @@ import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
+import '../inferrer/engine.dart';
+import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';
 import '../js_model/js_world.dart';
 import '../js_model/locals.dart';
-import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
+import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
-import '../inferrer/inferrer_engine.dart';
 
 /// Results about a single element (e.g. a method, parameter, or field)
 /// produced by the global type-inference algorithm.
@@ -144,10 +147,6 @@ abstract class GlobalTypeInferenceResults {
   /// the given [receiver] type.
   AbstractValue resultTypeOfSelector(Selector selector, AbstractValue receiver);
 
-  /// Returns whether a fixed-length constructor call goes through a growable
-  /// check.
-  bool isFixedArrayCheckedForGrowable(ir.TreeNode node);
-
   /// Returns the type of a list new expression [node].  Returns `null` if
   /// [node] does not represent the construction of a new list.
   AbstractValue typeOfNewList(ir.TreeNode node);
@@ -221,19 +220,35 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   final GlobalTypeInferenceMemberResult _deadMethodResult;
   final AbstractValue _trivialParameterResult;
 
-  final Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults;
-  final Map<Local, AbstractValue> parameterResults;
-  final Set<ir.TreeNode> checkedForGrowableLists;
+  final Deferrable<Map<MemberEntity, GlobalTypeInferenceMemberResult>>
+      _memberResults;
+  final Deferrable<Map<Local, AbstractValue>> _parameterResults;
   final Set<Selector> returnsListElementTypeSet;
-  final Map<ir.TreeNode, AbstractValue> _allocatedLists;
+  final Deferrable<Map<ir.TreeNode, AbstractValue>> _allocatedLists;
 
   GlobalTypeInferenceResultsImpl(
       this.closedWorld,
       this.globalLocalsMap,
       this.inferredData,
-      this.memberResults,
-      this.parameterResults,
-      this.checkedForGrowableLists,
+      Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults,
+      Map<Local, AbstractValue> parameterResults,
+      this.returnsListElementTypeSet,
+      Map<ir.TreeNode, AbstractValue> allocatedLists)
+      : _memberResults = Deferrable.eager(memberResults),
+        _parameterResults = Deferrable.eager(parameterResults),
+        _allocatedLists = Deferrable.eager(allocatedLists),
+        _deadFieldResult =
+            DeadFieldGlobalTypeInferenceResult(closedWorld.abstractValueDomain),
+        _deadMethodResult = DeadMethodGlobalTypeInferenceResult(
+            closedWorld.abstractValueDomain),
+        _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;
+
+  GlobalTypeInferenceResultsImpl._deserialized(
+      this.closedWorld,
+      this.globalLocalsMap,
+      this.inferredData,
+      this._memberResults,
+      this._parameterResults,
       this.returnsListElementTypeSet,
       this._allocatedLists)
       : _deadFieldResult =
@@ -251,29 +266,30 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
     source.registerLocalLookup(LocalLookupImpl(globalLocalsMap));
 
     source.begin(tag);
-    Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
-        source.readMemberMap((MemberEntity member) =>
-            GlobalTypeInferenceMemberResult.readFromDataSource(
-                source,
-                elementMap.getMemberContextNode(member),
-                closedWorld.abstractValueDomain));
-    Map<Local, AbstractValue> parameterResults = source.readLocalMap(() =>
-        closedWorld.abstractValueDomain
-            .readAbstractValueFromDataSource(source));
-    Set<ir.TreeNode> checkedForGrowableLists = source.readTreeNodes().toSet();
+    Deferrable<Map<MemberEntity, GlobalTypeInferenceMemberResult>>
+        memberResults = source.readDeferrable(() => source.readMemberMap(
+            (MemberEntity member) =>
+                GlobalTypeInferenceMemberResult.readFromDataSource(
+                    source,
+                    elementMap.getMemberContextNode(member),
+                    closedWorld.abstractValueDomain)));
+    Deferrable<Map<Local, AbstractValue>> parameterResults =
+        source.readDeferrable(() => source.readLocalMap(() => closedWorld
+            .abstractValueDomain
+            .readAbstractValueFromDataSource(source)));
     Set<Selector> returnsListElementTypeSet =
         source.readList(() => Selector.readFromDataSource(source)).toSet();
-    Map<ir.TreeNode, AbstractValue> allocatedLists = source.readTreeNodeMap(
-        () => closedWorld.abstractValueDomain
-            .readAbstractValueFromDataSource(source));
+    Deferrable<Map<ir.TreeNode, AbstractValue>> allocatedLists =
+        source.readDeferrable(() => source.readTreeNodeMap(() => closedWorld
+            .abstractValueDomain
+            .readAbstractValueFromDataSource(source)));
     source.end(tag);
-    return GlobalTypeInferenceResultsImpl(
+    return GlobalTypeInferenceResultsImpl._deserialized(
         closedWorld,
         globalLocalsMap,
         inferredData,
         memberResults,
         parameterResults,
-        checkedForGrowableLists,
         returnsListElementTypeSet,
         allocatedLists);
   }
@@ -282,24 +298,23 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   void writeToDataSink(DataSinkWriter sink, JsToElementMap elementMap) {
     sink.writeBool(false); // Is _not_ trivial.
     sink.begin(tag);
-    sink.writeMemberMap(
-        memberResults,
+    sink.writeDeferrable(() => sink.writeMemberMap(
+        _memberResults.loaded(),
         (MemberEntity member, GlobalTypeInferenceMemberResult result) =>
             result.writeToDataSink(
                 sink,
                 elementMap.getMemberContextNode(member),
-                closedWorld.abstractValueDomain));
-    sink.writeLocalMap(
-        parameterResults,
+                closedWorld.abstractValueDomain)));
+    sink.writeDeferrable(() => sink.writeLocalMap(
+        _parameterResults.loaded(),
         (AbstractValue value) => closedWorld.abstractValueDomain
-            .writeAbstractValueToDataSink(sink, value));
-    sink.writeTreeNodes(checkedForGrowableLists);
+            .writeAbstractValueToDataSink(sink, value)));
     sink.writeList(returnsListElementTypeSet,
         (Selector selector) => selector.writeToDataSink(sink));
-    sink.writeTreeNodeMap(
-        _allocatedLists,
+    sink.writeDeferrable(() => sink.writeTreeNodeMap(
+        _allocatedLists.loaded(),
         (AbstractValue value) => closedWorld.abstractValueDomain
-            .writeAbstractValueToDataSink(sink, value));
+            .writeAbstractValueToDataSink(sink, value)));
     sink.end(tag);
   }
 
@@ -315,7 +330,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
     // don't exist..
     /*assert(memberResults.containsKey(member) || member is JSignatureMethod,
         "No inference result for member $member");*/
-    return memberResults[member] ??
+    return _memberResults.loaded()[member] ??
         (member is FunctionEntity ? _deadMethodResult : _deadFieldResult);
   }
 
@@ -325,7 +340,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
     // don't exist.
     /*assert(parameterResults.containsKey(parameter),
         "No inference result for parameter $parameter");*/
-    return parameterResults[parameter] ?? _trivialParameterResult;
+    return _parameterResults.loaded()[parameter] ?? _trivialParameterResult;
   }
 
   @override
@@ -405,19 +420,12 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
     }
   }
 
-  /// Returns whether a fixed-length constructor call goes through a growable
-  /// check.
-  // TODO(sigmund): move into the result of the element containing such
-  // constructor call.
   @override
-  bool isFixedArrayCheckedForGrowable(ir.Node ctorCall) =>
-      checkedForGrowableLists.contains(ctorCall);
+  AbstractValue typeOfNewList(ir.Node node) => _allocatedLists.loaded()[node];
 
   @override
-  AbstractValue typeOfNewList(ir.Node node) => _allocatedLists[node];
-
-  @override
-  AbstractValue typeOfListLiteral(ir.Node node) => _allocatedLists[node];
+  AbstractValue typeOfListLiteral(ir.Node node) =>
+      _allocatedLists.loaded()[node];
 }
 
 class GlobalTypeInferenceMemberResultImpl
@@ -504,9 +512,6 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
   void writeToDataSink(DataSinkWriter sink, JsToElementMap elementMap) {
     sink.writeBool(true); // Is trivial.
   }
-
-  @override
-  bool isFixedArrayCheckedForGrowable(ir.Node node) => false;
 
   @override
   AbstractValue resultTypeOfSelector(Selector selector, AbstractValue mask) {

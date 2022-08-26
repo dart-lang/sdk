@@ -101,16 +101,11 @@ abstract class ErrorToken extends SimpleToken {
   int? get endOffset => null;
 
   BeginToken? get begin => null;
-
-  @override
-  Token copy() {
-    throw 'unsupported operation';
-  }
 }
 
 /// Represents an encoding error.
 class EncodingErrorToken extends ErrorToken {
-  EncodingErrorToken(int charOffset) : super(charOffset);
+  EncodingErrorToken(super.charOffset);
 
   String toString() => "EncodingErrorToken()";
 

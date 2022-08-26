@@ -28,7 +28,7 @@ class MixinOnSealedClassTest extends PubPackageResolutionTest {
       meta: true,
     );
 
-    newFile2('$workspaceRootPath/foo/lib/foo.dart', r'''
+    newFile('$workspaceRootPath/foo/lib/foo.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -50,12 +50,12 @@ mixin Bar on Foo {}
   }
 
   test_withinPackageLibDirectory_OK() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    newFile2('$testPackageLibPath/src/lib2.dart', r'''
+    newFile('$testPackageLibPath/src/lib2.dart', r'''
 import '../lib1.dart';
 mixin Bar on Foo {}
 ''');
@@ -68,12 +68,12 @@ mixin Bar on Foo {}
   }
 
   test_withinPackageTestDirectory_OK() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    newFile2('$testPackageRootPath/test/lib2.dart', r'''
+    newFile('$testPackageRootPath/test/lib2.dart', r'''
 import 'package:test/lib1.dart';
 mixin Bar on Foo {}
 ''');
@@ -86,13 +86,13 @@ mixin Bar on Foo {}
   }
 
   test_withinPart_OK() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 part 'part1.dart';
 @sealed class Foo {}
 ''');
 
-    newFile2('$testPackageLibPath/part1.dart', r'''
+    newFile('$testPackageLibPath/part1.dart', r'''
 part of 'lib1.dart';
 mixin Bar on Foo {}
 ''');

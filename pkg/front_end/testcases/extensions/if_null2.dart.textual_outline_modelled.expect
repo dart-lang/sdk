@@ -1,0 +1,15 @@
+class Class {
+  Class(this.field);
+  int field;
+}
+
+extension Extension on Class {
+  int? get nullableProperty => field;
+  int get property => field;
+  int method() => field;
+  void set property(int? value) {}
+}
+
+int? get value => 42;
+main() {}
+test(Class? c) {}

@@ -4,7 +4,7 @@
 
 import '../js/js.dart' as js;
 import '../universe/side_effects.dart' show SideEffects;
-import 'behavior.dart';
+import 'native_throw_behavior.dart' show NativeThrowBehavior;
 
 class HasCapturedPlaceholders extends js.BaseVisitorVoid {
   HasCapturedPlaceholders._();

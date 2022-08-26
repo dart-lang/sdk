@@ -47,14 +47,16 @@ AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
   return node;
 }
 
-/// Gets the outer-most node with the same offset/length as node.
+/// Gets the outer-most node with the same offset as node.
+///
+/// This reduces the number of nodes the visitor needs to walk when collecting
+/// navigation for a specific location in the file.
 AstNode _getOutermostNode(AstNode node) {
   AstNode? current = node;
   while (current != null &&
       current.parent != null &&
       current != current.parent &&
-      current.offset == current.parent!.offset &&
-      current.length == current.parent!.length) {
+      current.offset == current.parent!.offset) {
     current = current.parent;
   }
   return current ?? node;
@@ -71,9 +73,6 @@ class _DartNavigationCollector {
 
   void _addRegion(int offset, int length, Element? element) {
     element = element?.nonSynthetic;
-    if (element is FieldFormalParameterElement) {
-      element = element.field;
-    }
     if (element == null || element == DynamicElementImpl.instance) {
       return;
     }
@@ -92,12 +91,6 @@ class _DartNavigationCollector {
     }
 
     collector.addRegion(offset, length, kind, location, targetElement: element);
-  }
-
-  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element? element) {
-    var offset = a.offset;
-    var length = b.end - offset;
-    _addRegion(offset, length, element);
   }
 
   void _addRegionForNode(AstNode? node, Element? element) {
@@ -268,15 +261,19 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    // associate constructor with "T" or "T.name"
-    {
-      AstNode firstNode = node.returnType;
-      AstNode? lastNode = node.name;
-      lastNode ??= firstNode;
-      computer._addRegion_nodeStart_nodeEnd(
-          firstNode, lastNode, node.declaredElement);
+    // For a default constructor, override the class name to be the declaration
+    // itself rather than linking to the class.
+    var name = node.name;
+    if (name == null) {
+      computer._addRegionForNode(node.returnType, node.declaredElement);
+    } else {
+      node.returnType.accept(this);
+      name.accept(this);
     }
-    super.visitConstructorDeclaration(node);
+    node.parameters.accept(this);
+    node.initializers.accept(this);
+    node.redirectedConstructor?.accept(this);
+    node.body.accept(this);
   }
 
   @override
@@ -295,7 +292,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
         name.prefix.accept(this);
         className = name.identifier;
       }
-      computer._addRegionForNode(className, element);
+      // For a named constructor, the class name points at the class.
+      var classNameTargetElement =
+          node.name != null ? className.staticElement : element;
+      computer._addRegionForNode(className, classNameTargetElement);
     }
     // <TypeA, TypeB>
     typeName.typeArguments?.accept(this);
@@ -346,6 +346,19 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    final element = node.declaredElement;
+    if (element is FieldFormalParameterElementImpl) {
+      computer._addRegionForToken(node.thisKeyword, element.field);
+      computer._addRegionForNode(node.identifier, element.field);
+    }
+
+    node.type?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     var importElement = node.element;
     if (importElement != null) {
@@ -370,13 +383,30 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    _addUriDirectiveRegion(node, node.element);
+    final element = node.element;
+    if (element is PartElement) {
+      final uri = element.uri;
+      if (uri is DirectiveUriWithUnit) {
+        computer._addRegionForNode(node.uri, uri.unit);
+      } else if (uri is DirectiveUriWithSource) {
+        final uriNode = node.uri;
+        final source = uri.source;
+        computer.collector.addRegion(
+          uriNode.offset,
+          uriNode.length,
+          protocol.ElementKind.FILE,
+          protocol.Location(source.fullName, 0, 0, 0, 0,
+              endLine: 0, endColumn: 0),
+        );
+      }
+    }
+
     super.visitPartDirective(node);
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    computer._addRegionForNode(node.libraryName, node.element);
+    computer._addRegionForNode(node.libraryName ?? node.uri, node.element);
     super.visitPartOfDirective(node);
   }
 
@@ -408,9 +438,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.parent is ConstructorDeclaration) {
-      return;
-    }
     var element = node.writeOrReadElement;
     computer._addRegionForNode(node, element);
   }

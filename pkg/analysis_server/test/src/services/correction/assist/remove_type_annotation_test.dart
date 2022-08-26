@@ -54,11 +54,50 @@ class A {
     await assertNoAssistAt('v');
   }
 
+  Future<void> test_generic_instanceCreation_withoutArguments() async {
+    await resolveTestCode('''
+C<int> c = C();
+class C<T> {}
+''');
+    await assertHasAssistAt('c = ', '''
+var c = C<int>();
+class C<T> {}
+''');
+  }
+
+  Future<void> test_generic_listLiteral() async {
+    await resolveTestCode('''
+List<int> l = [];
+''');
+    await assertHasAssistAt('l = ', '''
+var l = <int>[];
+''');
+  }
+
+  Future<void> test_generic_setLiteral_ambiguous() async {
+    await resolveTestCode('''
+Set f() {
+  /*caret*/Set s = {};
+  return s;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_generic_setLiteral_cascade() async {
+    await resolveTestCode('''
+Set<String> s = {}..addAll([]);
+''');
+    await assertHasAssistAt('s = ', '''
+var s = <String>{}..addAll([]);
+''');
+  }
+
   Future<void> test_instanceCreation_freeStanding() async {
     await resolveTestCode('''
 class A {}
 
-main() {
+void f() {
   A();
 }
 ''');
@@ -67,12 +106,12 @@ main() {
 
   Future<void> test_localVariable() async {
     await resolveTestCode('''
-main() {
+void f() {
   int a = 1, b = 2;
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   var a = 1, b = 2;
 }
 ''');
@@ -80,12 +119,12 @@ main() {
 
   Future<void> test_localVariable_const() async {
     await resolveTestCode('''
-main() {
+void f() {
   const int v = 1;
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   const v = 1;
 }
 ''');
@@ -93,12 +132,12 @@ main() {
 
   Future<void> test_localVariable_final() async {
     await resolveTestCode('''
-main() {
+void f() {
   final int v = 1;
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   final v = 1;
 }
 ''');
@@ -106,7 +145,7 @@ main() {
 
   Future<void> test_localVariable_noInitializer() async {
     await resolveTestCode('''
-main() {
+void f() {
   int v;
 }
 ''');
@@ -115,7 +154,7 @@ main() {
 
   Future<void> test_localVariable_onInitializer() async {
     await resolveTestCode('''
-main() {
+void f() {
   final int v = 1;
 }
 ''');
@@ -124,12 +163,12 @@ main() {
 
   Future<void> test_loopVariable() async {
     await resolveTestCode('''
-main() {
+void f() {
   for(int i = 0; i < 3; i++) {}
 }
 ''');
     await assertHasAssistAt('int ', '''
-main() {
+void f() {
   for(var i = 0; i < 3; i++) {}
 }
 ''');
@@ -137,14 +176,14 @@ main() {
 
   Future<void> test_loopVariable_nested() async {
     await resolveTestCode('''
-main() {
+void f() {
   var v = () {
     for (int x in <int>[]) {}
   };
 }
 ''');
     await assertHasAssistAt('int x', '''
-main() {
+void f() {
   var v = () {
     for (var x in <int>[]) {}
   };
@@ -154,7 +193,7 @@ main() {
 
   Future<void> test_loopVariable_noType() async {
     await resolveTestCode('''
-main() {
+void f() {
   for(var i = 0; i < 3; i++) {}
 }
 ''');

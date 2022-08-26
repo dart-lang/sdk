@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
@@ -6,46 +6,36 @@ import "org-dartlang-testcase:///infer_statics_transitively.dart";
 import "org-dartlang-testcase:///infer_statics_transitively_b.dart";
 
 class A extends core::Object {
-  static final field core::int* a2;
-  synthetic constructor •() → self::A*
+  static final field core::int a2;
+  synthetic constructor •() → self::A
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static final field core::int* a1;
+static final field core::int a1;
 static method main() → dynamic
   ;
 
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
 import "org-dartlang-testcase:///infer_statics_transitively_a.dart";
 
-static final field core::int* m1;
-static final field core::int* m2;
+static final field core::int m1;
+static final field core::int m2;
 static method foo() → dynamic
   ;
 static method main() → dynamic
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self3;
 import "dart:core" as core;
 
-static final field core::int* b1;
+static final field core::int b1;
 static method main() → dynamic
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self4;
 import "dart:core" as core;
 
@@ -53,20 +43,10 @@ import "org-dartlang-testcase:///infer_statics_transitively.dart";
 import "org-dartlang-testcase:///infer_statics_transitively_b.dart";
 
 class A extends core::Object {
-  static final field core::int* a2;
-  synthetic constructor •() → self4::A*
+  static final field core::int a2;
+  synthetic constructor •() → self4::A
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static final field core::int* a1;
+static final field core::int a1;
 static method main() → dynamic
   ;

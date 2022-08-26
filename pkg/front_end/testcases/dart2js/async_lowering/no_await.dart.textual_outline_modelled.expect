@@ -1,0 +1,7 @@
+Future<bool> foo4() async {}
+Future<int> foo1() async {}
+Future<int> foo5(bool x) async {}
+Future<void> foo2() async {}
+foo3() async {}
+void bar(Future<int> Function() func) {}
+void main() {}

@@ -533,10 +533,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         break;
       case AsyncMarker.SyncStar:
       case AsyncMarker.AsyncStar:
-        problem(
-            node,
-            "Return statement in function with async marker: "
-            "$currentAsyncMarker");
+        if (node.expression != null) {
+          problem(
+              node,
+              "Return statement in function with async marker: "
+              "$currentAsyncMarker");
+        }
         break;
     }
     super.visitReturnStatement(node);
@@ -832,9 +834,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitUnevaluatedConstant(UnevaluatedConstant constant) {
-    if (inUnevaluatedConstant) {
-      problem(currentParent, "UnevaluatedConstant in UnevaluatedConstant.");
-    }
     bool savedInUnevaluatedConstant = inUnevaluatedConstant;
     inUnevaluatedConstant = true;
     TreeNode? oldParent = currentParent;
@@ -954,6 +953,50 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     declareTypeParameters(node.parameters);
     super.visitTypedefTearOffConstant(node);
     undeclareTypeParameters(node.parameters);
+  }
+
+  @override
+  void visitInstanceInvocation(InstanceInvocation node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+          node,
+          "Instance invocation with name '${node.name}' has a "
+          "target with name '${node.interfaceTarget.name}'.");
+    }
+    super.visitInstanceInvocation(node);
+  }
+
+  @override
+  void visitInstanceGet(InstanceGet node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+          node,
+          "Instance get with name '${node.name}' has a "
+          "target with name '${node.interfaceTarget.name}'.");
+    }
+    super.visitInstanceGet(node);
+  }
+
+  @override
+  void visitInstanceTearOff(InstanceTearOff node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+          node,
+          "Instance tear-off with name '${node.name}' has a "
+          "target with name '${node.interfaceTarget.name}'.");
+    }
+    super.visitInstanceTearOff(node);
+  }
+
+  @override
+  void visitInstanceSet(InstanceSet node) {
+    if (node.name != node.interfaceTarget.name) {
+      problem(
+          node,
+          "Instance set with name '${node.name}' has a "
+          "target with name '${node.interfaceTarget.name}'.");
+    }
+    super.visitInstanceSet(node);
   }
 }
 

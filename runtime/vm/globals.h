@@ -37,10 +37,12 @@ const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 static constexpr int kCompressedWordSize = kInt32Size;
 static constexpr int kCompressedWordSizeLog2 = kInt32SizeLog2;
 typedef uint32_t compressed_uword;
+typedef int32_t compressed_word;
 #else
 static constexpr int kCompressedWordSize = kWordSize;
 static constexpr int kCompressedWordSizeLog2 = kWordSizeLog2;
 typedef uintptr_t compressed_uword;
+typedef intptr_t compressed_word;
 #endif
 const int kMaxAddrSpaceMB = (kWordSize <= 4) ? 4096 : kMaxInt;
 
@@ -112,7 +114,7 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define SUPPORT_TIMELINE 1
 #endif
 
-#if defined(ARCH_IS_64_BIT) && !defined(IS_SIMARM_X64)
+#if defined(ARCH_IS_64_BIT) && !defined(IS_SIMARM_HOST64)
 #define HASH_IN_OBJECT_HEADER 1
 #endif
 
@@ -180,12 +182,9 @@ static const uword kZapUninitializedWord = 0xabababababababab;
   __asm { mov fp, ebp}                                                         \
   ;  // NOLINT
 // clang-format on
-#elif defined(HOST_ARCH_X64)
-// We don't have the asm equivalent to get at the frame pointer on
-// windows x64, return the stack pointer instead.
-#define COPY_FP_REGISTER(fp) fp = OSThread::GetCurrentStackPointer();
 #else
-#error Unknown host architecture.
+// Inline assembly is only available on x86; return the stack pointer instead.
+#define COPY_FP_REGISTER(fp) fp = OSThread::GetCurrentStackPointer();
 #endif
 
 #else  // !defined(DART_HOST_OS_WINDOWS))

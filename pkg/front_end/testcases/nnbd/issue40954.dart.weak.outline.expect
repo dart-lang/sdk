@@ -52,9 +52,9 @@ class C extends core::Object {
     ;
   static method test2(dynamic v, {self::A a}) → void
     ;
-  method test11(dynamic v, [self::A a]) → void
+  method test11(dynamic v, [self::A a = null]) → void
     ;
-  method test22(dynamic v, {self::A a}) → void
+  method test22(dynamic v, {self::A a = null}) → void
     ;
 }
 static method test1(dynamic v, [self::A a]) → void

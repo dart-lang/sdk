@@ -8,10 +8,9 @@ publish_to: none
 environment:
   sdk: '>=2.12.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  args: ^2.0.0
-  expect:
-    path: ../expect
-  front_end:
-    path: ../front_end
+  args: any
+  expect: any
+  front_end: any
   test: any

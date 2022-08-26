@@ -4,31 +4,29 @@
 
 library test_dart_copy.status_expression;
 
-/**
- * Parse and evaluate expressions in a .status file for Dart and V8.
- * There are set expressions and Boolean expressions in a .status file.
- * The grammar is:
- *   BooleanExpression := $variableName == value | $variableName != value |
- *                        $variableName | (BooleanExpression) |
- *                        BooleanExpression && BooleanExpression |
- *                        BooleanExpression || BooleanExpression
- *
- *   SetExpression := value | (SetExpression) |
- *                    SetExpression || SetExpression |
- *                    SetExpression if BooleanExpression |
- *                    SetExpression , SetExpression
- *
- *  Productions are listed in order of precedence, and the || and , operators
- *  both evaluate to set union, but with different precedence.
- *
- *  Values and variableNames are non-empty strings of word characters, matching
- *  the RegExp \w+.
- *
- *  Expressions evaluate as expected, with values of variables found in
- *  an environment passed to the evaluator.  The SetExpression "value"
- *  evaluates to a singleton set containing that value. "A if B" evaluates
- *  to A if B is true, and to the empty set if B is false.
- */
+/// Parse and evaluate expressions in a .status file for Dart and V8.
+/// There are set expressions and Boolean expressions in a .status file.
+/// The grammar is:
+///   BooleanExpression := $variableName == value | $variableName != value |
+///                        $variableName | (BooleanExpression) |
+///                        BooleanExpression && BooleanExpression |
+///                        BooleanExpression || BooleanExpression
+///
+///   SetExpression := value | (SetExpression) |
+///                    SetExpression || SetExpression |
+///                    SetExpression if BooleanExpression |
+///                    SetExpression , SetExpression
+///
+///  Productions are listed in order of precedence, and the || and , operators
+///  both evaluate to set union, but with different precedence.
+///
+///  Values and variableNames are non-empty strings of word characters, matching
+///  the RegExp \w+.
+///
+///  Expressions evaluate as expected, with values of variables found in
+///  an environment passed to the evaluator.  The SetExpression "value"
+///  evaluates to a singleton set containing that value. "A if B" evaluates
+///  to A if B is true, and to the empty set if B is false.
 
 class ExprEvaluationException {
   String error;
@@ -57,12 +55,12 @@ class Tokenizer {
 
   // Tokens are : "(", ")", "$", ",", "&&", "||", "==", "!=", and (maximal) \w+.
   static final testRegexp =
-      new RegExp(r"^([()$\w\s,]|(\&\&)|(\|\|)|(\=\=)|(\!\=))+$");
-  static final regexp = new RegExp(r"[()$,]|(\&\&)|(\|\|)|(\=\=)|(\!\=)|\w+");
+      RegExp(r"^([()$\w\s,]|(\&\&)|(\|\|)|(\=\=)|(\!\=))+$");
+  static final regexp = RegExp(r"[()$,]|(\&\&)|(\|\|)|(\=\=)|(\!\=)|\w+");
 
   List<String> tokenize() {
     if (!testRegexp.hasMatch(expression)) {
-      throw new FormatException("Syntax error in '$expression'");
+      throw FormatException("Syntax error in '$expression'");
     }
     for (Match match in regexp.allMatches(expression)) {
       tokens.add(match[0]!);
@@ -103,7 +101,7 @@ class TermVariable {
   String termValue(environment) {
     var value = environment[name];
     if (value == null) {
-      throw new ExprEvaluationException("Could not find '$name' in environment "
+      throw ExprEvaluationException("Could not find '$name' in environment "
           "while evaluating status file expression.");
     }
     return value.toString();
@@ -163,9 +161,8 @@ class SetIf implements SetExpression {
 
   SetIf(this.left, this.right);
 
-  Set<String> evaluate(environment) => right.evaluate(environment)
-      ? left.evaluate(environment)
-      : new Set<String>();
+  Set<String> evaluate(environment) =>
+      right.evaluate(environment) ? left.evaluate(environment) : Set<String>();
   String toString() => "($left if $right)";
 }
 
@@ -174,7 +171,7 @@ class SetConstant implements SetExpression {
 
   SetConstant(String v) : value = v.toLowerCase();
 
-  Set<String> evaluate(environment) => new Set<String>.from([value]);
+  Set<String> evaluate(environment) => Set<String>.from([value]);
   String toString() => value;
 }
 
@@ -208,7 +205,7 @@ class ExpressionParser {
     while (scanner.hasMore() && scanner.current == Token.UNION) {
       scanner.advance();
       SetExpression right = parseSetIf();
-      left = new SetUnion(left, right);
+      left = SetUnion(left, right);
     }
     return left;
   }
@@ -218,7 +215,7 @@ class ExpressionParser {
     while (scanner.hasMore() && scanner.current == "if") {
       scanner.advance();
       BooleanExpression right = parseBooleanExpression();
-      left = new SetIf(left, right);
+      left = SetIf(left, right);
     }
     return left;
   }
@@ -228,7 +225,7 @@ class ExpressionParser {
     while (scanner.hasMore() && scanner.current == Token.OR) {
       scanner.advance();
       SetExpression right = parseSetAtomic();
-      left = new SetUnion(left, right);
+      left = SetUnion(left, right);
     }
     return left;
   }
@@ -238,16 +235,16 @@ class ExpressionParser {
       scanner.advance();
       SetExpression value = parseSetExpression();
       if (scanner.current != Token.RIGHT_PAREN) {
-        throw new FormatException("Missing right parenthesis in expression");
+        throw FormatException("Missing right parenthesis in expression");
       }
       scanner.advance();
       return value;
     }
-    if (!new RegExp(r"^\w+$").hasMatch(scanner.current!)) {
-      throw new FormatException(
+    if (!RegExp(r"^\w+$").hasMatch(scanner.current!)) {
+      throw FormatException(
           "Expected identifier in expression, got ${scanner.current}");
     }
-    SetExpression value = new SetConstant(scanner.current!);
+    SetExpression value = SetConstant(scanner.current!);
     scanner.advance();
     return value;
   }
@@ -259,7 +256,7 @@ class ExpressionParser {
     while (scanner.hasMore() && scanner.current == Token.OR) {
       scanner.advance();
       BooleanExpression right = parseBooleanAnd();
-      left = new BooleanOperation(Token.OR, left, right);
+      left = BooleanOperation(Token.OR, left, right);
     }
     return left;
   }
@@ -269,7 +266,7 @@ class ExpressionParser {
     while (scanner.hasMore() && scanner.current == Token.AND) {
       scanner.advance();
       BooleanExpression right = parseBooleanAtomic();
-      left = new BooleanOperation(Token.AND, left, right);
+      left = BooleanOperation(Token.AND, left, right);
     }
     return left;
   }
@@ -279,7 +276,7 @@ class ExpressionParser {
       scanner.advance();
       BooleanExpression value = parseBooleanExpression();
       if (scanner.current != Token.RIGHT_PAREN) {
-        throw new FormatException("Missing right parenthesis in expression");
+        throw FormatException("Missing right parenthesis in expression");
       }
       scanner.advance();
       return value;
@@ -288,29 +285,29 @@ class ExpressionParser {
     // The only atomic booleans are of the form $variable == value or
     // of the form $variable.
     if (scanner.current != Token.DOLLAR_SYMBOL) {
-      throw new FormatException(
+      throw FormatException(
           "Expected \$ in expression, got ${scanner.current}");
     }
     scanner.advance();
-    if (!new RegExp(r"^\w+$").hasMatch(scanner.current!)) {
-      throw new FormatException(
+    if (!RegExp(r"^\w+$").hasMatch(scanner.current!)) {
+      throw FormatException(
           "Expected identifier in expression, got ${scanner.current}");
     }
-    TermVariable left = new TermVariable(scanner.current!);
+    TermVariable left = TermVariable(scanner.current!);
     scanner.advance();
     if (scanner.current == Token.EQUALS ||
         scanner.current == Token.NOT_EQUALS) {
       bool negate = scanner.current == Token.NOT_EQUALS;
       scanner.advance();
-      if (!new RegExp(r"^\w+$").hasMatch(scanner.current!)) {
-        throw new FormatException(
+      if (!RegExp(r"^\w+$").hasMatch(scanner.current!)) {
+        throw FormatException(
             "Expected value in expression, got ${scanner.current}");
       }
-      TermConstant right = new TermConstant(scanner.current!);
+      TermConstant right = TermConstant(scanner.current!);
       scanner.advance();
-      return new Comparison(left, right, negate);
+      return Comparison(left, right, negate);
     } else {
-      return new BooleanVariable(left);
+      return BooleanVariable(left);
     }
   }
 }

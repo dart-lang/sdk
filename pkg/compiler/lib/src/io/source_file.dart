@@ -11,24 +11,24 @@ import 'dart:typed_data' show Uint8List;
 import 'package:kernel/ast.dart' as kernel show Location, Source;
 
 import 'location_provider.dart' show LocationProvider;
-import '../../compiler.dart';
+import '../../compiler_api.dart' as api show Input, InputKind;
 
 /// Represents a file of source code. The content can be either a [String] or
 /// a UTF-8 encoded [List<int>] of bytes.
-abstract class SourceFile<T> implements Input<T>, LocationProvider {
+abstract class SourceFile<T> implements api.Input<T>, LocationProvider {
   /// The absolute URI of the source file.
   @override
   Uri get uri;
 
   @override
-  InputKind get inputKind => InputKind.UTF8;
+  api.InputKind get inputKind => api.InputKind.UTF8;
 
-  kernel.Source cachedKernelSource;
+  kernel.Source? _cachedKernelSource;
 
   kernel.Source get kernelSource {
     // TODO(johnniwinther): Instead of creating a new Source object,
     // we should use the one provided by the front-end.
-    return cachedKernelSource ??= kernel.Source(
+    return _cachedKernelSource ??= kernel.Source(
         lineStarts,
         slowUtf8ZeroTerminatedBytes(),
         uri /* TODO(jensj): What is the import URI? */,
@@ -60,12 +60,10 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
   /// A map from line numbers to offsets in the string text representation of
   /// this source file.
   List<int> get lineStarts {
-    if (lineStartsCache == null) {
-      // When reporting errors during scanning, the line numbers are not yet
-      // available and need to be computed using this slow path.
-      lineStartsCache = lineStartsFromString(slowText());
-    }
-    return lineStartsCache;
+    // When reporting errors during scanning, the line numbers are not yet
+    // available and need to be computed using this slow path.
+    // TODO(sra): Scanning is now done entirely by the CFE.
+    return _lineStartsCache ??= _lineStartsFromString(slowText());
   }
 
   /// Sets the line numbers map for this source file. This map is computed and
@@ -74,11 +72,11 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
   /// The map contains one additional entry at the end of the file, as if the
   /// source file had one more empty line at the end. This simplifies the binary
   /// search in [getLocation].
-  set lineStarts(List<int> v) => lineStartsCache = v;
+  set lineStarts(List<int> v) => _lineStartsCache = v;
 
-  List<int> lineStartsCache;
+  List<int>? _lineStartsCache;
 
-  List<int> lineStartsFromString(String text) {
+  static List<int> _lineStartsFromString(String text) {
     var starts = [0];
     var index = 0;
     while (index < text.length) {
@@ -92,7 +90,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
 
   @override
   kernel.Location getLocation(int offset) {
-    return kernelSource.getLocation(null, offset);
+    return kernelSource.getLocation(uri, offset);
   }
 
   String slowSubstring(int start, int end);
@@ -107,13 +105,13 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
   /// Use [colorize] to wrap source code text and marker characters in color
   /// escape codes.
   String getLocationMessage(String message, int start, int end,
-      {bool includeSourceLine = true, String colorize(String text)}) {
+      {bool includeSourceLine = true, String colorize(String text)?}) {
     if (colorize == null) {
       colorize = (text) => text;
     }
 
-    kernel.Location startLocation = kernelSource.getLocation(null, start);
-    kernel.Location endLocation = kernelSource.getLocation(null, end);
+    kernel.Location startLocation = kernelSource.getLocation(uri, start);
+    kernel.Location endLocation = kernelSource.getLocation(uri, end);
     int lineStart = startLocation.line - 1;
     int columnStart = startLocation.column - 1;
     int lineEnd = endLocation.line - 1;
@@ -128,7 +126,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
 
     if (start != end && includeSourceLine) {
       if (lineStart == lineEnd) {
-        String textLine = kernelSource.getTextLine(startLocation.line);
+        String textLine = kernelSource.getTextLine(startLocation.line)!;
 
         int toColumn = min(columnStart + (end - start), textLine.length);
         buf.write(textLine.substring(0, columnStart));
@@ -145,7 +143,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
         }
       } else {
         for (int line = lineStart; line <= lineEnd; line++) {
-          String textLine = kernelSource.getTextLine(line + 1);
+          String textLine = kernelSource.getTextLine(line + 1)!;
           if (line == lineStart) {
             if (columnStart > textLine.length) {
               columnStart = textLine.length;
@@ -231,7 +229,7 @@ class Utf8BytesSourceFile extends SourceFile<List<int>> {
 }
 
 class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
-  String cachedText;
+  String? _cachedText;
   @override
   final String filename;
 
@@ -240,15 +238,12 @@ class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
 
   @override
   String slowText() {
-    if (cachedText == null) {
-      cachedText = super.slowText();
-    }
-    return cachedText;
+    return _cachedText ??= super.slowText();
   }
 
   @override
   void release() {
-    cachedText = null;
+    _cachedText = null;
     super.release();
   }
 }
@@ -292,21 +287,21 @@ class StringSourceFile extends SourceFile<List<int>> {
 }
 
 /// Binary input data.
-class Binary implements Input<List<int>> {
+class Binary implements api.Input<List<int>> {
   @override
   final Uri uri;
-  List<int> /*?*/ _data;
+  List<int>? _data;
 
   Binary(this.uri, List<int> data) : _data = data;
 
   @override
   List<int> get data {
-    if (_data != null) return _data;
+    if (_data != null) return _data!;
     throw StateError("'get data' after 'release()'");
   }
 
   @override
-  InputKind get inputKind => InputKind.binary;
+  api.InputKind get inputKind => api.InputKind.binary;
 
   @override
   void release() {

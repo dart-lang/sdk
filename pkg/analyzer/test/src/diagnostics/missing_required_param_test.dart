@@ -17,8 +17,68 @@ main() {
 
 @reflectiveTest
 class MissingRequiredParamTest extends PubPackageResolutionTest {
+  test_annotation_noImportPrefix_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A.named({required int a});
+}
+
+@A.named()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 51, 5),
+    ]);
+  }
+
+  test_annotation_noImportPrefix_unnamed() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A({required int a});
+}
+
+@A()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 43, 1),
+    ]);
+  }
+
+  test_annotation_withImportPrefix_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A.named({required int a});
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart' as a;
+
+@a.A.named()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 28, 5),
+    ]);
+  }
+
+  test_annotation_withImportPrefix_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A({required int a});
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'a.dart' as a;
+
+@a.A()
+void f() {}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 26, 1),
+    ]);
+  }
+
   test_constructor_legacy_argumentGiven() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required int a});
 }
@@ -34,7 +94,7 @@ void f() {
   }
 
   test_constructor_legacy_missingArgument() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required int a});
 }
@@ -162,7 +222,7 @@ main() {
   }
 
   test_function_legacy_argumentGiven() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 void foo({required int a}) {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -176,7 +236,7 @@ void f() {
   }
 
   test_function_legacy_missingArgument() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 void foo({required int a}) {}
 ''');
     await assertErrorsInCode(r'''
@@ -216,7 +276,7 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    newFile2('$testPackageLibPath/a_lib.dart', r'''
+    newFile('$testPackageLibPath/a_lib.dart', r'''
 class A {
   void m({required int a}) {}
 }
@@ -232,7 +292,7 @@ f() {
   }
 
   test_method_legacy_argumentGiven() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo({required int a}) {}
 }
@@ -248,7 +308,7 @@ void f(A a) {
   }
 
   test_method_legacy_missingArgument() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo({required int a}) {}
 }
@@ -454,13 +514,13 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 class A {
   void m({@Required('must specify an `a`') int a}) {}
 }
 ''');
-    newFile2('$testPackageLibPath/test.dart', r'''
+    newFile('$testPackageLibPath/test.dart', r'''
 import 'a.dart';
 f() {
   new A().m();

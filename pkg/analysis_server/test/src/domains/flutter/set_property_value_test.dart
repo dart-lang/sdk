@@ -20,7 +20,7 @@ class SetPropertyValueTest extends FlutterBase {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('');
 }
 ''');
@@ -36,7 +36,7 @@ void main() {
     _assertTestFileChange(result.change, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text(
     '',
     maxLines: 42,
@@ -49,7 +49,7 @@ void main() {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1);
 }
 ''');
@@ -65,7 +65,7 @@ void main() {
     _assertTestFileChange(result.change, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 42);
 }
 ''');
@@ -75,7 +75,7 @@ void main() {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', maxLines: 1);
 }
 ''');
@@ -88,7 +88,7 @@ void main() {
     _assertTestFileChange(result.change, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('', );
 }
 ''');
@@ -98,7 +98,7 @@ void main() {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('aaa');
 }
 ''');
@@ -114,7 +114,7 @@ void main() {
     _assertTestFileChange(result.change, r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
   Text('bbb');
 }
 ''');
@@ -125,10 +125,10 @@ void main() {
     expect(fileEdits, hasLength(1));
 
     var fileEdit = fileEdits[0];
-    expect(fileEdit.file, testFile);
+    expect(fileEdit.file, testFile.path);
 
     var edits = fileEdit.edits;
-    expect(SourceEdit.applySequence(testCode, edits), expected);
+    expect(SourceEdit.applySequence(testFileContent, edits), expected);
   }
 
   Future<FlutterSetWidgetPropertyValueResult> _setValue(
@@ -148,6 +148,6 @@ void main() {
       property.id,
       value: value,
     ).toRequest('0');
-    return await waitResponse(request);
+    return await handleSuccessfulRequest(request);
   }
 }

@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection' show HashMap, HashSet, Queue;
 
+import 'package:collection/collection.dart' show IterableNullableExtension;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
@@ -109,7 +108,7 @@ class _LibraryVirtualFieldModel {
         HashMap.fromIterables(allClasses, allClasses.map(getInstanceFieldMap));
 
     for (var class_ in allClasses) {
-      Set<Class> superclasses;
+      Set<Class>? superclasses;
 
       // Visit accessors in the current class, and see if they override an
       // otherwise private field.
@@ -131,15 +130,15 @@ class _LibraryVirtualFieldModel {
 
         if (superclasses == null) {
           superclasses = <Class>{};
-          void collectSupertypes(Class c) {
-            if (!superclasses.add(c)) return;
+          void collectSupertypes(Class c, Set<Class> supers) {
+            if (!supers.add(c)) return;
             var s = c.superclass;
-            if (s != null) collectSupertypes(s);
+            if (s != null) collectSupertypes(s, supers);
             var m = c.mixedInClass;
-            if (m != null) collectSupertypes(m);
+            if (m != null) collectSupertypes(m, supers);
           }
 
-          collectSupertypes(class_);
+          collectSupertypes(class_, superclasses);
           superclasses.remove(class_);
           superclasses.removeWhere((s) => s.enclosingLibrary != library);
         }
@@ -147,9 +146,8 @@ class _LibraryVirtualFieldModel {
         // Look in all super classes to see if we're overriding a field in our
         // library, if so mark that field as overridden.
         var name = member.name.text;
-        _overriddenPrivateFields.addAll(superclasses
-            .map((c) => allFields[c][name])
-            .where((f) => f != null));
+        _overriddenPrivateFields.addAll(
+            superclasses.map((c) => allFields[c]![name]).whereNotNull());
       }
     }
   }
@@ -159,7 +157,7 @@ class _LibraryVirtualFieldModel {
     // If the field was marked non-virtual, we know for sure.
     if (field.isStatic) return false;
 
-    var class_ = field.enclosingClass;
+    var class_ = field.enclosingClass!;
     if (class_.isEnum) {
       // Enums are not extensible.
       return false;

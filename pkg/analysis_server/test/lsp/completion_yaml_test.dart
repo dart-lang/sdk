@@ -295,7 +295,7 @@ environment:
     await verifyCompletions(
       pubspecFileUri,
       content,
-      expectCompletions: ['flutter: ', 'sdk: '],
+      expectCompletions: ['sdk: '],
       applyEditsFor: 'sdk: ',
       expectedContent: expected,
     );
@@ -502,7 +502,7 @@ version: 1.0.0
 dependencies:
   one: ^2.3.4''';
 
-    newFile2(pubspecFilePath, content);
+    newFile(pubspecFilePath, content);
     await initialize();
     await openFile(pubspecFileUri, withoutMarkers(content));
     await pumpEventQueue(times: 500);
@@ -556,7 +556,7 @@ version: 1.0.0
 dependencies:
   one: ^''';
 
-    newFile2(pubspecFilePath, content);
+    newFile(pubspecFilePath, content);
     await initialize();
     await openFile(pubspecFileUri, withoutMarkers(content));
     await pumpEventQueue(times: 500);
@@ -574,6 +574,32 @@ dependencies:
 
     // There should have been no version numbers.
     expect(completionResults, isEmpty);
+  }
+
+  Future<void> test_prefixFilter() async {
+    httpClient.sendHandler = (BaseRequest request) async {
+      if (request.url.toString().endsWith(PubApi.packageNameListPath)) {
+        return Response(samplePackageList, 200);
+      } else {
+        throw UnimplementedError();
+      }
+    };
+
+    final content = '''
+name: foo
+version: 1.0.0
+
+dependencies:
+  on^''';
+
+    await initialize();
+    await openFile(pubspecFileUri, content);
+    await pumpEventQueue();
+
+    completionResults =
+        await getCompletion(pubspecFileUri, positionFromMarker(content));
+    expect(completionResults.length, equals(1));
+    expect(completionResults.single.label, equals('one: '));
   }
 
   Future<void> test_topLevel() async {
@@ -602,7 +628,7 @@ name: ''';
     await verifyCompletions(
       pubspecFileUri,
       content,
-      expectCompletions: ['name: ', 'description: '],
+      expectCompletions: ['name: '],
       applyEditsFor: 'name: ',
       expectedContent: expected,
     );

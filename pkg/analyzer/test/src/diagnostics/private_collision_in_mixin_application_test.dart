@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class PrivateCollisionInMixinApplicationTest extends PubPackageResolutionTest {
   test_class_interfaceAndMixin_same() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }
@@ -31,7 +31,7 @@ class D extends C with A {}
   }
 
   test_class_mixinAndMixin() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }
@@ -51,7 +51,7 @@ class C extends Object with A, B {}
   }
 
   test_class_mixinAndMixin_indirect() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }
@@ -72,7 +72,7 @@ class D extends C with B {}
   }
 
   test_class_mixinAndMixin_withoutExtends() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }
@@ -92,7 +92,7 @@ class C with A, B {}
   }
 
   test_class_staticAndInstanceElement() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static void _foo() {}
 }
@@ -110,7 +110,7 @@ class C extends Object with A, B {}
   }
 
   test_class_staticElements() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static void _foo() {}
 }
@@ -128,7 +128,7 @@ class C extends Object with A, B {}
   }
 
   test_class_superclassAndMixin_getter2() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int get _foo => 0;
 }
@@ -148,7 +148,7 @@ class C extends A with B {}
   }
 
   test_class_superclassAndMixin_method2() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }
@@ -185,7 +185,7 @@ class C extends Object with A, B {}
   }
 
   test_class_superclassAndMixin_setter2() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   set _foo(int _) {}
 }
@@ -205,7 +205,7 @@ class C extends A with B {}
   }
 
   test_classTypeAlias_mixinAndMixin() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }
@@ -225,7 +225,7 @@ class C = Object with A, B;
   }
 
   test_classTypeAlias_mixinAndMixin_indirect() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }
@@ -246,7 +246,7 @@ class D = C with B;
   }
 
   test_classTypeAlias_superclassAndMixin() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void _foo() {}
 }
@@ -266,7 +266,7 @@ class C = A with B;
   }
 
   test_enum_getter_mixinAndMixin() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 mixin A {
   int get _foo => 0;
 }
@@ -288,7 +288,7 @@ enum E with A, B {
   }
 
   test_enum_method_interfaceAndMixin_same() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 mixin A {
   void _foo() {}
 }
@@ -305,7 +305,7 @@ enum E with B, A {
   }
 
   test_enum_method_mixinAndMixin() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 mixin A {
   void _foo() {}
 }
@@ -327,7 +327,7 @@ enum E with A, B {
   }
 
   test_enum_method_staticAndInstanceElement() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 mixin A {
   static void _foo() {}
 }
@@ -347,7 +347,7 @@ enum E with A, B {
   }
 
   test_enum_setter_mixinAndMixin() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 mixin A {
   set _foo(int _) {}
 }

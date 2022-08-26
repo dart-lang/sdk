@@ -47,10 +47,10 @@ class MetricsBase implements Metrics {
   }
 
   @override
-  Iterable<Metric> get primary => _primary /*!*/;
+  Iterable<Metric> get primary => _primary;
 
   @override
-  Iterable<Metric> get secondary => _secondary /*!*/;
+  Iterable<Metric> get secondary => _secondary;
 }
 
 abstract class Metric<T> {

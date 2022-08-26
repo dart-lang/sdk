@@ -22,7 +22,7 @@ mixin NonConstantMapKeyFromDeferredLibraryTestCases
   @failingTest
   test_const_ifElement_thenTrue_deferredElse() async {
 // reports wrong error code
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -35,7 +35,7 @@ var v = const { if (cond) 0: 1 else a.c : 0};
   }
 
   test_const_ifElement_thenTrue_deferredThen() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -48,7 +48,7 @@ var v = const { if (cond) a.c : 0};
   }
 
   test_const_topLevel_deferred() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -60,7 +60,7 @@ var v = const {a.c : 0};
   }
 
   test_const_topLevel_deferred_nested() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;

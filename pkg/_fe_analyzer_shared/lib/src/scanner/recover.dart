@@ -6,7 +6,7 @@ library _fe_analyzer_shared.scanner.recover;
 
 import 'token.dart' show Token, TokenType;
 
-import 'token_impl.dart' show StringToken;
+import 'token_impl.dart' show StringTokenImpl;
 
 import 'error_token.dart' show ErrorToken;
 
@@ -49,7 +49,7 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
 }
 
 Token synthesizeToken(int charOffset, String value, TokenType type) {
-  return new StringToken.fromString(type, value, charOffset);
+  return new StringTokenImpl.fromString(type, value, charOffset);
 }
 
 Token skipToEof(Token token) {

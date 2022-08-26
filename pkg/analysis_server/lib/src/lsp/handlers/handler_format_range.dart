@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
 class FormatRangeHandler
     extends MessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
-  FormatRangeHandler(LspAnalysisServer server) : super(server);
+  FormatRangeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_rangeFormatting;
 
@@ -37,8 +35,8 @@ class FormatRangeHandler
   }
 
   @override
-  Future<ErrorOr<List<TextEdit>?>> handle(
-      DocumentRangeFormattingParams params, CancellationToken token) async {
+  Future<ErrorOr<List<TextEdit>?>> handle(DocumentRangeFormattingParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

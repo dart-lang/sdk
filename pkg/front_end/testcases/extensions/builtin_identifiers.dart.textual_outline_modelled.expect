@@ -1,4 +1,3 @@
-// @dart = 2.9
 extension as on int {}
 
 extension extension on int {}

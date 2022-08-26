@@ -14,6 +14,7 @@ import 'dart:io';
 import 'dart:math';
 
 import "package:status_file/expectation.dart";
+import 'package:test_runner/src/compiler_configuration.dart';
 
 import 'browser.dart';
 import 'command.dart';
@@ -32,11 +33,11 @@ import 'utils.dart';
 typedef TestCaseEvent = void Function(TestCase testCase);
 
 typedef CreateTest = void Function(Path filePath, Path originTestPath,
-    {bool hasSyntaxError,
-    bool hasCompileError,
-    bool hasRuntimeError,
-    bool hasStaticWarning,
-    String multitestKey});
+    {bool? hasSyntaxError,
+    bool? hasCompileError,
+    bool? hasRuntimeError,
+    bool? hasStaticWarning,
+    String? multitestKey});
 
 typedef VoidFunction = void Function();
 
@@ -51,22 +52,23 @@ abstract class TestSuite {
   final List<String> statusFilePaths;
 
   /// This function is set by subclasses before enqueueing starts.
-  Map<String, String> _environmentOverrides;
+  final Map<String, String> _environmentOverrides;
 
-  TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
-    _environmentOverrides = {
-      'DART_CONFIGURATION': configuration.configurationDirectory,
-      if (Platform.isWindows) 'DART_SUPPRESS_WER': '1',
-      if (Platform.isWindows && configuration.copyCoreDumps)
-        'DART_CRASHPAD_HANDLER':
-            Uri.base.resolve(buildDir + '/crashpad_handler.exe').toFilePath(),
-      if (configuration.chromePath != null)
-        'CHROME_PATH': Uri.base.resolve(configuration.chromePath).toFilePath(),
-      if (configuration.firefoxPath != null)
-        'FIREFOX_PATH':
-            Uri.base.resolve(configuration.firefoxPath).toFilePath(),
-    };
-  }
+  TestSuite(this.configuration, this.suiteName, this.statusFilePaths)
+      : _environmentOverrides = {
+          'DART_CONFIGURATION': configuration.configurationDirectory,
+          if (Platform.isWindows) 'DART_SUPPRESS_WER': '1',
+          if (Platform.isWindows && configuration.copyCoreDumps)
+            'DART_CRASHPAD_HANDLER': Uri.base
+                .resolve(configuration.buildDirectory + '/crashpad_handler.exe')
+                .toFilePath(),
+          if (configuration.chromePath != null)
+            'CHROME_PATH':
+                Uri.base.resolve(configuration.chromePath!).toFilePath(),
+          if (configuration.firefoxPath != null)
+            'FIREFOX_PATH':
+                Uri.base.resolve(configuration.firefoxPath!).toFilePath(),
+        };
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
 
@@ -75,7 +77,7 @@ abstract class TestSuite {
 
   /// The path to the compiler for this suite's configuration. Returns `null` if
   /// no compiler should be used.
-  String get compilerPath {
+  String? get compilerPath {
     var compilerConfiguration = configuration.compilerConfiguration;
     if (!compilerConfiguration.hasCompiler) return null;
     var name = compilerConfiguration.computeCompilerPath();
@@ -117,8 +119,8 @@ abstract class TestSuite {
       if (expectations.isEmpty) expectations.add(Expectation.pass);
     }
 
-    var testCase = TestCase(displayName, commands, configuration, expectations,
-        testFile: testFile);
+    var testCase =
+        TestCase(displayName, commands, configuration, expectations, testFile);
 
     // Update Summary report.
     if (configuration.printReport) {
@@ -138,13 +140,13 @@ abstract class TestSuite {
   bool _isRelevantTest(
       TestFile testFile, String displayName, Set<Expectation> expectations) {
     // Test if the selector includes this test.
-    var pattern = configuration.selectors[suiteName];
+    var pattern = configuration.selectors[suiteName]!;
     if (!pattern.hasMatch(displayName)) {
       return false;
     }
 
     if (configuration.testList != null &&
-        !configuration.testList.contains(displayName)) {
+        !configuration.testList!.contains(displayName)) {
       return false;
     }
 
@@ -250,10 +252,10 @@ abstract class TestSuite {
 /// The executable lists its tests when run with the --list command line flag.
 /// Individual tests are run by specifying them on the command line.
 class VMTestSuite extends TestSuite {
-  String targetRunnerPath;
-  String hostRunnerPath;
-  List<String> initialHostArguments;
-  List<String> initialTargetArguments;
+  late String targetRunnerPath;
+  late String hostRunnerPath;
+  final initialHostArguments = <String>[];
+  final initialTargetArguments = <String>[];
   final String dartDir;
 
   VMTestSuite(TestConfiguration configuration)
@@ -273,10 +275,8 @@ class VMTestSuite extends TestSuite {
       hostRunnerPath = targetRunnerPath;
     }
 
-    initialHostArguments = <String>[];
-    initialTargetArguments = <String>[];
     if (configuration.useQemu) {
-      final config = QemuConfig.all[configuration.architecture];
+      final config = QemuConfig.all[configuration.architecture]!;
       initialHostArguments.insert(0, hostRunnerPath);
       initialHostArguments.insertAll(0, config.arguments);
       initialTargetArguments.insert(0, targetRunnerPath);
@@ -381,7 +381,7 @@ class VMUnitTest {
 /// An executable lists its tests when run with the --list command line flag.
 /// Individual tests are run by specifying them on the command line.
 class FfiTestSuite extends TestSuite {
-  Map<String, String> runnerPaths;
+  late Map<String, String> runnerPaths;
   final String dartDir;
 
   static const targetAbis = [
@@ -504,9 +504,9 @@ class StandardTestSuite extends TestSuite {
   final Path dartDir;
   final bool listRecursively;
   final List<String> extraVmOptions;
-  List<Uri> _dart2JsBootstrapDependencies;
-  Set<String> _testListPossibleFilenames;
-  RegExp _selectorFilenameRegExp;
+  List<Uri>? _dart2JsBootstrapDependencies;
+  Set<String>? _testListPossibleFilenames;
+  late RegExp _selectorFilenameRegExp;
 
   StandardTestSuite(TestConfiguration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
@@ -530,10 +530,10 @@ class StandardTestSuite extends TestSuite {
     // Initialize _testListPossibleFilenames.
     if (configuration.testList != null) {
       _testListPossibleFilenames = <String>{};
-      for (var s in configuration.testList) {
+      for (var s in configuration.testList!) {
         if (s.startsWith("$suiteName/")) {
           s = s.substring(s.indexOf('/') + 1);
-          _testListPossibleFilenames
+          _testListPossibleFilenames!
               .add(suiteDir.append('$s.dart').toNativePath());
           // If the test is a multitest, the filename doesn't include the label.
           // Also if it has multiple VMOptions.  If both, remove two labels.
@@ -541,7 +541,7 @@ class StandardTestSuite extends TestSuite {
             // Twice.
             if (s.lastIndexOf('/') != -1) {
               s = s.substring(0, s.lastIndexOf('/'));
-              _testListPossibleFilenames
+              _testListPossibleFilenames!
                   .add(suiteDir.append('$s.dart').toNativePath());
             }
           }
@@ -550,7 +550,7 @@ class StandardTestSuite extends TestSuite {
     }
 
     // Initialize _selectorFilenameRegExp.
-    var pattern = configuration.selectors[suiteName].pattern;
+    var pattern = configuration.selectors[suiteName]!.pattern;
     if (pattern.contains("/")) {
       var lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
       // If the selector is a multitest name ending in a number or 'none'
@@ -609,13 +609,13 @@ class StandardTestSuite extends TestSuite {
         recursive: true);
   }
 
-  List<Uri> get dart2JsBootstrapDependencies => _dart2JsBootstrapDependencies;
+  List<Uri>? get dart2JsBootstrapDependencies => _dart2JsBootstrapDependencies;
 
   /// The default implementation assumes a file is a test if
   /// it ends in "_test.dart".
   bool isTestFile(String filename) => filename.endsWith("_test.dart");
 
-  List<String> additionalOptions(Path filePath) => [];
+  List<String> additionalOptions(Path? filePath) => [];
 
   void findTestCases(
       TestCaseEvent onTest, Map<String, List<TestFile>> testCache) {
@@ -658,10 +658,11 @@ class StandardTestSuite extends TestSuite {
   }
 
   /// Looks for test files in [directory].
-  Iterable<TestFile> _searchDirectory(Directory directory) sync* {
-    for (var entry in directory.listSync(recursive: listRecursively)) {
-      if (entry is File) yield* _processFile(entry.path);
-    }
+  Iterable<TestFile> _searchDirectory(Directory directory) {
+    return directory
+        .listSync(recursive: listRecursively)
+        .whereType<File>()
+        .expand((file) => _processFile(file.path));
   }
 
   /// Gets the set of [TestFile]s based on the source file at [filePath].
@@ -795,6 +796,7 @@ class StandardTestSuite extends TestSuite {
 
     var compileTimeArguments = <String>[];
     String tempDir;
+    CommandArtifact? compilationArtifact;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
           testFile, vmOptions, args);
@@ -812,11 +814,10 @@ class StandardTestSuite extends TestSuite {
         File('$tempDir/$name').createSync(recursive: true);
         File(fromPath.toNativePath()).copySync('$tempDir/$name');
       }
+      compilationArtifact = compilerConfiguration.computeCompilationArtifact(
+          tempDir, compileTimeArguments, environmentOverrides);
+      commands.addAll(compilationArtifact.commands);
     }
-
-    var compilationArtifact = compilerConfiguration.computeCompilationArtifact(
-        tempDir, compileTimeArguments, environmentOverrides);
-    commands.addAll(compilationArtifact.commands);
 
     if ((testFile.hasCompileError || testFile.isStaticErrorTest) &&
         compilerConfiguration.hasCompiler &&
@@ -838,7 +839,7 @@ class StandardTestSuite extends TestSuite {
         args,
         compilationArtifact);
 
-    var environment = {...environmentOverrides, ...?testFile.environment};
+    var environment = {...environmentOverrides, ...testFile.environment};
 
     return commands
       ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
@@ -925,11 +926,7 @@ class StandardTestSuite extends TestSuite {
             _createUrlPathFromFile(Path('$compilationTempDir/$nameNoExt.js'));
         content = dart2jsHtml(testFile.path.toNativePath(), scriptPath);
       } else {
-        var packageRoot = packagesArgument(configuration.packages);
-        packageRoot =
-            packageRoot == null ? nameNoExt : packageRoot.split("=").last;
-        var nameFromModuleRoot =
-            testFile.path.relativeTo(Path(packageRoot).directoryPath);
+        var nameFromModuleRoot = testFile.path.relativeTo(Repository.dir);
         var nameFromModuleRootNoExt =
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =
@@ -964,7 +961,7 @@ class StandardTestSuite extends TestSuite {
     assert(supportedCompilers.contains(configuration.compiler));
 
     var args = configuration.compilerConfiguration
-        .computeCompilerArguments(testFile, null, commonArguments);
+        .computeCompilerArguments(testFile, const [], commonArguments);
     var compilation = configuration.compilerConfiguration
         .computeCompilationArtifact(outputDir, args, environmentOverrides);
     commands.addAll(compilation.commands);
@@ -1011,19 +1008,15 @@ class StandardTestSuite extends TestSuite {
     return args;
   }
 
-  String packagesArgument(String packages) {
+  String? packagesArgument(String? packages) {
     // If this test is inside a package, we will check if there is a
     // pubspec.yaml file and if so, create a custom package root for it.
-    if (packages == null && configuration.packages != null) {
-      packages = Path(configuration.packages).toNativePath();
-    }
+    packages ??= Path(configuration.packages).toNativePath();
 
     if (packages == 'none') {
       return null;
-    } else if (packages != null) {
-      return '--packages=$packages';
     } else {
-      return null;
+      return '--packages=$packages';
     }
   }
 
@@ -1080,7 +1073,7 @@ class AnalyzeLibraryTestSuite extends StandardTestSuite {
       : super(configuration, 'analyze_library', _libraryPath(configuration),
             ['tests/lib_2/analyzer/analyze_library.status']);
 
-  List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) =>
+  List<String> additionalOptions(Path? filePath, {bool? showSdkWarnings}) =>
       const ['--fatal-warnings', '--fatal-type-errors', '--sdk-warnings'];
 
   Iterable<TestFile> findTests() {

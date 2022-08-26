@@ -11,11 +11,11 @@ Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
 
 /// Returns the enclosing library for reference [node].
-Library? getLibrary(NamedNode node) {
+Library getLibrary(NamedNode node) {
   for (TreeNode? n = node; n != null; n = n.parent) {
     if (n is Library) return n;
   }
-  return null;
+  throw UnsupportedError('Could not find a containing library for $node');
 }
 
 final Pattern _syntheticTypeCharacters = RegExp('[&^#.|]');
@@ -44,14 +44,14 @@ String getLocalClassName(Class node) => escapeIdentifier(node.name)!;
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped parameter name.
-String? getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name);
+String getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name)!;
 
-String? getTopLevelName(NamedNode n) {
+String getTopLevelName(NamedNode n) {
   if (n is Procedure) return n.name.text;
   if (n is Class) return n.name;
   if (n is Typedef) return n.name;
   if (n is Field) return n.name.text;
-  return n.reference.canonicalName?.name;
+  return n.reference.canonicalName!.name;
 }
 
 /// Given an annotated [node] and a [test] function, returns the first matching
@@ -203,9 +203,13 @@ Expression? getInvocationReceiver(InvocationExpression node) {
 }
 
 bool isInlineJS(Member e) =>
-    e is Procedure &&
-    e.name.text == 'JS' &&
-    e.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';
+    e is Procedure && _isProcedureFromForeignHelper('JS', e);
+
+/// Returns `true` if [p] is the procedure named [name] from the
+/// 'dart:_foreign_helper' library.
+bool _isProcedureFromForeignHelper(String name, Procedure p) =>
+    p.name.text == name &&
+    p.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';
 
 /// Whether the parameter [p] is covariant (either explicitly `covariant` or
 /// implicitly due to generics) and needs a check for soundness.

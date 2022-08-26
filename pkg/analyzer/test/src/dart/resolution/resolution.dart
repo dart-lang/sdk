@@ -87,29 +87,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   VoidType get voidType => VoidTypeImpl.instance;
 
   void addTestFile(String content) {
-    newFile2(testFilePath, content);
-  }
-
-  void assertAssignment(
-    AssignmentExpression node, {
-    required Object? readElement,
-    required String? readType,
-    required Object? writeElement,
-    required String writeType,
-    required Object? operatorElement,
-    required String type,
-  }) {
-    assertCompoundAssignment(
-      node,
-      readElement: readElement,
-      readType: readType,
-      writeElement: writeElement,
-      writeType: writeType,
-    );
-    assertElement(node.staticElement, operatorElement);
-    assertType(node, type);
-
-    _assertUnresolvedAssignmentTarget(node.leftHandSide);
+    newFile(testFilePath, content);
   }
 
   /// Assert that the given [identifier] is a reference to a class, in the
@@ -119,28 +97,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     identifier as SimpleIdentifier;
     assertElement(identifier, expectedElement);
     assertTypeNull(identifier);
-  }
-
-  void assertCompoundAssignment(
-    CompoundAssignmentExpression node, {
-    required Object? readElement,
-    required String? readType,
-    required Object? writeElement,
-    required String? writeType,
-  }) {
-    assertElement(node.readElement, readElement);
-    if (readType == null) {
-      expect(node.readType, isNull);
-    } else {
-      assertType(node.readType, readType);
-    }
-
-    assertElement(node.writeElement, writeElement);
-    if (writeType == null) {
-      expect(node.writeType, isNull);
-    } else {
-      assertType(node.writeType, writeType);
-    }
   }
 
   void assertConstructorElement(ConstructorElement? actual, Object? expected) {
@@ -258,15 +214,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element.enclosingElement, expectedEnclosing);
   }
 
-  void assertEnumConstant(
-    EnumConstantDeclaration node, {
-    required FieldElement element,
-    required Object? constructorElement,
-  }) {
-    assertElement(node.declaredElement, element);
-    assertElement(node.constructorElement, constructorElement);
-  }
-
   Future<void> assertErrorsInCode(
       String code, List<ExpectedError> expectedErrors) async {
     addTestFile(code);
@@ -281,7 +228,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     List<ExpectedError> expectedErrors,
   ) async {
     path = convertPath(path);
-    newFile2(path, content);
+    newFile(path, content);
 
     var result = await resolveFile(path);
     assertErrorsInResolvedUnit(result, expectedErrors);
@@ -430,12 +377,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertSubstitution(actual.substitution, expectedSubstitution);
   }
 
-  void assertNamedParameterRef(String search, String name) {
-    var ref = findNode.simple(search);
-    assertElement(ref, findElement.parameter(name));
-    assertTypeNull(ref);
-  }
-
   void assertNamedType(
       NamedType node, Element? expectedElement, String? expectedType,
       {Element? expectedPrefix}) {
@@ -477,13 +418,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertNoErrorsInResult() {
     assertErrorsInResult(const []);
-  }
-
-  void assertParameterElement(
-    Expression expression,
-    Object? elementOrMatcher,
-  ) {
-    assertElement(expression.staticParameterElement, elementOrMatcher);
   }
 
   void assertParameterElementType(FormalParameter node, String expected) {
@@ -555,18 +489,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     assertElement(node.staticElement, element);
     assertType(node, type);
-  }
-
-  /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
-  void assertSimpleIdentifierAssignmentTarget(Expression node) {
-    if (node is! SimpleIdentifier) {
-      _failNotSimpleIdentifier(node);
-    }
-
-    // TODO(scheglov) Enforce maybe?
-    // Currently VariableResolverVisitor sets it.
-    // expect(node.staticElement, isNull);
-    expect(node.staticType, isNull);
   }
 
   void assertSubstitution(
@@ -826,7 +748,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Create a new file with the [path] and [content], resolve it into [result].
   Future<void> resolveFileCode(String path, String content) {
-    newFile2(path, content);
+    newFile(path, content);
     return resolveFile2(path);
   }
 
@@ -863,22 +785,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return nullable;
     } else {
       return legacy;
-    }
-  }
-
-  /// Nodes that are targets of an assignment should not be resolved,
-  /// instead the enclosing [CompoundAssignmentExpression] is resolved.
-  void _assertUnresolvedAssignmentTarget(Expression node) {
-    if (node is IndexExpression) {
-      assertUnresolvedIndexExpression(node);
-    } else if (node is PrefixedIdentifier) {
-      assertUnresolvedPrefixedIdentifier(node);
-    } else if (node is PropertyAccess) {
-      assertUnresolvedPropertyAccess(node);
-    } else if (node is SimpleIdentifier) {
-      assertUnresolvedSimpleIdentifier(node, disableElementCheck: true);
-    } else {
-      // Not LValue.
     }
   }
 

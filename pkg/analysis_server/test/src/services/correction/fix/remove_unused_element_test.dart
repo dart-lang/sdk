@@ -153,7 +153,7 @@ void f() => print(_E("hello").m2());
 ''');
   }
 
-  Future<void> test_staticMethod_mixim_notUsed_noReference() async {
+  Future<void> test_staticMethod_mixin_notUsed_noReference() async {
     await resolveTestCode(r'''
 mixin _M {
   static int m1() => 3;

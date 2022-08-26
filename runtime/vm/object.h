@@ -447,6 +447,7 @@ class Object {
   V(PcDescriptors, empty_descriptors)                                          \
   V(LocalVarDescriptors, empty_var_descriptors)                                \
   V(ExceptionHandlers, empty_exception_handlers)                               \
+  V(ExceptionHandlers, empty_async_exception_handlers)                         \
   V(Array, extractor_parameter_types)                                          \
   V(Array, extractor_parameter_names)                                          \
   V(Sentinel, sentinel)                                                        \
@@ -2131,6 +2132,30 @@ class UnlinkedCall : public CallSiteData {
 // or the original ICData object. In case of background compilation we
 // copy the ICData in a child object, thus freezing it during background
 // compilation. Code may contain only original ICData objects.
+//
+// ICData's backing store is an array that logically contains several valid
+// entries followed by a sentinal entry.
+//
+//   [<entry-0>, <...>, <entry-N>, <sentinel>]
+//
+// Each entry has the following form:
+//
+//   [arg0?, arg1?, argN?, count, target-function/code, exactness?]
+//
+// The <entry-X> need to contain valid type feedback.
+// The <sentinel> entry and must have kIllegalCid value for all
+// members of the entry except for the last one (`exactness` if
+// present, otherwise `target-function/code`) - which we use as a backref:
+//
+//   * For empty ICData we use a cached/shared backing store. So there is no
+//     unique backref, we use kIllegalCid instead.
+//   * For non-empty ICData the backref in the backing store array will point to
+//     the ICData object.
+//
+// Updating the ICData happens under a lock to avoid phantom-reads. The backing
+// is treated as an immutable Copy-on-Write data structure: Adding to the ICData
+// makes a copy with length+1 which will be store-release'd so any reader can
+// see it (and doesn't need to hold a lock).
 class ICData : public CallSiteData {
  public:
   FunctionPtr Owner() const;
@@ -2239,15 +2264,17 @@ class ICData : public CallSiteData {
   // the final one.
   intptr_t Length() const;
 
-  // Takes O(result) time!
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
   // Takes O(result)) time!
   intptr_t NumberOfUsedChecks() const;
 
-  // Takes O(n) time!
   bool NumberOfChecksIs(intptr_t n) const;
+
+  bool IsValidEntryIndex(intptr_t index) const {
+    return 0 <= index && index < NumberOfChecks();
+  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedICData));
@@ -2275,10 +2302,14 @@ class ICData : public CallSiteData {
   }
 #endif
 
-  // Replaces entry |index| with the sentinel.
   // NOTE: Can only be called during reload.
-  void WriteSentinelAt(intptr_t index,
-                       const CallSiteResetter& proof_of_reload) const;
+  void Clear(const CallSiteResetter& proof_of_reload) const {
+    TruncateTo(0, proof_of_reload);
+  }
+
+  // NOTE: Can only be called during reload.
+  void TruncateTo(intptr_t num_checks,
+                  const CallSiteResetter& proof_of_reload) const;
 
   // Clears the count for entry |index|.
   // NOTE: Can only be called during reload.
@@ -2483,9 +2514,9 @@ class ICData : public CallSiteData {
   }
 
   // Does entry |index| contain the sentinel value?
-  bool IsSentinelAt(intptr_t index) const;
   void SetNumArgsTested(intptr_t value) const;
   void SetReceiversStaticType(const AbstractType& type) const;
+  DEBUG_ONLY(void AssertInvariantsAreSatisfied() const;)
 
   static void SetTargetAtPos(const Array& data,
                              intptr_t data_pos,
@@ -2567,6 +2598,7 @@ class ICData : public CallSiteData {
                                                bool tracking_exactness);
   static ArrayPtr CachedEmptyICDataArray(intptr_t num_args_tested,
                                          bool tracking_exactness);
+  static bool IsCachedEmptyEntry(const Array& array);
   static ICDataPtr NewDescriptor(Zone* zone,
                                  const Function& owner,
                                  const String& target_name,
@@ -2860,7 +2892,12 @@ class Function : public Object {
 
   static intptr_t code_offset() { return OFFSET_OF(UntaggedFunction, code_); }
 
-  uword entry_point() const { return untag()->entry_point_; }
+  uword entry_point() const {
+    return EntryPointOf(ptr());
+  }
+  static uword EntryPointOf(const FunctionPtr function) {
+    return function->untag()->entry_point_;
+  }
 
   static intptr_t entry_point_offset(
       CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
@@ -3101,14 +3138,28 @@ class Function : public Object {
 #endif
   }
 
+#if !defined(PRODUCT) &&                                                       \
+    (defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME))
+  int32_t line() const {
+    return untag()->token_pos_.Serialize();
+  }
+
+  void set_line(int32_t line) const {
+    StoreNonPointer(&untag()->token_pos_, TokenPosition::Deserialize(line));
+  }
+#endif
+
   // Returns the size of the source for this function.
   intptr_t SourceSize() const;
 
-  uint32_t packed_fields() const { return untag()->packed_fields_; }
-  void set_packed_fields(uint32_t packed_fields) const;
-  static intptr_t packed_fields_offset() {
-    return OFFSET_OF(UntaggedFunction, packed_fields_);
+  uint32_t packed_fields() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    return untag()->packed_fields_;
+#endif
   }
+  void set_packed_fields(uint32_t packed_fields) const;
 
   // Returns the number of required positional parameters.
   intptr_t num_fixed_parameters() const;
@@ -3130,6 +3181,12 @@ class Function : public Object {
   intptr_t NumParameters() const;
   // Returns the number of implicit parameters, e.g., this for instance methods.
   intptr_t NumImplicitParameters() const;
+
+  // Returns true if parameters of this function are copied into the frame
+  // in the function prologue.
+  bool MakesCopyOfParameters() const {
+    return HasOptionalParameters() || IsSuspendableFunction();
+  }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
@@ -3209,7 +3266,8 @@ class Function : public Object {
   // run.
   bool ForceOptimize() const;
 
-  bool IsFinalizerForceOptimized() const;
+  // Whether this function's |recognized_kind| requires optimization.
+  bool RecognizedKindForceOptimize() const;
 
   bool CanBeInlined() const;
 
@@ -3518,50 +3576,38 @@ class Function : public Object {
            UntaggedFunction::kFfiTrampoline;
   }
 
-  bool IsFfiLoad() const {
-    const auto kind = recognized_kind();
-    return MethodRecognizer::kFfiLoadInt8 <= kind &&
-           kind <= MethodRecognizer::kFfiLoadPointer;
-  }
-
-  bool IsFfiStore() const {
-    const auto kind = recognized_kind();
-    return MethodRecognizer::kFfiStoreInt8 <= kind &&
-           kind <= MethodRecognizer::kFfiStorePointer;
-  }
-
-  bool IsFfiFromAddress() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kFfiFromAddress;
-  }
-
-  bool IsFfiGetAddress() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kFfiGetAddress;
-  }
-
-  bool IsFfiAsExternalTypedData() const {
-    const auto kind = recognized_kind();
-    return MethodRecognizer::kFfiAsExternalTypedDataInt8 <= kind &&
-           kind <= MethodRecognizer::kFfiAsExternalTypedDataDouble;
-  }
-
-  bool IsGetNativeField() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kGetNativeField;
-  }
-
-  bool IsUtf8Scan() const {
-    const auto kind = recognized_kind();
-    return kind == MethodRecognizer::kUtf8DecoderScan;
-  }
-
   // Recognise async functions like:
   //   user_func async {
   //     // ...
   //   }
   bool IsAsyncFunction() const {
     return modifier() == UntaggedFunction::kAsync;
+  }
+
+  // TODO(dartbug.com/48378): replace this predicate with IsAsyncFunction()
+  // after old async functions are removed.
+  bool IsCompactAsyncFunction() const {
+    return IsAsyncFunction() && is_debuggable();
+  }
+
+  // TODO(dartbug.com/48378): replace this predicate with IsAsyncGenerator()
+  // after old async* functions are removed.
+  bool IsCompactAsyncStarFunction() const {
+    return IsAsyncGenerator() && is_debuggable();
+  }
+
+  // TODO(dartbug.com/48378): replace this predicate with IsSyncGenerator()
+  // after old sync* functions are removed.
+  bool IsCompactSyncStarFunction() const {
+    return IsSyncGenerator() && is_debuggable();
+  }
+
+  // Returns true for functions which execution can be suspended
+  // using Suspend/Resume stubs. Such functions have an artificial
+  // :suspend_state local variable at the fixed location of the frame.
+  bool IsSuspendableFunction() const {
+    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction() ||
+           IsCompactSyncStarFunction();
   }
 
   // Recognise synthetic sync-yielding functions like the inner-most:
@@ -3856,11 +3902,19 @@ class Function : public Object {
   //              some functions known to be execute infrequently and functions
   //              which have been de-optimized too many times.
   bool is_optimizable() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     return untag()->packed_fields_.Read<UntaggedFunction::PackedOptimizable>();
+#endif
   }
   void set_is_optimizable(bool value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     untag()->packed_fields_.UpdateBool<UntaggedFunction::PackedOptimizable>(
         value);
+#endif
   }
 
   enum KindTagBits {
@@ -5073,6 +5127,7 @@ class Library : public Object {
   // the name and url.
   void set_name(const String& name) const;
   void set_url(const String& url) const;
+  void set_private_key(const String& key) const;
 
   void set_num_imports(intptr_t value) const;
   void set_flags(uint8_t flags) const;
@@ -6226,6 +6281,9 @@ class ExceptionHandlers : public Object {
 
   intptr_t num_entries() const;
 
+  bool has_async_handler() const;
+  void set_has_async_handler(bool value) const;
+
   void GetHandlerInfo(intptr_t try_index, ExceptionHandlerInfo* info) const;
 
   uword HandlerPCOffset(intptr_t try_index) const;
@@ -6354,9 +6412,14 @@ class Code : public Object {
     return code->untag()->instructions();
   }
 
-  static intptr_t saved_instructions_offset() {
+  static intptr_t instructions_offset() {
     return OFFSET_OF(UntaggedCode, instructions_);
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static intptr_t active_instructions_offset() {
+    return OFFSET_OF(UntaggedCode, active_instructions_);
+  }
+#endif
 
   using EntryKind = CodeEntryKind;
 
@@ -6818,7 +6881,7 @@ class Code : public Object {
 
   void DisableDartCode() const;
 
-  void DisableStubCode() const;
+  void DisableStubCode(bool is_cls_parameterized) const;
 
   void Enable() const {
     if (!IsDisabled()) return;
@@ -7369,6 +7432,9 @@ class LoadingUnit : public Object {
     return RoundedAllocationSize(sizeof(UntaggedLoadingUnit));
   }
 
+  static intptr_t LoadingUnitOf(const Function& function);
+  static intptr_t LoadingUnitOf(const Code& code);
+
   LoadingUnitPtr parent() const;
   void set_parent(const LoadingUnit& value) const;
 
@@ -7683,6 +7749,8 @@ class Instance : public Object {
   }
 
   static InstancePtr New(const Class& cls, Heap::Space space = Heap::kNew);
+  static InstancePtr NewAlreadyFinalized(const Class& cls,
+                                         Heap::Space space = Heap::kNew);
 
   // Array/list element address computations.
   static intptr_t DataOffsetFor(intptr_t cid);
@@ -9243,11 +9311,6 @@ class Smi : public Integer {
     return raw_smi;
   }
 
-  static SmiPtr FromAlignedAddress(uword address) {
-    ASSERT((address & kSmiTagMask) == kSmiTag);
-    return static_cast<SmiPtr>(address);
-  }
-
   static ClassPtr Class();
 
   static intptr_t Value(const SmiPtr raw_smi) { return RawSmiValue(raw_smi); }
@@ -10311,8 +10374,11 @@ class Array : public Instance {
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
-    // TODO(iposva): Add storing NoSafepointScope.
     untag()->set_element<order>(index, value.ptr());
+  }
+  template <std::memory_order order = std::memory_order_relaxed>
+  void SetAt(intptr_t index, const Object& value, Thread* thread) const {
+    untag()->set_element<order>(index, value.ptr(), thread);
   }
 
   // Access to the array with acquire release semantics.
@@ -10380,7 +10446,15 @@ class Array : public Instance {
   // to ImmutableArray.
   void MakeImmutable() const;
 
-  static ArrayPtr New(intptr_t len, Heap::Space space = Heap::kNew);
+  static ArrayPtr New(intptr_t len, Heap::Space space = Heap::kNew) {
+    return New(kArrayCid, len, space);
+  }
+  // The result's type arguments and elements are GC-safe but not initialized to
+  // null.
+  static ArrayPtr NewUninitialized(intptr_t len,
+                                   Heap::Space space = Heap::kNew) {
+    return NewUninitialized(kArrayCid, len, space);
+  }
   static ArrayPtr New(intptr_t len,
                       const AbstractType& element_type,
                       Heap::Space space = Heap::kNew);
@@ -10418,6 +10492,9 @@ class Array : public Instance {
   static ArrayPtr New(intptr_t class_id,
                       intptr_t len,
                       Heap::Space space = Heap::kNew);
+  static ArrayPtr NewUninitialized(intptr_t class_id,
+                                   intptr_t len,
+                                   Heap::Space space = Heap::kNew);
 
  private:
   CompressedObjectPtr const* ObjectAddr(intptr_t index) const {
@@ -10436,23 +10513,6 @@ class Array : public Instance {
             typename value_type>
   void StoreArrayPointer(type const* addr, value_type value) const {
     ptr()->untag()->StoreArrayPointer<type, order, value_type>(addr, value);
-  }
-
-  // Store a range of pointers [from, from + count) into [to, to + count).
-  // TODO(koda): Use this to fix Object::Clone's broken store buffer logic.
-  void StoreArrayPointers(CompressedObjectPtr const* to,
-                          CompressedObjectPtr const* from,
-                          intptr_t count) {
-    ASSERT(Contains(reinterpret_cast<uword>(to)));
-    if (ptr()->IsNewObject()) {
-      memmove(const_cast<CompressedObjectPtr*>(to), from,
-              count * kBytesPerElement);
-    } else {
-      const uword heap_base = ptr()->heap_base();
-      for (intptr_t i = 0; i < count; ++i) {
-        StoreArrayPointer(&to[i], from[i].Decompress(heap_base));
-      }
-    }
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
@@ -11762,6 +11822,98 @@ class StackTrace : public Instance {
   friend class DebuggerStackTrace;
 };
 
+class SuspendState : public Instance {
+ public:
+  // :suspend_state local variable index
+  static constexpr intptr_t kSuspendStateVarIndex = 0;
+
+  static intptr_t HeaderSize() { return sizeof(UntaggedSuspendState); }
+  static intptr_t UnroundedSize(SuspendStatePtr ptr) {
+    return UnroundedSize(ptr->untag()->frame_capacity());
+  }
+  static intptr_t UnroundedSize(intptr_t frame_capacity) {
+    return HeaderSize() + frame_capacity;
+  }
+  static intptr_t InstanceSize() {
+    ASSERT_EQUAL(sizeof(UntaggedSuspendState),
+                 OFFSET_OF_RETURNED_VALUE(UntaggedSuspendState, payload));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t frame_capacity) {
+    return RoundedAllocationSize(UnroundedSize(frame_capacity));
+  }
+
+  // Number of extra words reserved for growth of frame size
+  // during SuspendState allocation. Frames do not grow in AOT.
+  static intptr_t FrameSizeGrowthGap() {
+    return ONLY_IN_PRECOMPILED(0) NOT_IN_PRECOMPILED(2);
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static intptr_t frame_capacity_offset() {
+    return OFFSET_OF(UntaggedSuspendState, frame_capacity_);
+  }
+#endif
+  static intptr_t frame_size_offset() {
+    return OFFSET_OF(UntaggedSuspendState, frame_size_);
+  }
+  static intptr_t pc_offset() { return OFFSET_OF(UntaggedSuspendState, pc_); }
+  static intptr_t function_data_offset() {
+    return OFFSET_OF(UntaggedSuspendState, function_data_);
+  }
+  static intptr_t then_callback_offset() {
+    return OFFSET_OF(UntaggedSuspendState, then_callback_);
+  }
+  static intptr_t error_callback_offset() {
+    return OFFSET_OF(UntaggedSuspendState, error_callback_);
+  }
+  static intptr_t payload_offset() {
+    return UntaggedSuspendState::payload_offset();
+  }
+
+  static SuspendStatePtr New(intptr_t frame_size,
+                             const Instance& function_data,
+                             Heap::Space space = Heap::kNew);
+
+  // Makes a copy of [src] object.
+  // The object should be holding a suspended frame.
+  static SuspendStatePtr Clone(Thread* thread,
+                               const SuspendState& src,
+                               Heap::Space space = Heap::kNew);
+
+  uword pc() const { return untag()->pc_; }
+
+  intptr_t frame_size() const { return untag()->frame_size_; }
+
+  InstancePtr function_data() const {
+    return untag()->function_data();
+  }
+
+  ClosurePtr then_callback() const { return untag()->then_callback(); }
+
+  ClosurePtr error_callback() const {
+    return untag()->error_callback();
+  }
+
+  // Returns Code object corresponding to the suspended function.
+  CodePtr GetCodeObject() const;
+
+ private:
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void set_frame_capacity(intptr_t frame_capcity) const;
+#endif
+  void set_frame_size(intptr_t frame_size) const;
+  void set_pc(uword pc) const;
+  void set_function_data(const Instance& function_data) const;
+  void set_then_callback(const Closure& then_callback) const;
+  void set_error_callback(const Closure& error_callback) const;
+
+  uint8_t* payload() const { return untag()->payload(); }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SuspendState, Instance);
+  friend class Class;
+};
+
 class RegExpFlags {
  public:
   // Flags are passed to a regex object as follows:
@@ -12538,7 +12690,7 @@ inline uint16_t String::CharAt(StringPtr str, intptr_t index) {
 //
 // This helper class can then be used via
 //
-//     using CallTableView = ArrayOfTuplesVied<
+//     using CallTableView = ArrayOfTuplesView<
 //         Code::Kind, std::tuple<Smi, Function, Code>>;
 //
 //     auto& array = Array::Handle(code.static_calls_targets_table());

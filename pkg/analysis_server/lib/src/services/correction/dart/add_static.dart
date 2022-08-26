@@ -23,7 +23,4 @@ class AddStatic extends CorrectionProducer {
       builder.addSimpleInsertion(offset, 'static ');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddStatic newInstance() => AddStatic();
 }

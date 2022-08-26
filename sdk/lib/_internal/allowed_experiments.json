@@ -27,9 +27,6 @@
     "characters": {
       "experimentSet": "nullSafety"
     },
-    "charcode": {
-      "experimentSet": "nullSafety"
-    },
     "clock": {
       "experimentSet": "nullSafety"
     },

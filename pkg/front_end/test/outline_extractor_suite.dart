@@ -100,13 +100,12 @@ class OutlineExtractorStep
   @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
-    Uri? packages = description.uri.resolve(".packages");
+    Uri? packages = description.uri.resolve(".dart_tool/package_config.json");
     if (!new File.fromUri(packages).existsSync()) {
       packages = null;
     }
     Map<Uri, String> result =
         await extractOutline([description.uri], packages: packages);
-
     StringBuffer sb = new StringBuffer();
     Uri uri = description.uri;
     Uri base = uri.resolve(".");
@@ -142,7 +141,7 @@ class CompileAndCompareStep
   @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
-    Uri? packages = description.uri.resolve(".packages");
+    Uri? packages = description.uri.resolve(".dart_tool/package_config.json");
     if (!new File.fromUri(packages).existsSync()) {
       packages = null;
     }
@@ -249,7 +248,7 @@ class Strategy extends EquivalenceStrategy {
   }
 
   @override
-  bool checkProcedure_startFileOffset(
+  bool checkProcedure_fileStartOffset(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
     return true;
   }

@@ -2295,7 +2295,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeWord('switch');
     writeSymbol('(');
     writeExpression(node.expression);
-    endLine(') {');
+    writeSymbol(')');
+    if (node.isExplicitlyExhaustive) {
+      writeWord(" /*isExplicitlyExhaustive*/");
+    }
+    endLine(' {');
     ++indentation;
     node.cases.forEach(writeNode);
     --indentation;
@@ -2452,6 +2456,17 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeModifier(node.isFinal, 'final');
     writeModifier(node.isConst, 'const');
+    bool hasImplicitInitializer = node.initializer is NullLiteral ||
+        (node.initializer is ConstantExpression &&
+            (node.initializer as ConstantExpression).constant is NullConstant);
+    if ((node.initializer == null || hasImplicitInitializer) &&
+        node.hasDeclaredInitializer) {
+      writeModifier(node.hasDeclaredInitializer, 'has-declared-initializer');
+    } else if (node.initializer != null &&
+        !hasImplicitInitializer &&
+        !node.hasDeclaredInitializer) {
+      writeModifier(node.hasDeclaredInitializer, 'has-no-declared-initializer');
+    }
     // ignore: unnecessary_null_comparison
     if (node.type != null) {
       writeAnnotatedType(node.type, annotator?.annotateVariable(this, node));
@@ -2999,6 +3014,10 @@ class Precedence implements ExpressionVisitor<int> {
   int visitEqualsNull(EqualsNull node) => EQUALITY;
 
   @override
+  int visitAbstractSuperMethodInvocation(AbstractSuperMethodInvocation node) =>
+      CALLEE;
+
+  @override
   int visitSuperMethodInvocation(SuperMethodInvocation node) => CALLEE;
 
   @override
@@ -3091,6 +3110,13 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitFunctionTearOff(FunctionTearOff node) => PRIMARY;
+
+  @override
+  int visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) => PRIMARY;
+
+  @override
+  int visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>
+      EXPRESSION;
 
   @override
   int visitSuperPropertyGet(SuperPropertyGet node) => PRIMARY;

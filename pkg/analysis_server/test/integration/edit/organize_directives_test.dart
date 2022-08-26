@@ -25,7 +25,7 @@ Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var result = await sendEditOrganizeDirectives(pathname);
@@ -45,7 +45,7 @@ Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var result = await sendEditOrganizeDirectives(pathname);
@@ -63,7 +63,7 @@ Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     try {

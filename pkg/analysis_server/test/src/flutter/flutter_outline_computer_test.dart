@@ -34,7 +34,7 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
     var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   return new WidgetA(
     value: 42,
   ); // WidgetA
@@ -51,8 +51,8 @@ class WidgetA extends StatelessWidget {
     var attribute = widget.attributes![0];
     expect(attribute.name, 'value');
     expect(attribute.label, '42');
-    _assertLocation(attribute.nameLocation!, 75, 5);
-    _assertLocation(attribute.valueLocation!, 82, 2);
+    _assertLocation(attribute.nameLocation!, 77, 5);
+    _assertLocation(attribute.valueLocation!, 84, 2);
   }
 
   Future<void> test_attributes_bool() async {
@@ -234,7 +234,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children_closure_blockBody() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -270,7 +270,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children_closure_expressionBody() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -472,7 +472,7 @@ class WidgetFactory {
   }
 
   Future<void> test_namedArgument_anywhere() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -512,7 +512,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_parentAssociationLabel() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -584,7 +584,7 @@ class MyWidget extends StatelessWidget {
 
   Future<FlutterOutline> _computeOutline(String code) async {
     testCode = code;
-    newFile2(testPath, code);
+    newFile(testPath, code);
     resolveResult =
         await (await session).getResolvedUnit(testPath) as ResolvedUnitResult;
     computer = FlutterOutlineComputer(resolveResult);
@@ -596,7 +596,7 @@ class MyWidget extends StatelessWidget {
     var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
-main() {
+void f() {
   new MyWidget($value);
 }
 
@@ -617,7 +617,7 @@ class MyWidget extends StatelessWidget {
     var attribute = newMyWidget.attributes![0];
     expect(attribute.name, name);
     expect(attribute.nameLocation, isNull);
-    _assertLocation(attribute.valueLocation!, 64, value.length);
+    _assertLocation(attribute.valueLocation!, 66, value.length);
 
     return attribute;
   }

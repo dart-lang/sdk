@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -19,7 +18,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 MicroContextObjects createMicroContextObjects({
   required FileResolver fileResolver,
@@ -29,15 +28,6 @@ MicroContextObjects createMicroContextObjects({
   required ResourceProvider resourceProvider,
 }) {
   var declaredVariables = DeclaredVariables();
-  var synchronousSession = SynchronousSession(
-    analysisOptions,
-    declaredVariables,
-  );
-
-  var analysisContext = AnalysisContextImpl(
-    synchronousSession,
-    sourceFactory,
-  );
 
   var analysisSession = _MicroAnalysisSessionImpl(
     fileResolver,
@@ -47,7 +37,7 @@ MicroContextObjects createMicroContextObjects({
 
   var analysisContext2 = _MicroAnalysisContextImpl(
     fileResolver,
-    synchronousSession,
+    analysisOptions,
     root,
     declaredVariables,
     sourceFactory,
@@ -59,28 +49,21 @@ MicroContextObjects createMicroContextObjects({
 
   return MicroContextObjects._(
     declaredVariables: declaredVariables,
-    synchronousSession: synchronousSession,
+    analysisOptions: analysisOptions,
     analysisSession: analysisSession,
-    analysisContext: analysisContext,
   );
 }
 
 class MicroContextObjects {
   final DeclaredVariables declaredVariables;
-  final SynchronousSession synchronousSession;
+  final AnalysisOptionsImpl analysisOptions;
   final _MicroAnalysisSessionImpl analysisSession;
-  final AnalysisContextImpl analysisContext;
 
   MicroContextObjects._({
     required this.declaredVariables,
-    required this.synchronousSession,
+    required this.analysisOptions,
     required this.analysisSession,
-    required this.analysisContext,
   });
-
-  set analysisOptions(AnalysisOptionsImpl analysisOptions) {
-    synchronousSession.analysisOptions = analysisOptions;
-  }
 
   InheritanceManager3 get inheritanceManager {
     return analysisSession.inheritanceManager;
@@ -107,7 +90,9 @@ class _FakeAnalysisDriver implements AnalysisDriver {
 
 class _MicroAnalysisContextImpl implements AnalysisContext {
   final FileResolver fileResolver;
-  final SynchronousSession synchronousSession;
+
+  @override
+  AnalysisOptionsImpl analysisOptions;
 
   final ResourceProvider resourceProvider;
 
@@ -123,7 +108,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
 
   _MicroAnalysisContextImpl(
     this.fileResolver,
-    this.synchronousSession,
+    this.analysisOptions,
     this.contextRoot,
     this.declaredVariables,
     this.sourceFactory,
@@ -131,18 +116,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   );
 
   @override
-  AnalysisOptionsImpl get analysisOptions {
-    return synchronousSession.analysisOptions;
-  }
-
-  @override
   Folder? get sdkRoot => null;
-
-  @Deprecated('Use contextRoot.workspace instead')
-  @override
-  Workspace get workspace {
-    return contextRoot.workspace;
-  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -158,6 +132,9 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
 
   @override
   late _MicroAnalysisContextImpl analysisContext;
+
+  @override
+  late final LinkedElementFactory elementFactory;
 
   _MicroAnalysisSessionImpl(
     this.fileResolver,

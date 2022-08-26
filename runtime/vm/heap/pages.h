@@ -183,6 +183,7 @@ class OldPage {
   }
 #endif
   void VisitRememberedCards(ObjectPointerVisitor* visitor);
+  void ResetProgressBar();
 
  private:
   void set_object_end(uword value) {
@@ -205,6 +206,7 @@ class OldPage {
   uword used_in_bytes_;
   ForwardingPage* forwarding_page_;
   uint8_t* card_table_;  // Remembered set, not marking.
+  RelaxedAtomic<intptr_t> progress_bar_;
   PageType type_;
 
   friend class PageSpace;
@@ -268,10 +270,6 @@ class PageSpaceController {
 
   void set_last_usage(SpaceUsage current) { last_usage_ = current; }
 
-  void Enable() { is_enabled_ = true; }
-  void Disable() { is_enabled_ = false; }
-  bool is_enabled() { return is_enabled_; }
-
  private:
   friend class PageSpace;  // For MergeOtherPageSpaceController
 
@@ -282,8 +280,6 @@ class PageSpaceController {
                     const char* reason);
 
   Heap* heap_;
-
-  bool is_enabled_;
 
   // Usage after last evaluated GC or last enabled.
   SpaceUsage last_usage_;
@@ -403,29 +399,15 @@ class PageSpace {
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
+  void ResetProgressBars() const;
 
   ObjectPtr FindObject(FindObjectVisitor* visitor,
                        OldPage::PageType type) const;
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
-  void CollectGarbage(bool compact, bool finalize);
+  void CollectGarbage(Thread* thread, bool compact, bool finalize);
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
-
-  void InitGrowthControl() {
-    page_space_controller_.set_last_usage(usage_);
-    page_space_controller_.Enable();
-  }
-
-  void SetGrowthControlState(bool state) {
-    if (state) {
-      page_space_controller_.Enable();
-    } else {
-      page_space_controller_.Disable();
-    }
-  }
-
-  bool GrowthControlState() { return page_space_controller_.is_enabled(); }
 
   // Note: Code pages are made executable/non-executable when 'read_only' is
   // true/false, respectively.
@@ -434,7 +416,8 @@ class PageSpace {
 
   bool ShouldStartIdleMarkSweep(int64_t deadline);
   bool ShouldPerformIdleMarkCompact(int64_t deadline);
-  void NotifyIdle(int64_t deadline);
+  void IncrementalMarkWithSizeBudget(intptr_t size);
+  void IncrementalMarkWithTimeBudget(int64_t deadline);
   void AssistTasks(MonitorLocker* ml);
 
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }
@@ -553,8 +536,6 @@ class PageSpace {
                                     OldPage::PageType type,
                                     GrowthPolicy growth_policy);
 
-  void EvaluateConcurrentMarking(GrowthPolicy growth_policy);
-
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
 
@@ -573,10 +554,7 @@ class PageSpace {
   void FreeLargePage(OldPage* page, OldPage* previous_page);
   void FreePages(OldPage* pages);
 
-  void CollectGarbageHelper(bool compact,
-                            bool finalize,
-                            int64_t pre_wait_for_sweepers,
-                            int64_t pre_safe_point);
+  void CollectGarbageHelper(Thread* thread, bool compact, bool finalize);
   void SweepLarge();
   void Sweep(bool exclusive);
   void ConcurrentSweep(IsolateGroup* isolate_group);

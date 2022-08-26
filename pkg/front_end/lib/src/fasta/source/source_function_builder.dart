@@ -4,6 +4,7 @@
 
 library fasta.procedure_builder;
 
+import 'package:front_end/src/fasta/builder/omitted_type_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
@@ -40,7 +41,7 @@ abstract class SourceFunctionBuilder
     implements FunctionBuilder, SourceMemberBuilder {
   List<MetadataBuilder>? get metadata;
 
-  TypeBuilder? get returnType;
+  TypeBuilder get returnType;
 
   List<TypeVariableBuilder>? get typeVariables;
 
@@ -119,22 +120,19 @@ abstract class SourceFunctionBuilder
 
   void becomeNative(SourceLoader loader);
 
-  bool checkPatch(FunctionBuilder patch);
+  bool checkPatch(SourceFunctionBuilder patch);
 
   void reportPatchMismatch(Builder patch);
 }
 
 /// Common base class for constructor and procedure builders.
 abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
-    implements SourceFunctionBuilder {
+    implements SourceFunctionBuilder, InferredTypeListener {
   @override
   final List<MetadataBuilder>? metadata;
 
   @override
   final int modifiers;
-
-  @override
-  final TypeBuilder? returnType;
 
   @override
   final String name;
@@ -157,7 +155,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   SourceFunctionBuilderImpl(
       this.metadata,
       this.modifiers,
-      this.returnType,
       this.name,
       this.typeVariables,
       this.formals,
@@ -165,6 +162,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       int charOffset,
       this.nativeMethodName)
       : super(compilationUnit, charOffset) {
+    returnType.registerInferredTypeListener(this);
     if (formals != null) {
       for (int i = 0; i < formals!.length; i++) {
         formals![i].parent = this;
@@ -343,7 +341,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     }
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        VariableDeclaration parameter = formal.build(libraryBuilder, 0);
+        VariableDeclaration parameter = formal.build(libraryBuilder);
         if (needsCheckVisitor != null) {
           if (parameter.type.accept(needsCheckVisitor)) {
             parameter.isCovariantByClass = true;
@@ -378,16 +376,16 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
-      VariableDeclaration parameter =
-          new VariableDeclarationImpl("#synthetic", 0);
+      VariableDeclaration parameter = new VariableDeclarationImpl("#synthetic");
       function.positionalParameters.clear();
       function.positionalParameters.add(parameter);
       parameter.parent = function;
       function.namedParameters.clear();
       function.requiredParameterCount = 1;
     }
-    if (returnType != null) {
-      function.returnType = returnType!.build(libraryBuilder);
+    if (returnType is! InferableTypeBuilder) {
+      function.returnType =
+          returnType.build(libraryBuilder, TypeUse.returnType);
     }
     if (isExtensionInstanceMember) {
       ExtensionBuilder extensionBuilder = parent as ExtensionBuilder;
@@ -427,6 +425,11 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     assert(_extensionThis != null || !isExtensionInstanceMember,
         "ProcedureBuilder.extensionTypeParameters has not been set.");
     return _extensionTypeParameters;
+  }
+
+  @override
+  void onInferredType(DartType type) {
+    function.returnType = type;
   }
 
   bool _hasBuiltOutlineExpressions = false;
@@ -471,8 +474,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     }
   }
 
-  Member build();
-
   @override
   void becomeNative(SourceLoader loader) {
     MemberBuilder constructor = loader.getNativeAnnotation();
@@ -492,8 +493,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  bool checkPatch(FunctionBuilder patch) {
-    if (!isExternal) {
+  bool checkPatch(SourceFunctionBuilder patch) {
+    if (!isExternal && !patch.libraryBuilder.isAugmentation) {
       patch.libraryBuilder.addProblem(
           messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri!,
           context: [

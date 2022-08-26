@@ -10,11 +10,6 @@ import 'dart:isolate';
 final packageUriToResolve = "package:foo/bar.dart";
 final packageResolvedUri = "file:///no/such/directory/lib/bar.dart";
 
-final dotPackages = """
-# This is the content of a .packages file.
-foo:file:///no/such/directory/lib/
-""";
-
 final packageConfigJson = """
 {
   "configVersion": 2,
@@ -34,7 +29,6 @@ main([args, port]) async {
     testPackageResolution(port);
     return;
   }
-  await runTest(dotPackages);
   await runTest(packageConfigJson);
 }
 

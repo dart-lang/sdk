@@ -125,10 +125,12 @@ ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
     uword entry_point) const {
   intptr_t num_handlers = Length();
   if (num_handlers == 0) {
-    return Object::empty_exception_handlers().ptr();
+    return has_async_handler_ ? Object::empty_async_exception_handlers().ptr()
+                              : Object::empty_exception_handlers().ptr();
   }
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(ExceptionHandlers::New(num_handlers));
+  handlers.set_has_async_handler(has_async_handler_);
   for (intptr_t i = 0; i < num_handlers; i++) {
     // Assert that every element in the array has been initialized.
     if (list_[i].handler_types == NULL) {

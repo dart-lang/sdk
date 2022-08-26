@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -90,7 +91,7 @@ class GetSuggestionAvailableTest extends GetSuggestionsBase {
 
   Future<void> test_dart_instanceCreationExpression() async {
     addTestFile(r'''
-main() {
+void f() {
   new ; // ref
 }
 ''');
@@ -110,7 +111,7 @@ main() {
   }
 
   Future<void> test_defaultArgumentListString() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 void fff(int aaa, int bbb) {}
 
 void ggg({int aaa, @required int bbb, @required int ccc}) {}
@@ -128,13 +129,13 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
   }
 
   Future<void> test_displayUri_file() async {
-    var aPath = '/home/test/test/a.dart';
-    newFile2(aPath, 'class A {}');
+    var aPath = '$testPackageRootPath/test/a.dart';
+    newFile(aPath, 'class A {}');
 
     var aSet = await waitForSetWithUri(toUriStr(aPath));
 
-    var testPath = newFile2('/home/test/test/sub/test.dart', '').path;
-    var results = await _getSuggestions(testPath, 0);
+    var file = newFile('$testPackageRootPath/test/sub/test.dart', '');
+    var results = await _getSuggestions(file, 0);
 
     expect(
       results.includedSuggestionSets!.singleWhere((set) {
@@ -145,13 +146,12 @@ void ggg({int aaa, @required int bbb, @required int ccc}) {}
   }
 
   Future<void> test_displayUri_package() async {
-    var aPath = '/home/test/lib/a.dart';
-    newFile2(aPath, 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
 
     var aSet = await waitForSetWithUri('package:test/a.dart');
-    var testPath = newFile2('/home/test/lib/test.dart', '').path;
+    var file = newFile('$testPackageLibPath/test.dart', '');
 
-    var results = await _getSuggestions(testPath, 0);
+    var results = await _getSuggestions(file, 0);
     expect(
       results.includedSuggestionSets!.singleWhere((set) {
         return set.id == aSet.id;
@@ -167,7 +167,7 @@ class X extends {} // ref
 
     var results = await _getSuggestions(
       testFile,
-      testCode.indexOf('{} // ref'),
+      testFileContent.indexOf('{} // ref'),
     );
 
     expect(
@@ -185,14 +185,14 @@ class X extends {} // ref
 
   Future<void> test_includedElementKinds_value() async {
     addTestFile(r'''
-main() {
+void f() {
   print(); // ref
 }
 ''');
 
     var results = await _getSuggestions(
       testFile,
-      testCode.indexOf('); // ref'),
+      testFileContent.indexOf('); // ref'),
     );
 
     expect(
@@ -204,7 +204,6 @@ main() {
         ElementKind.ENUM,
         ElementKind.ENUM_CONSTANT,
         ElementKind.EXTENSION,
-        ElementKind.FIELD,
         ElementKind.FUNCTION,
         ElementKind.FUNCTION_TYPE_ALIAS,
         ElementKind.GETTER,
@@ -217,13 +216,12 @@ main() {
   }
 
   Future<void> test_inHtml() async {
-    newFile2('/home/test/lib/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
 
-    var path = convertPath('/home/test/doc/a.html');
-    newFile2(path, '<html></html>');
+    var file = newFile('$testPackageRoot/doc/a.html', '<html></html>');
 
-    await waitResponse(
-      CompletionGetSuggestionsParams(path, 0).toRequest('0'),
+    await handleSuccessfulRequest(
+      CompletionGetSuggestionsParams(file.path, 0).toRequest('0'),
     );
   }
 
@@ -231,14 +229,14 @@ main() {
     addTestFile(r'''
 void foo(List<int> a) {}
 
-main() {
+void f() {
   foo(); // ref
 }
 ''');
 
     var results = await _getSuggestions(
       testFile,
-      testCode.indexOf('); // ref'),
+      testFileContent.indexOf('); // ref'),
     );
 
     var includedTags = results.includedSuggestionRelevanceTags!;
@@ -257,7 +255,7 @@ main() {
   }
 
   Future<void> test_relevanceTags_enum() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 enum MyEnum {
   aaa, bbb
 }
@@ -272,7 +270,7 @@ void f(MyEnum e) {
 
     var results = await _getSuggestions(
       testFile,
-      testCode.indexOf(' // ref'),
+      testFileContent.indexOf(' // ref'),
     );
 
     assertJsonText(results.includedSuggestionRelevanceTags!, r'''
@@ -329,14 +327,14 @@ void f(MyEnum e) {
     addTestFile(r'''
 void foo({int a, String b}) {}
 
-main() {
+void f() {
   foo(b: ); // ref
 }
 ''');
 
     var results = await _getSuggestions(
       testFile,
-      testCode.indexOf('); // ref'),
+      testFileContent.indexOf('); // ref'),
     );
 
     assertJsonText(results.includedSuggestionRelevanceTags!, r'''
@@ -393,14 +391,14 @@ main() {
     addTestFile(r'''
 void foo(double a) {}
 
-main() {
+void f() {
   foo(); // ref
 }
 ''');
 
     var results = await _getSuggestions(
       testFile,
-      testCode.indexOf('); // ref'),
+      testFileContent.indexOf('); // ref'),
     );
 
     assertJsonText(results.includedSuggestionRelevanceTags!, r'''
@@ -463,7 +461,7 @@ main() {
 
   Future<void> test_relevanceTags_location_assignment() async {
     addTestFile(r'''
-main() {
+void f() {
   int v;
   v = // ref;
 }
@@ -471,7 +469,7 @@ main() {
 
     var results = await _getSuggestions(
       testFile,
-      testCode.indexOf(' // ref'),
+      testFileContent.indexOf(' // ref'),
     );
 
     assertJsonText(results.includedSuggestionRelevanceTags!, r'''
@@ -531,7 +529,7 @@ int v = // ref;
 
     var results = await _getSuggestions(
       testFile,
-      testCode.indexOf(' // ref'),
+      testFileContent.indexOf(' // ref'),
     );
 
     assertJsonText(results.includedSuggestionRelevanceTags!, r'''
@@ -594,14 +592,14 @@ int v = // ref;
 
   Future<void> test_relevanceTags_location_listLiteral() async {
     addTestFile(r'''
-main() {
+void f() {
   var v = [0, ]; // ref
 }
 ''');
 
     var results = await _getSuggestions(
       testFile,
-      testCode.indexOf(']; // ref'),
+      testFileContent.indexOf(']; // ref'),
     );
 
     assertJsonText(results.includedSuggestionRelevanceTags!, r'''
@@ -617,12 +615,12 @@ main() {
 
 abstract class GetSuggestionsBase extends AvailableSuggestionsBase {
   Future<CompletionResultsParams> _getSuggestions(
-    String path,
+    File file,
     int offset,
   ) async {
     var response = CompletionGetSuggestionsResult.fromResponse(
-      await waitResponse(
-        CompletionGetSuggestionsParams(path, offset).toRequest('0'),
+      await handleSuccessfulRequest(
+        CompletionGetSuggestionsParams(file.path, offset).toRequest('0'),
       ),
     );
     return await waitForGetSuggestions(response.id);

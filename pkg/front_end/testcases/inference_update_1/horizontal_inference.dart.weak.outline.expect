@@ -1,0 +1,54 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method testLaterUnnamedParameter(<T extends core::Object? = dynamic>(T%, (T%) → void) → void f) → dynamic
+  ;
+static method testLaterUnnamedParameterDependsOnNamedParameter(<T extends core::Object? = dynamic>((T%) → void, {required a: T%}) → void f) → dynamic
+  ;
+static method testEarlierUnnamedParameter(<T extends core::Object? = dynamic>((T%) → void, T%) → void f) → dynamic
+  ;
+static method testLaterNamedParameter(<T extends core::Object? = dynamic>({required a: T%, required b: (T%) → void}) → void f) → dynamic
+  ;
+static method testEarlierNamedParameter(<T extends core::Object? = dynamic>({required a: (T%) → void, required b: T%}) → void f) → dynamic
+  ;
+static method testEarlierNamedParameterDependsOnUnnamedParameter(<T extends core::Object? = dynamic>(T%, {required a: (T%) → void}) → void f) → dynamic
+  ;
+static method testPropagateToReturnType(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(T%, (T%) → U%) → U% f) → dynamic
+  ;
+static method testFold(core::List<core::int> list) → dynamic
+  ;
+static method testClosureAsParameterType(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(T%, (T%) → U%) → U% f) → dynamic
+  ;
+static method testPropagateToEarlierClosure(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>((T%) → U%, () → T%) → U% f) → dynamic
+  ;
+static method testPropagateToLaterClosure(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(() → T%, (T%) → U%) → U% f) → dynamic
+  ;
+static method testLongDependencyChain(<T extends core::Object? = dynamic, U extends core::Object? = dynamic, V extends core::Object? = dynamic>(() → T%, (T%) → U%, (U%) → V%) → V% f) → dynamic
+  ;
+static method testDependencyCycle(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>((U%) → T%, (T%) → U%) → core::Map<T%, U%> f) → dynamic
+  ;
+static method testNecessaryDueToWrongExplicitParameterType(core::List<core::int> list) → dynamic
+  ;
+static method testPropagateFromContravariantReturnType(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(() → (T%) → void, (T%) → U%) → U% f) → dynamic
+  ;
+static method testPropagateToContravariantParameterType(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(() → T%, ((T%) → void) → U%) → U% f) → dynamic
+  ;
+static method testReturnTypeRefersToMultipleTypeVars(<T extends core::Object? = dynamic, U extends core::Object? = dynamic>(() → core::Map<T%, U%>, (T%) → void, (U%) → void) → void f) → dynamic
+  ;
+static method testUnnecessaryDueToNoDependency(<T extends core::Object? = dynamic>(() → T%, T%) → T% f) → dynamic
+  ;
+static method testUnnecessaryDueToExplicitParameterType(core::List<core::int> list) → dynamic
+  ;
+static method testUnnecessaryDueToExplicitParameterTypeNamed(<T extends core::Object? = dynamic>(T%, ({required x: T%, required y: core::int}) → T%) → T% f) → dynamic
+  ;
+static method testParenthesized(<T extends core::Object? = dynamic>(T%, (T%) → void) → void f) → dynamic
+  ;
+static method testParenthesizedNamed(<T extends core::Object? = dynamic>({required a: T%, required b: (T%) → void}) → void f) → dynamic
+  ;
+static method testParenthesizedTwice(<T extends core::Object? = dynamic>(T%, (T%) → void) → void f) → dynamic
+  ;
+static method testParenthesizedTwiceNamed(<T extends core::Object? = dynamic>({required a: T%, required b: (T%) → void}) → void f) → dynamic
+  ;
+static method main() → dynamic
+  ;

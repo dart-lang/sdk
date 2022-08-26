@@ -19,7 +19,7 @@ List<String> abbreviateToIdentifiers(Iterable<String> strings,
 
 class _Node {
   final String string;
-  String assignment;
+  late String assignment;
   _Node(this.string);
 }
 
@@ -45,7 +45,7 @@ void _partition(
     // Partition on the code unit at position [index], setting [terminating] if
     // some string ends at this length;
     Map<int, List<_Node>> partition = {};
-    _Node terminating;
+    _Node? terminating;
 
     for (final node in nodes) {
       String string = node.string;
@@ -69,8 +69,8 @@ void _partition(
       var keys = partition.keys.toList();
       var keyEncodings = _discriminators(keys, path.isEmpty);
       for (int key in keys) {
-        var children = partition[key];
-        var discriminator = keyEncodings[key];
+        var children = partition[key]!;
+        var discriminator = keyEncodings[key]!;
         _partition(children, minLength, [...path, discriminator], index + 1);
       }
       return;

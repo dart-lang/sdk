@@ -50,11 +50,11 @@ import "dart:_internal";
 class Class extends core::Object {
   synthetic constructor •() → self2::Class
     ;
-  method method([core::int i]) → void
+  method method([core::int i = null]) → void
     ;
   @_in::patch
-  external method patchedMethod([core::int i]) → void;
-  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i]) → void
+  external method patchedMethod([core::int i = null]) → void;
+  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i = null]) → void
     ;
 }
 static method method([core::int i]) → void

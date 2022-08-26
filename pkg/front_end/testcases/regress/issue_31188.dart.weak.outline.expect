@@ -1,12 +1,12 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected ';' after this.
+// pkg/front_end/testcases/regress/issue_31188.dart:9:18: Error: Expected ';' after this.
 // type T = Map<A, B>
 //                  ^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: Type 'type' not found.
+// pkg/front_end/testcases/regress/issue_31188.dart:9:1: Error: Type 'type' not found.
 // type T = Map<A, B>
 // ^^^^
 //

@@ -1,4 +1,4 @@
-library test;
+library test /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -13,7 +13,7 @@ library test;
 //   void set x(double value);
 //            ^
 //
-// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:9:11: Error: The type 'int' of the getter 'A.x' is not assignable to the type 'double' of the setter 'A.x'.
+// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:9:11: Error: The type 'int' of the getter 'A.x' is not a subtype of the type 'double' of the setter 'A.x'.
 //   int get x;
 //           ^
 // pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:10:12: Context: This is the declaration of the setter 'A.x'.
@@ -24,25 +24,15 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-  abstract get x() → core::int*;
-  abstract set x(core::double* value) → void;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract get x() → core::int;
+  abstract set x(core::double value) → void;
 }
 class B extends self::A {
   field invalid-type x = null;
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }

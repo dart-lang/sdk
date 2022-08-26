@@ -321,7 +321,11 @@ class TypeSystemImpl implements TypeSystem {
     if (mixinElement.isMixin) {
       candidates = mixinElement.superclassConstraints;
     } else {
-      candidates = [mixinElement.supertype!];
+      final supertype = mixinElement.supertype;
+      if (supertype == null) {
+        return const [];
+      }
+      candidates = [supertype];
       candidates.addAll(mixinElement.mixins);
       if (mixinElement.isMixinApplication) {
         candidates.removeLast();
@@ -1220,16 +1224,15 @@ class TypeSystemImpl implements TypeSystem {
     return (type as TypeImpl).withNullability(NullabilitySuffix.question);
   }
 
-  /// Attempts to find the appropriate substitution for the [mixinElement]
-  /// type parameters that can be applied to [srcTypes] to make it equal to
-  /// [destTypes].  If no such substitution can be found, `null` is returned.
+  /// Attempts to find the appropriate substitution for the [typeParameters]
+  /// that can be applied to [srcTypes] to make it equal to [destTypes].
+  /// If no such substitution can be found, `null` is returned.
   List<DartType>? matchSupertypeConstraints(
-    ClassElement mixinElement,
+    List<TypeParameterElement> typeParameters,
     List<DartType> srcTypes,
     List<DartType> destTypes, {
     required bool genericMetadataIsEnabled,
   }) {
-    var typeParameters = mixinElement.typeParameters;
     var inferrer = GenericInferrer(this, typeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled);
     for (int i = 0; i < srcTypes.length; i++) {
@@ -1468,26 +1471,26 @@ class TypeSystemImpl implements TypeSystem {
   @override
   DartType resolveToBound(DartType type) {
     if (type is TypeParameterTypeImpl) {
-      var element = type.element;
+      final promotedBound = type.promotedBound;
+      if (promotedBound != null) {
+        return resolveToBound(promotedBound);
+      }
 
-      var bound = element.bound;
+      final bound = type.element.bound;
       if (bound == null) {
-        return typeProvider.objectType;
+        return isNonNullableByDefault ? objectQuestion : objectStar;
       }
 
-      NullabilitySuffix nullabilitySuffix = type.nullabilitySuffix;
-      NullabilitySuffix newNullabilitySuffix;
-      if (nullabilitySuffix == NullabilitySuffix.question ||
-          bound.nullabilitySuffix == NullabilitySuffix.question) {
-        newNullabilitySuffix = NullabilitySuffix.question;
-      } else if (nullabilitySuffix == NullabilitySuffix.star ||
-          bound.nullabilitySuffix == NullabilitySuffix.star) {
-        newNullabilitySuffix = NullabilitySuffix.star;
-      } else {
-        newNullabilitySuffix = NullabilitySuffix.none;
-      }
+      final resolved = resolveToBound(bound) as TypeImpl;
 
-      var resolved = resolveToBound(bound) as TypeImpl;
+      final newNullabilitySuffix = uniteNullabilities(
+        uniteNullabilities(
+          type.nullabilitySuffix,
+          bound.nullabilitySuffix,
+        ),
+        resolved.nullabilitySuffix,
+      );
+
       return resolved.withNullability(newNullabilitySuffix);
     }
 

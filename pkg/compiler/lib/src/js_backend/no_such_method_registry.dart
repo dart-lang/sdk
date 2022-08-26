@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../common.dart';
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
-import '../inferrer/types.dart';
+import '../inferrer/types.dart' show GlobalTypeInferenceResults;
 import '../kernel/no_such_method_resolver.dart';
 import '../serialization/serialization.dart';
 

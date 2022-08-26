@@ -114,14 +114,6 @@ class Dart : public AllStatic {
   static void set_thread_exit_callback(Dart_ThreadExitCallback cback) {
     thread_exit_callback_ = cback;
   }
-  static Dart_PostTaskCallback post_task_callback() {
-    return post_task_callback_;
-  }
-  static void set_post_task_callback(Dart_PostTaskCallback cback) {
-    post_task_callback_ = cback;
-  }
-  static void* post_task_data() { return post_task_data_; }
-  static void set_post_task_data(void* data) { post_task_data_ = data; }
   static void SetFileCallbacks(Dart_FileOpenCallback file_open,
                                Dart_FileReadCallback file_read,
                                Dart_FileWriteCallback file_write,
@@ -179,8 +171,6 @@ class Dart : public AllStatic {
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_EntropySource entropy_source_callback_;
   static Dart_GCEventCallback gc_event_callback_;
-  static Dart_PostTaskCallback post_task_callback_;
-  static void* post_task_data_;
 };
 
 }  // namespace dart

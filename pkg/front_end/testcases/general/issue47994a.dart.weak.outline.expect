@@ -8,7 +8,7 @@ class Const extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class BuildAssert extends core::Object /*hasConstConstructor*/  {
-  const constructor •(core::bool condition, [core::Object? message]) → self::BuildAssert
+  const constructor •(core::bool condition, [core::Object? message = null]) → self::BuildAssert
     : assert(condition, message), super core::Object::•()
     ;
 }

@@ -191,10 +191,27 @@ namespace dart {
   F(RegExp, two_byte_sticky_)                                                  \
   F(RegExp, external_one_byte_sticky_)                                         \
   F(RegExp, external_two_byte_sticky_)                                         \
+  F(SuspendState, function_data_)                                              \
+  F(SuspendState, then_callback_)                                              \
+  F(SuspendState, error_callback_)                                             \
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
   F(WeakReference, target_)                                                    \
   F(WeakReference, type_arguments_)                                            \
+  F(Finalizer, detachments_)                                                   \
+  F(Finalizer, all_entries_)                                                   \
+  F(Finalizer, entries_collected_)                                             \
+  F(Finalizer, callback_)                                                      \
+  F(Finalizer, type_arguments_)                                                \
+  F(NativeFinalizer, detachments_)                                             \
+  F(NativeFinalizer, all_entries_)                                             \
+  F(NativeFinalizer, entries_collected_)                                       \
+  F(NativeFinalizer, callback_)                                                \
+  F(FinalizerEntry, value_)                                                    \
+  F(FinalizerEntry, detach_)                                                   \
+  F(FinalizerEntry, token_)                                                    \
+  F(FinalizerEntry, finalizer_)                                                \
+  F(FinalizerEntry, next_)                                                     \
   F(MirrorReference, referent_)                                                \
   F(UserTag, label_)                                                           \
   F(PointerBase, data_)                                                        \

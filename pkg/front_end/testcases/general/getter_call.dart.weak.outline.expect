@@ -75,13 +75,13 @@ static method method2(core::int a) → core::int
   ;
 static method method3(core::int a, core::int b) → core::int
   ;
-static method method4(core::int a, [core::int b]) → core::int
+static method method4(core::int a, [has-declared-initializer core::int b]) → core::int
   ;
-static method method5([core::int a, core::int b]) → core::int
+static method method5([has-declared-initializer core::int a, has-declared-initializer core::int b]) → core::int
   ;
-static method method6(core::int a, {core::int b}) → core::int
+static method method6(core::int a, {has-declared-initializer core::int b}) → core::int
   ;
-static method method7({core::int a, core::int b}) → core::int
+static method method7({has-declared-initializer core::int a, has-declared-initializer core::int b}) → core::int
   ;
 static method main() → dynamic
   ;

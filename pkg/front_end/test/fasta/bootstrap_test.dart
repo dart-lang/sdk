@@ -48,15 +48,20 @@ Future runCompiler(Uri compiler, Uri input, Uri output) async {
   Uri dartVm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
   String executable = dartVm.toFilePath();
   List<String> arguments = <String>[
+    "-Dbenchmark=true",
     compiler.toFilePath(),
     "${Flags.compileSdk}=sdk/",
     "${Flags.output}=${output.toFilePath()}",
     Flags.verify,
     input.toFilePath(),
+    "-Dbenchmark=true",
   ];
   print('Running: $executable ${arguments.join(' ')}');
-  StdioProcess result =
-      await StdioProcess.run(executable, arguments, suppressOutput: false);
+  Stopwatch stopwatch = new Stopwatch()..start();
+  StdioProcess result = await StdioProcess.run(executable, arguments,
+      suppressOutput: false, timeout: const Duration(minutes: 2));
+  print("Run finished with exit code ${result.exitCode}"
+      " in ${stopwatch.elapsed}");
   if (result.exitCode != 0) {
     throw "Compilation failed:\n${result.output}";
   }

@@ -364,7 +364,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         // statements
         if (_selectionStatements != null) {
           if (returnType.isNotEmpty) {
-            annotations += returnType + ' ';
+            annotations += '$returnType ';
           }
           declarationSource = '$annotations$signature$asyncKeyword {$eol';
           declarationSource += returnExpressionSource;
@@ -458,7 +458,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     if (selectionOffset + selectionLength >= resolveResult.content.length) {
       return RefactoringStatus.fatal(
-          'The selection end offset must be less then the length of the file.');
+          'The selection end offset must be less than the length of the file.');
     }
 
     // Check for implicitly selected closure.
@@ -613,7 +613,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       if (parameterType is FunctionType) {
         var typeCode = _getTypeCode(parameterType.returnType);
         if (typeCode != 'dynamic') {
-          return typeCode + ' ';
+          return '$typeCode ';
         }
       }
     }
@@ -653,7 +653,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     final selectionStatements = _selectionStatements;
     if (selectionStatements != null) {
       var selectionIndent = utils.getNodePrefix(selectionStatements[0]);
-      var targetIndent = utils.getNodePrefix(_parentMember!) + '  ';
+      var targetIndent = '${utils.getNodePrefix(_parentMember!)}  ';
       source = utils.replaceSourceIndent(source, selectionIndent, targetIndent);
     }
     // done
@@ -682,9 +682,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (_selectionExpression != null) {
       _selectionExpression!.accept(visitor);
     } else if (_selectionStatements != null) {
-      _selectionStatements!.forEach((statement) {
+      for (var statement in _selectionStatements!) {
         statement.accept(visitor);
-      });
+      }
     }
     _hasAwait = visitor.result;
   }
@@ -735,9 +735,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (selectionStatements != null) {
       var typeSystem = resolveResult.typeSystem;
       var returnTypeComputer = _ReturnTypeComputer(typeSystem);
-      selectionStatements.forEach((statement) {
+      for (var statement in selectionStatements) {
         statement.accept(returnTypeComputer);
-      });
+      }
       _returnType = returnTypeComputer.returnType;
     }
     // maybe single variable to return
@@ -903,9 +903,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
 
 /// [SelectionAnalyzer] for [ExtractMethodRefactoringImpl].
 class _ExtractMethodAnalyzer extends StatementAnalyzer {
-  _ExtractMethodAnalyzer(
-      ResolvedUnitResult resolveResult, SourceRange selection)
-      : super(resolveResult, selection);
+  _ExtractMethodAnalyzer(super.resolveResult, super.selection);
 
   @override
   void handleNextSelectedNode(AstNode node) {
@@ -991,10 +989,19 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
       if (element is FunctionElement || element is MethodElement) {
         invalidSelection('Cannot extract a single method name.');
       }
-      // name in property access
-      if (node.parent is PrefixedIdentifier &&
-          (node.parent as PrefixedIdentifier).identifier == node) {
-        invalidSelection('Can not extract name part of a property access.');
+      var parent = node.parent;
+      if (parent is PrefixedIdentifier) {
+        if (parent.identifier == node) {
+          // name in property access
+          invalidSelection('Cannot extract name part of a property access.');
+        } else if (parent.prefix == node && parent.parent is NamedType) {
+          // prefix in a named type (for example `io` in `io.File`)
+          invalidSelection('Cannot extract prefix part of a type reference.');
+        }
+      }
+      // part of a named type (for example `int` in `int?`)
+      if (node.parent is NamedType) {
+        invalidSelection('Cannot extract a single type reference.');
       }
     }
   }

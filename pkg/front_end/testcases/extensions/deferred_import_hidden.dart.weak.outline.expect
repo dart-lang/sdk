@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
 import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix hide Extension;
@@ -8,11 +8,11 @@ static method main() → dynamic async
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;
 import "dart:core" as core;
 
-extension Extension on core::int* {
+extension Extension on core::int {
   static field staticField = self2::Extension|staticField;
   static get staticProperty = get self2::Extension|staticProperty;
   static method staticMethod = self2::Extension|staticMethod;
@@ -22,25 +22,25 @@ extension Extension on core::int* {
   static set staticProperty = set self2::Extension|staticProperty;
   set property = self2::Extension|set#property;
 }
-static field core::int* Extension|staticField;
-static field core::int* topLevelField;
-static get Extension|staticProperty() → core::int*
+static field core::int Extension|staticField;
+static field core::int topLevelField;
+static get Extension|staticProperty() → core::int
   ;
-static set Extension|staticProperty(core::int* value) → void
+static set Extension|staticProperty(core::int value) → void
   ;
-static method Extension|staticMethod() → core::int*
+static method Extension|staticMethod() → core::int
   ;
-static method Extension|get#property(lowered final core::int* #this) → core::int*
+static method Extension|get#property(lowered final core::int #this) → core::int
   ;
-static method Extension|set#property(lowered final core::int* #this, core::int* value) → void
+static method Extension|set#property(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|method(lowered final core::int* #this) → core::int*
+static method Extension|method(lowered final core::int #this) → core::int
   ;
-static method Extension|get#method(lowered final core::int* #this) → () →* core::int*
-  return () → core::int* => self2::Extension|method(#this);
-static get topLevelProperty() → core::int*
+static method Extension|get#method(lowered final core::int #this) → () → core::int
+  return () → core::int => self2::Extension|method(#this);
+static get topLevelProperty() → core::int
   ;
-static set topLevelProperty(core::int* value) → void
+static set topLevelProperty(core::int value) → void
   ;
 static method topLevelMethod() → dynamic
   ;

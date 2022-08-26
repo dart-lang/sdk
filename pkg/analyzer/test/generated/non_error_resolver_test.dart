@@ -138,7 +138,7 @@ void test(Object x) {
   }
 
   test_typedef_not_function() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 typedef F = int;
 ''');
     await assertNoErrorsInCode('''
@@ -150,11 +150,11 @@ F f = 0;
 
 mixin NonErrorResolverTestCases on PubPackageResolutionTest {
   test_ambiguousExport() async {
-    newFile2("$testPackageLibPath/lib1.dart", r'''
+    newFile("$testPackageLibPath/lib1.dart", r'''
 library lib1;
 class M {}
 ''');
-    newFile2("$testPackageLibPath/lib2.dart", r'''
+    newFile("$testPackageLibPath/lib2.dart", r'''
 library lib2;
 class N {}
 ''');
@@ -166,12 +166,12 @@ export 'lib2.dart';
   }
 
   test_ambiguousExport_combinators_hide() async {
-    newFile2("$testPackageLibPath/lib1.dart", r'''
+    newFile("$testPackageLibPath/lib1.dart", r'''
 library L1;
 class A {}
 class B {}
 ''');
-    newFile2("$testPackageLibPath/lib2.dart", r'''
+    newFile("$testPackageLibPath/lib2.dart", r'''
 library L2;
 class B {}
 class C {}
@@ -184,12 +184,12 @@ export 'lib2.dart' hide B;
   }
 
   test_ambiguousExport_combinators_show() async {
-    newFile2("$testPackageLibPath/lib1.dart", r'''
+    newFile("$testPackageLibPath/lib1.dart", r'''
 library L1;
 class A {}
 class B {}
 ''');
-    newFile2("$testPackageLibPath/lib2.dart", r'''
+    newFile("$testPackageLibPath/lib2.dart", r'''
 library L2;
 class B {}
 class C {}
@@ -202,7 +202,7 @@ export 'lib2.dart' show C;
   }
 
   test_ambiguousExport_sameDeclaration() async {
-    newFile2("$testPackageLibPath/lib.dart", r'''
+    newFile("$testPackageLibPath/lib.dart", r'''
 library lib;
 class N {}
 ''');
@@ -214,7 +214,7 @@ export 'lib.dart';
   }
 
   test_ambiguousImport_dart_implicitHide() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 class Future {
   static const zero = 0;
 }
@@ -228,17 +228,17 @@ main() {
   }
 
   test_ambiguousImport_hideCombinator() async {
-    newFile2("$testPackageLibPath/lib1.dart", r'''
+    newFile("$testPackageLibPath/lib1.dart", r'''
 library lib1;
 class N {}
 class N1 {}
 ''');
-    newFile2("$testPackageLibPath/lib2.dart", r'''
+    newFile("$testPackageLibPath/lib2.dart", r'''
 library lib2;
 class N {}
 class N2 {}
 ''');
-    newFile2("$testPackageLibPath/lib3.dart", r'''
+    newFile("$testPackageLibPath/lib3.dart", r'''
 library lib3;
 class N {}
 class N3 {}
@@ -256,12 +256,12 @@ main() {
   }
 
   test_ambiguousImport_showCombinator() async {
-    newFile2("$testPackageLibPath/lib1.dart", r'''
+    newFile("$testPackageLibPath/lib1.dart", r'''
 library lib1;
 class N {}
 class N1 {}
 ''');
-    newFile2("$testPackageLibPath/lib2.dart", r'''
+    newFile("$testPackageLibPath/lib2.dart", r'''
 library lib2;
 class N {}
 class N2 {}
@@ -279,7 +279,7 @@ main() {
   }
 
   test_annotated_partOfDeclaration() async {
-    newFile2('$testPackageLibPath/part.dart', '''
+    newFile('$testPackageLibPath/part.dart', '''
 @deprecated part of L;
 ''');
     await assertNoErrorsInCode('''
@@ -505,7 +505,7 @@ main() {
   }
 
   test_assignmentToFinals_importWithPrefix() async {
-    newFile2("$testPackageLibPath/lib1.dart", r'''
+    newFile("$testPackageLibPath/lib1.dart", r'''
 library lib1;
 bool x = false;''');
     await assertNoErrorsInCode(r'''
@@ -773,7 +773,7 @@ class E {}
   }
 
   test_closure_in_type_inferred_variable_in_other_lib() async {
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 var y = (Object x) => x is int && x.isEven;
 ''');
     await assertNoErrorsInCode('''
@@ -817,13 +817,13 @@ const Type d = dynamic;
   }
 
   test_const_imported_defaultParameterValue_withImportPrefix() async {
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'c.dart' as ccc;
 class B {
   const B([p = ccc.value]);
 }
 ''');
-    newFile2('$testPackageLibPath/c.dart', r'''
+    newFile('$testPackageLibPath/c.dart', r'''
 const int value = 12345;
 ''');
     await assertNoErrorsInCode(r'''
@@ -900,7 +900,7 @@ class A {
   }
 
   test_constDeferredClass_new() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 class A {
   const A.b();
 }
@@ -921,7 +921,7 @@ const C = F;
   }
 
   test_constEval_propertyExtraction_fieldStatic_targetType() async {
-    newFile2("$testPackageLibPath/math.dart", r'''
+    newFile("$testPackageLibPath/math.dart", r'''
 library math;
 const PI = 3.14;
 ''');
@@ -942,7 +942,7 @@ const C = A.m;
   }
 
   test_constEval_symbol() async {
-    newFile2("$testPackageLibPath/math.dart", r'''
+    newFile("$testPackageLibPath/math.dart", r'''
 library math;
 const PI = 3.14;
 ''');
@@ -1117,7 +1117,7 @@ f(g({p})) {}
   }
 
   test_deprecatedMemberUse_hide() async {
-    newFile2("$testPackageLibPath/lib1.dart", r'''
+    newFile("$testPackageLibPath/lib1.dart", r'''
 library lib1;
 class A {}
 @deprecated
@@ -1458,10 +1458,8 @@ test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    // Note: the staticParameterElement is synthetic; see
-    // https://github.com/dart-lang/sdk/issues/48500
-    expect(y, isNot(TypeMatcher<ParameterMember>()));
-    expect(y.enclosingElement, isNull);
+    expect(y.enclosingElement, isNotNull);
+    expect(y.declaration, findElement.parameter('arg'));
   }
 
   test_generic_staticParameterElement_methodCall_implicitTypeArg() async {
@@ -1473,10 +1471,8 @@ bool test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    // Note: the staticParameterElement is synthetic; see
-    // https://github.com/dart-lang/sdk/issues/48500
-    expect(y, isNot(TypeMatcher<ParameterMember>()));
-    expect(y.enclosingElement, isNull);
+    expect(y.enclosingElement, isNotNull);
+    expect(y.declaration, findElement.parameter('arg'));
   }
 
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
@@ -1626,7 +1622,7 @@ test() {
   }
 
   test_importDuplicatedLibraryName() async {
-    newFile2("$testPackageLibPath/lib.dart", "library lib;");
+    newFile("$testPackageLibPath/lib.dart", "library lib;");
     await assertErrorsInCode(r'''
 library test;
 import 'lib.dart';
@@ -1639,8 +1635,8 @@ import 'lib.dart';
   }
 
   test_importDuplicatedLibraryUnnamed() async {
-    newFile2("$testPackageLibPath/lib1.dart", '');
-    newFile2("$testPackageLibPath/lib2.dart", '');
+    newFile("$testPackageLibPath/lib1.dart", '');
+    newFile("$testPackageLibPath/lib2.dart", '');
     // No warning on duplicate import (https://github.com/dart-lang/sdk/issues/24156)
     await assertErrorsInCode(r'''
 library test;
@@ -1653,7 +1649,7 @@ import 'lib2.dart';
   }
 
   test_importOfNonLibrary_libraryDeclared() async {
-    newFile2("$testPackageLibPath/part.dart", r'''
+    newFile("$testPackageLibPath/part.dart", r'''
 library lib1;
 class A {}
 ''');
@@ -1665,7 +1661,7 @@ A a = A();
   }
 
   test_importOfNonLibrary_libraryNotDeclared() async {
-    newFile2("$testPackageLibPath/part.dart", '''
+    newFile("$testPackageLibPath/part.dart", '''
 class A {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -1676,11 +1672,11 @@ A a = A();
   }
 
   test_importPrefixes_withFirstLetterDifference() async {
-    newFile2("$testPackageLibPath/lib1.dart", r'''
+    newFile("$testPackageLibPath/lib1.dart", r'''
 library lib1;
 test1() {}
 ''');
-    newFile2("$testPackageLibPath/lib2.dart", r'''
+    newFile("$testPackageLibPath/lib2.dart", r'''
 library lib2;
 test2() {}
 ''');
@@ -1735,60 +1731,6 @@ class C implements A, B {
   x() {}
 }
 ''');
-  }
-
-  test_infer_mixin_new_syntax() async {
-    await assertNoErrorsInCode('''
-abstract class A<T> {}
-
-class B {}
-
-mixin M<T> on A<T> {}
-
-class C extends A<B> with M {}
-''');
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement!.getType('C')!;
-    expect(classC.mixins, hasLength(1));
-    assertType(classC.mixins[0], 'M<B>');
-  }
-
-  test_infer_mixin_with_substitution_functionType_new_syntax() async {
-    await assertErrorsInCode('''
-abstract class A<T> {}
-
-class B {}
-
-mixin M<T, U> on A<T Function(U)> {}
-
-class C extends A<int Function(String)> with M {}
-''', [
-      error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        47,
-        1,
-      ),
-    ]);
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement!.getType('C')!;
-    expect(classC.mixins, hasLength(1));
-    assertType(classC.mixins[0], 'M<int, String>');
-  }
-
-  test_infer_mixin_with_substitution_new_syntax() async {
-    await assertNoErrorsInCode('''
-abstract class A<T> {}
-
-class B {}
-
-mixin M<T> on A<List<T>> {}
-
-class C extends A<List<B>> with M {}
-''');
-    CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredElement!.getType('C')!;
-    expect(classC.mixins, hasLength(1));
-    assertType(classC.mixins[0], 'M<B>');
   }
 
   test_initializingFormalForNonExistentField() async {
@@ -1846,7 +1788,7 @@ class A {
   }
 
   test_instanceMethodNameCollidesWithSuperclassStatic_field() async {
-    newFile2("$testPackageLibPath/lib.dart", r'''
+    newFile("$testPackageLibPath/lib.dart", r'''
 library L;
 class A {
   static var _m;
@@ -1863,7 +1805,7 @@ class B extends A {
   }
 
   test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
-    newFile2("$testPackageLibPath/lib.dart", r'''
+    newFile("$testPackageLibPath/lib.dart", r'''
 library L;
 class A {
   static _m() {}
@@ -1937,7 +1879,7 @@ class A {
   }
 
   test_invalidAnnotation_constantVariable_field_importWithPrefix() async {
-    newFile2("$testPackageLibPath/lib.dart", r'''
+    newFile("$testPackageLibPath/lib.dart", r'''
 library lib;
 class A {
   static const C = 0;
@@ -1961,7 +1903,7 @@ main() {
   }
 
   test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() async {
-    newFile2("$testPackageLibPath/lib.dart", r'''
+    newFile("$testPackageLibPath/lib.dart", r'''
 library lib;
 const C = 0;
 ''');
@@ -1974,7 +1916,7 @@ main() {
   }
 
   test_invalidAnnotation_constConstructor_importWithPrefix() async {
-    newFile2("$testPackageLibPath/lib.dart", r'''
+    newFile("$testPackageLibPath/lib.dart", r'''
 library lib;
 class A {
   const A(int p);
@@ -1989,7 +1931,7 @@ main() {
   }
 
   test_invalidAnnotation_constConstructor_named_importWithPrefix() async {
-    newFile2("$testPackageLibPath/lib.dart", r'''
+    newFile("$testPackageLibPath/lib.dart", r'''
 library lib;
 class A {
   const A.named(int p);
@@ -2166,12 +2108,12 @@ class A {
   }
 
   Future test_issue32114() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class O {}
 
 typedef T Func<T extends O>(T e);
 ''');
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 import 'a.dart';
 export 'a.dart' show Func;
 
@@ -2219,7 +2161,7 @@ void main() {
   }
 
   test_issue_35320_lists() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 const x = const <String>['a'];
 ''');
     await assertNoErrorsInCode('''
@@ -2239,7 +2181,7 @@ int f(v) {
   }
 
   test_issue_35320_maps() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 const x = const <String, String>{'a': 'b'};
 ''');
     await assertNoErrorsInCode('''
@@ -2258,8 +2200,23 @@ int f(v) {
 ''');
   }
 
+  test_librarySource_of_type_substituted_synthetic_parameter() async {
+    await assertErrorsInCode('''
+Map<int, T> f<T>(T t) => throw '';
+Map<double, T> g<T>(T t) => throw '';
+h(bool b) {
+  Map<num, String> m = (b ? f : g)('x');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 104, 1),
+    ]);
+    var parameter = findNode.stringLiteral("'x'").staticParameterElement;
+    expect(parameter!.library, isNull);
+    expect(parameter.librarySource, isNull);
+  }
+
   test_loadLibraryDefined() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 library lib;
 foo() => 22;''');
     await assertNoErrorsInCode(r'''
@@ -2382,39 +2339,6 @@ class C {
 ''');
   }
 
-  test_mixin_of_mixin_type_argument_inference() async {
-    // In the code below, B's superclass constraints don't include A, because
-    // superclass constraints are determined from the mixin's superclass, and
-    // B's superclass is Object.  So no mixin type inference is attempted, and
-    // "with B" is interpreted as "with B<dynamic>".
-    await assertNoErrorsInCode('''
-class A<T> {}
-class B<T> = Object with A<T>;
-class C = Object with B;
-''');
-    var bReference = result.unit.declaredElement!.getType('C')!.mixins[0];
-    assertTypeDynamic(bReference.typeArguments[0]);
-  }
-
-  test_mixin_of_mixin_type_argument_inference_cascaded_mixin() async {
-    // In the code below, B has a single superclass constraint, A1, because
-    // superclass constraints are determined from the mixin's superclass, and
-    // B's superclass is "Object with A1<T>".  So mixin type inference succeeds
-    // (since C's base class implements A1<int>), and "with B" is interpreted as
-    // "with B<int>".
-    await assertErrorsInCode('''
-class A1<T> {}
-class A2<T> {}
-class B<T> = Object with A1<T>, A2<T>;
-class Base implements A1<int> {}
-class C = Base with B;
-''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 122, 1),
-    ]);
-    var bReference = result.unit.declaredElement!.getType('C')!.mixins[0];
-    assertType(bReference.typeArguments[0], 'int');
-  }
-
   test_mixinDeclaresConstructor() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2431,30 +2355,6 @@ class A {
 }
 class B extends Object with A {}
 ''');
-  }
-
-  test_mixinInference_with_actual_mixins() async {
-    await assertNoErrorsInCode('''
-class I<X> {}
-
-mixin M0<T> on I<T> {}
-
-mixin M1<T> on I<T> {
-  T foo(T a) => a;
-}
-
-class A = I<int> with M0, M1;
-
-void main () {
-  var x = new A().foo(0);
-  x;
-}
-''');
-    var main = result.unit.declarations.last as FunctionDeclaration;
-    var mainBody = main.functionExpression.body as BlockFunctionBody;
-    var xDecl = mainBody.block.statements[0] as VariableDeclarationStatement;
-    var xElem = xDecl.variables.variables[0].declaredElement!;
-    assertType(xElem.type, 'int');
   }
 
   test_multipleSuperInitializers_no() async {
@@ -2813,13 +2713,13 @@ main() {
   }
 
   test_optionalNew_rewrite() async {
-    newFile2("$testPackageLibPath/a.dart", r'''
+    newFile("$testPackageLibPath/a.dart", r'''
 class A {
   const A();
   const A.named();
 }
 ''');
-    newFile2("$testPackageLibPath/b.dart", r'''
+    newFile("$testPackageLibPath/b.dart", r'''
 import 'a.dart';
 import 'a.dart' as p;
 
@@ -2849,7 +2749,7 @@ main() {
   }
 
   test_optionalNew_rewrite_instantiatesToBounds() async {
-    newFile2("$testPackageLibPath/a.dart", r'''
+    newFile("$testPackageLibPath/a.dart", r'''
 class Unbounded<T> {
   const Unbounded();
   const Unbounded.named();
@@ -2859,7 +2759,7 @@ class Bounded<T extends String> {
   const Bounded.named();
 }
 ''');
-    newFile2("$testPackageLibPath/b.dart", r'''
+    newFile("$testPackageLibPath/b.dart", r'''
 import 'a.dart';
 import 'a.dart' as p;
 
@@ -3050,13 +2950,13 @@ class _InvertedCodec<T2, S2> extends Codec<T2, S2> {
   }
 
   test_sharedDeferredPrefix() async {
-    newFile2('$testPackageLibPath/lib1.dart', r'''
+    newFile('$testPackageLibPath/lib1.dart', r'''
 f1() {}
 ''');
-    newFile2('$testPackageLibPath/lib2.dart', r'''
+    newFile('$testPackageLibPath/lib2.dart', r'''
 f2() {}
 ''');
-    newFile2('$testPackageLibPath/lib3.dart', r'''
+    newFile('$testPackageLibPath/lib3.dart', r'''
 f3() {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -3237,7 +3137,7 @@ main() {
   }
 
   test_typeType_class_prefixed() async {
-    newFile2("$testPackageLibPath/lib.dart", r'''
+    newFile("$testPackageLibPath/lib.dart", r'''
 library lib;
 class C {}''');
     await assertNoErrorsInCode(r'''
@@ -3260,7 +3160,7 @@ main() {
   }
 
   test_typeType_functionTypeAlias_prefixed() async {
-    newFile2("$testPackageLibPath/lib.dart", r'''
+    newFile("$testPackageLibPath/lib.dart", r'''
 library lib;
 typedef F();''');
     await assertNoErrorsInCode(r'''
@@ -3310,6 +3210,24 @@ core.dynamic dynamicVariable;
 @reflectiveTest
 class NonErrorResolverWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, NonErrorResolverTestCases {
+  test_castFrom() async {
+    // This test exercises a corner case of legacy erasure: due to the type
+    // substitution in the `newSet` parameter of `Set.castFrom`, we wind up with
+    // a synthetic `ParameterMember` that belongs to no library.  We need to
+    // make sure this doesn't lead to a crash.
+    await assertErrorsInCode('''
+class C {}
+
+void testNewSet(Set<C> setEls) {
+  var customNewSet;
+  Set.castFrom<C, Object>(setEls,
+      newSet: <T>() => customNewSet = new Set<T>());
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 12),
+    ]);
+  }
+
   test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
     await assertNoErrorsInCode(r'''
 class A {

@@ -607,17 +607,17 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       CompletionSuggestionKind? csKind,
       ElementKind? elemKind}) {
     CompletionSuggestion? cs;
-    suggestions.forEach((CompletionSuggestion s) {
+    for (var s in suggestions) {
       if (completion != null && completion != s.completion) {
-        return;
+        continue;
       }
       if (csKind != null && csKind != s.kind) {
-        return;
+        continue;
       }
       if (elemKind != null) {
         var element = s.element;
         if (element == null || elemKind != element.kind) {
-          return;
+          continue;
         }
       }
       if (cs == null) {
@@ -626,7 +626,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
         failedCompletion('expected exactly one $cs',
             suggestions.where((s) => s.completion == completion));
       }
-    });
+    }
     return cs;
   }
 

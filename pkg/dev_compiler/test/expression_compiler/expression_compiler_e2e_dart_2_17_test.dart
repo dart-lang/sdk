@@ -1,10 +1,9 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'package:dev_compiler/dev_compiler.dart' show ModuleFormat;
+import 'package:dev_compiler/src/compiler/module_builder.dart'
+    show ModuleFormat;
 import 'package:test/test.dart';
 
 import 'expression_compiler_e2e_suite.dart';
@@ -93,8 +92,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
         ''';
 
     setUpAll(() async {
-      await driver.initSource(setup, source,
-          experiments: {'named-arguments-anywhere': true});
+      await driver.initSource(setup, source, experiments: const {});
     });
 
     tearDownAll(() async {
@@ -163,8 +161,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
         ''';
 
     setUpAll(() async {
-      await driver
-          .initSource(setup, source, experiments: {'super-parameters': true});
+      await driver.initSource(setup, source, experiments: const {});
     });
 
     tearDownAll(() async {
@@ -230,8 +227,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
         ''';
 
     setUpAll(() async {
-      await driver
-          .initSource(setup, source, experiments: {'enhanced-enums': true});
+      await driver.initSource(setup, source, experiments: const {});
     });
 
     tearDownAll(() async {

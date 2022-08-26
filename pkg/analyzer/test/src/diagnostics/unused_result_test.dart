@@ -21,6 +21,128 @@ class UnusedResultTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_as() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {}
+class B extends A {}
+
+B createB() {
+  return createA() as B;
+}
+
+@UseResult('')
+A createA() {
+  return B();
+}
+''');
+  }
+
+  test_as_without_usage() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {}
+class B extends A {}
+
+void test() {
+  createA() as B;
+}
+
+@UseResult('')
+A createA() {
+  return B();
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 83, 7),
+    ]);
+  }
+
+  test_callable() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+
+  @useResult
+  int call() => 1;
+}
+
+void f(A a) {
+  a();
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 96, 1,
+          text: "The value of 'a' should be used."),
+    ]);
+  }
+
+  test_callable_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  B b() => B();
+}
+class B {
+  @useResult
+  int call(int i) => i;
+}
+
+void f(A a) {
+  a.b()(5);
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 130, 1,
+          text: "The value of 'b' should be used."),
+    ]);
+  }
+
+  test_callable_propertyAccess() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  B get b => B();
+}
+class B {
+  @useResult
+  int call() => 1;
+}
+
+void f(A a) {
+  a.b();
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 127, 1,
+          text: "The value of 'b' should be used."),
+    ]);
+  }
+
+  test_callable_recursive() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  B call(List l) => B();
+}
+class B {
+  C call() => C();
+}
+class C {
+  @useResult
+  int call(String s) => 1;
+}
+void f(A a) {
+  a([])()('');
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 170, 1,
+          text: "The value of 'a' should be used."),
+    ]);
+  }
+
   test_field_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -910,7 +1032,8 @@ void main() {
   A().foo();
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 98, 3),
+      error(HintCode.UNUSED_RESULT, 98, 3,
+          text: "The value of 'foo' should be used."),
     ]);
   }
 
@@ -921,16 +1044,16 @@ import 'package:meta/meta.dart';
 class C {
   @useResult
   C m1() => throw '';
-  
+
   C m2() => throw '';
-  
+
   void m3() {
     m2()..m1();
   }
 }
 ''', [
-      error(HintCode.UNUSED_RESULT, 131, 2,
-          messageContains: ["'m1' should be used."]),
+      error(HintCode.UNUSED_RESULT, 127, 2,
+          text: "The value of 'm1' should be used."),
     ]);
   }
 
@@ -991,6 +1114,57 @@ class A {
 Stream<int> f(A a) async* {
   yield a.foo();
 }
+''');
+  }
+
+  test_namedExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int m() => 1;
+}
+
+void g({int? i}) {}
+
+void f() {
+  g(i: A().m());
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/47181
+  test_prefixed_classMember() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool b() => true;
+}
+
+/// [A.b].
+const a = 'a';
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/47181
+  test_prefixed_importedMember() async {
+    newFile('$testPackageLibPath/c.dart', '''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool b() => true;
+}
+ ''');
+
+    await assertNoErrorsInCode(r'''
+import 'c.dart' as c;
+
+/// [c.A.b].
+const a = 'a';
 ''');
   }
 

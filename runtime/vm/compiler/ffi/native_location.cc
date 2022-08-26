@@ -318,7 +318,12 @@ void NativeFpuRegistersLocation::PrintTo(BaseTextBuffer* f) const {
 }
 
 void NativeStackLocation::PrintTo(BaseTextBuffer* f) const {
-  f->Printf("S%+" Pd, offset_in_bytes_);
+  if (base_register_ != SPREG) {
+    f->Printf("S(%s)+%" Pd, RegisterNames::RegisterAbiName(base_register_),
+              offset_in_bytes_);
+  } else {
+    f->Printf("S+%" Pd, offset_in_bytes_);
+  }
   PrintRepresentations(f, *this);
 }
 

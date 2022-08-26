@@ -1512,14 +1512,14 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
 
   *object = NULL;
   // TODO(36839): Make DecodeLoadObjectFromPoolOrThread work on simarm_x64.
-#if !defined(IS_SIMARM_X64)
+#if !defined(IS_SIMARM_HOST64)
   if (!code.IsNull()) {
     *object = &Object::Handle();
     if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
       *object = NULL;
     }
   }
-#endif  // !defined(IS_SIMARM_X64)
+#endif  // !defined(IS_SIMARM_HOST64)
 }
 
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)

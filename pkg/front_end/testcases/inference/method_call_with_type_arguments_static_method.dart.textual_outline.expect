@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 class C {
-  static D<T> f<T>() => null;
+  static D<T> f<T>() => throw '';
 }
 
 class D<T> {}

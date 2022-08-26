@@ -8,7 +8,6 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:path/path.dart' as path;
-import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../logging.dart';
@@ -35,12 +34,14 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     bool enableDds = true,
     bool enableAuthCodes = true,
     Logger? logger,
+    Function? onError,
   }) : super(
           channel,
           ipv6: ipv6,
           enableDds: enableDds,
           enableAuthCodes: enableAuthCodes,
           logger: logger,
+          onError: onError,
         );
 
   /// Whether the VM Service closing should be used as a signal to terminate the

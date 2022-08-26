@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class DeferredImportOfExtensionTest extends PubPackageResolutionTest {
   test_deferredImport_withExtensions() {
-    newFile2('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 extension E on C {}
 class C {}
 ''');
@@ -32,7 +32,7 @@ void f() {
   }
 
   test_deferredImport_withHiddenExtensions() {
-    newFile2('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 extension E on C {}
 class C {}
 ''');
@@ -46,7 +46,7 @@ void f() {
   }
 
   test_deferredImport_withoutExtensions() {
-    newFile2('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
     assertNoErrorsInCode('''
@@ -59,7 +59,7 @@ void f() {
   }
 
   test_deferredImport_withShownNonExtensions() {
-    newFile2('$testPackageLibPath/foo.dart', '''
+    newFile('$testPackageLibPath/foo.dart', '''
 extension E on C {}
 class C {}
 ''');

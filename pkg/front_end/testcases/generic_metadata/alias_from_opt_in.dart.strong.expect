@@ -1,0 +1,110 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:11:3: Error: A generic function type can't be used as a type argument.
+// Try using a non-generic function type.
+//   List<T1> t1b, // Error
+//   ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:13:17: Error: A generic function type can't be used as a type argument.
+// Try using a non-generic function type.
+//   void Function(List<T1>) t1d, // Error
+//                 ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:22:3: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   T4 t4a, // Error,
+//   ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:23:8: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   List<T4> t4b, // Error,
+//        ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:24:17: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   void Function(T4) t4c, // Error
+//                 ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:25:22: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   void Function(List<T4>) t4d, // Error
+//                      ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:18:3: Error: Generic function type 'List<void Function<T>(T)>' used as a type argument through typedef 'T3'.
+//  - 'List' is from 'dart:core'.
+// Try providing a non-generic function type explicitly.
+//   T3 t3a, // Error
+//   ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:19:8: Error: Generic function type 'List<void Function<T>(T)>' used as a type argument through typedef 'T3'.
+//  - 'List' is from 'dart:core'.
+// Try providing a non-generic function type explicitly.
+//   List<T3> t3b, // Error
+//        ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:20:17: Error: Generic function type 'List<void Function<T>(T)>' used as a type argument through typedef 'T3'.
+//  - 'List' is from 'dart:core'.
+// Try providing a non-generic function type explicitly.
+//   void Function(T3) t3c, // Error
+//                 ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:21:22: Error: Generic function type 'List<void Function<T>(T)>' used as a type argument through typedef 'T3'.
+//  - 'List' is from 'dart:core'.
+// Try providing a non-generic function type explicitly.
+//   void Function(List<T3>) t3d, // Error
+//                      ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:27:7: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   new T4(); // Error
+//       ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:28:4: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   <T4>[]; // Error
+//    ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:29:18: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   <void Function(T4)>[]; // Error
+//                  ^
+//
+// pkg/front_end/testcases/generic_metadata/alias_from_opt_in.dart:30:23: Error: Generic function type 'void Function<T>(T)' inferred as a type argument.
+// Try providing a non-generic function type explicitly.
+//   <void Function(List<T4>)>[]; // Error
+//                       ^
+//
+import self as self;
+import "dart:core" as core;
+import "alias_from_opt_in_lib.dart" as ali;
+
+import "org-dartlang-testcase:///alias_from_opt_in_lib.dart";
+
+static method test(<T extends core::Object? = dynamic>(T%) → void t1a, core::List<<T extends core::Object? = dynamic>(T%) → void> t1b, (<T extends core::Object? = dynamic>(T%) → void) → void t1c, (core::List<<T extends core::Object? = dynamic>(T%) → void>) → void t1d, (<T extends core::Object? = dynamic>(T%) → void) → void t2a, core::List<(<T extends core::Object? = dynamic>(T%) → void) → void> t2b, ((<T extends core::Object? = dynamic>(T%) → void) → void) → void t2c, (core::List<(<T extends core::Object? = dynamic>(T%) → void) → void>) → void t2d, core::List<<T extends core::Object? = dynamic>(T%) → void> t3a, core::List<core::List<<T extends core::Object? = dynamic>(T%) → void>> t3b, (core::List<<T extends core::Object? = dynamic>(T%) → void>) → void t3c, (core::List<core::List<<T extends core::Object? = dynamic>(T%) → void>>) → void t3d, ali::Class<<T extends core::Object? = dynamic>(T%) → void> t4a, core::List<ali::Class<<T extends core::Object? = dynamic>(T%) → void>> t4b, (ali::Class<<T extends core::Object? = dynamic>(T%) → void>) → void t4c, (core::List<ali::Class<<T extends core::Object? = dynamic>(T%) → void>>) → void t4d) → dynamic {
+  new ali::Class::•<<T extends core::Object? = dynamic>(T%) → void>();
+  <ali::Class<<T extends core::Object? = dynamic>(T%) → void>>[];
+  <(ali::Class<<T extends core::Object? = dynamic>(T%) → void>) → void>[];
+  <(core::List<ali::Class<<T extends core::Object? = dynamic>(T%) → void>>) → void>[];
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as ali;
+import "dart:core" as core;
+
+typedef T1 = <T extends core::Object? = dynamic>(T%) → void;
+typedef T2 = (<T extends core::Object? = dynamic>(T%) → void) → void;
+typedef T3 = core::List<<T extends core::Object? = dynamic>(T%) → void>;
+typedef T4<X extends <T extends core::Object? = dynamic>(T%) → void> = ali::Class<X>;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → ali::Class<ali::Class::T%>
+    : super core::Object::•()
+    ;
+}
+static method test(<T extends core::Object? = dynamic>(T%) → void t1, <T extends core::Object? = dynamic>(T%) → void t2, core::List<<T extends core::Object? = dynamic>(T%) → void> t3) → dynamic {
+  new ali::Class::•<<T extends core::Object? = dynamic>(T%) → void>();
+}
+static method _#T4#new#tearOff<X extends <T extends core::Object? = dynamic>(T%) → void>() → ali::Class<ali::_#T4#new#tearOff::X>
+  return new ali::Class::•<ali::_#T4#new#tearOff::X>();

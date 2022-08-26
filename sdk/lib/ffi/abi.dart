@@ -14,6 +14,7 @@ part of dart.ffi;
 /// The Dart VM can run on a variety of operating systems and architectures.
 /// Supported ABIs are represented by `Abi` objects.
 /// See [values] for all the supported ABIs.
+@Since('2.16')
 class Abi {
   /// The application binary interface for Android on the Arm architecture.
   static const androidArm = _androidArm;

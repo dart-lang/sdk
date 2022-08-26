@@ -69,7 +69,8 @@ import 'transformations/to_string_transformer.dart' as to_string_transformer;
 void declareCompilerOptions(ArgParser args) {
   args.addOption('platform',
       help: 'Path to vm_platform_strong.dill file', defaultsTo: null);
-  args.addOption('packages', help: 'Path to .packages file', defaultsTo: null);
+  args.addOption('packages',
+      help: 'Path to .dart_tool/package_config.json file', defaultsTo: null);
   args.addOption('output',
       abbr: 'o', help: 'Path to resulting dill file', defaultsTo: null);
   args.addFlag('aot',
@@ -80,6 +81,8 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null);
+  args.addFlag('compact-async',
+      help: 'Enable new compact async/await implementation.', defaultsTo: true);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addOption('from-dill',
       help: 'Read existing dill file instead of compiling from sources',
@@ -93,7 +96,7 @@ void declareCompilerOptions(ArgParser args) {
       defaultsTo: true);
   args.addMultiOption('filesystem-root',
       help: 'A base path for the multi-root virtual file system.'
-          ' If multi-root file system is used, the input script and .packages file should be specified using URI.');
+          ' If multi-root file system is used, the input script and .dart_tool/package_config.json file should be specified using URI.');
   args.addOption('filesystem-scheme',
       help: 'The URI scheme for the multi-root virtual filesystem.');
   args.addMultiOption('source',
@@ -200,6 +203,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
   final bool? supportMirrors = options['support-mirrors'];
+  final bool compactAsync = options['compact-async'];
 
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
@@ -283,7 +287,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   compilerOptions.target = createFrontEndTarget(targetName,
       trackWidgetCreation: options['track-widget-creation'],
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
-      supportMirrors: supportMirrors ?? !(aot || minimalKernel));
+      supportMirrors: supportMirrors ?? !(aot || minimalKernel),
+      compactAsync: compactAsync);
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -471,8 +476,8 @@ Future runGlobalTransformations(
 
   final coreTypes = new CoreTypes(component);
 
-  // TODO(alexmarkov, dmitryas): Consider doing canonicalization of identical
-  // mixin applications when creating mixin applications in frontend,
+  // TODO(alexmarkov,cstefantsova): Consider doing canonicalization of
+  // identical mixin applications when creating mixin applications in frontend,
   // so all backends (and all transformation passes from the very beginning)
   // can benefit from mixin de-duplication.
   // At least, in addition to VM/AOT case we should run this transformation
@@ -505,7 +510,7 @@ Future runGlobalTransformations(
   // it does it will need the obfuscation prohibitions.
   obfuscationProhibitions.transformComponent(component, coreTypes, target);
 
-  deferred_loading.transformComponent(component);
+  deferred_loading.transformComponent(component, coreTypes, target);
 }
 
 /// Runs given [action] with [CompilerContext]. This is needed to
@@ -612,14 +617,16 @@ Future<void> autoDetectNullSafetyMode(
 Target? createFrontEndTarget(String targetName,
     {bool trackWidgetCreation = false,
     bool nullSafety = false,
-    bool supportMirrors = true}) {
+    bool supportMirrors = true,
+    bool compactAsync = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
       enableNullSafety: nullSafety,
-      supportMirrors: supportMirrors);
+      supportMirrors: supportMirrors,
+      compactAsync: compactAsync);
   return getTarget(targetName, targetFlags);
 }
 

@@ -210,6 +210,7 @@ mixin ErrorDetectionHelpers {
           argument: index,
           parameter: parameters[0],
           promoteParameterToNullable: false,
+          whyNotPromoted: whyNotPromoted,
         );
       }
     }

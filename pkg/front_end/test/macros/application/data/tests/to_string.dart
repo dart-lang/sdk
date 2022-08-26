@@ -2,15 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*library: 
+Declarations Order:
+ A:ToStringMacro.new()
+ B:ToStringMacro.new()
+ C:ToStringMacro.new()*/
+
 import 'package:macro/macro.dart';
 
 @ToStringMacro()
 /*class: A:
+declarations:
+
 augment class A {
   toString() {
     return "A(a=${a},b=${b})";
   }
-}*/
+}
+*/
 class A {
   var a;
   var b;
@@ -18,11 +27,14 @@ class A {
 
 @ToStringMacro()
 /*class: B:
+declarations:
+
 augment class B {
   toString() {
     return "B(c=${c},d=${d},e=${e})";
   }
-}*/
+}
+*/
 class B {
   var c, d;
   var e;

@@ -63,7 +63,7 @@ namespace compiler {
 // constants and introduce compilation errors when used.
 //
 // target::kWordSize and target::ObjectAlignment give access to
-// word size and object aligment offsets for the target.
+// word size and object alignment offsets for the target.
 //
 // Similarly kHostWordSize gives access to the host word size.
 class InvalidClass {};
@@ -120,7 +120,8 @@ const Class& Float32x4Class();
 const Class& Float64x2Class();
 const Class& Int32x4Class();
 const Class& ClosureClass();
-const Array& OneArgArgumentsDescriptor();
+const Array& ArgumentsDescriptorBoxed(intptr_t type_args_len,
+                                      intptr_t num_arguments);
 
 template <typename To, typename From>
 const To& CastHandle(const From& from) {
@@ -372,6 +373,9 @@ word ToRawSmi(intptr_t value);
 
 word SmiValue(const dart::Object& a);
 
+bool IsDouble(const dart::Object& a);
+double DoubleValue(const dart::Object& a);
+
 // If the given object can be loaded from the thread on the target then
 // return true and set offset (if provided) to the offset from the
 // thread pointer to a field that contains the object.
@@ -406,6 +410,7 @@ bool WillAllocateNewOrRememberedArray(intptr_t length);
 class UntaggedObject : public AllStatic {
  public:
   static const word kCardRememberedBit;
+  static const word kCanonicalBit;
   static const word kOldAndNotRememberedBit;
   static const word kOldAndNotMarkedBit;
   static const word kSizeTagPos;
@@ -418,6 +423,7 @@ class UntaggedObject : public AllStatic {
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
   static const word kGenerationalBarrierMask;
+  static const word kIncrementalBarrierMask;
 
   static bool IsTypedDataClassId(intptr_t cid);
 };
@@ -507,7 +513,6 @@ class Function : public AllStatic {
   static word data_offset();
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
   static word kind_tag_offset();
-  static word packed_fields_offset();
   static word signature_offset();
   static word usage_counter_offset();
   static word InstanceSize();
@@ -667,6 +672,7 @@ class ArgumentsDescriptor : public AllStatic {
 class LocalHandle : public AllStatic {
  public:
   static word ptr_offset();
+  static word InstanceSize();
 };
 
 class Pointer : public AllStatic {
@@ -987,6 +993,24 @@ class StackTrace : public AllStatic {
   FINAL_CLASS();
 };
 
+class SuspendState : public AllStatic {
+ public:
+  static word frame_capacity_offset();
+  static word frame_size_offset();
+  static word pc_offset();
+  static word function_data_offset();
+  static word then_callback_offset();
+  static word error_callback_offset();
+  static word payload_offset();
+
+  static word HeaderSize();
+  static word InstanceSize();
+  static word InstanceSize(word payload_size);
+  static word FrameSizeGrowthGap();
+
+  FINAL_CLASS();
+};
+
 class Integer : public AllStatic {
  public:
   static word InstanceSize();
@@ -1068,6 +1092,11 @@ class TimelineStream : public AllStatic {
   static word enabled_offset();
 };
 
+class StreamInfo : public AllStatic {
+ public:
+  static word enabled_offset();
+};
+
 class VMHandles : public AllStatic {
  public:
   static constexpr intptr_t kOffsetOfRawPtrInHandle = kWordSize;
@@ -1099,6 +1128,7 @@ class Thread : public AllStatic {
   static uword exit_through_runtime_call();
   static uword exit_through_ffi();
   static word dart_stream_offset();
+  static word service_extension_stream_offset();
   static word predefined_symbols_address_offset();
   static word optimize_entry_offset();
   static word deoptimize_entry_offset();
@@ -1178,6 +1208,11 @@ class Thread : public AllStatic {
   static word null_cast_error_shared_with_fpu_regs_stub_offset();
   static word range_error_shared_without_fpu_regs_stub_offset();
   static word range_error_shared_with_fpu_regs_stub_offset();
+  static word resume_stub_offset();
+  static word return_async_not_future_stub_offset();
+  static word return_async_star_stub_offset();
+  static word return_async_stub_offset();
+  static word return_sync_star_stub_offset();
   static word stack_overflow_shared_without_fpu_regs_entry_point_offset();
   static word stack_overflow_shared_without_fpu_regs_stub_offset();
   static word stack_overflow_shared_with_fpu_regs_entry_point_offset();
@@ -1189,6 +1224,7 @@ class Thread : public AllStatic {
   static word allocate_object_stub_offset();
   static word allocate_object_parameterized_stub_offset();
   static word allocate_object_slow_stub_offset();
+  static word async_exception_handler_stub_offset();
   static word optimize_stub_offset();
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
@@ -1216,6 +1252,21 @@ class Thread : public AllStatic {
 
   static word random_offset();
 
+  static word suspend_state_init_async_entry_point_offset();
+  static word suspend_state_await_entry_point_offset();
+  static word suspend_state_return_async_entry_point_offset();
+  static word suspend_state_return_async_not_future_entry_point_offset();
+
+  static word suspend_state_init_async_star_entry_point_offset();
+  static word suspend_state_yield_async_star_entry_point_offset();
+  static word suspend_state_return_async_star_entry_point_offset();
+
+  static word suspend_state_init_sync_star_entry_point_offset();
+  static word suspend_state_yield_sync_star_entry_point_offset();
+  static word suspend_state_return_sync_star_entry_point_offset();
+
+  static word suspend_state_handle_exception_entry_point_offset();
+
   static word OffsetFromThread(const dart::Object& object);
   static intptr_t OffsetFromThread(const dart::RuntimeEntry* runtime_entry);
 };
@@ -1240,6 +1291,18 @@ class ObjectStore : public AllStatic {
   static word int_type_offset();
   static word string_type_offset();
   static word type_type_offset();
+
+  static word suspend_state_await_offset();
+  static word suspend_state_handle_exception_offset();
+  static word suspend_state_init_async_offset();
+  static word suspend_state_init_async_star_offset();
+  static word suspend_state_init_sync_star_offset();
+  static word suspend_state_return_async_offset();
+  static word suspend_state_return_async_not_future_offset();
+  static word suspend_state_return_async_star_offset();
+  static word suspend_state_return_sync_star_offset();
+  static word suspend_state_yield_async_star_offset();
+  static word suspend_state_yield_sync_star_offset();
 };
 
 class Isolate : public AllStatic {
@@ -1251,6 +1314,7 @@ class Isolate : public AllStatic {
   static word finalizers_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
+  static word has_resumption_breakpoints_offset();
 #endif  // !defined(PRODUCT)
 };
 
@@ -1319,7 +1383,8 @@ class Code : public AllStatic {
 
   static word object_pool_offset();
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
-  static word saved_instructions_offset();
+  static word active_instructions_offset();
+  static word instructions_offset();
   static word owner_offset();
   static word HeaderSize();
   static word InstanceSize();

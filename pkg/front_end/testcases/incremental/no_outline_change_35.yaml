@@ -12,7 +12,6 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
-        // @dart=2.9
         import 'lib.dart';
 
         main() {
@@ -22,19 +21,18 @@ worlds:
           print(coordinate.next);
         }
       lib.dart: |
-        // @dart=2.9
         import 'dart:ffi';
         class Coordinate extends Struct {
           @Double()
-          double x;
+          external double x;
 
           @Double()
-          double y;
+          external double y;
 
-          Pointer<Coordinate> next;
+          Pointer<Coordinate>? next;
 
-          factory Coordinate.allocate(double x, double y, Pointer<Coordinate> next) {
-            return null;
+          factory Coordinate.allocate(double x, double y, Pointer<Coordinate>? next) {
+            throw '';
           }
         }
     expectedLibraryCount: 2
@@ -46,7 +44,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import 'lib.dart';
 
         main() {
@@ -66,20 +63,19 @@ worlds:
       - lib.dart
     sources:
       lib.dart: |
-        // @dart=2.9
         import 'dart:ffi';
         class Coordinate extends Struct {
           @Double()
-          double x;
+          external double x;
 
           @Double()
-          double y;
+          external double y;
 
-          Pointer<Coordinate> next;
+          Pointer<Coordinate>? next;
 
-          factory Coordinate.allocate(double x, double y, Pointer<Coordinate> next) {
+          factory Coordinate.allocate(double x, double y, Pointer<Coordinate>? next) {
             print("hello");
-            return null;
+            throw '';
           }
         }
     expectedLibraryCount: 2

@@ -11,6 +11,8 @@ import 'dart:io';
 
 import 'src/dds_impl.dart';
 
+typedef UriConverter = String? Function(String uri);
+
 /// An intermediary between a Dart VM service and its clients that offers
 /// additional functionality on top of the standard VM service protocol.
 ///
@@ -49,6 +51,7 @@ abstract class DartDevelopmentService {
     List<String> cachedUserTags = const [],
     DevToolsConfiguration? devToolsConfiguration,
     bool logRequests = false,
+    UriConverter? uriConverter,
   }) async {
     if (!remoteVmServiceUri.isScheme('http')) {
       throw ArgumentError(
@@ -89,6 +92,7 @@ abstract class DartDevelopmentService {
       devToolsConfiguration,
       logRequests,
       enableServicePortFallback,
+      uriConverter,
     );
     await service.startService();
     return service;

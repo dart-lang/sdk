@@ -7,7 +7,7 @@
   package:_fe_analyzer_shared/src/macros/api.dart|package:macro/macro.dart,
   main.dart],
  macrosAreAvailable,
- neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)]
+ neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)|Macro4(new)]
 */
 
 // ignore: unused_import

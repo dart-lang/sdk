@@ -1,2 +1,2 @@
-# Point to .packagesX => non-standard layout; use it directly
+# Point to a non-json file. Try to use it, it should give an error.
 --packages=.packagesX

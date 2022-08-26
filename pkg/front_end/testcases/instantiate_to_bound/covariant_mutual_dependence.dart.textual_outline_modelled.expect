@@ -1,7 +1,6 @@
-// @dart = 2.9
-D d;
-E e;
-F f;
+D d = throw '';
+E e = throw '';
+F f = throw '';
 
 class B<X, Y> {}
 

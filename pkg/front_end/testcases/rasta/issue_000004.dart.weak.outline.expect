@@ -1,9 +1,10 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
 import "package:expect/expect.dart";
 
-static field dynamic global;
+static field core::int global;
 static method fact4() → dynamic
   ;
 static method fact5() → dynamic

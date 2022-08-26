@@ -27,12 +27,13 @@ class ShowInferredTypesCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final argRes = argResults!;
+    var args = argRes.rest;
     if (args.length < 2) {
       usageException(
           'Missing arguments, expected: info.data <function-name-regex>');
     }
-    _showInferredTypes(args[0], args[1], argResults['long-names']);
+    _showInferredTypes(args[0], args[1], argRes['long-names']);
   }
 }
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:kernel/ast.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
@@ -9,13 +11,15 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../common/names.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart'
+    show LateOutputUnitDataBuilder, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
 import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/abstract_value_strategy.dart';
 import '../js_emitter/sorter.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart';
@@ -81,7 +85,7 @@ class JsClosedWorld implements JClosedWorld {
   final JsKernelToElementMap elementMap;
   @override
   final RuntimeTypesNeed rtiNeed;
-  AbstractValueDomain _abstractValueDomain;
+  AbstractValueDomain /*!*/ _abstractValueDomain;
   @override
   final JFieldAnalysis fieldAnalysis;
   @override

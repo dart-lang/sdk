@@ -18,6 +18,7 @@ import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/named_type_builder.dart';
+import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/type_declaration_builder.dart';
@@ -90,10 +91,10 @@ class ClassMembersNodeBuilder {
       Iterable<ClassMember> overriddenMembers) {
     assert(!declaredMember.isGetter && !declaredMember.isSetter);
     if (declaredMember.classBuilder == classBuilder &&
-        (declaredMember.returnType == null ||
+        (declaredMember.returnType is InferableTypeBuilder ||
             declaredMember.formals != null &&
-                declaredMember.formals!
-                    .any((parameter) => parameter.type == null))) {
+                declaredMember.formals!.any(
+                    (parameter) => parameter.type is InferableTypeBuilder))) {
       Procedure declaredProcedure = declaredMember.member as Procedure;
       FunctionNode declaredFunction = declaredProcedure.function;
       List<TypeParameter> declaredTypeParameters =
@@ -120,7 +121,7 @@ class ClassMembersNodeBuilder {
       bool cantInferReturnType = false;
       List<FormalParameterBuilder>? cantInferParameterTypes;
 
-      if (declaredMember.returnType == null) {
+      if (declaredMember.returnType is InferableTypeBuilder) {
         if (combinedMemberSignatureType == null) {
           inferredReturnType = const InvalidType();
           cantInferReturnType = true;
@@ -131,7 +132,7 @@ class ClassMembersNodeBuilder {
       if (declaredMember.formals != null) {
         for (int i = 0; i < declaredPositional.length; i++) {
           FormalParameterBuilder declaredParameter = declaredMember.formals![i];
-          if (declaredParameter.type != null) {
+          if (declaredParameter.type is! InferableTypeBuilder) {
             continue;
           }
 
@@ -153,7 +154,7 @@ class ClassMembersNodeBuilder {
             i < declaredMember.formals!.length;
             i++) {
           FormalParameterBuilder declaredParameter = declaredMember.formals![i];
-          if (declaredParameter.type != null) {
+          if (declaredParameter.type is! InferableTypeBuilder) {
             continue;
           }
 
@@ -188,18 +189,18 @@ class ClassMembersNodeBuilder {
             classBuilder, cantInferParameterTypes.single, overriddenMembers);
       }
 
-      if (declaredMember.returnType == null) {
+      if (declaredMember.returnType is InferableTypeBuilder) {
         inferredReturnType ??= const DynamicType();
-        declaredFunction.returnType = inferredReturnType;
+        declaredMember.returnType.registerInferredType(inferredReturnType);
       }
       if (declaredMember.formals != null) {
         for (FormalParameterBuilder declaredParameter
             in declaredMember.formals!) {
-          if (declaredParameter.type == null) {
+          if (declaredParameter.type is InferableTypeBuilder) {
             DartType inferredParameterType =
                 inferredParameterTypes[declaredParameter] ??
                     const DynamicType();
-            declaredParameter.variable!.type = inferredParameterType;
+            declaredParameter.type.registerInferredType(inferredParameterType);
           }
         }
       }
@@ -248,7 +249,7 @@ class ClassMembersNodeBuilder {
       Iterable<ClassMember> overriddenMembers) {
     assert(declaredMember.isGetter);
     if (declaredMember.classBuilder == classBuilder &&
-        declaredMember.returnType == null) {
+        declaredMember.returnType is InferableTypeBuilder) {
       DartType? inferredType;
       overriddenMembers = toSet(classBuilder, overriddenMembers);
 
@@ -298,8 +299,8 @@ class ClassMembersNodeBuilder {
         inferFrom(overriddenSetters, forSetter: true);
       }
 
-      declaredMember.procedure.function.returnType =
-          inferredType ?? const DynamicType();
+      declaredMember.returnType
+          .registerInferredType(inferredType ?? const DynamicType());
     }
   }
 
@@ -311,7 +312,8 @@ class ClassMembersNodeBuilder {
       Iterable<ClassMember> overriddenMembers) {
     assert(declaredMember.isSetter);
     FormalParameterBuilder parameter = declaredMember.formals!.first;
-    if (declaredMember.classBuilder == classBuilder && parameter.type == null) {
+    if (declaredMember.classBuilder == classBuilder &&
+        parameter.type is InferableTypeBuilder) {
       DartType? inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
@@ -362,7 +364,7 @@ class ClassMembersNodeBuilder {
         inferFrom(overriddenGetters, forSetter: false);
       }
 
-      parameter.variable!.type = inferredType ?? const DynamicType();
+      parameter.type.registerInferredType(inferredType ?? const DynamicType());
     }
   }
 
@@ -412,7 +414,7 @@ class ClassMembersNodeBuilder {
       SourceFieldBuilder fieldBuilder,
       Iterable<ClassMember> overriddenMembers) {
     if (fieldBuilder.classBuilder == classBuilder &&
-        fieldBuilder.type == null) {
+        fieldBuilder.type is InferableTypeBuilder) {
       DartType? inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
@@ -481,7 +483,7 @@ class ClassMembersNodeBuilder {
         inferredType = combinedMemberSignatureType;
       }
 
-      fieldBuilder.fieldType = inferredType;
+      fieldBuilder.type.registerInferredType(inferredType);
     }
   }
 

@@ -47,7 +47,7 @@ var b = a.g();
   }
 
   test_field_imported() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   int f = 0;
 }
@@ -293,7 +293,7 @@ var b = new B<int>.named(a.x);
   }
 
   test_implicitlyTyped_new_explicit_type_params_prefixed() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class B<T> {
   B(x);
 }
@@ -352,7 +352,7 @@ var b = new B.named(a.x);
   }
 
   test_implicitlyTyped_new_not_generic_prefixed() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class B {
   B(x);
 }
@@ -369,7 +369,7 @@ var b = new foo.B(a.x);
   }
 
   test_implicitlyTyped_new_prefixed() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 class B<T> {
   B(T x);
 }

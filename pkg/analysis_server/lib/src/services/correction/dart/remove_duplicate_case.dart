@@ -25,7 +25,7 @@ class RemoveDuplicateCase extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = coveredNode;
+    var node = coveredNode?.parent;
     if (node is! SwitchCase) {
       return;
     }
@@ -47,7 +47,4 @@ class RemoveDuplicateCase extends CorrectionProducer {
       builder.addDeletion(utils.getLinesRange(deletionRange));
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveDuplicateCase newInstance() => RemoveDuplicateCase();
 }

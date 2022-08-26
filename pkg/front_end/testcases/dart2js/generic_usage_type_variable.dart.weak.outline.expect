@@ -1,0 +1,96 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef T<X extends core::Object? = dynamic> = X%;
+abstract class C extends core::Object {
+  static field self::C? v1;
+  static field core::List<dynamic> v2;
+  static final field Null v3;
+  static const field core::List<core::List<dynamic>> v4 = const <core::List<dynamic>>[];
+  field self::D? v5;
+  field core::List<dynamic> v6;
+  final field Null v7;
+  static final field dynamic _redirecting# = <dynamic>[self::C::name2]/*isLegacy*/;
+  constructor •() → self::C
+    ;
+  constructor name1(self::D? v5, Null v7) → self::C
+    ;
+  static factory name2(self::D arg1, Null arg2) → self::C
+    return new self::C1::name1(arg1, arg2);
+  static method _#name2#tearOff(self::D arg1, Null arg2) → self::C
+    return new self::C1::name1(arg1, arg2);
+  abstract operator +(core::double other) → core::double;
+  abstract get g() → FutureOr<FutureOr<void>>?;
+  abstract set g(FutureOr<FutureOr<void>>? value) → void;
+  abstract method m1(covariant-by-declaration self::C arg1, [core::Set<core::Set<self::C>> arg2 = null]) → core::Map<self::C, self::C>;
+  abstract method m2({dynamic arg1 = null, ((dynamic) → dynamic, dynamic) → core::Map<dynamic, dynamic> arg2 = null}) → void;
+}
+class C1 extends core::Object implements self::C {
+  constructor name1(self::D arg1, Null arg2) → self::C1
+    ;
+  static method _#name1#tearOff(self::D arg1, Null arg2) → self::C1
+    return new self::C1::name1(arg1, arg2);
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+  no-such-method-forwarder get v7() → Null
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v7", <dynamic>[], <dynamic>[], const <core::String, dynamic>{}, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} Null;
+  no-such-method-forwarder operator +(core::double other) → core::double
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("+", <dynamic>[], <dynamic>[other], const <core::String, dynamic>{}, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::double;
+  no-such-method-forwarder get v6() → core::List<dynamic>
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v6", <dynamic>[], <dynamic>[], const <core::String, dynamic>{}, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>;
+  no-such-method-forwarder get v5() → self::D?
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v5", <dynamic>[], <dynamic>[], const <core::String, dynamic>{}, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} self::D?;
+  no-such-method-forwarder method m1(covariant-by-declaration self::C arg1, [core::Set<core::Set<self::C>> arg2]) → core::Map<self::C, self::C>
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("m1", <dynamic>[], <dynamic>[arg1, arg2], const <core::String, dynamic>{}, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<self::C, self::C>;
+  no-such-method-forwarder method m2({dynamic arg1, ((dynamic) → dynamic, dynamic) → core::Map<dynamic, dynamic> arg2}) → void
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("m2", <dynamic>[], <dynamic>[], <core::String, dynamic>{"arg1": arg1, "arg2": arg2}, 0)){(core::Invocation) → dynamic};
+  no-such-method-forwarder get g() → FutureOr<FutureOr<void>>?
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("g", <dynamic>[], <dynamic>[], const <core::String, dynamic>{}, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<FutureOr<void>>?;
+  no-such-method-forwarder set v6(core::List<dynamic> value) → void
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v6=", <dynamic>[], <dynamic>[value], const <core::String, dynamic>{}, 2)){(core::Invocation) → dynamic};
+  no-such-method-forwarder set v5(self::D? value) → void
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v5=", <dynamic>[], <dynamic>[value], const <core::String, dynamic>{}, 2)){(core::Invocation) → dynamic};
+  no-such-method-forwarder set g(FutureOr<FutureOr<void>>? value) → void
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("g=", <dynamic>[], <dynamic>[value], const <core::String, dynamic>{}, 2)){(core::Invocation) → dynamic};
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    ;
+  static method _#new#tearOff() → self::D
+    return new self::D::•();
+}
+extension E on dynamic {
+  method foo = self::E|foo;
+  tearoff foo = self::E|get#foo;
+}
+static field core::int? v1;
+static field core::List<void> v2;
+static final field core::String v3;
+static const field core::List<self::C> v4 = const <self::C>[];
+static const field core::Map<core::Type, core::Type> v5 = const <core::Type, core::Type>{dynamic: dynamic};
+static method E|foo(lowered final dynamic #this, dynamic t) → dynamic
+  ;
+static method E|get#foo(lowered final dynamic #this) → (dynamic) → dynamic
+  return (dynamic t) → dynamic => self::E|foo(#this, t);
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:22:35 -> ListConstant(const <List<dynamic>*>[])
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_usage_type_variable.dart:18:16 -> ConstructorTearOffConstant(C.name2)
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:26:17 -> MapConstant(const <String*, dynamic>{})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:32:22 -> MapConstant(const <String*, dynamic>{})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:25:14 -> MapConstant(const <String*, dynamic>{})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:24:9 -> MapConstant(const <String*, dynamic>{})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:35:19 -> MapConstant(const <String*, dynamic>{})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:33:35 -> MapConstant(const <String*, dynamic>{})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:25:14 -> MapConstant(const <String*, dynamic>{})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:24:9 -> MapConstant(const <String*, dynamic>{})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:34:7 -> MapConstant(const <String*, dynamic>{})
+Evaluated: ListLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:15:23 -> ListConstant(const <C*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:16:24 -> MapConstant(const <Type*, Type*>{dynamic: dynamic})
+Extra constant evaluation: evaluated: 93, effectively constant: 13

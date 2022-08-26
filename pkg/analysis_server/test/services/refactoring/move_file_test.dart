@@ -24,10 +24,10 @@ class MoveFileTest extends RefactoringTest {
   Future<void> test_file_containing_imports_exports_parts() async {
     final root = '/home/test/000/1111';
     testFile = convertPath('$root/test.dart');
-    newFile2('/absolute/uri.dart', '');
-    final fileA = newFile2('$root/a.dart', 'part of lib;');
-    final fileB = newFile2('$root/b.dart', "import 'test.dart';");
-    final fileC = newFile2('$root/22/c.dart', '');
+    newFile('/absolute/uri.dart', '');
+    final fileA = newFile('$root/a.dart', 'part of lib;');
+    final fileB = newFile('$root/b.dart', "import 'test.dart';");
+    final fileC = newFile('$root/22/c.dart', '');
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 library lib;
@@ -55,7 +55,7 @@ part '${toUriStr('/absolute/uri.dart')}';
   }
 
   Future<void> test_file_imported_with_package_uri_down() async {
-    var file = newFile2('$testPackageLibPath/old_name.dart', '');
+    var file = newFile('$testPackageLibPath/old_name.dart', '');
     addTestSource(r'''
 import 'package:test/old_name.dart';
 ''');
@@ -79,7 +79,7 @@ import 'package:test/222/new_name.dart';
   @failingTest
   Future<void> test_file_imported_with_package_uri_lib_change() async {
     // The current testing stack does not support creating such bazel roots
-    var file = newFile2('/home/test0/test1/test2/lib/111/name.dart', '');
+    var file = newFile('/home/test0/test1/test2/lib/111/name.dart', '');
     addTestSource(r'''
 import 'package:test0.test1.test2/111/name.dart';
 ''');
@@ -102,7 +102,7 @@ import 'package:test0.test1.test3/111/name.dart';
   @failingTest
   Future<void> test_file_imported_with_package_uri_lib_change_down() async {
     // The current testing stack does not support creating such bazel roots
-    var file = newFile2('/home/test0/test1/test2/lib/111/name.dart', '');
+    var file = newFile('/home/test0/test1/test2/lib/111/name.dart', '');
     addTestSource(r'''
 import 'package:test0.test1.test2/111/name.dart';
 ''');
@@ -125,7 +125,7 @@ import 'package:test0.test1.test2.test3/111/name.dart';
   @failingTest
   Future<void> test_file_imported_with_package_uri_lib_change_up() async {
     // The current testing stack does not support creating such bazel roots
-    var file = newFile2('/home/test0/test1/test2/lib/111/name.dart', '');
+    var file = newFile('/home/test0/test1/test2/lib/111/name.dart', '');
     addTestSource(r'''
 import 'package:test0.test1.test2/111/name.dart';
 ''');
@@ -146,7 +146,7 @@ import 'package:test0.test1/111/name.dart';
   }
 
   Future<void> test_file_imported_with_package_uri_sideways() async {
-    var file = newFile2('$testPackageLibPath/111/old_name.dart', '');
+    var file = newFile('$testPackageLibPath/111/old_name.dart', '');
     addTestSource(r'''
 import 'package:test/111/old_name.dart';
 ''');
@@ -168,7 +168,7 @@ import 'package:test/222/new_name.dart';
   }
 
   Future<void> test_file_imported_with_package_uri_up() async {
-    var file = newFile2('$testPackageLibPath/222/old_name.dart', '');
+    var file = newFile('$testPackageLibPath/222/old_name.dart', '');
     addTestSource(r'''
 import 'package:test/222/old_name.dart';
 ''');
@@ -261,7 +261,7 @@ import 'new_name.dart';
     addSource(binMainPath, '''
 import 'package:test/test.dart';
 
-main() {
+void f() {
   var a = new Foo();
 }
 ''');
@@ -274,7 +274,7 @@ class Foo {}
     assertFileChangeResult(binMainPath, '''
 import 'test.dart';
 
-main() {
+void f() {
   var a = new Foo();
 }
 ''');
@@ -373,6 +373,22 @@ import 'package:test/new/nested/d.dart';
     await _assertFailedRefactoring(RefactoringProblemSeverity.FATAL,
         expectedMessage:
             '${convertPath('/tmp')} does not belong to an analysis root.');
+  }
+
+  Future<void> test_folder_siblingFiles() async {
+    testFile = convertPath('/home/test/lib/old/a.dart');
+    final pathB = convertPath('/home/test/lib/old/b.dart');
+    addSource(pathB, '');
+    await resolveTestCode('''
+import 'a.dart';
+''');
+    // Rename the whole 'old' folder to 'new''.
+    _createRefactoring('/home/test/lib/new', oldFile: '/home/test/lib/old');
+    await _assertSuccessfulRefactoring();
+    // No changes, because import was a relative path and both files are inside
+    // the renamed folder.
+    assertNoFileChange(testFile);
+    assertNoFileChange(pathB);
   }
 
   Future<void> test_nonexistent_file_returns_failure() async {

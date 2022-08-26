@@ -35,12 +35,12 @@ static CompileType ParameterType(LocalVariable* param,
 
 bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
     const Function& function) {
-  return !function.HasOptionalParameters() &&
+  return !function.MakesCopyOfParameters() &&
          !function.IsNonImplicitClosureFunction() && !function.IsGeneric();
 }
 
 bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
-  return !function.HasOptionalParameters() && !function.IsGeneric() &&
+  return !function.MakesCopyOfParameters() && !function.IsGeneric() &&
          !function.IsClosureFunction();
 }
 
@@ -51,14 +51,13 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
 
   const intptr_t previous_block_id = last_used_block_id_;
 
-  const bool load_optional_arguments = function_.HasOptionalParameters();
+  const bool copy_parameters = function_.MakesCopyOfParameters();
   const bool expect_type_args = function_.IsGeneric();
 
   Fragment prologue = Fragment(entry);
 
-  if (load_optional_arguments) {
-    Fragment f =
-        BuildOptionalParameterHandling(parsed_function_->expression_temp_var());
+  if (copy_parameters) {
+    Fragment f = BuildParameterHandling();
     if (link) prologue += f;
   }
   if (function_.IsClosureFunction()) {
@@ -94,8 +93,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   }
 }
 
-Fragment PrologueBuilder::BuildOptionalParameterHandling(
-    LocalVariable* temp_var) {
+Fragment PrologueBuilder::BuildParameterHandling() {
   Fragment copy_args_prologue;
   const int num_fixed_params = function_.num_fixed_parameters();
   const int num_opt_pos_params = function_.NumOptionalPositionalParameters();
@@ -111,18 +109,22 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   // where num_pos_args is the number of positional arguments passed in.
   const int min_num_pos_args = num_fixed_params;
 
-  copy_args_prologue += LoadArgDescriptor();
-  copy_args_prologue +=
-      LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
+  LocalVariable* count_var = nullptr;
+  LocalVariable* optional_count_var = nullptr;
+  if ((num_opt_pos_params > 0) || (num_opt_named_params > 0)) {
+    copy_args_prologue += LoadArgDescriptor();
+    copy_args_prologue +=
+        LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
 
-  copy_args_prologue += LoadArgDescriptor();
-  copy_args_prologue += LoadNativeField(Slot::ArgumentsDescriptor_count());
-  LocalVariable* count_var = MakeTemporary();
+    copy_args_prologue += LoadArgDescriptor();
+    copy_args_prologue += LoadNativeField(Slot::ArgumentsDescriptor_count());
+    count_var = MakeTemporary();
 
-  copy_args_prologue += LoadLocal(count_var);
-  copy_args_prologue += IntConstant(min_num_pos_args);
-  copy_args_prologue += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
-  LocalVariable* optional_count_var = MakeTemporary();
+    copy_args_prologue += LoadLocal(count_var);
+    copy_args_prologue += IntConstant(min_num_pos_args);
+    copy_args_prologue += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
+    optional_count_var = MakeTemporary();
+  }
 
   // Copy mandatory parameters down.
   intptr_t param = 0;
@@ -157,7 +159,11 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
              ? FlowGraph::ParameterRepresentationAt(function_, param_index)
              : kTagged);
 
-    copy_args_prologue += LoadLocal(optional_count_var);
+    if ((num_opt_pos_params > 0) || (num_opt_named_params > 0)) {
+      copy_args_prologue += LoadLocal(optional_count_var);
+    } else {
+      copy_args_prologue += IntConstant(0);
+    }
     copy_args_prologue += LoadFpRelativeSlot(
         compiler::target::kWordSize *
             (compiler::target::frame_layout.param_end_from_fp +
@@ -208,9 +214,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     }
     copy_args_prologue += Goto(next_missing /* join good/not_good flows */);
     copy_args_prologue.current = next_missing;
-  } else {
-    ASSERT(num_opt_named_params > 0);
 
+  } else if (num_opt_named_params > 0) {
     const bool check_required_params =
         IsolateGroup::Current()->use_strict_null_safety_checks();
     const intptr_t first_name_offset =
@@ -222,8 +227,9 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     SortOptionalNamedParametersInto(opt_param_position, num_fixed_params,
                                     num_params);
 
-    ASSERT(temp_var != nullptr);
-    LocalVariable* optional_count_vars_processed = temp_var;
+    LocalVariable* optional_count_vars_processed =
+        parsed_function_->expression_temp_var();
+    ASSERT(optional_count_vars_processed != nullptr);
     copy_args_prologue += IntConstant(0);
     copy_args_prologue +=
         StoreLocalRaw(TokenPosition::kNoSource, optional_count_vars_processed);
@@ -332,9 +338,11 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     }
   }
 
-  copy_args_prologue += Drop();  // optional_count_var
-  copy_args_prologue += Drop();  // count_var
-  copy_args_prologue += Drop();  // positional_count_var
+  if ((num_opt_pos_params > 0) || (num_opt_named_params > 0)) {
+    copy_args_prologue += Drop();  // optional_count_var
+    copy_args_prologue += Drop();  // count_var
+    copy_args_prologue += Drop();  // positional_count_var
+  }
 
   return copy_args_prologue;
 }

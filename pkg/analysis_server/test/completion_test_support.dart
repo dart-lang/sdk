@@ -81,17 +81,19 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
 
   Future runTest(LocationSpec spec, [Map<String, String>? extraFiles]) async {
     await super.setUp();
-    return Future(() {
-      var content = spec.source;
-      newFile2(testFile, content);
-      testCode = content;
+
+    try {
+      extraFiles?.forEach((String fileName, String content) {
+        newFile(fileName, content);
+      });
+
+      newFile(testFile.path, spec.source);
       completionOffset = spec.testLocation;
-      if (extraFiles != null) {
-        extraFiles.forEach((String fileName, String content) {
-          newFile2(fileName, content);
-        });
-      }
-    }).then((_) => getSuggestions()).then((_) {
+      await getSuggestions(
+        path: testFile.path,
+        completionOffset: completionOffset,
+      );
+
       filterResults(spec.source);
       for (var result in spec.positiveResults) {
         assertHasCompletion(result);
@@ -99,9 +101,9 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
       for (var result in spec.negativeResults) {
         assertHasNoCompletion(result);
       }
-    }).whenComplete(() {
+    } finally {
       super.tearDown();
-    });
+    }
   }
 }
 
@@ -154,11 +156,11 @@ class LocationSpec {
           modifiedSource.substring(index + n);
     }
     if (modifiedSource == originalSource) {
-      throw StateError('No tests in source: ' + originalSource);
+      throw StateError('No tests in source: $originalSource');
     }
     for (var result in validationStrings) {
       if (result.length < 3) {
-        throw StateError('Invalid location result: ' + result);
+        throw StateError('Invalid location result: $result');
       }
       var id = result.substring(0, 1);
       var sign = result.substring(1, 2);

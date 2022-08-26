@@ -24,7 +24,7 @@ void run() {
   check('FutureOr<Never>', 'Future<Never>');
   check('FutureOr<Never?>', 'Future<Null>?');
 
-  // TODO(dmitryas): Use the following test case instead when FutureOr can
+  // TODO(cstefantsova): Use the following test case instead when FutureOr can
   // distinguish between the declared nullability and the nullability as a
   // property.
   //
@@ -39,21 +39,21 @@ void run() {
   check('FutureOr<FutureOr<Object*>>', 'Object*');
   check('FutureOr<FutureOr<Never>>', 'FutureOr<Future<Never>>');
 
-  // TODO(dmitryas): Use the following test case instead when FutureOr can
+  // TODO(cstefantsova): Use the following test case instead when FutureOr can
   // distinguish between the declared nullability and the nullability as a
   // property.
   //
   //check('FutureOr<FutureOr<Never?>>', 'FutureOr<Future<Null>?>');
   check('FutureOr<FutureOr<Never?>>', 'FutureOr<Future<Null>?>?');
 
-  // TODO(dmitryas): Use the following test case instead when FutureOr can
+  // TODO(cstefantsova): Use the following test case instead when FutureOr can
   // distinguish between the declared nullability and the nullability as a
   // property.
   //
   //check('FutureOr<FutureOr<Never*>>', 'FutureOr<Future<Never*>>');
   check('FutureOr<FutureOr<Never*>>', 'FutureOr<Future<Never*>*>*');
 
-  // TODO(dmitryas): Use the following test case instead when FutureOr can
+  // TODO(cstefantsova): Use the following test case instead when FutureOr can
   // distinguish between the declared nullability and the nullability as a
   // property.
   //
@@ -132,9 +132,9 @@ void run() {
   check('FutureOr<FutureOr<void>?>?', 'void');
   check('FutureOr<FutureOr<Object?>?>?', 'Object?');
 
-  // TODO(dmitryas): The following test cases should be removed when FutureOr
-  // can distinguish between the declared nullability and the nullability as a
-  // property.
+  // TODO(cstefantsova): The following test cases should be removed when
+  // FutureOr can distinguish between the declared nullability and the
+  // nullability as a property.
   check('FutureOr<int?>', 'FutureOr<int?>?');
   check('FutureOr<FutureOr<int?>>', 'FutureOr<FutureOr<int?>?>?');
   check('FutureOr<FutureOr<int>?>', 'FutureOr<FutureOr<int>?>?');

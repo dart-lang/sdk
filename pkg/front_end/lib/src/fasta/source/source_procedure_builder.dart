@@ -14,8 +14,10 @@ import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
+import '../kernel/augmentation_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
@@ -32,6 +34,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   @override
   final bool isExtensionInstanceMember;
+
+  @override
+  final TypeBuilder returnType;
 
   late Procedure _procedure;
 
@@ -52,14 +57,21 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   final ProcedureKind kind;
 
-  SourceProcedureBuilder? actualOrigin;
+  /// The builder for the original declaration.
+  SourceProcedureBuilder? _origin;
+
+  /// If this builder is a patch or an augmentation, this is the builder for
+  /// the immediately augmented procedure.
+  SourceProcedureBuilder? _augmentedBuilder;
+
+  int _augmentationIndex = 0;
 
   List<SourceProcedureBuilder>? _patches;
 
   SourceProcedureBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      TypeBuilder? returnType,
+      this.returnType,
       String name,
       List<TypeVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
@@ -75,22 +87,24 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       NameScheme nameScheme,
       {required bool isExtensionMember,
       required bool isInstanceMember,
-      String? nativeMethodName})
+      String? nativeMethodName,
+      bool isSynthetic: false})
       // ignore: unnecessary_null_comparison
       : assert(isExtensionMember != null),
         // ignore: unnecessary_null_comparison
         assert(isInstanceMember != null),
         assert(kind != ProcedureKind.Factory),
         this.isExtensionInstanceMember = isInstanceMember && isExtensionMember,
-        super(metadata, modifiers, returnType, name, typeVariables, formals,
-            libraryBuilder, charOffset, nativeMethodName) {
+        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+            charOffset, nativeMethodName) {
     _procedure = new Procedure(
         nameScheme.getProcedureName(kind, name),
         isExtensionInstanceMember ? ProcedureKind.Method : kind,
         new FunctionNode(null),
         fileUri: libraryBuilder.fileUri,
-        reference: procedureReference)
-      ..startFileOffset = startCharOffset
+        reference: procedureReference,
+        isSynthetic: isSynthetic)
+      ..fileStartOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
@@ -127,18 +141,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     function.dartAsyncMarker = actualAsyncModifier;
   }
 
-  bool get isEligibleForTopLevelInference {
-    if (isDeclarationInstanceMember) {
-      if (returnType == null) return true;
-      if (formals != null) {
-        for (FormalParameterBuilder formal in formals!) {
-          if (formal.type == null) return true;
-        }
-      }
-    }
-    return false;
-  }
-
   bool get isExtensionMethod {
     return parent is ExtensionBuilder;
   }
@@ -147,12 +149,14 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Member get member => procedure;
 
   @override
-  SourceProcedureBuilder get origin => actualOrigin ?? this;
+  SourceProcedureBuilder get origin => _origin ?? this;
 
   @override
   Procedure get procedure => isPatch ? origin.procedure : _procedure;
 
   Procedure get actualProcedure => _procedure;
+
+  Procedure? _augmentedProcedure;
 
   @override
   FunctionNode get function => _procedure.function;
@@ -180,6 +184,14 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         membersBuilder.inferMethodType(this, _overrideDependencies!);
       }
       _overrideDependencies = null;
+    }
+    returnType.build(libraryBuilder, TypeUse.fieldType,
+        hierarchy: membersBuilder.hierarchyBuilder);
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        formal.type.build(libraryBuilder, TypeUse.parameterType,
+            hierarchy: membersBuilder.hierarchyBuilder);
+      }
     }
     _typeEnsured = true;
   }
@@ -229,21 +241,21 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Iterable<Member> get exportedMembers => [procedure];
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    Member member = build();
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+    _build();
     if (isExtensionMethod) {
       switch (kind) {
         case ProcedureKind.Method:
-          f(member, BuiltMemberKind.ExtensionMethod);
+          f(_procedure, BuiltMemberKind.ExtensionMethod);
           break;
         case ProcedureKind.Getter:
-          f(member, BuiltMemberKind.ExtensionGetter);
+          f(_procedure, BuiltMemberKind.ExtensionGetter);
           break;
         case ProcedureKind.Setter:
-          f(member, BuiltMemberKind.ExtensionSetter);
+          f(_procedure, BuiltMemberKind.ExtensionSetter);
           break;
         case ProcedureKind.Operator:
-          f(member, BuiltMemberKind.ExtensionOperator);
+          f(_procedure, BuiltMemberKind.ExtensionOperator);
           break;
         case ProcedureKind.Factory:
           throw new UnsupportedError(
@@ -257,8 +269,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     }
   }
 
-  @override
-  Procedure build() {
+  void _build() {
     buildFunction();
     _procedure.function.fileOffset = charOpenParenOffset;
     _procedure.function.fileEndOffset = _procedure.fileEndOffset;
@@ -279,7 +290,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       _buildExtensionTearOff(libraryBuilder, parent as ExtensionBuilder);
       updatePrivateMemberName(extensionTearOff!, libraryBuilder);
     }
-    return _procedure;
   }
 
   /// Creates a top level function that creates a tear off of an extension
@@ -458,7 +468,11 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   void applyPatch(Builder patch) {
     if (patch is SourceProcedureBuilder) {
       if (checkPatch(patch)) {
-        patch.actualOrigin = this;
+        patch._origin = this;
+        SourceProcedureBuilder augmentedBuilder =
+            _patches == null ? this : _patches!.last;
+        patch._augmentedBuilder = augmentedBuilder;
+        patch._augmentationIndex = augmentedBuilder._augmentationIndex + 1;
         (_patches ??= []).add(patch);
       }
     } else {
@@ -466,25 +480,97 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     }
   }
 
+  Map<SourceProcedureBuilder, AugmentSuperTarget?> _augmentedProcedures = {};
+
+  AugmentSuperTarget? _createAugmentSuperTarget(
+      SourceProcedureBuilder? targetBuilder) {
+    if (targetBuilder == null) return null;
+    Procedure declaredProcedure = targetBuilder.actualProcedure;
+
+    if (declaredProcedure.isAbstract || declaredProcedure.isExternal) {
+      return targetBuilder._augmentedBuilder != null
+          ? _getAugmentSuperTarget(targetBuilder._augmentedBuilder!)
+          : null;
+    }
+
+    Procedure augmentedProcedure =
+        targetBuilder._augmentedProcedure = new Procedure(
+            augmentedName(declaredProcedure.name.text, libraryBuilder.library,
+                targetBuilder._augmentationIndex),
+            declaredProcedure.kind,
+            declaredProcedure.function,
+            fileUri: declaredProcedure.fileUri)
+          ..flags = declaredProcedure.flags
+          ..isStatic = procedure.isStatic
+          ..parent = procedure.parent
+          ..isInternalImplementation = true;
+
+    Member? readTarget;
+    Member? invokeTarget;
+    Member? writeTarget;
+    switch (kind) {
+      case ProcedureKind.Method:
+        readTarget = extensionTearOff ?? augmentedProcedure;
+        invokeTarget = augmentedProcedure;
+        break;
+      case ProcedureKind.Getter:
+        readTarget = augmentedProcedure;
+        invokeTarget = augmentedProcedure;
+        break;
+      case ProcedureKind.Factory:
+        readTarget = augmentedProcedure;
+        invokeTarget = augmentedProcedure;
+        break;
+      case ProcedureKind.Operator:
+        invokeTarget = augmentedProcedure;
+        break;
+      case ProcedureKind.Setter:
+        writeTarget = augmentedProcedure;
+        break;
+    }
+    return new AugmentSuperTarget(
+        declaration: targetBuilder,
+        readTarget: readTarget,
+        invokeTarget: invokeTarget,
+        writeTarget: writeTarget);
+  }
+
+  AugmentSuperTarget? _getAugmentSuperTarget(
+      SourceProcedureBuilder augmentation) {
+    return _augmentedProcedures[augmentation] ??=
+        _createAugmentSuperTarget(augmentation._augmentedBuilder);
+  }
+
   @override
-  int finishPatch() {
-    if (!isPatch) return 0;
+  AugmentSuperTarget? get augmentSuperTarget =>
+      origin._getAugmentSuperTarget(this);
 
-    // TODO(ahe): restore file-offset once we track both origin and patch file
-    // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    origin.procedure.fileUri = fileUri;
-    origin.procedure.startFileOffset = _procedure.startFileOffset;
-    origin.procedure.fileOffset = _procedure.fileOffset;
-    origin.procedure.fileEndOffset = _procedure.fileEndOffset;
-    origin.procedure.annotations
-        .forEach((m) => m.fileOffset = _procedure.fileOffset);
+  @override
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+    List<SourceProcedureBuilder>? patches = _patches;
+    if (patches != null) {
+      void addAugmentedProcedure(SourceProcedureBuilder builder) {
+        Procedure? augmentedProcedure = builder._augmentedProcedure;
+        if (augmentedProcedure != null) {
+          augmentedProcedure
+            ..fileOffset = builder.actualProcedure.fileOffset
+            ..fileEndOffset = builder.actualProcedure.fileEndOffset
+            ..fileStartOffset = builder.actualProcedure.fileStartOffset
+            ..signatureType = builder.actualProcedure.signatureType
+            ..flags = builder.actualProcedure.flags;
+          f(augmentedProcedure, BuiltMemberKind.Method);
+        }
+      }
 
-    origin.procedure.isAbstract = _procedure.isAbstract;
-    origin.procedure.isExternal = _procedure.isExternal;
-    origin.procedure.function = _procedure.function;
-    origin.procedure.function.parent = origin.procedure;
-    origin.procedure.isRedirectingFactory = _procedure.isRedirectingFactory;
-    return 1;
+      addAugmentedProcedure(this);
+      for (SourceProcedureBuilder patch in patches) {
+        addAugmentedProcedure(patch);
+      }
+      finishProcedurePatch(procedure, patches.last.actualProcedure);
+
+      return patches.length;
+    }
+    return 0;
   }
 
   @override

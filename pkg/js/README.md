@@ -1,3 +1,6 @@
+[![pub package](https://img.shields.io/pub/v/js.svg)](https://pub.dev/packages/js)
+[![package publisher](https://img.shields.io/pub/publisher/js.svg)](https://pub.dev/packages/js/publisher)
+
 Use this package when you want to call JavaScript APIs from Dart code, or vice versa.
 
 This package's main library, `js`, provides annotations and functions

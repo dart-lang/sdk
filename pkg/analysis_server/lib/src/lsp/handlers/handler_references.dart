@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show SearchResult;
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
@@ -19,7 +17,7 @@ import 'package:collection/collection.dart';
 
 class ReferencesHandler
     extends MessageHandler<ReferenceParams, List<Location>?> {
-  ReferencesHandler(LspAnalysisServer server) : super(server);
+  ReferencesHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_references;
 
@@ -28,8 +26,8 @@ class ReferencesHandler
       ReferenceParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<Location>?>> handle(
-      ReferenceParams params, CancellationToken token) async {
+  Future<ErrorOr<List<Location>?>> handle(ReferenceParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -39,7 +37,7 @@ class ReferencesHandler
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset.mapResult(
-        (offset) => _getRefererences(path.result, offset, params, unit.result));
+        (offset) => _getReferences(path.result, offset, params, unit.result));
   }
 
   List<Location> _getDeclarations(CompilationUnit unit, int offset) {
@@ -55,7 +53,7 @@ class ReferencesHandler
     }).whereNotNull().toList();
   }
 
-  Future<ErrorOr<List<Location>?>> _getRefererences(String path, int offset,
+  Future<ErrorOr<List<Location>?>> _getReferences(String path, int offset,
       ReferenceParams params, ResolvedUnitResult unit) async {
     var element = await server.getElementAtOffset(path, offset);
     if (element is ImportElement) {

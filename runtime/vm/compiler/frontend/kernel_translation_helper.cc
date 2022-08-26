@@ -1011,7 +1011,7 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      flags_ = helper_->ReadFlags();
+      flags_ = helper_->ReadUInt();
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kNameIndex:
@@ -1891,9 +1891,11 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
   Zone* zone = thread->zone();
   intptr_t unit_count = helper_->ReadUInt();
   Array& loading_units = Array::Handle(zone, Array::New(unit_count + 1));
+  Array& loading_unit_uris = Array::Handle(zone, Array::New(unit_count + 1));
   LoadingUnit& unit = LoadingUnit::Handle(zone);
   LoadingUnit& parent = LoadingUnit::Handle(zone);
   Library& lib = Library::Handle(zone);
+  Array& uris = Array::Handle(zone);
 
   for (int i = 0; i < unit_count; i++) {
     intptr_t id = helper_->ReadUInt();
@@ -1907,6 +1909,7 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
     unit.set_parent(parent);
 
     intptr_t library_count = helper_->ReadUInt();
+    uris = Array::New(library_count);
     for (intptr_t j = 0; j < library_count; j++) {
       const String& uri =
           translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
@@ -1915,14 +1918,18 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
         FATAL1("Missing library: %s\n", uri.ToCString());
       }
       lib.set_loading_unit(unit);
+      uris.SetAt(j, uri);
     }
 
     loading_units.SetAt(id, unit);
+    loading_unit_uris.SetAt(id, uris);
   }
 
   ObjectStore* object_store = IG->object_store();
   ASSERT(object_store->loading_units() == Array::null());
   object_store->set_loading_units(loading_units);
+  ASSERT(object_store->loading_unit_uris() == Array::null());
+  object_store->set_loading_unit_uris(loading_unit_uris);
 }
 
 CallSiteAttributesMetadataHelper::CallSiteAttributesMetadataHelper(
@@ -2262,10 +2269,6 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
     }
   }
 
-  if (!simple) {
-    SkipOptionalDartType();  // read typedef type.
-  }
-
   SkipDartType();  // read return type.
 }
 
@@ -2424,6 +2427,16 @@ void KernelReaderHelper::SkipExpression() {
       SkipName();        // read name.
       SkipExpression();  // read value.
       return;
+    case kAbstractSuperPropertyGet:
+      // Abstract super property getters must be converted into super property
+      // getters during mixin transformation.
+      UNREACHABLE();
+      break;
+    case kAbstractSuperPropertySet:
+      // Abstract super property setters must be converted into super property
+      // setters during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperPropertyGet:
       ReadPosition();                      // read position.
       SkipName();                          // read name.
@@ -2486,6 +2499,11 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();    // read position.
       SkipExpression();  // read expression.
       return;
+    case kAbstractSuperMethodInvocation:
+      // Abstract super method invocations must be converted into super
+      // method invocations during mixin transformation.
+      UNREACHABLE();
+      break;
     case kSuperMethodInvocation:
       ReadPosition();                      // read position.
       SkipName();                          // read name.
@@ -2620,6 +2638,10 @@ void KernelReaderHelper::SkipExpression() {
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
       return;
+    case kAwaitExpression:
+      ReadPosition();    // read position.
+      SkipExpression();  // read operand.
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -2702,6 +2724,7 @@ void KernelReaderHelper::SkipStatement() {
       return;
     case kSwitchStatement: {
       ReadPosition();                     // read position.
+      ReadBool();                         // read exhaustive flag.
       SkipExpression();                   // read condition.
       int case_count = ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
@@ -3257,10 +3280,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     }
   }
   signature.FinalizeNameArray();
-
-  if (!simple) {
-    helper_->SkipOptionalDartType();  // read typedef type.
-  }
 
   BuildTypeInternal();  // read return type.
   signature.set_result_type(result_);

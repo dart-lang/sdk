@@ -8,7 +8,7 @@
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import '../helpers/memory_compiler.dart';
 
@@ -50,7 +50,7 @@ void main() {
         options: [Flags.testMode]);
     // Simply check that the constants of the small functions are still in the
     // output, and that we don't see the result of constant folding.
-    String jsOutput = collector.getOutput('', OutputType.js);
+    String jsOutput = collector.getOutput('', api.OutputType.js);
 
     void has(String text) {
       Expect.isTrue(jsOutput.contains(text), "output should contain '$text'");

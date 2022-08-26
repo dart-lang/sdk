@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Test to verify that this package is in-sync with dart2js runtime libraries.
 import 'dart:io';
 
@@ -11,9 +9,9 @@ import 'package:_fe_analyzer_shared/src/util/relativize.dart';
 import 'package:expect/expect.dart';
 
 void main(List<String> argv) {
-  var packageDir = Platform.script.resolve('../lib/shared/');
+  var packageDir = Platform.script.resolve('../lib/synced/');
   var sdkDir = Platform.script
-      .resolve('../../../sdk/lib/_internal/js_runtime/lib/shared/');
+      .resolve('../../../sdk/lib/_internal/js_runtime/lib/synced/');
   var rPackageDir =
       relativizeUri(Directory.current.uri, packageDir, Platform.isWindows);
   var rSdkDir =

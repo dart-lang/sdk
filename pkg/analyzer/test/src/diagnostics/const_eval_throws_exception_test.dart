@@ -82,7 +82,7 @@ var v = const A(3, 2);
 
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
     // See dartbug.com/35993
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 class Foo {
   final double value;
 
@@ -112,7 +112,7 @@ void main() {
 
   test_CastError_intToDouble_constructor_importAnalyzedBefore() async {
     // See dartbug.com/35993
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 class Foo {
   final double value;
 
@@ -141,7 +141,7 @@ void main() {
   }
 
   test_default_constructor_arg_empty_map_import() async {
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 class C {
   final Map<String, int> m;
   const C({this.m = const <String, int>{}})
@@ -290,7 +290,7 @@ const c = [if (0 < 1) 3 else nil + 1];
   }
 
   test_invalid_constructorFieldInitializer_fromSeparateLibrary() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 class A<T> {
   final int f;
   const A() : f = T.foo;

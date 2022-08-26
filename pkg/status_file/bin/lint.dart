@@ -11,7 +11,7 @@ import 'package:status_file/status_file_linter.dart';
 import 'package:status_file/utils.dart';
 
 ArgParser buildParser() {
-  var parser = new ArgParser();
+  var parser = ArgParser();
   parser.addFlag("check-for-disjunctions",
       negatable: false,
       defaultsTo: false,
@@ -78,7 +78,7 @@ void lintPath(path, {bool checkForDisjunctions = false}) {
       filesWithErrors.add(path);
     }
   } else if (FileSystemEntity.isDirectorySync(path)) {
-    new Directory(path).listSync(recursive: true).forEach((entry) {
+    Directory(path).listSync(recursive: true).forEach((entry) {
       if (!canLint(entry.path)) {
         return;
       }
@@ -98,7 +98,7 @@ void lintPath(path, {bool checkForDisjunctions = false}) {
 
 bool lintText(List<String> text, {bool checkForDisjunctions = false}) {
   try {
-    var statusFile = new StatusFile.parse("stdin", text);
+    var statusFile = StatusFile.parse("stdin", text);
     return lintStatusFile(statusFile,
         checkForDisjunctions: checkForDisjunctions);
   } on status_file.SyntaxError {
@@ -109,7 +109,7 @@ bool lintText(List<String> text, {bool checkForDisjunctions = false}) {
 
 bool lintFile(String path, {bool checkForDisjunctions = false}) {
   try {
-    var statusFile = new StatusFile.read(path);
+    var statusFile = StatusFile.read(path);
     return lintStatusFile(statusFile,
         checkForDisjunctions: checkForDisjunctions);
   } on status_file.SyntaxError catch (error) {
@@ -128,7 +128,7 @@ bool lintStatusFile(StatusFile statusFile,
     return true;
   }
   if (statusFile.path.isNotEmpty) {
-    print("${statusFile.path}");
+    print(statusFile.path);
   }
   var errors = lintingErrors.toList();
   errors.sort((a, b) => a.lineNumber.compareTo((b.lineNumber)));

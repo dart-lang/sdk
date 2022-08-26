@@ -42,17 +42,6 @@ function stringToDartString(string) {
     }
 }
 
-// Converts a JS array to a Dart List, and also recursively converts the items
-// in the array.
-function arrayToDartList(array, allocator, adder) {
-    var length = array.length;
-    var dartList = dartInstance.exports.$listAllocate();
-    for (var i = 0; i < length; i++) {
-        dartInstance.exports.$listAdd(dartList, array[i]);
-    }
-    return dartList;
-}
-
 // Converts a Dart List to a JS array. Any Dart objects will be converted, but
 // this will be cheap for JSValues.
 function arrayFromDartList(list, reader) {
@@ -64,16 +53,8 @@ function arrayFromDartList(list, reader) {
     return array;
 }
 
-// Recursively converts a JS object into a Dart object.
-function dartify(object) {
-    if (typeof object === "string") {
-        return stringToDartString(object);
-    } else if (object instanceof Array) {
-        return arrayToDartList(object);
-    } else {
-        return object;
-    }
-}
+// A special symbol attached to functions that wrap Dart functions.
+var jsWrappedDartFunctionSymbol = Symbol("JSWrappedDartFunction");
 
 // Imports for printing and event loop
 var dart2wasm = {
@@ -99,10 +80,64 @@ var dart2wasm = {
         return stringToDartString(userStackString);
     },
     arrayFromDartList: arrayFromDartList,
-    arrayToDartList: arrayToDartList,
     stringFromDartString: stringFromDartString,
     stringToDartString: stringToDartString,
-    dartify: dartify,
+    wrapDartFunction: function(dartFunction, exportFunctionName) {
+        var wrapped = function (...args) {
+            return dartInstance.exports[`${exportFunctionName}`](
+                dartFunction, ...args.map(dartInstance.exports.$dartifyRaw));
+        }
+        wrapped.dartFunction = dartFunction;
+        wrapped[jsWrappedDartFunctionSymbol] = true;
+        return wrapped;
+    },
+    objectLength: function(o) {
+        return o.length;
+    },
+    objectReadIndex: function(o, i) {
+        return o[i];
+    },
+    unwrapJSWrappedDartFunction: function(o) {
+        return o.dartFunction;
+    },
+    isJSUndefined: function(o) {
+        return o === undefined;
+    },
+    isJSBoolean: function(o) {
+        return typeof o === "boolean";
+    },
+    isJSNumber: function(o) {
+        return typeof o === "number";
+    },
+    isJSBigInt: function(o) {
+        return typeof o === "bigint";
+    },
+    isJSString: function(o) {
+        return typeof o === "string";
+    },
+    isJSSymbol: function(o) {
+        return typeof o === "symbol";
+    },
+    isJSFunction: function(o) {
+        return typeof o === "function";
+    },
+    isJSArray: function(o) {
+        return o instanceof Array;
+    },
+    isJSWrappedDartFunction: function(o) {
+        return typeof o === "function" &&
+            o[jsWrappedDartFunctionSymbol] === true;
+    },
+    isJSObject: function(o) {
+        return o instanceof Object;
+    },
+    roundtrip: function (o) {
+      // This function exists as a hook for the native JS -> Wasm type
+      // conversion rules. The Dart runtime will overload variants of this
+      // function with the necessary return type to trigger the desired
+      // coercion.
+      return o;
+    },
     newObject: function() {
         return {};
     },
@@ -121,18 +156,13 @@ var dart2wasm = {
     callMethodVarArgs: function(object, name, args) {
         return object[name].apply(object, args);
     },
-    callConstructorVarArgs: function(object, name, args) {
-        // Gets a constructor property at object[name], and apply bind to the
-        // constructor. We pass `null` as the first argument to `bind.apply`
-        // because this is `bind`'s unused context argument(`new` will
-        // explicitly create a new context).
-        var constructor = object[name];
+    callConstructorVarArgs: function(constructor, args) {
+        // Apply bind to the constructor. We pass `null` as the first argument
+        // to `bind.apply` because this is `bind`'s unused context
+        // argument(`new` will explicitly create a new context).
         var factoryFunction = constructor.bind.apply(constructor, [null, ...args]);
         return new factoryFunction();
     },
-    eval: function(string) {
-        eval(string);
-    }
 };
 
 function instantiate(filename, imports) {

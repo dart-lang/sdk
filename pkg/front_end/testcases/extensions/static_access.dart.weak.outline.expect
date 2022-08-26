@@ -1,22 +1,12 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  synthetic constructor •() → self::Class*
+  synthetic constructor •() → self::Class
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Extension on self::Class* {
+extension Extension on self::Class {
   static method method = self::Extension|method;
   static method genericMethod = self::Extension|genericMethod;
   static get property = get self::Extension|property;
@@ -30,19 +20,19 @@ extension Extension on self::Class* {
 static field dynamic Extension|field;
 static method Extension|method() → dynamic
   ;
-static method Extension|genericMethod<T extends core::Object* = dynamic>(self::Extension|genericMethod::T* t) → dynamic
+static method Extension|genericMethod<T extends core::Object? = dynamic>(self::Extension|genericMethod::T% t) → dynamic
   ;
 static get Extension|property() → dynamic
   ;
 static set Extension|property(dynamic value) → void
   ;
-static method Extension|instanceMethod(lowered final self::Class* #this) → dynamic
+static method Extension|instanceMethod(lowered final self::Class #this) → dynamic
   ;
-static method Extension|get#instanceMethod(lowered final self::Class* #this) → () →* dynamic
+static method Extension|get#instanceMethod(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::Extension|instanceMethod(#this);
-static method Extension|get#instanceProperty(lowered final self::Class* #this) → dynamic
+static method Extension|get#instanceProperty(lowered final self::Class #this) → dynamic
   ;
-static method Extension|set#instanceProperty(lowered final self::Class* #this, dynamic value) → void
+static method Extension|set#instanceProperty(lowered final self::Class #this, dynamic value) → void
   ;
 static method main() → dynamic
   ;

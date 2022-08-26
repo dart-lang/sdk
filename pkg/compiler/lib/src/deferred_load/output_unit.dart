@@ -58,6 +58,14 @@ class OutputUnit implements Comparable<OutputUnit> {
   String toString() => "OutputUnit($name, $imports)";
 }
 
+int compareImportEntities(ImportEntity a, ImportEntity b) {
+  if (a == b) {
+    return 0;
+  } else {
+    return a.uri.path.compareTo(b.uri.path);
+  }
+}
+
 /// Interface for updating an [OutputUnitData] object with data for late
 /// members, that is, members created on demand during code generation.
 class LateOutputUnitDataBuilder {
@@ -215,19 +223,19 @@ class OutputUnitData {
       sink.writeString(outputUnit.name);
       sink.writeImports(outputUnit.imports);
     });
-    sink.writeInt(outputUnitIndices[mainOutputUnit]);
+    sink.writeInt(outputUnitIndices[mainOutputUnit]!);
     sink.writeClassMap(_classToUnit, (OutputUnit outputUnit) {
-      sink.writeInt(outputUnitIndices[outputUnit]);
+      sink.writeInt(outputUnitIndices[outputUnit]!);
     });
     sink.writeClassMap(_classTypeToUnit, (OutputUnit outputUnit) {
-      sink.writeInt(outputUnitIndices[outputUnit]);
+      sink.writeInt(outputUnitIndices[outputUnit]!);
     });
     sink.writeMemberMap(_memberToUnit,
         (MemberEntity member, OutputUnit outputUnit) {
-      sink.writeInt(outputUnitIndices[outputUnit]);
+      sink.writeInt(outputUnitIndices[outputUnit]!);
     });
     sink.writeConstantMap(_constantToUnit, (OutputUnit outputUnit) {
-      sink.writeInt(outputUnitIndices[outputUnit]);
+      sink.writeInt(outputUnitIndices[outputUnit]!);
     });
     sink.writeImportMap(importDeferName, sink.writeString);
     sink.writeImportMap(deferredImportDescriptions,
@@ -244,34 +252,35 @@ class OutputUnitData {
   // needs it.
   OutputUnit outputUnitForClass(ClassEntity cls, {bool allowNull = false}) {
     if (!isProgramSplit) return mainOutputUnit;
-    OutputUnit unit = _classToUnit[cls];
+    OutputUnit? unit = _classToUnit[cls];
     assert(allowNull || unit != null, 'No output unit for class $cls');
     return unit ?? mainOutputUnit;
   }
 
-  OutputUnit outputUnitForClassForTesting(ClassEntity cls) => _classToUnit[cls];
+  OutputUnit? outputUnitForClassForTesting(ClassEntity cls) =>
+      _classToUnit[cls];
 
   /// Returns the [OutputUnit] where [cls]'s type belongs.
   // TODO(joshualitt): see above TODO regarding allowNull.
   OutputUnit outputUnitForClassType(ClassEntity cls, {bool allowNull = false}) {
     if (!isProgramSplit) return mainOutputUnit;
-    OutputUnit unit = _classTypeToUnit[cls];
+    OutputUnit? unit = _classTypeToUnit[cls];
     assert(allowNull || unit != null, 'No output unit for type $cls');
     return unit ?? mainOutputUnit;
   }
 
-  OutputUnit outputUnitForClassTypeForTesting(ClassEntity cls) =>
+  OutputUnit? outputUnitForClassTypeForTesting(ClassEntity cls) =>
       _classTypeToUnit[cls];
 
   /// Returns the [OutputUnit] where [member] belongs.
   OutputUnit outputUnitForMember(MemberEntity member) {
     if (!isProgramSplit) return mainOutputUnit;
-    OutputUnit unit = _memberToUnit[member];
+    OutputUnit? unit = _memberToUnit[member];
     assert(unit != null, 'No output unit for member $member');
     return unit ?? mainOutputUnit;
   }
 
-  OutputUnit outputUnitForMemberForTesting(MemberEntity member) =>
+  OutputUnit? outputUnitForMemberForTesting(MemberEntity member) =>
       _memberToUnit[member];
 
   /// Direct access to the output-unit to constants map used for testing.
@@ -280,13 +289,13 @@ class OutputUnitData {
   /// Returns the [OutputUnit] where [constant] belongs.
   OutputUnit outputUnitForConstant(ConstantValue constant) {
     if (!isProgramSplit) return mainOutputUnit;
-    OutputUnit unit = _constantToUnit[constant];
+    OutputUnit? unit = _constantToUnit[constant];
     // TODO(sigmund): enforce unit is not null: it is sometimes null on some
     // corner cases on internal apps.
     return unit ?? mainOutputUnit;
   }
 
-  OutputUnit outputUnitForConstantForTesting(ConstantValue constant) =>
+  OutputUnit? outputUnitForConstantForTesting(ConstantValue constant) =>
       _constantToUnit[constant];
 
   /// Indicates whether [element] is deferred.
@@ -349,7 +358,7 @@ class OutputUnitData {
 
   /// Returns the unique name for the given deferred [import].
   String getImportDeferName(Spannable node, ImportEntity import) {
-    String name = importDeferName[import];
+    String? name = importDeferName[import];
     if (name == null) {
       throw SpannableAssertionFailure(node, "No deferred name for $import.");
     }
@@ -358,7 +367,7 @@ class OutputUnitData {
 
   /// Returns the names associated with each deferred import in [unit].
   Iterable<String> getImportNames(OutputUnit unit) {
-    return unit.imports.map((i) => importDeferName[i]);
+    return unit.imports.map((i) => importDeferName[i]!);
   }
 }
 
@@ -379,7 +388,7 @@ class ImportDescription {
       : this.internal(
             fe.relativizeUri(
                 mainLibraryUri, importingLibrary.canonicalUri, false),
-            import.name,
+            import.name!,
             importingLibrary);
 }
 
@@ -390,16 +399,8 @@ class ImportDescription {
 String deferredPartFileName(CompilerOptions options, String name,
     {bool addExtension = true}) {
   assert(name != "");
-  String outPath = options.outputUri != null ? options.outputUri.path : "out";
+  String outPath = options.outputUri != null ? options.outputUri!.path : "out";
   String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
   String extension = addExtension ? ".part.js" : "";
   return "${outName}_$name$extension";
-}
-
-int compareImportEntities(ImportEntity a, ImportEntity b) {
-  if (a == b) {
-    return 0;
-  } else {
-    return a.uri.path.compareTo(b.uri.path);
-  }
 }

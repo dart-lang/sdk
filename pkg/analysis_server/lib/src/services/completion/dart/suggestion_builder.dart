@@ -23,6 +23,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -45,104 +46,6 @@ abstract class CompletionSuggestionBuilder {
   String get textToMatch;
 
   CompletionSuggestion build();
-}
-
-/// The implementation of [CompletionSuggestionBuilder] that is based on
-/// [ElementCompletionData] and location specific information.
-class CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
-  final ElementCompletionData element;
-
-  @override
-  final CompletionSuggestionKind kind;
-
-  @override
-  final int relevance;
-
-  final String? completionOverride;
-  final String? libraryUriStr;
-  final bool isNotImported;
-
-  CompletionSuggestionBuilderImpl({
-    required this.element,
-    required this.kind,
-    required this.completionOverride,
-    required this.relevance,
-    required this.libraryUriStr,
-    required this.isNotImported,
-  });
-
-  @override
-  String get completion => completionOverride ?? element.completion;
-
-  /// TODO(scheglov) implement better key for not-yet-imported
-  @override
-  String get key {
-    var key = completion;
-    if (element.element.kind == protocol.ElementKind.CONSTRUCTOR) {
-      key = '$key()';
-    }
-    return key;
-  }
-
-  @override
-  String get textToMatch => completion;
-
-  @override
-  CompletionSuggestion build() {
-    return CompletionSuggestion(
-      kind,
-      relevance,
-      completion,
-      completion.length /*selectionOffset*/,
-      0 /*selectionLength*/,
-      element.isDeprecated,
-      false /*isPotential*/,
-      element: element.element,
-      docSummary: element.documentation?.summary,
-      docComplete: element.documentation?.full,
-      declaringType: element.declaringType,
-      returnType: element.returnType,
-      requiredParameterCount: element.requiredParameterCount,
-      hasNamedParameters: element.hasNamedParameters,
-      parameterNames: element.parameterNames,
-      parameterTypes: element.parameterTypes,
-      defaultArgumentListString: element.defaultArgumentList?.text,
-      defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
-      libraryUri: libraryUriStr,
-      isNotImported: isNotImported ? true : null,
-    );
-  }
-}
-
-/// Information about an [Element] that does not depend on the location where
-/// this element is suggested. For some often used elements, such as classes,
-/// it might be cached, so created only once.
-class ElementCompletionData {
-  final String completion;
-  final bool isDeprecated;
-  final String? declaringType;
-  final String? returnType;
-  final List<String>? parameterNames;
-  final List<String>? parameterTypes;
-  final int? requiredParameterCount;
-  final bool? hasNamedParameters;
-  CompletionDefaultArgumentList? defaultArgumentList;
-  final _ElementDocumentation? documentation;
-  final protocol.Element element;
-
-  ElementCompletionData({
-    required this.completion,
-    required this.isDeprecated,
-    required this.declaringType,
-    required this.returnType,
-    required this.parameterNames,
-    required this.parameterTypes,
-    required this.requiredParameterCount,
-    required this.hasNamedParameters,
-    required this.defaultArgumentList,
-    required this.documentation,
-    required this.element,
-  });
 }
 
 /// This class provides suggestions based upon the visible instance members in
@@ -185,7 +88,7 @@ class MemberSuggestionBuilder {
   void addSuggestionForAccessor(
       {required PropertyAccessorElement accessor,
       required double inheritanceDistance}) {
-    if (accessor.isAccessibleIn(request.libraryElement)) {
+    if (accessor.isAccessibleIn2(request.libraryElement)) {
       var member = accessor.isSynthetic ? accessor.variable : accessor;
       if (_shouldAddSuggestion(member)) {
         builder.suggestAccessor(accessor,
@@ -199,7 +102,7 @@ class MemberSuggestionBuilder {
       {required MethodElement method,
       required CompletionSuggestionKind kind,
       required double inheritanceDistance}) {
-    if (method.isAccessibleIn(request.libraryElement) &&
+    if (method.isAccessibleIn2(request.libraryElement) &&
         _shouldAddSuggestion(method)) {
       builder.suggestMethod(method,
           kind: kind, inheritanceDistance: inheritanceDistance);
@@ -766,11 +669,9 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a [method]. If the method is being invoked with a
-  /// target of `super`, then the [containingMemberName] should be the name of
-  /// the member containing the invocation. If a [kind] is provided it will be
-  /// used as the kind for the suggestion. The [inheritanceDistance] is the
-  /// value of the inheritance distance feature computed for the method.
+  /// Add a suggestion for a [method]. If a [kind] is provided it will be used
+  /// as the kind for the suggestion. The [inheritanceDistance] is the value of
+  /// the inheritance distance feature computed for the method.
   void suggestMethod(MethodElement method,
       {required CompletionSuggestionKind kind,
       required double inheritanceDistance}) {
@@ -877,7 +778,8 @@ class SuggestionBuilder {
     // Optionally add Flutter child widget details.
     // todo (pq): revisit this special casing; likely it can be generalized away
     var element = parameter.enclosingElement;
-    if (element is ConstructorElement) {
+    // If appendColon is false, default values should never be appended.
+    if (element is ConstructorElement && appendColon) {
       if (Flutter.instance.isWidget(element.enclosingElement)) {
         // Don't bother with nullability. It won't affect default list values.
         var defaultValue =
@@ -984,7 +886,7 @@ class SuggestionBuilder {
         withNullability: _isNonNullableByDefault);
     _addSuggestion(
       suggestion,
-      textToMatchOverride: element.displayName,
+      textToMatchOverride: _textToMatchOverride(element),
     );
   }
 
@@ -1102,10 +1004,8 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a top-level property [accessor]. If a [kind] is
-  /// provided it will be used as the kind for the suggestion. If the accessor
-  /// can only be referenced using a prefix, then the [prefix] should be
-  /// provided.
+  /// Add a suggestion for a top-level property [accessor]. If the accessor can
+  /// only be referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {String? prefix}) {
     assert(
@@ -1157,8 +1057,7 @@ class SuggestionBuilder {
     }
   }
 
-  /// Add a suggestion for a top-level [variable]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion. If the variable can only be
+  /// Add a suggestion for a top-level [variable]. If the variable can only be
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
       {String? prefix}) {
@@ -1176,9 +1075,8 @@ class SuggestionBuilder {
     );
   }
 
-  /// Add a suggestion for a [typeAlias]. If a [kind] is provided it
-  /// will be used as the kind for the suggestion. If the alias can only be
-  /// referenced using a prefix, then the [prefix] should be provided.
+  /// Add a suggestion for a [typeAlias]. If the alias can only be referenced
+  /// using a prefix, then the [prefix] should be provided.
   void suggestTypeAlias(TypeAliasElement typeAlias, {String? prefix}) {
     var relevance = _computeTopLevelRelevance(typeAlias,
         elementType: _instantiateTypeAlias(typeAlias));
@@ -1230,6 +1128,18 @@ class SuggestionBuilder {
       var key = suggestion.key;
       listener?.builtSuggestion(suggestion);
       if (laterReplacesEarlier || !_suggestionMap.containsKey(key)) {
+        // When suggesting from not-yet-imported libraries, record items
+        // with a key that includes the URI so that multiple not-yet-imported
+        // libraries can be included, but only if there is no imported library
+        // contributing that key.
+        if (isNotImportedLibrary) {
+          key += '::$libraryUriStr';
+          // If `!laterReplacesEarlier`, also ensure we don't already have this
+          // new key.
+          if (!laterReplacesEarlier && _suggestionMap.containsKey(key)) {
+            return;
+          }
+        }
         _suggestionMap[key] = suggestion;
       }
     }
@@ -1356,10 +1266,10 @@ class SuggestionBuilder {
 
     if (prefix != null) {
       completion ??= elementData.completion;
-      completion = prefix + '.' + completion;
+      completion = '$prefix.$completion';
     }
 
-    return CompletionSuggestionBuilderImpl(
+    return _CompletionSuggestionBuilderImpl(
       element: elementData,
       kind: kind,
       completionOverride: completion,
@@ -1370,7 +1280,7 @@ class SuggestionBuilder {
   }
 
   /// The non-caching implementation of [_getElementCompletionData].
-  ElementCompletionData? _createElementCompletionData(Element element) {
+  _ElementCompletionData? _createElementCompletionData(Element element) {
     // Do not include operators in suggestions.
     if (element is ExecutableElement && element.isOperator) {
       return null;
@@ -1423,7 +1333,7 @@ class SuggestionBuilder {
           element, requiredParameters, namedParameters);
     }
 
-    return ElementCompletionData(
+    return _ElementCompletionData(
       completion: completion,
       isDeprecated: element.hasOrInheritsDeprecated,
       declaringType: declaringType,
@@ -1456,14 +1366,6 @@ class SuggestionBuilder {
 
   /// If the [element] has a documentation comment, return it.
   _ElementDocumentation? _getDocumentation(Element element) {
-    var documentationCache = request.documentationCache;
-    var data = documentationCache?.dataFor(element);
-    if (data != null) {
-      return _ElementDocumentation(
-        full: data.full,
-        summary: data.summary,
-      );
-    }
     var doc = DartUnitHoverComputer.computeDocumentation(
       request.dartdocDirectiveInfo,
       element,
@@ -1484,10 +1386,10 @@ class SuggestionBuilder {
     return null;
   }
 
-  /// Return [ElementCompletionData] for the [element], or `null` if the
+  /// Return [_ElementCompletionData] for the [element], or `null` if the
   /// element cannot be suggested for completion.
-  ElementCompletionData? _getElementCompletionData(Element element) {
-    ElementCompletionData? result;
+  _ElementCompletionData? _getElementCompletionData(Element element) {
+    _ElementCompletionData? result;
 
     var hasCompletionData = element.ifTypeOrNull<HasCompletionData>();
     if (hasCompletionData != null) {
@@ -1554,13 +1456,6 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
-    var documentationCache = request.documentationCache;
-    var data = documentationCache?.dataFor(element);
-    if (data != null) {
-      suggestion.docComplete = data.full;
-      suggestion.docSummary = data.summary;
-      return;
-    }
     var doc = DartUnitHoverComputer.computeDocumentation(
         request.dartdocDirectiveInfo, element,
         includeSummary: true);
@@ -1568,6 +1463,13 @@ class SuggestionBuilder {
       suggestion.docComplete = doc.full;
       suggestion.docSummary = doc.summary;
     }
+  }
+
+  static String _textToMatchOverride(ExecutableElement element) {
+    if (element.isOperator) {
+      return 'operator';
+    }
+    return element.displayName;
   }
 }
 
@@ -1605,6 +1507,7 @@ abstract class SuggestionListener {
 /// [CompletionSuggestionBuilder] that is based on a [CompletionSuggestion].
 class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
   final CompletionSuggestion _suggestion;
+
   final String? _textToMatchOverride;
 
   ValueCompletionSuggestionBuilder(
@@ -1633,6 +1536,104 @@ class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
   }
 }
 
+/// The implementation of [CompletionSuggestionBuilder] that is based on
+/// [ElementCompletionData] and location specific information.
+class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
+  final _ElementCompletionData element;
+
+  @override
+  final CompletionSuggestionKind kind;
+
+  @override
+  final int relevance;
+
+  final String? completionOverride;
+  final String? libraryUriStr;
+  final bool isNotImported;
+
+  _CompletionSuggestionBuilderImpl({
+    required this.element,
+    required this.kind,
+    required this.completionOverride,
+    required this.relevance,
+    required this.libraryUriStr,
+    required this.isNotImported,
+  });
+
+  @override
+  String get completion => completionOverride ?? element.completion;
+
+  /// TODO(scheglov) implement better key for not-yet-imported
+  @override
+  String get key {
+    var key = completion;
+    if (element.element.kind == protocol.ElementKind.CONSTRUCTOR) {
+      key = '$key()';
+    }
+    return key;
+  }
+
+  @override
+  String get textToMatch => completion;
+
+  @override
+  CompletionSuggestion build() {
+    return CompletionSuggestion(
+      kind,
+      relevance,
+      completion,
+      completion.length /*selectionOffset*/,
+      0 /*selectionLength*/,
+      element.isDeprecated,
+      false /*isPotential*/,
+      element: element.element,
+      docSummary: element.documentation?.summary,
+      docComplete: element.documentation?.full,
+      declaringType: element.declaringType,
+      returnType: element.returnType,
+      requiredParameterCount: element.requiredParameterCount,
+      hasNamedParameters: element.hasNamedParameters,
+      parameterNames: element.parameterNames,
+      parameterTypes: element.parameterTypes,
+      defaultArgumentListString: element.defaultArgumentList?.text,
+      defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
+      libraryUri: libraryUriStr,
+      isNotImported: isNotImported ? true : null,
+    );
+  }
+}
+
+/// Information about an [Element] that does not depend on the location where
+/// this element is suggested. For some often used elements, such as classes,
+/// it might be cached, so created only once.
+class _ElementCompletionData {
+  final String completion;
+  final bool isDeprecated;
+  final String? declaringType;
+  final String? returnType;
+  final List<String>? parameterNames;
+  final List<String>? parameterTypes;
+  final int? requiredParameterCount;
+  final bool? hasNamedParameters;
+  CompletionDefaultArgumentList? defaultArgumentList;
+  final _ElementDocumentation? documentation;
+  final protocol.Element element;
+
+  _ElementCompletionData({
+    required this.completion,
+    required this.isDeprecated,
+    required this.declaringType,
+    required this.returnType,
+    required this.parameterNames,
+    required this.parameterTypes,
+    required this.requiredParameterCount,
+    required this.hasNamedParameters,
+    required this.defaultArgumentList,
+    required this.documentation,
+    required this.element,
+  });
+}
+
 class _ElementDocumentation {
   final String full;
   final String? summary;
@@ -1641,12 +1642,4 @@ class _ElementDocumentation {
     required this.full,
     required this.summary,
   });
-}
-
-extension on Object? {
-  /// If the target is [T], return it, otherwise `null`.
-  T? ifTypeOrNull<T>() {
-    final self = this;
-    return self is T ? self : null;
-  }
 }

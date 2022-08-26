@@ -113,9 +113,6 @@ class ShadowField extends CorrectionProducer {
     }
     return null;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ShadowField newInstance() => ShadowField();
 }
 
 /// A utility that will find any references to a setter within an AST structure.

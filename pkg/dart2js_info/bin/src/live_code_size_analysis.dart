@@ -60,11 +60,12 @@ class LiveCodeAnalysisCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final argRes = argResults!;
+    var args = argRes.rest;
     if (args.length < 2) {
       usageException('Missing arguments, expected: info.data coverage.json');
     }
-    await _liveCodeAnalysis(args[0], args[1], argResults['verbose']);
+    await _liveCodeAnalysis(args[0], args[1], argRes['verbose']);
   }
 }
 
@@ -72,7 +73,7 @@ _liveCodeAnalysis(infoFile, coverageFile, bool verbose) async {
   var info = await infoFromFile(infoFile);
   var coverage = jsonDecode(File(coverageFile).readAsStringSync());
 
-  int realTotal = info.program.size;
+  int realTotal = info.program!.size;
   int totalLib = info.libraries.fold(0, (n, lib) => n + lib.size);
 
   int totalCode = 0;

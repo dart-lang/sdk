@@ -39,8 +39,8 @@ abstract class ClassScanner<Y extends TreeNode?> implements Scanner<Class, Y> {
     if (node is Class) {
       if (predicate(node)) {
         result.targets[node] = next?.scan(node);
-        // TODO(dmitryas): set result.errors when specification is landed,
-        //  same with all other places where targets is set
+        // TODO(cstefantsova): set result.errors when specification is landed,
+        // same with all other places where targets is set
       }
     } else if (node is Library) {
       _scanLibrary(node, result);

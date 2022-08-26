@@ -146,7 +146,7 @@ class RelevanceData {
   Map<int, int> tokenDistances = {};
 
   /// A table mapping percentage data names to the percentage data collected.
-  Map<String, _PercentageData> percentageData = {};
+  final Map<String, _PercentageData> _percentageData = {};
 
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
@@ -189,7 +189,7 @@ class RelevanceData {
   /// found. If [wasPositive] is `true` then the data point is a positive data
   /// point.
   void recordPercentage(String name, bool wasPositive) {
-    var data = percentageData.putIfAbsent(name, () => _PercentageData());
+    var data = _percentageData.putIfAbsent(name, () => _PercentageData());
     data.addDataPoint(wasPositive);
   }
 
@@ -1521,9 +1521,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
     if (inGenericContext) {
-      _recordElementKind(context + ' - generic', node);
+      _recordElementKind('$context - generic', node);
     } else {
-      _recordElementKind(context + ' - non-generic', node);
+      _recordElementKind('$context - non-generic', node);
     }
     _recordReferenceDepth(node);
     _recordTokenDistance(node);
@@ -1807,10 +1807,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       String descriptor, DartType parameterType, DartType argumentType,
       {bool isContextType = false}) {
     if (argumentType == parameterType) {
-      data.recordTypeMatch('$descriptor', 'exact');
+      data.recordTypeMatch(descriptor, 'exact');
       data.recordTypeMatch('all', 'exact');
     } else if (typeSystem.isSubtypeOf(argumentType, parameterType)) {
-      data.recordTypeMatch('$descriptor', 'subtype');
+      data.recordTypeMatch(descriptor, 'subtype');
       data.recordTypeMatch('all', 'subtype');
       if (isContextType &&
           argumentType is InterfaceType &&
@@ -1835,10 +1835,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         data.recordDistance('Subtype of context type (all)', distance);
       }
     } else if (typeSystem.isSubtypeOf(parameterType, argumentType)) {
-      data.recordTypeMatch('$descriptor', 'supertype');
+      data.recordTypeMatch(descriptor, 'supertype');
       data.recordTypeMatch('all', 'supertype');
     } else {
-      data.recordTypeMatch('$descriptor', 'unrelated');
+      data.recordTypeMatch(descriptor, 'unrelated');
       data.recordTypeMatch('all', 'unrelated');
     }
   }
@@ -1903,7 +1903,7 @@ class RelevanceMetricsComputer {
     sink.writeln();
     _writeCounts(sink, data.simpleCounts);
     sink.writeln();
-    _writePercentageData(sink, data.percentageData);
+    _writePercentageData(sink, data._percentageData);
     sink.writeln();
     _writeSideBySide(sink, [data.byTokenType, data.byElementKind],
         ['Token Types', 'Element Kinds']);

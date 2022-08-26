@@ -1,0 +1,7 @@
+extension SafeAccess<T> on Iterable<T> {
+  T get safeFirst {}
+}
+
+main() {}
+void test() {}
+void errors() {}

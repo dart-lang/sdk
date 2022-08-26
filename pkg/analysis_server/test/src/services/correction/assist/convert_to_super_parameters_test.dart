@@ -579,6 +579,27 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_named_required() async {
+    await resolveTestCode('''
+class A {
+  int x;
+  A({this.x = 0});
+}
+class B extends A {
+  B({required int x}) : super(x: x);
+}
+''');
+    await assertHasAssistAt('B(', '''
+class A {
+  int x;
+  A({this.x = 0});
+}
+class B extends A {
+  B({required super.x});
+}
+''');
+  }
+
   Future<void> test_namedConstructor() async {
     await resolveTestCode('''
 class A {

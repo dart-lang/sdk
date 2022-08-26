@@ -5,7 +5,9 @@
 library fasta.never_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
+import 'package:kernel/class_hierarchy.dart';
 
+import '../uris.dart';
 import 'builtin_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -16,21 +18,34 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
 
   NeverTypeDeclarationBuilder(DartType type, this.coreLibrary, int charOffset)
       : super("Never", type, coreLibrary, charOffset) {
-    assert(coreLibrary.importUri == Uri.parse('dart:core'));
+    assert(coreLibrary.importUri == dartCore);
   }
 
   @override
   String get debugName => "NeverTypeDeclarationBuilder";
 
   @override
-  DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
+  DartType buildAliasedType(
+      LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      ClassHierarchyBase? hierarchy,
+      {required bool hasExplicitTypeArguments}) {
     return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }
 
   @override
-  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments) {
+  DartType buildAliasedTypeWithBuiltArguments(
+      LibraryBuilder library,
+      Nullability nullability,
+      List<DartType> arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
     return type.withDeclaredNullability(nullability);
   }
 }

@@ -314,6 +314,7 @@ ExtendsVoid/example: Fail # Feature not yet enabled by default.
 ExtensionDeclaresAbstractMember/example: Fail
 ExtensionDeclaresConstructor/example: Fail
 ExtensionDeclaresInstanceField/example: Fail
+ExtensionInNullAwareReceiver/analyzerCode: Fail
 ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
 ExternalConstructorWithBody/part_wrapped_script1: Fail
 ExternalConstructorWithBody/script1: Fail
@@ -391,7 +392,6 @@ FfiNativeUnexpectedNumberOfParametersWithReceiver/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiPackedAnnotation/analyzerCode: Fail
 FfiPackedAnnotationAlignment/analyzerCode: Fail
-FfiPackedNestingNonPacked/analyzerCode: Fail
 FfiSizeAnnotation/analyzerCode: Fail
 FfiSizeAnnotationDimensions/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail
@@ -423,12 +423,11 @@ ForInLoopNotAssignable/part_wrapped_statement: Fail
 ForInLoopNotAssignable/statement: Fail
 ForInLoopTypeNotIterablePartNullability/example: Fail # Cannot occur but needed for symmetry with ForInLoopTypeNotIterableNullability
 ForInLoopWithConstVariable/example: Fail
-FunctionAsTypeParameter/analyzerCode: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/part_wrapped_script1: Fail
 FunctionTypedParameterVar/script1: Fail
-FunctionUsedAsDec/analyzerCode: Fail
 GeneratorReturnsValue/example: Fail
+GenericFunctionTypeAsTypeArgumentThroughTypedef/example: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
 IllegalAssignmentToNonAssignable/part_wrapped_script1: Fail
@@ -467,9 +466,6 @@ ImportAfterPart/script1: Fail
 IncompatibleRedirecteeFunctionType/part_wrapped_script6: Fail
 IncompatibleRedirecteeFunctionType/script6: Fail # Triggers multiple errors.
 IncompatibleRedirecteeFunctionTypeWarning/example: Fail
-IncorrectTypeArgumentInReturnTypeWarning/example: Fail
-IncorrectTypeArgumentInSupertypeInferredWarning/example: Fail
-IncorrectTypeArgumentInSupertypeWarning/example: Fail
 IncorrectTypeArgumentInferredWarning/example: Fail
 IncorrectTypeArgumentQualifiedInferredWarning/example: Fail
 IncorrectTypeArgumentQualifiedWarning/example: Fail
@@ -492,6 +488,8 @@ InterfaceCheck/example: Fail
 InterpolationInUri/example: Fail
 InvalidAssignmentWarning/analyzerCode: Fail
 InvalidAssignmentWarning/example: Fail
+InvalidAugmentSuper/analyzerCode: Fail
+InvalidAugmentSuper/example: Fail
 InvalidBreakTarget/analyzerCode: Fail
 InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail
@@ -561,6 +559,8 @@ JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler 
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
+JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
+JsInteropInvalidStaticClassMemberName/example: Fail
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
@@ -577,6 +577,10 @@ JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler spec
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
+JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropTrustTypesUsageNotAllowed/example: Fail # Web compiler specific
+JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
@@ -651,6 +655,12 @@ NeverValueError/example: Fail
 NeverValueWarning/analyzerCode: Fail
 NeverValueWarning/example: Fail
 NewAsSelector/analyzerCode: Fail
+NoAugmentSuperInvokeTarget/analyzerCode: Fail
+NoAugmentSuperInvokeTarget/example: Fail
+NoAugmentSuperReadTarget/analyzerCode: Fail
+NoAugmentSuperReadTarget/example: Fail
+NoAugmentSuperWriteTarget/analyzerCode: Fail
+NoAugmentSuperWriteTarget/example: Fail
 NoFormals/example: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail

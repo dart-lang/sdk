@@ -653,7 +653,7 @@ class _AnalyzerConverterTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    source = newFile2('/foo/bar.dart', '').createSource();
+    source = newFile('/foo/bar.dart', '').createSource();
     testFile = convertPath('$testPackageRootPath/lib/test.dart');
   }
 }

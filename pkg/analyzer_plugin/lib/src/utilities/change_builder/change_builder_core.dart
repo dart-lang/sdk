@@ -109,6 +109,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     var selection = _selection;
     if (selection != null) {
       change.selection = selection;
+      var selectionRange = _selectionRange;
+      if (selectionRange != null) {
+        change.selectionLength = selectionRange.length;
+      }
     }
     return change;
   }
@@ -308,7 +312,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// [offset] such that the positions are offset by the given [delta].
   /// Positions occur in linked edit groups and as the post-change selection.
   void _updatePositions(int offset, int delta) {
-    void _updatePosition(Position position) {
+    void updatePosition(Position position) {
       if (position.offset >= offset && !_lockedPositions.contains(position)) {
         position.offset = position.offset + delta;
       }
@@ -316,12 +320,12 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
     for (var group in _linkedEditGroups.values) {
       for (var position in group.positions) {
-        _updatePosition(position);
+        updatePosition(position);
       }
     }
     var selection = _selection;
     if (selection != null) {
-      _updatePosition(selection);
+      updatePosition(selection);
     }
   }
 }
@@ -635,7 +639,9 @@ class LinkedEditBuilderImpl implements LinkedEditBuilder {
 
   @override
   void addSuggestions(LinkedEditSuggestionKind kind, Iterable<String> values) {
-    values.forEach((value) => addSuggestion(kind, value));
+    for (var value in values) {
+      addSuggestion(kind, value);
+    }
   }
 
   @override

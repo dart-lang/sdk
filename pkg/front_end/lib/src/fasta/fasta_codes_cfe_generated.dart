@@ -1346,6 +1346,46 @@ Message _withArgumentsForInLoopTypeNotIterablePartNullability(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateGenericFunctionTypeAsTypeArgumentThroughTypedef = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Generic function type '#type' used as a type argument through typedef '#type2'.""",
+        correctionMessageTemplate:
+            r"""Try providing a non-generic function type explicitly.""",
+        withArguments:
+            _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeGenericFunctionTypeAsTypeArgumentThroughTypedef = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "GenericFunctionTypeAsTypeArgumentThroughTypedef",
+        analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeGenericFunctionTypeAsTypeArgumentThroughTypedef,
+      problemMessage:
+          """Generic function type '${type}' used as a type argument through typedef '${type2}'.""" +
+              labeler.originMessages,
+      correctionMessage: """Try providing a non-generic function type explicitly.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateGenericFunctionTypeInferredAsActualTypeArgument = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
@@ -1528,224 +1568,6 @@ Message _withArgumentsIncorrectTypeArgument(DartType _type, DartType _type2,
         'type2': _type2,
         'name': name,
         'name2': name2
-      });
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(DartType _type, DartType _type2, String name,
-            String name2, bool isNonNullableByDefault)>
-    templateIncorrectTypeArgumentInReturnType = const Template<
-            Message Function(DartType _type, DartType _type2, String name,
-                String name2, bool isNonNullableByDefault)>(
-        problemMessageTemplate:
-            r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type.""",
-        correctionMessageTemplate:
-            r"""Try changing type arguments so that they conform to the bounds.""",
-        withArguments: _withArgumentsIncorrectTypeArgumentInReturnType);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(DartType _type, DartType _type2, String name,
-            String name2, bool isNonNullableByDefault)>
-    codeIncorrectTypeArgumentInReturnType = const Code<
-            Message Function(DartType _type, DartType _type2, String name,
-                String name2, bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentInReturnType",
-        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInReturnType(DartType _type,
-    DartType _type2, String name, String name2, bool isNonNullableByDefault) {
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeIncorrectTypeArgumentInReturnType,
-      problemMessage:
-          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}' in the return type.""" +
-              labeler.originMessages,
-      correctionMessage: """Try changing type arguments so that they conform to the bounds.""",
-      arguments: {
-        'type': _type,
-        'type2': _type2,
-        'name': name,
-        'name2': name2
-      });
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            DartType _type,
-            DartType _type2,
-            String name,
-            String name2,
-            String name3,
-            String name4,
-            bool isNonNullableByDefault)>
-    templateIncorrectTypeArgumentInSupertype = const Template<
-            Message Function(
-                DartType _type,
-                DartType _type2,
-                String name,
-                String name2,
-                String name3,
-                String name4,
-                bool isNonNullableByDefault)>(
-        problemMessageTemplate:
-            r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'.""",
-        correctionMessageTemplate:
-            r"""Try changing type arguments so that they conform to the bounds.""",
-        withArguments: _withArgumentsIncorrectTypeArgumentInSupertype);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            DartType _type,
-            DartType _type2,
-            String name,
-            String name2,
-            String name3,
-            String name4,
-            bool isNonNullableByDefault)> codeIncorrectTypeArgumentInSupertype =
-    const Code<
-            Message Function(
-                DartType _type,
-                DartType _type2,
-                String name,
-                String name2,
-                String name3,
-                String name4,
-                bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentInSupertype",
-        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInSupertype(
-    DartType _type,
-    DartType _type2,
-    String name,
-    String name2,
-    String name3,
-    String name4,
-    bool isNonNullableByDefault) {
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  if (name3.isEmpty) throw 'No name provided';
-  name3 = demangleMixinApplicationName(name3);
-  if (name4.isEmpty) throw 'No name provided';
-  name4 = demangleMixinApplicationName(name4);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeIncorrectTypeArgumentInSupertype,
-      problemMessage:
-          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}' in the supertype '${name3}' of class '${name4}'.""" +
-              labeler.originMessages,
-      correctionMessage:
-          """Try changing type arguments so that they conform to the bounds.""",
-      arguments: {
-        'type': _type,
-        'type2': _type2,
-        'name': name,
-        'name2': name2,
-        'name3': name3,
-        'name4': name4
-      });
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-        Message Function(
-            DartType _type,
-            DartType _type2,
-            String name,
-            String name2,
-            String name3,
-            String name4,
-            bool isNonNullableByDefault)>
-    templateIncorrectTypeArgumentInSupertypeInferred = const Template<
-            Message Function(
-                DartType _type,
-                DartType _type2,
-                String name,
-                String name2,
-                String name3,
-                String name4,
-                bool isNonNullableByDefault)>(
-        problemMessageTemplate:
-            r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'.""",
-        correctionMessageTemplate:
-            r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
-        withArguments: _withArgumentsIncorrectTypeArgumentInSupertypeInferred);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<
-        Message Function(
-            DartType _type,
-            DartType _type2,
-            String name,
-            String name2,
-            String name3,
-            String name4,
-            bool isNonNullableByDefault)>
-    codeIncorrectTypeArgumentInSupertypeInferred = const Code<
-            Message Function(
-                DartType _type,
-                DartType _type2,
-                String name,
-                String name2,
-                String name3,
-                String name4,
-                bool isNonNullableByDefault)>(
-        "IncorrectTypeArgumentInSupertypeInferred",
-        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsIncorrectTypeArgumentInSupertypeInferred(
-    DartType _type,
-    DartType _type2,
-    String name,
-    String name2,
-    String name3,
-    String name4,
-    bool isNonNullableByDefault) {
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  List<Object> type2Parts = labeler.labelType(_type2);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  if (name3.isEmpty) throw 'No name provided';
-  name3 = demangleMixinApplicationName(name3);
-  if (name4.isEmpty) throw 'No name provided';
-  name4 = demangleMixinApplicationName(name4);
-  String type = typeParts.join();
-  String type2 = type2Parts.join();
-  return new Message(codeIncorrectTypeArgumentInSupertypeInferred,
-      problemMessage:
-          """Inferred type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${name2}' in the supertype '${name3}' of class '${name4}'.""" +
-              labeler.originMessages,
-      correctionMessage:
-          """Try specifying type arguments explicitly so that they conform to the bounds.""",
-      arguments: {
-        'type': _type,
-        'type2': _type2,
-        'name': name,
-        'name2': name2,
-        'name3': name3,
-        'name4': name4
       });
 }
 

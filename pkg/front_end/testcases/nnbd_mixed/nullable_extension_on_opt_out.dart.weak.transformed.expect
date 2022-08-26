@@ -11,7 +11,7 @@ extension _extension#0 on nul::A? {
 static method _extension#0|get#text(lowered final nul::A? #this) → core::String
   return "Lily was here";
 static method main() → void {
-  nul::A? a = null;
+  has-declared-initializer nul::A? a = null;
   self::expect("Lily was here", self::_extension#0|get#text(a));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {

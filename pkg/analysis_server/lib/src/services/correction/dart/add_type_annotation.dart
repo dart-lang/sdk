@@ -24,9 +24,16 @@ class AddTypeAnnotation extends CorrectionProducer {
   @override
   bool canBeAppliedToFile;
 
-  AddTypeAnnotation(bool multi)
-      : canBeAppliedInBulk = multi,
-        canBeAppliedToFile = multi;
+  /// Initialize a newly created instance that can't apply bulk and in-file
+  /// fixes.
+  AddTypeAnnotation()
+      : canBeAppliedInBulk = false,
+        canBeAppliedToFile = false;
+
+  /// Initialize a newly created instance that can apply bulk and in-file fixes.
+  AddTypeAnnotation.bulkFixable()
+      : canBeAppliedInBulk = true,
+        canBeAppliedToFile = true;
 
   @override
   AssistKind get assistKind => DartAssistKind.ADD_TYPE_ANNOTATION;
@@ -188,13 +195,6 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
     return visitor.bestType;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddTypeAnnotation newInstance() => AddTypeAnnotation(false);
-
-  /// Return an instance of this class that can apply bulk and in-file fixes.
-  /// Used as a tear-off in `FixProcessor`.
-  static AddTypeAnnotation newInstanceBulkFixable() => AddTypeAnnotation(true);
 }
 
 class _AssignedTypeCollector extends RecursiveAstVisitor<void> {

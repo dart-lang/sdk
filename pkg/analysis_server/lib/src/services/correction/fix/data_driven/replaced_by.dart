@@ -21,12 +21,23 @@ class ReplacedBy extends Change<_Data> {
   ReplacedBy({required this.newElement});
 
   @override
+  // The private type of the [data] parameter is dictated by the signature of
+  // the super-method and the class's super-class.
+  // ignore: library_private_types_in_public_api
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     var referenceRange = data.referenceRange;
     builder.addSimpleReplacement(referenceRange, _referenceTo(newElement));
+    var libraryUris = newElement.libraryUris;
+    if (libraryUris.isEmpty) return;
+    if (!libraryUris.any((uri) => builder.importsLibrary(uri))) {
+      builder.importLibraryElement(libraryUris.first);
+    }
   }
 
   @override
+  // The private return type is dictated by the signature of the super-method
+  // and the class's super-class.
+  // ignore: library_private_types_in_public_api
   _Data? validate(DataDrivenFix fix) {
     var node = fix.node;
     if (node is SimpleIdentifier) {

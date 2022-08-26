@@ -8,8 +8,6 @@ import '../scanner/token.dart' show Token;
 
 import 'error_delegation_listener.dart' show ErrorDelegationListener;
 
-import 'listener.dart' show Listener;
-
 import 'parser_impl.dart' show Parser;
 
 /// Parser similar to [TopLevelParser] but also parses class members (excluding
@@ -17,10 +15,7 @@ import 'parser_impl.dart' show Parser;
 class ClassMemberParser extends Parser {
   Parser? skipParser;
 
-  ClassMemberParser(Listener listener,
-      {bool useImplicitCreationExpression: true})
-      : super(listener,
-            useImplicitCreationExpression: useImplicitCreationExpression);
+  ClassMemberParser(super.listener, {super.useImplicitCreationExpression});
 
   @override
   Token parseExpression(Token token) {

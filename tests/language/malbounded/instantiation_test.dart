@@ -4,13 +4,13 @@
 
 class Super<T extends num> {}
 class Malbounded1 implements Super<String> {}
-//    ^
-// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Super' in the supertype 'Super' of class 'Malbounded1'.
+//                           ^
+// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Super'.
 //                                 ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 class Malbounded2 extends Super<String> {}
-//    ^
-// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Super' in the supertype 'Super' of class 'Malbounded2'.
+//                        ^
+// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Super'.
 //                              ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 

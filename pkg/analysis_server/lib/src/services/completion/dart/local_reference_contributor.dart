@@ -30,12 +30,9 @@ class LocalReferenceContributor extends DartCompletionContributor {
   /// The [_VisibilityTracker] tracks the set of elements already added in the
   /// completion list, this object helps prevents suggesting elements that have
   /// been shadowed by local declarations.
-  _VisibilityTracker visibilityTracker = _VisibilityTracker();
+  final _VisibilityTracker _visibilityTracker = _VisibilityTracker();
 
-  LocalReferenceContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  LocalReferenceContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {
@@ -71,7 +68,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
           try {
             builder.laterReplacesEarlier = false;
             var localVisitor = _LocalVisitor(
-                request, builder, visibilityTracker,
+                request, builder, _visibilityTracker,
                 suggestLocalFields: suggestLocalFields);
             localVisitor.visit(node);
           } finally {
@@ -102,36 +99,42 @@ class LocalReferenceContributor extends DartCompletionContributor {
     var opType = request.opType;
     if (!isFunctionalArgument) {
       for (var accessor in type.accessors) {
-        if (visibilityTracker._isVisible(accessor.declaration)) {
-          if (accessor.isGetter) {
-            if (opType.includeReturnValueSuggestions) {
-              memberBuilder.addSuggestionForAccessor(
-                  accessor: accessor, inheritanceDistance: inheritanceDistance);
-            }
-          } else {
-            if (opType.includeVoidReturnSuggestions) {
-              memberBuilder.addSuggestionForAccessor(
-                  accessor: accessor, inheritanceDistance: inheritanceDistance);
+        if (!accessor.isStatic) {
+          if (_visibilityTracker._isVisible(accessor.declaration)) {
+            if (accessor.isGetter) {
+              if (opType.includeReturnValueSuggestions) {
+                memberBuilder.addSuggestionForAccessor(
+                    accessor: accessor,
+                    inheritanceDistance: inheritanceDistance);
+              }
+            } else {
+              if (opType.includeVoidReturnSuggestions) {
+                memberBuilder.addSuggestionForAccessor(
+                    accessor: accessor,
+                    inheritanceDistance: inheritanceDistance);
+              }
             }
           }
         }
       }
     }
     for (var method in type.methods) {
-      if (visibilityTracker._isVisible(method.declaration)) {
-        if (!method.returnType.isVoid) {
-          if (opType.includeReturnValueSuggestions) {
-            memberBuilder.addSuggestionForMethod(
-                method: method,
-                inheritanceDistance: inheritanceDistance,
-                kind: classMemberSuggestionKind);
-          }
-        } else {
-          if (opType.includeVoidReturnSuggestions) {
-            memberBuilder.addSuggestionForMethod(
-                method: method,
-                inheritanceDistance: inheritanceDistance,
-                kind: classMemberSuggestionKind);
+      if (!method.isStatic) {
+        if (_visibilityTracker._isVisible(method.declaration)) {
+          if (!method.returnType.isVoid) {
+            if (opType.includeReturnValueSuggestions) {
+              memberBuilder.addSuggestionForMethod(
+                  method: method,
+                  inheritanceDistance: inheritanceDistance,
+                  kind: classMemberSuggestionKind);
+            }
+          } else {
+            if (opType.includeVoidReturnSuggestions) {
+              memberBuilder.addSuggestionForMethod(
+                  method: method,
+                  inheritanceDistance: inheritanceDistance,
+                  kind: classMemberSuggestionKind);
+            }
           }
         }
       }

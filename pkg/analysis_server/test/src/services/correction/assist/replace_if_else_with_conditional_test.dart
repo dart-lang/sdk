@@ -21,7 +21,7 @@ class ReplaceIfElseWithConditionalTest extends AssistProcessorTest {
 
   Future<void> test_assignment() async {
     await resolveTestCode('''
-main() {
+void f() {
   int vvv;
   if (true) {
     vvv = 111;
@@ -31,7 +31,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (true)', '''
-main() {
+void f() {
   int vvv;
   vvv = true ? 111 : 222;
 }
@@ -40,7 +40,7 @@ main() {
 
   Future<void> test_expressionVsReturn() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (true) {
     print(42);
   } else {
@@ -53,7 +53,7 @@ main() {
 
   Future<void> test_notIfStatement() async {
     await resolveTestCode('''
-main() {
+void f() {
   print(0);
 }
 ''');
@@ -62,7 +62,7 @@ main() {
 
   Future<void> test_notSingleStatement() async {
     await resolveTestCode('''
-main() {
+void f() {
   int vvv;
   if (true) {
     print(0);
@@ -78,7 +78,7 @@ main() {
 
   Future<void> test_return_expression_expression() async {
     await resolveTestCode('''
-main() {
+int f() {
   if (true) {
     return 111;
   } else {
@@ -87,7 +87,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (true)', '''
-main() {
+int f() {
   return true ? 111 : 222;
 }
 ''');

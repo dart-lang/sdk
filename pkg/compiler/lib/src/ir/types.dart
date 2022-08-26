@@ -25,13 +25,13 @@ class KernelDartTypes extends DartTypes {
   }
 
   @override
-  InterfaceType getSupertype(ClassEntity cls) {
+  InterfaceType? getSupertype(ClassEntity cls) {
     return elementMap.getSuperType(cls);
   }
 
   @override
   Iterable<InterfaceType> getSupertypes(ClassEntity cls) {
-    return elementMap.getOrderedTypeSet(cls).supertypes;
+    return elementMap.getOrderedTypeSet(cls).supertypes ?? const [];
   }
 
   @override
@@ -40,7 +40,7 @@ class KernelDartTypes extends DartTypes {
   }
 
   @override
-  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
+  InterfaceType? asInstanceOf(InterfaceType type, ClassEntity cls) {
     return elementMap.asInstanceOf(type, cls);
   }
 
@@ -50,7 +50,7 @@ class KernelDartTypes extends DartTypes {
   }
 
   @override
-  FunctionType getCallType(InterfaceType type) => elementMap.getCallType(type);
+  FunctionType? getCallType(InterfaceType type) => elementMap.getCallType(type);
 
   @override
   void checkTypeVariableBounds<T>(
@@ -62,7 +62,7 @@ class KernelDartTypes extends DartTypes {
     assert(typeVariables.length == typeArguments.length);
     for (int index = 0; index < typeArguments.length; index++) {
       DartType typeArgument = typeArguments[index];
-      TypeVariableType typeVariable = typeVariables[index];
+      final typeVariable = typeVariables[index] as TypeVariableType;
       DartType bound = subst(typeArguments, typeVariables,
           elementMap.getTypeVariableBound(typeVariable.element));
       checkTypeVariableBound(context, typeArgument, typeVariable, bound);
@@ -94,7 +94,7 @@ class KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
 
   @override
   InterfaceType substByContext(InterfaceType type, InterfaceType context) {
-    return elementMap.substByContext(type, context);
+    return elementMap.substByContext(type, context) as InterfaceType;
   }
 
   @override

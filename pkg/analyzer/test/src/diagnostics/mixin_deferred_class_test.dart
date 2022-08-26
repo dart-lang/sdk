@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class MixinDeferredClassTest extends PubPackageResolutionTest {
   test_classTypeAlias() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}
 ''');
@@ -31,7 +31,7 @@ class C = B with a.A;
   }
 
   test_enum() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {}
 ''');
     await assertErrorsInCode('''
@@ -45,7 +45,7 @@ enum E with a.A {
   }
 
   test_mixin_deferred_class() async {
-    newFile2('$testPackageLibPath/lib1.dart', '''
+    newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;
 class A {}
 ''');

@@ -425,7 +425,7 @@ class AnnotateKernel extends RecursiveVisitor {
           node is! StaticTearOff) {
         // The compiler uses another heuristic in addition to the call-site
         // annotation: if the call-site is non-dynamic and the interface target does
-        // not exist in the parent chain of _Smi (int is used as an approxmiation
+        // not exist in the parent chain of _Smi (int is used as an approximation
         // here), then the receiver cannot be _Smi. This heuristic covers most
         // cases, so we skip these to avoid showering the AST with annotations.
         if (interfaceTarget == null ||
@@ -989,10 +989,6 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
   @override
   visitFunctionType(FunctionType node) {
     node.visitChildren(this);
-    final typedef = node.typedef;
-    if (typedef != null) {
-      shaker.addUsedTypedef(typedef);
-    }
   }
 
   @override
@@ -1352,10 +1348,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
     } else {
       node.interfaceTarget = fieldMorpher
-          .adjustInstanceCallTarget(node.interfaceTarget) as Procedure?;
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget!);
-      }
+          .adjustInstanceCallTarget(node.interfaceTarget) as Procedure;
+      shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
   }
@@ -1368,10 +1362,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall([]);
     } else {
       node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget!);
-      }
+          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget)!;
+      shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
   }
@@ -1384,10 +1376,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall([node.value]);
     } else {
       node.interfaceTarget = fieldMorpher
-          .adjustInstanceCallTarget(node.interfaceTarget, isSetter: true);
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget!);
-      }
+          .adjustInstanceCallTarget(node.interfaceTarget, isSetter: true)!;
+      shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
   }
@@ -1875,7 +1865,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
       node.members.length = writeIndex;
 
       // We only retain the extension if at least one member is retained.
-      assert(node.members.length > 0);
+      assert(node.members.isNotEmpty);
       return node;
     }
     return removalSentinel!;

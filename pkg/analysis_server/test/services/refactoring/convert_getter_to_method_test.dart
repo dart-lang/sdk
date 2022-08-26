@@ -45,7 +45,7 @@ void f(String a) {
   Future<void> test_change_function() async {
     await indexTestUnit('''
 int get test => 42;
-main() {
+void f() {
   var a = test;
   var b = test;
 }
@@ -57,7 +57,7 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 int test() => 42;
-main() {
+void f() {
   var a = test();
   var b = test();
 }
@@ -144,7 +144,7 @@ void f(A a, B b) {
   Future<void> test_checkInitialConditions_syntheticGetter() async {
     await indexTestUnit('''
 int test = 42;
-main() {
+void f() {
 }
 ''');
     var element = findElement.topGet('test');

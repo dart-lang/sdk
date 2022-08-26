@@ -4,8 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Position;
 import 'package:test/test.dart';
@@ -36,15 +35,13 @@ class Bar {
   Future<void> test_documentChange_notifiesPlugins() async {
     await _initializeAndOpen();
     await changeFile(2, mainFileUri, [
-      Either2<TextDocumentContentChangeEvent1,
-          TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
+      TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
         range: Range(
             start: Position(line: 0, character: 6),
             end: Position(line: 0, character: 9)),
         text: 'Bar',
       )),
-      Either2<TextDocumentContentChangeEvent1,
-          TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
+      TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
         range: Range(
             start: Position(line: 1, character: 21),
             end: Position(line: 1, character: 24)),
@@ -64,15 +61,13 @@ class Bar {
   Future<void> test_documentChange_updatesOverlay() async {
     await _initializeAndOpen();
     await changeFile(2, mainFileUri, [
-      Either2<TextDocumentContentChangeEvent1,
-          TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
+      TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
         range: Range(
             start: Position(line: 0, character: 6),
             end: Position(line: 0, character: 9)),
         text: 'Bar',
       )),
-      Either2<TextDocumentContentChangeEvent1,
-          TextDocumentContentChangeEvent2>.t1(TextDocumentContentChangeEvent1(
+      TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
         range: Range(
             start: Position(line: 1, character: 21),
             end: Position(line: 1, character: 24)),

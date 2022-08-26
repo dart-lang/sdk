@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
@@ -12,9 +14,8 @@ import '../elements/entity_utils.dart';
 import '../elements/types.dart';
 import '../ir/scope_visitor.dart';
 import '../js_model/elements.dart' show JField;
-import '../js_model/js_world_builder.dart';
-import '../kernel/element_map.dart';
-import '../kernel/kernel_strategy.dart';
+import '../js_model/js_to_frontend_map.dart' show JsToFrontendMap;
+import '../kernel/element_map.dart' show KernelToElementMap;
 import '../kernel/kelements.dart' show KClass, KField, KConstructor;
 import '../kernel/kernel_world.dart';
 import '../options.dart';
@@ -43,8 +44,7 @@ class KFieldAnalysis {
   final Map<KClass, ClassData> _classData = {};
   final Map<KField, StaticFieldData> _staticFieldData = {};
 
-  KFieldAnalysis(KernelFrontendStrategy kernelStrategy)
-      : _elementMap = kernelStrategy.elementMap;
+  KFieldAnalysis(this._elementMap);
 
   // Register class during resolution. Use simple syntactic analysis to find
   // null-initialized fields.
@@ -295,6 +295,10 @@ class JFieldAnalysis {
           if (canBeElided(kField)) {
             fieldData[jField] = const FieldAnalysisData(isElided: true);
           }
+          // TODO(sra): Because we skip the logic below for fields annotated
+          // with `@pragma('dart2js:noElision')`, fields retained due to the
+          // pragma are not deduced to be `isInitializedInAllocator` even when
+          // they could be.
         } else {
           if (data.initialValue != null) {
             ConstantValue initialValue;
@@ -365,24 +369,29 @@ class JFieldAnalysis {
             if (!isTooComplex && initialValue != null) {
               ConstantValue value = map.toBackendConstant(initialValue);
               bool isEffectivelyConstant = false;
+              bool isAssignedOnce = false;
+              bool isLateBackingField = false;
               bool isInitializedInAllocator = false;
               assert(value != null);
               if (!memberUsage.hasWrite && canBeElided(kField)) {
                 isEffectivelyConstant = true;
-              } else if (value.isNull ||
-                  value.isInt ||
-                  value.isBool ||
-                  value.isString ||
+              } else if (value is PrimitiveConstantValue ||
                   value is LateSentinelConstantValue) {
                 // TODO(johnniwinther,sra): Support non-primitive constants in
                 // allocators when it does cause allocators to deoptimized
                 // because of deferred loading.
                 isInitializedInAllocator = true;
+                isLateBackingField =
+                    closedWorld.elementEnvironment.isLateBackingField(kField);
+                isAssignedOnce = closedWorld.elementEnvironment
+                    .isLateFinalBackingField(kField);
               }
               fieldData[jField] = FieldAnalysisData(
                   initialValue: value,
                   isEffectivelyFinal: isEffectivelyConstant,
                   isElided: isEffectivelyConstant,
+                  isAssignedOnce: isAssignedOnce,
+                  isLateBackingField: isLateBackingField,
                   isInitializedInAllocator: isInitializedInAllocator);
             }
           }
@@ -582,6 +591,15 @@ class FieldAnalysisData {
   final bool isEffectivelyFinal;
   final bool isElided;
 
+  /// The field has two values, an initial value and a subsequent value. The
+  /// backing field for a `late final` instance field has this property.
+  // TODO(sra): It might be possible to infer other fields have this property,
+  // e.g. manual lazy fields initialized via `??=` to a not-null value.
+  final bool isAssignedOnce;
+
+  /// The field is a backing field for a late instance field.
+  final bool isLateBackingField;
+
   /// If `true` the field is not effectively constant but the initializer can be
   /// generated eagerly without the need for lazy initialization wrapper.
   final bool isEager;
@@ -598,6 +616,8 @@ class FieldAnalysisData {
       this.isInitializedInAllocator = false,
       this.isEffectivelyFinal = false,
       this.isElided = false,
+      this.isAssignedOnce = false,
+      this.isLateBackingField = false,
       this.isEager = false,
       this.eagerCreationIndex = null,
       this.eagerFieldDependenciesForTesting = null});
@@ -609,16 +629,20 @@ class FieldAnalysisData {
     bool isInitializedInAllocator = source.readBool();
     bool isEffectivelyFinal = source.readBool();
     bool isElided = source.readBool();
+    bool isAssignedOnce = source.readBool();
+    bool isLateBackingField = source.readBool();
     bool isEager = source.readBool();
     int eagerCreationIndex = source.readIntOrNull();
     List<FieldEntity> eagerFieldDependencies =
-        source.readMembers<FieldEntity>(emptyAsNull: true);
+        source.readMembersOrNull<FieldEntity>();
     source.end(tag);
     return FieldAnalysisData(
         initialValue: initialValue,
         isInitializedInAllocator: isInitializedInAllocator,
         isEffectivelyFinal: isEffectivelyFinal,
         isElided: isElided,
+        isAssignedOnce: isAssignedOnce,
+        isLateBackingField: isLateBackingField,
         isEager: isEager,
         eagerCreationIndex: eagerCreationIndex,
         eagerFieldDependenciesForTesting: eagerFieldDependencies);
@@ -630,6 +654,8 @@ class FieldAnalysisData {
     sink.writeBool(isInitializedInAllocator);
     sink.writeBool(isEffectivelyFinal);
     sink.writeBool(isElided);
+    sink.writeBool(isAssignedOnce);
+    sink.writeBool(isLateBackingField);
     sink.writeBool(isEager);
     sink.writeIntOrNull(eagerCreationIndex);
     sink.writeMembers(eagerFieldDependenciesForTesting, allowNull: true);
@@ -646,10 +672,14 @@ class FieldAnalysisData {
   ConstantValue get constantValue => isEffectivelyFinal ? initialValue : null;
 
   @override
-  String toString() =>
-      'FieldAnalysisData(initialValue=${initialValue?.toStructuredText(null)},'
+  String toString() => 'FieldAnalysisData('
+      'initialValue=${initialValue?.toStructuredText(null)},'
       'isInitializedInAllocator=$isInitializedInAllocator,'
-      'isEffectivelyFinal=$isEffectivelyFinal,isElided=$isElided,'
-      'isEager=$isEager,eagerCreationIndex=$eagerCreationIndex,'
+      'isEffectivelyFinal=$isEffectivelyFinal,'
+      'isElided=$isElided,'
+      'isAssignedOnce=$isAssignedOnce,'
+      'isLateBackingField=$isLateBackingField,'
+      'isEager=$isEager,'
+      'eagerCreationIndex=$eagerCreationIndex,'
       'eagerFieldDependencies=$eagerFieldDependenciesForTesting)';
 }

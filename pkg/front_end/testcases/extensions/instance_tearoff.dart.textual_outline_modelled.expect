@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class1 {
   Class1(this.field);
   String toString() => 'Class1($field)';
@@ -14,13 +13,13 @@ class Class2 {
 expect(expected, actual) {}
 
 extension Extension1 on Class1 {
-  int genericMethod<T extends num>(T t) {}
   int method() {}
+  num genericMethod<T extends num>(T t) {}
 }
 
 extension Extension2 on Class2 {
-  int genericMethod<T extends num>(T t) {}
   int method() {}
+  num genericMethod<T extends num>(T t) {}
 }
 
 main() {}

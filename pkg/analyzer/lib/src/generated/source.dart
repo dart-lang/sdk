@@ -19,19 +19,11 @@ abstract class BasicSource extends Source {
 
   BasicSource(this.uri);
 
-  @Deprecated('Not used anymore')
-  @override
-  String get encoding => uri.toString();
-
   @override
   String get fullName => '$uri';
 
   @override
   int get hashCode => uri.hashCode;
-
-  @Deprecated('Use uri.isScheme("dart") instead')
-  @override
-  bool get isInSystemLibrary => uri.isScheme('dart');
 
   @override
   String get shortName => pathos.basename(fullName);
@@ -97,29 +89,11 @@ class NonExistingSource extends Source {
     throw UnsupportedError('$fullName does not exist.');
   }
 
-  @Deprecated('Not used anymore')
-  @override
-  String get encoding => uri.toString();
-
   @override
   int get hashCode => fullName.hashCode;
 
-  @Deprecated('Use uri.isScheme("dart") instead')
-  @override
-  bool get isInSystemLibrary => false;
-
-  @Deprecated('Not used anymore')
-  @override
-  int get modificationStamp => -1;
-
   @override
   String get shortName => pathos.basename(fullName);
-
-  @Deprecated('Use Source.uri instead')
-  @override
-  UriKind get uriKind {
-    return UriKind.FILE_URI;
-  }
 
   @override
   bool operator ==(Object other) {
@@ -169,14 +143,6 @@ abstract class Source {
   /// @throws Exception if the contents of this source could not be accessed
   TimestampedData<String> get contents;
 
-  /// Return an encoded representation of this source that can be used to create
-  /// a source that is equal to this source.
-  ///
-  /// @return an encoded representation of this source
-  /// See [SourceFactory.fromEncoding].
-  @Deprecated('Not used anymore')
-  String get encoding;
-
   /// Return the full (long) version of the name that can be displayed to the
   /// user to denote this source. For example, for a source representing a file
   /// this would typically be the absolute path of the file.
@@ -191,26 +157,6 @@ abstract class Source {
   @override
   int get hashCode;
 
-  /// Return `true` if this source is in one of the system libraries.
-  ///
-  /// @return `true` if this is in a system library
-  @Deprecated('Use uri.isScheme("dart") instead')
-  bool get isInSystemLibrary;
-
-  /// Return the modification stamp for this source, or a negative value if the
-  /// source does not exist. A modification stamp is a non-negative integer with
-  /// the property that if the contents of the source have not been modified
-  /// since the last time the modification stamp was accessed then the same
-  /// value will be returned, but if the contents of the source have been
-  /// modified one or more times (even if the net change is zero) the stamps
-  /// will be different.
-  ///
-  /// Clients should consider using the method
-  /// [AnalysisContext.getModificationStamp] because contexts can have local
-  /// overrides of the content of a source that the source is not aware of.
-  @Deprecated('Not used anymore')
-  int get modificationStamp;
-
   /// Return a short version of the name that can be displayed to the user to
   /// denote this source. For example, for a source representing a file this
   /// would typically be the name of the file.
@@ -222,16 +168,6 @@ abstract class Source {
   ///
   /// @return the URI from which this source was originally derived
   Uri get uri;
-
-  /// Return the kind of URI from which this source was originally derived. If
-  /// this source was created from an absolute URI, then the returned kind will
-  /// reflect the scheme of the absolute URI. If it was created from a relative
-  /// URI, then the returned kind will be the same as the kind of the source
-  /// against which the relative URI was resolved.
-  ///
-  /// @return the kind of URI from which this source was originally derived
-  @Deprecated('Use Source.uri instead')
-  UriKind get uriKind;
 
   /// Return `true` if the given object is a source that represents the same
   /// source code as this source.
@@ -299,14 +235,6 @@ abstract class SourceFactory {
   /// if either the [containedUri] is invalid or if it cannot be resolved
   /// against the [containingSource]'s URI.
   Source? resolveUri(Source? containingSource, String? containedUri);
-
-  /// Return an absolute URI that represents the given source, or `null` if a
-  /// valid URI cannot be computed.
-  ///
-  /// @param source the source to get URI for
-  /// @return the absolute URI representing the given source
-  @Deprecated('Use pathToUri() instead')
-  Uri? restoreUri(Source source);
 }
 
 /// The enumeration `SourceKind` defines the different kinds of sources that are
@@ -350,72 +278,6 @@ class SourceKind implements Comparable<SourceKind> {
   String toString() => name;
 }
 
-/// The enumeration `UriKind` defines the different kinds of URI's that are
-/// known to the analysis engine. These are used to keep track of the kind of
-/// URI associated with a given source.
-@Deprecated('Use Source.uri instead')
-class UriKind implements Comparable<UriKind> {
-  /// A 'dart:' URI.
-  static const UriKind DART_URI = UriKind('DART_URI', 0, 0x64);
-
-  /// A 'file:' URI.
-  static const UriKind FILE_URI = UriKind('FILE_URI', 1, 0x66);
-
-  /// A 'package:' URI.
-  static const UriKind PACKAGE_URI = UriKind('PACKAGE_URI', 2, 0x70);
-
-  static const List<UriKind> values = [DART_URI, FILE_URI, PACKAGE_URI];
-
-  /// The name of this URI kind.
-  final String name;
-
-  /// The ordinal value of the URI kind.
-  final int ordinal;
-
-  /// The single character encoding used to identify this kind of URI.
-  final int encoding;
-
-  /// Initialize a newly created URI kind to have the given encoding.
-  const UriKind(this.name, this.ordinal, this.encoding);
-
-  @override
-  int get hashCode => ordinal;
-
-  @override
-  int compareTo(UriKind other) => ordinal - other.ordinal;
-
-  @override
-  String toString() => name;
-
-  /// Return the URI kind represented by the given [encoding], or `null` if
-  /// there is no kind with the given encoding.
-  static UriKind? fromEncoding(int encoding) {
-    while (true) {
-      if (encoding == 0x64) {
-        return DART_URI;
-      } else if (encoding == 0x66) {
-        return FILE_URI;
-      } else if (encoding == 0x70) {
-        return PACKAGE_URI;
-      }
-      break;
-    }
-    return null;
-  }
-
-  /// Return the URI kind corresponding to the given scheme string.
-  static UriKind fromScheme(String scheme) {
-    if (scheme == 'package') {
-      return UriKind.PACKAGE_URI;
-    } else if (scheme == 'dart') {
-      return UriKind.DART_URI;
-    } else if (scheme == 'file') {
-      return UriKind.FILE_URI;
-    }
-    return UriKind.FILE_URI;
-  }
-}
-
 /// The abstract class `UriResolver` defines the behavior of objects that are
 /// used to resolve URI's for a source factory. Subclasses of this class are
 /// expected to resolve a single scheme of absolute URI.
@@ -425,33 +287,10 @@ abstract class UriResolver {
   /// The file at that path is not required to exist.
   ///
   /// Throws an [ArgumentError] if the [path] is not a valid path.
-  /// ignore: deprecated_member_use_from_same_package
-  Uri? pathToUri(String path) => restoreAbsolute(_FakeSource(path));
+  Uri? pathToUri(String path);
 
   /// Resolve the given absolute [uri]. Return a [Source] representing the file
   /// to which it was resolved, whether or not the resulting source exists, or
   /// `null` if it could not be resolved because the URI is invalid.
   Source? resolveAbsolute(Uri uri);
-
-  /// Return an absolute URI that represents the given [source], or `null` if a
-  /// valid URI cannot be computed.
-  ///
-  /// The computation should be based solely on [source.fullName].
-  @Deprecated('Use pathToUri() instead')
-  Uri? restoreAbsolute(Source source) {
-    return pathToUri(source.fullName);
-  }
-}
-
-class _FakeSource implements Source {
-  @override
-  final String fullName;
-
-  _FakeSource(this.fullName);
-
-  @override
-  Uri get uri => pathos.toUri(fullName);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

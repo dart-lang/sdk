@@ -6,24 +6,23 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
-        ARRAY_RTI_PROPERTY,
         CURRENT_SCRIPT,
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
         GET_ISOLATE_TAG,
         INITIALIZE_LOADED_HUNK,
-        INTERCEPTED_NAMES,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_LOADED,
         IS_HUNK_INITIALIZED,
-        JsBuiltin,
-        JsGetName,
         LEAF_TAGS,
         NATIVE_SUPERCLASS_TAG_NAME,
+        RUNTIME_METRICS,
         STARTUP_METRICS,
         STATIC_FUNCTION_NAME_PROPERTY_NAME,
         TearOffParametersPropertyNames;
+
+import 'dart:_js_shared_embedded_names' show JsBuiltin, JsGetName;
 
 import 'dart:collection';
 
@@ -163,7 +162,7 @@ void throwInvalidReflectionError(String memberName) {
 /// `--experiment-call-instrumentation`.
 ///
 /// By default, whenever a method is invoked for the first time, it prints an id
-/// and the method name to the console. This can be overriden by adding a top
+/// and the method name to the console. This can be overridden by adding a top
 /// level `dartCallInstrumentation` hook in JavaScript.
 @pragma('dart2js:noInline')
 void traceHelper(dynamic /*int*/ id, dynamic /*String*/ qualifiedName) {
@@ -1801,6 +1800,21 @@ fillLiteralSet(values, Set result) {
   return result;
 }
 
+/// Called by generated code to move and stringify properties from an object
+/// to a map literal.
+copyAndStringifyProperties(from, Map to) {
+  if (JS('bool', '!#', from)) return to;
+  List keys = JS('JSArray', r'Object.keys(#)', from);
+  int index = 0;
+  int length = getLength(keys);
+  while (index < length) {
+    var key = getIndex(keys, index++);
+    var value = JS('String', r'JSON.stringify(#[#])', from, key);
+    to[key] = value;
+  }
+  return to;
+}
+
 /// Returns the property [index] of the JavaScript array [array].
 getIndex(var array, int index) {
   return JS('var', r'#[#]', array, index);
@@ -2451,10 +2465,6 @@ jsPropertyAccess(var jsObject, String property) {
   return JS('var', r'#[#]', jsObject, property);
 }
 
-/// Called at the end of unaborted switch cases to get the singleton
-/// FallThroughError exception that will be thrown.
-getFallThroughError() => new FallThroughErrorImplementation();
-
 /// A metadata annotation describing the types instantiated by a native element.
 ///
 /// The annotation is valid on a native method and a field of a native class.
@@ -2587,14 +2597,6 @@ void assertHelper(condition) {
   if (assertTest(condition)) throw AssertionError();
 }
 
-/// Called by generated code when a method that must be statically
-/// resolved cannot be found.
-void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
-  Symbol memberName = new _symbol_dev.Symbol.unvalidated(name);
-  throw new NoSuchMethodError(
-      obj, memberName, arguments, new Map<Symbol, dynamic>());
-}
-
 /// Called by generated code when a static field's initializer references the
 /// field that is currently being initialized.
 void throwCyclicInit(String staticName) {
@@ -2691,7 +2693,7 @@ Future<Null> loadDeferredLibrary(String loadId) {
 
   void initializeSomeLoadedHunks() {
     for (int i = nextHunkToInitialize; i < total; ++i) {
-      // A hunk is initialized only if all the preceeding hunks have been
+      // A hunk is initialized only if all the preceding hunks have been
       // initialized.
       if (waitingForLoad[i]) return;
       nextHunkToInitialize++;
@@ -2780,7 +2782,7 @@ final String _thisScriptBaseUrl = _computeBaseUrl();
 
 String _computeBaseUrl() {
   String script = thisScript!;
-  return JS('', '#.substring(0, #.lastIndexOf("/"))', script, script);
+  return JS('', '#.substring(0, #.lastIndexOf("/") + 1)', script, script);
 }
 
 /// Trusted Type policy [1] for generating validated URLs for scripts for
@@ -2822,10 +2824,13 @@ Object _computePolicy() {
 Object _getBasedScriptUrl(String component) {
   final base = _thisScriptBaseUrl;
   final encodedComponent = _encodeURIComponent(component);
-  final url = '$base/$encodedComponent';
+  final url = '$base$encodedComponent';
   final policy = _deferredLoadingTrustedTypesPolicy;
   return JS('', '#.createScriptURL(#)', policy, url);
 }
+
+Object getBasedScriptUrlForTesting(String component) =>
+    _getBasedScriptUrl(component);
 
 String _encodeURIComponent(String component) {
   return JS('', 'self.encodeURIComponent(#)', component);
@@ -3071,6 +3076,10 @@ void assertInteropArgs(List<Object?> args) {
 
 Object? rawStartupMetrics() {
   return JS('JSArray', '#.a', JS_EMBEDDED_GLOBAL('', STARTUP_METRICS));
+}
+
+Object? rawRuntimeMetrics() {
+  return JS('', '#', JS_EMBEDDED_GLOBAL('', RUNTIME_METRICS));
 }
 
 /// Wraps the given [callback] within the current Zone.

@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
-import '../mocks.dart';
+import '../analysis_server_base.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,23 +16,23 @@ void main() {
 }
 
 @reflectiveTest
-class StatementCompletionTest extends AbstractAnalysisTest {
+class StatementCompletionTest extends PubPackageAnalysisServerTest {
   late SourceChange change;
 
   @override
   Future<void> setUp() async {
     super.setUp();
-    await createProject();
-    handler = EditDomainHandler(server);
+    await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
   Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request =
         EditGetStatementCompletionParams('test.dart', 0).toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
@@ -42,23 +40,24 @@ class StatementCompletionTest extends AbstractAnalysisTest {
     var request = EditGetStatementCompletionParams(
             convertPath('/foo/../bar/test.dart'), 0)
         .toRequest('0');
-    var response = await waitResponse(request);
-    expect(
+    var response = await handleRequest(request);
+    assertResponseFailure(
       response,
-      isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT),
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_FILE_PATH_FORMAT,
     );
   }
 
   Future<void> test_plainEnterFromStart() async {
     addTestFile('''
-main() {
+void f() {
   int v = 1;
 }
 ''');
     await waitForTasksFinished();
     await _prepareCompletion('v = 1;', atStart: true);
     _assertHasChange('Insert a newline at the end of the current line', '''
-main() {
+void f() {
   int v = 1;
   /*caret*/
 }
@@ -67,14 +66,14 @@ main() {
 
   Future<void> test_plainOleEnter() async {
     addTestFile('''
-main() {
+void f() {
   int v = 1;
 }
 ''');
     await waitForTasksFinished();
     await _prepareCompletion('v = 1;', atEnd: true);
     _assertHasChange('Insert a newline at the end of the current line', '''
-main() {
+void f() {
   int v = 1;
   /*caret*/
 }
@@ -83,7 +82,7 @@ main() {
 
   Future<void> test_plainOleEnterWithError() async {
     addTestFile('''
-main() {
+void f() {
   int v =
 }
 ''');
@@ -93,7 +92,7 @@ main() {
     _assertHasChange(
         'Insert a newline at the end of the current line',
         '''
-main() {
+void f() {
   int v =
   x
 }
@@ -106,7 +105,7 @@ main() {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
         var resultCode =
-            SourceEdit.applySequence(testCode, change.edits[0].edits);
+            SourceEdit.applySequence(testFileContent, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
           var offset = cmp(resultCode);
@@ -114,13 +113,13 @@ main() {
         }
       } else {
         if (cmp != null) {
-          var offset = cmp(testCode);
+          var offset = cmp(testFileContent);
           expect(change.selection!.offset, offset);
         }
       }
       return;
     }
-    fail('Expected to find |$message| but got: ' + change.message);
+    fail('Expected to find |$message| but got: ${change.message}');
   }
 
   Future<void> _prepareCompletion(String search,
@@ -136,8 +135,8 @@ main() {
 
   Future<void> _prepareCompletionAt(int offset) async {
     var request =
-        EditGetStatementCompletionParams(testFile, offset).toRequest('0');
-    var response = await waitResponse(request);
+        EditGetStatementCompletionParams(testFile.path, offset).toRequest('0');
+    var response = await handleSuccessfulRequest(request);
     var result = EditGetStatementCompletionResult.fromResponse(response);
     change = result.change;
   }

@@ -47,7 +47,7 @@ class SecureSocketUtils : public AllStatic {
            (ERR_GET_REASON(last_error) == PEM_R_NO_START_LINE);
   }
 
-  static void FetchErrorString(const SSL* ssl, TextBuffer* text_buffer);
+  static uint32_t FetchErrorString(const SSL* ssl, TextBuffer* text_buffer);
 };
 
 // Where the argument to the constructor is the handle for an object

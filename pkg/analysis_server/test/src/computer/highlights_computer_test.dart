@@ -55,7 +55,7 @@ extension E on String {}
     await _computeHighlights('''
 extension E on int {}
 
-main() {
+void f() {
   E(0).foo();
 }
 ''', hasErrors: true);
@@ -86,7 +86,7 @@ var s = 'test1 $foo test2 ${bar.b('test3')}';
 
   Future<void> test_throwExpression() async {
     await _computeHighlights('''
-void main() {
+void f() {
   throw 'foo';
 }
   ''');
@@ -112,7 +112,7 @@ void main() {
     bool hasErrors = false,
   }) async {
     this.content = content;
-    newFile2(sourcePath, content);
+    newFile(sourcePath, content);
     var result =
         await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
 

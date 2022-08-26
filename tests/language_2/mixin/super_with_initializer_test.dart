@@ -7,7 +7,7 @@
 /// Regression test for mixin overrides (dartbug.com/44636).
 ///
 /// Prior to the fix, B's initializer was accidentally being applied on the
-/// overriden definition in C, and as a result, the program would stack
+/// overridden definition in C, and as a result, the program would stack
 /// overflow.
 import 'package:expect/expect.dart';
 

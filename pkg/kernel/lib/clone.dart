@@ -176,6 +176,18 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
+  TreeNode visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) {
+    return new AbstractSuperPropertyGet.byReference(
+        node.name, node.interfaceTargetReference);
+  }
+
+  @override
+  TreeNode visitAbstractSuperPropertySet(AbstractSuperPropertySet node) {
+    return new AbstractSuperPropertySet.byReference(
+        node.name, clone(node.value), node.interfaceTargetReference);
+  }
+
+  @override
   TreeNode visitSuperPropertyGet(SuperPropertyGet node) {
     return new SuperPropertyGet.byReference(
         node.name, node.interfaceTargetReference);
@@ -195,6 +207,13 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitStaticSet(StaticSet node) {
     return new StaticSet.byReference(node.targetReference, clone(node.value));
+  }
+
+  @override
+  TreeNode visitAbstractSuperMethodInvocation(
+      AbstractSuperMethodInvocation node) {
+    return new AbstractSuperMethodInvocation.byReference(
+        node.name, clone(node.arguments), node.interfaceTargetReference);
   }
 
   @override
@@ -473,7 +492,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
           isDefault: switchCase.isDefault);
     }
     return new SwitchStatement(
-        clone(node.expression), node.cases.map(clone).toList());
+        clone(node.expression), node.cases.map(clone).toList(),
+        isExplicitlyExhaustive: node.isExplicitlyExhaustive);
   }
 
   @override
@@ -897,7 +917,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[]
-      ..startFileOffset = _cloneFileOffset(node.startFileOffset)
+      ..fileStartOffset = _cloneFileOffset(node.fileStartOffset)
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
@@ -1040,8 +1060,10 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
   SuperMethodInvocation visitSuperMethodInvocation(SuperMethodInvocation node) {
     SuperMethodInvocation cloned =
         super.visitSuperMethodInvocation(node) as SuperMethodInvocation;
-    cloned.interfaceTarget =
-        _findSuperMember(node.name, isSetter: false) as Procedure?;
+    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: false)
+            as Procedure? ??
+        // TODO(johnniwinther): Remove this when an error is reported instead.
+        cloned.interfaceTarget;
     return cloned;
   }
 
@@ -1049,7 +1071,9 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
   SuperPropertyGet visitSuperPropertyGet(SuperPropertyGet node) {
     SuperPropertyGet cloned =
         super.visitSuperPropertyGet(node) as SuperPropertyGet;
-    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: false);
+    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: false) ??
+        // TODO(johnniwinther): Remove this when an error is reported instead.
+        cloned.interfaceTarget;
     return cloned;
   }
 
@@ -1057,7 +1081,9 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
   SuperPropertySet visitSuperPropertySet(SuperPropertySet node) {
     SuperPropertySet cloned =
         super.visitSuperPropertySet(node) as SuperPropertySet;
-    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: true);
+    cloned.interfaceTarget = _findSuperMember(node.name, isSetter: true) ??
+        // TODO(johnniwinther): Remove this when an error is reported instead.
+        cloned.interfaceTarget;
     return cloned;
   }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.js_model.strategy;
 
 import 'package:kernel/ast.dart' as ir;
@@ -12,7 +14,8 @@ import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../compiler.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart'
+    show LateOutputUnitDataBuilder, OutputUnitData;
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';
@@ -45,7 +48,7 @@ import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
-import '../ssa/builder_kernel.dart';
+import '../ssa/builder.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';
@@ -58,7 +61,7 @@ import 'closure.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'js_world.dart';
-import 'js_world_builder.dart';
+import 'js_world_builder.dart' show JsClosedWorldBuilder;
 import 'locals.dart';
 
 /// JS Strategy pattern that defines the element model used in type inference
@@ -318,12 +321,15 @@ class JsBackendStrategy {
     if (_compiler.options.testMode) {
       bool useDataKinds = true;
       List<Object> data = [];
-      DataSinkWriter sink =
-          DataSinkWriter(ObjectDataSink(data), useDataKinds: useDataKinds);
+      DataSinkWriter sink = DataSinkWriter(
+          ObjectDataSink(data), _compiler.options,
+          useDataKinds: useDataKinds);
       sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
       result.writeToDataSink(sink);
-      DataSourceReader source =
-          DataSourceReader(ObjectDataSource(data), useDataKinds: useDataKinds);
+      sink.close();
+      DataSourceReader source = DataSourceReader(
+          ObjectDataSource(data), _compiler.options,
+          useDataKinds: useDataKinds);
       List<ModularName> modularNames = [];
       List<ModularExpression> modularExpression = [];
       source.registerCodegenReader(

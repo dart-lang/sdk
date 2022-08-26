@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
   @TestTimeout(Timeout.factor(2))
-  Future<void> test_reanalyze_concurrent() {
+  Future<void> test_reanalyze_concurrent() async {
     var pathname = sourcePath('test.dart');
     var text = '''
 // Do a bunch of imports so that analysis has some work to do.
@@ -28,20 +28,21 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
 
-main() {}''';
+void f() {}''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
-    return analysisFinished.then((_) {
-      sendAnalysisReanalyze();
-      // Wait for reanalysis to start.
-      return onServerStatus.first.then((_) {
-        sendAnalysisReanalyze();
-        return analysisFinished.then((_) {
-          // Now that reanalysis has finished, give the server an extra second
-          // to make sure it doesn't crash.
-          return Future.delayed(Duration(seconds: 1));
-        });
-      });
-    });
+    await standardAnalysisSetup();
+
+    await analysisFinished;
+    await sendAnalysisReanalyze();
+
+    // Wait for reanalysis to start.
+    await onServerStatus.first;
+
+    await sendAnalysisReanalyze();
+    await analysisFinished;
+
+    // Now that reanalysis has finished, give the server an extra second
+    // to make sure it doesn't crash.
+    await Future.delayed(Duration(seconds: 1));
   }
 }

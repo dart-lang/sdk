@@ -19,7 +19,7 @@ main(List<String> args) async {
     if (entry is Directory) {
       var dirName = entry.uri.path.substring(baseDir.path.length);
       test(dirName, () => _runTest(entry.uri, dirName, options),
-          skip: options.filter != null && !dirName.contains(options.filter));
+          skip: options.filter != null && !dirName.contains(options.filter!));
     }
   }
 }
@@ -46,7 +46,7 @@ Future<void> _runTest(Uri uri, String dirName, _Options options) async {
           "   ${Platform.executable} ${Platform.script} "
           "--update --show-update --filter $dirName");
     }
-    expect(expectation, result);
+    expect(result, expectation);
   } else if (await file.exists() && (await file.readAsString() == result)) {
     print("  expectation matches result and was up to date.");
   } else {
@@ -59,7 +59,7 @@ Future<void> _runTest(Uri uri, String dirName, _Options options) async {
 }
 
 String _dumpAsText(ModularTest test) {
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   bool isFirst = true;
   for (var module in test.modules) {
     if (isFirst) {
@@ -100,10 +100,10 @@ String _dumpAsText(ModularTest test) {
 class _Options {
   bool updateExpectations = false;
   bool showResultOnUpdate = false;
-  String filter = null;
+  String? filter;
 
   static _Options parse(List<String> args) {
-    var parser = new ArgParser()
+    var parser = ArgParser()
       ..addFlag('update',
           abbr: 'u',
           defaultsTo: false,

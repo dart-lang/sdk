@@ -366,7 +366,7 @@ class Forest {
 
   /// Return a representation of a block of [statements] at the given
   /// [fileOffset].
-  Statement createBlock(
+  Block createBlock(
       int fileOffset, int fileEndOffset, List<Statement> statements) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
@@ -646,8 +646,7 @@ class Forest {
 
   /// Creates [VariableDeclaration] for a variable named [name] at the given
   /// [functionNestingLevel].
-  VariableDeclaration createVariableDeclaration(
-      int fileOffset, String? name, int functionNestingLevel,
+  VariableDeclaration createVariableDeclaration(int fileOffset, String? name,
       {Expression? initializer,
       DartType? type,
       bool isFinal: false,
@@ -657,7 +656,7 @@ class Forest {
       bool isLocalFunction: false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new VariableDeclarationImpl(name, functionNestingLevel,
+    return new VariableDeclarationImpl(name,
         type: type,
         initializer: initializer,
         isFinal: isFinal,
@@ -753,7 +752,7 @@ class Forest {
   }
 
   SuperMethodInvocation createSuperMethodInvocation(
-      int fileOffset, Name name, Procedure? procedure, Arguments arguments) {
+      int fileOffset, Name name, Procedure procedure, Arguments arguments) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new SuperMethodInvocation(name, arguments, procedure)

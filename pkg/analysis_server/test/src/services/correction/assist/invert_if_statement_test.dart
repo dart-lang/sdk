@@ -21,7 +21,7 @@ class InvertIfStatementTest extends AssistProcessorTest {
 
   Future<void> test_blocks() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (true) {
     0;
   } else {
@@ -30,7 +30,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (', '''
-main() {
+void f() {
   if (false) {
     1;
   } else {
@@ -42,7 +42,7 @@ main() {
 
   Future<void> test_statements() async {
     await resolveTestCode('''
-main() {
+void f() {
   if (true)
     0;
   else
@@ -50,7 +50,7 @@ main() {
 }
 ''');
     await assertHasAssistAt('if (', '''
-main() {
+void f() {
   if (false)
     1;
   else

@@ -68,14 +68,12 @@ class MessageCode extends Code<Null> implements Message {
 
   final String? correctionMessage;
 
-  const MessageCode(String name,
-      {int index: -1,
-      List<String>? analyzerCodes,
-      Severity severity: Severity.error,
+  const MessageCode(super.name,
+      {super.index,
+      super.analyzerCodes,
+      super.severity,
       required this.problemMessage,
-      this.correctionMessage})
-      : super(name,
-            index: index, analyzerCodes: analyzerCodes, severity: severity);
+      this.correctionMessage});
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 

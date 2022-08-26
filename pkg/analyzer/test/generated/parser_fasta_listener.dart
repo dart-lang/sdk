@@ -30,7 +30,7 @@ import 'package:test/test.dart';
 class ForwardingTestListener extends ForwardingListener {
   final _stack = <String>[];
 
-  ForwardingTestListener([Listener? listener]) : super(listener);
+  ForwardingTestListener([super.listener]);
 
   void begin(String event) {
     expect(event, isNotNull);
@@ -1002,7 +1002,8 @@ class ForwardingTestListener extends ForwardingListener {
   @override
   void endInvalidAwaitExpression(
       Token beginToken, Token endToken, MessageCode errorCode) {
-    end('InvalidAwaitExpression');
+    // endInvalidAwaitExpression is started by beginAwaitExpression
+    end('AwaitExpression');
     super.endInvalidAwaitExpression(beginToken, endToken, errorCode);
   }
 

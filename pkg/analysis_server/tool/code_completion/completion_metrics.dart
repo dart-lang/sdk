@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io' show stdout;
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
@@ -11,14 +12,13 @@ import 'package:analysis_server/src/domains/completion/available_suggestions.dar
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/probability_range.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/status/pages.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -37,20 +37,16 @@ import 'package:analyzer/dart/element/element.dart'
         PrefixElement,
         TypeParameterElement,
         VariableElement;
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart' as err;
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
-import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:args/args.dart';
+import 'package:collection/collection.dart';
 
+import 'completion_metrics_base.dart';
 import 'metrics_util.dart';
 import 'output_utilities.dart';
 import 'relevance_table_generator.dart';
@@ -66,10 +62,13 @@ import 'visitors.dart';
 ///
 /// This approach has several drawbacks:
 ///
-/// - The AST is always complete and correct, and that's rarely the case for
-///   real completion requests. Usually the tree is incomplete and often has a
-///   completely different structure because of the way recovery works. We
-///   currently have no way of measuring completions under realistic conditions.
+/// - The options for creating an "in-progress" file are limited. In the default
+///   'overlay' mode, the AST is always complete and correct, rarely the case
+///   for real completion requests. The other 'overlay' modes generate
+///   incomplete ASTs with error recovery nodes, but neither of these quite
+///   properly emulate the act of editing the middle of a file, perhaps the
+///   middle of an expression, or the middle of an argument list. We currently
+///   have no way of measuring completions under realistic conditions.
 ///
 /// - We can't measure completions for several keywords because the presence of
 ///   the keyword in the AST causes it to not be suggested.
@@ -77,7 +76,7 @@ import 'visitors.dart';
 /// - The time it takes to compute the suggestions doesn't include the time
 ///   required to finish analyzing the file if the analysis hasn't been
 ///   completed before suggestions are requested. While the times are accurate
-///   (within the accuracy of the `Stopwatch` class) they are the minimum
+///   (within the accuracy of the [Stopwatch] class) they are the minimum
 ///   possible time. This doesn't give us a measure of how completion will
 ///   perform in production, but does give us an optimistic approximation.
 ///
@@ -90,12 +89,12 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  var options = CompletionMetricsOptions(result);
+  var options = CompletionMetricsQualityOptions(result);
   var provider = PhysicalResourceProvider.INSTANCE;
   if (result.wasParsed('reduceDir')) {
     var targetMetrics = <CompletionMetrics>[];
     var dir = provider.getFolder(result['reduceDir'] as String);
-    var computer = CompletionMetricsComputer('', options);
+    var computer = CompletionQualityMetricsComputer('', options);
     for (var child in dir.getChildren()) {
       if (child is File) {
         var metricsList =
@@ -122,7 +121,7 @@ Future<void> main(List<String> args) async {
   var rootPath = result.rest[0];
   print('Analyzing root: "$rootPath"');
   var stopwatch = Stopwatch()..start();
-  var computer = CompletionMetricsComputer(rootPath, options);
+  var computer = CompletionQualityMetricsComputer(rootPath, options);
   await computer.computeMetrics();
   stopwatch.stop();
 
@@ -146,43 +145,49 @@ Counter rankComparison = Counter('relevance rank comparison');
 
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
-  return ArgParser()
-    ..addOption(
+  return ArgParser(
+      usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : 80)
+    ..addFlag(
       'help',
       abbr: 'h',
       help: 'Print this help message.',
     )
     ..addOption(CompletionMetricsOptions.OVERLAY,
         allowed: [
-          CompletionMetricsOptions.OVERLAY_NONE,
-          CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN,
-          CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE
+          OverlayMode.none.flag,
+          OverlayMode.removeRestOfFile.flag,
+          OverlayMode.removeToken.flag,
         ],
-        defaultsTo: CompletionMetricsOptions.OVERLAY_NONE,
+        defaultsTo: OverlayMode.none.flag,
         help:
             'Before attempting a completion at the location of each token, the '
             'token can be removed, or the rest of the file can be removed to '
             'test code completion with diverse methods. The default mode is to '
             'complete at the start of the token without modifying the file.')
-    ..addFlag(CompletionMetricsOptions.PRINT_MISSED_COMPLETION_DETAILS,
+    ..addOption(CompletionMetricsOptions.PREFIX_LENGTH,
+        defaultsTo: '0',
+        help: 'The number of characters to include in the prefix. Each '
+            'completion will be requested this many characters in from the '
+            'start of the token being completed.')
+    ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_DETAILS,
         defaultsTo: false,
         help:
             'Print detailed information every time a completion request fails '
             'to produce a suggestions matching the expected suggestion.',
         negatable: false)
-    ..addFlag(CompletionMetricsOptions.PRINT_MISSED_COMPLETION_SUMMARY,
+    ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_SUMMARY,
         defaultsTo: false,
         help: 'Print summary information about the times that a completion '
             'request failed to produce a suggestions matching the expected '
             'suggestion.',
         negatable: false)
-    ..addFlag(CompletionMetricsOptions.PRINT_MISSING_INFORMATION,
+    ..addFlag(CompletionMetricsQualityOptions.PRINT_MISSING_INFORMATION,
         defaultsTo: false,
         help: 'Print information about places where no completion location was '
             'computed and about information that is missing in the completion '
             'tables.',
         negatable: false)
-    ..addFlag(CompletionMetricsOptions.PRINT_MRR_BY_LOCATION,
+    ..addFlag(CompletionMetricsQualityOptions.PRINT_MRR_BY_LOCATION,
         defaultsTo: false,
         help:
             'Print information about the mrr score achieved at each completion '
@@ -190,10 +195,10 @@ ArgParser createArgParser() {
             'score by pointing out the locations that are causing the biggest '
             'impact.',
         negatable: false)
-    ..addFlag(CompletionMetricsOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
+    ..addFlag(CompletionMetricsQualityOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
         defaultsTo: false,
         help: 'Print detailed information every time a completion request '
-            'produces a suggestions whose name matches the expected suggestion '
+            'produces a suggestion whose name matches the expected suggestion '
             'but that is referencing a different element',
         negatable: false)
     ..addFlag(CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
@@ -201,7 +206,7 @@ ArgParser createArgParser() {
         help: 'Print information about the completion requests that were the '
             'slowest to return suggestions.',
         negatable: false)
-    ..addFlag(CompletionMetricsOptions.PRINT_WORST_RESULTS,
+    ..addFlag(CompletionMetricsQualityOptions.PRINT_WORST_RESULTS,
         defaultsTo: false,
         help: 'Print information about the completion requests that had the '
             'worst mrr scores.',
@@ -291,10 +296,10 @@ enum CompletionGroup {
 }
 
 /// A wrapper for the collection of [Counter] and [MeanReciprocalRankComputer]
-/// objects for a run of [CompletionMetricsComputer].
+/// objects for a run of [CompletionQualityMetricsComputer].
 class CompletionMetrics {
   /// The maximum number of slowest results to collect.
-  static const maxSlowestResults = 5;
+  static const maxSlowestResults = 100;
 
   /// The maximum number of worst results to collect.
   static const maxWorstResults = 5;
@@ -331,6 +336,11 @@ class CompletionMetrics {
 
   final ArithmeticMeanComputer meanCompletionMS =
       ArithmeticMeanComputer('ms per completion');
+
+  /// A percentile computer for the ms per completion request, using 2.000
+  /// seconds as the max value to use in percentile calculations.
+  final PercentileComputer percentileCompletionMS =
+      PercentileComputer('ms per completion', valueLimit: 2000);
 
   final DistributionComputer distributionCompletionMS = DistributionComputer();
 
@@ -372,7 +382,10 @@ class CompletionMetrics {
   /// where a shadowed element was suggested rather than the visible one.
   Map<String, List<ShadowedCompletion>> shadowedCompletions = {};
 
-  final Map<CompletionGroup, List<CompletionResult>> slowestResults = {};
+  /// A list of the slowest results, sorted from slowest to fastest.
+  ///
+  /// This list contains at most [maxSlowestResults] results.
+  final List<CompletionResult> slowestResults = [];
 
   final Map<CompletionGroup, List<CompletionResult>> worstResults = {};
 
@@ -398,6 +411,8 @@ class CompletionMetrics {
         .fromJson(map['completionElementKindCounter'] as Map<String, dynamic>);
     metrics.meanCompletionMS
         .fromJson(map['meanCompletionMS'] as Map<String, dynamic>);
+    metrics.percentileCompletionMS
+        .fromJson(map['percentileMS'] as Map<String, dynamic>);
     metrics.distributionCompletionMS
         .fromJson(map['distributionCompletionMS'] as Map<String, dynamic>);
     metrics.mrrComputer.fromJson(map['mrrComputer'] as Map<String, dynamic>);
@@ -429,13 +444,10 @@ class CompletionMetrics {
         in map['missingCompletionLocationTables'] as List<dynamic>) {
       metrics.missingCompletionLocationTables.add(element as String);
     }
-    for (var entry in (map['slowestResults'] as Map<String, dynamic>).entries) {
-      var group = CompletionGroup.values[int.parse(entry.key)];
-      var results = (entry.value as List<dynamic>)
-          .map((map) => CompletionResult.fromJson(map as Map<String, dynamic>))
-          .toList();
-      metrics.slowestResults[group] = results;
-    }
+    metrics.slowestResults.addAll([
+      for (var result in map['slowestResults'] as List<dynamic>)
+        CompletionResult.fromJson(result as Map<String, dynamic>),
+    ]);
     for (var entry in (map['worstResults'] as Map<String, dynamic>).entries) {
       var group = CompletionGroup.values[int.parse(entry.key)];
       var results = (entry.value as List<dynamic>)
@@ -453,6 +465,7 @@ class CompletionMetrics {
     completionKindCounter.addData(metrics.completionKindCounter);
     completionElementKindCounter.addData(metrics.completionElementKindCounter);
     meanCompletionMS.addData(metrics.meanCompletionMS);
+    percentileCompletionMS.addData(metrics.percentileCompletionMS);
     distributionCompletionMS.addData(metrics.distributionCompletionMS);
     mrrComputer.addData(metrics.mrrComputer);
     successfulMrrComputer.addData(metrics.successfulMrrComputer);
@@ -474,10 +487,8 @@ class CompletionMetrics {
     missingCompletionLocations.addAll(metrics.missingCompletionLocations);
     missingCompletionLocationTables
         .addAll(metrics.missingCompletionLocationTables);
-    for (var resultList in metrics.slowestResults.values) {
-      for (var result in resultList) {
-        _recordSlowestResult(result);
-      }
+    for (var result in metrics.slowestResults) {
+      _recordSlowestResult(result);
     }
     for (var resultList in metrics.worstResults.values) {
       for (var result in resultList) {
@@ -545,6 +556,7 @@ class CompletionMetrics {
       'completionKindCounter': completionKindCounter.toJson(),
       'completionElementKindCounter': completionElementKindCounter.toJson(),
       'meanCompletionMS': meanCompletionMS.toJson(),
+      'percentileCompletionMS': percentileCompletionMS.toJson(),
       'distributionCompletionMS': distributionCompletionMS.toJson(),
       'mrrComputer': mrrComputer.toJson(),
       'successfulMrrComputer': successfulMrrComputer.toJson(),
@@ -558,9 +570,8 @@ class CompletionMetrics {
       'missingCompletionLocations': missingCompletionLocations.toList(),
       'missingCompletionLocationTables':
           missingCompletionLocationTables.toList(),
-      'slowestResults': slowestResults.map((key, value) => MapEntry(
-          key.index.toString(),
-          value.map((result) => result.toJson()).toList())),
+      'slowestResults':
+          slowestResults.map((result) => result.toJson()).toList(),
       'worstResults': worstResults.map((key, value) => MapEntry(
           key.index.toString(),
           value.map((result) => result.toJson()).toList())),
@@ -600,23 +611,23 @@ class CompletionMetrics {
     }
   }
 
-  /// If the [result] is took longer than any previously recorded results,
+  /// If the [result] took longer than any previously recorded results,
   /// record it.
   void _recordSlowestResult(CompletionResult result) {
-    var results = slowestResults.putIfAbsent(result.group, () => []);
-    if (results.length >= maxSlowestResults) {
-      if (result.elapsedMS <= results.last.elapsedMS) {
+    if (slowestResults.length >= maxSlowestResults) {
+      if (result.elapsedMS <= slowestResults.last.elapsedMS) {
         return;
       }
-      results.removeLast();
+      slowestResults.removeLast();
     }
-    results.add(result);
-    results.sort((first, second) => second.elapsedMS - first.elapsedMS);
+    slowestResults.add(result);
+    slowestResults.sort((first, second) => second.elapsedMS - first.elapsedMS);
   }
 
   /// Record this elapsed ms count for the average ms count.
   void _recordTime(CompletionResult result) {
     meanCompletionMS.addValue(result.elapsedMS);
+    percentileCompletionMS.addValue(result.elapsedMS);
     distributionCompletionMS.addValue(result.elapsedMS);
   }
 
@@ -634,25 +645,125 @@ class CompletionMetrics {
   }
 }
 
+/// The options specified on the command-line.
+class CompletionMetricsQualityOptions extends CompletionMetricsOptions {
+  /// A flag that causes detailed information to be printed every time a
+  /// completion request fails to produce a suggestions matching the expected
+  /// suggestion.
+  static const String PRINT_MISSED_COMPLETION_DETAILS =
+      'print-missed-completion-details';
+
+  /// A flag that causes summary information to be printed about the times that
+  /// a completion request failed to produce a suggestions matching the expected
+  /// suggestion.
+  static const String PRINT_MISSED_COMPLETION_SUMMARY =
+      'print-missed-completion-summary';
+
+  /// A flag that causes information to be printed about places where no
+  /// completion location was computed and about information that's missing in
+  /// the completion tables.
+  static const String PRINT_MISSING_INFORMATION = 'print-missing-information';
+
+  /// A flag that causes information to be printed about the mrr score achieved
+  /// at each completion location.
+  static const String PRINT_MRR_BY_LOCATION = 'print-mrr-by-location';
+
+  /// A flag that causes detailed information to be printed every time a
+  /// completion request produce a suggestions whose name matches the expected
+  /// suggestion but that is referencing a different element (one that's
+  /// shadowed by the correct element).
+  static const String PRINT_SHADOWED_COMPLETION_DETAILS =
+      'print-shadowed-completion-details';
+
+  /// A flag that causes information to be printed about the completion requests
+  /// that had the worst mrr scores.
+  static const String PRINT_WORST_RESULTS = 'print-worst-results';
+
+  /// A flag indicating whether information should be printed every time a
+  /// completion request fails to produce a suggestions matching the expected
+  /// suggestion.
+  final bool printMissedCompletionDetails;
+
+  /// A flag indicating whether information should be printed every time a
+  /// completion request fails to produce a suggestions matching the expected
+  /// suggestion.
+  final bool printMissedCompletionSummary;
+
+  /// A flag indicating whether information should be printed about places where
+  /// no completion location was computed and about information that's missing
+  /// in the completion tables.
+  final bool printMissingInformation;
+
+  /// A flag indicating whether information should be printed about the mrr
+  /// score achieved at each completion location.
+  final bool printMrrByLocation;
+
+  /// A flag indicating whether information should be printed every time a
+  /// completion request fails to produce a suggestions matching the expected
+  /// suggestion.
+  final bool printShadowedCompletionDetails;
+
+  /// A flag indicating whether information should be printed about the
+  /// completion requests that had the worst mrr scores.
+  final bool printWorstResults;
+
+  CompletionMetricsQualityOptions(super.results)
+      : printMissedCompletionDetails =
+            results[PRINT_MISSED_COMPLETION_DETAILS] as bool,
+        printMissedCompletionSummary =
+            results[PRINT_MISSED_COMPLETION_SUMMARY] as bool,
+        printMissingInformation = results[PRINT_MISSING_INFORMATION] as bool,
+        printMrrByLocation = results[PRINT_MRR_BY_LOCATION] as bool,
+        printShadowedCompletionDetails =
+            results[PRINT_SHADOWED_COMPLETION_DETAILS] as bool,
+        printWorstResults = results[PRINT_WORST_RESULTS] as bool;
+}
+
 /// This is the main metrics computer class for code completions. After the
 /// object is constructed, [computeCompletionMetrics] is executed to do analysis
 /// and print a summary of the metrics gathered from the completion tests.
-class CompletionMetricsComputer {
-  final String rootPath;
-
-  final CompletionMetricsOptions options;
-
-  late ResolvedUnitResult _resolvedUnitResult;
-
+class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   /// A list of the metrics to be computed.
   final List<CompletionMetrics> targetMetrics = [];
 
-  final OverlayResourceProvider _provider =
-      OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+  DeclarationsTracker? _declarationsTracker;
 
-  int overlayModificationStamp = 0;
+  protocol.CompletionAvailableSuggestionsParams? _availableSuggestionsParams;
 
-  CompletionMetricsComputer(this.rootPath, this.options);
+  CompletionQualityMetricsComputer(
+      super.rootPath, CompletionMetricsQualityOptions super.options);
+
+  @override
+  CompletionMetricsQualityOptions get options =>
+      super.options as CompletionMetricsQualityOptions;
+
+  @override
+  Future<void> applyOverlay(
+    AnalysisContext context,
+    String filePath,
+    ExpectedCompletion expectedCompletion,
+  ) async {
+    // If an overlay option is being used, compute the overlay file, and
+    // have the context reanalyze the file.
+    if (options.overlay != OverlayMode.none) {
+      final overlayContents = CompletionMetricsComputer.getOverlayContent(
+        resolvedUnitResult.content,
+        expectedCompletion,
+        options.overlay,
+        options.prefixLength,
+      );
+
+      provider.setOverlay(
+        filePath,
+        content: overlayContents,
+        modificationStamp: overlayModificationStamp++,
+      );
+      context.changeFile(filePath);
+      await context.applyPendingFileChanges();
+      resolvedUnitResult = await context.currentSession
+          .getResolvedUnit(filePath) as ResolvedUnitResult;
+    }
+  }
 
   /// Compare the metrics when each feature is used in isolation.
   void compareIndividualFeatures({bool availableSuggestions = false}) {
@@ -695,6 +806,7 @@ class CompletionMetricsComputer {
     }
   }
 
+  @override
   Future<void> computeMetrics() async {
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
@@ -716,16 +828,72 @@ class CompletionMetricsComputer {
 //    targetMetrics.add(CompletionMetrics('new protocol',
 //        availableSuggestions: false, useNewProtocol: true));
 
-    final collection = AnalysisContextCollectionImpl(
-      includedPaths: [rootPath],
-      resourceProvider: PhysicalResourceProvider.INSTANCE,
-    );
-    for (var context in collection.contexts) {
-      await _computeInContext(context.contextRoot);
-    }
+    await super.computeMetrics();
   }
 
-  int forEachExpectedCompletion(
+  @override
+  Future<void> computeSuggestionsAndMetrics(
+    ExpectedCompletion expectedCompletion,
+    AnalysisContext context,
+  ) async {
+    // As this point the completion suggestions are computed,
+    // and results are collected with varying settings for
+    // comparison:
+
+    Future<int> handleExpectedCompletion({
+      required MetricsSuggestionListener listener,
+      required CompletionMetrics metrics,
+    }) async {
+      var stopwatch = Stopwatch()..start();
+      var request = DartCompletionRequest.forResolvedUnit(
+        resolvedUnit: resolvedUnitResult,
+        offset: expectedCompletion.offset,
+      );
+
+      var opType = OpType.forCompletion(request.target, request.offset);
+      var suggestions = await _computeCompletionSuggestions(
+        listener,
+        OperationPerformanceImpl('<root>'),
+        request,
+        metrics.availableSuggestions ? _declarationsTracker : null,
+        metrics.availableSuggestions ? _availableSuggestionsParams : null,
+        metrics.useNewProtocol ? NotImportedSuggestions() : null,
+      );
+      stopwatch.stop();
+
+      return gatherMetricsForSuggestions(
+          request,
+          listener,
+          expectedCompletion,
+          opType.completionLocation,
+          suggestions,
+          metrics,
+          stopwatch.elapsedMilliseconds);
+    }
+
+    var bestRank = -1;
+    var bestName = '';
+    var defaultTag = getCurrentTag();
+    for (var metrics in targetMetrics) {
+      // Compute the completions.
+      metrics.enable();
+      metrics.userTag.makeCurrent();
+      var listener = MetricsSuggestionListener();
+      var rank =
+          await handleExpectedCompletion(listener: listener, metrics: metrics);
+      if (bestRank < 0 || rank < bestRank) {
+        bestRank = rank;
+        bestName = metrics.name;
+      }
+      defaultTag.makeCurrent();
+      metrics.disable();
+    }
+    rankComparison.count(bestName);
+  }
+
+  /// Gathers various metrics for the completion [request] which resulted in
+  /// [suggestions], with [expectedCompletion] as the expected completion.
+  int gatherMetricsForSuggestions(
       DartCompletionRequest request,
       MetricsSuggestionListener listener,
       ExpectedCompletion expectedCompletion,
@@ -815,7 +983,7 @@ class CompletionMetricsComputer {
 
   void printComparisonOfCompletionCounts() {
     String toString(int count, int totalCount) {
-      return '$count (${printPercentage(count / totalCount, 2)})';
+      return '$count (${(count / totalCount).asPercentage(2)})';
     }
 
     var counters = targetMetrics.map((metrics) => metrics.completionCounter);
@@ -1051,7 +1219,7 @@ class CompletionMetricsComputer {
     var columnHeaders = [' ', targetMetrics[0].name];
     for (var i = 1; i < targetMetrics.length; i++) {
       columnHeaders.add('|');
-      columnHeaders.add('${targetMetrics[i].name}');
+      columnHeaders.add(targetMetrics[i].name);
       columnHeaders.add('delta');
     }
     var blankRow = [for (int i = 0; i < columnHeaders.length; i++) ''];
@@ -1093,25 +1261,45 @@ class CompletionMetricsComputer {
   }
 
   void printOtherMetrics(CompletionMetrics metrics) {
-    List<String> toRow(ArithmeticMeanComputer computer) {
-      var min = computer.min;
-      var mean = computer.mean.toStringAsFixed(6);
-      var max = computer.max;
-      return [computer.name, '$min, $mean, $max'];
+    List<String> meanComputingRow(ArithmeticMeanComputer computer) {
+      return [
+        computer.name,
+        computer.min!.toStringAsFixed(3),
+        computer.mean.toStringAsFixed(3),
+        computer.max!.toStringAsFixed(3),
+      ];
     }
 
     var table = [
-      toRow(metrics.meanCompletionMS),
-      toRow(metrics.charsBeforeTop),
-      toRow(metrics.charsBeforeTopFive),
-      toRow(metrics.insertionLengthTheoretical),
+      ['', 'min', 'mean', 'max'],
+      meanComputingRow(metrics.meanCompletionMS),
+      meanComputingRow(metrics.charsBeforeTop),
+      meanComputingRow(metrics.charsBeforeTopFive),
+      meanComputingRow(metrics.insertionLengthTheoretical),
     ];
     rightJustifyColumns(table, range(1, table[0].length));
 
     printHeading(2, 'Other metrics');
     printTable(table);
 
+    var percentileTable = [
+      ['', 'p50', 'p90', 'p95', 'count > 2s', 'max'],
+      [
+        metrics.percentileCompletionMS.name,
+        metrics.percentileCompletionMS.median.toString(),
+        metrics.percentileCompletionMS.p90.toString(),
+        metrics.percentileCompletionMS.p95.toString(),
+        metrics.percentileCompletionMS.aboveValueMaxCount.toString(),
+        metrics.percentileCompletionMS.maxValue.toString(),
+      ],
+    ];
+    rightJustifyColumns(percentileTable, range(1, percentileTable[1].length));
+
+    printHeading(3, 'Percentile metrics');
+    printTable(percentileTable);
+
     var distribution = metrics.distributionCompletionMS.displayString();
+    printHeading(3, 'Completion ms distribution');
     print('${metrics.name}: $distribution');
     print('');
   }
@@ -1164,15 +1352,36 @@ class CompletionMetricsComputer {
     }
   }
 
+  /// Prints the results which took the longest amounts of time to compute.
+  ///
+  /// Specifically, only results which are above the 90th percentile, and which
+  /// are in the top [maxSlowestResults] slowest results, are included.
   void printSlowestResults(CompletionMetrics metrics) {
-    var slowestResults = metrics.slowestResults;
-    var entries = slowestResults.entries.toList();
-    entries.sort((first, second) => first.key.name.compareTo(second.key.name));
+    var p90ElapsedMs = metrics.percentileCompletionMS.p90;
+    var slowestResults = metrics.slowestResults
+        .where((element) => element.elapsedMS >= p90ElapsedMs)
+        .toList();
     print('');
     printHeading(2, 'The slowest completion results to compute');
-    for (var entry in entries) {
-      _printSlowestResults('In ${entry.key.name}', entry.value);
+    for (var result in slowestResults) {
+      var expected = result.expectedCompletion;
+      print('');
+      print('* Elapsed ms: ${result.elapsedMS}');
+      print('* Group: ${result.group.name}');
+      print("* Completion: '${expected.completion}'");
+      print('* Completion kind: ${expected.kind}');
+      print('* Element kind: ${expected.elementKind}');
+      print('* Location: ${expected.location}');
     }
+
+    print('');
+    var slowestResultCountByGroup = slowestResults.groupFoldBy(
+        (result) => result.group.name,
+        (int? previous, result) => (previous ?? 0) + 1);
+    slowestResultCountByGroup.forEach((groupName, count) {
+      var countString = count.toString().padLeft(2);
+      print('${groupName.padRight(20)}: $countString result(s)');
+    });
   }
 
   void printWorstResults(CompletionMetrics metrics) {
@@ -1183,6 +1392,32 @@ class CompletionMetricsComputer {
     printHeading(2, 'The worst completion results');
     for (var entry in entries) {
       _printWorstResults('In ${entry.key.name}', entry.value);
+    }
+  }
+
+  @override
+  Future<void> removeOverlay(String filePath) async {
+    // If an overlay option is being used, remove the overlay applied
+    // earlier.
+    if (options.overlay != OverlayMode.none) {
+      provider.removeOverlay(filePath);
+    }
+  }
+
+  @override
+  void setupForResolution(AnalysisContext context) {
+    if (targetMetrics.any((metrics) => metrics.availableSuggestions)) {
+      var declarationsTracker = DeclarationsTracker(
+          MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
+      declarationsTracker.addContext(context);
+      while (declarationsTracker.hasWork) {
+        declarationsTracker.doWork();
+      }
+
+      // Have the [AvailableDeclarationsSet] computed to use later.
+      _availableSuggestionsParams = createCompletionAvailableSuggestions(
+          declarationsTracker.allLibraries.toList(), []);
+      _declarationsTracker = declarationsTracker;
     }
   }
 
@@ -1205,6 +1440,8 @@ class CompletionMetricsComputer {
     return expected.length;
   }
 
+  /// Computes completion suggestions for [dartRequest], and returns the
+  /// suggestions, sorted by rank and then by completion text.
   Future<List<protocol.CompletionSuggestion>> _computeCompletionSuggestions(
       MetricsSuggestionListener listener,
       OperationPerformanceImpl performance,
@@ -1288,156 +1525,11 @@ class CompletionMetricsComputer {
       }
     }
 
+    // Note that some routes sort suggestions before responding differently.
+    // The Cider and legacy handlers use [fuzzyFilterSort], which does not match
+    // [completionComparator].
     suggestions.sort(completionComparator);
     return suggestions;
-  }
-
-  /// Compute the metrics for the files in the context [root], creating a
-  /// separate context collection to prevent accumulating memory. The metrics
-  /// should be captured in the [collector].
-  Future<void> _computeInContext(ContextRoot root) async {
-    // Create a new collection to avoid consuming large quantities of memory.
-    final collection = AnalysisContextCollectionImpl(
-      includedPaths: root.includedPaths.toList(),
-      excludedPaths: root.excludedPaths.toList(),
-      resourceProvider: _provider,
-    );
-
-    var context = collection.contexts[0];
-
-    // Set the DeclarationsTracker, only call doWork to build up the available
-    // suggestions if doComputeCompletionsFromAnalysisServer is true.
-    DeclarationsTracker? declarationsTracker;
-    protocol.CompletionAvailableSuggestionsParams? availableSuggestionsParams;
-    if (targetMetrics.any((metrics) => metrics.availableSuggestions)) {
-      declarationsTracker = DeclarationsTracker(
-          MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
-      declarationsTracker.addContext(context);
-      while (declarationsTracker.hasWork) {
-        declarationsTracker.doWork();
-      }
-
-      // Have the AvailableDeclarationsSet computed to use later.
-      availableSuggestionsParams = createCompletionAvailableSuggestions(
-          declarationsTracker.allLibraries.toList(), []);
-    }
-
-    // Loop through each file, resolve the file and call
-    // forEachExpectedCompletion
-
-    var dartdocDirectiveInfo = DartdocDirectiveInfo();
-    var documentationCache = DocumentationCache(dartdocDirectiveInfo);
-    var results = <ResolvedUnitResult>[];
-    var pathContext = context.contextRoot.resourceProvider.pathContext;
-    for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (file_paths.isDart(pathContext, filePath)) {
-        try {
-          var result = await context.currentSession.getResolvedUnit(filePath)
-              as ResolvedUnitResult;
-
-          var analysisError = getFirstErrorOrNull(result);
-          if (analysisError != null) {
-            print('File $filePath skipped due to errors such as:');
-            print('  ${analysisError.toString()}');
-            print('');
-            continue;
-          } else {
-            results.add(result);
-            documentationCache.cacheFromResult(result);
-          }
-        } catch (exception, stackTrace) {
-          print('Exception caught analyzing: $filePath');
-          print(exception.toString());
-          print(stackTrace);
-        }
-      }
-    }
-    for (var result in results) {
-      _resolvedUnitResult = result;
-      var filePath = result.path;
-      // Use the ExpectedCompletionsVisitor to compute the set of expected
-      // completions for this CompilationUnit.
-      final visitor = ExpectedCompletionsVisitor(result);
-      _resolvedUnitResult.unit.accept(visitor);
-
-      for (var expectedCompletion in visitor.expectedCompletions) {
-        var resolvedUnitResult = _resolvedUnitResult;
-
-        // If an overlay option is being used, compute the overlay file, and
-        // have the context reanalyze the file
-        if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
-          var overlayContents = _getOverlayContents(
-              _resolvedUnitResult.content, expectedCompletion);
-
-          _provider.setOverlay(filePath,
-              content: overlayContents,
-              modificationStamp: overlayModificationStamp++);
-          context.driver.changeFile(filePath);
-          resolvedUnitResult = await context.currentSession
-              .getResolvedUnit(filePath) as ResolvedUnitResult;
-        }
-
-        // As this point the completion suggestions are computed,
-        // and results are collected with varying settings for
-        // comparison:
-
-        Future<int> handleExpectedCompletion(
-            {required MetricsSuggestionListener listener,
-            required CompletionMetrics metrics}) async {
-          var stopwatch = Stopwatch()..start();
-          var request = DartCompletionRequest.forResolvedUnit(
-            resolvedUnit: resolvedUnitResult,
-            offset: expectedCompletion.offset,
-            documentationCache: documentationCache,
-          );
-
-          var opType = OpType.forCompletion(request.target, request.offset);
-          var suggestions = await _computeCompletionSuggestions(
-            listener,
-            OperationPerformanceImpl('<root>'),
-            request,
-            metrics.availableSuggestions ? declarationsTracker : null,
-            metrics.availableSuggestions ? availableSuggestionsParams : null,
-            metrics.useNewProtocol ? NotImportedSuggestions() : null,
-          );
-          stopwatch.stop();
-
-          return forEachExpectedCompletion(
-              request,
-              listener,
-              expectedCompletion,
-              opType.completionLocation,
-              suggestions,
-              metrics,
-              stopwatch.elapsedMilliseconds);
-        }
-
-        var bestRank = -1;
-        var bestName = '';
-        var defaultTag = getCurrentTag();
-        for (var metrics in targetMetrics) {
-          // Compute the completions.
-          metrics.enable();
-          metrics.userTag.makeCurrent();
-          var listener = MetricsSuggestionListener();
-          var rank = await handleExpectedCompletion(
-              listener: listener, metrics: metrics);
-          if (bestRank < 0 || rank < bestRank) {
-            bestRank = rank;
-            bestName = metrics.name;
-          }
-          defaultTag.makeCurrent();
-          metrics.disable();
-        }
-        rankComparison.count(bestName);
-
-        // If an overlay option is being used, remove the overlay applied
-        // earlier.
-        if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
-          _provider.removeOverlay(filePath);
-        }
-      }
-    }
   }
 
   List<protocol.CompletionSuggestion> _filterSuggestions(
@@ -1447,47 +1539,6 @@ class CompletionMetricsComputer {
     return suggestions
         .where((suggestion) => suggestion.completion.startsWith(prefix))
         .toList();
-  }
-
-  String _getOverlayContents(
-      String contents, ExpectedCompletion expectedCompletion) {
-    assert(contents.isNotEmpty);
-    var offset = expectedCompletion.offset;
-    var length = expectedCompletion.syntacticEntity.length;
-    assert(offset >= 0);
-    assert(length > 0);
-    if (options.overlay == CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN) {
-      return contents.substring(0, offset) +
-          contents.substring(offset + length);
-    } else if (options.overlay ==
-        CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE) {
-      return contents.substring(0, offset);
-    } else {
-      var removeToken = CompletionMetricsOptions.OVERLAY_REMOVE_TOKEN;
-      var removeRest = CompletionMetricsOptions.OVERLAY_REMOVE_REST_OF_FILE;
-      throw Exception('\'_getOverlayContents\' called with option other than'
-          '$removeToken and $removeRest: ${options.overlay}');
-    }
-  }
-
-  void _printSlowestResults(
-      String title, List<CompletionResult> slowestResults) {
-    printHeading(3, title);
-    var needsBlankLine = false;
-    for (var result in slowestResults) {
-      var elapsedMS = result.elapsedMS;
-      var expected = result.expectedCompletion;
-      if (needsBlankLine) {
-        print('');
-      } else {
-        needsBlankLine = true;
-      }
-      print('  Elapsed ms: $elapsedMS');
-      print('  Completion: ${expected.completion}');
-      print('  Completion kind: ${expected.kind}');
-      print('  Element kind: ${expected.elementKind}');
-      print('  Location: ${expected.location}');
-    }
   }
 
   void _printWorstResults(String title, List<CompletionResult> worstResults) {
@@ -1572,146 +1623,20 @@ class CompletionMetricsComputer {
     }
   }
 
-  /// Given some [ResolvedUnitResult] return the first error of high severity
-  /// if such an error exists, `null` otherwise.
-  static err.AnalysisError? getFirstErrorOrNull(
-      ResolvedUnitResult resolvedUnitResult) {
-    for (var error in resolvedUnitResult.errors) {
-      if (error.severity == Severity.error) {
-        return error;
-      }
-    }
-    return null;
-  }
-
+  /// Returns a [Place] indicating the position of [expectedCompletion] in
+  /// [suggestions].
+  ///
+  /// If [expectedCompletion] is not found, `Place.none()` is returned.
   static Place placementInSuggestionList(
       List<protocol.CompletionSuggestion> suggestions,
       ExpectedCompletion expectedCompletion) {
-    var placeCounter = 1;
-    for (var completionSuggestion in suggestions) {
-      if (expectedCompletion.matches(completionSuggestion)) {
-        return Place(placeCounter, suggestions.length);
+    for (var i = 0; i < suggestions.length; i++) {
+      if (expectedCompletion.matches(suggestions[i])) {
+        return Place(i + 1, suggestions.length);
       }
-      placeCounter++;
     }
     return Place.none();
   }
-}
-
-/// The options specified on the command-line.
-class CompletionMetricsOptions {
-  /// An option to control whether and how overlays should be produced.
-  static const String OVERLAY = 'overlay';
-
-  /// A mode indicating that no overlays should be produced.
-  static const String OVERLAY_NONE = 'none';
-
-  /// A mode indicating that everything from the completion offset to the end of
-  /// the file should be removed.
-  static const String OVERLAY_REMOVE_REST_OF_FILE = 'remove-rest-of-file';
-
-  /// A mode indicating that the token whose offset is the same as the
-  /// completion offset should be removed.
-  static const String OVERLAY_REMOVE_TOKEN = 'remove-token';
-
-  /// A flag that causes detailed information to be printed every time a
-  /// completion request fails to produce a suggestions matching the expected
-  /// suggestion.
-  static const String PRINT_MISSED_COMPLETION_DETAILS =
-      'print-missed-completion-details';
-
-  /// A flag that causes summary information to be printed about the times that
-  /// a completion request failed to produce a suggestions matching the expected
-  /// suggestion.
-  static const String PRINT_MISSED_COMPLETION_SUMMARY =
-      'print-missed-completion-summary';
-
-  /// A flag that causes information to be printed about places where no
-  /// completion location was computed and about information that's missing in
-  /// the completion tables.
-  static const String PRINT_MISSING_INFORMATION = 'print-missing-information';
-
-  /// A flag that causes information to be printed about the mrr score achieved
-  /// at each completion location.
-  static const String PRINT_MRR_BY_LOCATION = 'print-mrr-by-location';
-
-  /// A flag that causes detailed information to be printed every time a
-  /// completion request produce a suggestions whose name matches the expected
-  /// suggestion but that is referencing a different element (one that's
-  /// shadowed by the correct element).
-  static const String PRINT_SHADOWED_COMPLETION_DETAILS =
-      'print-shadowed-completion-details';
-
-  /// A flag that causes information to be printed about the completion requests
-  /// that were the slowest to return suggestions.
-  static const String PRINT_SLOWEST_RESULTS = 'print-slowest-results';
-
-  /// A flag that causes information to be printed about the completion requests
-  /// that had the worst mrr scores.
-  static const String PRINT_WORST_RESULTS = 'print-worst-results';
-
-  /// The overlay mode that should be used.
-  final String overlay;
-
-  /// A flag indicating whether information should be printed every time a
-  /// completion request fails to produce a suggestions matching the expected
-  /// suggestion.
-  final bool printMissedCompletionDetails;
-
-  /// A flag indicating whether information should be printed every time a
-  /// completion request fails to produce a suggestions matching the expected
-  /// suggestion.
-  final bool printMissedCompletionSummary;
-
-  /// A flag indicating whether information should be printed about places where
-  /// no completion location was computed and about information that's missing
-  /// in the completion tables.
-  final bool printMissingInformation;
-
-  /// A flag indicating whether information should be printed about the mrr
-  /// score achieved at each completion location.
-  final bool printMrrByLocation;
-
-  /// A flag indicating whether information should be printed every time a
-  /// completion request fails to produce a suggestions matching the expected
-  /// suggestion.
-  final bool printShadowedCompletionDetails;
-
-  /// A flag indicating whether information should be printed about the
-  /// completion requests that were the slowest to return suggestions.
-  final bool printSlowestResults;
-
-  /// A flag indicating whether information should be printed about the
-  /// completion requests that had the worst mrr scores.
-  final bool printWorstResults;
-
-  factory CompletionMetricsOptions(results) {
-    return CompletionMetricsOptions._(
-        overlay: results[OVERLAY] as String,
-        printMissedCompletionDetails:
-            results[PRINT_MISSED_COMPLETION_DETAILS] as bool,
-        printMissedCompletionSummary:
-            results[PRINT_MISSED_COMPLETION_SUMMARY] as bool,
-        printMissingInformation: results[PRINT_MISSING_INFORMATION] as bool,
-        printMrrByLocation: results[PRINT_MRR_BY_LOCATION] as bool,
-        printShadowedCompletionDetails:
-            results[PRINT_SHADOWED_COMPLETION_DETAILS] as bool,
-        printSlowestResults: results[PRINT_SLOWEST_RESULTS] as bool,
-        printWorstResults: results[PRINT_WORST_RESULTS] as bool);
-  }
-
-  CompletionMetricsOptions._(
-      {required this.overlay,
-      required this.printMissedCompletionDetails,
-      required this.printMissedCompletionSummary,
-      required this.printMissingInformation,
-      required this.printMrrByLocation,
-      required this.printShadowedCompletionDetails,
-      required this.printSlowestResults,
-      required this.printWorstResults})
-      : assert(overlay == OVERLAY_NONE ||
-            overlay == OVERLAY_REMOVE_TOKEN ||
-            overlay == OVERLAY_REMOVE_REST_OF_FILE);
 }
 
 /// The result of a single completion.
@@ -2081,6 +2006,12 @@ extension on CompletionGroup {
         return 'unknown';
     }
   }
+}
+
+extension on num {
+  String asPercentage([int fractionDigits = 1]) =>
+      '${(this * 100).toStringAsFixed(fractionDigits)}%'
+          .padLeft(4 + fractionDigits);
 }
 
 extension AvailableSuggestionsExtension on protocol.AvailableSuggestion {

@@ -207,7 +207,7 @@ class _OverriddenElementsFinder {
     }
     // setter
     if (_kinds.contains(ElementKind.SETTER)) {
-      member = classElement.lookUpSetter(_name + '=', _library);
+      member = classElement.lookUpSetter('$_name=', _library);
       if (member != null) {
         return member;
       }

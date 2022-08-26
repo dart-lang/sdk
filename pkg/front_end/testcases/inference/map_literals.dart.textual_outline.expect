@@ -1,6 +1,5 @@
-// @dart = 2.9
 library test;
 
 test1() {}
-test2() {}
+test2(Pattern p) {}
 main() {}

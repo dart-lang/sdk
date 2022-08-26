@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method foo([core::Map<core::int*, core::String*>* m1, core::Map<core::int*, core::String*>* m2]) → void
+static method foo([has-declared-initializer core::Map<core::int*, core::String*>* m1, has-declared-initializer core::Map<core::int*, core::String*>* m2]) → void
   ;
 static method test() → void
   ;

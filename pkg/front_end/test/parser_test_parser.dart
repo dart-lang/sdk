@@ -12,6 +12,8 @@ import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/member_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
+import 'package:_fe_analyzer_shared/src/parser/parser_impl.dart'
+    show AwaitOrYieldContext;
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/parser/type_info.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
@@ -172,6 +174,15 @@ class TestParser extends Parser {
     indent++;
     var result = super.parseTopLevelKeywordDeclaration(
         start, keyword, macroToken, directiveState);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+    doPrint('parseLibraryAugmentation(' '$libraryKeyword, ' '$augmentKeyword)');
+    indent++;
+    var result = super.parseLibraryAugmentation(libraryKeyword, augmentKeyword);
     indent--;
     return result;
   }
@@ -1610,6 +1621,15 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parseAugmentSuperExpression(Token token, IdentifierContext context) {
+    doPrint('parseAugmentSuperExpression(' '$token, ' '$context)');
+    indent++;
+    var result = super.parseAugmentSuperExpression(token, context);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseLiteralListSuffix(Token token, Token? constKeyword) {
     doPrint('parseLiteralListSuffix(' '$token, ' '$constKeyword)');
     indent++;
@@ -2072,28 +2092,29 @@ class TestParser extends Parser {
   }
 
   @override
-  bool looksLikeExpression(Token token) {
-    doPrint('looksLikeExpression(' '$token)');
+  bool looksLikeExpressionAfterAwaitOrYield(
+      Token token, AwaitOrYieldContext context) {
+    doPrint('looksLikeExpressionAfterAwaitOrYield(' '$token, ' '$context)');
     indent++;
-    var result = super.looksLikeExpression(token);
+    var result = super.looksLikeExpressionAfterAwaitOrYield(token, context);
     indent--;
     return result;
   }
 
   @override
-  bool looksLikeAwaitExpression(Token token) {
-    doPrint('looksLikeAwaitExpression(' '$token)');
+  bool looksLikeAwaitExpression(Token token, AwaitOrYieldContext context) {
+    doPrint('looksLikeAwaitExpression(' '$token, ' '$context)');
     indent++;
-    var result = super.looksLikeAwaitExpression(token);
+    var result = super.looksLikeAwaitExpression(token, context);
     indent--;
     return result;
   }
 
   @override
-  bool looksLikeYieldStatement(Token token) {
-    doPrint('looksLikeYieldStatement(' '$token)');
+  bool looksLikeYieldStatement(Token token, AwaitOrYieldContext context) {
+    doPrint('looksLikeYieldStatement(' '$token, ' '$context)');
     indent++;
-    var result = super.looksLikeYieldStatement(token);
+    var result = super.looksLikeYieldStatement(token, context);
     indent--;
     return result;
   }

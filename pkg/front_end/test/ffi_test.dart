@@ -5,6 +5,6 @@
 import 'package:expect/expect.dart';
 
 void main() {
-  // TODO(dacoharkes): implement dart:ffi tests
+  // TODO(http://dartbug.com/49304): implement dart:ffi tests
   Expect.isTrue(true);
 }

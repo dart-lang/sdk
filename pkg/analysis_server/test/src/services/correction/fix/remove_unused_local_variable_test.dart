@@ -22,14 +22,14 @@ class RemoveUnusedLocalVariableTest extends FixProcessorTest {
 
   Future<void> test_assignmentInAssignment() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   var v = 1;
   v = (v = 2);
   print(0);
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
   print(0);
 }
 ''');
@@ -37,13 +37,13 @@ main() {
 
   Future<void> test_inArgumentList() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   var v = 1;
   print(v = 2);
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
   print(2);
 }
 ''');
@@ -51,14 +51,14 @@ main() {
 
   Future<void> test_inArgumentList2() async {
     await resolveTestCode(r'''
-main() {
+void g() {
   var v = 1;
   f(v = 1, 2);
 }
 void f(a, b) { }
 ''');
     await assertHasFix(r'''
-main() {
+void g() {
   f(1, 2);
 }
 void f(a, b) { }
@@ -67,14 +67,14 @@ void f(a, b) { }
 
   Future<void> test_inArgumentList3() async {
     await resolveTestCode(r'''
-main() {
+void g() {
   var v = 1;
   f(v = 1, v = 2);
 }
 void f(a, b) { }
 ''');
     await assertHasFix(r'''
-main() {
+void g() {
   f(1, 2);
 }
 void f(a, b) { }
@@ -83,14 +83,14 @@ void f(a, b) { }
 
   Future<void> test_inDeclarationList() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   var v = 1, v2 = 3;
   v = 2;
   print(v2);
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
   var v2 = 3;
   print(v2);
 }
@@ -99,13 +99,13 @@ main() {
 
   Future<void> test_inDeclarationList2() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   var v = 1, v2 = 3;
   print(v);
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
   var v = 1;
   print(v);
 }
@@ -121,13 +121,13 @@ var a = [for (var v = 0;;) 0];
 
   Future<void> test_withReferences() async {
     await resolveTestCode(r'''
-main() {
+void f() {
   var v = 1;
   v = 2;
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
 }
 ''');
   }
@@ -136,13 +136,13 @@ main() {
     // CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION
     verifyNoTestUnitErrors = false;
     await resolveTestCode(r'''
-main() {
+void f() {
   v = 2;
   var v = 1;
 }
 ''');
     await assertHasFix(r'''
-main() {
+void f() {
 }
 ''',
         errorFilter: (e) =>

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,13 +18,13 @@ void main() {
 @reflectiveTest
 class GetSuggestionDetailsTest extends AvailableSuggestionsBase {
   Future<void> test_enum() async {
-    newFile2('/home/test/lib/a.dart', r'''
+    newFile('/home/test/lib/a.dart', r'''
 enum MyEnum {
   aaa, bbb
 }
 ''');
     addTestFile(r'''
-main() {} // ref
+void f() {} // ref
 ''');
 
     var set = await waitForSetWithUri('package:test/a.dart');
@@ -31,7 +32,7 @@ main() {} // ref
       _buildRequest(
         id: set.id,
         label: 'MyEnum.aaa',
-        offset: testCode.indexOf('} // ref'),
+        offset: testFileContent.indexOf('} // ref'),
       ),
     );
 
@@ -39,7 +40,7 @@ main() {} // ref
     _assertTestFileChange(result.change!, r'''
 import 'package:test/a.dart';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -47,7 +48,7 @@ main() {} // ref
     addTestFile(r'''
 import 'dart:math';
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -55,7 +56,7 @@ main() {} // ref
       _buildRequest(
         id: mathSet.id,
         label: 'sin',
-        offset: testCode.indexOf('} // ref'),
+        offset: testFileContent.indexOf('} // ref'),
       ),
     );
 
@@ -67,7 +68,7 @@ main() {} // ref
     addTestFile(r'''
 import 'dart:math' as math;
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -75,7 +76,7 @@ main() {} // ref
       _buildRequest(
         id: mathSet.id,
         label: 'sin',
-        offset: testCode.indexOf('} // ref'),
+        offset: testFileContent.indexOf('} // ref'),
       ),
     );
 
@@ -86,15 +87,19 @@ main() {} // ref
   Future<void> test_invalid_library() async {
     addTestFile('');
 
-    var response = await waitResponse(
+    var response = await handleRequest(
       _buildRequest(id: -1, label: 'foo', offset: 0),
     );
-    expect(response.error!.code, RequestErrorCode.INVALID_PARAMETER);
+    assertResponseFailure(
+      response,
+      requestId: '0',
+      errorCode: RequestErrorCode.INVALID_PARAMETER,
+    );
   }
 
   Future<void> test_newImport() async {
     addTestFile(r'''
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -102,7 +107,7 @@ main() {} // ref
       _buildRequest(
         id: mathSet.id,
         label: 'sin',
-        offset: testCode.indexOf('} // ref'),
+        offset: testFileContent.indexOf('} // ref'),
       ),
     );
 
@@ -110,7 +115,7 @@ main() {} // ref
     _assertTestFileChange(result.change!, r'''
 import 'dart:math';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -123,7 +128,7 @@ library foo;
 @myAnnotation
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -131,7 +136,7 @@ main() {} // ref
       _buildRequest(
         id: mathSet.id,
         label: 'sin',
-        offset: testCode.indexOf('} // ref'),
+        offset: testFileContent.indexOf('} // ref'),
       ),
     );
 
@@ -144,7 +149,7 @@ import 'dart:math';
 @myAnnotation
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -157,7 +162,7 @@ main() {} // ref
 
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -165,7 +170,7 @@ main() {} // ref
       _buildRequest(
         id: mathSet.id,
         label: 'sin',
-        offset: testCode.indexOf('} // ref'),
+        offset: testFileContent.indexOf('} // ref'),
       ),
     );
 
@@ -177,7 +182,7 @@ import 'dart:math';
 
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -189,7 +194,7 @@ import 'dart:async';
 @myAnnotation
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
 
     var mathSet = await waitForSetWithUri('dart:math');
@@ -197,7 +202,7 @@ main() {} // ref
       _buildRequest(
         id: mathSet.id,
         label: 'sin',
-        offset: testCode.indexOf('} // ref'),
+        offset: testFileContent.indexOf('} // ref'),
       ),
     );
 
@@ -208,7 +213,7 @@ import 'dart:math';
 @myAnnotation
 import 'package:zzz';
 
-main() {} // ref
+void f() {} // ref
 ''');
   }
 
@@ -216,9 +221,9 @@ main() {} // ref
     var partCode = r'''
 part of 'test.dart';
 
-main() {} // ref
+void f() {} // ref
 ''';
-    var partPath = newFile2('/home/test/lib/a.dart', partCode).path;
+    var partFile = newFile('/home/test/lib/a.dart', partCode);
     addTestFile(r'''
 part 'a.dart';
 ''');
@@ -226,7 +231,7 @@ part 'a.dart';
     var mathSet = await waitForSetWithUri('dart:math');
     var result = await _getSuggestionDetails(
       _buildRequest(
-        file: partPath,
+        file: partFile,
         id: mathSet.id,
         label: 'sin',
         offset: partCode.indexOf('} // ref'),
@@ -250,20 +255,20 @@ part 'a.dart';
     expect(fileEdits, hasLength(1));
 
     var fileEdit = fileEdits[0];
-    expect(fileEdit.file, testFile);
+    expect(fileEdit.file, testFile.path);
 
     var edits = fileEdit.edits;
-    expect(SourceEdit.applySequence(testCode, edits), expected);
+    expect(SourceEdit.applySequence(testFileContent, edits), expected);
   }
 
   Request _buildRequest({
-    String? file,
+    File? file,
     required int id,
     required String label,
     required int offset,
   }) {
     return CompletionGetSuggestionDetailsParams(
-      file ?? testFile,
+      (file ?? testFile).path,
       id,
       label,
       offset,
@@ -272,7 +277,7 @@ part 'a.dart';
 
   Future<CompletionGetSuggestionDetailsResult> _getSuggestionDetails(
       Request request) async {
-    var response = await waitResponse(request);
+    var response = await handleSuccessfulRequest(request);
     return CompletionGetSuggestionDetailsResult.fromResponse(response);
   }
 }

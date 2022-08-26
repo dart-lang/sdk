@@ -194,7 +194,7 @@ macro
 class ClassDeclarationsMacro1 implements ClassDeclarationsMacro {
   const ClassDeclarationsMacro1();
 
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
     if (clazz.isAbstract) {
@@ -214,7 +214,7 @@ macro
 class ClassDeclarationsMacro2 implements ClassDeclarationsMacro {
   const ClassDeclarationsMacro2();
 
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
     List<ConstructorDeclaration> constructors = await builder.constructorsOf(
         clazz);
@@ -302,7 +302,7 @@ macro
 class ToStringMacro implements ClassDeclarationsMacro {
   const ToStringMacro();
 
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
     if (!methods.any((m) => m.identifier.name == 'toString')) {
@@ -328,12 +328,50 @@ class ToStringMacro implements ClassDeclarationsMacro {
 
 macro
 
-class SequenceMacro implements ClassDeclarationsMacro {
-  const SequenceMacro();
+class SequenceMacro
+    implements
+        ClassDeclarationsMacro,
+        MethodDeclarationsMacro {
+  final int index;
 
-  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+  const SequenceMacro(this.index);
+
+  void _addMethod(ClassDeclaration clazz,
       ClassMemberDeclarationBuilder builder) async {
-    Iterable<MethodDeclaration> methods = await builder.methodsOf(clazz);
+  }
+
+  Future<void> _findAllMethods(
+      ClassMemberDeclarationBuilder builder,
+      IntrospectableClassDeclaration cls,
+      List<MethodDeclaration> methods) async {
+    if (cls.superclass != null) {
+      await _findAllMethods(
+        builder,
+        await builder.declarationOf(cls.superclass!.identifier)
+            as IntrospectableClassDeclaration,
+        methods);
+    }
+    for (NamedTypeAnnotation mixin in cls.mixins) {
+      await _findAllMethods(
+        builder,
+        await builder.declarationOf(mixin.identifier)
+            as IntrospectableClassDeclaration,
+        methods);
+    }
+    for (NamedTypeAnnotation interface in cls.interfaces) {
+      await _findAllMethods(
+        builder,
+        await builder.declarationOf(interface.identifier)
+            as IntrospectableClassDeclaration,
+        methods);
+    }
+    methods.addAll(await builder.methodsOf(cls));
+  }
+
+  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder) async {
+    List<MethodDeclaration> methods = [];
+    await _findAllMethods(builder, clazz, methods);
     int index = 0;
     String suffix = '';
     while (methods.any((m) => m.identifier.name == 'method$suffix')) {
@@ -343,6 +381,12 @@ class SequenceMacro implements ClassDeclarationsMacro {
     builder.declareInClass(new DeclarationCode.fromString('''
   method$suffix() {}'''));
   }
+
+  FutureOr<void> buildDeclarationsForMethod(MethodDeclaration method,
+      ClassMemberDeclarationBuilder builder) {
+    // Do nothing. The applying of this will show up in the declarations phase
+    // application order.
+  }
 }
 
 macro
@@ -350,9 +394,11 @@ macro
 class SupertypesMacro implements ClassDefinitionMacro {
   const SupertypesMacro();
 
-  FutureOr<void> buildDefinitionForClass(ClassDeclaration clazz,
+  FutureOr<void> buildDefinitionForClass(IntrospectableClassDeclaration clazz,
       ClassDefinitionBuilder builder) async {
-    ClassDeclaration? superClass = await builder.superclassOf(clazz);
+    ClassDeclaration? superClass = clazz.superclass == null ? null :
+        await builder.declarationOf(clazz.superclass!.identifier)
+            as ClassDeclaration?;
     FunctionDefinitionBuilder getSuperClassBuilder = await builder.buildMethod(
         (await builder.methodsOf(clazz))
             .firstWhere((m) => m.identifier.name == 'getSuperClass')
@@ -396,6 +442,120 @@ class ImportConflictMacro implements FunctionDefinitionMacro {
           .code,
       ';\n',
       '}',
+    ]));
+  }
+}
+
+macro
+
+class InferableMacro
+    implements
+        FieldDeclarationsMacro,
+        MethodDeclarationsMacro,
+        ConstructorDeclarationsMacro {
+  const InferableMacro();
+
+  FutureOr<void> buildDeclarationsForField(FieldDeclaration field,
+      ClassMemberDeclarationBuilder builder) async {
+    Identifier listIdentifier = await builder.resolveIdentifier(
+        Uri.parse('dart:core'), 'List');
+    builder.declareInClass(new DeclarationCode.fromParts([
+      field.type.code,
+      ' get_${field.identifier.name}(',
+      field.type.code,
+      ' f) => ',
+      field.identifier,
+      ';',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      field.type.code,
+      ' Function() get_${field.identifier.name}Func(',
+      field.type.code,
+      ' Function(',
+      field.type.code,
+      ') f) => () => ',
+      field.identifier,
+      ';',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      listIdentifier,
+      '<',
+      field.type.code,
+      '> get_${field.identifier.name}List(',
+      listIdentifier,
+      '<',
+      field.type.code,
+      '> l) => [',
+      field.identifier,
+      '];',
+    ]));
+    // TODO(johnniwinther): Enable these when field augmentation is supported.
+    /*builder.declareInClass(new DeclarationCode.fromParts([
+      field.type.code,
+      ' field_${field.identifier.name} = ',
+      field.identifier,
+      ';',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      field.type.code,
+      ' Function() field_${field.identifier.name}Func = () => ',
+      field.identifier,
+      ';',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      listIdentifier,
+      '<',
+      field.type.code,
+      '> field_${field.identifier.name}List = [',
+      field.identifier,
+      '];',
+    ]));*/
+  }
+
+  FutureOr<void> buildDeclarationsForMethod(MethodDeclaration method,
+      ClassMemberDeclarationBuilder builder) async {
+    Identifier listIdentifier = await builder.resolveIdentifier(
+        Uri.parse('dart:core'), 'List');
+    builder.declareInClass(new DeclarationCode.fromParts([
+      method.returnType.code,
+      ' get_${method.identifier.name}() => ',
+      method.identifier,
+      '();',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      method.returnType.code,
+      ' Function() get_${method.identifier.name}Func() => () => ',
+      method.identifier,
+      '();',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      listIdentifier,
+      '<',
+      method.returnType.code,
+      '> get_${method.identifier.name}List() => [',
+      method.identifier,
+      '()];',
+    ]));
+  }
+
+  FutureOr<void> buildDeclarationsForConstructor(
+      ConstructorDeclaration constructor,
+      ClassMemberDeclarationBuilder builder) async {
+    Identifier listIdentifier = await builder.resolveIdentifier(
+        Uri.parse('dart:core'), 'List');
+    builder.declareInClass(new DeclarationCode.fromParts([
+      constructor.positionalParameters.first.type.code,
+      ' get_${constructor.identifier.name}() => throw "";',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      constructor.positionalParameters.first.type.code,
+      ' Function() get_${constructor.identifier.name}Func() => throw "";',
+    ]));
+    builder.declareInClass(new DeclarationCode.fromParts([
+      listIdentifier,
+      '<',
+      constructor.positionalParameters.first.type.code,
+      '> get_${constructor.identifier.name}List() => throw "";',
     ]));
   }
 }

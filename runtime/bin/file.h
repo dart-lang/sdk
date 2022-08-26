@@ -70,7 +70,14 @@ class File : public ReferenceCounted<File> {
     kDartWriteOnlyAppend = 4
   };
 
-  enum Type { kIsFile = 0, kIsDirectory = 1, kIsLink = 2, kDoesNotExist = 3 };
+  enum Type {
+    kIsFile = 0,
+    kIsDirectory = 1,
+    kIsLink = 2,
+    kIsSock = 3,  // Unix Domain Socket.
+    kIsPipe = 4,  // FIFO/Pipe.
+    kDoesNotExist = 5
+  };
 
   enum Identical { kIdentical = 0, kDifferent = 1, kError = 2 };
 

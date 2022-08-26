@@ -141,8 +141,10 @@ void addConstructor(
             ..parent = syntheticConstructor)
       .toList();
 
-  initializersConstructor.add(SuperInitializer(superConstructor,
-      Arguments(superParameters.map((f) => VariableGet(f)).toList()))
+  initializersConstructor.add(SuperInitializer(
+      superConstructor,
+      Arguments(
+          superParameters.map<Expression>((f) => VariableGet(f)).toList()))
     ..parent = syntheticConstructor);
 
   syntheticConstructor.function.namedParameters

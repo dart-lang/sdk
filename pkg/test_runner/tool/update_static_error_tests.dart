@@ -7,11 +7,9 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:file/file.dart' as pkg_file;
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
-
 import 'package:test_runner/src/command_output.dart';
 import 'package:test_runner/src/feature.dart' show Feature;
 import 'package:test_runner/src/path.dart';
@@ -82,16 +80,16 @@ Future<void> main(List<String> args) async {
   var insertSources = <ErrorSource>{};
 
   for (var source in results["remove"] as List<String>) {
-    removeSources.add(ErrorSource.find(source));
+    removeSources.add(ErrorSource.find(source)!);
   }
 
   for (var source in results["insert"] as List<String>) {
-    insertSources.add(ErrorSource.find(source));
+    insertSources.add(ErrorSource.find(source)!);
   }
 
   for (var source in results["update"] as List<String>) {
-    removeSources.add(ErrorSource.find(source));
-    insertSources.add(ErrorSource.find(source));
+    removeSources.add(ErrorSource.find(source)!);
+    insertSources.add(ErrorSource.find(source)!);
   }
 
   if (results["remove-all"] as bool) {
@@ -123,16 +121,17 @@ Future<void> main(List<String> args) async {
     // or relative to the current directory.
     var root = result.startsWith("tests") ? "." : "tests";
     var glob = Glob(result, recursive: true);
-    for (var entry in glob.listSync(root: root)) {
-      if (!entry.path.endsWith(".dart")) continue;
-
-      if (entry is pkg_file.File) {
-        await _processFile(entry,
-            dryRun: dryRun,
-            includeContext: includeContext,
-            remove: removeSources,
-            insert: insertSources);
-      }
+    for (var entry in glob
+        .listSync(root: root)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'))) {
+      await _processFile(
+        entry,
+        dryRun: dryRun,
+        includeContext: includeContext,
+        remove: removeSources,
+        insert: insertSources,
+      );
     }
   }
 }
@@ -146,10 +145,10 @@ void _usageError(ArgParser parser, String message) {
 }
 
 Future<void> _processFile(File file,
-    {bool dryRun,
-    bool includeContext,
-    Set<ErrorSource> remove,
-    Set<ErrorSource> insert}) async {
+    {required bool dryRun,
+    required bool includeContext,
+    required Set<ErrorSource> remove,
+    required Set<ErrorSource> insert}) async {
   stdout.write("${file.path}...");
   var source = file.readAsStringSync();
   var testFile = TestFile.parse(Path("."), file.absolute.path, source);
@@ -166,17 +165,12 @@ Future<void> _processFile(File file,
   var errors = <StaticError>[];
   if (insert.contains(ErrorSource.analyzer)) {
     stdout.write("\r${file.path} (Running analyzer...)");
-    var fileErrors = await runAnalyzer(file.absolute.path, options);
-    if (fileErrors == null) {
-      print("Error: failed to update ${file.path}");
-    } else {
-      errors.addAll(fileErrors);
-    }
+    errors.addAll(await runAnalyzer(file, options));
   }
 
   // If we're inserting web errors, we also need to gather the CFE errors to
   // tell which web errors are web-specific.
-  List<StaticError> cfeErrors;
+  final cfeErrors = <StaticError>[];
   if (insert.contains(ErrorSource.cfe) || insert.contains(ErrorSource.web)) {
     var cfeOptions = [
       if (testFile.requirements.contains(Feature.nnbdWeak)) "--nnbd-weak",
@@ -186,10 +180,8 @@ Future<void> _processFile(File file,
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running CFE...)");
-    cfeErrors = await runCfe(file.absolute.path, cfeOptions);
-    if (cfeErrors == null) {
-      print("Error: failed to update ${file.path}");
-    } else if (insert.contains(ErrorSource.cfe)) {
+    cfeErrors.addAll(await runCfe(file, cfeOptions));
+    if (insert.contains(ErrorSource.cfe)) {
       errors.addAll(cfeErrors);
     }
   }
@@ -198,12 +190,7 @@ Future<void> _processFile(File file,
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running dart2js...)");
-    var fileErrors = await runDart2js(file.absolute.path, options, cfeErrors);
-    if (fileErrors == null) {
-      print("Error: failed to update ${file.path}");
-    } else {
-      errors.addAll(fileErrors);
-    }
+    errors.addAll(await runDart2js(file, options, cfeErrors));
   }
 
   var result = updateErrorExpectations(source, errors,
@@ -218,15 +205,15 @@ Future<void> _processFile(File file,
   }
 }
 
-/// Invoke analyzer on [path] and gather all static errors it reports.
-Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
+/// Invoke analyzer on [file] and gather all static errors it reports.
+Future<List<StaticError>> runAnalyzer(File file, List<String> options) async {
   // TODO(rnystrom): Running the analyzer command line each time is very slow.
   // Either import the analyzer as a library, or at least invoke it in a batch
   // mode.
   var result = await Process.run(_analyzerPath, [
     ...options,
     "--format=json",
-    path,
+    file.absolute.path,
   ]);
 
   // Analyzer returns 3 when it detects errors, 2 when it detects
@@ -234,7 +221,8 @@ Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
   // hints and --fatal-hints or --fatal-infos are enabled.
   if (result.exitCode < 0 || result.exitCode > 3) {
     print("Analyzer run failed: ${result.stdout}\n${result.stderr}");
-    return null;
+    print("Error: failed to update ${file.path}");
+    return const [];
   }
 
   var errors = <StaticError>[];
@@ -243,8 +231,8 @@ Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
   return [...errors, ...warnings];
 }
 
-/// Invoke CFE on [path] and gather all static errors it reports.
-Future<List<StaticError>> runCfe(String path, List<String> options) async {
+/// Invoke CFE on [file] and gather all static errors it reports.
+Future<List<StaticError>> runCfe(File file, List<String> options) async {
   // TODO(rnystrom): Running the CFE command line each time is slow and wastes
   // time generating code, which we don't care about. Import it as a library or
   // at least run it in batch mode.
@@ -254,18 +242,19 @@ Future<List<StaticError>> runCfe(String path, List<String> options) async {
     "--verify",
     "-o",
     "dev:null", // Output is only created for file URIs.
-    path,
+    file.absolute.path,
   ]);
 
   // Running the above command may generate a dill file next to the test, which
   // we don't want, so delete it if present.
-  var file = File("$path.dill");
-  if (await file.exists()) {
-    await file.delete();
+  var dill = File("${file.absolute.path}.dill");
+  if (await dill.exists()) {
+    await dill.delete();
   }
   if (result.exitCode != 0) {
     print("CFE run failed: ${result.stdout}\n${result.stderr}");
-    return null;
+    print("Error: failed to update ${file.path}");
+    return const [];
   }
   var errors = <StaticError>[];
   var warnings = <StaticError>[];
@@ -273,14 +262,14 @@ Future<List<StaticError>> runCfe(String path, List<String> options) async {
   return [...errors, ...warnings];
 }
 
-/// Invoke dart2js on [path] and gather all static errors it reports.
+/// Invoke dart2js on [file] and gather all static errors it reports.
 Future<List<StaticError>> runDart2js(
-    String path, List<String> options, List<StaticError> cfeErrors) async {
+    File file, List<String> options, List<StaticError> cfeErrors) async {
   var result = await Process.run(_dart2jsPath, [
     ...options,
     "-o",
     "dev:null", // Output is only created for file URIs.
-    path,
+    file.absolute.path,
   ]);
 
   var errors = <StaticError>[];
@@ -304,8 +293,8 @@ Future<List<StaticError>> runDart2js(
 String _findBinary(String name, String windowsExtension) {
   var binary = Platform.isWindows ? "$name.$windowsExtension" : name;
 
-  String newestPath;
-  DateTime newestTime;
+  String? newestPath;
+  DateTime? newestTime;
 
   var buildDirectory = Directory(Platform.isMacOS ? "xcodebuild" : "out");
   if (buildDirectory.existsSync()) {

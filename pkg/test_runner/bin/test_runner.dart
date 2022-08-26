@@ -29,17 +29,21 @@ import "package:test_runner/src/test_configurations.dart";
 /// Runs all of the tests specified by the given command line [arguments].
 void main(List<String> arguments) async {
   // Parse the command line arguments to a configuration.
-  var parser = OptionsParser();
-  var configurations = <TestConfiguration>[];
+  final parser = OptionsParser();
+
+  late List<TestConfiguration> configurations;
   try {
     configurations = parser.parse(arguments);
   } on OptionParseException catch (exception) {
     print(exception.message);
     exit(1);
   }
+  final buildSuccess = await buildConfigurations(configurations);
+  if (!buildSuccess) {
+    print("ERROR: Build failed.");
+    exit(1);
+  }
 
-  if (configurations.isEmpty) return;
-  await buildConfigurations(configurations);
   // Run all of the configured tests.
   await testConfigurations(configurations);
 }

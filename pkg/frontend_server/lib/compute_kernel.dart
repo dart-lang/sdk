@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.8
-
 /// A library to invoke the CFE to compute kernel summary files.
 ///
 /// Used by `utils/bazel/kernel_worker.dart`.
@@ -119,7 +117,7 @@ final summaryArgsParser = new ArgParser()
 
 class ComputeKernelResult {
   final bool succeeded;
-  final fe.InitializedCompilerState previousState;
+  final fe.InitializedCompilerState? previousState;
 
   ComputeKernelResult(this.succeeded, this.previousState);
 }
@@ -134,9 +132,9 @@ class ComputeKernelResult {
 /// Returns whether or not the summary was successfully output.
 Future<ComputeKernelResult> computeKernel(List<String> args,
     {bool isWorker: false,
-    StringBuffer outputBuffer,
-    Map<Uri, List<int>> inputDigests,
-    fe.InitializedCompilerState previousState}) async {
+    StringBuffer? outputBuffer,
+    Map<Uri, List<int>>? inputDigests,
+    fe.InitializedCompilerState? previousState}) async {
   inputDigests ??= <Uri, List<int>>{};
   dynamic out = outputBuffer ?? stderr;
   bool succeeded = true;
@@ -172,7 +170,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
   var targetName =
-      (parsedArgs['target'] as String) ?? (summaryOnly ? 'ddc' : 'vm');
+      (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
   var targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
       enableNullSafety: nnbdMode == fe.NnbdMode.Strong);
@@ -225,6 +223,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       break;
     default:
       out.writeln('error: unsupported target: $targetName');
+      return ComputeKernelResult(false, previousState);
   }
 
   List<Uri> linkedInputs =
@@ -239,6 +238,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   var environmentDefines = _parseEnvironmentDefines(parsedArgs['define']);
   var verbose = parsedArgs['verbose'] as bool;
   var verbosity = fe.Verbosity.parseArgument(parsedArgs['verbosity']);
+  Uri? sdkSummaryUri = toUriNullable(parsedArgs['dart-sdk-summary']);
 
   if (parsedArgs['use-incremental-compiler']) {
     usingIncrementalCompiler = true;
@@ -248,7 +248,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     // fake input digests).
     if (!isWorker && inputDigests.isEmpty) {
       previousState = null;
-      inputDigests[toUri(parsedArgs['dart-sdk-summary'])] = const [0];
+      if (sdkSummaryUri != null) {
+        inputDigests[sdkSummaryUri] = const [0];
+      }
       for (Uri uri in summaryInputs) {
         inputDigests[uri] = const [0];
       }
@@ -265,9 +267,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
           "multiRootScheme=${fileSystem.markerScheme}",
           "multiRootRoots=${fileSystem.roots}",
         },
-        toUri(parsedArgs['dart-sdk-summary']),
-        toUri(parsedArgs['packages-file']),
-        toUri(parsedArgs['libraries-file']),
+        sdkSummaryUri,
+        toUriNullable(parsedArgs['packages-file']),
+        toUriNullable(parsedArgs['libraries-file']),
         [...summaryInputs, ...linkedInputs],
         inputDigests,
         target,
@@ -282,9 +284,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     state = fe.initializeCompiler(
         // TODO(sigmund): pass an old state once we can make use of it.
         null,
-        toUri(parsedArgs['dart-sdk-summary']),
-        toUri(parsedArgs['libraries-file']),
-        toUri(parsedArgs['packages-file']),
+        sdkSummaryUri,
+        toUriNullable(parsedArgs['libraries-file']),
+        toUriNullable(parsedArgs['packages-file']),
         [...summaryInputs, ...linkedInputs],
         target,
         fileSystem,
@@ -314,28 +316,41 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
             '${parsedArgs['macro-serialization-mode']}');
     }
 
+    // TODO: Handle invalidation of precompiled macros.
+    // TODO: Handle multiple macro libraries compiled to a single precompiled
+    // kernel file.
+    var macroExecutor = state.processedOpts.macroExecutor;
     var format = parsedArgs['precompiled-macro-format'];
-    switch (format) {
-      case 'kernel':
-        state.options.macroExecutorProvider =
-            () => isolatedExecutor.start(serializationMode);
-        break;
-      case 'aot':
-        state.options.macroExecutorProvider = () => processExecutor.start(
-            serializationMode, processExecutor.CommunicationChannel.socket);
-        break;
-      default:
-        throw ArgumentError('Unrecognized precompiled macro format $format');
-    }
-    var precompiledMacroUris = state.options.precompiledMacroUris = {};
     for (var parts in (parsedArgs['precompiled-macro'] as List<String>)
         .map((arg) => arg.split(';'))) {
-      precompiledMacroUris[Uri.parse(parts[0])] = toUri(parts[1]);
+      var library = Uri.parse(parts[0]);
+      if (macroExecutor.libraryIsRegistered(library)) {
+        continue;
+      }
+      var programUri = toUri(parts[1]);
+      switch (format) {
+        case 'kernel':
+          macroExecutor.registerExecutorFactory(
+              () => isolatedExecutor.start(serializationMode, programUri),
+              {library});
+          break;
+        case 'aot':
+          macroExecutor.registerExecutorFactory(
+              () => processExecutor.start(
+                  serializationMode,
+                  processExecutor.CommunicationChannel.socket,
+                  programUri.toFilePath()),
+              {library});
+          break;
+        default:
+          throw ArgumentError('Unrecognized precompiled macro format $format');
+      }
     }
   } else {
     enableMacros = false;
     forceEnableMacros = false;
-    state.options.precompiledMacroUris = {};
+    await state.options.macroExecutor?.close();
+    state.options.macroExecutor = null;
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
@@ -347,12 +362,12 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     }
   }
 
-  List<int> kernel;
+  List<int>? kernel;
   bool wroteUsedDills = false;
   if (usingIncrementalCompiler) {
     state.options.onDiagnostic = onDiagnostic;
     IncrementalCompilerResult incrementalCompilerResult =
-        await state.incrementalCompiler.computeDelta(
+        await state.incrementalCompiler!.computeDelta(
             entryPoints: sources,
             fullComponent: true,
             trackNeededDillLibraries: recordUsedInputs);
@@ -360,9 +375,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
     if (recordUsedInputs) {
       Set<Uri> usedOutlines = {};
-      for (Library lib in incrementalCompilerResult.neededDillLibraries) {
+      for (Library lib in incrementalCompilerResult.neededDillLibraries!) {
         if (lib.importUri.isScheme("dart")) continue;
-        Uri uri = state.libraryToInputDill[lib.importUri];
+        Uri? uri = state.libraryToInputDill![lib.importUri];
         if (uri == null) {
           throw new StateError("Library ${lib.importUri} was recorded as used, "
               "but was not in the list of known libraries.");
@@ -375,13 +390,16 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       wroteUsedDills = true;
     }
 
-    kernel = await state.incrementalCompiler.context.runInContext((_) {
+    kernel = await state.incrementalCompiler!.context.runInContext((_) {
       if (summaryOnly) {
         incrementalComponent.uriToSource.clear();
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.setMainMethodAndMode(
             null, true, incrementalComponent.mode);
-        target.performOutlineTransformations(incrementalComponent);
+        target.performOutlineTransformations(
+            incrementalComponent,
+            incrementalCompilerResult.coreTypes!,
+            incrementalCompilerResult.referenceFromIndex);
         makeStable(incrementalComponent);
         return Future.value(fe.serializeComponent(incrementalComponent,
             includeSources: false, includeOffsets: false));
@@ -399,13 +417,15 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     kernel = await fe.compileSummary(state, sources, onDiagnostic,
         includeOffsets: false);
   } else {
-    Component component = await fe
+    Component? component = await fe
         .compileComponent(state, sources, onDiagnostic, buildSummary: summary);
-    kernel = fe.serializeComponent(component,
-        filter: excludeNonSources
-            ? (library) => sources.contains(library.importUri)
-            : null,
-        includeOffsets: true);
+    if (component != null) {
+      kernel = fe.serializeComponent(component,
+          filter: excludeNonSources
+              ? (library) => sources.contains(library.importUri)
+              : null,
+          includeOffsets: true);
+    }
   }
   state.options.onDiagnostic = null; // See http://dartbug.com/36983.
 
@@ -454,8 +474,12 @@ class DevCompilerSummaryTarget extends DevCompilerTarget with SummaryMixin {
       : super(targetFlags);
 }
 
-Uri toUri(String uriString) {
+Uri? toUriNullable(String? uriString) {
   if (uriString == null) return null;
+  return toUri(uriString);
+}
+
+Uri toUri(String uriString) {
   // Windows-style paths use '\', so convert them to '/' in case they've been
   // concatenated with Unix-style paths.
   return Uri.base.resolve(uriString.replaceAll("\\", "/"));

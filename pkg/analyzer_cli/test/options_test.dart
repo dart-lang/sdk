@@ -59,9 +59,7 @@ void main() {
         expect(options.disableCacheFlushing, isFalse);
         expect(options.disableHints, isFalse);
         expect(options.enabledExperiments, isEmpty);
-        expect(options.lints, isNull);
         expect(options.displayVersion, isFalse);
-        expect(options.infosAreFatal, isFalse);
         expect(options.ignoreUnrecognizedFlags, isFalse);
         expect(options.implicitCasts, isNull);
         expect(options.log, isFalse);
@@ -69,11 +67,7 @@ void main() {
         expect(options.machineFormat, isFalse);
         expect(options.noImplicitDynamic, isNull);
         expect(options.batchMode, isFalse);
-        expect(options.showPackageWarnings, isFalse);
-        expect(options.showSdkWarnings, isFalse);
         expect(options.sourceFiles, equals(['foo.dart']));
-        expect(options.warningsAreFatal, isFalse);
-        expect(options.lintsAreFatal, isFalse);
         expect(options.trainSnapshot, isFalse);
       });
 
@@ -172,16 +166,6 @@ void main() {
         });
       });
 
-      test('hintsAreFatal', () {
-        var options = parse(['--dart-sdk', '.', '--fatal-hints', 'foo.dart'])!;
-        expect(options.infosAreFatal, isTrue);
-      });
-
-      test('infosAreFatal', () {
-        var options = parse(['--dart-sdk', '.', '--fatal-infos', 'foo.dart'])!;
-        expect(options.infosAreFatal, isTrue);
-      });
-
       test('log', () {
         var options = parse(['--dart-sdk', '.', '--log', 'foo.dart'])!;
         expect(options.log, isTrue);
@@ -214,22 +198,6 @@ void main() {
         expect(options.defaultAnalysisOptionsPath, endsWith('options.yaml'));
       });
 
-      test('lints', () {
-        var options = parse(['--dart-sdk', '.', '--lints', 'foo.dart'])!;
-        expect(options.lints, isTrue);
-      });
-
-      test('package warnings', () {
-        var options =
-            parse(['--dart-sdk', '.', '--package-warnings', 'foo.dart'])!;
-        expect(options.showPackageWarnings, isTrue);
-      });
-
-      test('sdk warnings', () {
-        var options = parse(['--dart-sdk', '.', '--sdk-warnings', 'foo.dart'])!;
-        expect(options.showSdkWarnings, isTrue);
-      });
-
       test('sourceFiles', () {
         var options = parse([
           '--dart-sdk',
@@ -243,12 +211,6 @@ void main() {
             equals(['foo.dart', 'foo2.dart', 'foo3.dart']));
       });
 
-      test('warningsAreFatal', () {
-        var options =
-            parse(['--dart-sdk', '.', '--fatal-warnings', 'foo.dart'])!;
-        expect(options.warningsAreFatal, isTrue);
-      });
-
       test('ignore unrecognized flags', () {
         var options = parse([
           '--ignore-unrecognized-flags',
@@ -260,11 +222,6 @@ void main() {
         ])!;
         expect(options, isNotNull);
         expect(options.sourceFiles, equals(['foo.dart']));
-      });
-
-      test('hintsAreFatal', () {
-        var options = parse(['--dart-sdk', '.', '--fatal-lints', 'foo.dart'])!;
-        expect(options.lintsAreFatal, isTrue);
       });
 
       test('bad SDK dir', () {
@@ -466,52 +423,6 @@ class ArgumentsTest with ResourceProviderMixin {
       },
       (analysisOptions) {
         expect(analysisOptions.implicitCasts, isTrue);
-      },
-    );
-  }
-
-  void test_updateAnalysisOptions_lints() {
-    // Turn lints on.
-    _applyAnalysisOptions(
-      ['--lints', 'a.dart'],
-      (analysisOptions) {
-        analysisOptions.lint = false;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.lint, isTrue);
-      },
-    );
-
-    // Turn lints off.
-    _applyAnalysisOptions(
-      ['--no-lints', 'a.dart'],
-      (analysisOptions) {
-        analysisOptions.lint = true;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.lint, isFalse);
-      },
-    );
-
-    // Don't change if not provided, false.
-    _applyAnalysisOptions(
-      ['a.dart'],
-      (analysisOptions) {
-        analysisOptions.lint = false;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.lint, isFalse);
-      },
-    );
-
-    // Don't change if not provided, true.
-    _applyAnalysisOptions(
-      ['a.dart'],
-      (analysisOptions) {
-        analysisOptions.lint = true;
-      },
-      (analysisOptions) {
-        expect(analysisOptions.lint, isTrue);
       },
     );
   }

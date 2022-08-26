@@ -4,6 +4,38 @@
 
 # Status file for the weak_suite.dart test suite.
 
+const_functions/const_functions_list: SemiFuzzCrash
+generic_metadata/typedef_generic_types_in_arguments_and_bounds: SemiFuzzCrash
+nnbd_mixed/mixed_mixin: SemiFuzzFailure
+no_such_method_forwarders/abstract_override_abstract_different_type: SemiFuzzFailure
+no_such_method_forwarders/abstract_override_with_different_signature: SemiFuzzFailure
+
+dart2js/mixin_super/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49339
+dart2js/late_fields_with_annotation: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49415
+macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
+
+dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
+general/no_such_method_forwarder: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242444
+general/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
+inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
+inference_update_1/horizontal_inference_extension_method: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/245004
+late_lowering/private_members: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242285
+macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't split correctly.
+nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
+nnbd_mixed/hierarchy/in_out_dill_in/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
+nnbd_mixed/hierarchy/in_out_in: SemiFuzzFailure # lots of stuff --- not digging in for now
+nnbd_mixed/issue43988/main: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242540 and https://dart-review.googlesource.com/c/sdk/+/242446
+nnbd_mixed/issue43988/main.no_link: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242540 and https://dart-review.googlesource.com/c/sdk/+/242446
+nnbd_mixed/member_inheritance_from_opt_in: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242446
+nnbd/constants: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
+no_such_method_forwarders/abstract_accessors_from_field_one_defined: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+no_such_method_forwarders/abstract_accessors_from_field_with_substitution: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+no_such_method_forwarders/abstract_accessors_from_field: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+no_such_method_forwarders/default_argument_values: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+variance/generic_covariance_sound_variance: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242444
+
 dart2js/flutter_issue94561/main: SemiFuzzFailure
 dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
 dart2js/late_fields: SemiFuzzFailure
@@ -20,6 +52,51 @@ nnbd_mixed/mixin_from_opt_in/main: SemiFuzzFailure
 nnbd_mixed/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 regress/utf_16_le_content.crash: SemiFuzzCrash
 static_field_lowering/opt_in: SemiFuzzFailure
+
+# These tests have "privacy issues" and isn't compatiable with splitting files (fuzzing):
+dart2js/mixin_default_values/main: semiFuzzFailureOnForceRebuildBodies # private method
+dartdevc/factory_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+dartdevc/private_covariant: semiFuzzFailureOnForceRebuildBodies # private method in class
+extensions/internal_resolution: semiFuzzFailureOnForceRebuildBodies # unnamed extensions
+extensions/issue40816: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+extensions/on_function_type: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+extensions/unnamed_extensions: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+general/bug33099: semiFuzzFailureOnForceRebuildBodies # private class
+general/closure: semiFuzzFailureOnForceRebuildBodies # private field
+general/constants/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
+general/constants/with_unevaluated_agnostic/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
+general/constructor_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
+general/constructor_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/issue31767: semiFuzzFailureOnForceRebuildBodies # private class, field
+general/issue45101/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/issue47036: semiFuzzFailureOnForceRebuildBodies # private class
+general/issue48548: semiFuzzFailureOnForceRebuildBodies # private field
+general/nested_lib_spec/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/private_members: semiFuzzFailureOnForceRebuildBodies # private class (etc).
+general/private_method_tearoff: semiFuzzFailureOnForceRebuildBodies # private method in class
+general/redirecting_factory_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
+general/store_load: semiFuzzFailureOnForceRebuildBodies # private field in class
+general/typedef: semiFuzzFailureOnForceRebuildBodies # private typedef
+inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: semiFuzzFailureOnForceRebuildBodies # private field
+late_lowering/injected_late_field_checks/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+
+late_lowering/issue41436/issue41436: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+late_lowering/issue41922: semiFuzzFailureOnForceRebuildBodies # private field
+late_lowering/private_members: semiFuzzFailureOnForceRebuildBodies # private class (etc)
+macros/inject_constructor: semiFuzzFailureOnForceRebuildBodies # Macro injection --- think it might introduce a class in a file?
+nnbd_mixed/issue46518: semiFuzzFailureOnForceRebuildBodies # private method
+nnbd_mixed/no_null_shorting_explicit_extension: semiFuzzFailureOnForceRebuildBodies # private field in class
+nnbd_mixed/no_null_shorting_extension: semiFuzzFailureOnForceRebuildBodies # private field in class
+nnbd_mixed/nullable_extension_on_opt_out: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+nnbd_mixed/object_bound_redirecting_factory/main: semiFuzzFailureOnForceRebuildBodies # private constructor
+nnbd/injected_late_field_checks/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+nnbd/issue42504: semiFuzzFailureOnForceRebuildBodies # private class
+nnbd/issue43918: semiFuzzFailureOnForceRebuildBodies # private class
+nnbd/issue44595: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+nnbd/nullable_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+nnbd/nullable_setter: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+none/mixin_super: semiFuzzFailureOnForceRebuildBodies # has private name mixin
+regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
@@ -44,11 +121,10 @@ extensions/invalid_explicit_access: RuntimeError
 extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
-general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 general/await_in_non_async: RuntimeError # Expected.
 general/bounded_implicit_instantiation: TypeCheckError
+general/bounds_instances: TypeCheckError
 general/bug30695: TypeCheckError
-general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 general/call: RuntimeError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
@@ -57,58 +133,24 @@ general/covariant_generic2: RuntimeError
 general/covariant_generic: RuntimeError
 general/crashes/crash_02/main: Crash
 general/crashes/crash_06/main: Crash
-general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError
 general/error_locations/error_location_02: RuntimeError
 general/error_locations/error_location_03: RuntimeError
-general/error_locations/error_location_05: RuntimeError
-general/error_locations/error_location_06: RuntimeError
-general/error_recovery/await_not_in_async: RuntimeError
-general/error_recovery/constructor_recovery_bad_name_general.crash: RuntimeError
-general/error_recovery/constructor_recovery_bad_name_get.crash: RuntimeError
-general/error_recovery/constructor_recovery_bad_name_return_type.crash: RuntimeError
-general/error_recovery/constructor_recovery_bad_name_set.crash: RuntimeError
-general/error_recovery/constructor_recovery_get: RuntimeError
-general/error_recovery/constructor_recovery_ok: RuntimeError
-general/error_recovery/constructor_recovery_operator.crash: RuntimeError
-general/error_recovery/constructor_recovery_return_type: RuntimeError
-general/error_recovery/constructor_recovery_set: RuntimeError
 general/error_recovery/empty_await_for: RuntimeError
 general/error_recovery/empty_for: RuntimeError
-general/error_recovery/issue_38415.crash: RuntimeError
-general/error_recovery/issue_39024.crash: RuntimeError
-general/error_recovery/issue_39026.crash: RuntimeError
-general/error_recovery/issue_39026_prime.crash: RuntimeError
-general/error_recovery/issue_39033.crash: RuntimeError
-general/error_recovery/issue_39033b.crash: RuntimeError
-general/error_recovery/issue_39058.crash: RuntimeError
-general/error_recovery/issue_39058_prime.crash: RuntimeError
-general/error_recovery/issue_39202.crash: RuntimeError
-general/error_recovery/issue_39230.crash: RuntimeError
-general/error_recovery/issue_39958_01: RuntimeError
-general/error_recovery/issue_39958_02: RuntimeError
-general/error_recovery/issue_39958_03: RuntimeError
-general/error_recovery/issue_39958_04: RuntimeError
-general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
 general/implement_semi_stub: TypeCheckError
-general/implicit_super_call: TypeCheckError
-general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple2: TypeCheckError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invalid_operator_override: TypeCheckError
 general/invocations: TypeCheckError
 general/issue37776: RuntimeError
-general/issue38938: RuntimeError # no main and compile time errors.
-general/issue38944: RuntimeError # no main and compile time errors.
-general/issue38961: RuntimeError # no main and compile time errors.
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
-general/issue44733: TypeCheckError
 general/issue47994b: RuntimeError # Assertions are not enabled
 general/issue_46886: RuntimeError
 general/micro: RuntimeError
@@ -126,10 +168,8 @@ general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
 general/redirecting_factory: RuntimeError
-general/redirecting_factory_invocation_in_invalid: TypeCheckError
 general/spread_collection: RuntimeError
 general/super_semi_stub: TypeCheckError
-general/type_parameter_type_named_int: RuntimeError # Expected
 general/type_variable_as_super: RuntimeError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
@@ -138,8 +178,6 @@ inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckEr
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_for_each: RuntimeError # Issue #36382
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
-inference/future_then_upwards: RuntimeError
-inference/future_then_upwards_2: RuntimeError
 inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
@@ -147,7 +185,7 @@ inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
 inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
-inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
+inference/instantiate_tearoff_of_call2: TypeCheckError
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
@@ -187,65 +225,45 @@ rasta/bad_redirection: RuntimeError
 rasta/bad_setter_initializer: RuntimeError
 rasta/breaking_bad: RuntimeError
 rasta/class_hierarchy: RuntimeError
-rasta/class_member: RuntimeError
 rasta/constant_get_and_invoke: RuntimeError
-rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
-rasta/export: RuntimeError # Expected, this file has no main method.
-rasta/foo: RuntimeError # Expected, this file has no main method.
 rasta/generic_factory: RuntimeError
 rasta/issue_000001: RuntimeError
 rasta/issue_000031: RuntimeError
 rasta/issue_000032: RuntimeError
 rasta/issue_000034: RuntimeError
 rasta/issue_000036: RuntimeError
-rasta/issue_000039: RuntimeError
 rasta/issue_000041: RuntimeError
 rasta/issue_000042: RuntimeError
-rasta/issue_000043: RuntimeError
 rasta/issue_000044: RuntimeError
-rasta/issue_000046: RuntimeError
-rasta/issue_000081: RuntimeError
 rasta/malformed_const_constructor: RuntimeError
 rasta/malformed_function: RuntimeError
-rasta/mixin_library: TypeCheckError
-rasta/native_is_illegal: RuntimeError
 rasta/parser_error: RuntimeError
 rasta/static: RuntimeError
-rasta/super: TypeCheckError
-rasta/super_initializer: RuntimeError
-rasta/super_mixin: TypeCheckError
-rasta/super_operator: TypeCheckError
+rasta/super: RuntimeError
+rasta/super_mixin: RuntimeError
 rasta/type_literals: RuntimeError
 rasta/typedef: RuntimeError
 rasta/unresolved: RuntimeError
 rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: RuntimeError
-rasta/unresolved_recovery: TypeCheckError
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
-regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31180: TypeCheckError
+regress/issue_31180_2: TypeCheckError
 regress/issue_32972: RuntimeError
 regress/issue_33452: RuntimeError # Test has an intentional error
 regress/issue_34225: RuntimeError
 regress/issue_34563: RuntimeError # Test execution after recovery
-regress/issue_35177: RuntimeError
 regress/issue_35258: RuntimeError # Expected
 regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
-regress/issue_36400: RuntimeError
-regress/issue_36647: RuntimeError # Expected
-regress/issue_36647_2: RuntimeError # Expected
-regress/issue_36669: RuntimeError
 regress/issue_37285: RuntimeError
-regress/issue_39035.crash: RuntimeError
-regress/issue_39091_1: RuntimeError
 regress/issue_39091_2: RuntimeError
-regress/utf_16_le_content.crash: RuntimeError
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
+set_literals/disambiguation_rule2: RuntimeError
 value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected

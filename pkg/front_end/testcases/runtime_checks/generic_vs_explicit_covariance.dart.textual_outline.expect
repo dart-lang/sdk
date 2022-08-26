@@ -1,18 +1,17 @@
-// @dart = 2.9
 library test;
 
 abstract class A {
-  void set x(covariant Object value);
+  void set x(covariant Object? value);
 }
 
 class B implements A {
-  void f(covariant Object x) {}
-  Object x;
+  void f(covariant Object? x) {}
+  Object? x;
 }
 
 class C<T> implements B {
-  void f(T x) {}
-  T x;
+  void f(T? x) {}
+  T? x;
 }
 
 main() {}

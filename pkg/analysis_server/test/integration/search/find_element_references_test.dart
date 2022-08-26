@@ -20,7 +20,7 @@ class FindElementReferencesTest extends AbstractAnalysisServerIntegrationTest {
 
   Future<void> test_badTarget() async {
     var text = r'''
-main() {
+void f() {
   if /* target */ (true) {
     print('Hello');
   }
@@ -29,7 +29,7 @@ main() {
 
     pathname = sourcePath('foo.dart');
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var results = await _findElementReferences(text);
@@ -38,7 +38,7 @@ main() {
 
   Future<void> test_findReferences() async {
     var text = r'''
-main() {
+void f() {
   foo /* target */ ('Hello');
 }
 
@@ -47,7 +47,7 @@ foo(String str) {}
 
     pathname = sourcePath('foo.dart');
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var results = (await _findElementReferences(text))!;
@@ -56,7 +56,7 @@ foo(String str) {}
     expect(result.location.file, pathname);
     expect(result.isPotential, isFalse);
     expect(result.kind.name, SearchResultKind.INVOCATION.name);
-    expect(result.path.first.name, 'main');
+    expect(result.path.first.name, 'f');
   }
 
   Future<List<SearchResult>?> _findElementReferences(String text) async {

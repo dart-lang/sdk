@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.js_emitter.parameter_stub_generator;
 
 import '../common/elements.dart' show JElementEnvironment;
@@ -156,7 +158,7 @@ class ParameterStubGenerator {
             targetArguments[count] =
                 _emitter.constantReference(NullConstantValue());
           } else {
-            if (!value.isNull) {
+            if (value is! NullConstantValue) {
               // If the value is the null constant, we should not pass it
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;

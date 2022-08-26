@@ -94,6 +94,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment SetAsyncStackTrace(const Function& dart_function);
   Fragment CheckStackOverflowInPrologue(const Function& dart_function);
   Fragment SetupCapturedParameters(const Function& dart_function);
+  Fragment InitSuspendableFunction(const Function& dart_function);
   Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function);
@@ -132,6 +133,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   BreakableBlock* breakable_block();
   GrowableArray<YieldContinuation>& yield_continuations();
   Value* stack();
+  void set_stack(Value* top);
   void Push(Definition* definition);
   Value* Pop();
   Class& GetSuperOrDie();
@@ -340,6 +342,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
   Fragment BuildLibraryPrefixAction(TokenPosition* position,
                                     const String& selector);
+  Fragment BuildAwaitExpression(TokenPosition* position);
 
   Fragment BuildExpressionStatement(TokenPosition* position);
   Fragment BuildBlock(TokenPosition* position);

@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.56.0';
+const String vmServiceVersion = '3.58.0';
 
 /// @optional
 const String optional = 'optional';
@@ -830,6 +830,12 @@ abstract class VmServiceInterface {
   /// numbers. If this parameter is not provided, it is considered to have the
   /// value `false`.
   ///
+  /// The `libraryFilters` parameter is intended to be used when gathering
+  /// coverage for the whole isolate. If it is provided, the `SourceReport` will
+  /// only contain results from scripts with URIs that start with one of the
+  /// filter strings. For example, pass `["package:foo/"]` to only include
+  /// scripts from the foo package.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -845,6 +851,7 @@ abstract class VmServiceInterface {
     int? endTokenPos,
     bool? forceCompile,
     bool? reportLines,
+    List<String>? libraryFilters,
   });
 
   /// The `getVersion` RPC is used to determine what version of the Service
@@ -938,9 +945,12 @@ abstract class VmServiceInterface {
   /// If a URI is not known, the corresponding entry in the [UriList] response
   /// will be `null`.
   ///
+  /// If `local` is true, the VM will attempt to return local file paths instead
+  /// of relative paths, but this is not guaranteed.
+  ///
   /// See [UriList].
-  Future<UriList> lookupResolvedPackageUris(
-      String isolateId, List<String> uris);
+  Future<UriList> lookupResolvedPackageUris(String isolateId, List<String> uris,
+      {bool? local});
 
   /// The `lookupPackageUris` RPC is used to convert a list of URIs to their
   /// unresolved paths. For example, URIs passed to this RPC are mapped in the
@@ -1510,6 +1520,7 @@ class VmServerConnection {
             endTokenPos: params['endTokenPos'],
             forceCompile: params['forceCompile'],
             reportLines: params['reportLines'],
+            libraryFilters: params['libraryFilters'],
           );
           break;
         case 'getVersion':
@@ -1544,6 +1555,7 @@ class VmServerConnection {
           response = await _serviceImplementation.lookupResolvedPackageUris(
             params!['isolateId'],
             List<String>.from(params['uris'] ?? []),
+            local: params['local'],
           );
           break;
         case 'lookupPackageUris':
@@ -2036,6 +2048,7 @@ class VmService implements VmServiceInterface {
     int? endTokenPos,
     bool? forceCompile,
     bool? reportLines,
+    List<String>? libraryFilters,
   }) =>
       _call('getSourceReport', {
         'isolateId': isolateId,
@@ -2045,6 +2058,7 @@ class VmService implements VmServiceInterface {
         if (endTokenPos != null) 'endTokenPos': endTokenPos,
         if (forceCompile != null) 'forceCompile': forceCompile,
         if (reportLines != null) 'reportLines': reportLines,
+        if (libraryFilters != null) 'libraryFilters': libraryFilters,
       });
 
   @override
@@ -2076,10 +2090,13 @@ class VmService implements VmServiceInterface {
       _call('kill', {'isolateId': isolateId});
 
   @override
-  Future<UriList> lookupResolvedPackageUris(
-          String isolateId, List<String> uris) =>
-      _call(
-          'lookupResolvedPackageUris', {'isolateId': isolateId, 'uris': uris});
+  Future<UriList> lookupResolvedPackageUris(String isolateId, List<String> uris,
+          {bool? local}) =>
+      _call('lookupResolvedPackageUris', {
+        'isolateId': isolateId,
+        'uris': uris,
+        if (local != null) 'local': local,
+      });
 
   @override
   Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
@@ -4302,6 +4319,9 @@ class FieldRef extends ObjRef {
   String? name;
 
   /// The owner of this field, which can be either a Library or a Class.
+  ///
+  /// Note: the location of `owner` may not agree with `location` if this is a
+  /// field from a mixin application, patched class, etc.
   ObjRef? owner;
 
   /// The declared type of this field.
@@ -4320,6 +4340,9 @@ class FieldRef extends ObjRef {
   bool? isStatic;
 
   /// The location of this field in the source code.
+  ///
+  /// Note: this may not agree with the location of `owner` if this is a field
+  /// from a mixin application, patched class, etc.
   @optional
   SourceLocation? location;
 
@@ -4386,6 +4409,9 @@ class Field extends Obj implements FieldRef {
   String? name;
 
   /// The owner of this field, which can be either a Library or a Class.
+  ///
+  /// Note: the location of `owner` may not agree with `location` if this is a
+  /// field from a mixin application, patched class, etc.
   ObjRef? owner;
 
   /// The declared type of this field.
@@ -4404,6 +4430,9 @@ class Field extends Obj implements FieldRef {
   bool? isStatic;
 
   /// The location of this field in the source code.
+  ///
+  /// Note: this may not agree with the location of `owner` if this is a field
+  /// from a mixin application, patched class, etc.
   @optional
   SourceLocation? location;
 
@@ -4630,6 +4659,10 @@ class FuncRef extends ObjRef {
 
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
+  /// Note: the location of `owner` may not agree with `location` if this is a
+  /// function from a mixin application, expression evaluation, patched class,
+  /// etc.
+  ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
   dynamic owner;
 
@@ -4643,6 +4676,10 @@ class FuncRef extends ObjRef {
   bool? implicit;
 
   /// The location of this function in the source code.
+  ///
+  /// Note: this may not agree with the location of `owner` if this is a
+  /// function from a mixin application, expression evaluation, patched class,
+  /// etc.
   @optional
   SourceLocation? location;
 
@@ -4706,6 +4743,10 @@ class Func extends Obj implements FuncRef {
 
   /// The owner of this function, which can be a Library, Class, or a Function.
   ///
+  /// Note: the location of `owner` may not agree with `location` if this is a
+  /// function from a mixin application, expression evaluation, patched class,
+  /// etc.
+  ///
   /// [owner] can be one of [LibraryRef], [ClassRef] or [FuncRef].
   dynamic owner;
 
@@ -4719,6 +4760,10 @@ class Func extends Obj implements FuncRef {
   bool? implicit;
 
   /// The location of this function in the source code.
+  ///
+  /// Note: this may not agree with the location of `owner` if this is a
+  /// function from a mixin application, expression evaluation, patched class,
+  /// etc.
   @optional
   SourceLocation? location;
 

@@ -34,6 +34,22 @@ export 'unknown.dart';
     ]);
   }
 
+  test_export_cannotResolve() async {
+    await assertErrorsInCode(r'''
+export 'dart:foo';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10),
+    ]);
+  }
+
+  test_export_dart() async {
+    await assertErrorsInCode('''
+export 'dart:math/bar.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20),
+    ]);
+  }
+
   test_import() async {
     await assertErrorsInCode('''
 import 'unknown.dart';
@@ -43,7 +59,7 @@ import 'unknown.dart';
   }
 
   test_import_appears_after_deleting_target() async {
-    String filePath = newFile2('$testPackageLibPath/target.dart', '').path;
+    String filePath = newFile('$testPackageLibPath/target.dart', '').path;
 
     await assertErrorsInCode('''
 import 'target.dart';
@@ -64,6 +80,22 @@ import 'target.dart';
     ]);
   }
 
+  test_import_cannotResolve() async {
+    await assertErrorsInCode(r'''
+import 'dart:foo';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10),
+    ]);
+  }
+
+  test_import_dart() async {
+    await assertErrorsInCode('''
+import 'dart:math/bar.dart';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20),
+    ]);
+  }
+
   @failingTest
   test_import_disappears_when_fixed() async {
     await assertErrorsInCode('''
@@ -72,7 +104,7 @@ import 'target.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13),
     ]);
 
-    newFile2('$testPackageLibPath/target.dart', '');
+    newFile('$testPackageLibPath/target.dart', '');
 
     // Make sure the error goes away.
     // TODO(brianwilkerson) The error does not go away, possibly because the
@@ -89,6 +121,14 @@ library lib;
 part 'unknown.dart';
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 18, 14),
+    ]);
+  }
+
+  test_part_cannotResolve() async {
+    await assertErrorsInCode(r'''
+part 'dart:foo';
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 10),
     ]);
   }
 }

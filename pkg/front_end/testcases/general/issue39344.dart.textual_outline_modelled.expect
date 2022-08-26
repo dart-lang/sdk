@@ -1,19 +1,16 @@
 class A {}
+
 class B extends A {}
----- unknown chunk starts ----
-late
----- unknown chunk ends ----
-List<B> xs;
----- unknown chunk starts ----
-late
----- unknown chunk ends ----
-List<List<B>> xss;
+
 class Class<T extends A> {
   void method1a(T t) {}
   void method1b(T t) {}
   void method2a(T t) {}
   void method2b(T t) {}
 }
+
+late List<B> xs;
+late List<List<B>> xss;
 void errors() {}
 void main() {}
 void throws(void Function() f) {}

@@ -776,7 +776,34 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         _returnValue!.values.add(_boolType);
       }
 
-      _summary.result = _returnValue!;
+      switch (function.asyncMarker) {
+        case AsyncMarker.Async:
+          final Class? concreteClass =
+              target.concreteAsyncResultClass(_environment.coreTypes);
+          _summary.result = (concreteClass != null)
+              ? _entryPointsListener
+                  .addAllocatedClass(concreteClass)
+                  .cls
+                  .concreteType
+              : _typesBuilder.fromStaticType(function.returnType, false);
+          break;
+        case AsyncMarker.AsyncStar:
+          _summary.result =
+              _typesBuilder.fromStaticType(function.returnType, false);
+          break;
+        case AsyncMarker.SyncStar:
+          final Class? concreteClass =
+              target.concreteSyncStarResultClass(_environment.coreTypes);
+          _summary.result = (concreteClass != null)
+              ? _entryPointsListener
+                  .addAllocatedClass(concreteClass)
+                  .cls
+                  .concreteType
+              : _typesBuilder.fromStaticType(function.returnType, false);
+          break;
+        default:
+          _summary.result = _returnValue!;
+      }
     }
 
     member.annotations.forEach(_visit);
@@ -2266,6 +2293,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitConstantExpression(ConstantExpression node) {
     return constantAllocationCollector.typeFor(node.constant);
   }
+
+  @override
+  TypeExpr visitAwaitExpression(AwaitExpression node) {
+    _visit(node.operand);
+    return _staticType(node);
+  }
 }
 
 class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
@@ -2436,7 +2469,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
 
   ConstantAllocationCollector(this.summaryCollector);
 
-  // Ensures the transtive graph of [constant] got scanned for potential
+  // Ensures the transitive graph of [constant] got scanned for potential
   // allocations and field types.  Returns the [Type] of this constant.
   Type typeFor(Constant constant) {
     return constants.putIfAbsent(constant, () => constant.accept(this));

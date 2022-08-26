@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -17,10 +17,10 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension _extension#0 on core::int* {
+extension _extension#0 on core::int {
   static field foo = self::_extension#0|foo;
 }
-static field core::int* _extension#0|foo;
+static field core::int _extension#0|foo;
 static method test() → void {
   invalid-expression "pkg/front_end/testcases/extensions/issue44844.dart:11:5: Error: The method 'foo' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.

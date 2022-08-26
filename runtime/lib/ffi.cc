@@ -273,10 +273,10 @@ DEFINE_FFI_NATIVE_ENTRY(FinalizerEntry_SetExternalSize,
   }
   // The next call cannot be in safepoint.
   if (external_size_diff > 0) {
-    IsolateGroup::Current()->heap()->AllocatedExternal(external_size_diff,
+    thread->isolate_group()->heap()->AllocatedExternal(external_size_diff,
                                                        space);
   } else {
-    IsolateGroup::Current()->heap()->FreedExternal(-external_size_diff, space);
+    thread->isolate_group()->heap()->FreedExternal(-external_size_diff, space);
   }
 };
 

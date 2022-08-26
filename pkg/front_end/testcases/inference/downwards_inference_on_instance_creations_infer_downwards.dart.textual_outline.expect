@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 class A<S, T> {
@@ -24,12 +23,12 @@ class D<S, T> extends B<T, int> {
 }
 
 class E<S, T> extends A<C<S>, T> {
-  E(T a) : super(null, a);
+  E(T a) : super(throw '', a);
 }
 
 class F<S, T> extends A<S, T> {
-  F(S x, T y, {List<S> a, List<T> b}) : super(x, y);
-  F.named(S x, T y, [S a, T b]) : super(a, b);
+  F(S x, T y, {required List<S> a, required List<T> b}) : super(x, y);
+  F.named(S x, T y, [S? a, T? b]) : super(x, y);
 }
 
 void test() {}

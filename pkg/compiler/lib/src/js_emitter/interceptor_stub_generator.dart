@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.js_emitter.interceptor_stub_generator;
 
-import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/synced/embedded_names.dart' as embeddedNames;
 
 import '../common/elements.dart';
 import '../constants/values.dart';
@@ -418,7 +420,7 @@ class InterceptorStubGenerator {
     CustomElementsCodegenAnalysis analysis = _customElementsCodegenAnalysis;
     if (!analysis.needsTable) return null;
 
-    List<jsAst.Expression> elements = [];
+    List<jsAst.Expression /*!*/ > elements = [];
     Iterable<ConstantValue> constants =
         _codegenWorld.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {

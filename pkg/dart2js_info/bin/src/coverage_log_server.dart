@@ -53,19 +53,20 @@ class CoverageLogServerCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    if (argResults.rest.isEmpty) {
+    final args = argResults!;
+    if (args.rest.isEmpty) {
       usageException('Missing arguments: <dart2js-out-file> [<html-file>]');
     }
 
-    var jsPath = argResults.rest[0];
-    String htmlPath;
-    if (argResults.rest.length > 1) {
-      htmlPath = argResults.rest[1];
+    var jsPath = args.rest[0];
+    String? htmlPath;
+    if (args.rest.length > 1) {
+      htmlPath = args.rest[1];
     }
-    var outPath = argResults['out'];
+    var outPath = args['out'];
     if (outPath == _defaultOutTemplate) outPath = '$jsPath.coverage.json';
-    var server = _Server(argResults['host'], int.parse(argResults['port']),
-        jsPath, htmlPath, outPath, argResults['uri-prefix']);
+    var server = _Server(args['host'], int.parse(args['port']), jsPath,
+        htmlPath, outPath, args['uri-prefix']);
     await server.run();
   }
 }
@@ -83,7 +84,7 @@ class _Server {
   final String jsPath;
 
   /// HTML file to serve, if any.
-  final String htmlPath;
+  final String? htmlPath;
 
   /// Contents of jsPath, adjusted to use the appropriate server url.
   String jsCode;
@@ -113,7 +114,7 @@ class _Server {
   run() async {
     await shelf.serve(_handler, hostname, port);
     var urlBase = "http://$hostname:$port${prefix == '' ? '/' : '/$prefix/'}";
-    var htmlFilename = htmlPath == null ? '' : path.basename(htmlPath);
+    var htmlFilename = htmlPath == null ? '' : path.basename(htmlPath!);
     print("Server is listening\n"
         "  - html page: $urlBase$htmlFilename\n"
         "  - js code: $urlBase${path.basename(jsPath)}\n"
@@ -126,7 +127,7 @@ class _Server {
     var urlPath = request.url.path;
     print('received request: $urlPath');
     var baseJsName = path.basename(jsPath);
-    var baseHtmlName = htmlPath == null ? '' : path.basename(htmlPath);
+    var baseHtmlName = htmlPath == null ? '' : path.basename(htmlPath!);
 
     // Serve an HTML file at the default prefix, or a path matching the HTML
     // file name
@@ -135,7 +136,7 @@ class _Server {
         urlPath == _expectedPath(baseHtmlName)) {
       var contents = htmlPath == null
           ? '<html><script src="$baseJsName"></script>'
-          : await File(htmlPath).readAsString();
+          : await File(htmlPath!).readAsString();
       return shelf.Response.ok(contents, headers: _htmlHeaders);
     }
 

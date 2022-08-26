@@ -107,7 +107,4 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
       return null;
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnusedLocalVariable newInstance() => RemoveUnusedLocalVariable();
 }

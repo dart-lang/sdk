@@ -41,7 +41,7 @@ class A {
   int fff;
   A({this.fff});
 }
-main() {
+void f() {
   new A(^);
 }
 ''';
@@ -66,7 +66,7 @@ class A {
   int fff;
   A({this.fff});
 }
-main() {
+void f() {
   new A(^);
 }
 ''');
@@ -216,6 +216,28 @@ class DynamicRow extends Widget {
     ]);
   }
 
+  Future<void>
+      test_flutter_InstanceCreationExpression_children_existingValue() async {
+    // Ensure we don't include list markers if there's already a value.
+    writeTestPackageConfig(flutter: true);
+
+    addTestSource('''
+import 'package:flutter/material.dart';
+
+build() => new Row(
+    ch^: []
+  );
+''');
+
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).containsMatch(
+      (suggestion) => suggestion
+        ..completion.isEqualTo('children')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 8),
+    );
+  }
+
   Future<void> test_flutter_InstanceCreationExpression_children_Map() async {
     // Ensure we don't generate Map params for a future API
     writeTestPackageConfig(flutter: true);
@@ -275,7 +297,7 @@ class CustomScrollView extends Widget {
     addTestSource('''
 import 'package:flutter/material.dart';
 
-main() {
+void f() {
   foo(^);
 }
 
@@ -732,7 +754,7 @@ void f() {}
     await computeAndCheck();
 
     // Annotation, imported class.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A$parameters;
 }
@@ -746,7 +768,7 @@ void f() {}
     await computeAndCheck();
 
     // Annotation, imported class, prefixed.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   const A$parameters;
 }
@@ -789,7 +811,7 @@ var v = A$arguments;
     await computeAndCheck();
 
     // Instance creation, imported class, generative.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A$parameters;
 }
@@ -802,7 +824,7 @@ var v = A$arguments;
     await computeAndCheck();
 
     // Instance creation, imported class, factory.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   factory A$parameters => throw 0;
 }
@@ -833,7 +855,7 @@ var v = f$arguments;
     await computeAndCheck();
 
     // Method invocation, imported function.
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 void f$parameters() {}
 ''');
     addTestSource2('''

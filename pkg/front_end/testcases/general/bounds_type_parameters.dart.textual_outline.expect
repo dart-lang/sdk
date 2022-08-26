@@ -1,0 +1,187 @@
+class Class<T> {}
+
+class ConcreteClass implements Class<ConcreteClass> {}
+
+typedef F<X extends Class<X>> = X;
+
+class G<X extends Class<X>> {}
+
+typedef Typedef1<
+        T1 extends F,
+        T2 extends F<dynamic>,
+        T3 extends F<Class>,
+        T4 extends F<Class<dynamic>>,
+        T5 extends F<ConcreteClass>,
+        T6 extends F<Class<ConcreteClass>>,
+        T7 extends F<Object>,
+        T8 extends F<int>,
+        S1 extends G,
+        S2 extends G<dynamic>,
+        S3 extends G<Class>,
+        S4 extends G<Class<dynamic>>,
+        S5 extends G<ConcreteClass>,
+        S6 extends G<Class<ConcreteClass>>,
+        S7 extends G<Object>,
+        S8 extends G<int>>
+    = void Function();
+typedef Typedef2 = void Function<
+    T1 extends F,
+    T2 extends F<dynamic>,
+    T3 extends F<Class>,
+    T4 extends F<Class<dynamic>>,
+    T5 extends F<ConcreteClass>,
+    T6 extends F<Class<ConcreteClass>>,
+    T7 extends F<Object>,
+    T8 extends F<int>,
+    S1 extends G,
+    S2 extends G<dynamic>,
+    S3 extends G<Class>,
+    S4 extends G<Class<dynamic>>,
+    S5 extends G<ConcreteClass>,
+    S6 extends G<Class<ConcreteClass>>,
+    S7 extends G<Object>,
+    S8 extends G<int>>();
+typedef void Typedef3<
+    T1 extends F,
+    T2 extends F<dynamic>,
+    T3 extends F<Class>,
+    T4 extends F<Class<dynamic>>,
+    T5 extends F<ConcreteClass>,
+    T6 extends F<Class<ConcreteClass>>,
+    T7 extends F<Object>,
+    T8 extends F<int>,
+    S1 extends G,
+    S2 extends G<dynamic>,
+    S3 extends G<Class>,
+    S4 extends G<Class<dynamic>>,
+    S5 extends G<ConcreteClass>,
+    S6 extends G<Class<ConcreteClass>>,
+    S7 extends G<Object>,
+    S8 extends G<int>>();
+
+class Class1<
+    T1 extends F,
+    T2 extends F<dynamic>,
+    T3 extends F<Class>,
+    T4 extends F<Class<dynamic>>,
+    T5 extends F<ConcreteClass>,
+    T6 extends F<Class<ConcreteClass>>,
+    T7 extends F<Object>,
+    T8 extends F<int>,
+    S1 extends G,
+    S2 extends G<dynamic>,
+    S3 extends G<Class>,
+    S4 extends G<Class<dynamic>>,
+    S5 extends G<ConcreteClass>,
+    S6 extends G<Class<ConcreteClass>>,
+    S7 extends G<Object>,
+    S8 extends G<int>> {}
+
+class Class2<
+    T1 extends F,
+    T2 extends F<dynamic>,
+    T3 extends F<Class>,
+    T4 extends F<Class<dynamic>>,
+    T5 extends F<ConcreteClass>,
+    T6 extends F<Class<ConcreteClass>>,
+    T7 extends F<Object>,
+    T8 extends F<int>,
+    S1 extends G,
+    S2 extends G<dynamic>,
+    S3 extends G<Class>,
+    S4 extends G<Class<dynamic>>,
+    S5 extends G<ConcreteClass>,
+    S6 extends G<Class<ConcreteClass>>,
+    S7 extends G<Object>,
+    S8 extends G<int>> = Object with Class;
+mixin Mixin1<
+    T1 extends F,
+    T2 extends F<dynamic>,
+    T3 extends F<Class>,
+    T4 extends F<Class<dynamic>>,
+    T5 extends F<ConcreteClass>,
+    T6 extends F<Class<ConcreteClass>>,
+    T7 extends F<Object>,
+    T8 extends F<int>,
+    S1 extends G,
+    S2 extends G<dynamic>,
+    S3 extends G<Class>,
+    S4 extends G<Class<dynamic>>,
+    S5 extends G<ConcreteClass>,
+    S6 extends G<Class<ConcreteClass>>,
+    S7 extends G<Object>,
+    S8 extends G<int>> {}
+
+enum Enum1<
+    T1 extends F,
+    T2 extends F<dynamic>,
+    T3 extends F<Class>,
+    T4 extends F<Class<dynamic>>,
+    T5 extends F<ConcreteClass>,
+    T6 extends F<Class<ConcreteClass>>,
+    T7 extends F<Object>,
+    T8 extends F<int>,
+    S1 extends G,
+    S2 extends G<dynamic>,
+    S3 extends G<Class>,
+    S4 extends G<Class<dynamic>>,
+    S5 extends G<ConcreteClass>,
+    S6 extends G<Class<ConcreteClass>>,
+    S7 extends G<Object>,
+    S8 extends G<int>> {
+  a<
+      ConcreteClass,
+      ConcreteClass,
+      ConcreteClass,
+      ConcreteClass,
+      ConcreteClass,
+      ConcreteClass,
+      ConcreteClass,
+      ConcreteClass,
+      G<ConcreteClass>,
+      G<ConcreteClass>,
+      G<ConcreteClass>,
+      G<ConcreteClass>,
+      G<ConcreteClass>,
+      G<ConcreteClass>,
+      G<ConcreteClass>,
+      G<ConcreteClass>>()
+}
+
+extension Extension<
+    T1 extends F,
+    T2 extends F<dynamic>,
+    T3 extends F<Class>,
+    T4 extends F<Class<dynamic>>,
+    T5 extends F<ConcreteClass>,
+    T6 extends F<Class<ConcreteClass>>,
+    T7 extends F<Object>,
+    T8 extends F<int>,
+    S1 extends G,
+    S2 extends G<dynamic>,
+    S3 extends G<Class>,
+    S4 extends G<Class<dynamic>>,
+    S5 extends G<ConcreteClass>,
+    S6 extends G<Class<ConcreteClass>>,
+    S7 extends G<Object>,
+    S8 extends G<int>> on Class {}
+
+void method1<
+    T1 extends F,
+    T2 extends F<dynamic>,
+    T3 extends F<Class>,
+    T4 extends F<Class<dynamic>>,
+    T5 extends F<ConcreteClass>,
+    T6 extends F<Class<ConcreteClass>>,
+    T7 extends F<Object>,
+    T8 extends F<int>,
+    S1 extends G,
+    S2 extends G<dynamic>,
+    S3 extends G<Class>,
+    S4 extends G<Class<dynamic>>,
+    S5 extends G<ConcreteClass>,
+    S6 extends G<Class<ConcreteClass>>,
+    S7 extends G<Object>,
+    S8 extends G<int>>() {}
+test() {}
+main() {}

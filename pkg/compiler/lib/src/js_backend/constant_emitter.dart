@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import '../common.dart';
 import '../common/elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../io/code_output.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/field_analysis.dart';
@@ -131,7 +132,7 @@ class ModularConstantEmitter
   @override
   jsAst.Expression visitBool(BoolConstantValue constant, [_]) {
     if (_options.enableMinification) {
-      if (constant.isTrue) {
+      if (constant is TrueConstantValue) {
         // Use !0 for true.
         return js("!0");
       } else {
@@ -139,7 +140,7 @@ class ModularConstantEmitter
         return js("!1");
       }
     } else {
-      return constant.isTrue ? js('true') : js('false');
+      return constant is TrueConstantValue ? js('true') : js('false');
     }
   }
 

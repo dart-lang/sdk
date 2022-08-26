@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
@@ -51,31 +53,38 @@ KernelToElementMap _createElementMap(
   return elementMap;
 }
 
+Map<ir.Member, ImpactBuilderData> _computeForLibrary(
+    CompilerOptions options,
+    DiagnosticReporter reporter,
+    KernelToElementMap elementMap,
+    ir.Library library) {
+  Map<ir.Member, ImpactBuilderData> result = {};
+  void computeForMember(ir.Member member) {
+    final scopeModel = ScopeModel.from(member, elementMap.constantEvaluator);
+    final annotations = processMemberAnnotations(
+        options, reporter, member, computePragmaAnnotationDataFromIr(member));
+    result[member] =
+        computeModularMemberData(elementMap, member, scopeModel, annotations)
+            .impactBuilderData;
+  }
+
+  library.members.forEach(computeForMember);
+  for (final cls in library.classes) {
+    cls.members.forEach(computeForMember);
+  }
+  return result;
+}
+
 ModuleData run(Input input) {
   final options = input.options;
   final reporter = input.reporter;
   final elementMap = _createElementMap(
       options, reporter, input.environment, input.component, input.libraries);
-  final result = <ir.Member, ImpactBuilderData>{};
-  void computeForMember(ir.Member member) {
-    final scopeModel = ScopeModel.from(member, elementMap.constantEvaluator);
-    final annotations = processMemberAnnotations(
-        options, reporter, member, computePragmaAnnotationDataFromIr(member));
-    result[member] = computeModularMemberData(member,
-            options: options,
-            typeEnvironment: elementMap.typeEnvironment,
-            classHierarchy: elementMap.classHierarchy,
-            scopeModel: scopeModel,
-            annotations: annotations)
-        .impactBuilderData;
-  }
-
+  Map<Uri, Map<ir.Member, ImpactBuilderData>> result = {};
   for (final library in input.component.libraries) {
     if (!input.moduleLibraries.contains(library.importUri)) continue;
-    library.members.forEach(computeForMember);
-    for (final cls in library.classes) {
-      cls.members.forEach(computeForMember);
-    }
+    result[library.importUri] =
+        _computeForLibrary(options, reporter, elementMap, library);
   }
-  return ModuleData(result);
+  return ModuleData.fromImpactData(result);
 }

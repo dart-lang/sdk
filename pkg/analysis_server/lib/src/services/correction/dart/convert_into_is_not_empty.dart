@@ -66,7 +66,4 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
           range.node(isEmptyIdentifier_final), 'isNotEmpty');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertIntoIsNotEmpty newInstance() => ConvertIntoIsNotEmpty();
 }

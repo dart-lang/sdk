@@ -19,6 +19,7 @@
 #include "vm/os_thread.h"
 #include "vm/profiler.h"
 #include "vm/runtime_entry.h"
+#include "vm/service.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
@@ -39,15 +40,15 @@ DECLARE_FLAG(bool, trace_service_verbose);
 
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
-  ASSERT(isolate_ == NULL);
-  ASSERT(store_buffer_block_ == NULL);
-  ASSERT(marking_stack_block_ == NULL);
+  ASSERT(isolate_ == nullptr);
+  ASSERT(store_buffer_block_ == nullptr);
+  ASSERT(marking_stack_block_ == nullptr);
   // There should be no top api scopes at this point.
-  ASSERT(api_top_scope() == NULL);
+  ASSERT(api_top_scope() == nullptr);
   // Delete the resusable api scope if there is one.
   if (api_reusable_scope_ != nullptr) {
     delete api_reusable_scope_;
-    api_reusable_scope_ = NULL;
+    api_reusable_scope_ = nullptr;
   }
 
   DO_IF_TSAN(delete tsan_utils_);
@@ -60,21 +61,21 @@ Thread::~Thread() {
 #define REUSABLE_HANDLE_SCOPE_INIT(object)
 #endif  // defined(DEBUG)
 
-#define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(NULL),
+#define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(nullptr),
 
 Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
       stack_limit_(0),
       write_barrier_mask_(UntaggedObject::kGenerationalBarrierMask),
       heap_base_(0),
-      isolate_(NULL),
-      dispatch_table_array_(NULL),
+      isolate_(nullptr),
+      dispatch_table_array_(nullptr),
       saved_stack_limit_(0),
       stack_overflow_flags_(0),
-      heap_(NULL),
+      heap_(nullptr),
       top_exit_frame_info_(0),
-      store_buffer_block_(NULL),
-      marking_stack_block_(NULL),
+      store_buffer_block_(nullptr),
+      marking_stack_block_(nullptr),
       vm_tag_(0),
       unboxed_int64_runtime_arg_(0),
       unboxed_double_runtime_arg_(0.0),
@@ -86,32 +87,37 @@ Thread::Thread(bool is_vm_isolate)
       safepoint_state_(0),
       ffi_callback_code_(GrowableObjectArray::null()),
       ffi_callback_stack_return_(TypedData::null()),
-      api_top_scope_(NULL),
+      api_top_scope_(nullptr),
       double_truncate_round_supported_(
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
       tsan_utils_(DO_IF_TSAN(new TsanUtils()) DO_IF_NOT_TSAN(nullptr)),
       task_kind_(kUnknownTask),
-      dart_stream_(NULL),
+      dart_stream_(nullptr),
+      service_extension_stream_(nullptr),
       thread_lock_(),
-      api_reusable_scope_(NULL),
+      api_reusable_scope_(nullptr),
       no_callback_scope_depth_(0),
 #if defined(DEBUG)
       no_safepoint_scope_depth_(0),
 #endif
       reusable_handles_(),
       stack_overflow_count_(0),
-      hierarchy_info_(NULL),
-      type_usage_info_(NULL),
+      hierarchy_info_(nullptr),
+      type_usage_info_(nullptr),
       sticky_error_(Error::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
 #if defined(USING_SAFE_STACK)
               saved_safestack_limit_(0),
 #endif
-      next_(NULL) {
+      next_(nullptr) {
 #if defined(SUPPORT_TIMELINE)
   dart_stream_ = Timeline::GetDartStream();
-  ASSERT(dart_stream_ != NULL);
+  ASSERT(dart_stream_ != nullptr);
+#endif
+#ifndef PRODUCT
+  service_extension_stream_ = &Service::extension_stream;
+  ASSERT(service_extension_stream_ != nullptr);
 #endif
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
@@ -276,8 +282,8 @@ bool Thread::EnterIsolate(Isolate* isolate, bool is_nested_reenter) {
 
   Thread* thread = isolate->ScheduleThread(kIsMutatorThread, is_nested_reenter,
                                            kBypassSafepoint);
-  if (thread != NULL) {
-    ASSERT(thread->store_buffer_block_ == NULL);
+  if (thread != nullptr) {
+    ASSERT(thread->store_buffer_block_ == nullptr);
     ASSERT(thread->isolate() == isolate);
     ASSERT(thread->isolate_group() == isolate->group());
     thread->FinishEntering(kMutatorTask);
@@ -316,7 +322,7 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
   const bool kIsNestedReenter = false;
   Thread* thread = isolate->ScheduleThread(kIsMutatorThread, kIsNestedReenter,
                                            bypass_safepoint);
-  if (thread != NULL) {
+  if (thread != nullptr) {
     ASSERT(!thread->IsMutatorThread());
     ASSERT(thread->isolate() == isolate);
     ASSERT(thread->isolate_group() == isolate->group());
@@ -336,7 +342,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   thread->PrepareLeaving();
 
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate != nullptr);
   const bool kIsMutatorThread = false;
   const bool kIsNestedExit = false;
   isolate->UnscheduleThread(thread, kIsMutatorThread, kIsNestedExit,
@@ -348,7 +354,7 @@ bool Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                        bool bypass_safepoint) {
   ASSERT(kind != kMutatorTask);
   Thread* thread = isolate_group->ScheduleThread(bypass_safepoint);
-  if (thread != NULL) {
+  if (thread != nullptr) {
     ASSERT(!thread->IsMutatorThread());
     ASSERT(thread->isolate() == nullptr);
     ASSERT(thread->isolate_group() == isolate_group);
@@ -439,7 +445,10 @@ ErrorPtr Thread::HandleInterrupts() {
   if ((interrupt_bits & kVMInterrupt) != 0) {
     CheckForSafepoint();
     if (isolate_group()->store_buffer()->Overflowed()) {
-      heap()->CollectGarbage(GCType::kScavenge, GCReason::kStoreBuffer);
+      // Evacuate: If the popular store buffer targets are copied instead of
+      // promoted, the store buffer won't shrink and a second scavenge will
+      // occur that does promote them.
+      heap()->CollectGarbage(this, GCType::kEvacuate, GCReason::kStoreBuffer);
     }
 
 #if !defined(PRODUCT)
@@ -501,7 +510,7 @@ void Thread::StoreBufferAddObjectGC(ObjectPtr obj) {
 
 void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
   StoreBufferBlock* block = store_buffer_block_;
-  store_buffer_block_ = NULL;
+  store_buffer_block_ = nullptr;
   isolate_group()->store_buffer()->PushBlock(block, policy);
 }
 
@@ -535,7 +544,7 @@ void Thread::DeferredMarkingStackAddObject(ObjectPtr obj) {
 
 void Thread::MarkingStackRelease() {
   MarkingStackBlock* block = marking_stack_block_;
-  marking_stack_block_ = NULL;
+  marking_stack_block_ = nullptr;
   write_barrier_mask_ = UntaggedObject::kGenerationalBarrierMask;
   isolate_group()->marking_stack()->PushBlock(block);
 }
@@ -548,7 +557,7 @@ void Thread::MarkingStackAcquire() {
 
 void Thread::DeferredMarkingStackRelease() {
   MarkingStackBlock* block = deferred_marking_stack_block_;
-  deferred_marking_stack_block_ = NULL;
+  deferred_marking_stack_block_ = nullptr;
   isolate_group()->deferred_marking_stack()->PushBlock(block);
 }
 
@@ -590,9 +599,9 @@ void Thread::ClearReusableHandles() {
 
 void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                  ValidationPolicy validation_policy) {
-  ASSERT(visitor != NULL);
+  ASSERT(visitor != nullptr);
 
-  if (zone() != NULL) {
+  if (zone() != nullptr) {
     zone()->VisitObjectPointers(visitor);
   }
 
@@ -609,7 +618,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;
-  while (scope != NULL) {
+  while (scope != nullptr) {
     scope->local_handles()->VisitObjectPointers(visitor);
     scope = scope->previous();
   }
@@ -633,7 +642,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
     StackFrameIterator frames_iterator(top_exit_frame_info(), validation_policy,
                                        this, cross_thread_policy);
     StackFrame* frame = frames_iterator.NextFrame();
-    while (frame != NULL) {
+    while (frame != nullptr) {
       frame->VisitObjectPointers(visitor);
       frame = frames_iterator.NextFrame();
     }
@@ -720,7 +729,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 //
 // Therefore, to support this assumption, we scan the stack after a scavenge
 // or when concurrent marking begins and add all live temporaries in
-// Dart frames preceeding an exit frame to the store buffer or deferred
+// Dart frames preceding an exit frame to the store buffer or deferred
 // marking stack.
 void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
   ASSERT(IsAtSafepoint());
@@ -734,7 +743,7 @@ void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
   RestoreWriteBarrierInvariantVisitor visitor(isolate_group(), this, op);
   ObjectStore* object_store = isolate_group()->object_store();
   bool scan_next_dart_frame = false;
-  for (StackFrame* frame = frames_iterator.NextFrame(); frame != NULL;
+  for (StackFrame* frame = frames_iterator.NextFrame(); frame != nullptr;
        frame = frames_iterator.NextFrame()) {
     if (frame->IsExitFrame()) {
       scan_next_dart_frame = true;
@@ -890,7 +899,7 @@ bool Thread::IsValidHandle(Dart_Handle object) const {
 
 bool Thread::IsValidLocalHandle(Dart_Handle object) const {
   ApiLocalScope* scope = api_top_scope_;
-  while (scope != NULL) {
+  while (scope != nullptr) {
     if (scope->local_handles()->IsValidHandle(object)) {
       return true;
     }
@@ -902,7 +911,7 @@ bool Thread::IsValidLocalHandle(Dart_Handle object) const {
 intptr_t Thread::CountLocalHandles() const {
   intptr_t total = 0;
   ApiLocalScope* scope = api_top_scope_;
-  while (scope != NULL) {
+  while (scope != nullptr) {
     total += scope->local_handles()->CountHandles();
     scope = scope->previous();
   }
@@ -912,7 +921,7 @@ intptr_t Thread::CountLocalHandles() const {
 int Thread::ZoneSizeInBytes() const {
   int total = 0;
   ApiLocalScope* scope = api_top_scope_;
-  while (scope != NULL) {
+  while (scope != nullptr) {
     total += scope->zone()->SizeInBytes();
     scope = scope->previous();
   }
@@ -922,12 +931,12 @@ int Thread::ZoneSizeInBytes() const {
 void Thread::EnterApiScope() {
   ASSERT(MayAllocateHandles());
   ApiLocalScope* new_scope = api_reusable_scope();
-  if (new_scope == NULL) {
+  if (new_scope == nullptr) {
     new_scope = new ApiLocalScope(api_top_scope(), top_exit_frame_info());
-    ASSERT(new_scope != NULL);
+    ASSERT(new_scope != nullptr);
   } else {
     new_scope->Reinit(this, api_top_scope(), top_exit_frame_info());
-    set_api_reusable_scope(NULL);
+    set_api_reusable_scope(nullptr);
   }
   set_api_top_scope(new_scope);  // New scope is now the top scope.
 }
@@ -937,7 +946,7 @@ void Thread::ExitApiScope() {
   ApiLocalScope* scope = api_top_scope();
   ApiLocalScope* reusable_scope = api_reusable_scope();
   set_api_top_scope(scope->previous());  // Reset top scope to previous.
-  if (reusable_scope == NULL) {
+  if (reusable_scope == nullptr) {
     scope->Reset(this);  // Reset the old scope which we just exited.
     set_api_reusable_scope(scope);
   } else {
@@ -950,7 +959,7 @@ void Thread::UnwindScopes(uword stack_marker) {
   // Unwind all scopes using the same stack_marker, i.e. all scopes allocated
   // under the same top_exit_frame_info.
   ApiLocalScope* scope = api_top_scope_;
-  while (scope != NULL && scope->stack_marker() != 0 &&
+  while (scope != nullptr && scope->stack_marker() != 0 &&
          scope->stack_marker() == stack_marker) {
     api_top_scope_ = scope->previous();
     delete scope;
@@ -974,7 +983,7 @@ void Thread::FinishEntering(TaskKind kind) {
   ASSERT(store_buffer_block_ == nullptr);
 
   task_kind_ = kind;
-  if (isolate_group()->marking_stack() != NULL) {
+  if (isolate_group()->marking_stack() != nullptr) {
     // Concurrent mark in progress. Enable barrier for this thread.
     MarkingStackAcquire();
     DeferredMarkingStackAcquire();
@@ -1003,17 +1012,17 @@ void Thread::PrepareLeaving() {
 
 DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
     : StackResource(thread) {
-  if (thread != NULL) {
+  if (thread != nullptr) {
     OSThread* os_thread = thread->os_thread();
-    ASSERT(os_thread != NULL);
+    ASSERT(os_thread != nullptr);
     os_thread->DisableThreadInterrupts();
   }
 }
 
 DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
-  if (thread() != NULL) {
+  if (thread() != nullptr) {
     OSThread* os_thread = thread()->os_thread();
-    ASSERT(os_thread != NULL);
+    ASSERT(os_thread != nullptr);
     os_thread->EnableThreadInterrupts();
   }
 }

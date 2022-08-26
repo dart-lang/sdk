@@ -39,27 +39,26 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.16.2",
+  "sdk_tag": "version:2.17.0",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
-  # hashes. It requires access to the dart-build-access group, which EngProd
-  # has.
-  "co19_rev": "7baaec7cf49188b92ceed2af98beb1caf8939756",
+  # hashes.
+  "co19_rev": "9849573cd1b8317e58247b8c1672e89b1cd842e2",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "b2034a17609472e374623f3dbe0efd9f5cb258af",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
-  "benchmarks_internal_rev": "076df10d9b77af337f2d8029725787155eb1cd52",
+  "benchmarks_internal_rev": "599aa474a03c37be146f82dfbad85f34f25ffa47",
   "checkout_benchmarks_internal": False,
 
   # Checkout Android dependencies only on Mac and Linux.
   "download_android_deps":
-    "(host_os == mac or host_os == linux) and host_cpu == x64",
+    "host_os == mac or (host_os == linux and host_cpu == x64)",
 
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:10.0.40",
+  "d8_tag": "version:10.5.100",
   "jsshell_tag": "version:95.0",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -73,110 +72,103 @@ vars = {
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "bb994c6f067340c1135eb43eed84f4b33cfa7397",
 
-  "gperftools_revision": "180bfa10d7cb38e8b3784d60943d50e8fcef0dcb",
+  "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
 
   # Revisions of /third_party/* dependencies.
-  "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
-  "async_rev": "3f58c326bd4928fca9ddc10c72b19cb7ac659256",
-  "bazel_worker_rev": "ceeba0982d4ff40d32371c9d35f3d2dc1868de20",
-  "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
-  "boolean_selector_rev": "437e7f06c7e416bed91e16ae1df453555897e945",
+  # Note that putting an EOL comment after a dependency below will prevent the
+  # 'tools/rev_sdk_deps.dart' tool from attempting to rev to a newer revision.
+
+  "args_rev": "73e8d3b55cbedc9765f8e266f3422d8914f8e62a",
+  "async_rev": "f3ed5f690e2ec9dbe1bfc5184705575b4f6480e5",
+  "bazel_worker_rev": "9710de6c9c70b1b583183db9d9721ba64e5a16fe",
+  "benchmark_harness_rev": "4183c76739ed7a27c260ca9ebaab6e0f210d1a37",
+  "boolean_selector_rev": "1d3565e2651d16566bb556955b96ea75018cbd0c",
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
-  "boringssl_rev" : "87f316d7748268eb56f2dc147bd593254ae93198",
+  "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "browser_launcher_rev": "c6cc1025d6901926cf022e144ba109677e3548f1",
-  "characters_rev": "6ec389c4dfa8fce14820dc5cbf6e693202e7e052",
-  "charcode_rev": "84ea427711e24abf3b832923959caa7dd9a8514b",
-  "chrome_rev" : "19997",
-  "cli_util_rev" : "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
-  "clock_rev" : "5631a0612f4ac7e1b32f7c9a00fc7c00a41615e1",
-  "collection_rev": "e1407da23b9f17400b3a905aafe2b8fa10db3d86",
-  "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
-  "crypto_rev": "b5024e4de2b1c474dd558bef593ddbf0bfade152",
-  "csslib_rev": "518761b166974537f334dbf264e7f56cb157a96a",
+  "browser_launcher_rev": "981ca8847dd2b0fe022f9e742045cfb8f214d35f",
+  "characters_rev": "559755d67af2c78b9beaaeb7ca57d7c4ae0b836d",
+  "chrome_rev": "19997",
+  "cli_util_rev": "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
+  "clock_rev": "2507a228773c5e877fc9e3330080b234aad965c0",
+  "collection_rev": "414ffa1bc8ba18bd608bbf916d95715311d89ac1",
+  "convert_rev": "7145da14f9cd730e80fb4c6a10108fcfd205e8e7",
+  "crypto_rev": "223e0a62c0f762fd2b510f753861445b52e14fc3",
+  "csslib_rev": "ba2eb2d80530eedefadaade338a09c2dd60410f3",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
-  # matches the version here.
+  # matches the version here. Please follow this process to make updates:
   #
-  # Please follow this process to make updates:
+  # * Create a commit that updates the version here to the desired version and
+  #   adds any appropriate CHANGELOG text.
+  # * Send that to eng-prod to review. They will update the checked-in SDK
+  #   and land the review.
   #
-  # *   Create a commit that updates the version here to the desired version and
-  #     adds any appropriate CHANGELOG text.
-  # *   Send that to eng-prod to review. They will update the checked-in SDK
-  #     and land the review.
-  #
-  # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea",
+  # For more details, see https://github.com/dart-lang/sdk/issues/30164.
+  "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea", # manually rev'd
 
-  "dartdoc_rev" : "334072b0cad436c05f6bcecf8a1a59f2f0809b84",
-  "devtools_rev" : "8c525828ba33029ed664bf8ea2829b6e5370535f",
-  "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
-  "fixnum_rev": "848341f061359ef7ddc0cad472c2ecbb036b28ac",
-  "file_rev": "1ebc38852ffed24b564910317982298b56c2cedd",
-  "glob_rev": "da1f4595ee2f87982cbcc663d4cac244822d9227",
-  "html_rev": "f108bce59d136c584969fd24a5006914796cf213",
-  "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
-  "http_multi_server_rev": "34bf7f04b61cce561f47f7f275c2cc811534a05a",
-  "http_parser_rev": "202391286ddc13c4c3c284ac5b511f04697250ed",
-  "http_rev": "1e42ffa181b263f7790f276a5465832bff7ce615",
-  "icu_rev" : "81d656878ec611cb0b42d52c82e9dae93920d9ba",
-  "intl_tag": "9669926609e7efc17dfd74fbb44ec719a7e573cc", # 0.17.0-nullsafety
+  "dartdoc_rev": "adc5a45ddafb57e3a600ee7d9e88dc81061d1410",
+  "devtools_rev": "95d292626da26505b02417735f77e8922783b477",
+  "ffi_rev": "18b2b549d55009ff594600b04705ff6161681e07",
+  "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
+  "fixnum_rev": "164712f6547cdfb2709b752188186baf31fd1730",
+  "glob_rev": "1d51fcc172e5adfbae6e82c3f8f119774cb2fca2",
+  "html_rev": "8243e967caad9932c13971af3b2a7c8f028383d5",
+  "http_multi_server_rev": "20bf079c8955d1250a45afb9cb096472a724a551",
+  "http_parser_rev": "eaa63304c333316acd114e3be7ed701d7d7ba32c",
+  "http_rev": "843c5ecb1ea2233ba7b7049833b5801b149fba86",
+  "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
+  "intl_rev": "e9b573679de5e703d89a242b9dca331c772979ef",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
-  "linter_tag": "14c916a16e78315e212cf79e7ccf4c19159a1bda", # 1.22.0
-  "lints_tag": "8294e5648ab49474541527e2911e72e4c5aefe55", #2.0.0
-  "logging_rev": "dfbe88b890c3b4f7bc06da5a7b3b43e9e263b688",
+  "json_rpc_2_rev": "805e6536dd961d66f6b8cd46d8f3e61774f957c9",
+  "linter_rev": "1ddc70948d94f2449fec69a95e3ceb7b6b6c8348", # manually rev'd
+  "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
+  "logging_rev": "f6979e3bc3b6e1847a08335b7eb6304e18986195",
+  "markdown_rev": "e3f4bd28c9e61b522f75f291d4d6cfcfeccd83ee", # b/236358256
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_rev": "7479783f0493f6717e1d7ae31cb37d39a91026b2",
-  "matcher_rev": "07595a7739d47a8315caba5a8e58fb9ae3d81261",
-  "mime_rev": "c2c5ffd594674f32dc277521369da1557a1622d3",
-  "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
-  "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
-  "package_config_rev": "8731bf10b5375542792a32a0f7c8a6f370583d96",
-  "path_rev": "baedce9d2ca11ea2cdf54395a74eb038087777a4",
-  "pedantic_rev": "66f2f6c27581c7936482e83be80b27be2719901c",
-  "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
+  "matcher_rev": "1a7fcae0d7af1604781afabe61fd35d9b404d8ed",
+  "mime_rev": "0a75a41445eb642674a0a271eecde78cb025ee60",
+  "mockito_rev": "25d25dab6b57ac710c0be0e759def7505b352ea7",
+  "oauth2_rev": "199ebf15cbd5b07958438184f32e41c4447a57bf",
+  "package_config_rev": "cff98c90acc457a3b0750f0a7da0e351a35e5d0c",
+  "path_rev": "7a0ed40280345b1c11df4c700c71e590738f4257",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
-  "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
-  "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
-  "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
-  "pub_rev": "c66381c51147e3a8fb64c6f63e481c990ab9aa94",
-  "pub_semver_rev": "ea6c54019948dc03042c595ce9413e17aaf7aa38",
+  "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
+  "protobuf_rev": "2d6c6037cee6c5f683e8f38e598443f9bec74b94",
+  "pub_rev": "27adcf41ab43023c45dafb4ef9b1e3ec0885f102", # manually rev'd
+  "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
-  "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",
-  "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",
-  "shelf_proxy_tag": "ccd311f64d8689e7a145d703ba267975d6df9e28", # 1.0.0
-  "shelf_rev": "78ac724a7944700340a3cef28c84bccbe62e9367",
-  "shelf_web_socket_rev": "24fb8a04befa75a94ac63a27047b231d1a22aab4",
-  "source_map_stack_trace_rev": "80709f2d2fe5086ab50d744a28a2d26ea4384a1b",
-  "source_maps-0.9.4_rev": "38524",
-  "source_maps_rev": "6499ee3adac8d469e2953e2e8ba4bdb4c2fbef90",
-  "source_span_rev": "dc189b455d823e2919667f6c5dcb41ab7483bce0",
-  "sse_rev": "9084339389eb441d0c0518cddac211a097e78657",
-  "stack_trace_rev": "5220580872625ddee41e9ca9a5f3364789b2f0f6",
-  "stream_channel_rev": "3fa3e40c75c210d617b8b943b9b8f580e9866a89",
-  "string_scanner_rev": "0e53bf9059e8e22a3b346aac7ec755a0f8314eb6",
-  "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
-  "test_descriptor_rev": "ead23c1e7df079ac0f6457a35f7a71432892e527",
-  "test_process_rev": "7c73ec8a8a6e0e63d0ec27d70c21ca4323fb5e8f",
-  "term_glyph_rev": "4885b7f8af6931e23d3aa6d1767ee3f9a626923d",
-  "test_reflective_loader_rev": "fcfce37666672edac849d2af6dffc0f8df236a94",
-  "test_rev": "b6aba5544628730b7d6a38eae1aef9117a1bb235",
-  "typed_data_rev": "29ce5a92b03326d0b8035916ac04f528874994bd",
-  "usage_rev": "f0cb8f7cce8b675255c81488dbab8cf9f2f56404",
-  "vector_math_rev": "0cbed0914d49a6a44555e6d5444c438a4a4c3fc1",
-  "watcher_rev": "f76997ab0c857dc5537ac0975a9ada92b54ef949",
-  "webdriver_rev": "ff5ccb1522edf4bed578ead4d65e0cbc1f2c4f02",
+  "shelf_rev": "8f8f3703efd241f9cf6b18e36e0067ca74c47fd8",
+  "source_map_stack_trace_rev": "72dbf21a33293b2b8434d0a9751e36f9463981ac",
+  "source_maps_rev": "e93565b43a7b6b367789de8ffba969c4ebeeb317",
+  "source_span_rev": "24151fd80e4557a626f81f2bc0d6a2ebde172cae",
+  "sse_rev": "2df072848a6090d3ed67f30c69e86ec4d6b96cd6",
+  "stack_trace_rev": "17f09c2c6845bb31c7c385acecce5befb8527a13",
+  "stream_channel_rev": "8e0d7ef1f4a3fb97fbd82e11cd539093f58511f3",
+  "string_scanner_rev": "c637deb8d998b72a5807afbd06aba8370db725c0",
+  "sync_http_rev": "39509d69fd5a9c3da46eab48fcafdf62e6ad4580",
+  "term_glyph_rev": "741efdedf9da62ee66a06c295d36fa28f8780e24",
+  "test_descriptor_rev": "5ed5d7f6bf1191592995dcb8eedbbc17df69d386",
+  "test_process_rev": "3e695bcfeab551473ddc288970f345f30e5e1375",
+  "test_reflective_loader_rev": "8d0de01bbe852fea1f8e33aba907abcba50a8a1e",
+  "test_rev": "fb4ccaf6c68fcc1d208c5c53a52d8e0e718bdffe",
+  "typed_data_rev": "bb10b64f9a56b8fb49307d4465474bf1c1309f6d",
+  "usage_rev": "1d3c31e780af665fb796a27898a441fcb7d263db",
+  "vector_math_rev": "cdcee487bde4353a6ba7a29bfc7db3840426e50f",
+  "watcher_rev": "e00c0ea769e32821d91c0880da8eb736839a6e6d",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "99dbdc5769e19b9eeaf69449a59079153c6a8b1f",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "webdev_rev": "832b096c0c24798d3df46faa7b7661fe930573c2",
-  "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
-  "yaml_edit_rev": "4fadb43801b07f90b3f0c6065dbce4efc6d8d55e",
-  "yaml_rev": "ad0779d1baa25c6b10a192d080efc45de02b6a32",
-  "zlib_rev": "faff052b6b6edcd6dd548513fe44ac0941427bf0",
+  "webdev_rev": "9c4428472b04f50748ea4871829897cff43455a3",
+  "webdriver_rev": "e1a9ad671ee82e05eee463f922a34585ed2d2f15",
+  "webkit_inspection_protocol_rev": "57522d6b29d94903b765c757079d906555d5a171",
+  "yaml_edit_rev": "01589b3ce447b03aed991db49f1ec6445ad5476d",
+  "yaml_rev": "fda5b15692ccfa0feb7793a27fe3829b3d0f77fa",
+  "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
+
+  # Windows deps
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
@@ -184,9 +176,9 @@ vars = {
   # Pinned browser versions used by the testing infrastructure. These are not
   # meant to be downloaded by users for local testing.
   "download_chrome": False,
-  "chrome_tag": "91",
+  "chrome_tag": "101.0.4951.41",
   "download_firefox": False,
-  "firefox_tag": "67",
+  "firefox_tag": "98.0.2",
 }
 
 gclient_gn_args_file = Var("dart_root") + '/build/config/gclient_args.gni'
@@ -298,9 +290,6 @@ deps = {
       Var('chromium_git') + '/external/github.com/mdn/browser-compat-data' +
       "@" + Var("browser-compat-data_tag"),
 
-  Var("dart_root") + "/third_party/pkg/browser_launcher":
-      Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
-
   Var("dart_root") + "/third_party/tcmalloc/gperftools":
       Var('chromium_git') + '/external/github.com/gperftools/gperftools.git' +
       "@" + Var("gperftools_revision"),
@@ -317,10 +306,10 @@ deps = {
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       "@" + Var("boolean_selector_rev"),
+  Var("dart_root") + "/third_party/pkg/browser_launcher":
+      Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
   Var("dart_root") + "/third_party/pkg/characters":
       Var("dart_git") + "characters.git" + "@" + Var("characters_rev"),
-  Var("dart_root") + "/third_party/pkg/charcode":
-      Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
       Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
   Var("dart_root") + "/third_party/pkg/clock":
@@ -333,7 +322,7 @@ deps = {
       Var("dart_git") + "crypto.git" + "@" + Var("crypto_rev"),
   Var("dart_root") + "/third_party/pkg/csslib":
       Var("dart_git") + "csslib.git" + "@" + Var("csslib_rev"),
-  Var("dart_root") + "/third_party/pkg_tested/dart_style":
+  Var("dart_root") + "/third_party/pkg/dart_style":
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
@@ -342,7 +331,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_rev"),
   Var("dart_root") + "/third_party/pkg/file":
-      Var("dart_git") + "external/github.com/google/file.dart/"
+      Var("dart_git") + "external/github.com/google/file.dart"
       + "@" + Var("file_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       Var("dart_git") + "glob.git" + "@" + Var("glob_rev"),
@@ -350,21 +339,19 @@ deps = {
       Var("dart_git") + "html.git" + "@" + Var("html_rev"),
   Var("dart_root") + "/third_party/pkg/http":
       Var("dart_git") + "http.git" + "@" + Var("http_rev"),
-  Var("dart_root") + "/third_party/pkg_tested/http_io":
-    Var("dart_git") + "http_io.git" + "@" + Var("http_io_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       Var("dart_git") + "http_multi_server.git" +
       "@" + Var("http_multi_server_rev"),
   Var("dart_root") + "/third_party/pkg/http_parser":
       Var("dart_git") + "http_parser.git" + "@" + Var("http_parser_rev"),
   Var("dart_root") + "/third_party/pkg/intl":
-      Var("dart_git") + "intl.git" + "@" + Var("intl_tag"),
+      Var("dart_git") + "intl.git" + "@" + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       Var("dart_git") + "json_rpc_2.git" + "@" + Var("json_rpc_2_rev"),
   Var("dart_root") + "/third_party/pkg/linter":
-      Var("dart_git") + "linter.git" + "@" + Var("linter_tag"),
+      Var("dart_git") + "linter.git" + "@" + Var("linter_rev"),
   Var("dart_root") + "/third_party/pkg/lints":
-      Var("dart_git") + "lints.git" + "@" + Var("lints_tag"),
+      Var("dart_git") + "lints.git" + "@" + Var("lints_rev"),
   Var("dart_root") + "/third_party/pkg/logging":
       Var("dart_git") + "logging.git" + "@" + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
@@ -377,37 +364,21 @@ deps = {
       Var("dart_git") + "mockito.git" + "@" + Var("mockito_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       Var("dart_git") + "oauth2.git" + "@" + Var("oauth2_rev"),
-  Var("dart_root") + "/third_party/pkg_tested/package_config":
+  Var("dart_root") + "/third_party/pkg/package_config":
       Var("dart_git") + "package_config.git" +
       "@" + Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_rev"),
-  Var("dart_root") + "/third_party/pkg/pedantic":
-      Var("dart_git") + "pedantic.git" + "@" + Var("pedantic_rev"),
-  Var("dart_root") + "/third_party/pkg/platform":
-       Var("dart_git") + "platform.dart.git" + "@" + Var("platform_rev"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/protobuf":
        Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
-  Var("dart_root") + "/third_party/pkg/process":
-       Var("dart_git") + "process.dart.git" + "@" + Var("process_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_rev"),
   Var("dart_root") + "/third_party/pkg/pub":
       Var("dart_git") + "pub.git" + "@" + Var("pub_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + "@" + Var("shelf_rev"),
-  Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
-      Var("dart_git") + "shelf_packages_handler.git"
-      + "@" + Var("shelf_packages_handler_rev"),
-  Var("dart_root") + "/third_party/pkg/shelf_proxy":
-      Var("dart_git") + "shelf_proxy.git" + "@" + Var("shelf_proxy_tag"),
-  Var("dart_root") + "/third_party/pkg/shelf_static":
-      Var("dart_git") + "shelf_static.git" + "@" + Var("shelf_static_rev"),
-  Var("dart_root") + "/third_party/pkg/shelf_web_socket":
-      Var("dart_git") + "shelf_web_socket.git" +
-      "@" + Var("shelf_web_socket_rev"),
   Var("dart_root") + "/third_party/pkg/source_maps":
       Var("dart_git") + "source_maps.git" + "@" + Var("source_maps_rev"),
   Var("dart_root") + "/third_party/pkg/source_span":
@@ -533,7 +504,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/ndk": {
       "packages": [
           {
-            "package": "flutter/android/ndk/${{platform}}",
+            "package": "flutter/android/ndk/${{os}}-amd64",
             "version": "version:r21.0.6113669"
           }
       ],
@@ -544,7 +515,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/sdk/build-tools": {
       "packages": [
           {
-            "package": "flutter/android/sdk/build-tools/${{platform}}",
+            "package": "flutter/android/sdk/build-tools/${{os}}-amd64",
             "version": "version:30.0.1"
           }
       ],
@@ -555,7 +526,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/sdk/platform-tools": {
      "packages": [
           {
-            "package": "flutter/android/sdk/platform-tools/${{platform}}",
+            "package": "flutter/android/sdk/platform-tools/${{os}}-amd64",
             "version": "version:29.0.2"
           }
       ],
@@ -577,7 +548,7 @@ deps = {
   Var("dart_root") + "/third_party/android_tools/sdk/tools": {
       "packages": [
           {
-            "package": "flutter/android/sdk/tools/${{platform}}",
+            "package": "flutter/android/sdk/tools/${{os}}-amd64",
             "version": "version:26.1.1"
           }
       ],
@@ -702,6 +673,12 @@ hooks = [
     'name': 'Generate .dart_tool/package_confg.json',
     'pattern': '.',
     'action': ['python3', 'sdk/tools/generate_package_config.py'],
+  },
+  {
+    # Generate the sdk/version file.
+    'name': 'Generate sdk/version',
+    'pattern': '.',
+    'action': ['python3', 'sdk/tools/generate_sdk_version_file.py'],
   },
   {
     # Pull Debian sysroot for i386 Linux

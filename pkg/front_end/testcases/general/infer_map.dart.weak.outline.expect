@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+static field core::List<core::int> intList;
+static field core::List<self::A> list1;
+static method test(core::List<self::A> list) → dynamic
+  ;
+static method main() → dynamic
+  ;

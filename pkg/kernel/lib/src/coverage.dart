@@ -186,8 +186,20 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) {
+    visited.add(ExpressionKind.AbstractSuperPropertyGet);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitSuperPropertyGet(SuperPropertyGet node) {
     visited.add(ExpressionKind.SuperPropertyGet);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAbstractSuperPropertySet(AbstractSuperPropertySet node) {
+    visited.add(ExpressionKind.AbstractSuperPropertySet);
     node.visitChildren(this);
   }
 
@@ -242,6 +254,12 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     visited.add(ExpressionKind.LocalFunctionInvocation);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAbstractSuperMethodInvocation(AbstractSuperMethodInvocation node) {
+    visited.add(ExpressionKind.AbstractSuperMethodInvocation);
     node.visitChildren(this);
   }
 
@@ -1009,6 +1027,9 @@ enum InitializerKind {
 }
 
 enum ExpressionKind {
+  AbstractSuperMethodInvocation,
+  AbstractSuperPropertyGet,
+  AbstractSuperPropertySet,
   AsExpression,
   AwaitExpression,
   BlockExpression,

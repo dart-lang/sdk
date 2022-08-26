@@ -98,7 +98,7 @@ String _getMethodSourceForInvocation(
   part._implicitClassNameOffsets.forEach((String className, List<int> offsets) {
     for (var offset in offsets) {
 //      edits.add(newSourceEdit_range(range, className + '.'));
-      edits.add(SourceEdit(offset, 0, className + '.'));
+      edits.add(SourceEdit(offset, 0, '$className.'));
     }
   });
   // replace "this" references with invocation target
@@ -765,7 +765,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   void visitNode(AstNode node) {
     var nodeRange = range.node(node);
     if (!bodyRange.intersects(nodeRange)) {
-      return null;
+      return;
     }
     super.visitNode(node);
   }

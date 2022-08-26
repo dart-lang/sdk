@@ -3,9 +3,10 @@ name: js_ast
 publish_to: none
 
 environment:
-  sdk: '>=2.10.0 <3.0.0'
+  sdk: '>=2.16.0 <3.0.0'
 
+# Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  expect:
-    path: ../expect
-  test: ^1.3.4
+  expect: any
+  lints: any
+  test: any

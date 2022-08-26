@@ -146,6 +146,28 @@ class B extends A {
 ''');
   }
 
+  test_fromExtendingClass_getter_invokesSuper_setter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustCallSuper
+  int get foo => 0;
+
+  set foo(int _) {}
+}
+
+class B extends A {
+  int get foo {
+    super.foo = 0;
+    return 0;
+  }
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 135, 3),
+    ]);
+  }
+
   test_fromExtendingClass_operator() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -206,6 +228,27 @@ class B extends A {
   }
 }
 ''');
+  }
+
+  test_fromExtendingClass_setter_invokesSuper_getter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  int get foo => 0;
+
+  @mustCallSuper
+  set foo(int _) {}
+}
+
+class B extends A {
+  set foo(int _) {
+    super.foo;
+  }
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 131, 3),
+    ]);
   }
 
   test_fromInterface() async {

@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.js_emitter.startup_emitter;
 
-import '../../../compiler.dart';
+import '../../../compiler_api.dart' as api;
 import '../../common.dart';
 import '../../common/codegen.dart';
 import '../../constants/values.dart';
@@ -108,9 +110,8 @@ class ModularEmitterImpl extends ModularEmitterBase {
 
   @override
   js.Expression constantReference(ConstantValue constant) {
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
-      return staticClosureAccess(function.element);
+    if (constant is FunctionConstantValue) {
+      return staticClosureAccess(constant.element);
     }
     js.Expression expression = _constantEmitter.generate(constant);
     if (expression != null) {
@@ -156,7 +157,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   EmitterImpl(
       CompilerOptions options,
       this._reporter,
-      CompilerOutput outputProvider,
+      api.CompilerOutput outputProvider,
       DumpInfoTask dumpInfoTask,
       Namer namer,
       this._closedWorld,

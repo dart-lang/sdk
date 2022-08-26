@@ -6,8 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
@@ -48,9 +47,9 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  void listen(void Function(Message message) onMessage,
+  StreamSubscription<void> listen(void Function(Message message) onMessage,
       {Function? onError, void Function()? onDone}) {
-    _input.transform(LspPacketTransformer()).listen(
+    return _input.transform(LspPacketTransformer()).listen(
       (String data) => _readMessage(data, onMessage),
       onError: onError,
       onDone: () {

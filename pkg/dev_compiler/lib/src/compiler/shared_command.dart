@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -12,7 +9,6 @@ import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
 
-import '../kernel/command.dart' as kernel_compiler;
 import 'module_builder.dart';
 
 // TODO(nshahan) Merge all of this file the locations where they are used in
@@ -32,7 +28,7 @@ class SharedCompilerOptions {
   final bool sourceMap;
 
   /// Whether to emit the source mapping file in the program text, so the
-  /// runtime can enable synchronous stack trace deobsfuscation.
+  /// runtime can enable synchronous stack trace deobfuscation.
   final bool inlineSourceMap;
 
   /// Whether to emit the full compiled kernel.
@@ -67,7 +63,7 @@ class SharedCompilerOptions {
   /// Whether to emit the debug symbols
   ///
   /// Debugger uses this information about to construct mapping between
-  /// dart and js objecys that otherwise requires expensive communication with
+  /// dart and js objects that otherwise requires expensive communication with
   /// the browser.
   final bool emitDebugSymbols;
 
@@ -86,7 +82,7 @@ class SharedCompilerOptions {
   final String multiRootScheme;
 
   /// Path to set multi-root files relative to when generating source-maps.
-  final String multiRootOutputPath;
+  final String? multiRootOutputPath;
 
   /// Experimental language features that are enabled/disabled, see
   /// [the spec](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md)
@@ -94,6 +90,9 @@ class SharedCompilerOptions {
   final Map<String, bool> experiments;
 
   final bool soundNullSafety;
+
+  /// A canary feature that enables a new runtime type representation.
+  final bool newRuntimeTypes;
 
   SharedCompilerOptions(
       {this.sourceMap = true,
@@ -106,11 +105,14 @@ class SharedCompilerOptions {
       this.emitFullCompiledKernel = false,
       this.summaryModules = const {},
       this.moduleFormats = const [],
-      this.moduleName,
-      this.multiRootScheme,
+      required this.moduleName,
+      this.multiRootScheme = 'org-dartlang-app',
       this.multiRootOutputPath,
       this.experiments = const {},
-      this.soundNullSafety = false});
+      this.soundNullSafety = false,
+      bool canaryFeatures = false})
+      : // Current canary features.
+        newRuntimeTypes = canaryFeatures;
 
   SharedCompilerOptions.fromArguments(ArgResults args)
       : this(
@@ -128,10 +130,11 @@ class SharedCompilerOptions {
             moduleFormats: parseModuleFormatOption(args),
             moduleName: _getModuleName(args),
             multiRootScheme: args['multi-root-scheme'] as String,
-            multiRootOutputPath: args['multi-root-output-path'] as String,
+            multiRootOutputPath: args['multi-root-output-path'] as String?,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            soundNullSafety: args['sound-null-safety'] as bool);
+            soundNullSafety: args['sound-null-safety'] as bool,
+            canaryFeatures: args['canary'] as bool);
 
   SharedCompilerOptions.fromSdkRequiredArguments(ArgResults args)
       : this(
@@ -142,10 +145,11 @@ class SharedCompilerOptions {
             moduleName:
                 args['module-name'] != null ? _getModuleName(args) : 'dart_sdk',
             multiRootScheme: args['multi-root-scheme'] as String,
-            multiRootOutputPath: args['multi-root-output-path'] as String,
+            multiRootOutputPath: args['multi-root-output-path'] as String?,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            soundNullSafety: args['sound-null-safety'] as bool);
+            soundNullSafety: args['sound-null-safety'] as bool,
+            canaryFeatures: args['canary'] as bool);
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
     addSdkRequiredArguments(parser, hide: hide);
@@ -213,22 +217,26 @@ class SharedCompilerOptions {
       ..addFlag('sound-null-safety',
           help: 'Compile for sound null safety at runtime.',
           negatable: true,
-          defaultsTo: false);
+          defaultsTo: false)
+      ..addFlag('canary',
+          help: 'Enable all compiler features under active development. '
+              'This option is intended for compiler development only. '
+              'Canary features are likely to be unstable and can be removed '
+              'without warning.',
+          defaultsTo: false,
+          hide: true);
   }
 
   static String _getModuleName(ArgResults args) {
-    var moduleName = args['module-name'] as String;
+    var moduleName = args['module-name'] as String?;
     if (moduleName == null) {
-      var outPaths = args['out'];
-      var outPath = outPaths is String
-          ? outPaths
-          : (outPaths as List<String>)
-              .firstWhere((_) => true, orElse: () => null);
-
-      // TODO(jmesserly): fix the debugger console so it's not passing invalid
-      // options.
-      if (outPath == null) return null;
-
+      var outPaths = args['out'] as List<String>;
+      if (outPaths.isEmpty) {
+        throw UnsupportedError(
+            'No module name provided and unable to synthesize one without any '
+            'output paths.');
+      }
+      var outPath = outPaths.first;
       moduleName = p.basenameWithoutExtension(outPath);
     }
     // TODO(jmesserly): this should probably use sourcePathToUri.
@@ -247,9 +255,8 @@ class SharedCompilerOptions {
 /// allow working with summaries whose physical location is outside of the
 /// module root directory.
 Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
-    [String moduleRoot, String summaryExt]) {
+    [String? moduleRoot, String? summaryExt]) {
   var pathToModule = <String, String>{};
-  if (summaryPaths == null) return pathToModule;
   for (var summaryPath in summaryPaths) {
     var equalSign = summaryPath.indexOf('=');
     String modulePath;
@@ -286,7 +293,7 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
     }
-    if (option.negatable) {
+    if (option.negatable != null && option.negatable!) {
       knownOptions.add('no-$name');
     }
   });
@@ -318,10 +325,7 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
 
 /// Convert a [source] string to a Uri, where the source may be a
 /// dart/file/package URI or a local win/mac/linux path.
-///
-/// If [source] is null, this will return null.
-Uri sourcePathToUri(String source, {bool windows}) {
-  if (source == null) return null;
+Uri sourcePathToUri(String source, {bool? windows}) {
   if (windows == null) {
     // Running on the web the Platform check will fail, and we can't use
     // fromEnvironment because internally it's set to true for dart.library.io.
@@ -345,7 +349,7 @@ Uri sourcePathToUri(String source, {bool windows}) {
   return result;
 }
 
-Uri sourcePathToRelativeUri(String source, {bool windows}) {
+Uri sourcePathToRelativeUri(String source, {bool? windows}) {
   var uri = sourcePathToUri(source, windows: windows);
   if (uri.isScheme('file')) {
     var uriPath = uri.path;
@@ -375,8 +379,8 @@ Uri sourcePathToRelativeUri(String source, {bool windows}) {
 // TODO(#40251): Remove this logic from dev_compiler itself, push it to the
 // invokers of dev_compiler which have more knowledge about how they want
 // source paths to look.
-Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
-    {String multiRootOutputPath, String sourceMapBase}) {
+Map placeSourceMap(Map sourceMap, String sourceMapPath, String? multiRootScheme,
+    {String? multiRootOutputPath, String? sourceMapBase}) {
   var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = sourcePathToUri(p.absolute(p.fromUri(sourceMapPath))).path;
@@ -421,28 +425,6 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
   return map;
 }
 
-/// Invoke the compiler with [args], optionally with the kernel backend if
-/// [isKernel] is set.
-///
-/// Returns a [CompilerResult], with a success flag indicating whether the
-/// program compiled without any fatal errors.
-///
-/// The result may also contain a [previousResult], which can be passed back in
-/// for batch/worker executions to attempt to existing state.
-Future<CompilerResult> compile(ParsedArguments args,
-    {CompilerResult previousResult, Map<Uri, List<int>> inputDigests}) {
-  if (previousResult != null && !args.isBatchOrWorker) {
-    throw ArgumentError(
-        'previousResult requires --batch or --bazel_worker mode/');
-  }
-
-  return kernel_compiler.compile(args.rest,
-      compilerState: previousResult?.kernelState,
-      isWorker: args.isWorker,
-      useIncrementalCompiler: args.useIncrementalCompiler,
-      inputDigests: inputDigests);
-}
-
 /// The result of a single `dartdevc` compilation.
 ///
 /// Typically used for exiting the process with [exitCode] or checking the
@@ -455,7 +437,7 @@ class CompilerResult {
   /// Optionally provides the front_end state from the previous compilation,
   /// which can be passed to [compile] to potentially speed up the next
   /// compilation.
-  final InitializedCompilerState kernelState;
+  final InitializedCompilerState? kernelState;
 
   /// The process exit code of the compiler.
   final int exitCode;
@@ -463,7 +445,7 @@ class CompilerResult {
   CompilerResult(this.exitCode, {this.kernelState});
 
   /// Gets the kernel compiler state, if any.
-  Object get compilerState => kernelState;
+  Object? get compilerState => kernelState;
 
   /// Whether the program compiled without any fatal errors (equivalent to
   /// [exitCode] == 0).
@@ -483,7 +465,7 @@ class CompilerResult {
 /// [isBatch]/[isWorker] mode are preprocessed because they can combine
 /// argument lists from the initial invocation and from batch/worker jobs.
 class ParsedArguments {
-  /// The user's arguments to the compiler for this compialtion.
+  /// The user's arguments to the compiler for this compilation.
   final List<String> rest;
 
   /// Whether to run in `--batch` mode, e.g the Dart SDK and Language tests.

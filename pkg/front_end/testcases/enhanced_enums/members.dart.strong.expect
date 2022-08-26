@@ -9,8 +9,8 @@ class E extends core::_Enum /*isEnum*/  {
   static field self::E staticFoo = self::E::f();
   static const field self::E one = #C5;
   static const field self::E two = #C8;
-  const constructor •(core::int index, core::String name, core::int foo) → self::E
-    : self::E::foo = foo, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, core::int foo) → self::E
+    : self::E::foo = foo, super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
@@ -28,8 +28,8 @@ class E2<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   static field () → self::E2<dynamic> staticFoo = () → self::E2<dynamic> => self::E2::f<dynamic>();
   static const field self::E2<core::num> one = #C11;
   static const field self::E2<core::String> two = #C13;
-  const constructor •(core::int index, core::String name, self::E2::X% foo) → self::E2<self::E2::X%>
-    : self::E2::foo = foo, super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name, self::E2::X% foo) → self::E2<self::E2::X%>
+    : self::E2::foo = foo, super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";

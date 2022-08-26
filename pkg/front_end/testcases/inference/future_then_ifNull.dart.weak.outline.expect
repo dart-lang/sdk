@@ -12,7 +12,7 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
     ;
   method noSuchMethod(core::Invocation* invocation) → dynamic
     ;
-  method then<S extends core::Object* = dynamic>((self::MyFuture::T*) →* FutureOr<self::MyFuture::then::S*>* f, {core::Function* onError}) → self::MyFuture<self::MyFuture::then::S*>*
+  method then<S extends core::Object* = dynamic>((self::MyFuture::T*) →* FutureOr<self::MyFuture::then::S*>* f, {core::Function* onError = null}) → self::MyFuture<self::MyFuture::then::S*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -39,17 +39,17 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> SymbolConstant(#catchError)
-Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> ListConstant(const <Type*>[])
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> SymbolConstant(#test)
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> SymbolConstant(#whenComplete)
-Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> SymbolConstant(#asStream)
-Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> SymbolConstant(#timeout)
-Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> ListConstant(const <Type*>[])
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:10:7 -> SymbolConstant(#onTimeout)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> SymbolConstant(#catchError)
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> SymbolConstant(#test)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> SymbolConstant(#whenComplete)
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> SymbolConstant(#asStream)
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> SymbolConstant(#timeout)
+Evaluated: ListLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///future_then_ifNull.dart:12:7 -> SymbolConstant(#onTimeout)
 Extra constant evaluation: evaluated: 46, effectively constant: 13

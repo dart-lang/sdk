@@ -1,4 +1,3 @@
-// @dart = 2.9
 extension Extension1<T extends Object> on T {
   method1<S extends Object>() {}
   method2<S extends String>() {}

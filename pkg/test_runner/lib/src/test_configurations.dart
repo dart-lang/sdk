@@ -13,6 +13,7 @@ import 'configuration.dart';
 import 'fuchsia.dart';
 import 'path.dart';
 import 'process_queue.dart';
+import 'service/web_driver_service.dart';
 import 'terminal.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
@@ -27,31 +28,32 @@ export 'configuration.dart' show TestConfiguration;
 /// simpler to add them to test.dart. Existing test suites should be moved to
 /// here, if possible.
 final testSuiteDirectories = [
-  Path('third_party/pkg/dartdoc'),
   Path('pkg'),
-  Path('third_party/pkg_tested'),
-  Path('runtime/tests/vm'),
-  Path('runtime/observatory/tests/service'),
   Path('runtime/observatory/tests/observatory_ui'),
-  Path('runtime/observatory_2/tests/service_2'),
+  Path('runtime/observatory/tests/service'),
   Path('runtime/observatory_2/tests/observatory_ui_2'),
+  Path('runtime/observatory_2/tests/service_2'),
+  Path('runtime/tests/vm'),
   Path('samples'),
-  Path('samples_2'),
   Path('samples-dev'),
+  Path('samples_2'),
   Path('tests/corelib'),
   Path('tests/corelib_2'),
-  Path('tests/web'),
-  Path('tests/web_2'),
   Path('tests/dartdevc'),
   Path('tests/dartdevc_2'),
+  Path('tests/ffi'),
+  Path('tests/ffi_2'),
   Path('tests/language'),
   Path('tests/language_2'),
   Path('tests/lib'),
   Path('tests/lib_2'),
   Path('tests/standalone'),
   Path('tests/standalone_2'),
-  Path('tests/ffi'),
-  Path('tests/ffi_2'),
+  Path('tests/web'),
+  Path('tests/web_2'),
+  Path('third_party/pkg/dart_style'),
+  Path('third_party/pkg/dartdoc'),
+  Path('third_party/pkg/package_config'),
   Path('utils/tests/peg'),
 ];
 
@@ -89,8 +91,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   var runningBrowserTests =
       configurations.any((config) => config.runtime.isBrowser);
 
-  var serverFutures = <Future>[];
+  var eventListeners = <EventListener>[];
   var testSuites = <TestSuite>[];
+  var serverFutures = <Future>[];
   var maxBrowserProcesses = maxProcesses;
   if (configurations.length > 1 &&
       (configurations[0].testServerPort != 0 ||
@@ -101,9 +104,14 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     exit(1);
   }
 
+  var services = <Future<WebDriverService>>{};
   for (var configuration in configurations) {
     if (!listTests && !listStatusFiles && runningBrowserTests) {
       serverFutures.add(configuration.startServers());
+      if (WebDriverService.supportedRuntimes.contains(configuration.runtime)) {
+        services.add(
+            WebDriverService.startServiceForRuntime(configuration.runtime));
+      }
     }
 
     if (configuration.runtime.isIE) {
@@ -125,11 +133,14 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       // Issue: https://github.com/dart-lang/sdk/issues/23891
       // This change does not fix the problem.
       maxBrowserProcesses = math.max(1, maxBrowserProcesses ~/ 2);
+    } else if (configuration.runtime == Runtime.chromeOnAndroid) {
+      maxBrowserProcesses =
+          math.min(maxBrowserProcesses, (await AdbHelper.listDevices()).length);
     }
 
     // If we specifically pass in a suite only run that.
     if (configuration.suiteDirectory != null) {
-      var suitePath = Path(configuration.suiteDirectory);
+      var suitePath = Path(configuration.suiteDirectory!);
       testSuites.add(PackageTestSuite(configuration, suitePath));
     } else {
       for (var testSuiteDir in testSuiteDirectories) {
@@ -170,6 +181,11 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
   }
 
+  for (var service in services) {
+    serverFutures.add(service);
+    service.then(eventListeners.add);
+  }
+
   // If we only need to print out status files for test suites
   // we return from running here and just print.
   if (firstConf.listStatusFiles) {
@@ -194,8 +210,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
   }
 
-  var eventListener = <EventListener>[];
-
   // We don't print progress if we list tests.
   if (progress != Progress.silent && !listTests) {
     var formatter = Formatter.normal;
@@ -204,58 +218,58 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       formatter = Formatter.color;
     }
 
-    eventListener.add(SummaryPrinter());
+    eventListeners.add(SummaryPrinter());
     if (!firstConf.silentFailures) {
-      eventListener.add(TestFailurePrinter(formatter));
+      eventListeners.add(TestFailurePrinter(formatter));
     }
 
     if (firstConf.printPassingStdout) {
-      eventListener.add(PassingStdoutPrinter(formatter));
+      eventListeners.add(PassingStdoutPrinter(formatter));
     }
 
     var indicator =
         ProgressIndicator.fromProgress(progress, startTime, formatter);
-    if (indicator != null) eventListener.add(indicator);
+    if (indicator != null) eventListeners.add(indicator);
 
     if (printTiming) {
-      eventListener.add(TimingPrinter(startTime));
+      eventListeners.add(TimingPrinter(startTime));
     }
 
-    eventListener.add(SkippedCompilationsPrinter());
+    eventListeners.add(SkippedCompilationsPrinter());
 
     if (progress == Progress.status) {
-      eventListener.add(TimedProgressPrinter());
+      eventListeners.add(TimedProgressPrinter());
     }
 
     if (firstConf.reportFailures) {
-      eventListener.add(FailedTestsPrinter());
+      eventListeners.add(FailedTestsPrinter());
     }
 
-    eventListener.add(ResultCountPrinter(formatter));
+    eventListeners.add(ResultCountPrinter(formatter));
   }
 
   if (firstConf.writeResults) {
-    eventListener.add(ResultWriter(firstConf.outputDirectory));
+    eventListeners.add(ResultWriter(firstConf.outputDirectory));
   }
 
   if (firstConf.copyCoreDumps) {
-    eventListener.add(UnexpectedCrashLogger());
+    eventListeners.add(UnexpectedCrashLogger());
   }
 
   // The only progress indicator when listing tests should be the
   // the summary printer.
   if (listTests) {
-    eventListener.add(SummaryPrinter(jsonOnly: reportInJson));
+    eventListeners.add(SummaryPrinter(jsonOnly: reportInJson));
   } else {
     if (!firstConf.cleanExit) {
-      eventListener.add(ExitCodeSetter());
+      eventListeners.add(ExitCodeSetter());
     }
-    eventListener.add(IgnoredTestMonitor());
+    eventListeners.add(IgnoredTestMonitor());
   }
 
   // If any of the configurations need to access android devices we'll first
   // make a pool of all available adb devices.
-  AdbDevicePool adbDevicePool;
+  AdbDevicePool? adbDevicePool;
   var needsAdbDevicePool = configurations.any((conf) {
     return conf.system == System.android;
   });
@@ -270,5 +284,5 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
   // [firstConf] is needed here, because the ProcessQueue uses some settings.
   ProcessQueue(firstConf, maxProcesses, maxBrowserProcesses, testSuites,
-      eventListener, allTestsFinished, verbose, adbDevicePool);
+      eventListeners, allTestsFinished, verbose, adbDevicePool);
 }

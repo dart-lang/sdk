@@ -40,7 +40,8 @@ IndexExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@71
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: int?
       rightParenthesis: )
     extendedType: int
@@ -48,6 +49,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: self::@extension::E::@method::[]::@parameter::index
     staticType: int
   rightBracket: ]
   staticElement: self::@extension::E::@method::[]
@@ -66,15 +68,45 @@ void f(int? a) {
 }
 ''');
 
-    assertAssignment(
-      findNode.assignment('[0] ='),
-      readElement: null,
-      readType: null,
-      writeElement: findElement.method('[]=', of: 'E'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int?',
-    );
+    assertResolvedNodeText(findNode.assignment('[0] ='), r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ExtensionOverride
+      extensionName: SimpleIdentifier
+        token: E
+        staticElement: self::@extension::E
+        staticType: null
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
+            staticType: int?
+        rightParenthesis: )
+      extendedType: int
+      staticType: null
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: self::@extension::E::@method::[]=::@parameter::index
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    parameter: self::@extension::E::@method::[]=::@parameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@method::[]=
+  writeType: int
+  staticElement: <null>
+  staticType: int?
+''');
   }
 
   test_methodInvocation_nullAware() async {
@@ -101,7 +133,8 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@54
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: int?
       rightParenthesis: )
     extendedType: int
@@ -176,7 +209,8 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@68
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -204,7 +238,8 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@68
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -258,7 +293,8 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@66
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -300,7 +336,8 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@66
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -323,7 +360,7 @@ FunctionExpressionInvocation
   }
 
   test_call_prefix_noTypeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   int call(String s) => 0;
@@ -358,7 +395,8 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -394,7 +432,8 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -414,7 +453,7 @@ FunctionExpressionInvocation
 
   test_call_prefix_typeArguments() async {
     // The test is failing because we're not yet doing type inference.
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   int call(T s) => 0;
@@ -459,7 +498,8 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -509,7 +549,8 @@ FunctionExpressionInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -556,7 +597,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@59
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -581,7 +623,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@59
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -624,7 +667,8 @@ FunctionExpressionInvocation
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@87
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -640,6 +684,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int
     rightParenthesis: )
   staticElement: <null>
@@ -660,7 +705,8 @@ FunctionExpressionInvocation
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@87
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -676,6 +722,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: root::@parameter::
         staticType: int*
     rightParenthesis: )
   staticElement: <null>
@@ -720,7 +767,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@62
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -759,7 +807,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@62
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -779,7 +828,7 @@ PropertyAccess
   }
 
   test_getter_prefix_noTypeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   int get g => 0;
@@ -814,7 +863,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -847,7 +897,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -863,7 +914,7 @@ PropertyAccess
   }
 
   test_getter_prefix_typeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   int get g => 0;
@@ -908,7 +959,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -955,7 +1007,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -999,7 +1052,8 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@55
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1028,7 +1082,8 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@55
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1082,7 +1137,8 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@58
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1125,7 +1181,8 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@58
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1149,7 +1206,7 @@ MethodInvocation
   }
 
   test_method_prefix_noTypeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   void m() {}
@@ -1184,7 +1241,8 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1221,7 +1279,8 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1241,7 +1300,7 @@ MethodInvocation
   }
 
   test_method_prefix_typeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   void m() {}
@@ -1286,7 +1345,8 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1337,7 +1397,8 @@ MethodInvocation
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1385,7 +1446,8 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@74
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1393,6 +1455,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::+::@parameter::offset
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1411,7 +1474,8 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@74
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1419,6 +1483,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::+::@parameter::offset
     staticType: int*
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -1462,7 +1527,8 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@77
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1472,6 +1538,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::+::@parameter::offset
     staticType: int
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1500,7 +1567,8 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@77
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1510,6 +1578,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: self::@extension::E::@method::+::@parameter::offset
     staticType: int*
   staticElement: self::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -1547,6 +1616,7 @@ PostfixExpression
         arguments
           IntegerLiteral
             literal: 0
+            parameter: <null>
             staticType: int
         rightParenthesis: )
       extendedType: int
@@ -1579,6 +1649,7 @@ PostfixExpression
         arguments
           IntegerLiteral
             literal: 0
+            parameter: <null>
             staticType: int*
         rightParenthesis: )
       extendedType: int*
@@ -1601,7 +1672,7 @@ PostfixExpression
   }
 
   test_operator_prefix_noTypeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   void operator +(int offset) {}
@@ -1636,7 +1707,8 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1644,6 +1716,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: package:test/lib.dart::@extension::E::@method::+::@parameter::offset
     staticType: int
   staticElement: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1670,7 +1743,8 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1678,6 +1752,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: package:test/lib.dart::@extension::E::@method::+::@parameter::offset
     staticType: int*
   staticElement: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -1687,7 +1762,7 @@ BinaryExpression
   }
 
   test_operator_prefix_typeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   void operator +(int offset) {}
@@ -1732,7 +1807,8 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A
       rightParenthesis: )
     extendedType: A
@@ -1742,6 +1818,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: package:test/lib.dart::@extension::E::@method::+::@parameter::offset
     staticType: int
   staticElement: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1778,7 +1855,8 @@ BinaryExpression
       arguments
         SimpleIdentifier
           token: a
-          staticElement: a@35
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
           staticType: A*
       rightParenthesis: )
     extendedType: A*
@@ -1788,6 +1866,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
+    parameter: package:test/lib.dart::@extension::E::@method::+::@parameter::offset
     staticType: int*
   staticElement: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int*)*
@@ -1822,7 +1901,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@59
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -1836,6 +1916,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@extension::E::@setter::s::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -1858,7 +1939,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@59
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -1872,6 +1954,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: self::@extension::E::@setter::s::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -1919,7 +2002,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@62
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -1935,6 +2019,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::s::@parameter::x
+      substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
@@ -1969,7 +2056,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@62
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -1985,6 +2073,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: self::@extension::E::@setter::s::@parameter::x
+      substitution: {T: int*}
     staticType: int*
   readElement: <null>
   readType: null
@@ -1999,7 +2090,7 @@ AssignmentExpression
   }
 
   test_setter_prefix_noTypeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   set s(int x) {}
@@ -2035,7 +2126,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2049,6 +2141,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: package:test/lib.dart::@extension::E::@setter::s::@parameter::x
     staticType: int
   readElement: <null>
   readType: null
@@ -2079,7 +2172,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2093,6 +2187,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: package:test/lib.dart::@extension::E::@setter::s::@parameter::x
     staticType: int*
   readElement: <null>
   readType: null
@@ -2105,7 +2200,7 @@ AssignmentExpression
   }
 
   test_setter_prefix_typeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   set s(int x) {}
@@ -2151,7 +2246,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2167,6 +2263,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/lib.dart::@extension::E::@setter::s::@parameter::x
+      substitution: {T: int}
     staticType: int
   readElement: <null>
   readType: null
@@ -2209,7 +2308,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2225,6 +2325,9 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: package:test/lib.dart::@extension::E::@setter::s::@parameter::x
+      substitution: {T: int*}
     staticType: int*
   readElement: <null>
   readType: null
@@ -2265,7 +2368,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@77
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2279,6 +2383,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: self::@extension::E::@getter::s
   readType: int
@@ -2301,7 +2406,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@77
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2315,6 +2421,9 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: dart:core::@class::num::@method::+::@parameter::other
+      isLegacy: true
     staticType: int*
   readElement: self::@extension::E::@getter::s
   readType: int*
@@ -2365,7 +2474,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@80
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2381,6 +2491,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: PropertyAccessorMember
     base: self::@extension::E::@getter::s
@@ -2417,7 +2528,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@80
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2433,6 +2545,9 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: dart:core::@class::num::@method::+::@parameter::other
+      isLegacy: true
     staticType: int*
   readElement: PropertyAccessorMember
     base: self::@extension::E::@getter::s
@@ -2451,7 +2566,7 @@ AssignmentExpression
   }
 
   test_setterAndGetter_prefix_noTypeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on A {
   int get s => 0;
@@ -2488,7 +2603,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2502,6 +2618,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: package:test/lib.dart::@extension::E::@getter::s
   readType: int
@@ -2532,7 +2649,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2546,6 +2664,9 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: dart:core::@class::num::@method::+::@parameter::other
+      isLegacy: true
     staticType: int*
   readElement: package:test/lib.dart::@extension::E::@getter::s
   readType: int*
@@ -2560,7 +2681,7 @@ AssignmentExpression
   }
 
   test_setterAndGetter_prefix_typeArguments() async {
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E<T> on A {
   int get s => 0;
@@ -2607,7 +2728,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A
         rightParenthesis: )
       extendedType: A
@@ -2623,6 +2745,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
     staticType: int
   readElement: PropertyAccessorMember
     base: package:test/lib.dart::@extension::E::@getter::s
@@ -2667,7 +2790,8 @@ AssignmentExpression
         arguments
           SimpleIdentifier
             token: a
-            staticElement: a@35
+            parameter: <null>
+            staticElement: self::@function::f::@parameter::a
             staticType: A*
         rightParenthesis: )
       extendedType: A*
@@ -2683,6 +2807,9 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
+    parameter: ParameterMember
+      base: dart:core::@class::num::@method::+::@parameter::other
+      isLegacy: true
     staticType: int*
   readElement: PropertyAccessorMember
     base: package:test/lib.dart::@extension::E::@getter::s
@@ -2725,7 +2852,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: c
-          staticElement: c@57
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::c
           staticType: C
       rightParenthesis: )
     extendedType: C
@@ -2750,7 +2878,8 @@ PropertyAccess
       arguments
         SimpleIdentifier
           token: c
-          staticElement: c@57
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::c
           staticType: C*
       rightParenthesis: )
     extendedType: C*

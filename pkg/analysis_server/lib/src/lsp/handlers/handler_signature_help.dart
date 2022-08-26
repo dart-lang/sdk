@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/computer/computer_type_arguments_signature.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 class SignatureHelpHandler
     extends MessageHandler<SignatureHelpParams, SignatureHelp?> {
-  SignatureHelpHandler(LspAnalysisServer server) : super(server);
+  SignatureHelpHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_signatureHelp;
 
@@ -23,8 +21,8 @@ class SignatureHelpHandler
       SignatureHelpParams.jsonHandler;
 
   @override
-  Future<ErrorOr<SignatureHelp?>> handle(
-      SignatureHelpParams params, CancellationToken token) async {
+  Future<ErrorOr<SignatureHelp?>> handle(SignatureHelpParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

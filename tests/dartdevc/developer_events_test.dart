@@ -122,17 +122,15 @@ void testWarningMessages() {
     var data0 = {'key0': 'value0'};
     postEvent('kind0', data0);
 
-    // A warning message was issued about calling `postEvent()` from
-    // dart:developer.
-    expect(consoleWarnLog.single.contains('postEvent() from dart:developer'),
-        true);
+    // Nothing is listening, so this was a no-op.
+    expect(consoleWarnLog.isEmpty, true);
 
     postEvent('kind0', data0);
     var data1 = {'key1': 'value1'};
     postEvent('kind1', data1);
 
-    // A warning is only issued on the first call of `postEvent()`.
-    expect(consoleWarnLog.length, 1);
+    // No warnings should be issued because postEvent is a no-op.
+    expect(consoleWarnLog.length, 0);
 
     consoleWarnLog.clear();
 

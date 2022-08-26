@@ -123,4 +123,3 @@ For example:
 // final BuildContext context;
 // final String userAvatarUrl;
 ```
-

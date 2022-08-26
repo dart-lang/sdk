@@ -80,9 +80,6 @@ class AssignToLocalVariable extends CorrectionProducer {
     return analysisOptions?.isLintEnabled(name) ?? false;
   }
 
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static AssignToLocalVariable newInstance() => AssignToLocalVariable();
-
   /// Return `true` if the given [statement] resulted from a recovery case that
   /// would make the change create even worse errors than the original code.
   static bool _hasPrecedingStatementRecovery(Statement statement) {

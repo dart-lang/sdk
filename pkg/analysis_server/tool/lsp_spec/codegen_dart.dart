@@ -2,24 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
+import 'package:analyzer_utilities/tools.dart';
+import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
-import 'typescript.dart';
-import 'typescript_parser.dart';
+import 'meta_model.dart';
 
 final formatter = DartFormatter();
-Map<String, Interface> _interfaces = {};
 
-/// TODO(dantup): Rename namespaces -> enums since they're always that now.
-Map<String, Namespace> _namespaces = {};
+final _canParseFunctions = SplayTreeMap<String, String>();
+Map<String, Interface> _interfaces = {};
+Map<String, LspEnum> _namespaces = {};
 Map<String, List<String>> _subtypes = {};
 Map<String, TypeAlias> _typeAliases = {};
+final _unionFunctions = SplayTreeMap<String, String>();
 
 /// Whether our enum class allows any value (eg. should always return true
 /// from canParse() for the correct type). This is to allow us to have some
 /// type safety for these values but without restricting which values are allowed.
 /// This is to support things like custom error codes and also future changes
-/// in the spec (it's important the server doesn't crash on deserialising
+/// in the spec (it's important the server doesn't crash on deserializing
 /// newer values).
 bool enumClassAllowsAnyValue(String name) {
   // The types listed here are the ones that have a guaranteed restricted type
@@ -35,49 +39,104 @@ bool enumClassAllowsAnyValue(String name) {
       name != 'ResourceOperationKind';
 }
 
-String generateDartForTypes(List<AstNode> types) {
+String generateDartForTypes(List<LspEntity> types) {
+  _canParseFunctions.clear();
+  _unionFunctions.clear();
   final buffer = IndentableStringBuffer();
-  _getSortedUnique(types).forEach((t) => _writeType(buffer, t));
+  final sortedTypes = _getSortedUnique(types);
+  // Bump typedefs to the top.
+  final fileSortedTypes = [
+    ...sortedTypes.whereType<TypeAlias>(),
+    ...sortedTypes.where((type) => type is! TypeAlias),
+  ];
+  for (var type in fileSortedTypes) {
+    _writeType(buffer, type);
+  }
+  for (var function in _canParseFunctions.values) {
+    buffer.writeln(function);
+  }
+  for (var function in _unionFunctions.values) {
+    buffer.writeln(function);
+  }
+
+  final stopwatch = Stopwatch()..start();
   final formattedCode = _formatCode(buffer.toString());
-  return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
+  stopwatch.stop();
+  if (stopwatch.elapsed.inSeconds > 3) {
+    print('WARN: Formatting took ${stopwatch.elapsed} (${types.length} types)');
+  }
+  return '${formattedCode.trim()}\n'; // Ensure a single trailing newline.
 }
 
-void recordTypes(List<AstNode> types) {
+void recordTypes(List<LspEntity> types) {
   types
       .whereType<TypeAlias>()
       .forEach((alias) => _typeAliases[alias.name] = alias);
   types.whereType<Interface>().forEach((interface) {
     _interfaces[interface.name] = interface;
     // Keep track of our base classes so they can look up their super classes
-    // later in their fromJson() to deserialise into the most specific type.
-    interface.baseTypes.forEach((base) {
+    // later in their fromJson() to deserialize into the most specific type.
+    for (var base in interface.baseTypes) {
       final subTypes = _subtypes[base.dartType] ??= <String>[];
       subTypes.add(interface.name);
-    });
+    }
   });
   types
-      .whereType<Namespace>()
+      .whereType<LspEnum>()
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
+  _sortSubtypes();
 }
 
-TypeBase resolveTypeAlias(TypeBase type, {bool resolveEnumClasses = false}) {
-  if (type is Type) {
-    // The LSP spec contains type aliases for `integer` and `uinteger` that map
-    // into the `number` type, with comments stating they must be integers. To
-    // preserve the improved typing, do _not_ resolve them to the `number`
-    // type.
-    if (type.name == 'integer' || type.name == 'uinteger') {
-      return type;
+/// Resolves [type] to its base type if it is a reference to another type.
+///
+/// If [resolveEnums] is `true`, will resolve them to the type of their values.
+///
+/// If [onlyRenames] is true, references to [TypeAlias]es will only be resolved
+/// if they are renames.
+TypeBase resolveTypeAlias(TypeBase type,
+    {bool resolveEnums = false, bool onlyRenames = false}) {
+  if (type is TypeReference) {
+    if (resolveEnums) {
+      // Enums are no longer recorded with TypeAliases (as they were in the
+      // Markdown/TS spec) so must be resolved explicitly to their base types.
+      final enum_ = _namespaces[type.name];
+      if (enum_ != null) {
+        return enum_.typeOfValues;
+      }
     }
 
     final alias = _typeAliases[type.name];
-    // Only follow the type if we're not an enum, or we wanted to follow enums.
-    if (alias != null &&
-        (!_namespaces.containsKey(alias.name) || resolveEnumClasses)) {
-      return alias.baseType;
+    if (alias != null && (!onlyRenames || alias.isRename)) {
+      // Resolve aliases recursively.
+      var resolved = alias.baseType;
+      for (int i = 0; i < 10; i++) {
+        final newResolved = resolveTypeAlias(resolved,
+            resolveEnums: resolveEnums, onlyRenames: onlyRenames);
+        if (newResolved == resolved) {
+          return resolved;
+        }
+        resolved = newResolved;
+      }
+      throw 'Failed to resolve type after 10 iterations: ${alias.name}';
     }
   }
   return type;
+}
+
+String _determineVariableName(
+    Interface interface, Iterable<String> suggestions) {
+  var fieldNames = _getAllFields(interface).map((f) => f.name).toList();
+  var suggestion = suggestions.firstWhereOrNull((s) => !fieldNames.contains(s));
+  if (suggestion != null) {
+    return suggestion;
+  }
+  var first = suggestions.firstOrNull ?? 'var';
+  for (var i = 1; true; i++) {
+    var suggestion = '$first$i';
+    if (!fieldNames.contains(suggestion)) {
+      return suggestion;
+    }
+  }
 }
 
 String _formatCode(String code) {
@@ -89,42 +148,49 @@ String _formatCode(String code) {
   return code;
 }
 
-/// Recursively gets all members from superclasses.
-List<Field> _getAllFields(Interface? interface) {
+/// Recursively gets all members from superclasses and returns them sorted
+/// alphabetically.
+List<Field> _getAllFields(Interface? interface) =>
+    _getSortedUnique(_getAllFieldsMap(interface).values.toList());
+
+/// Recursively gets all members from superclasses keyed by field name.
+Map<String, Field> _getAllFieldsMap(Interface? interface) {
   // Handle missing interfaces (such as special cased interfaces that won't
   // be included in this model).
   if (interface == null) {
-    return [];
+    return {};
   }
-  return interface.members
-      .whereType<Field>()
-      .followedBy(interface.baseTypes
-          // This cast is safe because base types are always real types.
-          .map((type) => _getAllFields(_interfaces[(type as Type).name]))
-          .expand((ts) => ts))
-      .toList();
+
+  // It's possible our interface redefines something in a base type (for example
+  // where the base has `String` but this type overrides it with a literal such
+  // as `ResourceOperation`) so use a map to keep the most-specific by name.
+  return {
+    for (final baseType in interface.baseTypes)
+      ..._getAllFieldsMap(_interfaces[baseType.name]),
+    for (final field in interface.members.whereType<Field>()) field.name: field,
+  };
 }
 
 /// Returns a copy of the list sorted by name with duplicates (by name+type) removed.
-List<N> _getSortedUnique<N extends AstNode>(List<N> items) {
+List<N> _getSortedUnique<N extends LspEntity>(List<N> items) {
   final uniqueByName = <String, N>{};
-  items.forEach((item) {
+  for (var item in items) {
     // It's fine to have the same name used for different types (eg. namespace +
     // type alias) but some types are just duplicated entirely in the spec in
     // different positions which should not be emitted twice.
     final nameTypeKey = '${item.name}|${item.runtimeType}';
     if (uniqueByName.containsKey(nameTypeKey)) {
       // At the time of writing, there were two duplicated types:
-      // - TextDocumentSyncKind (same defintion in both places)
+      // - TextDocumentSyncKind (same definition in both places)
       // - TextDocumentSyncOptions (first definition is just a subset)
       // If this list grows, consider handling this better - or try to have the
-      // spec updated to be unambigious.
+      // spec updated to be unambiguous.
       print('WARN: More than one definition for $nameTypeKey.');
     }
 
     // Keep the last one as in some cases the first definition is less specific.
     uniqueByName[nameTypeKey] = item;
-  });
+  }
   final sortedList = uniqueByName.values.toList();
   sortedList.sort((item1, item2) => item1.name.compareTo(item2.name));
   return sortedList;
@@ -134,21 +200,39 @@ String _getTypeCheckFailureMessage(TypeBase type) {
   type = resolveTypeAlias(type);
 
   if (type is LiteralType) {
-    return 'must be the literal ${type.literal}';
+    return "must be the literal '\$literal'";
   } else if (type is LiteralUnionType) {
-    return 'must be one of the literals ${type.literalTypes.map((t) => t.literal).join(', ')}';
+    return "must be one of the \${literals.map((e) => \"'\$e'\").join(', ')}";
   } else {
     return 'must be of type ${type.dartTypeWithTypeArgs}';
   }
 }
 
+bool _isOverride(Interface interface, Field field) {
+  for (var parentType in interface.baseTypes) {
+    var parent = _interfaces[parentType.name];
+    if (parent != null) {
+      if (parent.members.any((m) => m.name == field.name)) {
+        return true;
+      }
+      if (_isOverride(parent, field)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool _isSimpleType(TypeBase type) {
   const literals = ['num', 'String', 'bool', 'int'];
-  return type is Type && literals.contains(type.dartType);
+  return type is TypeReference && literals.contains(type.dartType);
 }
 
 bool _isSpecType(TypeBase type) {
-  return type is Type &&
+  type = resolveTypeAlias(type);
+  return type is TypeReference &&
+      type != TypeReference.LspObject &&
+      type != TypeReference.LspAny &&
       (_interfaces.containsKey(type.name) ||
           (_namespaces.containsKey(type.name)));
 }
@@ -162,8 +246,34 @@ String _makeValidIdentifier(String identifier) {
     'String': 'Str',
     'class': 'class_',
     'enum': 'enum_',
+    'null': 'null_',
   };
   return map[identifier] ?? identifier;
+}
+
+/// Returns the name of the possibly enclosed types,
+/// to be used as a unique name for that type.
+String _memberNameForType(TypeBase type) {
+  if (type is LiteralType) {
+    return 'Literal';
+  }
+  if (type is LiteralUnionType) {
+    return 'LiteralUnion';
+  }
+  if (type is TypeReference) {
+    type = resolveTypeAlias(type);
+  }
+
+  var dartType = type is NullableType
+      ? '${type.dartType}?'
+      : type is UnionType
+          ? type.types.map(_memberNameForType).join()
+          : type is ArrayType
+              ? 'List${_memberNameForType(type.elementType)}'
+              : type is MapType
+                  ? 'Map${_memberNameForType(type.indexType)}${_memberNameForType(type.valueType)}'
+                  : type.dartType;
+  return capitalize(dartType.replaceAll('?', 'Nullable'));
 }
 
 String _rewriteCommentReference(String comment) {
@@ -179,16 +289,46 @@ String _rewriteCommentReference(String comment) {
   });
 }
 
+/// Sorts subtypes into a consistent order.
+///
+/// Subtypes will be sorted such that types with the most required fields appear
+/// first to ensure `fromJson` constructors delegate to the most specific type.
+void _sortSubtypes() {
+  int requiredFieldCount(String interfaceName) => _interfaces[interfaceName]!
+      .members
+      .whereType<Field>()
+      .where((field) => !field.allowsUndefined && !field.allowsNull)
+      .length;
+  int optionalFieldCount(String interfaceName) => _interfaces[interfaceName]!
+      .members
+      .whereType<Field>()
+      .where((field) => field.allowsUndefined || field.allowsNull)
+      .length;
+  for (final entry in _subtypes.entries) {
+    final subtypes = entry.value;
+    subtypes.sort((subtype1, subtype2) {
+      final requiredFields1 = requiredFieldCount(subtype1);
+      final requiredFields2 = requiredFieldCount(subtype2);
+      final optionalFields1 = optionalFieldCount(subtype1);
+      final optionalFields2 = optionalFieldCount(subtype2);
+      return requiredFields1 != requiredFields2
+          ? requiredFields2.compareTo(requiredFields1)
+          : optionalFields1 != optionalFields2
+              ? optionalFields2.compareTo(optionalFields1)
+              : subtype1.compareTo(subtype2);
+    });
+  }
+}
+
 /// Returns a String representing the underlying Dart type for the provided
 /// spec [type].
 ///
 /// This is `Map<String, Object?>` for complex types but can be a simple type
 /// for enums.
 String _specJsonType(TypeBase type) {
-  if (type is Type && _namespaces.containsKey(type.name)) {
-    final valueType = _namespaces[type.name]!.members.cast<Const>().first.type;
-    return resolveTypeAlias(valueType, resolveEnumClasses: true)
-        .dartTypeWithTypeArgs;
+  if (type is TypeReference && _namespaces.containsKey(type.name)) {
+    final valueType = _namespaces[type.name]!.typeOfValues;
+    return valueType.dartTypeWithTypeArgs;
   }
   return 'Map<String, Object?>';
 }
@@ -225,65 +365,44 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   // In order to consider this valid for parsing, all fields that must not be
   // undefined must be present and also type check for the correct type.
   // Any fields that are optional but present, must still type check.
-  final fields = _getAllFields(interface);
-  for (var field in fields) {
-    if (isAnyType(field.type)) {
-      continue;
-    }
-    buffer
-      ..writeIndentedln("reporter.push('${field.name}');")
-      ..writeIndentedln('try {')
-      ..indent();
-    if (!field.allowsUndefined) {
+  final fields = _getAllFields(interface)
+      .whereNot((f) => isNullableAnyType(f.type))
+      .toList();
+  for (var i = 0; i < fields.length; i++) {
+    final field = fields[i];
+    var type = field.type;
+    var functionName = '_canParse${_memberNameForType(type)}';
+    var invocation = "$functionName(obj, reporter, '${field.name}', "
+        'allowsUndefined: ${field.allowsUndefined}, allowsNull: ${field.allowsNull}'
+        '${type is LiteralType ? ', literal: ${type.valueAsLiteral}' : ''}'
+        '${type is LiteralUnionType ? ', literals: {${type.literalTypes.map((t) => t.valueAsLiteral).join(', ')}}' : ''}'
+        ')';
+
+    if (i == fields.length - 1) {
+      buffer.writeIndentedln('return $invocation;');
+    } else {
       buffer
-        ..writeIndentedln("if (!obj.containsKey('${field.name}')) {")
+        ..writeIndentedln("if (!$invocation) {")
         ..indent()
-        ..writeIndentedln("reporter.reportError('must not be undefined');")
-        ..writeIndentedln('return false;')
+        ..writeIndentedln("return false;")
         ..outdent()
-        ..writeIndentedln('}');
+        ..writeIndentedln("}");
     }
-    // Add a local variable to allow type promotion (and avoid multiple lookups).
-    final localName = _makeValidIdentifier(field.name);
-    buffer.writeIndentedln("final $localName = obj['${field.name}'];");
-    if (!field.allowsNull && !field.allowsUndefined) {
-      buffer
-        ..writeIndentedln('if ($localName == null) {')
-        ..indent()
-        ..writeIndentedln("reporter.reportError('must not be null');")
-        ..writeIndentedln('return false;')
-        ..outdent()
-        ..writeIndentedln('}');
+    if (!_canParseFunctions.containsKey(functionName)) {
+      var temp = IndentableStringBuffer();
+      _writeCanParseType(temp, interface, type, functionName);
+      _canParseFunctions[functionName] = temp.toString();
     }
-    buffer.writeIndented('if (');
-    if (field.allowsNull || field.allowsUndefined) {
-      buffer.write('$localName != null && ');
-    }
-    buffer.write('!(');
-    _writeTypeCheckCondition(
-        buffer, interface, localName, field.type, 'reporter');
-    buffer
-      ..write(')) {')
-      ..indent()
-      ..writeIndentedln(
-          "reporter.reportError('${_getTypeCheckFailureMessage(field.type).replaceAll("'", "\\'")}');")
-      ..writeIndentedln('return false;')
-      ..outdent()
-      ..writeIndentedln('}')
-      ..outdent()
-      ..writeIndentedln('} finally {')
-      ..indent()
-      ..writeIndentedln('reporter.pop();')
-      ..outdent()
-      ..writeIndentedln('}');
+  }
+  if (fields.isEmpty) {
+    buffer.writeIndentedln('return true;');
   }
   buffer
-    ..writeIndentedln('return true;')
     ..outdent()
     ..writeIndentedln('} else {')
     ..indent()
     ..writeIndentedln(
-        "reporter.reportError('must be of type ${interface.nameWithTypeArgs}');")
+        "reporter.reportError('must be of type ${interface.name}');")
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}')
@@ -291,7 +410,63 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('}');
 }
 
-void _writeConst(IndentableStringBuffer buffer, Const cons) {
+void _writeCanParseType(IndentableStringBuffer buffer, Interface? interface,
+    TypeBase type, String functionName) {
+  buffer.writeln(
+      'bool $functionName(Map<String, Object?> map, LspJsonReporter reporter, '
+      'String fieldName, {required bool allowsUndefined, required bool allowsNull'
+      '${type is LiteralType ? ', required String literal' : ''}'
+      '${type is LiteralUnionType ? ', required Iterable<String> literals' : ''}'
+      '}) {');
+
+  buffer
+    ..writeIndentedln("reporter.push(fieldName);")
+    ..writeIndentedln('try {')
+    ..indent();
+  buffer
+    ..writeIndentedln("if (!allowsUndefined && !map.containsKey(fieldName)) {")
+    ..indent()
+    ..writeIndentedln("reporter.reportError('must not be undefined');")
+    ..writeIndentedln('return false;')
+    ..outdent()
+    ..writeIndentedln('}');
+
+  buffer.writeIndentedln("final value = map[fieldName];");
+  buffer.writeIndentedln("final nullCheck = allowsNull || allowsUndefined;");
+  buffer
+    ..writeIndentedln("if (!nullCheck && value == null) {")
+    ..indent()
+    ..writeIndentedln("reporter.reportError('must not be null');")
+    ..writeIndentedln('return false;')
+    ..outdent()
+    ..writeIndentedln('}');
+
+  buffer.writeIndented("if ((!nullCheck || value != null) && ");
+  _writeTypeCheckCondition(buffer, interface, 'value', type, 'reporter',
+      negation: true, parenForCollection: true);
+
+  var failureMessage = _getTypeCheckFailureMessage(type);
+  var quote = failureMessage.contains("'") ? '"' : "'";
+
+  buffer
+    ..write(') {')
+    ..indent()
+    ..writeIndentedln("reporter.reportError($quote$failureMessage$quote);")
+    ..writeIndentedln('return false;')
+    ..outdent()
+    ..writeIndentedln('}')
+    ..outdent()
+    ..writeIndentedln('} finally {')
+    ..indent()
+    ..writeIndentedln('reporter.pop();')
+    ..outdent()
+    ..writeIndentedln('}')
+    ..writeIndentedln('return true;');
+
+  buffer.writeln("}");
+}
+
+void _writeConst(IndentableStringBuffer buffer, Constant cons) {
   _writeDocCommentsAndAnnotations(buffer, cons);
   buffer.writeIndentedln('static const ${cons.name} = ${cons.valueAsLiteral};');
 }
@@ -305,13 +480,15 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndented('${interface.name}({')
     ..write(allFields.map((field) {
       final isLiteral = field.type is LiteralType;
-      final isRequired =
-          !isLiteral && !field.allowsNull && !field.allowsUndefined;
+      final isRequired = !isLiteral &&
+          !field.allowsNull &&
+          !field.allowsUndefined &&
+          !isNullableAnyType(field.type);
       final requiredKeyword = isRequired ? 'required' : '';
       final valueCode =
-          isLiteral ? ' = ${(field.type as LiteralType).literal}' : '';
-      return '$requiredKeyword this.${field.name}$valueCode';
-    }).join(', '))
+          isLiteral ? ' = ${(field.type as LiteralType).valueAsLiteral}' : '';
+      return '$requiredKeyword this.${field.name}$valueCode, ';
+    }).join())
     ..write('})');
   final fieldsWithValidation =
       allFields.where((f) => f.type is LiteralType).toList();
@@ -323,10 +500,10 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
       final type = field.type;
       if (type is LiteralType) {
         buffer
-          ..writeIndentedln('if (${field.name} != ${type.literal}) {')
+          ..writeIndentedln('if (${field.name} != ${type.valueAsLiteral}) {')
           ..indent()
           ..writeIndentedln(
-              "throw '${field.name} may only be the literal ${type.literal.replaceAll("'", "\\'")}';")
+              "throw '${field.name} may only be the literal ${type.valueAsLiteral.replaceAll("'", "\\'")}';")
           ..outdent()
           ..writeIndentedln('}');
       }
@@ -340,15 +517,17 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
 }
 
 void _writeDocCommentsAndAnnotations(
-    IndentableStringBuffer buffer, AstNode node) {
-  var comment = node.commentText?.trim();
+    IndentableStringBuffer buffer, LspEntity node) {
+  var comment = node.comment?.trim();
   if (comment != null && comment.isNotEmpty) {
     comment = _rewriteCommentReference(comment);
     var originalLines = comment.split('\n');
     // Wrap at 80 - 4 ('/// ') - indent characters.
     var wrappedLines =
         _wrapLines(originalLines, (80 - 4 - buffer.totalIndent).clamp(0, 80));
-    wrappedLines.forEach((l) => buffer.writeIndentedln('/// $l'.trim()));
+    for (var l in wrappedLines) {
+      buffer.writeIndentedln('/// $l'.trim());
+    }
   }
   // Marking LSP-deprecated fields as deprecated in Dart results in a lot
   // of warnings because we still often populate these fields for clients that
@@ -360,71 +539,68 @@ void _writeDocCommentsAndAnnotations(
   // }
 }
 
-void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
+void _writeEnumClass(IndentableStringBuffer buffer, LspEnum namespace) {
   _writeDocCommentsAndAnnotations(buffer, namespace);
-  final consts = namespace.members.cast<Const>().toList();
-  final allowsAnyValue = enumClassAllowsAnyValue(namespace.name);
+  final consts = namespace.members.cast<Constant>().toList();
+  final namespaceName = namespace.name;
+  final typeOfValues = namespace.typeOfValues;
+  final allowsAnyValue = enumClassAllowsAnyValue(namespaceName);
   final constructorName = allowsAnyValue ? '' : '._';
-  final firstValueType = consts.first.type;
-  // Enums can have constant values in their fields so if a field is a literal
-  // use its underlying type for type checking.
-  final requiredValueType =
-      firstValueType is LiteralType ? firstValueType.type : firstValueType;
-  final typeOfValues =
-      resolveTypeAlias(requiredValueType, resolveEnumClasses: true);
 
   buffer
-    ..writeln('class ${namespace.name} {')
+    ..writeln('class $namespaceName implements ToJsonable {')
     ..indent()
-    ..writeIndentedln('const ${namespace.name}$constructorName(this._value);')
-    ..writeIndentedln('const ${namespace.name}.fromJson(this._value);')
+    ..writeIndentedln('const $namespaceName$constructorName(this._value);')
+    ..writeIndentedln('const $namespaceName.fromJson(this._value);')
     ..writeln()
     ..writeIndentedln('final ${typeOfValues.dartTypeWithTypeArgs} _value;')
     ..writeln()
-    ..writeIndentedln(
-        'static bool canParse(Object? obj, LspJsonReporter reporter) {')
-    ..indent();
+    ..writeIndented(
+        'static bool canParse(Object? obj, LspJsonReporter reporter) ');
   if (allowsAnyValue) {
-    buffer.writeIndentedln('return ');
+    buffer.writeIndentedln('=> ');
     _writeTypeCheckCondition(buffer, null, 'obj', typeOfValues, 'reporter');
     buffer.writeln(';');
   } else {
     buffer
+      ..writeIndentedln('{')
+      ..indent()
       ..writeIndentedln('switch (obj) {')
       ..indent();
-    consts.forEach((cons) {
+    for (var cons in consts) {
       buffer.writeIndentedln('case ${cons.valueAsLiteral}:');
-    });
+    }
     buffer
       ..indent()
       ..writeIndentedln('return true;')
       ..outdent()
       ..outdent()
       ..writeIndentedln('}')
-      ..writeIndentedln('return false;');
+      ..writeIndentedln('return false;')
+      ..outdent()
+      ..writeIndentedln('}');
   }
-  buffer
-    ..outdent()
-    ..writeIndentedln('}');
-  namespace.members.whereType<Const>().forEach((cons) {
+  namespace.members.whereType<Constant>().forEach((cons) {
     // We don't use any deprecated enum values, so omit them entirely.
     if (cons.isDeprecated) {
       return;
     }
     _writeDocCommentsAndAnnotations(buffer, cons);
+    final memberName = _makeValidIdentifier(cons.name);
+    final value = cons.valueAsLiteral;
     buffer.writeIndentedln(
-        'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
+        'static const $memberName = $namespaceName$constructorName($value);');
   });
   buffer
     ..writeln()
-    ..writeIndentedln('Object toJson() => _value;')
+    ..writeIndentedln('@override Object toJson() => _value;')
     ..writeln()
     ..writeIndentedln('@override String toString() => _value.toString();')
     ..writeln()
     ..writeIndentedln('@override int get hashCode => _value.hashCode;')
     ..writeln()
     ..writeIndentedln(
-        'bool operator ==(Object o) => o is ${namespace.name} && o._value == _value;')
+        '@override bool operator ==(Object other) => other is $namespaceName && other._value == _value;')
     ..outdent()
     ..writeln('}')
     ..writeln();
@@ -438,19 +614,17 @@ void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
     // We want an exact type match, but also need `is` to have the analyzer
     // promote the type to allow access to the fields on `other`.
     ..writeIndentedln(
-        'if (other is ${interface.name} && other.runtimeType == ${interface.name}) {')
+        'return other is ${interface.name} && other.runtimeType == ${interface.name}')
     ..indent()
-    ..writeIndented('return ');
+    ..writeIndented('');
   for (var field in _getAllFields(interface)) {
+    buffer.write(' && ');
     final type = resolveTypeAlias(field.type);
     _writeEqualsExpression(buffer, type, field.name, 'other.${field.name}');
-    buffer.write(' && ');
   }
   buffer
-    ..writeln('true;')
+    ..writeln(';')
     ..outdent()
-    ..writeIndentedln('}')
-    ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}');
 }
@@ -476,10 +650,14 @@ void _writeEqualsExpression(IndentableStringBuffer buffer, TypeBase type,
   }
 }
 
-void _writeField(IndentableStringBuffer buffer, Field field) {
+void _writeField(
+    IndentableStringBuffer buffer, Interface interface, Field field) {
   _writeDocCommentsAndAnnotations(buffer, field);
-  final needsNullable =
-      (field.allowsNull || field.allowsUndefined) && !isAnyType(field.type);
+  final needsNullable = (field.allowsNull || field.allowsUndefined) &&
+      !isNullableAnyType(field.type);
+  if (_isOverride(interface, field)) {
+    buffer.writeIndentedln('@override');
+  }
   buffer
     ..writeIndented('final ')
     ..write(field.type.dartTypeWithTypeArgs)
@@ -496,7 +674,11 @@ void _writeFromJsonCode(
 }) {
   type = resolveTypeAlias(type);
   final nullOperator = allowsNull ? '?' : '';
-  final cast = requiresCast && type.dartTypeWithTypeArgs != 'Object?'
+  final cast = requiresCast &&
+          // LSPAny
+          !isNullableAnyType(type) &&
+          // LSPObject marked as optional
+          !(isObjectType(type) && allowsNull)
       ? ' as ${type.dartTypeWithTypeArgs}$nullOperator'
       : '';
 
@@ -517,7 +699,10 @@ void _writeFromJsonCode(
     // Lists need to be map()'d so we can recursively call writeFromJsonCode
     // as they may need fromJson on each element.
     final listCast = requiresCast ? ' as List<Object?>$nullOperator' : '';
-    buffer.write('($valueCode$listCast)$nullOperator.map((item) => ');
+    final leftParen = requiresCast ? '(' : '';
+    final rightParen = requiresCast ? ')' : '';
+    buffer.write(
+        '$leftParen$valueCode$listCast$rightParen$nullOperator.map((item) => ');
     _writeFromJsonCode(buffer, type.elementType, 'item', allowsNull: false);
     buffer.write(').toList()');
   } else if (type is MapType) {
@@ -535,7 +720,19 @@ void _writeFromJsonCode(
     _writeFromJsonCodeForLiteralUnion(buffer, type, valueCode,
         allowsNull: allowsNull);
   } else if (type is UnionType) {
-    _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
+    var functionName = type.types.map(_memberNameForType).join();
+
+    functionName = '_either$functionName';
+
+    if (allowsNull) {
+      buffer.write('$valueCode == null ? null : ');
+    }
+    buffer.write('$functionName($valueCode)');
+    if (!_unionFunctions.containsKey(functionName)) {
+      var temp = IndentableStringBuffer();
+      _writeFromJsonCodeForUnion(temp, type, functionName);
+      _unionFunctions[functionName] = temp.toString();
+    }
   } else {
     buffer.write('$valueCode$cast');
   }
@@ -546,45 +743,42 @@ void _writeFromJsonCodeForLiteralUnion(
     {required bool allowsNull}) {
   final allowedValues = [
     if (allowsNull) null,
-    ...union.literalTypes.map((t) => t.literal)
+    ...union.literalTypes.map((t) => t.valueAsLiteral)
   ];
   final valueType = union.literalTypes.first.dartTypeWithTypeArgs;
   final cast = ' as $valueType${allowsNull ? '?' : ''}';
   buffer.write(
       "const {${allowedValues.join(', ')}}.contains($valueCode) ? $valueCode$cast : "
-      "throw '''\$$valueCode was not one of (${allowedValues.join(', ')})'''");
+      "throw \"\$$valueCode was not one of (${allowedValues.join(', ')})\"");
 }
 
 void _writeFromJsonCodeForUnion(
-    IndentableStringBuffer buffer, UnionType union, String valueCode,
-    {required bool allowsNull}) {
-  // Write a check against each type, eg.:
-  // x is y ? new Either.tx(x) : (...)
-  var hasIncompleteCondition = false;
-  var unclosedParens = 0;
+    IndentableStringBuffer buffer, UnionType union, String functionName) {
+  buffer
+    ..writeln('${union.dartTypeWithTypeArgs} $functionName(Object? value) {')
+    ..indent()
+    ..writeIndented('return ');
 
-  if (allowsNull) {
-    buffer.write('$valueCode == null ? null : (');
-    hasIncompleteCondition = true;
-    unclosedParens++;
-  }
+  // Write a check against each type, eg.:
+  // x is y ? Either.tx(x) : (...)
+  var hasIncompleteCondition = false;
 
   for (var i = 0; i < union.types.length; i++) {
     final type = union.types[i];
-    final isAny = isAnyType(type);
+    final isAny = isNullableAnyType(type);
 
     // "any" matches all type checks, so only emit it if required.
     if (!isAny) {
       _writeTypeCheckCondition(
-          buffer, null, valueCode, type, 'nullLspJsonReporter');
+          buffer, null, 'value', type, 'nullLspJsonReporter');
       buffer.write(' ? ');
     }
 
     // The code to construct a value with this "side" of the union.
-    buffer.write('${union.dartTypeWithTypeArgs}.t${i + 1}(');
+    buffer.write('${union.dartType}.t${i + 1}(');
     // Call recursively as unions may be nested.
     _writeFromJsonCode(
-      buffer, type, valueCode,
+      buffer, type, 'value',
       // null + type checks are already handled above this loop
       allowsNull: false,
       requiresCast: false,
@@ -593,9 +787,8 @@ void _writeFromJsonCodeForUnion(
 
     // If we output the type condition at the top, prepare for the next condition.
     if (!isAny) {
-      buffer.write(' : (');
+      buffer.write(' : ');
       hasIncompleteCondition = true;
-      unclosedParens++;
     } else {
       hasIncompleteCondition = false;
     }
@@ -603,28 +796,30 @@ void _writeFromJsonCodeForUnion(
   // Fill the final parens with a throw because if we fell through all of the
   // cases then the value we had didn't match any of the types in the union.
   if (hasIncompleteCondition) {
-    var interpolation = '\$$valueCode';
     buffer.write(
-        "throw '''$interpolation was not one of (${union.types.map((t) => t.dartTypeWithTypeArgs).join(', ')})'''");
+        "throw '\$value was not one of (${union.types.map((t) => t.dartTypeWithTypeArgs).join(', ')})'");
   }
-  buffer.write(')' * unclosedParens);
+  buffer
+    ..writeln(';')
+    ..outdent()
+    ..writeln('}');
 }
 
 void _writeFromJsonConstructor(
     IndentableStringBuffer buffer, Interface interface) {
   final allFields = _getAllFields(interface);
   buffer
-    ..writeIndentedln('static ${interface.nameWithTypeArgs} '
-        'fromJson${interface.typeArgsString}(Map<String, Object?> json) {')
+    ..writeIndentedln('static ${interface.name} '
+        'fromJson(Map<String, Object?> json) {')
     ..indent();
-  // First check whether any of our subclasses can deserialise this.
+  // First check whether any of our subclasses can deserialize this.
   for (final subclassName in _subtypes[interface.name] ?? const <String>[]) {
     final subclass = _interfaces[subclassName]!;
     buffer
       ..writeIndentedln(
           'if (${subclass.name}.canParse(json, nullLspJsonReporter)) {')
       ..indent()
-      ..writeln('return ${subclass.nameWithTypeArgs}.fromJson(json);')
+      ..writeIndentedln('return ${subclass.name}.fromJson(json);')
       ..outdent()
       ..writeIndentedln('}');
   }
@@ -632,15 +827,15 @@ void _writeFromJsonConstructor(
     // Add a local variable to allow type promotion (and avoid multiple lookups).
     final localName = _makeValidIdentifier(field.name);
     final localNameJson = '${localName}Json';
-    buffer.writeIndented("final $localNameJson = json['${field.name}'];");
+    buffer.writeIndentedln("final $localNameJson = json['${field.name}'];");
     buffer.writeIndented('final $localName = ');
     _writeFromJsonCode(buffer, field.type, localNameJson,
         allowsNull: field.allowsNull || field.allowsUndefined);
     buffer.writeln(';');
   }
   buffer
-    ..writeIndented('return ${interface.nameWithTypeArgs}(')
-    ..write(allFields.map((field) => '${field.name}: ${field.name}').join(', '))
+    ..writeIndented('return ${interface.name}(')
+    ..write(allFields.map((field) => '${field.name}: ${field.name}, ').join())
     ..writeln(');')
     ..outdent()
     ..writeIndented('}');
@@ -649,7 +844,7 @@ void _writeFromJsonConstructor(
 void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln('@override')
-    ..writeIndentedln('int get hashCode =>');
+    ..writeIndented('int get hashCode => ');
 
   final fields = _getAllFields(interface);
 
@@ -661,10 +856,10 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
     endWith = ';';
   } else if (fields.length > 20) {
     buffer.write('Object.hashAll([');
-    endWith = ']);';
+    endWith = ',]);';
   } else {
     buffer.write('Object.hash(');
-    endWith = ');';
+    endWith = ',);';
   }
 
   buffer.writeAll(
@@ -687,12 +882,12 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
 }
 
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
+  final isPrivate = interface.name.startsWith('_');
   _writeDocCommentsAndAnnotations(buffer, interface);
 
-  buffer.writeIndented('class ${interface.nameWithTypeArgs} ');
+  buffer.writeIndented('class ${interface.name} ');
   final allBaseTypes =
       interface.baseTypes.map((t) => t.dartTypeWithTypeArgs).toList();
-  allBaseTypes.addAll(getSpecialBaseTypes(interface));
   allBaseTypes.add('ToJsonable');
   if (allBaseTypes.isNotEmpty) {
     buffer.writeIndented('implements ${allBaseTypes.join(', ')} ');
@@ -700,17 +895,18 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeln('{')
     ..indent();
-  _writeJsonHandler(buffer, interface);
+  if (!isPrivate) {
+    _writeJsonHandler(buffer, interface);
+  }
   _writeConstructor(buffer, interface);
   _writeFromJsonConstructor(buffer, interface);
   // Handle Consts and Fields separately, since we need to include superclass
   // Fields.
-  final consts = interface.members.whereType<Const>().toList();
+  final consts = interface.members.whereType<Constant>().toList();
   final fields = _getAllFields(interface);
+  _writeMembers(buffer, interface, consts);
   buffer.writeln();
-  _writeMembers(buffer, consts);
-  buffer.writeln();
-  _writeMembers(buffer, fields);
+  _writeMembers(buffer, interface, fields);
   buffer.writeln();
   _writeToJsonMethod(buffer, interface);
   _writeCanParseMethod(buffer, interface);
@@ -727,7 +923,7 @@ void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndented('static const jsonHandler = ')
     ..write('LspJsonHandler(')
-    ..write('${interface.name}.canParse, ${interface.name}.fromJson')
+    ..write('${interface.name}.canParse, ${interface.name}.fromJson,')
     ..writeln(');')
     ..writeln();
 }
@@ -753,18 +949,20 @@ void _writeJsonMapAssignment(
   }
 }
 
-void _writeMember(IndentableStringBuffer buffer, Member member) {
+void _writeMember(
+    IndentableStringBuffer buffer, Interface interface, Member member) {
   if (member is Field) {
-    _writeField(buffer, member);
-  } else if (member is Const) {
+    _writeField(buffer, interface, member);
+  } else if (member is Constant) {
     _writeConst(buffer, member);
   } else {
     throw 'Unknown type';
   }
 }
 
-void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
-  _getSortedUnique(members).forEach((m) => _writeMember(buffer, m));
+void _writeMembers(
+    IndentableStringBuffer buffer, Interface interface, List<Member> members) {
+  _getSortedUnique(members).forEach((m) => _writeMember(buffer, interface, m));
 }
 
 void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
@@ -781,9 +979,7 @@ void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
 }
 
 void _writeToJsonFieldsForResponseMessage(
-    IndentableStringBuffer buffer, Interface interface) {
-  const mapName = '__result';
-
+    IndentableStringBuffer buffer, Interface interface, String mapName) {
   final allFields = _getAllFields(interface);
   final standardFields =
       allFields.where((f) => f.name != 'error' && f.name != 'result');
@@ -810,24 +1006,36 @@ void _writeToJsonFieldsForResponseMessage(
 }
 
 void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
-  // It's important the name we use for the map here isn't in use in the object
-  // already. 'result' was, so we prefix it with some underscores.
+  final fields = _getAllFields(interface);
+
   buffer
-    ..writeIndentedln('Map<String, Object?> toJson() {')
+    ..writeIndentedln('@override')
+    ..writeIndented('Map<String, Object?> toJson() ');
+  if (fields.isEmpty) {
+    buffer
+      ..writeln('=> {};')
+      ..writeln();
+    return;
+  }
+
+  final mapName = _determineVariableName(interface,
+      ['result', 'map', 'json', 'toReturn', 'results', 'value', 'values']);
+  buffer
+    ..writeln('{')
     ..indent()
-    ..writeIndentedln('var __result = <String, Object?>{};');
+    ..writeIndentedln('var $mapName = <String, Object?>{};');
   // ResponseMessage must confirm to JSON-RPC which says only one of
   // result/error can be included. Since this isn't encoded in the types we
   // need to special-case it's toJson generation.
   if (interface.name == 'ResponseMessage') {
-    _writeToJsonFieldsForResponseMessage(buffer, interface);
+    _writeToJsonFieldsForResponseMessage(buffer, interface, mapName);
   } else {
-    for (var field in _getAllFields(interface)) {
-      _writeJsonMapAssignment(buffer, field, '__result');
+    for (var field in fields) {
+      _writeJsonMapAssignment(buffer, field, mapName);
     }
   }
   buffer
-    ..writeIndentedln('return __result;')
+    ..writeIndentedln('return $mapName;')
     ..outdent()
     ..writeIndentedln('}');
 }
@@ -838,78 +1046,105 @@ void _writeToString(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('String toString() => jsonEncoder.convert(toJson());');
 }
 
-void _writeType(IndentableStringBuffer buffer, AstNode type) {
+void _writeType(IndentableStringBuffer buffer, LspEntity type) {
   if (type is Interface) {
     _writeInterface(buffer, type);
-  } else if (type is Namespace) {
+  } else if (type is LspEnum) {
     _writeEnumClass(buffer, type);
   } else if (type is TypeAlias) {
-    // For now type aliases are not supported, so are collected at the start
-    // of the process in a map, and just replaced with the aliased type during
-    // generation.
-    // _writeTypeAlias(buffer, type);
+    _writeTypeAlias(buffer, type);
   } else {
     throw 'Unknown type';
   }
 }
 
+void _writeTypeAlias(IndentableStringBuffer buffer, TypeAlias alias) {
+  if (alias.isRename) return;
+  final baseType = alias.baseType;
+  final typeName = baseType.dartTypeWithTypeArgs;
+  _writeDocCommentsAndAnnotations(buffer, alias);
+  buffer.writeIndentedln('typedef ${alias.name} = $typeName;');
+}
+
 void _writeTypeCheckCondition(IndentableStringBuffer buffer,
-    Interface? interface, String valueCode, TypeBase type, String reporter) {
+    Interface? interface, String valueCode, TypeBase type, String reporter,
+    {bool negation = false, bool parenForCollection = false}) {
   type = resolveTypeAlias(type);
 
   final dartType = type.dartType;
   final fullDartType = type.dartTypeWithTypeArgs;
-  if (fullDartType == 'Object?') {
-    buffer.write('true');
+
+  final operator = negation ? '!' : '';
+  final and = negation ? '||' : '&&';
+  final every = negation ? 'any' : 'every';
+
+  if (isNullableAnyType(type)) {
+    buffer.write(negation ? 'false' : 'true');
+  } else if (isObjectType(type)) {
+    final notEqual = negation ? '==' : '!=';
+    buffer.write('$valueCode $notEqual null');
   } else if (_isSimpleType(type)) {
-    buffer.write('$valueCode is $fullDartType');
+    buffer.write('$valueCode is$operator $fullDartType');
   } else if (type is LiteralType) {
-    buffer.write('$valueCode == ${type.literal}');
+    final equals = negation ? '!=' : '==';
+    buffer.write('$valueCode $equals literal');
+  } else if (type is LiteralUnionType) {
+    buffer.write('${operator}literals.contains(value)');
   } else if (_isSpecType(type)) {
-    buffer.write('$dartType.canParse($valueCode, $reporter)');
+    buffer.write('$operator$dartType.canParse($valueCode, $reporter)');
   } else if (type is ArrayType) {
-    buffer.write('($valueCode is List<Object?>');
-    if (fullDartType != 'Object?') {
-      // TODO(dantup): If we're happy to assume we never have two lists in a union
-      // we could skip this bit.
-      buffer.write(' && ($valueCode.every((item) => ');
-      _writeTypeCheckCondition(
-          buffer, interface, 'item', type.elementType, reporter);
-      buffer.write('))');
+    if (parenForCollection) {
+      buffer.write('(');
     }
-    buffer.write(')');
+    buffer.write('$valueCode is$operator List<Object?>');
+    if (fullDartType != 'Object?') {
+      buffer.write(' $and $valueCode.$every((item) => ');
+      _writeTypeCheckCondition(
+          buffer, interface, 'item', type.elementType, reporter,
+          negation: negation);
+      buffer.write(')');
+    }
+    if (parenForCollection) {
+      buffer.write(')');
+    }
   } else if (type is MapType) {
-    buffer.write('($valueCode is Map');
+    if (parenForCollection) {
+      buffer.write('(');
+    }
+    buffer.write('$valueCode is$operator Map');
     if (fullDartType != 'Object?') {
       buffer
-        ..write(' && (')
-        ..write('$valueCode.keys.every((item) => ');
+        ..write(' $and (')
+        ..write('$valueCode.keys.$every((item) => ');
       _writeTypeCheckCondition(
-          buffer, interface, 'item', type.indexType, reporter);
-      buffer.write('&& $valueCode.values.every((item) => ');
+          buffer, interface, 'item', type.indexType, reporter,
+          negation: negation);
+      buffer.write('$and $valueCode.values.$every((item) => ');
       _writeTypeCheckCondition(
-          buffer, interface, 'item', type.valueType, reporter);
+          buffer, interface, 'item', type.valueType, reporter,
+          negation: negation);
       buffer.write(')))');
     }
-    buffer.write(')');
+    if (parenForCollection) {
+      buffer.write(')');
+    }
   } else if (type is UnionType) {
+    if (parenForCollection) {
+      buffer.write('(');
+    }
+    var or = negation ? '&&' : '||';
     // To type check a union, we just recursively check against each of its types.
-    buffer.write('(');
     for (var i = 0; i < type.types.length; i++) {
       if (i != 0) {
-        buffer.write(' || ');
+        buffer.write(' $or ');
       }
       _writeTypeCheckCondition(
-          buffer, interface, valueCode, type.types[i], reporter);
+          buffer, interface, valueCode, type.types[i], reporter,
+          negation: negation);
     }
-    buffer.write(')');
-  } else if (interface != null &&
-      interface.typeArgs.any((typeArg) => typeArg.lexeme == fullDartType)) {
-    final comment = '/* $fullDartType.canParse($valueCode) */';
-    print(
-        'WARN: Unable to write a type check for $valueCode with generic type $fullDartType. '
-        'Please review the generated code annotated with $comment');
-    buffer.write('true $comment');
+    if (parenForCollection) {
+      buffer.write(')');
+    }
   } else {
     throw 'Unable to type check $valueCode against $fullDartType';
   }
@@ -920,9 +1155,11 @@ class IndentableStringBuffer extends StringBuffer {
   final int _indentSpaces = 2;
 
   int get totalIndent => _indentLevel * _indentSpaces;
+
   String get _indentString => ' ' * totalIndent;
 
   void indent() => _indentLevel++;
+
   void outdent() => _indentLevel--;
 
   void writeIndented(Object obj) {

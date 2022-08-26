@@ -75,6 +75,9 @@ client/tests/drt
 packages
 pubspec.lock
 
+# The top level package file (this is auto-generated per checkout).
+/.dart_tool/package_config.json
+
 # Local pub storage
 .pub
 

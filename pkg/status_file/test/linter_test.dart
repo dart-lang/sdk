@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:expect/expect.dart';
 import 'package:status_file/canonical_status_file.dart';
 import 'package:status_file/status_file_linter.dart';
@@ -36,7 +38,7 @@ void main() {
 }
 
 StatusFile createFromString(String text) {
-  return new StatusFile.parse("test", text.split('\n'));
+  return StatusFile.parse("test", text.split('\n'));
 }
 
 expectError(String text, String expectedError, {bool disjunctions = false}) {

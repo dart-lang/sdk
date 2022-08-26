@@ -1,8 +1,7 @@
-// @dart = 2.9
 library test;
 
 import "dart:async";
 
-m1() {}
-m2() {}
+m1(Future<int> f) {}
+m2(Future<int> f) {}
 main() {}

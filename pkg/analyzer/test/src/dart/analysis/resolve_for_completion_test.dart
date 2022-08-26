@@ -28,12 +28,14 @@ class ResolveForCompletionTest extends PubPackageResolutionTest {
     var result = await _resolveTestCode(r'''
 class A {
   var f1 = 0;
-  doub^ f2 = null;
+  dou^ f2 = null;
   var f3 = 1;
 }
 ''');
 
-    result.assertResolvedNodes([]);
+    result.assertResolvedNodes([
+      'dou f2 = null;',
+    ]);
   }
 
   test_class__fieldDeclaration_type_namedType_typeArgument_name() async {
@@ -46,6 +48,19 @@ class A {
 ''');
 
     result.assertResolvedNodes([]);
+  }
+
+  test_class_body_identifier_beforeFieldDeclaration() async {
+    var result = await _resolveTestCode(r'''
+class A {
+  foo^
+  int bar = 0;
+}
+''');
+
+    result.assertResolvedNodes([
+      'foo int;',
+    ]);
   }
 
   test_class_extends_name() async {
@@ -474,7 +489,7 @@ mixin M on foo^ {}
   }
 
   test_processPendingChanges() async {
-    newFile2(testFilePath, 'class A {}');
+    newFile(testFilePath, 'class A {}');
 
     // Read the file.
     testDriver.getFileSync(testFilePathPlatform);
@@ -575,7 +590,7 @@ void f<T^>() {
 
     var before = content.substring(0, offset);
     var after = content.substring(offset + 1);
-    newFile2(path, before + after);
+    newFile(path, before + after);
 
     return offset;
   }
@@ -590,7 +605,7 @@ void f<T^>() {
     await testDriver.applyPendingFileChanges();
 
     var performance = OperationPerformanceImpl('<root>');
-    var result = testDriver.resolveForCompletion(
+    var result = await testDriver.resolveForCompletion(
       path: path,
       offset: offset,
       performance: performance,

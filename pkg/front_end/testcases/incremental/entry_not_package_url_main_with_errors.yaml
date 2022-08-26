@@ -11,11 +11,19 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         main() {
           asdf;
         }
-      .packages: untitled:/
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "untitled",
+              "rootUri": "/"
+            }
+          ]
+        }
     expectedLibraryCount: 1
     errors: true
     warnings: false

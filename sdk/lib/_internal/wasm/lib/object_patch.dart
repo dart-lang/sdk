@@ -8,6 +8,9 @@
 external int _getHash(Object obj);
 external void _setHash(Object obj, int hash);
 
+external _Type _getInterfaceTypeRuntimeType(
+    Object object, List<Type> typeArguments);
+
 @patch
 class Object {
   @patch
@@ -34,6 +37,16 @@ class Object {
   int get hashCode => _objectHashCode(this);
   int get _identityHashCode => _objectHashCode(this);
 
+  /// Concrete subclasses of [Object] will have overrides of [_typeArguments]
+  /// which return their type arguments.
+  List<Type> get _typeArguments => const [];
+
+  /// We use [_runtimeType] for internal type testing, because objects can
+  /// override [runtimeType].
+  @patch
+  external Type get runtimeType;
+  _Type get _runtimeType => _getInterfaceTypeRuntimeType(this, _typeArguments);
+
   @patch
   String toString() => _toString(this);
   // A statically dispatched version of Object.toString.
@@ -43,7 +56,4 @@ class Object {
   dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError.withInvocation(this, invocation);
   }
-
-  @patch
-  external Type get runtimeType;
 }

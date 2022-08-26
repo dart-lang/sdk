@@ -38,9 +38,6 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
       }
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static CreateConstructorSuper newInstance() => CreateConstructorSuper();
 }
 
 /// A correction processor that can make one of the possible change computed by
@@ -50,7 +47,7 @@ class _CreateConstructor extends CorrectionProducer {
   final ConstructorElement _constructor;
 
   /// An indication of where the new constructor should be added.
-  final ClassMemberLocation _targetLocation;
+  final InsertionLocation _targetLocation;
 
   /// The name of the class in which the constructor will be added.
   final String _targetClassName;

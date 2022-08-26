@@ -40,9 +40,8 @@ class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
   @override
   final List<AnalysisError> errors;
 
-  ErrorsResultImpl(AnalysisSession session, String path, Uri uri,
-      LineInfo lineInfo, bool isPart, this.errors)
-      : super(session, path, uri, lineInfo, isPart);
+  ErrorsResultImpl(super.session, super.path, super.uri, super.lineInfo,
+      super.isPart, this.errors);
 }
 
 class FileResultImpl extends AnalysisResultImpl implements FileResult {
@@ -59,8 +58,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   final bool isPart;
 
   FileResultImpl(
-      AnalysisSession session, this.path, this.uri, this.lineInfo, this.isPart)
-      : super(session);
+      super.session, this.path, this.uri, this.lineInfo, this.isPart);
 }
 
 class LibraryElementResultImpl implements LibraryElementResult {
@@ -75,7 +73,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ParsedUnitResult> units;
 
-  ParsedLibraryResultImpl(AnalysisSession session, this.units) : super(session);
+  ParsedLibraryResultImpl(super.session, this.units);
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
@@ -179,6 +177,8 @@ class ResolvedForCompletionResultImpl {
     required this.unitElement,
     required this.resolvedNodes,
   });
+
+  LibraryElement get libraryElement => unitElement.enclosingElement;
 }
 
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
@@ -189,8 +189,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ResolvedUnitResult> units;
 
-  ResolvedLibraryResultImpl(AnalysisSession session, this.element, this.units)
-      : super(session);
+  ResolvedLibraryResultImpl(super.session, this.element, this.units);
 
   @override
   TypeProvider get typeProvider => element.typeProvider;
@@ -269,20 +268,29 @@ class UnitElementResultImpl extends FileResultImpl
   @override
   final CompilationUnitElement element;
 
-  UnitElementResultImpl(AnalysisSession session, String path, Uri uri,
-      LineInfo lineInfo, bool isPart, this.element)
-      : super(session, path, uri, lineInfo, isPart);
+  UnitElementResultImpl(super.session, super.path, super.uri, super.lineInfo,
+      super.isPart, this.element);
 }
 
-class _DeclarationByElementLocator extends GeneralizingAstVisitor<void> {
+/// A visitor which locates the [AstNode] which declares [element].
+class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
+  // TODO: This visitor could be further optimized by special casing each static
+  // type of [element]. For example, for library-level elements (classes etc),
+  // we can iterate over the compilation unit's declarations.
+
   final Element element;
+  final int _nameOffset;
   AstNode? result;
 
-  _DeclarationByElementLocator(this.element);
+  _DeclarationByElementLocator(this.element) : _nameOffset = element.nameOffset;
 
   @override
   void visitNode(AstNode node) {
     if (result != null) return;
+
+    if (node.endToken.end < _nameOffset || node.offset > _nameOffset) {
+      return;
+    }
 
     if (element is ClassElement) {
       if (node is ClassOrMixinDeclaration) {
@@ -358,10 +366,12 @@ class _DeclarationByElementLocator extends GeneralizingAstVisitor<void> {
       }
     }
 
-    super.visitNode(node);
+    if (result == null) {
+      node.visitChildren(this);
+    }
   }
 
   bool _hasOffset(AstNode? node) {
-    return node?.offset == element.nameOffset;
+    return node?.offset == _nameOffset;
   }
 }

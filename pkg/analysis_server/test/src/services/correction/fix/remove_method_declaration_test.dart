@@ -126,7 +126,7 @@ class B extends A<int> {
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
   Future<void> test_method_nullSafety_optIn_fromOptOut() async {
     createAnalysisOptionsFile(lints: [lintCode]);
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo() => 0;
 }

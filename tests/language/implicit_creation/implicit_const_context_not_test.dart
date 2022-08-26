@@ -25,7 +25,7 @@ class C {
   const C.c2() : v = const C();
   const C.c3() : v = const C(C());
 
-  // Expression in redirecting generative const constuctor.
+  // Expression in redirecting generative const constructor.
   const C.r1() : this(C()); //# 3: compile-time error
   const C.r2() : this(const C());
   const C.r3() : this(const C(C()));

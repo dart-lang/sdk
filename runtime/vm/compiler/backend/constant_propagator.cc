@@ -752,15 +752,7 @@ void ConstantPropagator::VisitFfiCall(FfiCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitEnterHandleScope(EnterHandleScopeInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitExitHandleScope(ExitHandleScopeInstr* instr) {
-  // Nothing to do.
-}
-
-void ConstantPropagator::VisitAllocateHandle(AllocateHandleInstr* instr) {
+void ConstantPropagator::VisitCCall(CCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -1457,6 +1449,14 @@ void ConstantPropagator::VisitIntConverter(IntConverterInstr* instr) {
 }
 
 void ConstantPropagator::VisitBitCast(BitCastInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitCall1ArgStub(Call1ArgStubInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitSuspend(SuspendInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

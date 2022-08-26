@@ -134,14 +134,11 @@ class PubCommandTest with ResourceProviderMixin {
 
   Future<void> test_outdated_args() async {
     processRunner.startHandler = (executable, args, {dir, env}) {
-      var expectedPubPath = path.join(
-        path.dirname(Platform.resolvedExecutable),
-        Platform.isWindows ? 'pub.bat' : 'pub',
-      );
-      expect(executable, equals(expectedPubPath));
+      expect(executable, Platform.resolvedExecutable);
       expect(
           args,
           equals([
+            'pub',
             'outdated',
             '--show-all',
             '--json',

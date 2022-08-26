@@ -13,10 +13,20 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class UseCurlyBraces extends CorrectionProducer {
   @override
-  AssistKind get assistKind => DartAssistKind.USE_CURLY_BRACES;
+  bool canBeAppliedInBulk;
+
+  UseCurlyBraces() : canBeAppliedInBulk = true;
+
+  /// Create an instance that is prevented from being applied automatically in
+  /// bulk.
+  ///
+  /// This is used in places where "Use Curly Braces" is a valid manual fix, but
+  /// not clearly the only/correct fix to apply automatically, such as the
+  /// `always_put_control_body_on_new_line` lint.
+  UseCurlyBraces.nonBulk() : canBeAppliedInBulk = false;
 
   @override
-  bool get canBeAppliedInBulk => true;
+  AssistKind get assistKind => DartAssistKind.USE_CURLY_BRACES;
 
   @override
   bool get canBeAppliedToFile => true;
@@ -61,7 +71,7 @@ class UseCurlyBraces extends CorrectionProducer {
 
   Future<void> _doStatement(ChangeBuilder builder, DoStatement node) async {
     var body = node.body;
-    if (body is Block) return null;
+    if (body is Block) return;
 
     var prefix = utils.getLinePrefix(node.offset);
     var indent = prefix + utils.getIndent(1);
@@ -80,7 +90,7 @@ class UseCurlyBraces extends CorrectionProducer {
 
   Future<void> _forStatement(ChangeBuilder builder, ForStatement node) async {
     var body = node.body;
-    if (body is Block) return null;
+    if (body is Block) return;
 
     var prefix = utils.getLinePrefix(node.offset);
     var indent = prefix + utils.getIndent(1);
@@ -135,7 +145,7 @@ class UseCurlyBraces extends CorrectionProducer {
   Future<void> _whileStatement(
       ChangeBuilder builder, WhileStatement node) async {
     var body = node.body;
-    if (body is Block) return null;
+    if (body is Block) return;
 
     var prefix = utils.getLinePrefix(node.offset);
     var indent = prefix + utils.getIndent(1);
@@ -148,7 +158,4 @@ class UseCurlyBraces extends CorrectionProducer {
       builder.addSimpleInsertion(body.end, '$eol$prefix}');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static UseCurlyBraces newInstance() => UseCurlyBraces();
 }

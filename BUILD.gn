@@ -103,6 +103,15 @@ group("dart2js") {
   deps = [ "utils/compiler:dart2js" ]
 }
 
+group("dart2wasm") {
+  deps = [
+    ":runtime_precompiled",
+    "utils/dart2wasm:compile_dart2wasm_platform",
+    "utils/dart2wasm:dart2wasm_asserts_snapshot",
+    "utils/dart2wasm:dart2wasm_snapshot",
+  ]
+}
+
 group("dartanalyzer") {
   deps = [ "utils/dartanalyzer" ]
 }
@@ -205,7 +214,6 @@ if (is_fuchsia) {
       "pkg/smith",
       "third_party/pkg/args",
       "third_party/pkg/async",
-      "third_party/pkg/charcode",
       "third_party/pkg/collection",
       "third_party/pkg/convert",
       "third_party/pkg/crypto",

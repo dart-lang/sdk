@@ -1,0 +1,77 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+import "dart:_js_helper" as _js;
+
+import "dart:_js_helper";
+
+typedef Alias<T extends core::num> = self2::Class<T>;
+typedef AliasImpl<T extends core::num> = self2::ClassImpl<T>;
+@_js::patch
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self2::Class::redirect, self2::Class::redirect2]/*isLegacy*/;
+  @_js::patch
+  external constructor •({core::bool defaultValue = true, required self2::Class::T% value = null}) → self2::Class<self2::Class::T%>
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::_#new#tearOff::T% value}) → self2::Class<self2::Class::_#new#tearOff::T%>
+    return new self2::Class::•<self2::Class::_#new#tearOff::T%>(defaultValue: defaultValue, value: value);
+  @_js::patch
+  external static factory fact<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::fact::T% value}) → self2::Class<self2::Class::fact::T%>;
+  static method _#fact#tearOff<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::_#fact#tearOff::T% value}) → self2::Class<self2::Class::_#fact#tearOff::T%>
+    return self2::Class::fact<self2::Class::_#fact#tearOff::T%>(defaultValue: defaultValue, value: value);
+  @_js::patch
+  external static factory redirect<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::redirect::T% value}) → self2::Class<self2::Class::redirect::T%>
+    return new self2::ClassImpl::•<self2::Class::redirect::T%>(defaultValue: defaultValue, value: value);
+  static method _#redirect#tearOff<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::_#redirect#tearOff::T% value}) → self2::Class<self2::Class::_#redirect#tearOff::T%>
+    return self2::Class::redirect<self2::Class::_#redirect#tearOff::T%>(defaultValue: defaultValue, value: value);
+  @_js::patch
+  external static factory redirect2<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::redirect2::T% value}) → self2::Class<self2::Class::redirect2::T%>
+    return new self2::ClassImpl::patched<self2::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
+  static method _#redirect2#tearOff<T extends core::Object? = dynamic>({core::bool defaultValue, required self2::Class::_#redirect2#tearOff::T% value}) → self2::Class<self2::Class::_#redirect2#tearOff::T%>
+    return self2::Class::redirect2<self2::Class::_#redirect2#tearOff::T%>(defaultValue: defaultValue, value: value);
+}
+@_js::patch
+class ClassImpl<T extends core::Object? = dynamic> extends core::Object implements self2::Class<self2::ClassImpl::T%> {
+  constructor •({core::bool defaultValue = true, required self2::ClassImpl::T% value = null}) → self2::ClassImpl<self2::ClassImpl::T%>
+    ;
+  @_js::patch
+  external constructor patched({core::bool defaultValue = true, required self2::ClassImpl::T% value = null}) → self2::ClassImpl<self2::ClassImpl::T%>
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::ClassImpl::_#new#tearOff::T% value}) → self2::ClassImpl<self2::ClassImpl::_#new#tearOff::T%>
+    return new self2::ClassImpl::•<self2::ClassImpl::_#new#tearOff::T%>(defaultValue: defaultValue, value: value);
+  static method _#patched#tearOff<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::ClassImpl::_#patched#tearOff::T% value}) → self2::ClassImpl<self2::ClassImpl::_#patched#tearOff::T%>
+    return new self2::ClassImpl::patched<self2::ClassImpl::_#patched#tearOff::T%>(defaultValue: defaultValue, value: value);
+}
+static method _#Alias#new#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#Alias#new#tearOff::T value}) → self2::Class<self2::_#Alias#new#tearOff::T>
+  return new self2::Class::•<self2::_#Alias#new#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#Alias#fact#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#Alias#fact#tearOff::T value}) → self2::Class<self2::_#Alias#fact#tearOff::T>
+  return self2::Class::fact<self2::_#Alias#fact#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#Alias#redirect#tearOff<T extends core::num>({core::bool defaultValue, required self2::_#Alias#redirect#tearOff::T value}) → self2::Class<self2::_#Alias#redirect#tearOff::T>
+  return self2::Class::_#redirect#tearOff<self2::_#Alias#redirect#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#Alias#redirect2#tearOff<T extends core::num>({core::bool defaultValue, required self2::_#Alias#redirect2#tearOff::T value}) → self2::Class<self2::_#Alias#redirect2#tearOff::T>
+  return self2::Class::_#redirect2#tearOff<self2::_#Alias#redirect2#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#AliasImpl#new#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#AliasImpl#new#tearOff::T value}) → self2::ClassImpl<self2::_#AliasImpl#new#tearOff::T>
+  return new self2::ClassImpl::•<self2::_#AliasImpl#new#tearOff::T>(defaultValue: defaultValue, value: value);
+static method _#AliasImpl#patched#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#AliasImpl#patched#tearOff::T value}) → self2::ClassImpl<self2::_#AliasImpl#patched#tearOff::T>
+  return new self2::ClassImpl::patched<self2::_#AliasImpl#patched#tearOff::T>(defaultValue: defaultValue, value: value);
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:47 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:10 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:29 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:12:22 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:15:12 -> InstanceConstant(const _Patch{})
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///origin_lib.dart:5:7 -> ConstructorTearOffConstant(Class.redirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///origin_lib.dart:5:7 -> ConstructorTearOffConstant(Class.redirect2)
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:18:39 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:19:48 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 52, effectively constant: 9

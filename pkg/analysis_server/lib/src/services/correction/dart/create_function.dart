@@ -64,7 +64,4 @@ class CreateFunction extends CorrectionProducer {
       builder.addLinkedPosition(range.node(node), 'NAME');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static CreateFunction newInstance() => CreateFunction();
 }

@@ -9,7 +9,10 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/services/lint.dart';
 
 /// The type of the function that handles exceptions in lints.
-typedef LintRuleExceptionHandler = void Function(
+///
+/// Returns `true` if the exception was fully handled, or `false` if
+/// the exception should be rethrown.
+typedef LintRuleExceptionHandler = bool Function(
     AstNode node, LintRule linter, dynamic exception, StackTrace stackTrace);
 
 /// The AST visitor that runs handlers for nodes from the [registry].
@@ -769,7 +772,10 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
       try {
         node.accept(subscription.visitor);
       } catch (exception, stackTrace) {
-        exceptionHandler(node, subscription.linter, exception, stackTrace);
+        if (!exceptionHandler(
+            node, subscription.linter, exception, stackTrace)) {
+          rethrow;
+        }
       }
       timer?.stop();
     }

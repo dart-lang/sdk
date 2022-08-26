@@ -48,6 +48,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+#include "vm/thread.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
@@ -478,10 +479,10 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 
   is_vm_isolate_heap_ = is_vm_isolate;
 
-#define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
+#define ISOLATE_GROUP_METRIC_CONSTRUCTORS(type, variable, name, unit)          \
   metric_##variable##_.InitInstance(this, name, nullptr, Metric::unit);
-  ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
-#undef ISOLATE_METRIC_CONSTRUCTORS
+  ISOLATE_GROUP_METRIC_LIST(ISOLATE_GROUP_METRIC_CONSTRUCTORS)
+#undef ISOLATE_GROUP_METRIC_CONSTRUCTORS
 }
 
 void IsolateGroup::Shutdown() {
@@ -613,6 +614,14 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     thread->isolate_ = nullptr;
     thread->isolate_group_ = this;
     thread->field_table_values_ = nullptr;
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (object_store() != nullptr && is_mutator) {
+#define INIT_ENTRY_POINT(name)                                                 \
+  thread->name##_entry_point_ = Function::EntryPointOf(object_store()->name());
+      CACHED_FUNCTION_ENTRY_POINTS_LIST(INIT_ENTRY_POINT)
+#undef INIT_ENTRY_POINT
+    }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(heap() != nullptr);
     thread->heap_ = heap();
     thread->set_os_thread(os_thread);
@@ -2462,22 +2471,15 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
 }
 #endif  // !defined(PRODUCT)
 
-void Isolate::LowLevelShutdown() {
+void Isolate::RunAndCleanupFinalizersOnShutdown() {
+  if (finalizers_ == GrowableObjectArray::null()) return;
+
   // Ensure we have a zone and handle scope so that we can call VM functions,
   // but we no longer allocate new heap objects.
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   HandleScope handle_scope(thread);
   NoSafepointScope no_safepoint_scope;
-
-  // Notify exit listeners that this isolate is shutting down.
-  if (group()->object_store() != nullptr) {
-    const Error& error = Error::Handle(thread->sticky_error());
-    if (error.IsNull() || !error.IsUnwindError() ||
-        UnwindError::Cast(error).is_user_initiated()) {
-      NotifyExitListeners();
-    }
-  }
 
   // Set live finalizers isolate to null, before deleting the message handler.
   const auto& finalizers =
@@ -2515,6 +2517,24 @@ void Isolate::LowLevelShutdown() {
           }
         }
       }
+    }
+  }
+}
+
+void Isolate::LowLevelShutdown() {
+  // Ensure we have a zone and handle scope so that we can call VM functions,
+  // but we no longer allocate new heap objects.
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
+  HandleScope handle_scope(thread);
+  NoSafepointScope no_safepoint_scope;
+
+  // Notify exit listeners that this isolate is shutting down.
+  if (group()->object_store() != nullptr) {
+    const Error& error = Error::Handle(thread->sticky_error());
+    if (error.IsNull() || !error.IsUnwindError() ||
+        UnwindError::Cast(error).is_user_initiated()) {
+      NotifyExitListeners();
     }
   }
 
@@ -2629,9 +2649,14 @@ void Isolate::Shutdown() {
   // Then, proceed with low-level teardown.
   Isolate::UnMarkIsolateReady(this);
 
+  // Ensure native finalizers are run before isolate has shutdown message is
+  // sent. This way users can rely on the exit message that an isolate will not
+  // run any Dart code anymore _and_ will not run any native finalizers anymore.
+  RunAndCleanupFinalizersOnShutdown();
+
   // Post message before LowLevelShutdown that sends onExit message.
   // This ensures that exit message comes last.
-  if (bequest_.get() != nullptr) {
+  if (bequest_ != nullptr) {
     auto beneficiary = bequest_->beneficiary();
     auto handle = bequest_->TakeHandle();
     PortMap::PostMessage(
@@ -2800,6 +2825,11 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&loaded_prefixes_set_storage_));
+
+  if (pointers_to_verify_at_exit_.length() != 0) {
+    visitor->VisitPointers(&pointers_to_verify_at_exit_[0],
+                           pointers_to_verify_at_exit_.length());
+  }
 }
 
 void IsolateGroup::ReleaseStoreBuffers() {

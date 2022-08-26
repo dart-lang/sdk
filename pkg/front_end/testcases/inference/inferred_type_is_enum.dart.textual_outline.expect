@@ -1,4 +1,3 @@
-// @dart = 2.9
 library test;
 
 enum E { v1 }

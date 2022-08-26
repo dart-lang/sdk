@@ -1,0 +1,13 @@
+extension BestCom<T extends num> on Iterable<T>? {
+  T? best() => null;
+}
+
+extension BestList<T> on List<T> {
+  T? best() => null;
+}
+
+extension BestSpec on List<num> {
+  num? best() => null;
+}
+
+main() {}

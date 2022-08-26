@@ -2,20 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-class PrepareRenameHandler
-    extends MessageHandler<TextDocumentPositionParams, RangeAndPlaceholder?> {
-  PrepareRenameHandler(LspAnalysisServer server) : super(server);
+class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
+    TextDocumentPrepareRenameResult> {
+  PrepareRenameHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_prepareRename;
 
@@ -24,8 +22,10 @@ class PrepareRenameHandler
       TextDocumentPositionParams.jsonHandler;
 
   @override
-  Future<ErrorOr<RangeAndPlaceholder?>> handle(
-      TextDocumentPositionParams params, CancellationToken token) async {
+  Future<ErrorOr<TextDocumentPrepareRenameResult>> handle(
+      TextDocumentPositionParams params,
+      MessageInfo message,
+      CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -61,7 +61,7 @@ class PrepareRenameHandler
             ServerErrorCodes.RenameNotValid, initStatus.problem!.message, null);
       }
 
-      return success(RangeAndPlaceholder(
+      return success(TextDocumentPrepareRenameResult.t1(PlaceholderAndRange(
         range: toRange(
           unit.result.lineInfo,
           // If the offset is set to -1 it means there is no location for the
@@ -72,7 +72,7 @@ class PrepareRenameHandler
           refactorDetails.length,
         ),
         placeholder: refactoring.oldName,
-      ));
+      )));
     });
   }
 }
@@ -80,7 +80,7 @@ class PrepareRenameHandler
 class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
   final _upperCasePattern = RegExp('[A-Z]');
 
-  RenameHandler(LspAnalysisServer server) : super(server);
+  RenameHandler(super.server);
 
   LspGlobalClientConfiguration get config => server.clientConfiguration.global;
 
@@ -99,7 +99,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
   @override
   Future<ErrorOr<WorkspaceEdit?>> handle(
-      RenameParams params, CancellationToken token) async {
+      RenameParams params, MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }
@@ -109,7 +109,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
     final path = pathOfDoc(params.textDocument);
     // If the client provided us a version doc identifier, we'll use it to ensure
     // we're not computing a rename for an old document. If not, we'll just assume
-    // the version the server had at the time of recieving the request is valid
+    // the version the server had at the time of receiving the request is valid
     // and then use it to verify the document hadn't changed again before we
     // send the edits.
     final docIdentifier = await path.mapResult((path) => success(

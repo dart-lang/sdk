@@ -55,17 +55,17 @@ class ExperimentalFlag {
           name: 'alternative-invalidation-strategy',
           isEnabledByDefault: false,
           isExpired: false,
-          enabledVersion: const Version(2, 17),
-          experimentEnabledVersion: const Version(2, 17),
-          experimentReleasedVersion: const Version(2, 17));
+          enabledVersion: const Version(2, 18),
+          experimentEnabledVersion: const Version(2, 18),
+          experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag constFunctions = const ExperimentalFlag(
       name: 'const-functions',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag constantUpdate2018 = const ExperimentalFlag(
       name: 'constant-update-2018',
@@ -94,7 +94,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag enhancedEnums = const ExperimentalFlag(
       name: 'enhanced-enums',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(2, 17),
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17));
@@ -111,9 +111,9 @@ class ExperimentalFlag {
       name: 'extension-types',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag genericMetadata = const ExperimentalFlag(
       name: 'generic-metadata',
@@ -125,24 +125,32 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag inferenceUpdate1 = const ExperimentalFlag(
       name: 'inference-update-1',
+      isEnabledByDefault: true,
+      isExpired: false,
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
+
+  static const ExperimentalFlag inferenceUpdate2 = const ExperimentalFlag(
+      name: 'inference-update-2',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag macros = const ExperimentalFlag(
       name: 'macros',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag namedArgumentsAnywhere = const ExperimentalFlag(
       name: 'named-arguments-anywhere',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(2, 17),
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17));
@@ -182,7 +190,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag superParameters = const ExperimentalFlag(
       name: 'super-parameters',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(2, 17),
       experimentEnabledVersion: const Version(2, 17),
       experimentReleasedVersion: const Version(2, 17));
@@ -191,9 +199,9 @@ class ExperimentalFlag {
       name: 'test-experiment',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag tripleShift = const ExperimentalFlag(
       name: 'triple-shift',
@@ -207,17 +215,17 @@ class ExperimentalFlag {
       name: 'value-class',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 
   static const ExperimentalFlag variance = const ExperimentalFlag(
       name: 'variance',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 17),
-      experimentEnabledVersion: const Version(2, 17),
-      experimentReleasedVersion: const Version(2, 17));
+      enabledVersion: const Version(2, 18),
+      experimentEnabledVersion: const Version(2, 18),
+      experimentReleasedVersion: const Version(2, 18));
 }
 
 /// Interface for accessing the global state of experimental features.
@@ -305,6 +313,10 @@ class GlobalFeatures {
   GlobalFeature? _inferenceUpdate1;
   GlobalFeature get inferenceUpdate1 => _inferenceUpdate1 ??=
       _computeGlobalFeature(ExperimentalFlag.inferenceUpdate1);
+
+  GlobalFeature? _inferenceUpdate2;
+  GlobalFeature get inferenceUpdate2 => _inferenceUpdate2 ??=
+      _computeGlobalFeature(ExperimentalFlag.inferenceUpdate2);
 
   GlobalFeature? _macros;
   GlobalFeature get macros =>
@@ -415,6 +427,11 @@ class LibraryFeatures {
       _inferenceUpdate1 ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.inferenceUpdate1, canonicalUri, libraryVersion);
 
+  LibraryFeature? _inferenceUpdate2;
+  LibraryFeature get inferenceUpdate2 =>
+      _inferenceUpdate2 ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.inferenceUpdate2, canonicalUri, libraryVersion);
+
   LibraryFeature? _macros;
   LibraryFeature get macros =>
       _macros ??= globalFeatures._computeLibraryFeature(
@@ -497,6 +514,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.genericMetadata;
     case "inference-update-1":
       return ExperimentalFlag.inferenceUpdate1;
+    case "inference-update-2":
+      return ExperimentalFlag.inferenceUpdate2;
     case "macros":
       return ExperimentalFlag.macros;
     case "named-arguments-anywhere":
@@ -544,6 +563,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.genericMetadata.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate1:
       ExperimentalFlag.inferenceUpdate1.isEnabledByDefault,
+  ExperimentalFlag.inferenceUpdate2:
+      ExperimentalFlag.inferenceUpdate2.isEnabledByDefault,
   ExperimentalFlag.macros: ExperimentalFlag.macros.isEnabledByDefault,
   ExperimentalFlag.namedArgumentsAnywhere:
       ExperimentalFlag.namedArgumentsAnywhere.isEnabledByDefault,
@@ -573,9 +594,6 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
         ExperimentalFlag.nonNullable,
       },
       "characters": {
-        ExperimentalFlag.nonNullable,
-      },
-      "charcode": {
         ExperimentalFlag.nonNullable,
       },
       "clock": {

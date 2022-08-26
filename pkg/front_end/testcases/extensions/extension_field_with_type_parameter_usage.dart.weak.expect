@@ -57,18 +57,18 @@ extension E<U extends core::Object? = dynamic> on core::String {
 }
 static field invalid-type E|field1 = null;
 static field core::int? E|field2 = (() → Null {
-  invalid-type x = null;
+  has-declared-initializer invalid-type x = null;
   return null;
 })(){() → Null};
 static field core::List<invalid-type>? E|field3 = null;
 static field (invalid-type) →? invalid-type E|field4 = null;
 static field (core::List<invalid-type>) →? core::List<invalid-type> E|field5 = null;
 static field core::int? E|field6 = (<E extends core::Object? = dynamic>() → Null {
-  E? x = null;
+  has-declared-initializer E? x = null;
   return null;
 })<core::String>(){() → Null};
 static field core::int? E|field7 = (<E extends core::Object? = dynamic>() → Null {
-  E? x = null;
+  has-declared-initializer E? x = null;
   return null;
 })<invalid-type>(){() → Null};
 static field core::Type E|field8 = #C1;

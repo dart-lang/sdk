@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -224,9 +223,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),
       typeFormals: const [],
-      parameters: parameters
-          .map((p) => p.copyWith(type: substitution.substituteType(p.type)))
-          .toList(),
+      parameters:
+          parameters.map((p) => ParameterMember.from(p, substitution)).toList(),
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -709,7 +707,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     // not found or not accessible
     if (constructorElement == null ||
-        !constructorElement.isAccessibleIn(library)) {
+        !constructorElement.isAccessibleIn2(library)) {
       return null;
     }
     // return member
@@ -1063,6 +1061,7 @@ abstract class TypeImpl implements DartType {
     return false;
   }
 
+  @Deprecated('Use TypeSystem.resolveToBound() instead')
   @override
   DartType resolveToBound(DartType objectType) => this;
 
@@ -1201,6 +1200,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return parameters.contains(element);
   }
 
+  @Deprecated('Use TypeSystem.resolveToBound() instead')
   @override
   DartType resolveToBound(DartType objectType) {
     final promotedBound = this.promotedBound;

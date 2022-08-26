@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 part of masks;
 
 /// A [TypeMask] for a specific allocation site of a container (currently only
@@ -15,8 +17,9 @@ class ContainerTypeMask extends AllocationTypeMask {
   @override
   final TypeMask forwardTo;
 
+  final ir.Node /*?*/ _allocationNode;
   @override
-  final ir.Node allocationNode;
+  ir.Node get allocationNode => _allocationNode /*!*/;
 
   @override
   final MemberEntity allocationElement;
@@ -27,7 +30,7 @@ class ContainerTypeMask extends AllocationTypeMask {
   // The length of the container.
   final int length;
 
-  const ContainerTypeMask(this.forwardTo, this.allocationNode,
+  const ContainerTypeMask(this.forwardTo, this._allocationNode,
       this.allocationElement, this.elementType, this.length);
 
   /// Deserializes a [ContainerTypeMask] object from [source].
@@ -35,13 +38,12 @@ class ContainerTypeMask extends AllocationTypeMask {
       DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
-    ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
     TypeMask elementType = TypeMask.readFromDataSource(source, domain);
     int length = source.readIntOrNull();
     source.end(tag);
     return ContainerTypeMask(
-        forwardTo, allocationNode, allocationElement, elementType, length);
+        forwardTo, null, allocationElement, elementType, length);
   }
 
   /// Serializes this [ContainerTypeMask] to [sink].
@@ -50,7 +52,6 @@ class ContainerTypeMask extends AllocationTypeMask {
     sink.writeEnum(TypeMaskKind.container);
     sink.begin(tag);
     forwardTo.writeToDataSink(sink);
-    sink.writeTreeNodeOrNull(allocationNode);
     sink.writeMemberOrNull(allocationElement);
     elementType.writeToDataSink(sink);
     sink.writeIntOrNull(length);

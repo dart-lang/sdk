@@ -484,6 +484,13 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(result == CallingConventions::kReturnFpuReg);
   }
 
+  if (compiler->parsed_function().function().IsSuspendableFunction()) {
+    ASSERT(compiler->flow_graph().graph_entry()->NeedsFrame());
+    const Code& stub = GetReturnStub(compiler);
+    compiler->EmitJumpToStub(stub);
+    return;
+  }
+
   if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ Ret();
     return;
@@ -586,36 +593,40 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R0));  // Function.
+  summary->set_in(
+      0, Location::RegisterLocation(FLAG_precompiled_mode ? R0 : FUNCTION_REG));
   return MakeCallSummary(zone, this, summary);
 }
 
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Load arguments descriptor in R4.
+  // Load arguments descriptor in ARGS_DESC_REG.
   const intptr_t argument_count = ArgumentCount();  // Includes type args.
   const Array& arguments_descriptor =
       Array::ZoneHandle(Z, GetArgumentsDescriptor());
-  __ LoadObject(R4, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 
-  ASSERT(locs()->in(0).reg() == R0);
   if (FLAG_precompiled_mode) {
+    ASSERT(locs()->in(0).reg() == R0);
     // R0: Closure with a cached entry point.
     __ ldr(R2, compiler::FieldAddress(
                    R0, compiler::target::Closure::entry_point_offset()));
   } else {
-    // R0: Function.
-    __ ldr(CODE_REG, compiler::FieldAddress(
-                         R0, compiler::target::Function::code_offset()));
+    ASSERT(locs()->in(0).reg() == FUNCTION_REG);
+    // FUNCTION_REG: Function.
+    __ ldr(CODE_REG,
+           compiler::FieldAddress(FUNCTION_REG,
+                                  compiler::target::Function::code_offset()));
     // Closure functions only have one entry point.
-    __ ldr(R2, compiler::FieldAddress(
-                   R0, compiler::target::Function::entry_point_offset()));
+    __ ldr(R2,
+           compiler::FieldAddress(
+               FUNCTION_REG, compiler::target::Function::entry_point_offset()));
   }
 
-  // R4: Arguments descriptor array.
+  // ARGS_DESC_REG: Arguments descriptor array.
   // R2: instructions entry point.
   if (!FLAG_precompiled_mode) {
     // R9: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-    __ LoadImmediate(R9, 0);
+    __ LoadImmediate(IC_DATA_REG, 0);
   }
   __ blx(R2);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),
@@ -1446,7 +1457,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
 
-  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1);
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, temp2);
 
   if (compiler::Assembler::EmittingComments()) {
     __ Comment(is_leaf_ ? "Leaf Call" : "Call");
@@ -1701,6 +1712,33 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   });
 
   FunctionEntryInstr::EmitNativeCode(compiler);
+}
+
+#define R(r) (1 << r)
+
+LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
+                                                 bool is_optimizing) const {
+  constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
+  return MakeLocationSummaryInternal(zone, (R(saved_fp)));
+}
+
+#undef R
+
+void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp0 = TMP;
+
+  __ MoveRegister(saved_fp, FPREG);
+
+  const intptr_t frame_space = native_calling_convention_.StackTopInBytes();
+  __ EnterCFrame(frame_space);
+
+  EmitParamMoves(compiler, saved_fp, temp0);
+
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ CallCFunction(target_address);
+
+  __ LeaveCFrame();
 }
 
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
@@ -2173,11 +2211,13 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
         locs->set_temp(0, Location::RegisterLocation(kWriteBarrierSlotReg));
       }
       break;
-    case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+      locs->set_in(2, LocationRegisterOrConstant(value()));
+      break;
+    case kExternalTypedDataUint8ArrayCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
     case kTwoByteStringCid:
     case kTypedDataInt16ArrayCid:
@@ -3691,7 +3731,7 @@ class CheckStackOverflowSlowPath
                                      instruction()->deopt_id(),
                                      instruction()->source());
     } else {
-      __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
       compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
           UntaggedPcDescriptors::kOther, instruction()->locs(), env);
@@ -5248,6 +5288,36 @@ DEFINE_EMIT(
   __ vmaxqs(result, result, lower);
 }
 
+DEFINE_EMIT(Float64x2Clamp,
+            (QRegisterView result,
+             QRegisterView left,
+             QRegisterView lower,
+             QRegisterView upper)) {
+  compiler::Label done0, done1;
+  // result = max(min(left, upper), lower) |
+  //          lower if (upper is NaN || left is NaN) |
+  //          upper if lower is NaN
+  __ vcmpd(left.d(0), upper.d(0));
+  __ vmstat();
+  __ vmovd(result.d(0), upper.d(0), GE);
+  __ vmovd(result.d(0), left.d(0), LT);  // less than or unordered(NaN)
+  __ b(&done0, VS);                      // at least one argument was NaN
+  __ vcmpd(result.d(0), lower.d(0));
+  __ vmstat();
+  __ vmovd(result.d(0), lower.d(0), LE);
+  __ Bind(&done0);
+
+  __ vcmpd(left.d(1), upper.d(1));
+  __ vmstat();
+  __ vmovd(result.d(1), upper.d(1), GE);
+  __ vmovd(result.d(1), left.d(1), LT);  // less than or unordered(NaN)
+  __ b(&done1, VS);                      // at least one argument was NaN
+  __ vcmpd(result.d(1), lower.d(1));
+  __ vmstat();
+  __ vmovd(result.d(1), lower.d(1), LE);
+  __ Bind(&done1);
+}
+
 // Low (< 7) Q registers are needed for the vmovs instruction.
 // TODO(dartbug.com/30953) support register range constraints in the regalloc.
 DEFINE_EMIT(Float32x4With,
@@ -5553,6 +5623,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4ToFloat32x4)                                                     \
   ____(Simd32x4ToSimd32x4Convertion)                                           \
   SIMPLE(Float32x4Clamp)                                                       \
+  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Float32x4WithX)                                                         \
   CASE(Float32x4WithY)                                                         \
   CASE(Float32x4WithZ)                                                         \
@@ -5786,7 +5857,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kBIT_NOT:
-      __ mvn(result, compiler::Operand(value));
+      __ mvn_(result, compiler::Operand(value));
       // Remove inverted smi-tag.
       __ bic(result, result, compiler::Operand(kSmiTagMask));
       break;
@@ -7071,8 +7142,8 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   switch (op_kind()) {
     case Token::kBIT_NOT:
-      __ mvn(out_lo, compiler::Operand(left_lo));
-      __ mvn(out_hi, compiler::Operand(left_hi));
+      __ mvn_(out_lo, compiler::Operand(left_lo));
+      __ mvn_(out_hi, compiler::Operand(left_hi));
       break;
     case Token::kNEGATE:
       __ rsbs(out_lo, left_lo, compiler::Operand(0));
@@ -7143,7 +7214,7 @@ void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   ASSERT(op_kind() == Token::kBIT_NOT);
 
-  __ mvn(out, compiler::Operand(left));
+  __ mvn_(out, compiler::Operand(left));
 }
 
 LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,

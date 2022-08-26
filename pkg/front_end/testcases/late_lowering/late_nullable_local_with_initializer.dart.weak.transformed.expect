@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method lateLocalInit() → core::int?
   return 123;
 static method main() → dynamic {
-  lowered core::int? #lateLocal;
+  lowered has-declared-initializer core::int? #lateLocal;
   lowered core::bool #lateLocal#isSet = false;
   function #lateLocal#get() → core::int? {
     if(!#lateLocal#isSet) {
@@ -22,7 +22,7 @@ static method main() → dynamic {
   self::expect(124, #lateLocal#set(124){(core::int?) → dynamic});
   self::expect(124, #lateLocal#get(){() → core::int?});
   function local<T extends core::Object? = dynamic>(T? value1, T? value2) → Null {
-    lowered T? #lateGenericLocal;
+    lowered has-declared-initializer T? #lateGenericLocal;
     lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T? {
       if(!#lateGenericLocal#isSet) {

@@ -1,33 +1,23 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-typedef Function2<contravariant S extends core::Object* = dynamic, T extends core::Object* = dynamic> = ([S*]) →* T*;
+typedef Function2<contravariant S extends core::Object? = dynamic, T extends core::Object? = dynamic> = ([S%]) → T%;
 class Foo extends core::Object {
-  field core::List<core::int*>* x;
-  constructor •([core::List<core::int*>* x = const <core::int*>[1]]) → self::Foo*
+  field core::List<core::int> x;
+  constructor •([core::List<core::int> x = const <core::int>[1]]) → self::Foo
     ;
-  constructor named([core::List<core::int*>* x = const <core::int*>[1]]) → self::Foo*
+  constructor named([core::List<core::int> x = const <core::int>[1]]) → self::Foo
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static field ([core::List<core::int*>*]) →* core::String* g;
-static method f([core::List<core::int*>* l]) → void
+static field ([core::List<core::int>]) → core::String g;
+static method f([has-declared-initializer core::List<core::int> l]) → void
   ;
 static method main() → dynamic
   ;
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:12:38 -> ListConstant(const <int*>[1])
-Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:13:49 -> ListConstant(const <int*>[1])
+Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:12:35 -> ListConstant(const <int*>[1])
+Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:13:46 -> ListConstant(const <int*>[1])
 Extra constant evaluation: evaluated: 2, effectively constant: 2

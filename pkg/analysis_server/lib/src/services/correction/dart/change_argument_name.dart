@@ -69,9 +69,6 @@ class ChangeArgumentName extends MultiCorrectionProducer {
     }
     return null;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ChangeArgumentName newInstance() => ChangeArgumentName();
 }
 
 /// A correction processor that can make one of the possible change computed by

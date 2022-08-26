@@ -1,13 +1,12 @@
-// @dart = 2.9
-C1 c1;
-C2 c2;
-C3 c3;
-C4 c4;
-D1 d1;
-D2 d2;
-D3 d3;
-D4 d4;
-E e;
+C1 c1 = throw '';
+C2 c2 = throw '';
+C3 c3 = throw '';
+C4 c4 = throw '';
+D1 d1 = throw '';
+D2 d2 = throw '';
+D3 d3 = throw '';
+D4 d4 = throw '';
+E e = throw '';
 
 class B<X, Y> {}
 

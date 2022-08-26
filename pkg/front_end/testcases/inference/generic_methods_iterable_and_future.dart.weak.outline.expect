@@ -1,11 +1,11 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
 import "dart:async";
 
-static method make(core::int* x) → asy::Future<core::int*>*
+static method make(core::int x) → asy::Future<core::int>
   ;
 static method test() → dynamic
   ;

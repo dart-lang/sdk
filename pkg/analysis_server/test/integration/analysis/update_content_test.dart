@@ -19,13 +19,13 @@ class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_updateContent() async {
     var path = sourcePath('test.dart');
     var goodText = r'''
-main() {
+void f() {
   print("Hello, world!");
 }''';
 
     var badText = goodText.replaceAll(';', '');
     writeFile(path, badText);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     // The contents on disk (badText) are missing a semicolon.
     await analysisFinished;
@@ -67,13 +67,13 @@ class Person {
   String get name => this._name;
   String toString() => "Name: ${name}";
 }
-void main() {
+void f() {
   var p = new Person("Skeletor");
   p.xname = "Faker";
   print(p);
 }
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);
     var errors1 = existingErrorsForFile(pathname);
@@ -88,7 +88,7 @@ class Person {
   String get name => this._name;
   String toString() => "Name: ${name}";
 }
-void main() {
+void f() {
   var p = new Person("Skeletor");
   p.name = "Faker";
   print(p);

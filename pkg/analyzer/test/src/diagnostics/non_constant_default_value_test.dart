@@ -62,7 +62,7 @@ void bar<T>([void Function(T Function()) p = f]) {}
   }
 
   test_constructor_inDifferentFile() async {
-    newFile2('/test/lib/a.dart', '''
+    newFile('/test/lib/a.dart', '''
 import 'b.dart';
 const v = const MyClass();
 ''');
@@ -99,7 +99,7 @@ class A {
   }
 
   test_enum_issue49097() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = A();
   static const bar = A();

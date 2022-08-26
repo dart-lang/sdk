@@ -4,6 +4,7 @@
 
 [ $compiler != dart2js ]
 dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
+internal/deferred_url_test: SkipByDesign # test specific for the dart2js runtime
 
 [ $compiler != dart2wasm ]
 wasm/*: SkipByDesign
@@ -40,6 +41,7 @@ consistent_index_error_string_test: Slow, Pass # Issue 25940
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
 internal/object_members_test: SkipByDesign # Uses eval for interop
+regress/issue/49129_test: SkipByDesign # Uses eval for interop
 
 [ $compiler == dart2js && !$host_checked ]
 dummy_compiler_test: Slow, Pass # Issue 32439. self-hosting doesn't work with CFE yet.

@@ -13,21 +13,27 @@ abstract class Info {
   InfoKind get kind;
 
   /// Name of the element associated with this info.
-  String name;
+  String get name;
 
   /// Id used by the compiler when instrumenting code for code coverage.
   // TODO(sigmund): It would be nice if we could use the same id for
   // serialization and for coverage. Could we unify them?
-  String coverageId;
+  String? get coverageId;
 
   /// Bytes used in the generated code for the corresponding element.
-  int size;
+  int get size;
 
   /// Info of the enclosing element.
-  Info parent;
+  Info? get parent;
+
+  /// At which stage of the compiler this component was treeshaken.
+  TreeShakenStatus get treeShakenStatus;
 
   T accept<T>(InfoVisitor<T> visitor);
 }
+
+/// Indicates at what stage of compilation the [Info] element was treeshaken.
+enum TreeShakenStatus { Dead, Live }
 
 /// Common information used for most kind of elements.
 // TODO(sigmund): add more:
@@ -37,18 +43,20 @@ abstract class BasicInfo implements Info {
   final InfoKind kind;
 
   @override
-  String coverageId;
+  String? coverageId;
   @override
-  int size;
+  late int size;
   @override
-  Info parent;
+  Info? parent;
+  @override
+  TreeShakenStatus treeShakenStatus = TreeShakenStatus.Dead;
 
   @override
-  String name;
+  late String name;
 
   /// If using deferred libraries, where the element associated with this info
   /// is generated.
-  OutputUnitInfo outputUnit;
+  OutputUnitInfo? outputUnit;
 
   BasicInfo(this.kind, this.name, this.outputUnit, this.size, this.coverageId);
 
@@ -68,7 +76,7 @@ abstract class CodeInfo implements Info {
 /// The entire information produced while compiling a program.
 class AllInfo {
   /// Summary information about the program.
-  ProgramInfo program;
+  ProgramInfo? program;
 
   /// Information about each library processed by the compiler.
   List<LibraryInfo> libraries = <LibraryInfo>[];
@@ -106,7 +114,7 @@ class AllInfo {
   /// import is resolved.
   // TODO(sigmund): use a different format for dump-info. This currently emits
   // the same map that is created for the `--deferred-map` flag.
-  Map<String, Map<String, dynamic>> deferredFiles;
+  Map<String, Map<String, dynamic>>? deferredFiles;
 
   /// A new representation of dependencies from one info to another. An entry in
   /// this map indicates that an [Info] depends on another (e.g. a function
@@ -124,7 +132,7 @@ class AllInfo {
   /// previous will continue to work after the change. This is typically
   /// increased when adding new entries to the file format.
   // Note: the dump-info.viewer app was written using a json parser version 3.2.
-  final int minorVersion = 0;
+  final int minorVersion = 1;
 
   AllInfo();
 
@@ -132,45 +140,45 @@ class AllInfo {
 }
 
 class ProgramInfo {
-  FunctionInfo entrypoint;
-  int size;
-  String dart2jsVersion;
-  DateTime compilationMoment;
-  Duration compilationDuration;
-  Duration toJsonDuration;
-  Duration dumpInfoDuration;
+  final FunctionInfo entrypoint;
+  final int size;
+  final String? dart2jsVersion;
+  final DateTime compilationMoment;
+  final Duration compilationDuration;
+  final Duration toJsonDuration;
+  final Duration dumpInfoDuration;
 
   /// `true` if `noSuchMethod` is used.
-  bool noSuchMethodEnabled;
+  final bool noSuchMethodEnabled;
 
   /// `true` if `Object.runtimeType` is used.
-  bool isRuntimeTypeUsed;
+  final bool isRuntimeTypeUsed;
 
   /// `true` if the `dart:isolate` library is in use.
-  bool isIsolateInUse;
+  final bool isIsolateInUse;
 
   /// `true` if `Function.apply` is used.
-  bool isFunctionApplyUsed;
+  final bool isFunctionApplyUsed;
 
   /// `true` if `dart:mirrors` features are used.
-  bool isMirrorsUsed;
+  final bool isMirrorsUsed;
 
-  bool minified;
+  final bool minified;
 
   ProgramInfo(
-      {this.entrypoint,
-      this.size,
-      this.dart2jsVersion,
-      this.compilationMoment,
-      this.compilationDuration,
-      this.toJsonDuration,
-      this.dumpInfoDuration,
-      this.noSuchMethodEnabled,
-      this.isRuntimeTypeUsed,
-      this.isIsolateInUse,
-      this.isFunctionApplyUsed,
-      this.isMirrorsUsed,
-      this.minified});
+      {required this.entrypoint,
+      required this.size,
+      required this.dart2jsVersion,
+      required this.compilationMoment,
+      required this.compilationDuration,
+      required this.toJsonDuration,
+      required this.dumpInfoDuration,
+      required this.noSuchMethodEnabled,
+      required this.isRuntimeTypeUsed,
+      required this.isIsolateInUse,
+      required this.isFunctionApplyUsed,
+      required this.isMirrorsUsed,
+      required this.minified});
 
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitProgram(this);
 }
@@ -178,7 +186,7 @@ class ProgramInfo {
 /// Info associated with a library element.
 class LibraryInfo extends BasicInfo {
   /// Canonical uri that identifies the library.
-  Uri uri;
+  late final Uri uri;
 
   /// Top level functions defined within the library.
   List<FunctionInfo> topLevelFunctions = <FunctionInfo>[];
@@ -219,10 +227,10 @@ class LibraryInfo extends BasicInfo {
 /// program unless the application uses deferred imports, in which case there
 /// would be an additional output unit per deferred chunk.
 class OutputUnitInfo extends BasicInfo {
-  String filename;
+  late final String filename;
 
   /// The deferred imports that will load this output unit.
-  List<String> imports = <String>[];
+  final List<String> imports = <String>[];
 
   OutputUnitInfo(this.filename, String name, int size)
       : super(InfoKind.outputUnit, name, null, size, null);
@@ -236,7 +244,7 @@ class OutputUnitInfo extends BasicInfo {
 /// Information about a class element.
 class ClassInfo extends BasicInfo {
   /// Whether the class is abstract.
-  bool isAbstract;
+  late final bool isAbstract;
 
   // TODO(sigmund): split static vs instance vs closures
   /// Functions (static or instance) defined in the class.
@@ -248,8 +256,14 @@ class ClassInfo extends BasicInfo {
   List<FieldInfo> fields = <FieldInfo>[];
 
   ClassInfo(
-      {String name, this.isAbstract, OutputUnitInfo outputUnit, int size = 0})
+      {required String name,
+      required this.isAbstract,
+      OutputUnitInfo? outputUnit,
+      int size = 0})
       : super(InfoKind.clazz, name, outputUnit, size, null);
+
+  ClassInfo.fromKernel({required String name, required this.isAbstract})
+      : super(InfoKind.clazz, name, null, 0, null);
 
   ClassInfo.internal() : super.internal(InfoKind.clazz);
 
@@ -261,7 +275,8 @@ class ClassInfo extends BasicInfo {
 /// [ClassInfo] because a class and its type may end up in different output
 /// units.
 class ClassTypeInfo extends BasicInfo {
-  ClassTypeInfo({String name, OutputUnitInfo outputUnit, int size = 0})
+  ClassTypeInfo(
+      {required String name, OutputUnitInfo? outputUnit, int size = 0})
       : super(InfoKind.classType, name, outputUnit, size, null);
 
   ClassTypeInfo.internal() : super.internal(InfoKind.classType);
@@ -275,27 +290,28 @@ class ClassTypeInfo extends BasicInfo {
 /// file of [BasicInfo.outputUnit].
 class CodeSpan {
   /// Start offset in the generated file.
-  int start;
+  int? start;
 
   /// end offset in the generated file.
-  int end;
+  int? end;
 
   /// The actual code (optional, blank when using a compact representation of
   /// the encoding).
-  String text;
+  String? text;
 
-  CodeSpan({this.start, this.end, this.text});
+  CodeSpan({required this.start, required this.end, this.text});
+  CodeSpan.empty();
 }
 
 /// Information about a constant value.
 // TODO(sigmund): add dependency data for ConstantInfo
 class ConstantInfo extends BasicInfo {
   /// The actual generated code for the constant.
-  List<CodeSpan> code;
+  late final List<CodeSpan> code;
 
   // TODO(sigmund): Add coverage support to constants?
-  ConstantInfo({int size = 0, this.code, OutputUnitInfo outputUnit})
-      : super(InfoKind.constant, null, outputUnit, size, null);
+  ConstantInfo({int size = 0, required this.code, OutputUnitInfo? outputUnit})
+      : super(InfoKind.constant, '', outputUnit, size, null);
 
   ConstantInfo.internal() : super.internal(InfoKind.constant);
 
@@ -306,34 +322,40 @@ class ConstantInfo extends BasicInfo {
 /// Information about a field element.
 class FieldInfo extends BasicInfo with CodeInfo {
   /// The type of the field.
-  String type;
+  late final String type;
 
   /// The type inferred by dart2js's whole program analysis
-  String inferredType;
+  late final String inferredType;
 
   /// Nested closures seen in the field initializer.
-  List<ClosureInfo> closures;
+  late List<ClosureInfo> closures;
 
   /// The actual generated code for the field.
-  List<CodeSpan> code;
+  late final List<CodeSpan> code;
 
   /// Whether this corresponds to a const field declaration.
-  bool isConst;
+  late final bool isConst;
 
   /// When [isConst] is true, the constant initializer expression.
-  ConstantInfo initializer;
+  ConstantInfo? initializer;
 
   FieldInfo(
-      {String name,
-      String coverageId,
+      {required String name,
+      String? coverageId,
       int size = 0,
-      this.type,
-      this.inferredType,
-      this.closures,
-      this.code,
-      OutputUnitInfo outputUnit,
-      this.isConst})
+      required this.type,
+      required this.inferredType,
+      required this.code,
+      OutputUnitInfo? outputUnit,
+      required this.isConst})
       : super(InfoKind.field, name, outputUnit, size, coverageId);
+
+  FieldInfo.fromKernel(
+      {required String name,
+      String? coverageId,
+      required this.type,
+      required this.isConst})
+      : super(InfoKind.field, name, null, 0, coverageId);
 
   FieldInfo.internal() : super.internal(InfoKind.field);
 
@@ -344,7 +366,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
 /// Information about a typedef declaration.
 class TypedefInfo extends BasicInfo {
   /// The declared type.
-  String type;
+  late final String type;
 
   TypedefInfo(String name, this.type, OutputUnitInfo outputUnit)
       : super(InfoKind.typedef, name, outputUnit, 0, null);
@@ -363,52 +385,60 @@ class FunctionInfo extends BasicInfo with CodeInfo {
   static const int CONSTRUCTOR_FUNCTION_KIND = 3;
 
   /// Kind of function (top-level function, closure, method, or constructor).
-  int functionKind;
+  late final int functionKind;
 
   /// Modifiers applied to this function.
-  FunctionModifiers modifiers;
+  late final FunctionModifiers modifiers;
 
   /// Nested closures that appear within the body of this function.
-  List<ClosureInfo> closures;
+  late List<ClosureInfo> closures;
 
   /// The type of this function.
-  String type;
+  late final String type;
 
   /// The declared return type.
-  String returnType;
+  late final String returnType;
 
   /// The inferred return type.
-  String inferredReturnType;
+  late final String inferredReturnType;
 
   /// Name and type information for each parameter.
-  List<ParameterInfo> parameters;
+  late final List<ParameterInfo> parameters;
 
   /// Side-effects.
   // TODO(sigmund): serialize more precisely, not just a string representation.
-  String sideEffects;
+  late final String sideEffects;
 
   /// How many function calls were inlined into this function.
-  int inlinedCount;
+  late final int? inlinedCount;
 
   /// The actual generated code.
-  List<CodeSpan> code;
+  late final List<CodeSpan> code;
 
   FunctionInfo(
-      {String name,
-      String coverageId,
-      OutputUnitInfo outputUnit,
+      {required String name,
+      String? coverageId,
+      OutputUnitInfo? outputUnit,
       int size = 0,
-      this.functionKind,
-      this.modifiers,
-      this.closures,
-      this.type,
-      this.returnType,
-      this.inferredReturnType,
-      this.parameters,
-      this.sideEffects,
-      this.inlinedCount,
-      this.code})
+      required this.functionKind,
+      required this.modifiers,
+      required this.type,
+      required this.returnType,
+      required this.inferredReturnType,
+      required this.parameters,
+      required this.sideEffects,
+      required this.inlinedCount,
+      required this.code})
       : super(InfoKind.function, name, outputUnit, size, coverageId);
+
+  FunctionInfo.fromKernel(
+      {required String name,
+      String? coverageId,
+      required this.functionKind,
+      required this.modifiers,
+      required this.type,
+      required this.returnType})
+      : super(InfoKind.function, name, null, 0, coverageId);
 
   FunctionInfo.internal() : super.internal(InfoKind.function);
 
@@ -419,11 +449,13 @@ class FunctionInfo extends BasicInfo with CodeInfo {
 /// Information about a closure, also known as a local function.
 class ClosureInfo extends BasicInfo {
   /// The function that is wrapped by this closure.
-  FunctionInfo function;
+  late final FunctionInfo function;
 
-  ClosureInfo(
-      {String name, OutputUnitInfo outputUnit, int size = 0, this.function})
+  ClosureInfo({required String name, OutputUnitInfo? outputUnit, int size = 0})
       : super(InfoKind.closure, name, outputUnit, size, null);
+
+  ClosureInfo.fromKernel({required String name})
+      : super(InfoKind.closure, name, null, 0, null);
 
   ClosureInfo.internal() : super.internal(InfoKind.closure);
 
@@ -439,7 +471,7 @@ class DependencyInfo {
   /// Either a selector mask indicating how this is used, or 'inlined'.
   // TODO(sigmund): split mask into an enum or something more precise to really
   // describe the dependencies in detail.
-  final String mask;
+  final String? mask;
 
   DependencyInfo(this.target, this.mask);
 }
@@ -459,12 +491,17 @@ class FunctionModifiers {
   final bool isConst;
   final bool isFactory;
   final bool isExternal;
+  final bool isGetter;
+  final bool isSetter;
 
-  FunctionModifiers(
-      {this.isStatic = false,
-      this.isConst = false,
-      this.isFactory = false,
-      this.isExternal = false});
+  FunctionModifiers({
+    this.isStatic = false,
+    this.isConst = false,
+    this.isFactory = false,
+    this.isExternal = false,
+    this.isGetter = false,
+    this.isSetter = false,
+  });
 }
 
 /// Possible values of the `kind` field in the serialized infos.
@@ -480,7 +517,7 @@ enum InfoKind {
   closure,
 }
 
-String kindToString(InfoKind kind) {
+String? kindToString(InfoKind kind) {
   switch (kind) {
     case InfoKind.library:
       return 'library';
@@ -505,7 +542,7 @@ String kindToString(InfoKind kind) {
   }
 }
 
-InfoKind kindFromString(String kind) {
+InfoKind? kindFromString(String kind) {
   switch (kind) {
     case 'library':
       return InfoKind.library;

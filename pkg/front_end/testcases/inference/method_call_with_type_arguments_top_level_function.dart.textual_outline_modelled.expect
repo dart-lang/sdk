@@ -1,9 +1,8 @@
-// @dart = 2.9
 library test;
 
-D<T> f<T>() => null;
+D<T> f<T>() => throw '';
 
 class D<T> {}
 
-main() {}
+test() {}
 var g = f<int>();

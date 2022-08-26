@@ -79,8 +79,8 @@ class Graph<T> {
 
     _emitEvent(_addedController, node);
 
-    _stateCounts.putIfAbsent(node.state, () => 0);
-    _stateCounts[node.state] += 1;
+    _stateCounts[node.state] =
+        _stateCounts.putIfAbsent(node.state, () => 0) + 1;
 
     return node;
   }
@@ -90,9 +90,9 @@ class Graph<T> {
     var fromState = node.state;
     node._state = state;
 
-    _stateCounts[fromState] -= 1;
+    _stateCounts[fromState] = _stateCounts[fromState]! - 1;
     _stateCounts.putIfAbsent(state, () => 0);
-    _stateCounts[state] += 1;
+    _stateCounts[state] = _stateCounts[state]! + 1;
 
     _emitEvent(_changedController, StateChangedEvent(node, fromState, state));
   }

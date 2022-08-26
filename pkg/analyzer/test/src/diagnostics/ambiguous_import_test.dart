@@ -20,11 +20,11 @@ main() {
 @reflectiveTest
 class AmbiguousImportTest extends PubPackageResolutionTest {
   test_annotation_getter() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const foo = 0;
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 const foo = 0;
 ''');
 
@@ -41,10 +41,10 @@ class A {}
   }
 
   test_as() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -56,10 +56,10 @@ f(p) {p as N;}''', [
   }
 
   test_extends() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -72,10 +72,10 @@ class A extends N {}''', [
   }
 
   test_implements() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -88,19 +88,19 @@ class A implements N {}''', [
   }
 
   test_inPart() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}
 ''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}
 ''');
-    newFile2('$testPackageLibPath/part.dart', '''
+    newFile('$testPackageLibPath/part.dart', '''
 part of lib;
 class A extends N {}
 ''');
-    newFile2('$testPackageLibPath/lib.dart', '''
+    newFile('$testPackageLibPath/lib.dart', '''
 library lib;
 import 'lib1.dart';
 import 'lib2.dart';
@@ -120,10 +120,10 @@ part 'part.dart';
   }
 
   test_instanceCreation() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -136,10 +136,10 @@ f() {new N();}''', [
   }
 
   test_is() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -151,10 +151,10 @@ f(p) {p is N;}''', [
   }
 
   test_qualifier() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -168,7 +168,7 @@ g() { N.FOO; }''', [
   test_systemLibrary_nonSystemLibrary() async {
     // From the spec, "a declaration from a non-system library shadows
     // declarations from system libraries."
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class StreamController {}
 ''');
     await assertNoErrorsInCode('''
@@ -190,10 +190,10 @@ g(File f) {}
   }
 
   test_typeAnnotation() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -220,10 +220,10 @@ class B<T extends N> {}''', [
   }
 
   test_typeArgument_annotation() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -236,10 +236,10 @@ A<N>? f() { return null; }''', [
   }
 
   test_typeArgument_instanceCreation() async {
-    newFile2("$testPackageLibPath/lib1.dart", '''
+    newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;
 class N {}''');
-    newFile2("$testPackageLibPath/lib2.dart", '''
+    newFile("$testPackageLibPath/lib2.dart", '''
 library lib2;
 class N {}''');
     await assertErrorsInCode('''
@@ -252,11 +252,11 @@ f() {new A<N>();}''', [
   }
 
   test_variable_read() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 var x;
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 var x;
 ''');
 
@@ -273,11 +273,11 @@ void f() {
   }
 
   test_variable_read_prefixed() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 var x;
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 var x;
 ''');
 
@@ -294,11 +294,11 @@ void f() {
   }
 
   test_variable_write() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 var x;
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 var x;
 ''');
 
@@ -321,11 +321,11 @@ void f() {
   }
 
   test_variable_write_prefixed() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 var x;
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 var x;
 ''');
 

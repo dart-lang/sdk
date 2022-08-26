@@ -21,7 +21,7 @@ class RemoveTypeArgumentsTest extends FixProcessorTest {
 
   Future<void> test_explicitConst() async {
     await resolveTestCode('''
-main() {
+void f() {
   const C.named<int>();
 }
 class C<E> {
@@ -29,7 +29,7 @@ class C<E> {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   const C.named();
 }
 class C<E> {
@@ -40,7 +40,7 @@ class C<E> {
 
   Future<void> test_explicitNew() async {
     await resolveTestCode('''
-main() {
+void f() {
   new C.named<int>();
 }
 class C<E> {
@@ -48,7 +48,7 @@ class C<E> {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   new C.named();
 }
 class C<E> {
@@ -59,7 +59,7 @@ class C<E> {
 
   Future<void> test_implicitConst() async {
     await resolveTestCode('''
-main() {
+void f() {
   const C c = C.named<int>();
   print(c);
 }
@@ -68,7 +68,7 @@ class C<E> {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   const C c = C.named();
   print(c);
 }
@@ -80,7 +80,7 @@ class C<E> {
 
   Future<void> test_implicitNew() async {
     await resolveTestCode('''
-main() {
+void f() {
   C.named<int>();
 }
 class C<E> {
@@ -88,7 +88,7 @@ class C<E> {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   C.named();
 }
 class C<E> {

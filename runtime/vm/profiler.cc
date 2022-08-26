@@ -416,6 +416,14 @@ void Profiler::DumpStackTrace(void* context) {
   uword pc = static_cast<uword>(ctx->Rip);
   uword fp = static_cast<uword>(ctx->Rbp);
   uword sp = static_cast<uword>(ctx->Rsp);
+#elif defined(HOST_ARCH_ARM)
+  uword pc = static_cast<uword>(ctx->Pc);
+  uword fp = static_cast<uword>(ctx->R11);
+  uword sp = static_cast<uword>(ctx->Sp);
+#elif defined(HOST_ARCH_ARM64)
+  uword pc = static_cast<uword>(ctx->Pc);
+  uword fp = static_cast<uword>(ctx->Fp);
+  uword sp = static_cast<uword>(ctx->Sp);
 #else
 #error Unsupported architecture.
 #endif

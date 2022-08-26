@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -254,6 +255,7 @@ class ImportsVerifier {
       HashMap<NamespaceDirective, List<SimpleIdentifier>>();
 
   void addImports(CompilationUnit node) {
+    final importsWithLibraries = <_ImportDirective>[];
     for (Directive directive in node.directives) {
       if (directive is ImportDirective) {
         var libraryElement = directive.uriElement;
@@ -262,6 +264,12 @@ class ImportsVerifier {
         }
         _allImports.add(directive);
         _unusedImports.add(directive);
+        importsWithLibraries.add(
+          _ImportDirective(
+            node: directive,
+            importedLibrary: libraryElement,
+          ),
+        );
         //
         // Initialize prefixElementMap
         //
@@ -286,23 +294,27 @@ class ImportsVerifier {
         _addDuplicateShownHiddenNames(directive);
       }
     }
-    if (_unusedImports.length > 1) {
+    if (importsWithLibraries.length > 1) {
       // order the list of unusedImports to find duplicates in faster than
       // O(n^2) time
-      List<ImportDirective> importDirectiveArray =
-          List<ImportDirective>.from(_unusedImports);
-      importDirectiveArray.sort(ImportDirective.COMPARATOR);
-      ImportDirective currentDirective = importDirectiveArray[0];
-      for (int i = 1; i < importDirectiveArray.length; i++) {
-        ImportDirective nextDirective = importDirectiveArray[i];
-        if (ImportDirective.COMPARATOR(currentDirective, nextDirective) == 0) {
+      importsWithLibraries.sort((import1, import2) {
+        return import1.libraryUriStr.compareTo(import2.libraryUriStr);
+      });
+      var currentDirective = importsWithLibraries[0];
+      for (var i = 1; i < importsWithLibraries.length; i++) {
+        final nextDirective = importsWithLibraries[i];
+        if (currentDirective.libraryUriStr == nextDirective.libraryUriStr &&
+            ImportDirectiveImpl.areSyntacticallyIdenticalExceptUri(
+              currentDirective.node,
+              nextDirective.node,
+            )) {
           // Add either the currentDirective or nextDirective depending on which
           // comes second, this guarantees that the first of the duplicates
           // won't be highlighted.
-          if (currentDirective.offset < nextDirective.offset) {
-            _duplicateImports.add(nextDirective);
+          if (currentDirective.node.offset < nextDirective.node.offset) {
+            _duplicateImports.add(nextDirective.node);
           } else {
-            _duplicateImports.add(currentDirective);
+            _duplicateImports.add(currentDirective.node);
           }
         }
         currentDirective = nextDirective;
@@ -601,6 +613,20 @@ class UsedImportedElements {
 
   /// The set of extensions defining members that are referenced.
   final Set<ExtensionElement> usedExtensions = {};
+}
+
+/// [ImportDirective] with non-null imported [LibraryElement].
+class _ImportDirective {
+  final ImportDirective node;
+  final LibraryElement importedLibrary;
+
+  _ImportDirective({
+    required this.node,
+    required this.importedLibrary,
+  });
+
+  /// Returns the absolute URI of the imported library.
+  String get libraryUriStr => '${importedLibrary.source.uri}';
 }
 
 /// A class which verifies (and reports) whether any import directives are

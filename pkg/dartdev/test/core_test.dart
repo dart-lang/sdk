@@ -25,7 +25,7 @@ void main() {
 }
 
 void _dartdevCommand() {
-  void _assertDartdevCommandProperties(
+  void assertDartdevCommandProperties(
       DartdevCommand command, String name, String expectedUsagePath,
       [int subcommandCount = 0]) {
     expect(command, isNotNull);
@@ -37,62 +37,62 @@ void _dartdevCommand() {
   }
 
   test('analyze', () {
-    _assertDartdevCommandProperties(AnalyzeCommand(), 'analyze', 'analyze');
+    assertDartdevCommandProperties(AnalyzeCommand(), 'analyze', 'analyze');
   });
 
   test('compile', () {
-    _assertDartdevCommandProperties(CompileCommand(), 'compile', 'compile', 5);
+    assertDartdevCommandProperties(CompileCommand(), 'compile', 'compile', 5);
   });
 
   test('compile/js', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['js'] as DartdevCommand,
         'js',
         'compile/js');
   });
 
   test('compile/jit-snapshot', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['jit-snapshot'] as DartdevCommand,
         'jit-snapshot',
         'compile/jit-snapshot');
   });
 
   test('compile/kernel', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['kernel'] as DartdevCommand,
         'kernel',
         'compile/kernel');
   });
 
   test('compile/exe', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['exe'] as DartdevCommand,
         'exe',
         'compile/exe');
   });
 
   test('compile/aot-snapshot', () {
-    _assertDartdevCommandProperties(
+    assertDartdevCommandProperties(
         CompileCommand().subcommands['aot-snapshot'] as DartdevCommand,
         'aot-snapshot',
         'compile/aot-snapshot');
   });
 
   test('create', () {
-    _assertDartdevCommandProperties(CreateCommand(), 'create', 'create');
+    assertDartdevCommandProperties(CreateCommand(), 'create', 'create');
   });
 
   test('fix', () {
-    _assertDartdevCommandProperties(FixCommand(), 'fix', 'fix');
+    assertDartdevCommandProperties(FixCommand(), 'fix', 'fix');
   });
 
   test('run', () {
-    _assertDartdevCommandProperties(RunCommand(verbose: false), 'run', 'run');
+    assertDartdevCommandProperties(RunCommand(verbose: false), 'run', 'run');
   });
 
   test('test', () {
-    _assertDartdevCommandProperties(TestCommand(), 'test', 'test');
+    assertDartdevCommandProperties(TestCommand(), 'test', 'test');
   });
 }
 
@@ -105,7 +105,7 @@ void _packageConfig() {
   test('hasDependency', () {
     PackageConfig packageConfig = PackageConfig(jsonDecode(_packageData));
     expect(packageConfig.hasDependency('test'), isFalse);
-    expect(packageConfig.hasDependency('pedantic'), isTrue);
+    expect(packageConfig.hasDependency('lints'), isTrue);
   });
 }
 
@@ -149,8 +149,8 @@ const String _packageData = '''{
   "configVersion": 2,
   "packages": [
     {
-      "name": "pedantic",
-      "rootUri": "file:///Users/.../.pub-cache/hosted/pub.dartlang.org/pedantic-1.9.0",
+      "name": "lints",
+      "rootUri": "file:///Users/.../.pub-cache/hosted/pub.dartlang.org/lints-1.0.1",
       "packageUri": "lib/",
       "languageVersion": "2.1"
     },

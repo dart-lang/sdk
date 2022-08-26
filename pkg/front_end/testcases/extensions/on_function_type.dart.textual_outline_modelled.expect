@@ -1,4 +1,3 @@
-// @dart = 2.9
 class Class<T extends Class<T>> {}
 
 class Subclass extends Class<Subclass> {}

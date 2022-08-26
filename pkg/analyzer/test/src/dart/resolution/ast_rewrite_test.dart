@@ -399,6 +399,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::a
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
@@ -464,6 +467,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@function::A::@parameter::a
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -521,6 +527,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::_
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
@@ -543,7 +552,7 @@ void f() {
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A.named(T a);
 }
@@ -590,6 +599,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -597,7 +609,7 @@ InstanceCreationExpression
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor_typeArguments() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A.named(int a);
 }
@@ -658,6 +670,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -665,7 +680,7 @@ InstanceCreationExpression
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor_typeArguments_new() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A.new(int a);
 }
@@ -726,6 +741,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -733,7 +751,7 @@ InstanceCreationExpression
   }
 
   test_targetPrefixedIdentifier_prefix_getter_method() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 A get foo => A();
 
 class A {
@@ -774,6 +792,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: package:test/a.dart::@class::A::@method::bar::@parameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -782,7 +801,7 @@ MethodInvocation
   }
 
   test_targetPrefixedIdentifier_typeAlias_interfaceType_constructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A.named(T a);
 }
@@ -831,6 +850,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -873,6 +895,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -936,6 +961,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::a
+          substitution: {T: dynamic, U: dynamic}
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
@@ -999,6 +1027,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::a
+          substitution: {T: dynamic, U: dynamic}
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
@@ -1021,7 +1052,7 @@ f() {
   }
 
   test_targetSimpleIdentifier_prefix_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T, U> {
   A(int a);
 }
@@ -1077,6 +1108,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
@@ -1084,7 +1118,7 @@ InstanceCreationExpression
   }
 
   test_targetSimpleIdentifier_prefix_extension() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 
 extension E<T> on A {
@@ -1113,7 +1147,7 @@ f(prefix.A a) {
   }
 
   test_targetSimpleIdentifier_prefix_function() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 void A<T, U>(int a) {}
 ''');
 
@@ -1158,6 +1192,9 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@function::A::@parameter::a
+          substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -1206,6 +1243,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::a
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>

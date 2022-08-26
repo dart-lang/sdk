@@ -118,25 +118,8 @@ bool f(p, q) {
 
 class VerificationTests {
   static void defineTests() {
-    verify_fixInFileFixesHaveBulkFixTests();
     verify_fixInFileFixKindsHaveMultiFixes();
     verify_fixInFileFixesHaveUniqueBulkFixes();
-  }
-
-  static void verify_fixInFileFixesHaveBulkFixTests() {
-    group('VerificationTests | fixInFileFixesHaveBulkFixTests |', () {
-      for (var fixEntry in FixProcessor.lintProducerMap.entries) {
-        var errorCode = fixEntry.key;
-        for (var generator in fixEntry.value) {
-          var producer = generator();
-          if (producer.canBeAppliedToFile) {
-            test('$errorCode |', () {
-              expect(producer.canBeAppliedInBulk, isTrue);
-            });
-          }
-        }
-      }
-    });
   }
 
   static void verify_fixInFileFixesHaveUniqueBulkFixes() {
@@ -152,7 +135,6 @@ class VerificationTests {
               if (multiFixKind != null) {
                 expect(multiFixKind, isNot(equals(fixKind)));
               }
-              expect(producer.canBeAppliedInBulk, isTrue);
             });
           }
         }

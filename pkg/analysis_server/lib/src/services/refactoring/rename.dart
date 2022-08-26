@@ -73,7 +73,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   @override
   Future<RefactoringStatus> checkInitialConditions() {
     var result = RefactoringStatus();
-    if (element.source!.uri.isScheme('dart')) {
+    if (element.library?.isInSdk == true) {
       var message = format(
           "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
           getElementKindName(element),

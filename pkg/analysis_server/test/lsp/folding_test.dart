@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -143,7 +143,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     ''';
     final ranges = rangesFromMarkers(content);
     final withoutMarkers = withoutRangeMarkers(content);
-    newFile2(pluginAnalyzedFilePath, '');
+    newFile(pluginAnalyzedFilePath, '');
 
     await initialize();
     await openFile(pluginAnalyzedUri, withoutMarkers);
@@ -173,7 +173,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
       );
     ''';
     final withoutMarkers = withoutRangeMarkers(content);
-    newFile2(pluginAnalyzedFilePath, withoutMarkers);
+    newFile(pluginAnalyzedFilePath, withoutMarkers);
 
     await initialize();
     await openFile(pluginAnalyzedUri, withoutMarkers);
@@ -199,7 +199,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     /// This is not the file header[[
     /// It's just a comment]]
-    main() {}
+    void f() {}
     ''';
 
     final ranges = rangesFromMarkers(content);

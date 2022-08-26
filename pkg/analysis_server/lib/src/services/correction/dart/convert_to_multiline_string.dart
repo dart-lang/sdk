@@ -38,7 +38,4 @@ class ConvertToMultilineString extends CorrectionProducer {
       }
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static ConvertToMultilineString newInstance() => ConvertToMultilineString();
 }

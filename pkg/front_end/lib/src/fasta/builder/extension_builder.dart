@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../fasta_codes.dart'
     show templateInternalProblemNotFoundIn, templateTypeArgumentMismatch;
@@ -72,14 +73,25 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
+  DartType buildAliasedType(
+      LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      ClassHierarchyBase? hierarchy,
+      {required bool hasExplicitTypeArguments}) {
     if (library is SourceLibraryBuilder &&
         library.libraryFeatures.extensionTypes.isEnabled) {
-      return buildTypeWithBuiltArguments(
+      return buildAliasedTypeWithBuiltArguments(
           library,
           nullabilityBuilder.build(library),
-          _buildTypeArguments(library, arguments));
+          _buildAliasedTypeArguments(library, arguments, hierarchy),
+          typeUse,
+          fileUri,
+          charOffset,
+          hasExplicitTypeArguments: hasExplicitTypeArguments);
     } else {
       throw new UnsupportedError("ExtensionBuilder.buildType is not supported"
           "in library '${library.importUri}'.");
@@ -87,8 +99,14 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments) {
+  DartType buildAliasedTypeWithBuiltArguments(
+      LibraryBuilder library,
+      Nullability nullability,
+      List<DartType> arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
     if (library is SourceLibraryBuilder &&
         library.libraryFeatures.extensionTypes.isEnabled) {
       return new ExtensionType(extension, nullability, arguments);
@@ -102,8 +120,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   @override
   int get typeVariablesCount => typeParameters?.length ?? 0;
 
-  List<DartType> _buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments) {
+  List<DartType> _buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
     if (arguments == null && typeParameters == null) {
       return <DartType>[];
     }
@@ -111,7 +129,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     if (arguments == null && typeParameters != null) {
       List<DartType> result =
           new List<DartType>.generate(typeParameters!.length, (int i) {
-        return typeParameters![i].defaultType!.build(library);
+        return typeParameters![i].defaultType!.buildAliased(
+            library, TypeUse.defaultTypeAsTypeArgument, hierarchy);
       }, growable: true);
       if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
@@ -133,7 +152,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     assert(arguments!.length == typeVariablesCount);
     List<DartType> result =
         new List<DartType>.generate(arguments!.length, (int i) {
-      return arguments[i].build(library);
+      return arguments[i]
+          .buildAliased(library, TypeUse.typeArgument, hierarchy);
     }, growable: true);
     return result;
   }

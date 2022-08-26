@@ -221,7 +221,7 @@ void f<T>(T a) {
 class UnnecessaryCastTestWithNullSafety extends PubPackageResolutionTest
     with UnnecessaryCastTestCases {
   test_interfaceType_star_toNone() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 int a = 0;
 ''');
@@ -240,7 +240,7 @@ void f() {
   }
 
   test_interfaceType_star_toQuestion() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 int a = 0;
 ''');

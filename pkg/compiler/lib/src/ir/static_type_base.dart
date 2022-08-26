@@ -19,10 +19,10 @@ class DoesNotCompleteType extends ir.NeverType {
 /// has precision of a this-expression.
 class ThisInterfaceType extends ir.InterfaceType {
   ThisInterfaceType(ir.Class classNode, ir.Nullability nullability,
-      [List<ir.DartType> typeArguments])
+      [List<ir.DartType>? typeArguments])
       : super(classNode, nullability, typeArguments);
 
-  factory ThisInterfaceType.from(ir.InterfaceType type) => type != null
+  static from(ir.InterfaceType? type) => type != null
       ? ThisInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
 
@@ -34,10 +34,10 @@ class ThisInterfaceType extends ir.InterfaceType {
 /// is exact, i.e. the runtime type is not a subtype or subclass of the type.
 class ExactInterfaceType extends ir.InterfaceType {
   ExactInterfaceType(ir.Class classNode, ir.Nullability nullability,
-      [List<ir.DartType> typeArguments])
+      [List<ir.DartType>? typeArguments])
       : super(classNode, nullability, typeArguments);
 
-  factory ExactInterfaceType.from(ir.InterfaceType type) => type != null
+  static from(ir.InterfaceType? type) => type != null
       ? ExactInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
 
@@ -55,13 +55,10 @@ class ExactInterfaceType extends ir.InterfaceType {
 /// expression kind. For instance method invocations whose static type depend
 /// on the static types of the receiver and type arguments and the signature
 /// of the targeted procedure.
-abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
-    with ir.VisitorNullMixin<ir.DartType> {
+abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
   final ir.TypeEnvironment _typeEnvironment;
 
   StaticTypeBase(this._typeEnvironment);
-
-  fail(String message) => message;
 
   ir.TypeEnvironment get typeEnvironment => _typeEnvironment;
 
@@ -70,23 +67,18 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
   ThisInterfaceType get thisType;
 
   @override
-  ir.DartType defaultNode(ir.Node node) {
-    return null;
+  ir.DartType defaultTreeNode(ir.TreeNode node) {
+    throw UnsupportedError('Unhandled node $node (${node.runtimeType})');
   }
 
-  ir.DartType visitNode(ir.Node node) {
-    return node?.accept(this);
-  }
+  ir.DartType visitNode(ir.TreeNode node) => node.accept(this);
 
-  Null visitNodes(List<ir.Node> nodes) {
-    for (ir.Node node in nodes) {
+  ir.DartType? visitNodeOrNull(ir.TreeNode? node) => node?.accept(this);
+
+  void visitNodes(Iterable<ir.TreeNode> nodes) {
+    for (ir.TreeNode node in nodes) {
       visitNode(node);
     }
-  }
-
-  @override
-  ir.DartType defaultExpression(ir.Expression node) {
-    throw fail('Unhandled node $node (${node.runtimeType})');
   }
 
   @override

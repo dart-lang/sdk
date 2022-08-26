@@ -59,19 +59,19 @@ class Heap {
   Scavenger* new_space() { return &new_space_; }
   PageSpace* old_space() { return &old_space_; }
 
-  uword Allocate(intptr_t size, Space space) {
+  uword Allocate(Thread* thread, intptr_t size, Space space) {
     ASSERT(!read_only_);
     switch (space) {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
         if (!IsAllocatableInNewSpace(size)) {
-          return AllocateOld(size, OldPage::kData);
+          return AllocateOld(thread, size, OldPage::kData);
         }
-        return AllocateNew(size);
+        return AllocateNew(thread, size);
       case kOld:
-        return AllocateOld(size, OldPage::kData);
+        return AllocateOld(thread, size, OldPage::kData);
       case kCode:
-        return AllocateOld(size, OldPage::kExecutable);
+        return AllocateOld(thread, size, OldPage::kExecutable);
       default:
         UNREACHABLE();
     }
@@ -108,8 +108,7 @@ class Heap {
   void NotifyIdle(int64_t deadline);
 
   // Collect a single generation.
-  void CollectGarbage(Space space);
-  void CollectGarbage(GCType type, GCReason reason);
+  void CollectGarbage(Thread* thread, GCType type, GCReason reason);
 
   // Collect both generations by performing a scavenge followed by a
   // mark-sweep. This function may not collect all unreachable objects. Because
@@ -126,19 +125,11 @@ class Heap {
   void CollectAllGarbage(GCReason reason = GCReason::kFull,
                          bool compact = false);
 
-  void CheckStartConcurrentMarking(Thread* thread, GCReason reason);
+  void CheckConcurrentMarking(Thread* thread, GCReason reason, intptr_t size);
   void StartConcurrentMarking(Thread* thread, GCReason reason);
-  void CheckFinishConcurrentMarking(Thread* thread);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
   void WaitForSweeperTasksAtSafepoint(Thread* thread);
-
-  // Enables growth control on the page space heaps.  This should be
-  // called before any user code is executed.
-  void InitGrowthControl();
-  void DisableGrowthControl() { SetGrowthControlState(false); }
-  void SetGrowthControlState(bool state);
-  bool GrowthControlState();
 
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.
@@ -221,9 +212,9 @@ class Heap {
   }
   void ResetObjectIdTable();
 
-  void SetLoadingUnit(ObjectPtr raw_obj, intptr_t object_id) {
+  void SetLoadingUnit(ObjectPtr raw_obj, intptr_t unit_id) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    SetWeakEntry(raw_obj, kLoadingUnits, object_id);
+    SetWeakEntry(raw_obj, kLoadingUnits, unit_id);
   }
   intptr_t GetLoadingUnit(ObjectPtr raw_obj) const {
     ASSERT(Thread::Current()->IsMutatorThread());
@@ -255,12 +246,6 @@ class Heap {
 
   void ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object);
   void ForwardWeakTables(ObjectPointerVisitor* visitor);
-
-  // Stats collection.
-  void RecordTime(int id, int64_t micros) {
-    ASSERT((id >= 0) && (id < GCStats::kTimeEntries));
-    stats_.times_[id] = micros;
-  }
 
   void UpdateGlobalMaxUsed();
 
@@ -314,16 +299,14 @@ class Heap {
       int64_t micros_;
       SpaceUsage new_;
       SpaceUsage old_;
+      intptr_t store_buffer_;
 
      private:
       DISALLOW_COPY_AND_ASSIGN(Data);
     };
 
-    enum { kTimeEntries = 6 };
-
     Data before_;
     Data after_;
-    int64_t times_[kTimeEntries];
 
    private:
     DISALLOW_COPY_AND_ASSIGN(GCStats);
@@ -334,8 +317,8 @@ class Heap {
        intptr_t max_new_gen_semi_words,  // Max capacity of new semi-space.
        intptr_t max_old_gen_words);
 
-  uword AllocateNew(intptr_t size);
-  uword AllocateOld(intptr_t size, OldPage::PageType type);
+  uword AllocateNew(Thread* thread, intptr_t size);
+  uword AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type);
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.
@@ -352,9 +335,8 @@ class Heap {
   bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked);
 
   // Helper functions for garbage collection.
-  void CollectNewSpaceGarbage(Thread* thread, GCReason reason);
+  void CollectNewSpaceGarbage(Thread* thread, GCType type, GCReason reason);
   void CollectOldSpaceGarbage(Thread* thread, GCType type, GCReason reason);
-  void EvacuateNewSpace(Thread* thread, GCReason reason);
 
   // GC stats collection.
   void RecordBeforeGC(GCType type, GCReason reason);
@@ -365,7 +347,7 @@ class Heap {
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
   // Trigger major GC if 'gc_on_nth_allocation_' is set.
-  void CollectForDebugging();
+  void CollectForDebugging(Thread* thread);
 
   IsolateGroup* isolate_group_;
   bool is_vm_isolate_;
@@ -435,14 +417,13 @@ class HeapIterationScope : public ThreadStackResource {
   DISALLOW_COPY_AND_ASSIGN(HeapIterationScope);
 };
 
-class NoHeapGrowthControlScope : public ThreadStackResource {
+class ForceGrowthScope : public ThreadStackResource {
  public:
-  NoHeapGrowthControlScope();
-  ~NoHeapGrowthControlScope();
+  explicit ForceGrowthScope(Thread* thread);
+  ~ForceGrowthScope();
 
  private:
-  bool current_growth_controller_state_;
-  DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
+  DISALLOW_COPY_AND_ASSIGN(ForceGrowthScope);
 };
 
 // Note: During this scope all pages are writable and the code pages are
@@ -471,7 +452,8 @@ class GCTestHelper : public AllStatic {
   static void CollectNewSpace() {
     Thread* thread = Thread::Current();
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
-    thread->heap()->CollectNewSpaceGarbage(thread, GCReason::kDebugging);
+    thread->heap()->CollectGarbage(thread, GCType::kScavenge,
+                                   GCReason::kDebugging);
   }
 
   // Fully collect old gen and wait for the sweeper to finish. The normal call
@@ -482,9 +464,11 @@ class GCTestHelper : public AllStatic {
     Thread* thread = Thread::Current();
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
     if (thread->is_marking()) {
-      thread->heap()->CollectGarbage(GCType::kMarkSweep, GCReason::kDebugging);
+      thread->heap()->CollectGarbage(thread, GCType::kMarkSweep,
+                                     GCReason::kDebugging);
     }
-    thread->heap()->CollectGarbage(GCType::kMarkSweep, GCReason::kDebugging);
+    thread->heap()->CollectGarbage(thread, GCType::kMarkSweep,
+                                   GCReason::kDebugging);
     WaitForGCTasks();
   }
 

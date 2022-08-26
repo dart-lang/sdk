@@ -1,11 +1,11 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 /*@testedFeatures=inference*/
 library test;
 
-T f<T>() => null;
+T f<T>() => throw '';
 
 class C {
   void test() {
@@ -13,7 +13,7 @@ class C {
     var /*@type=dynamic*/ v2 = super.bar;
     var /*@type=dynamic*/ v3 = super[0];
     var /*@type=dynamic*/ v4 = super.bar = /*@typeArgs=dynamic*/ f();*/
-    var /*@type=dynamic*/ v5 = super[0] = /*@typeArgs=dynamic*/ f();
+    var /*@type=invalid-type*/ v5 = super[0] = f();
   }
 }
 

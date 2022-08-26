@@ -55,7 +55,7 @@ class DeferredLibraryCheck extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    var args = argResults!.rest;
     if (args.length < 2) {
       usageException('Missing arguments, expected: info.data manifest.yaml');
     }

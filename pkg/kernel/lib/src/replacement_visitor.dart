@@ -83,17 +83,9 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
         newNamedParameters[i] = newNamedType;
       }
     }
-    TypedefType? newTypedefType =
-        visitType(node.typedefType, variance) as TypedefType?;
 
-    return createFunctionType(
-        node,
-        newNullability,
-        newTypeParameters,
-        newReturnType,
-        newPositionalParameters,
-        newNamedParameters,
-        newTypedefType);
+    return createFunctionType(node, newNullability, newTypeParameters,
+        newReturnType, newPositionalParameters, newNamedParameters);
   }
 
   NamedType? createNamedType(NamedType node, DartType? newType) {
@@ -110,13 +102,11 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       List<TypeParameter>? newTypeParameters,
       DartType? newReturnType,
       List<DartType>? newPositionalParameters,
-      List<NamedType>? newNamedParameters,
-      TypedefType? newTypedefType) {
+      List<NamedType>? newNamedParameters) {
     if (newNullability == null &&
         newReturnType == null &&
         newPositionalParameters == null &&
-        newNamedParameters == null &&
-        newTypedefType == null) {
+        newNamedParameters == null) {
       // No nullability or types had to be substituted.
       return null;
     } else {
@@ -126,8 +116,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
           newNullability ?? node.nullability,
           namedParameters: newNamedParameters ?? node.namedParameters,
           typeParameters: newTypeParameters ?? node.typeParameters,
-          requiredParameterCount: node.requiredParameterCount,
-          typedefType: newTypedefType ?? node.typedefType);
+          requiredParameterCount: node.requiredParameterCount);
     }
   }
 
@@ -171,8 +160,26 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       // No nullability or type arguments needed to be substituted.
       return null;
     } else {
-      return new FutureOrType(newTypeArgument ?? node.typeArgument,
-          newNullability ?? node.declaredNullability);
+      newTypeArgument ??= node.typeArgument;
+      newNullability ??= node.declaredNullability;
+
+      // The top-level nullability of a FutureOr should remain the same, with
+      // the exception of the case of [Nullability.undetermined].  In that case
+      // it remains undetermined if the nullability of [typeArgument] is
+      // undetermined, and otherwise it should become
+      // [Nullability.nonNullable].
+      Nullability adjustedNullability;
+      if (newNullability == Nullability.undetermined) {
+        if (newTypeArgument.nullability == Nullability.undetermined) {
+          adjustedNullability = Nullability.undetermined;
+        } else {
+          adjustedNullability = Nullability.nonNullable;
+        }
+      } else {
+        adjustedNullability = newNullability;
+      }
+
+      return new FutureOrType(newTypeArgument, adjustedNullability);
     }
   }
 

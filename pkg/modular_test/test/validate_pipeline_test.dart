@@ -72,7 +72,7 @@ main() {
 }
 
 validateSteps(List<ModularStep> steps) {
-  new _NoopPipeline(steps);
+  _NoopPipeline(steps);
 }
 
 /// An implementation of [Pipeline] that simply validates the steps, but doesn't
@@ -83,5 +83,5 @@ class _NoopPipeline extends Pipeline {
   @override
   Future<void> runStep(ModularStep step, Module module,
           Map<Module, Set<DataId>> visibleData, List<String> flags) =>
-      null;
+      Future.value(null);
 }

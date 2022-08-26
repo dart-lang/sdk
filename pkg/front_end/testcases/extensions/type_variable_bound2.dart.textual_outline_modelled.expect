@@ -1,0 +1,17 @@
+Class test1<T>(T t1) {}
+
+class Class {}
+
+class SubClass extends Class {}
+
+extension BoundExtension<T extends Class> on T {
+  T method2() => this;
+}
+
+extension Extension<T> on T {
+  T method1() => this;
+}
+
+main() {}
+test2<T extends Class>(T t2) {}
+test3<T>(T t3) {}

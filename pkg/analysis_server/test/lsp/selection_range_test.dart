@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -74,7 +74,7 @@ class Foo<T> {
     final lineInfo = LineInfo.fromContent(contentWithoutMarker);
 
     // The returned List corresponds to the input list of positions, and not
-    // the set of ranges - each range within that list has a (recusrive) parent
+    // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
     final regions =
         await getSelectionRanges(mainFileUri, [positionFromMarker(content)]);

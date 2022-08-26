@@ -23,7 +23,7 @@ struct AbiAlignmentUint64 {
 };
 
 #if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64) ||                      \
-    defined(HOST_ARCH_RISCV64)
+    defined(HOST_ARCH_RISCV32) || defined(HOST_ARCH_RISCV64)
 static_assert(offsetof(AbiAlignmentDouble, d) == 8,
               "FFI transformation alignment");
 static_assert(offsetof(AbiAlignmentUint64, i) == 8,

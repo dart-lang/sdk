@@ -71,6 +71,7 @@ abstract class AbstractCompletionDriverTest
     ElementKind? element,
     CompletionSuggestionKind? kind,
     String? file,
+    String? libraryUri,
   }) {
     expect(
         suggestionWith(
@@ -78,22 +79,7 @@ abstract class AbstractCompletionDriverTest
           element: element,
           kind: kind,
           file: file,
-        ),
-        isNotNull);
-  }
-
-  void assertSuggestions({
-    required String completion,
-    ElementKind? element,
-    CompletionSuggestionKind? kind,
-    String? file,
-  }) {
-    expect(
-        suggestionWith(
-          completion: completion,
-          element: element,
-          kind: kind,
-          file: file,
+          libraryUri: libraryUri,
         ),
         isNotNull);
   }
@@ -161,6 +147,7 @@ name: test
     ElementKind? element,
     CompletionSuggestionKind? kind,
     String? file,
+    String? libraryUri,
   }) =>
       (CompletionSuggestion s) {
         if (s.completion != completion) {
@@ -176,6 +163,13 @@ name: test
         if (file != null && s.element?.location?.file != convertPath(file)) {
           return false;
         }
+        // Library URIs are not available in protocol v1 so skip the check to
+        // allow the the same test to verify for v2.
+        if (!isProtocolVersion1 &&
+            libraryUri != null &&
+            s.libraryUri != libraryUri) {
+          return false;
+        }
         return true;
       };
 
@@ -184,18 +178,28 @@ name: test
     ElementKind? element,
     CompletionSuggestionKind? kind,
     String? file,
+    String? libraryUri,
   }) =>
       suggestions.where(suggestionHas(
-          completion: completion, element: element, kind: kind, file: file));
+          completion: completion,
+          element: element,
+          kind: kind,
+          file: file,
+          libraryUri: libraryUri));
 
   CompletionSuggestion suggestionWith({
     required String completion,
     ElementKind? element,
     CompletionSuggestionKind? kind,
     String? file,
+    String? libraryUri,
   }) {
     final matches = suggestionsWith(
-        completion: completion, element: element, kind: kind, file: file);
+        completion: completion,
+        element: element,
+        kind: kind,
+        file: file,
+        libraryUri: libraryUri);
     expect(matches, hasLength(1));
     return matches.first;
   }
@@ -272,6 +276,14 @@ class CompletionWithSuggestionsTest1 extends AbstractCompletionDriverTest
   Future<void> test_project_lib_multipleExports() async {
     return super.test_project_lib_multipleExports();
   }
+
+  @FailingTest(
+      reason:
+          'This test fails with available suggestions because it checks libraryUri')
+  @override
+  Future<void> test_project_lib_multipleExports_filteredByLocal() async {
+    return super.test_project_lib_multipleExports_filteredByLocal();
+  }
 }
 
 @reflectiveTest
@@ -279,29 +291,15 @@ class CompletionWithSuggestionsTest2 extends AbstractCompletionDriverTest
     with CompletionWithSuggestionsTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
-  @FailingTest(reason: 'Not implemented yet')
-  @override
-  Future<void> test_project_lib_fields_static() {
-    // TODO: implement test_project_lib_fields_static
-    return super.test_project_lib_fields_static();
-  }
-
-  @FailingTest(reason: 'Not implemented yet')
-  @override
-  Future<void> test_project_lib_getters_static() {
-    // TODO: implement test_project_lib_getters_static
-    return super.test_project_lib_getters_static();
-  }
 }
 
 mixin CompletionWithSuggestionsTestCases on AbstractCompletionDriverTest {
   Future<void> test_project_filterImports_defaultConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -325,13 +323,13 @@ void f() {
 
   /// See: https://github.com/dart-lang/sdk/issues/40620
   Future<void> test_project_filterImports_enumValues() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 enum E {
   e,
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -354,13 +352,13 @@ void f() {
 
   /// See: https://github.com/dart-lang/sdk/issues/40620
   Future<void> test_project_filterImports_namedConstructors() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A.a();
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -383,11 +381,11 @@ void f() {
   }
 
   Future<void> test_project_filterMultipleImports() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -411,7 +409,7 @@ void f() {
   }
 
   Future<void> test_project_lib() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 enum E {
   e,
@@ -468,7 +466,7 @@ void f() {
   }
 
   Future<void> test_project_lib_fields_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int f = 0;
 }
@@ -487,31 +485,8 @@ void m() {
     assertNoSuggestion(completion: 'f');
   }
 
-  Future<void> test_project_lib_fields_static() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
-class A {
-  static int f = 0;
-}
-''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
-    await addTestFile('''
-void f() {
-  ^
-}
-''');
-
-    assertSuggestion(
-      completion: 'A.f',
-      element: ElementKind.FIELD,
-    );
-  }
-
   Future<void> test_project_lib_getters_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int get g => 0;
 }
@@ -530,32 +505,9 @@ void f() {
     assertNoSuggestion(completion: 'g');
   }
 
-  Future<void> test_project_lib_getters_static() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
-class A {
-  static int get g => 0;
-}
-''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
-    await addTestFile('''
-void f() {
-  ^
-}
-''');
-
-    assertSuggestion(
-      completion: 'A.g',
-      element: ElementKind.GETTER,
-    );
-  }
-
   /// See: https://github.com/dart-lang/sdk/issues/40626
   Future<void> test_project_lib_getters_topLevel() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 int get g => 0;
 ''');
 
@@ -576,7 +528,7 @@ void f() {
   }
 
   Future<void> test_project_lib_methods_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo() => 0;
 }
@@ -596,7 +548,7 @@ void f() {
   }
 
   Future<void> test_project_lib_methods_static() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static void foo() => 0;
 }
@@ -616,11 +568,11 @@ void f() {
   }
 
   Future<void> test_project_lib_multipleExports() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
 
@@ -635,15 +587,75 @@ void f() {
 }
 ''');
 
-    // Should only have one suggestion.
+    // Should be suggested from both libraries.
     assertSuggestion(
         completion: 'A',
+        libraryUri: 'package:test/a.dart',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION);
+    assertSuggestion(
+        completion: 'A',
+        libraryUri: 'package:test/b.dart',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
+  Future<void> test_project_lib_multipleExports_filteredByImport() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+      await waitForSetWithUri('package:test/b.dart');
+    }
+
+    await addTestFile('''
+import 'b.dart';
+void f() {
+  ^
+}
+''');
+
+    // Should be only one suggestion, which comes from the import of 'b.dart'.
+    assertSuggestion(
+      completion: 'A',
+      element: ElementKind.CLASS,
+      libraryUri: 'package:test/b.dart',
+    );
+  }
+
+  Future<void> test_project_lib_multipleExports_filteredByLocal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    if (isProtocolVersion1) {
+      await waitForSetWithUri('package:test/a.dart');
+    }
+
+    await addTestFile('''
+class A {}
+void f() {
+  ^
+}
+''');
+
+    // Should be only one suggestion, which comes from local declaration.
+    var suggestion = suggestionWith(
+      completion: 'A',
+      element: ElementKind.CLASS,
+    );
+    expect(suggestion, isNotNull);
+    expect(suggestion.libraryUri, isNull);
+  }
+
   Future<void> test_project_lib_setters_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   set s(int s) {}
 }
@@ -663,7 +675,7 @@ void f() {
   }
 
   Future<void> test_project_lib_setters_static() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static set foo(int _) {}
 }
@@ -684,7 +696,7 @@ void f() {
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
   Future<void> test_project_lib_setters_topLevel() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 set s(int s) {}
 ''');
 
@@ -707,7 +719,7 @@ void f() {
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38739')
   Future<void>
       test_project_suggestionRelevance_constructorParameterType() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'b.dart';
 
 class A {
@@ -715,7 +727,7 @@ class A {
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 class O { }
 ''');
 
@@ -746,7 +758,7 @@ void f(List<String> args) {
   }
 
   Future<void> test_project_suggestionRelevance_constructorsAndTypes() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A { }
 ''');
 
@@ -778,7 +790,7 @@ void f(List<String> args) {
 
   /// See: https://github.com/dart-lang/sdk/issues/35529
   Future<void> test_project_suggestMixins() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 mixin M { }
 class A { }
 ''');

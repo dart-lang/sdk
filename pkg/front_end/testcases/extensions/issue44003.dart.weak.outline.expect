@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -12,15 +12,15 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension _extension#0 on core::List<core::String*>* {
+extension _extension#0 on core::List<core::String> {
   method foo = self::_extension#0|foo;
   tearoff foo = self::_extension#0|get#foo;
 }
-static method test(core::List<core::String*>* args) → void
+static method test(core::List<core::String> args) → void
   ;
-static method _extension#0|foo(lowered final core::List<core::String*>* #this, core::String* bar) → void
+static method _extension#0|foo(lowered final core::List<core::String> #this, core::String bar) → void
   ;
-static method _extension#0|get#foo(lowered final core::List<core::String*>* #this) → (core::String*) →* void
-  return (core::String* bar) → void => self::_extension#0|foo(#this, bar);
+static method _extension#0|get#foo(lowered final core::List<core::String> #this) → (core::String) → void
+  return (core::String bar) → void => self::_extension#0|foo(#this, bar);
 static method main() → dynamic
   ;

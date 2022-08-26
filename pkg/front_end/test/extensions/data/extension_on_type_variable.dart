@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*library: scope=[
   GeneralGeneric,
   async.dart.FutureExtensions,
@@ -18,7 +16,7 @@
   method=GeneralGeneric|method,
   tearoff method=GeneralGeneric|get#method],
  extension-name=GeneralGeneric,
- extension-onType=T,
+ extension-onType=T%,
  extension-type-params=[T]
 */
 extension GeneralGeneric<T> on T {

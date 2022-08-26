@@ -6,8 +6,6 @@
 // of active, non-approved failures which include the commit of the current
 // bisection build.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -20,7 +18,7 @@ const skippedTest = 'skipped';
 
 const maxAttempts = 20;
 
-FirestoreDatabase database;
+late FirestoreDatabase database;
 
 class ResultRecord {
   final Map data;
@@ -77,7 +75,7 @@ Future<int> getCommitIndex(String commit) async {
 
 /// Compute if the record should be updated based on the outcomes in the
 /// result record and the new test result.
-bool shouldUpdateRecord(ResultRecord resultRecord, Result testResult) {
+bool shouldUpdateRecord(ResultRecord resultRecord, Result? testResult) {
   if (testResult == null || !testResult.matches) {
     return false;
   }
@@ -97,8 +95,8 @@ bool shouldUpdateRecord(ResultRecord resultRecord, Result testResult) {
   return true;
 }
 
-void updateBlameLists(
-    String configuration, String commit, Map<String, Map> testResults) async {
+void updateBlameLists(String configuration, String commit,
+    Map<String, Map<String, dynamic>> testResults) async {
   int commitIndex = await getCommitIndex(commit);
   var query = unapprovedActiveFailuresQuery(configuration);
   bool needsRetry;
@@ -127,7 +125,7 @@ void updateBlameLists(
       print('Found result record: $configuration:${result.name}: '
           '${result.previousResult} -> ${result.result} '
           'in ${result.blamelistStartIndex}..${result.blamelistEndIndex} '
-          'to update with ${testResult.outcome} at $commitIndex.');
+          'to update with ${testResult?.outcome} at $commitIndex.');
       // We found a result representation for this test and configuration whose
       // blamelist includes this results' commit but whose outcome is different
       // then the outcome in the provided test results.
@@ -141,7 +139,7 @@ void updateBlameLists(
       }
       result.blamelistStartIndex = newStartIndex;
       var updateIndex = Update(['blamelist_start_index'], result.data);
-      if (!await database.commit([updateIndex])) {
+      if (!await database.commit(writes: [updateIndex])) {
         // Commiting the change to the database had a conflict, retry.
         needsRetry = true;
         if (++attempts == maxAttempts) {
@@ -176,7 +174,7 @@ main(List<String> arguments) async {
   }
   // Pick an arbitrary result entry to find configuration and commit hash.
   var firstResult = Result.fromMap(results.values.first);
-  var commit = firstResult.commitHash;
+  var commit = firstResult.commitHash!;
   var configuration = firstResult.configuration;
   var project = options['staging'] ? 'dart-ci-staging' : 'dart-ci';
   database = FirestoreDatabase(

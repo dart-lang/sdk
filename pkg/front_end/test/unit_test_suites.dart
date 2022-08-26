@@ -23,17 +23,16 @@ import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/modular_suite.dart' as modular show createContext;
 import 'fasta/outline_suite.dart' as outline show createContext;
 import 'fasta/strong_suite.dart' as strong show createContext;
-import 'fasta/text_serialization_suite.dart' as text_serialization
-    show createContext;
 import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
 import 'fasta/weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_suite.dart' as incremental show createContext;
 import 'lint_suite.dart' as lint show createContext;
-import 'parser_suite.dart' as parser show createContext;
-import 'parser_equivalence_suite.dart' as parserEquivalence show createContext;
+import 'outline_extractor_suite.dart' as outline_extractor show createContext;
 import 'parser_all_suite.dart' as parserAll show createContext;
+import 'parser_equivalence_suite.dart' as parserEquivalence show createContext;
+import 'parser_suite.dart' as parser show createContext;
 import 'spelling_test_not_src_suite.dart' as spelling_not_src
     show createContext;
 import 'spelling_test_src_suite.dart' as spelling_src show createContext;
@@ -385,13 +384,6 @@ const List<Suite> suites = [
     requiresGit: true,
   ),
   const Suite(
-    "fasta/text_serialization",
-    text_serialization.createContext,
-    "../../testing.json",
-    path: "fasta/text_serialization_suite.dart",
-    shardCount: 10,
-  ),
-  const Suite(
     "fasta/strong",
     strong.createContext,
     "../../testing.json",
@@ -471,6 +463,12 @@ const List<Suite> suites = [
     "fasta/textual_outline",
     textual_outline.createContext,
     "../../testing.json",
+    shardCount: 1,
+  ),
+  const Suite(
+    "outline_extractor",
+    outline_extractor.createContext,
+    "../testing.json",
     shardCount: 1,
   ),
 ];

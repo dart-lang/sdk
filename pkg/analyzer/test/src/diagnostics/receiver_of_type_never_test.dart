@@ -30,7 +30,7 @@ void f(Never x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   operator: ==
   rightOperand: BinaryExpression
@@ -40,7 +40,9 @@ BinaryExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: <null>
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -64,7 +66,7 @@ void f(Never x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   operator: +
   rightOperand: ParenthesizedExpression
@@ -76,11 +78,13 @@ BinaryExpression
       operator: +
       rightOperand: IntegerLiteral
         literal: 2
+        parameter: dart:core::@class::num::@method::+::@parameter::other
         staticType: int
       staticElement: dart:core::@class::num::@method::+
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
+    parameter: <null>
     staticType: int
   staticElement: <null>
   staticInvokeType: null
@@ -99,7 +103,7 @@ void f(Never? x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: Never?
   operator: ==
   rightOperand: BinaryExpression
@@ -109,7 +113,9 @@ BinaryExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: dart:core::@class::Object::@method::==::@parameter::other
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -135,7 +141,7 @@ void f(Never? x) {
 BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: Never?
   operator: +
   rightOperand: ParenthesizedExpression
@@ -147,11 +153,13 @@ BinaryExpression
       operator: +
       rightOperand: IntegerLiteral
         literal: 2
+        parameter: dart:core::@class::num::@method::+::@parameter::other
         staticType: int
       staticElement: dart:core::@class::num::@method::+
       staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
+    parameter: <null>
     staticType: int
   staticElement: <null>
   staticInvokeType: null
@@ -210,11 +218,12 @@ void f(Never x) {
 IndexExpression
   target: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   rightBracket: ]
   staticElement: <null>
@@ -232,17 +241,43 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 22, 12),
     ]);
 
-    assertAssignment(
-      findNode.assignment('[0] +='),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    var assignment = findNode.assignment('[0] +=');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Never
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: <null>
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
+      staticType: int
+    parameter: <null>
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_indexExpression_never_write() async {
@@ -260,11 +295,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: x@13
+      staticElement: self::@function::f::@parameter::x
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: <null>
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -277,7 +313,9 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: <null>
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -304,11 +342,12 @@ void f(Never? x) {
 IndexExpression
   target: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: Never?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
+    parameter: <null>
     staticType: int
   rightBracket: ]
   staticElement: <null>
@@ -326,17 +365,43 @@ void f(Never? x) {
           22, 1),
     ]);
 
-    assertAssignment(
-      findNode.assignment('[0] +='),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
-
-    assertType(findNode.binary('1 + 2'), 'int');
+    var assignment = findNode.assignment('[0] +=');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Never?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      parameter: <null>
+      staticType: int
+    rightBracket: ]
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: BinaryExpression
+    leftOperand: IntegerLiteral
+      literal: 1
+      staticType: int
+    operator: +
+    rightOperand: IntegerLiteral
+      literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
+      staticType: int
+    parameter: <null>
+    staticElement: dart:core::@class::num::@method::+
+    staticInvokeType: num Function(num)
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_indexExpression_neverQ_write() async {
@@ -354,11 +419,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: x
-      staticElement: x@14
+      staticElement: self::@function::f::@parameter::x
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: <null>
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -371,7 +437,9 @@ AssignmentExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: dart:core::@class::num::@method::+::@parameter::other
       staticType: int
+    parameter: <null>
     staticElement: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -407,7 +475,7 @@ void f(Never x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -424,7 +492,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: dart:core::@class::num::@method::+::@parameter::other
           staticType: int
+        parameter: <null>
         staticElement: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
@@ -449,7 +519,7 @@ void f(Never x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: Never
   operator: .
   methodName: SimpleIdentifier
@@ -466,7 +536,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: dart:core::@class::num::@method::+::@parameter::other
           staticType: int
+        parameter: <null>
         staticElement: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
@@ -490,7 +562,7 @@ void f(Never? x) {
 MethodInvocation
   target: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: Never?
   operator: .
   methodName: SimpleIdentifier
@@ -507,7 +579,9 @@ MethodInvocation
         operator: +
         rightOperand: IntegerLiteral
           literal: 2
+          parameter: dart:core::@class::num::@method::+::@parameter::other
           staticType: int
+        parameter: <null>
         staticElement: dart:core::@class::num::@method::+
         staticInvokeType: num Function(num)
         staticType: int
@@ -530,12 +604,12 @@ void f(Never x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@13
+  readElement: self::@function::f::@parameter::x
   readType: Never
-  writeElement: x@13
+  writeElement: self::@function::f::@parameter::x
   writeType: Never
   staticElement: <null>
   staticType: Never
@@ -556,12 +630,12 @@ void f(Never? x) {
 PostfixExpression
   operand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: null
   operator: ++
-  readElement: x@14
+  readElement: self::@function::f::@parameter::x
   readType: Never?
-  writeElement: x@14
+  writeElement: self::@function::f::@parameter::x
   writeType: Never?
   staticElement: <null>
   staticType: Never?
@@ -583,11 +657,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@13
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@13
+  readElement: self::@function::f::@parameter::x
   readType: Never
-  writeElement: x@13
+  writeElement: self::@function::f::@parameter::x
   writeType: Never
   staticElement: <null>
   staticType: Never
@@ -609,11 +683,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@14
+  readElement: self::@function::f::@parameter::x
   readType: Never?
-  writeElement: x@14
+  writeElement: self::@function::f::@parameter::x
   writeType: Never?
   staticElement: <null>
   staticType: dynamic
@@ -657,19 +731,33 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 29, 2),
     ]);
 
-    assertSimpleIdentifierAssignmentTarget(
-      findNode.simple('foo'),
-    );
-
-    assertAssignment(
-      findNode.assignment('foo += 0'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'dynamic',
-    );
+    var assignment = findNode.assignment('foo += 0');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Never
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
   }
 
   test_propertyAccess_never_tearOff_toString() async {
@@ -695,19 +783,33 @@ void f(Never x) {
       error(HintCode.DEAD_CODE, 28, 2),
     ]);
 
-    assertSimpleIdentifierAssignmentTarget(
-      findNode.simple('foo'),
-    );
-
-    assertAssignment(
-      findNode.assignment('foo = 0'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: 'dynamic',
-      operatorElement: null,
-      type: 'int',
-    );
+    var assignment = findNode.assignment('foo = 0');
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Never
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_propertyAccess_neverQ_read() async {
@@ -785,7 +887,9 @@ BinaryExpression
     operator: +
     rightOperand: IntegerLiteral
       literal: 2
+      parameter: root::@parameter::other
       staticType: int*
+    parameter: root::@parameter::other
     staticElement: MethodMember
       base: dart:core::@class::num::@method::+
       isLegacy: true
@@ -827,6 +931,7 @@ BinaryExpression
       operator: +
       rightOperand: IntegerLiteral
         literal: 2
+        parameter: root::@parameter::other
         staticType: int*
       staticElement: MethodMember
         base: dart:core::@class::num::@method::+
@@ -834,6 +939,7 @@ BinaryExpression
       staticInvokeType: num* Function(num*)*
       staticType: int*
     rightParenthesis: )
+    parameter: <null>
     staticType: int*
   staticElement: <null>
   staticInvokeType: null

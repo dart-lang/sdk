@@ -858,7 +858,8 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
     return value;
   };
   $desc.configurable = true;
-  if ($desc.set != null) {
+  let setter = $desc.set;
+  if (setter != null) {
     $desc.set = function(x) {
       if (!savedLocals) {
         $resetFields.push(() => {
@@ -871,6 +872,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
       }
       init = null;
       value = x;
+      setter(x);
     };
   }
   return ${defineProperty(to, name, desc)};
@@ -914,7 +916,8 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
     }
   };
   $desc.configurable = true;
-  if ($desc.set != null) {
+  let setter = $desc.set;
+  if (setter != null) {
     $desc.set = function(x) {
       if (!savedLocals) {
         $resetFields.push(() => {
@@ -926,6 +929,7 @@ defineLazyFieldOld(to, name, desc) => JS('', '''(() => {
       }
       init = null;
       value = x;
+      setter(x);
     };
   }
   return ${defineProperty(to, name, desc)};

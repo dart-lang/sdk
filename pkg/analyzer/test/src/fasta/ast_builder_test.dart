@@ -15,7 +15,6 @@ main() {
 
 @reflectiveTest
 class AstBuilderTest extends ParserDiagnosticsTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48541')
   void test_class_augment() {
     var parseResult = parseStringWithErrors(r'''
 augment class A {}
@@ -383,6 +382,23 @@ MethodDeclaration
     expression: IntegerLiteral
       literal: 0
     semicolon: ;
+''');
+  }
+
+  void test_library_augment() {
+    var parseResult = parseStringWithErrors(r'''
+library augment 'a.dart';
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.libraryAugmentation('library');
+    assertParsedNodeText(node, r'''
+LibraryAugmentationDirective
+  libraryKeyword: library
+  augmentKeyword: augment
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  semicolon: ;
 ''');
   }
 

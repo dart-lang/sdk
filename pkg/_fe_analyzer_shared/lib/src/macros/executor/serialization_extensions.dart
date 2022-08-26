@@ -16,7 +16,7 @@ extension DeserializerExtensions on Deserializer {
     moveNext();
     RemoteInstanceKind kind = RemoteInstanceKind.values[expectInt()];
     switch (kind) {
-      case RemoteInstanceKind.classIntrospector:
+      case RemoteInstanceKind.typeIntrospector:
       case RemoteInstanceKind.identifierResolver:
       case RemoteInstanceKind.namedStaticType:
       case RemoteInstanceKind.staticType:
@@ -40,9 +40,15 @@ extension DeserializerExtensions on Deserializer {
       case RemoteInstanceKind.functionTypeAnnotation:
         moveNext();
         return _expectFunctionTypeAnnotation(id) as T;
+      case RemoteInstanceKind.functionTypeParameter:
+        moveNext();
+        return _expectFunctionTypeParameter(id) as T;
       case RemoteInstanceKind.identifier:
         moveNext();
         return _expectIdentifier(id) as T;
+      case RemoteInstanceKind.introspectableClassDeclaration:
+        moveNext();
+        return _expectIntrospectableClassDeclaration(id) as T;
       case RemoteInstanceKind.methodDeclaration:
         moveNext();
         return _expectMethodDeclaration(id) as T;
@@ -66,6 +72,8 @@ extension DeserializerExtensions on Deserializer {
         return _expectVariableDeclaration(id) as T;
     }
   }
+
+  Uri expectUri() => Uri.parse(expectString());
 
   /// Helper method to read a list of [RemoteInstance]s.
   List<T> _expectRemoteInstanceList<T extends RemoteInstance>() {
@@ -99,6 +107,15 @@ extension DeserializerExtensions on Deserializer {
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         namedParameters: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+      );
+
+  FunctionTypeParameter _expectFunctionTypeParameter(int id) =>
+      new FunctionTypeParameterImpl(
+        id: id,
+        isNamed: expectBool(),
+        isRequired: (this..moveNext()).expectBool(),
+        name: (this..moveNext()).expectNullableString(),
+        type: RemoteInstance.deserialize(this),
       );
 
   Identifier _expectIdentifier(int id) => new IdentifierImpl(
@@ -210,6 +227,20 @@ extension DeserializerExtensions on Deserializer {
             (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
       );
 
+  IntrospectableClassDeclaration _expectIntrospectableClassDeclaration(
+          int id) =>
+      new IntrospectableClassDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        interfaces: (this..moveNext())._expectRemoteInstanceList(),
+        isAbstract: (this..moveNext()).expectBool(),
+        isExternal: (this..moveNext()).expectBool(),
+        mixins: (this..moveNext())._expectRemoteInstanceList(),
+        superclass:
+            (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
+      );
+
   TypeAliasDeclaration _expectTypeAliasDeclaration(int id) =>
       new TypeAliasDeclarationImpl(
         id: id,
@@ -292,7 +323,7 @@ extension DeserializerExtensions on Deserializer {
         return new ParameterCode(
             defaultValue: (this..moveNext()).expectNullableCode(),
             keywords: _readStringList(),
-            name: (this..moveNext()).expectString(),
+            name: (this..moveNext()).expectNullableString(),
             type: (this..moveNext()).expectNullableCode()) as T;
       case CodeKind.typeParameter:
         return new TypeParameterCode(
@@ -382,7 +413,7 @@ extension SerializeCode on Code {
         }
         serializer
           ..endList()
-          ..addString(self.name);
+          ..addNullableString(self.name);
         self.type.serializeNullable(serializer);
         return;
       case CodeKind.typeParameter:
@@ -411,6 +442,13 @@ extension SerializeCode on Code {
         return;
     }
   }
+}
+
+extension Helpers on Serializer {
+  void addUri(Uri uri) => addString('$uri');
+
+  void addSerializable(Serializable serializable) =>
+      serializable.serialize(this);
 }
 
 enum _CodePartKind {

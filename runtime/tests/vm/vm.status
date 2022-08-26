@@ -14,7 +14,9 @@ cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
+dart/byte_array_test: Pass, Slow # Uses --opt-counter-threshold=10
 dart/data_uri_import_test/none: SkipByDesign
+dart/disassemble_aot_test: Pass, Slow # Spawns several subprocesses
 dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart/hash_map_probes_limit_test: Pass, Slow # Test includes large program compilation.
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
@@ -23,45 +25,52 @@ dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of tra
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
 dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
+dart/regress32619_test: Pass, Slow
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart_2/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart_2/boxmint_test: Pass, Slow # Uses slow path
 dart_2/byte_array_optimized_test: Pass, Slow
+dart_2/byte_array_test: Pass, Slow # Uses --opt-counter-threshold=10
 dart_2/data_uri_import_test/none: SkipByDesign
+dart_2/disassemble_aot_test: Pass, Slow # Spawns several subprocesses
 dart_2/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart_2/hash_map_probes_limit_test: Pass, Slow # Test includes large program compilation.
 dart_2/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
 dart_2/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
 dart_2/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
+dart_2/isolates/reload_many_isolates_live_and_die_test: Pass, Slow # Launches subprocesses, makes 2 kernel compilations and use reload.
 dart_2/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart_2/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
 dart_2/print_object_layout_test: Pass, Slow # Spawns several subprocesses
+dart_2/regress32619_test: Pass, Slow
 dart_2/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart_2/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart_2/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 
 [ $arch == ia32 ]
 dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+dart/regress32597_2_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
+dart/regress38467_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
+dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 dart_2/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+dart_2/regress32597_2_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
+dart_2/regress38467_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
-[ $builder_tag == obfuscated ]
-dart_2/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
-
 [ $builder_tag == optimization_counter_threshold ]
 cc/*: Skip # Many tests want see unoptimized code running
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
+dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # GC happens at unpredictable times.
 dart/kernel_determinism_test: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart_2/appjit*: SkipByDesign # Test needs to a particular opt-counter value
+dart_2/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # GC happens at unpredictable times.
 dart_2/kernel_determinism_test: SkipSlow
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
@@ -140,6 +149,7 @@ dart/b162922506_test: SkipSlow # Generates very large input file
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in debug mode
+dart/regress47472_test: Pass, Slow # Slow due to throwing 1 million exceptions.
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
 dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Very slow in debug mode, uses --optimization-counter-threshold=10
 dart_2/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
@@ -147,6 +157,7 @@ dart_2/b162922506_test: SkipSlow # Generates very large input file
 dart_2/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in debug mode
+dart_2/regress47472_test: Pass, Slow # Slow due to throwing 1 million exceptions.
 dart_2/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
 
 [ $mode == product ]
@@ -185,9 +196,6 @@ dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 [ $arch == ia32 && $mode == debug && $system == windows ]
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
 dart_2/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
-
-[ $arch == ia32 && ($nnbd == strong || $nnbd == weak) ]
-dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 
 [ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $arch != simriscv32 && $arch != simriscv64 && $compiler == dartk && $hot_reload ]
 dart/data_uri_import_test/base64: Crash
@@ -258,14 +266,16 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 dart/appjit*: SkipSlow # DFE too slow
 dart/b162922506_test: SkipSlow # Generates large input file
 dart/data_uri_spawn_test: Skip # Please triage.
-dart/isolates/fast_object_copy_test*: Slow # issue 46740
+dart/enable_mirrors_test: SkipByDesign # Separate kernel compilation doesn't respect VM options.
+dart/isolates/fast_object_copy_test*: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/snapshot_version_test: RuntimeError # Please triage.
 dart_2/appjit*: SkipSlow # DFE too slow
 dart_2/b162922506_test: SkipSlow # Generates large input file
 dart_2/data_uri_spawn_test: Skip # Please triage.
-dart_2/isolates/fast_object_copy_test*: Slow # issue 46740
+dart_2/enable_mirrors_test: SkipByDesign # Separate kernel compilation doesn't respect VM options.
+dart_2/isolates/fast_object_copy_test*: SkipSlow
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart_2/snapshot_version_test: RuntimeError # Please triage.
@@ -274,6 +284,7 @@ dart_2/snapshot_version_test: RuntimeError # Please triage.
 dart/data_uri_spawn_test: Skip # Timeout
 dart/kernel_determinism_test: SkipSlow
 dart_2/data_uri_spawn_test: Skip # Timeout
+dart_2/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
 dart_2/kernel_determinism_test: SkipSlow
 
 [ $compiler != dartk && $compiler != none ]
@@ -296,7 +307,9 @@ dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https:/
 
 [ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart/isolates/fast_object_copy_test*: SkipSlow
 dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart_2/isolates/fast_object_copy_test*: SkipSlow
 
 [ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $builder_tag == tsan) ]
 dart/regress_45898_test: Pass, Slow
@@ -418,6 +431,18 @@ dart_2/split_aot_kernel_generation_test: SkipByDesign # The test doesn't know lo
 [ $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system != linux && $system != macos && $system != windows ]
 dart/run_appended_aot_snapshot_test: SkipByDesign # Tests the precompiled runtime.
 dart_2/run_appended_aot_snapshot_test: SkipByDesign # Tests the precompiled runtime.
+
+[ $builder_tag == dwarf || $builder_tag == obfuscated ]
+dart/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
+dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
+dart/causal_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
+dart/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
+dart/causal_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/causal_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/causal_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
 
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.

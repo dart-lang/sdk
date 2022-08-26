@@ -24,18 +24,18 @@ class FunctionSizeCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final args = argResults!.rest;
     if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
-    var info = await infoFromFile(args.first);
+    final info = await infoFromFile(args.first);
     showCodeDistribution(info);
   }
 }
 
 showCodeDistribution(AllInfo info,
-    {bool Function(Info info) filter, bool showLibrarySizes = false}) {
-  var realTotal = info.program.size;
+    {bool Function(Info info)? filter, bool showLibrarySizes = false}) {
+  var realTotal = info.program!.size;
   filter ??= (i) => true;
   var reported = <BasicInfo>[
     ...info.functions.where(filter),
@@ -76,7 +76,7 @@ showCodeDistribution(AllInfo info,
   var mainMethod = info.functions.firstWhere((f) => f.name == 'main');
   var dominatorTree = graph.dominatorTree(mainMethod);
   var dominatedSize = {};
-  helper(n) {
+  int helper(n) {
     int size = n.size;
     assert(!dominatedSize.containsKey(n));
     dominatedSize[n] = 0;
@@ -101,21 +101,21 @@ showCodeDistribution(AllInfo info,
     var longest = 0;
     for (var info in reported) {
       var size = info.size;
-      while (info != null && info is! LibraryInfo) {
-        info = info.parent;
+      Info? lib = info;
+      while (lib != null && lib is! LibraryInfo) {
+        lib = lib.parent;
       }
-      if (info == null) return;
-      LibraryInfo lib = info;
-      totals.putIfAbsent(lib, () => 0);
-      totals[lib] += size;
+      if (lib == null) return;
+      totals.update(lib as LibraryInfo, (value) => value + size,
+          ifAbsent: () => size);
       longest = math.max(longest, '${lib.uri}'.length);
     }
 
     _showLibHeader(longest + 1);
     var reportedByLibrary = totals.keys.toList();
-    reportedByLibrary.sort((a, b) => totals[b] - totals[a]);
-    for (var info in reportedByLibrary) {
-      _showLib('${info.uri}', totals[info], realTotal, longest + 1);
+    reportedByLibrary.sort((a, b) => totals[b]! - totals[a]!);
+    for (final info in reportedByLibrary) {
+      _showLib('${info.uri}', totals[info]!, realTotal, longest + 1);
     }
   }
 
@@ -133,27 +133,22 @@ showCodeDistribution(AllInfo info,
 /// Data associated with an SCC. Used to compute the reachable code size.
 class _SccData {
   int size = 0;
-  Set deps = {};
+  Set<_SccData> deps = {};
   _SccData();
 
-  int _maxSize;
-  int get maxSize {
-    compute();
-    return _maxSize;
-  }
+  late final int maxSize = computeMaxSize();
 
-  void compute() {
-    if (_maxSize != null) return;
+  int computeMaxSize() {
     var max = 0;
-    var seen = <dynamic>{};
-    helper(n) {
+    var seen = <_SccData>{};
+    void helper(_SccData n) {
       if (!seen.add(n)) return;
       max += n.size;
       n.deps.forEach(helper);
     }
 
     helper(this);
-    _maxSize = max;
+    return max;
   }
 }
 

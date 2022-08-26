@@ -45,9 +45,7 @@ class _InferredVariableTypesDataComputer extends DataComputer<DartType> {
 }
 
 class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
-  _InferredVariableTypesDataExtractor(
-      Uri uri, Map<Id, ActualData<DartType>> actualMap)
-      : super(uri, actualMap);
+  _InferredVariableTypesDataExtractor(super.uri, super.actualMap);
 
   @override
   DartType? computeNodeValue(Id id, AstNode node) {

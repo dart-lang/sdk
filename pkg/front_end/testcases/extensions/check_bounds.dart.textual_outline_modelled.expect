@@ -1,4 +1,3 @@
-// @dart = 2.9
 part 'check_bounds_lib.dart';
 
 class A {}
@@ -17,9 +16,9 @@ final Class<A> classA = new Class<A>();
 final Class<B> classB = new Class<B>();
 final field1 = classA.method();
 final field10 = Extension<A>(classA).genericMethod<B>(a);
-final field11 = Extension<B>(classA).genericMethod(a);
-final field12 = Extension<B>(classA).genericMethod<A>(a);
-final field13 = Extension<B>(classA).genericMethod<B>(a);
+final field11 = Extension<B>(classB).genericMethod(a);
+final field12 = Extension<B>(classB).genericMethod<A>(a);
+final field13 = Extension<B>(classB).genericMethod<B>(a);
 final field14 = classB.method();
 final field15 = Extension(classB).method();
 final field16 = Extension<A>(classB).method();
@@ -45,4 +44,4 @@ final field7 = Extension(classA).genericMethod<B>(a);
 final field8 = Extension<A>(classA).genericMethod(a);
 final field9 = Extension<A>(classA).genericMethod<A>(a);
 main() {}
-test() {}
+test(A a) {}

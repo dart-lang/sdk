@@ -196,6 +196,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller);
 
+  Fragment CCall(
+      const compiler::ffi::NativeCallingConvention& native_calling_convention);
+  Fragment CCall(intptr_t num_arguments,
+                 Representation representation = kUnboxedFfiIntPtr);
+
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment IndirectGoto(intptr_t target_count);
@@ -282,6 +287,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Loads the (untagged) isolate address.
   Fragment LoadIsolate();
 
+  // Loads the (untagged) service extension stream address.
+  Fragment LoadServiceExtensionStream();
+
   // Converts a true to 1 and false to 0.
   Fragment BoolToInt();
 
@@ -302,8 +310,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Works for FFI call arguments, and FFI callback return values.
   Fragment FfiConvertPrimitiveToNative(
       const compiler::ffi::BaseMarshaller& marshaller,
-      intptr_t arg_index,
-      LocalVariable* api_local_scope);
+      intptr_t arg_index);
 
   // Pops an unboxed native value, and pushes a Dart object, according to the
   // semantics of FFI argument translation.
@@ -378,14 +385,14 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Generates a call to `Thread::EnterApiScope`.
   Fragment EnterHandleScope();
 
-  // Generates a call to `Thread::api_top_scope`.
+  // Generates a load of `Thread::api_top_scope`.
   Fragment GetTopHandleScope();
 
   // Generates a call to `Thread::ExitApiScope`.
   Fragment ExitHandleScope();
 
   // Leaves a `LocalHandle` on the stack.
-  Fragment AllocateHandle(LocalVariable* api_local_scope);
+  Fragment AllocateHandle();
 
   // Loads a tagged value from an untagged base + offset from outside the heap.
   Fragment RawLoadField(int32_t offset);
@@ -396,7 +403,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment RawStoreField(int32_t offset);
 
   // Wraps an `Object` from the stack and leaves a `LocalHandle` on the stack.
-  Fragment WrapHandle(LocalVariable* api_local_scope);
+  Fragment WrapHandle();
 
   // Unwraps a `LocalHandle` from the stack and leaves the object on the stack.
   Fragment UnwrapHandle();
@@ -412,6 +419,13 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Pops the input and pushes the converted result.
   // Currently only works with equal sizes and floating point <-> integer.
   Fragment BitCast(Representation from, Representation to);
+
+  // Generates Call1ArgStub instruction.
+  Fragment Call1ArgStub(TokenPosition position,
+                        Call1ArgStubInstr::StubId stub_id);
+
+  // Generates Suspend instruction.
+  Fragment Suspend(TokenPosition position, SuspendInstr::StubId stub_id);
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 

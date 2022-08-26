@@ -37,10 +37,10 @@ class StatusTest extends AbstractAnalysisServerIntegrationTest {
       }
     });
     writeFile(sourcePath('test.dart'), '''
-main() {
+void f() {
   var x;
 }''');
-    standardAnalysisSetup();
+    unawaited(standardAnalysisSetup());
     expect(analysisBegun.isCompleted, isFalse);
     expect(analysisFinished.isCompleted, isFalse);
     await analysisBegun.future;

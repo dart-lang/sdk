@@ -1,11 +1,10 @@
-// @dart = 2.9
-D d;
-E e;
-F f;
-G g;
-H h;
-I i;
-J j;
+D d = throw '';
+E e = throw '';
+F f = throw '';
+G g = throw '';
+H h = throw '';
+I i = throw '';
+J j = throw '';
 
 class A<X> {}
 

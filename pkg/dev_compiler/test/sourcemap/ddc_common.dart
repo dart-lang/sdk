@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library dev_compiler.test.sourcemap.ddc_common;
 
 import 'dart:io';
@@ -23,7 +21,7 @@ abstract class CompilerRunner {
 }
 
 abstract class WithCompilerState {
-  fe.InitializedCompilerState compilerState;
+  fe.InitializedCompilerState? compilerState;
 }
 
 class Compile extends Step<Data, Data, ChainContext> {
@@ -98,14 +96,13 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
     return input.resolve('wrapper.js');
   }
 
-  String _convertName(String name) {
+  String? _convertName(String? name) {
     if (name == null) return null;
     // Hack for DDC naming scheme.
     var result = name;
     if (result.startsWith('new ')) result = result.substring(4);
     if (result.startsWith('Object.')) result = result.substring(7);
-    var inputName =
-        INPUT_FILE_NAME.substring(0, INPUT_FILE_NAME.indexOf('.') + 1);
+    var inputName = inputFileName.substring(0, inputFileName.indexOf('.') + 1);
     if (result.startsWith(inputName)) {
       result = result.substring(inputName.length);
     }
@@ -113,7 +110,7 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
   }
 }
 
-Directory _cachedDdcDir;
+Directory? _cachedDdcDir;
 Directory getDdcDir() {
   Directory search() {
     var dir = File.fromUri(Platform.script).parent;
@@ -166,7 +163,8 @@ String getWrapperContent(
 void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
     String outputFilename, Uri outDir) {
   // For debugging via HTML, Chrome and ./pkg/test_runner/bin/http_server.dart.
-  var sdkFile = File(p.relative(sdkJsFile.path, from: sdkRoot.path));
+  var sdkRootPath = sdkRoot!.path;
+  var sdkFile = File(p.relative(sdkJsFile.path, from: sdkRootPath));
   var jsRootDart = '/root_dart/${sdkFile.uri}';
   File.fromUri(outputFile.resolve('$outputFilename.html.js')).writeAsStringSync(
       jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"));
@@ -175,7 +173,7 @@ void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
           jsRootDart, '/root_build/$outputFilename.html.js'));
 
   print('You should now be able to run\n\n'
-      'dart ${sdkRoot.path}/pkg/test_runner/bin/http_server.dart -p 39550 '
+      'dart $sdkRootPath/pkg/test_runner/bin/http_server.dart -p 39550 '
       '--network 127.0.0.1 '
       '--build-directory=${outDir.toFilePath()}'
       '\n\nand go to\n\n'
@@ -231,7 +229,7 @@ String _toJSIdentifier(String name) {
   if (name.isEmpty) return r'$';
 
   // Escape any invalid characters
-  StringBuffer buffer;
+  StringBuffer? buffer;
   for (var i = 0; i < name.length; i++) {
     var ch = name[i];
     var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);

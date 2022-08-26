@@ -18,7 +18,7 @@ class Class1 {
 }
 
 @ClassMacro()
-abstract class Class2 {}
+abstract class Class2 extends Object {}
 
 @ClassMacro()
 class Class3 extends Class2 implements Interface1 {

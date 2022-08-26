@@ -22,11 +22,11 @@ import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
-import '../js_model/closure.dart';
+import '../js_model/jrecord_field_interface.dart' show JRecordFieldInterface;
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
-import 'world_builder.dart' show StrongModeConstraint;
+import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
 
 enum DynamicUseKind {
   INVOKE,
@@ -41,8 +41,8 @@ class DynamicUse {
   static const String tag = 'dynamic-use';
 
   final Selector selector;
-  final Object receiverConstraint;
-  final List<DartType> _typeArguments;
+  final Object? receiverConstraint;
+  final List<DartType>? _typeArguments;
 
   DynamicUse(this.selector, this.receiverConstraint, this._typeArguments)
       : assert(
@@ -63,11 +63,11 @@ class DynamicUse {
     source.begin(tag);
     Selector selector = Selector.readFromDataSource(source);
     bool hasConstraint = source.readBool();
-    Object receiverConstraint;
+    Object? receiverConstraint;
     if (hasConstraint) {
       receiverConstraint = source.readAbstractValue();
     }
-    List<DartType> typeArguments = source.readDartTypes(emptyAsNull: true);
+    List<DartType>? typeArguments = source.readDartTypesOrNull();
     source.end(tag);
     return DynamicUse(selector, receiverConstraint, typeArguments);
   }
@@ -75,16 +75,17 @@ class DynamicUse {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     selector.writeToDataSink(sink);
-    sink.writeBool(receiverConstraint != null);
-    if (receiverConstraint != null) {
-      if (receiverConstraint is AbstractValue) {
-        sink.writeAbstractValue(receiverConstraint);
+    var constraint = receiverConstraint;
+    sink.writeBool(constraint != null);
+    if (constraint != null) {
+      if (constraint is AbstractValue) {
+        sink.writeAbstractValue(constraint);
       } else {
         throw UnsupportedError(
-            "Unsupported receiver constraint: ${receiverConstraint}");
+            "Unsupported receiver constraint: ${constraint}");
       }
     }
-    sink.writeDartTypes(_typeArguments, allowNull: true);
+    sink.writeDartTypesOrNull(_typeArguments);
     sink.end(tag);
   }
 
@@ -93,20 +94,20 @@ class DynamicUse {
     StringBuffer sb = StringBuffer();
     if (receiverConstraint != null) {
       var constraint = receiverConstraint;
-      if (constraint is StrongModeConstraint) {
+      if (constraint is StrongModeConstraintInterface) {
         if (constraint.isThis) {
           sb.write('this:');
         } else if (constraint.isExact) {
           sb.write('exact:');
         }
-        sb.write(constraint.cls.name);
+        sb.write(constraint.className);
       } else {
         sb.write(constraint);
       }
       sb.write('.');
     }
     sb.write(selector.name);
-    if (typeArguments != null && typeArguments.isNotEmpty) {
+    if (typeArguments.isNotEmpty) {
       sb.write('<');
       sb.write(typeArguments.join(','));
       sb.write('>');
@@ -181,11 +182,11 @@ class StaticUse {
   final StaticUseKind kind;
   @override
   final int hashCode;
-  final InterfaceType type;
-  final CallStructure callStructure;
-  final ImportEntity deferredImport;
-  final ConstantValue constant;
-  final List<DartType> typeArguments;
+  final InterfaceType? type;
+  final CallStructure? callStructure;
+  final ImportEntity? deferredImport;
+  final ConstantValue? constant;
+  final List<DartType>? typeArguments;
 
   StaticUse.internal(Entity element, this.kind,
       {this.type,
@@ -219,12 +220,12 @@ class StaticUse {
     source.begin(tag);
     MemberEntity element = source.readMember();
     StaticUseKind kind = source.readEnum(StaticUseKind.values);
-    InterfaceType type = source.readDartType(allowNull: true);
-    CallStructure callStructure =
+    InterfaceType? type = source.readDartTypeOrNull() as InterfaceType?;
+    CallStructure? callStructure =
         source.readValueOrNull(() => CallStructure.readFromDataSource(source));
-    ImportEntity deferredImport = source.readImportOrNull();
-    ConstantValue constant = source.readConstantOrNull();
-    List<DartType> typeArguments = source.readDartTypes(emptyAsNull: true);
+    ImportEntity? deferredImport = source.readImportOrNull();
+    ConstantValue? constant = source.readConstantOrNull();
+    List<DartType>? typeArguments = source.readDartTypesOrNull();
     source.end(tag);
     return StaticUse.internal(element, kind,
         type: type,
@@ -236,15 +237,14 @@ class StaticUse {
 
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    assert(element is MemberEntity, "Unsupported entity: $element");
-    sink.writeMember(element);
+    sink.writeMember(element as MemberEntity);
     sink.writeEnum(kind);
-    sink.writeDartType(type, allowNull: true);
+    sink.writeDartTypeOrNull(type);
     sink.writeValueOrNull(
         callStructure, (CallStructure c) => c.writeToDataSink(sink));
     sink.writeImportOrNull(deferredImport);
     sink.writeConstantOrNull(constant);
-    sink.writeDartTypes(typeArguments, allowNull: true);
+    sink.writeDartTypesOrNull(typeArguments);
     sink.end(tag);
   }
 
@@ -266,40 +266,41 @@ class StaticUse {
         break;
       default:
     }
-    if (element is MemberEntity) {
-      MemberEntity member = element;
+    final member = element;
+    if (member is MemberEntity) {
       if (member.enclosingClass != null) {
-        sb.write(member.enclosingClass.name);
+        sb.write(member.enclosingClass!.name);
         sb.write('.');
       }
     }
-    if (element.name == null) {
+    if (member.name == null) {
       sb.write('<anonymous>');
     } else {
-      sb.write(element.name);
+      sb.write(member.name);
     }
-    if (typeArguments != null && typeArguments.isNotEmpty) {
+    if (typeArguments != null && typeArguments!.isNotEmpty) {
       sb.write('<');
-      sb.write(typeArguments.join(','));
+      sb.write(typeArguments!.join(','));
       sb.write('>');
     }
-    if (callStructure != null) {
+    final callStructureLocal = callStructure;
+    if (callStructureLocal != null) {
       sb.write('(');
-      sb.write(callStructure.positionalArgumentCount);
-      if (callStructure.namedArgumentCount > 0) {
+      sb.write(callStructureLocal.positionalArgumentCount);
+      if (callStructureLocal.namedArgumentCount > 0) {
         sb.write(',');
-        sb.write(callStructure.getOrderedNamedArguments().join(','));
+        sb.write(callStructureLocal.getOrderedNamedArguments().join(','));
       }
       sb.write(')');
     }
     if (deferredImport != null) {
       sb.write('{');
-      sb.write(deferredImport.name);
+      sb.write(deferredImport!.name);
       sb.write('}');
     }
     if (constant != null) {
       sb.write('=');
-      sb.write(constant.toStructuredText(null));
+      sb.write(constant!.toStructuredText(null));
     }
     return sb.toString();
   }
@@ -308,7 +309,7 @@ class StaticUse {
   /// [callStructure].
   factory StaticUse.staticInvoke(
       FunctionEntity element, CallStructure callStructure,
-      [List<DartType> typeArguments, ImportEntity deferredImport]) {
+      [List<DartType>? typeArguments, ImportEntity? deferredImport]) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
@@ -318,10 +319,9 @@ class StaticUse {
     assert(element.isFunction,
         failedAt(element, "Static get element $element must be a function."));
     assert(
-        callStructure != null,
+        (callStructure as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element,
             "Not CallStructure for static invocation of element $element."));
-
     StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure,
@@ -333,7 +333,7 @@ class StaticUse {
 
   /// Closurization of a static or top-level function [element].
   factory StaticUse.staticTearOff(FunctionEntity element,
-      [ImportEntity deferredImport]) {
+      [ImportEntity? deferredImport]) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
@@ -348,7 +348,7 @@ class StaticUse {
 
   /// Read access of a static or top-level field or getter [element].
   factory StaticUse.staticGet(MemberEntity element,
-      [ImportEntity deferredImport]) {
+      [ImportEntity? deferredImport]) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
@@ -365,7 +365,7 @@ class StaticUse {
 
   /// Write access of a static or top-level field or setter [element].
   factory StaticUse.staticSet(MemberEntity element,
-      [ImportEntity deferredImport]) {
+      [ImportEntity? deferredImport]) {
     assert(
         element.isStatic || element.isTopLevel,
         failedAt(
@@ -397,13 +397,13 @@ class StaticUse {
   /// Invocation of a super method [element] with the given [callStructure].
   factory StaticUse.superInvoke(
       FunctionEntity element, CallStructure callStructure,
-      [List<DartType> typeArguments]) {
+      [List<DartType>? typeArguments]) {
     assert(
         element.isInstanceMember,
         failedAt(element,
             "Super invoke element $element must be an instance method."));
     assert(
-        callStructure != null,
+        (callStructure as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element,
             "Not CallStructure for super invocation of element $element."));
     StaticUse staticUse = StaticUse.internal(
@@ -468,7 +468,7 @@ class StaticUse {
             "Constructor invoke element $element must be a "
             "generative constructor."));
     assert(
-        callStructure != null,
+        (callStructure as dynamic) != null, // TODO(48820): remove when sound
         failedAt(
             element,
             "Not CallStructure for super constructor invocation of element "
@@ -482,7 +482,7 @@ class StaticUse {
   factory StaticUse.constructorBodyInvoke(
       ConstructorBodyEntity element, CallStructure callStructure) {
     assert(
-        callStructure != null,
+        (callStructure as dynamic) != null, // TODO(48820): remove when sound
         failedAt(
             element,
             "Not CallStructure for constructor body invocation of element "
@@ -546,7 +546,7 @@ class StaticUse {
         failedAt(element,
             "Constructor invocation element $element must be a constructor."));
     assert(
-        callStructure != null,
+        (callStructure as dynamic) != null, // TODO(48820): remove when sound
         failedAt(
             element,
             "Not CallStructure for constructor invocation of element "
@@ -562,7 +562,8 @@ class StaticUse {
       CallStructure callStructure,
       InterfaceType type,
       ImportEntity deferredImport) {
-    assert(type != null,
+    assert(
+        (type as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element, "No type provided for constructor invocation."));
     assert(
         element.isConstructor,
@@ -583,7 +584,8 @@ class StaticUse {
       CallStructure callStructure,
       InterfaceType type,
       ImportEntity deferredImport) {
-    assert(type != null,
+    assert(
+        (type as dynamic) != null, // TODO(48820): remove when sound
         failedAt(element, "No type provided for constructor invocation."));
     assert(
         element.isConstructor,
@@ -620,7 +622,7 @@ class StaticUse {
   /// Read access of an instance field or boxed field [element].
   factory StaticUse.fieldGet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is JRecordField,
+        element.isInstanceMember || element is JRecordFieldInterface,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_GET);
@@ -629,7 +631,7 @@ class StaticUse {
   /// Write access of an instance field or boxed field [element].
   factory StaticUse.fieldSet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is JRecordField,
+        element.isInstanceMember || element is JRecordFieldInterface,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_SET);
@@ -720,7 +722,7 @@ class TypeUse {
   final TypeUseKind kind;
   @override
   final int hashCode;
-  final ImportEntity deferredImport;
+  final ImportEntity? deferredImport;
 
   TypeUse.internal(DartType type, TypeUseKind kind, [this.deferredImport])
       : this.type = type,
@@ -731,7 +733,7 @@ class TypeUse {
     source.begin(tag);
     DartType type = source.readDartType();
     TypeUseKind kind = source.readEnum(TypeUseKind.values);
-    ImportEntity deferredImport = source.readImportOrNull();
+    ImportEntity? deferredImport = source.readImportOrNull();
     source.end(tag);
     return TypeUse.internal(type, kind, deferredImport);
   }
@@ -794,7 +796,7 @@ class TypeUse {
     sb.write(type);
     if (deferredImport != null) {
       sb.write('{');
-      sb.write(deferredImport.name);
+      sb.write(deferredImport!.name);
       sb.write('}');
     }
     return sb.toString();
@@ -896,7 +898,7 @@ class TypeUse {
 class ConstantUse {
   static const String tag = 'constant-use';
 
-  final ConstantValue value;
+  final ConstantValue /*!*/ value;
 
   ConstantUse._(this.value);
 
@@ -919,7 +921,7 @@ class ConstantUse {
   }
 
   /// Constant used as the initial value of a field.
-  ConstantUse.init(ConstantValue value) : this._(value);
+  ConstantUse.init(ConstantValue /*!*/ value) : this._(value);
 
   /// Type constant used for registration of custom elements.
   ConstantUse.customElements(TypeConstantValue value) : this._(value);

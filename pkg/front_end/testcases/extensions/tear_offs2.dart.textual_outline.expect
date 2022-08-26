@@ -1,0 +1,11 @@
+class Class {}
+
+extension Extension on Class {
+  T id<T>(T t) => t;
+  T Function<T>(T) get getter => id;
+  method() {}
+  errors() {}
+}
+
+main() {}
+errors() {}

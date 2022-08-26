@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 part of dart2js.js_emitter.program_builder;
 
 /// Generates the code for all used classes in the program. Static fields (even
@@ -121,7 +123,7 @@ class Collector {
     for (ConstantValue constant in constants) {
       if (_emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
-      if (constant.isList) outputContainsConstantList = true;
+      if (constant is ListConstantValue) outputContainsConstantList = true;
 
       OutputUnit constantUnit = _outputUnitData.outputUnitForConstant(constant);
       if (constantUnit == null) {

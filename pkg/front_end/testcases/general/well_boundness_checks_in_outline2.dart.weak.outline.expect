@@ -2,57 +2,57 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:8:11: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
-// Try changing type arguments so that they conform to the bounds.
-//   A<num>? fieldOfA; // Error.
-//           ^
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
-// class A<X extends int> {}
-//         ^
-//
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:9:18: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
-// Try changing type arguments so that they conform to the bounds.
-//   static A<num>? staticFieldOfA; // Error.
-//                  ^
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
-// class A<X extends int> {}
-//         ^
-//
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:12:13: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:12:23: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
 // Try changing type arguments so that they conform to the bounds.
 // extension E<X extends A<num>> // Error.
-//             ^
+//                       ^
 // pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends int> {}
 //         ^
 //
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:14:18: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
-// Try changing type arguments so that they conform to the bounds.
-//   static A<num>? fieldOfE; // Error.
-//                  ^
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
-// class A<X extends int> {}
-//         ^
-//
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:15:17: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A' in the return type.
-// Try changing type arguments so that they conform to the bounds.
-//   A<num>? fooOfE() => null; // Error.
-//                 ^
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
-// class A<X extends int> {}
-//         ^
-//
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:16:22: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
-// Try changing type arguments so that they conform to the bounds.
-//   void barOfE(A<num> a) {} // Error.
-//                      ^
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
-// class A<X extends int> {}
-//         ^
-//
-// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:17:15: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:17:25: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
 // Try changing type arguments so that they conform to the bounds.
 //   void bazOfE<Y extends A<num>>() {} // Error.
+//                         ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:8:3: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   A<num>? fieldOfA; // Error.
+//   ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:9:10: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   static A<num>? staticFieldOfA; // Error.
+//          ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:14:10: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   static A<num>? fieldOfE; // Error.
+//          ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:15:3: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   A<num>? fooOfE() => null; // Error.
+//   ^
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
+// class A<X extends int> {}
+//         ^
+//
+// pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:16:15: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   void barOfE(A<num> a) {} // Error.
 //               ^
 // pkg/front_end/testcases/general/well_boundness_checks_in_outline2.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
 // class A<X extends int> {}

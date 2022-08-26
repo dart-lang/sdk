@@ -1,5 +1,4 @@
-// @dart = 2.9
 import 'dart:collection';
 
-LinkedListEntry y;
+LinkedListEntry y = throw '';
 main() {}

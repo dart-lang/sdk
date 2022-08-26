@@ -9,23 +9,37 @@ target: None
 modules:
   module:
     module/a.dart: |
-      // @dart=2.9
       class A { }
       class B { }
       class C { }
       class AB = A with B;
-    module/.packages: |
-      module:.
+    module/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "module",
+            "rootUri": ".."
+          }
+        ]
+      }
 worlds:
   - entry: main.dart
     fromComponent: true
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:module/a.dart";
         class ABC = AB with C;
-      .packages: |
-        module:module
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "module",
+              "rootUri": "../module"
+            }
+          ]
+        }
     modules:
       - module
     expectedLibraryCount: 2

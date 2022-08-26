@@ -13,7 +13,6 @@ worlds:
     warnings: false
     sources:
       main.dart: |
-        // @dart=2.9
         library mainLibrary;
         import "b.dart" as b;
 
@@ -21,7 +20,6 @@ worlds:
           b.foo();
         }
       b.dart: |
-        // @dart=2.9
         library bLibrary;
 
         foo() {
@@ -45,14 +43,12 @@ worlds:
     warnings: false
     sources:
       main.dart: |
-        // @dart=2.9
         library mainLibrary;
 
         main() {
           print("hello");
         }
       b.dart: |
-        // @dart=2.9
         library bLibrary;
 
         foo() {

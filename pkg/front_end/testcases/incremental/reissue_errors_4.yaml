@@ -10,22 +10,27 @@ type: newworld
 worlds:
   - entry: main.dart
     sources:
-      .packages: mypackage:mypackage
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "mypackage",
+              "rootUri": "../mypackage"
+            }
+          ]
+        }
       main.dart: |
-        // @dart=2.9
         import "package:mypackage/a.dart";
       mypackage/a.dart: |
-        // @dart=2.9
         import "package:mypackage/b.dart";
 
         class Foo<T> {}
         class Bar<T> extends Foo<T> {}
       mypackage/b.dart: |
-        // @dart=2.9
         import "package:mypackage/a.dart";
         part "package:mypackage/c.dart";
       mypackage/c.dart: |
-        // @dart=2.9
         part of "package:mypackage/b.dart";
 
         class Baz extends Bar<int> implements Foo<String> {}
@@ -38,22 +43,27 @@ worlds:
     expectedLibraryCount: 3
   - entry: main.dart
     sources:
-      .packages: mypackage:mypackage
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "mypackage",
+              "rootUri": "../mypackage"
+            }
+          ]
+        }
       main.dart: |
-        // @dart=2.9
         import "package:mypackage/a.dart";
       mypackage/a.dart: |
-        // @dart=2.9
         import "package:mypackage/b.dart";
 
         class Foo<T> {}
         class Bar<T> extends Foo<T> {}
       mypackage/b.dart: |
-        // @dart=2.9
         import "package:mypackage/a.dart";
         part "package:mypackage/c.dart";
       mypackage/c.dart: |
-        // @dart=2.9
         part of "package:mypackage/b.dart";
 
         class Baz extends Bar<int> implements Foo<String> {}
@@ -72,11 +82,9 @@ worlds:
       - mypackage/c.dart
     sources:
       mypackage/b.dart: |
-        // @dart=2.9
         import "package:mypackage/a.dart";
         part "package:mypackage/c.dart";
       mypackage/c.dart: |
-        // @dart=2.9
         part of "package:mypackage/b.dart";
 
         class Baz extends Bar<int> {}

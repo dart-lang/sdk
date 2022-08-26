@@ -839,6 +839,29 @@ void f() {
 ''');
   }
 
+  Future<void> test_static_reference_removed_extension() async {
+    setPackageContent('''
+extension C {
+  static int b;
+}
+''');
+    setPackageData(_rename(['a', 'C'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  C.a;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  C.b;
+}
+''');
+  }
+
   Future<void> test_static_reference_removed_prefixed() async {
     setPackageContent('''
 class C {

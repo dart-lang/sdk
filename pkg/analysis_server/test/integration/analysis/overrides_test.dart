@@ -52,7 +52,7 @@ class Target extends Base implements Interface1, Interface2 {
 }
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     sendAnalysisSetSubscriptions({
       AnalysisService.OVERRIDES: [pathname]
     });

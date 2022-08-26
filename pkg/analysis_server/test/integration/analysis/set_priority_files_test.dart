@@ -20,7 +20,7 @@ class SetPriorityFilesTest extends AbstractAnalysisServerIntegrationTest {
     writeFile(pathname, 'class Foo { void baz() {} }');
     writeFile(sourcePath('bar.dart'), 'class Bar { void baz() {} }');
 
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await sendAnalysisSetPriorityFiles([pathname]);
 
     var status = await analysisFinished;

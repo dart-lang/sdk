@@ -8,7 +8,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show
@@ -101,8 +101,9 @@ class ProcessedOptions {
   /// not been computed yet.
   PackageConfig? _packages;
 
-  /// The uri for .packages derived from the options, or `null` if the package
-  /// map has not been computed yet or there is no .packages in effect.
+  /// The uri for package_config.json derived from the options, or `null` if the
+  /// package map has not been computed yet or there is no package_config.json
+  /// in effect.
   Uri? _packagesUri;
   Uri? get packagesUri => _packagesUri;
 
@@ -541,7 +542,7 @@ class ProcessedOptions {
 
     if (inputs.length > 1) {
       // TODO(sigmund): consider not reporting an error if we would infer
-      // the same .packages file from all of the inputs.
+      // the same `package_config.json` file from all of the inputs.
       reportWithoutLocation(
           messageCantInferPackagesFromManyInputs, Severity.error);
       return _packages = PackageConfig.empty;
@@ -560,11 +561,10 @@ class ProcessedOptions {
     return _packages = await _findPackages(input);
   }
 
-  Future<Uint8List?> _readFile(Uri uri, bool reportError) async {
+  Future<Uint8List?> _readFile(Uri uri) async {
     try {
       // TODO(ahe): We need to compute line endings for this file.
       FileSystemEntity entityForUri = fileSystem.entityForUri(uri);
-      if (!reportError && !await entityForUri.exists()) return null;
       List<int> fileContents = await entityForUri.readAsBytes();
       if (fileContents is Uint8List) {
         return fileContents;
@@ -572,10 +572,8 @@ class ProcessedOptions {
         return new Uint8List.fromList(fileContents);
       }
     } on FileSystemException catch (e) {
-      if (reportError) {
-        reportWithoutLocation(
-            templateCantReadFile.withArguments(uri, e.message), Severity.error);
-      }
+      reportWithoutLocation(
+          templateCantReadFile.withArguments(uri, e.message), Severity.error);
     } catch (e) {
       Message message = templateExceptionReadingFile.withArguments(uri, '$e');
       reportWithoutLocation(message, Severity.error);
@@ -587,22 +585,16 @@ class ProcessedOptions {
     return null;
   }
 
-  /// Create a [PackageConfig] given the Uri to a `.packages` or
-  /// `package_config.json` file.
+  /// Create a [PackageConfig] given the Uri to a `package_config.json` file.
   ///
-  /// If the file doesn't exist, it returns null (and an error is reported
-  /// based in [forceCreation]).
-  /// If the file does exist but is invalid an error is always reported and an
-  /// empty package config is returned.
-  Future<PackageConfig?> _createPackagesFromFile(
-      Uri requestedUri, bool forceCreation, bool requireJson) async {
-    Uint8List? contents = await _readFile(requestedUri, forceCreation);
+  /// If the file doesn't exist, it returns null (and an error is reported).
+  /// If the file does exist but is invalid (e.g. if it's an old `.packages`
+  /// file) an error is always reported and an empty package config is returned.
+  Future<PackageConfig?> _createPackagesFromFile(Uri requestedUri) async {
+    Uint8List? contents = await _readFile(requestedUri);
     if (contents == null) {
-      if (forceCreation) {
-        _packagesUri = null;
-        return PackageConfig.empty;
-      }
-      return null;
+      _packagesUri = null;
+      return PackageConfig.empty;
     }
 
     _packagesUri = requestedUri;
@@ -620,18 +612,7 @@ class ProcessedOptions {
               Severity.error);
         }
       };
-      if (requireJson) {
-        return PackageConfig.parseBytes(contents, requestedUri,
-            onError: onError);
-      }
-      return await loadPackageConfigUri(requestedUri, preferNewest: false,
-          loader: (uri) {
-        if (uri != requestedUri) {
-          throw new StateError(
-              "Unexpected request from package config package");
-        }
-        return new Future.value(contents);
-      }, onError: onError);
+      return PackageConfig.parseBytes(contents, requestedUri, onError: onError);
     } on FormatException catch (e) {
       report(
           templatePackagesFileFormat
@@ -647,24 +628,11 @@ class ProcessedOptions {
     return PackageConfig.empty;
   }
 
-  /// Create a [PackageConfig] given the Uri to a `.packages` or
-  /// `package_config.json` file.
+  /// Create a [PackageConfig] given the Uri to a `package_config.json` file.
   ///
-  /// Note that if a `.packages` file is provided and an appropriately placed
-  /// (relative to the .packages file) `package_config.json` file exists, the
-  /// `package_config.json` file will be used instead.
+  /// Note that if an old `.packages` file is provided an error will be issued.
   Future<PackageConfig> createPackagesFromFile(Uri file) async {
-    // If the input is a ".packages" file we assume the standard layout, and
-    // if a ".dart_tool/package_config.json" exists, we'll use that (and require
-    // it to be a json file).
-    PackageConfig? result;
-    if (file.path.endsWith("/.packages")) {
-      // .packages -> try the package_config first.
-      Uri tryFirst = file.resolve(".dart_tool/package_config.json");
-      result = await _createPackagesFromFile(tryFirst, false, true);
-      if (result != null) return result;
-    }
-    result = await _createPackagesFromFile(file, true, false);
+    PackageConfig? result = await _createPackagesFromFile(file);
     return result ?? PackageConfig.empty;
   }
 
@@ -673,8 +641,8 @@ class ProcessedOptions {
   /// The [scriptUri] points to a Dart script with a valid scheme accepted by
   /// the [FileSystem].
   ///
-  /// This function first tries to locate a `.dart_tool/package_config.json`
-  /// (then a `.packages`) file in the `scriptUri` directory.
+  /// This function tries to locate a `.dart_tool/package_config.json` file in
+  /// the `scriptUri` directory.
   /// If that is not found, it starts checking parent directories, and stops if
   /// it finds it. Otherwise it gives up and returns [PackageConfig.empty].
   ///
@@ -695,8 +663,6 @@ class ProcessedOptions {
       try {
         candidate = dir.resolve('.dart_tool/package_config.json');
         if (await fileSystem.entityForUri(candidate).exists()) return candidate;
-        candidate = dir.resolve('.packages');
-        if (await fileSystem.entityForUri(candidate).exists()) return candidate;
         return null;
       } catch (e) {
         Message message =
@@ -709,11 +675,11 @@ class ProcessedOptions {
       }
     }
 
-    // Check for $cwd/.packages
+    // Check for $cwd/.dart_tool/package_config.json
     Uri? candidate = await checkInDir(dir);
     if (candidate != null) return createPackagesFromFile(candidate);
 
-    // Check for cwd(/..)+/.packages
+    // Check for cwd(/..)+/.dart_tool/package_config.json
     Uri parentDir = dir.resolve('..');
     while (parentDir.path != dir.path) {
       candidate = await checkInDir(parentDir);
@@ -827,11 +793,8 @@ class ProcessedOptions {
     }
   }
 
-  Future<MacroExecutor> Function() get macroExecutorProvider =>
-      _raw.macroExecutorProvider;
-
-  Map<Uri, Uri> get precompiledMacroUris =>
-      _raw.precompiledMacroUris ?? const {};
+  MultiMacroExecutor get macroExecutor =>
+      _raw.macroExecutor ??= new MultiMacroExecutor();
 
   CompilerOptions get rawOptionsForTesting => _raw;
 }

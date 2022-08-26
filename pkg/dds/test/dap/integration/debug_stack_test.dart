@@ -18,7 +18,7 @@ main() {
   group('debug mode stack trace', () {
     test('includes expected names and async boundaries', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(simpleAsyncProgram);
+      final testFile = dap.createTestFile(simpleAsyncProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
@@ -60,7 +60,7 @@ main() {
 
     test('only sets canRestart where VM can rewind', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(simpleAsyncProgram);
+      final testFile = dap.createTestFile(simpleAsyncProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
@@ -91,7 +91,7 @@ main() {
 
     test('deemphasizes SDK frames when debugSdk=false', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(sdkStackFrameProgram);
+      final testFile = dap.createTestFile(sdkStackFrameProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(
@@ -123,7 +123,7 @@ main() {
 
     test('does not deemphasize SDK frames when debugSdk=true', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(sdkStackFrameProgram);
+      final testFile = dap.createTestFile(sdkStackFrameProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(

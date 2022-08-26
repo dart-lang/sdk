@@ -1,10 +1,9 @@
-late ;
-final g;
+late final g;
+
 class C {
-  static late ;
-  final s;
-  late ;
-  final v;
+  static late final s;
+  late final v;
 }
+
 main() {}
 expect(expected, actual) {}

@@ -27,13 +27,14 @@ class DebugCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final argRes = argResults!;
+    final args = argRes.rest;
     if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
 
-    var info = await infoFromFile(args.first);
-    var debugLibName = argResults['show-library'];
+    final info = await infoFromFile(args.first);
+    final debugLibName = argRes['show-library'];
 
     validateSize(info, debugLibName);
     validateParents(info);
@@ -45,14 +46,14 @@ class DebugCommand extends Command<void> with PrintUsageException {
 /// Validates that codesize of elements adds up to total codesize.
 validateSize(AllInfo info, String debugLibName) {
   // Gather data from visiting all info elements.
-  var tracker = _SizeTracker(debugLibName);
+  final tracker = _SizeTracker(debugLibName);
   info.accept(tracker);
 
   // Validate that listed elements include elements of each library.
   final listed = {...info.functions, ...info.fields};
   // For our sanity we do some validation of dump-info invariants
-  var diff1 = listed.difference(tracker.discovered);
-  var diff2 = tracker.discovered.difference(listed);
+  final diff1 = listed.difference(tracker.discovered);
+  final diff2 = tracker.discovered.difference(listed);
   if (diff1.isEmpty || diff2.isEmpty) {
     _pass('all fields and functions are covered');
   } else {
@@ -67,7 +68,7 @@ validateSize(AllInfo info, String debugLibName) {
   }
 
   // Validate that code-size adds up.
-  int realTotal = info.program.size;
+  final realTotal = info.program!.size;
   int totalLib = info.libraries.fold(0, (n, lib) => n + lib.size);
   int constantsSize = info.constants.fold(0, (n, c) => n + c.size);
   int accounted = totalLib + constantsSize;
@@ -112,7 +113,7 @@ validateParents(AllInfo info) {
 
 class _SizeTracker extends RecursiveInfoVisitor {
   /// A library name for which to print debugging information (if not null).
-  final String _debugLibName;
+  final String? _debugLibName;
 
   _SizeTracker(this._debugLibName);
 
@@ -139,7 +140,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
 
   void _push() => stack.add(_State());
 
-  void _pop(info) {
+  void _pop(Info info) {
     var last = stack.removeLast();
     var size = last._totalSize;
     if (size > info.size) {
@@ -160,7 +161,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
   bool _debug = false;
   @override
   visitLibrary(LibraryInfo info) {
-    if (_debugLibName != null) _debug = info.name.contains(_debugLibName);
+    if (_debugLibName != null) _debug = info.name.contains(_debugLibName!);
     _push();
     if (_debug) {
       _debugCode.write('{\n');
@@ -202,8 +203,8 @@ class _SizeTracker extends RecursiveInfoVisitor {
         _debugCode.write('},\n');
       }
     }
-    stack.last._totalSize += info.size;
-    stack.last._bodySize += info.size;
+    stack.last._totalSize += (info.size as int);
+    stack.last._bodySize += (info.size as int);
     stack.last._count++;
   }
 
@@ -280,7 +281,7 @@ void compareGraphs(AllInfo info) {
     }
     g2.addNode(f);
     if (info.dependencies[f] != null) {
-      for (var g in info.dependencies[f]) {
+      for (var g in info.dependencies[f]!) {
         g2.addEdge(f, g);
       }
     }
@@ -293,7 +294,7 @@ void compareGraphs(AllInfo info) {
     }
     g2.addNode(f);
     if (info.dependencies[f] != null) {
-      for (var g in info.dependencies[f]) {
+      for (var g in info.dependencies[f]!) {
         g2.addEdge(f, g);
       }
     }
@@ -303,15 +304,15 @@ void compareGraphs(AllInfo info) {
   // differently than 'deps' links
   int inUsesNotInDependencies = 0;
   int inDependenciesNotInUses = 0;
-  _sameEdges(f) {
+  sameEdges(f) {
     var targets1 = g1.targetsOf(f).toSet();
     var targets2 = g2.targetsOf(f).toSet();
     inUsesNotInDependencies += targets1.difference(targets2).length;
     inDependenciesNotInUses += targets2.difference(targets1).length;
   }
 
-  info.functions.forEach(_sameEdges);
-  info.fields.forEach(_sameEdges);
+  info.functions.forEach(sameEdges);
+  info.fields.forEach(sameEdges);
   if (inUsesNotInDependencies == 0 && inDependenciesNotInUses == 0) {
     _pass('dependency data is consistent');
   } else {
@@ -325,7 +326,7 @@ void compareGraphs(AllInfo info) {
 // graph.
 verifyDeps(AllInfo info) {
   var graph = graphFromInfo(info);
-  var entrypoint = info.program.entrypoint;
+  var entrypoint = info.program!.entrypoint;
   var reachables = Set.from(graph.preOrder(entrypoint));
 
   var functionsAndFields = <BasicInfo>[...info.functions, ...info.fields];

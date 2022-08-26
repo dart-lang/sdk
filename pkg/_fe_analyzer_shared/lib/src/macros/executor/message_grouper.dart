@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 /// Collects messages from an input stream of bytes.
@@ -19,14 +20,22 @@ class MessageGrouper {
   /// If reading raw data, buffer for the data.
   _FixedBuffer? _messageBuffer;
 
-  late StreamController<Uint8List> _messageStreamController =
+  late final StreamController<Uint8List> _messageStreamController =
       new StreamController<Uint8List>(onCancel: () {
     _inputStreamSubscription.cancel();
   });
+
   Stream<Uint8List> get messageStream => _messageStreamController.stream;
 
   MessageGrouper(Stream<List<int>> inputStream) {
     _inputStreamSubscription = inputStream.listen(_handleBytes, onDone: cancel);
+  }
+
+  /// Stop listening to the input stream for further updates, and close the
+  /// output stream.
+  void cancel() {
+    _inputStreamSubscription.cancel();
+    _messageStreamController.close();
   }
 
   void _handleBytes(List<int> bytes, [int offset = 0]) {
@@ -51,9 +60,7 @@ class MessageGrouper {
       }
     } else {
       // Read the data from `bytes`.
-      while (offset < bytes.length && !messageBuffer.isReady) {
-        messageBuffer.addByte(bytes[offset++]);
-      }
+      offset += messageBuffer.addBytes(bytes, offset);
 
       // If we completed a message, add it to the output stream.
       if (messageBuffer.isReady) {
@@ -63,13 +70,6 @@ class MessageGrouper {
         _handleBytes(bytes, offset);
       }
     }
-  }
-
-  /// Stop listening to the input stream for further updates, and close the
-  /// output stream.
-  void cancel() {
-    _inputStreamSubscription.cancel();
-    _messageStreamController.close();
   }
 }
 
@@ -89,6 +89,15 @@ class _FixedBuffer {
 
   void addByte(int byte) {
     bytes[_offset++] = byte;
+  }
+
+  /// Consume at most as many bytes from [source] as required by fill [bytes].
+  /// Return the number of consumed bytes.
+  int addBytes(List<int> source, int offset) {
+    int toConsume = math.min(source.length - offset, bytes.length - _offset);
+    bytes.setRange(_offset, _offset + toConsume, source, offset);
+    _offset += toConsume;
+    return toConsume;
   }
 
   /// Reset the number of added bytes to zero.

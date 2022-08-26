@@ -108,8 +108,8 @@ abstract class SubtypeTest<T, E> {
 
     isSubtype('List<int>', 'List<int*>');
     isSubtype('List<int>', 'List<int?>');
-    // TODO(dmitryas):  Uncomment the following when type arguments are allowed
-    // to be intersection types.
+    // TODO(cstefantsova):  Uncomment the following when type arguments are
+    // allowed to be intersection types.
 //    isSubtype('List<X & int>', 'List<X>',
 //    typeParameters: 'X extends Object?');
     isSubtype('List<int*>', 'List<int>');
@@ -118,8 +118,8 @@ abstract class SubtypeTest<T, E> {
     isObliviousSubtype('List<int?>', 'List<int>');
     isSubtype('List<int?>', 'List<int*>');
     isSubtype('List<int?>', 'List<int?>');
-    // TODO(dmitryas):  Uncomment the following when type arguments are allowed
-    // to be intersection types.
+    // TODO(cstefantsova):  Uncomment the following when type arguments are
+    // allowed to be intersection types.
 //    isSubtype('List<X & int?>', 'List<X>',
 //    typeParameters: 'X extends Object?');
 
@@ -910,8 +910,8 @@ abstract class SubtypeTest<T, E> {
 
     isNotSubtype('FutureOr<T & String*>*', 'T & String*', typeParameters: 'T');
 
-    // TODO(dmitryas): Uncomment the following when type arguments are allowed
-    // to be intersection types.
+    // TODO(cstefantsova): Uncomment the following when type arguments are
+    // allowed to be intersection types.
 //    isSubtype('Id<T* & String*>*', 'T* & String*',
 //        typeParameters: 'T extends Object*');
 //    isSubtype('Id<T & String>', 'T & String',

@@ -33,7 +33,7 @@ abstract class ClosureContext {
 
   DartType? get futureValueType;
 
-  factory ClosureContext(TypeInferrerImpl inferrer, AsyncMarker asyncMarker,
+  factory ClosureContext(InferenceVisitorBase inferrer, AsyncMarker asyncMarker,
       DartType returnContext, bool needToInferReturnType) {
     // ignore: unnecessary_null_comparison
     assert(returnContext != null);
@@ -48,12 +48,12 @@ abstract class ClosureContext {
         DartType yieldContext = inferrer.getTypeArgumentOf(
             returnContext, inferrer.coreTypes.streamClass);
         return new _AsyncStarClosureContext(
-            yieldContext, declaredReturnType, needToInferReturnType);
+            inferrer, yieldContext, declaredReturnType, needToInferReturnType);
       } else {
         DartType yieldContext = inferrer.getTypeArgumentOf(
             returnContext, inferrer.coreTypes.iterableClass);
         return new _SyncStarClosureContext(
-            yieldContext, declaredReturnType, needToInferReturnType);
+            inferrer, yieldContext, declaredReturnType, needToInferReturnType);
       }
     } else if (isAsync) {
       DartType? futureValueType;
@@ -72,11 +72,11 @@ abstract class ClosureContext {
           futureValueType = flattenedType;
         }
       }
-      return new _AsyncClosureContext(returnContext, declaredReturnType,
-          needToInferReturnType, futureValueType);
+      return new _AsyncClosureContext(inferrer, returnContext,
+          declaredReturnType, needToInferReturnType, futureValueType);
     } else {
       return new _SyncClosureContext(
-          returnContext, declaredReturnType, needToInferReturnType);
+          inferrer, returnContext, declaredReturnType, needToInferReturnType);
     }
   }
 
@@ -85,23 +85,22 @@ abstract class ClosureContext {
   /// If the return type is declared, the expression type is checked. If the
   /// return type is inferred the expression type registered for inference
   /// in [inferReturnType].
-  void handleReturn(TypeInferrerImpl inferrer, ReturnStatement statement,
-      DartType type, bool isArrow);
+  void handleReturn(ReturnStatement statement, DartType type, bool isArrow);
 
   /// Handles an explicit yield statement.
   ///
   /// If the return type is declared, the expression type is checked. If the
   /// return type is inferred the expression type registered for inference
   /// in [inferReturnType].
-  void handleYield(TypeInferrerImpl inferrer, YieldStatement node,
-      ExpressionInferenceResult expressionResult);
+  void handleYield(
+      YieldStatement node, ExpressionInferenceResult expressionResult);
 
   /// Handles an implicit return statement.
   ///
   /// If the return type is declared, the expression type is checked. If the
   /// return type is inferred the expression type registered for inference
   /// in [inferReturnType].
-  StatementInferenceResult handleImplicitReturn(TypeInferrerImpl inferrer,
+  StatementInferenceResult handleImplicitReturn(InferenceVisitorBase inferrer,
       Statement body, StatementInferenceResult inferenceResult, int fileOffset);
 
   /// Infers the return type for the function.
@@ -112,11 +111,13 @@ abstract class ClosureContext {
   ///
   /// If the function is a generator function this is based on the explicit
   /// yield statements registered in [handleYield].
-  DartType inferReturnType(TypeInferrerImpl inferrer,
+  DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn});
 }
 
 class _SyncClosureContext implements ClosureContext {
+  final InferenceVisitorBase inferrer;
+
   @override
   bool get isAsync => false;
 
@@ -152,16 +153,16 @@ class _SyncClosureContext implements ClosureContext {
   @override
   DartType? get futureValueType => null;
 
-  _SyncClosureContext(this._returnContext, this._declaredReturnType,
-      this._needToInferReturnType) {
+  _SyncClosureContext(this.inferrer, this._returnContext,
+      this._declaredReturnType, this._needToInferReturnType) {
     if (_needToInferReturnType) {
       _returnStatements = [];
       _returnExpressionTypes = [];
     }
   }
 
-  void _checkValidReturn(TypeInferrerImpl inferrer, DartType returnType,
-      ReturnStatement statement, DartType expressionType) {
+  void _checkValidReturn(
+      DartType returnType, ReturnStatement statement, DartType expressionType) {
     assert(!inferrer.isTopLevel);
     if (inferrer.isNonNullableByDefault) {
       if (statement.expression == null) {
@@ -172,7 +173,7 @@ class _SyncClosureContext implements ClosureContext {
             returnType is NullType) {
           // Valid return;
         } else {
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               messageReturnWithoutExpressionSync,
               statement.fileOffset,
@@ -193,7 +194,7 @@ class _SyncClosureContext implements ClosureContext {
                 expressionType is NullType)) {
           // It is a compile-time error if s is `return e;`, T is void, and S is
           // neither void, dynamic, nor Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageReturnFromVoidFunction,
               statement.expression!.fileOffset,
@@ -203,7 +204,7 @@ class _SyncClosureContext implements ClosureContext {
             expressionType is VoidType) {
           // It is a compile-time error if s is `return e;`, T is neither void
           // nor dynamic, and S is void.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               templateInvalidReturn.withArguments(expressionType,
                   _declaredReturnType, inferrer.isNonNullableByDefault),
@@ -238,7 +239,7 @@ class _SyncClosureContext implements ClosureContext {
             returnType is NullType) {
           // Valid return;
         } else {
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               messageReturnWithoutExpression,
               statement.fileOffset,
@@ -262,7 +263,7 @@ class _SyncClosureContext implements ClosureContext {
             expressionType is! DynamicType &&
             expressionType is! NullType) {
           // Invalid if T is void and S is not void, dynamic, or Null
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageReturnFromVoidFunction,
               statement.expression!.fileOffset,
@@ -273,7 +274,7 @@ class _SyncClosureContext implements ClosureContext {
             returnType is! DynamicType &&
             returnType is! NullType) {
           // Invalid if S is void and T is not void, dynamic, or Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageVoidExpression,
               statement.expression!.fileOffset,
@@ -289,8 +290,7 @@ class _SyncClosureContext implements ClosureContext {
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   @override
-  void handleReturn(TypeInferrerImpl inferrer, ReturnStatement statement,
-      DartType type, bool isArrow) {
+  void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {
     // The first return we see tells us if we have an arrow function.
     if (this._isArrow == null) {
       this._isArrow = isArrow;
@@ -304,18 +304,18 @@ class _SyncClosureContext implements ClosureContext {
       _returnStatements!.add(statement);
       _returnExpressionTypes!.add(type);
     } else if (!inferrer.isTopLevel) {
-      _checkValidReturn(inferrer, _declaredReturnType, statement, type);
+      _checkValidReturn(_declaredReturnType, statement, type);
     }
   }
 
   @override
-  void handleYield(TypeInferrerImpl inferrer, YieldStatement node,
-      ExpressionInferenceResult expressionResult) {
+  void handleYield(
+      YieldStatement node, ExpressionInferenceResult expressionResult) {
     node.expression = expressionResult.expression..parent = node;
   }
 
   @override
-  DartType inferReturnType(TypeInferrerImpl inferrer,
+  DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
     // ignore: unnecessary_null_comparison
@@ -412,7 +412,7 @@ class _SyncClosureContext implements ClosureContext {
 
     for (int i = 0; i < _returnStatements!.length; ++i) {
       if (!inferrer.isTopLevel) {
-        _checkValidReturn(inferrer, inferredReturnType, _returnStatements![i],
+        _checkValidReturn(inferredReturnType, _returnStatements![i],
             _returnExpressionTypes![i]);
       }
     }
@@ -423,7 +423,7 @@ class _SyncClosureContext implements ClosureContext {
 
   @override
   StatementInferenceResult handleImplicitReturn(
-      TypeInferrerImpl inferrer,
+      InferenceVisitorBase inferrer,
       Statement body,
       StatementInferenceResult inferenceResult,
       int fileOffset) {
@@ -443,7 +443,7 @@ class _SyncClosureContext implements ClosureContext {
       Statement resultStatement =
           inferenceResult.hasChanged ? inferenceResult.statement : body;
       // Create a synthetic return statement with the error.
-      Statement returnStatement = new ReturnStatement(inferrer.helper!
+      Statement returnStatement = new ReturnStatement(inferrer.helper
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
               templateImplicitReturnNull.withArguments(
@@ -467,6 +467,8 @@ class _SyncClosureContext implements ClosureContext {
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
 class _AsyncClosureContext implements ClosureContext {
+  final InferenceVisitorBase inferrer;
+
   @override
   bool get isAsync => true;
 
@@ -505,16 +507,20 @@ class _AsyncClosureContext implements ClosureContext {
   @override
   DartType? futureValueType;
 
-  _AsyncClosureContext(this._returnContext, this._declaredReturnType,
-      this._needToInferReturnType, this.futureValueType) {
+  _AsyncClosureContext(
+      this.inferrer,
+      this._returnContext,
+      this._declaredReturnType,
+      this._needToInferReturnType,
+      this.futureValueType) {
     if (_needToInferReturnType) {
       _returnStatements = [];
       _returnExpressionTypes = [];
     }
   }
 
-  void _checkValidReturn(TypeInferrerImpl inferrer, DartType returnType,
-      ReturnStatement statement, DartType expressionType) {
+  void _checkValidReturn(
+      DartType returnType, ReturnStatement statement, DartType expressionType) {
     assert(!inferrer.isTopLevel);
     if (inferrer.isNonNullableByDefault) {
       assert(
@@ -528,7 +534,7 @@ class _AsyncClosureContext implements ClosureContext {
             futureValueType is NullType) {
           // Valid return;
         } else {
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               messageReturnWithoutExpressionAsync,
               statement.fileOffset,
@@ -553,7 +559,7 @@ class _AsyncClosureContext implements ClosureContext {
                 flattenedExpressionType is NullType)) {
           // It is a compile-time error if s is `return e;`, T_v is void, and
           // flatten(S) is neither void, dynamic, Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               templateInvalidReturnAsync.withArguments(
                   expressionType, returnType, inferrer.isNonNullableByDefault),
@@ -565,7 +571,7 @@ class _AsyncClosureContext implements ClosureContext {
             flattenedExpressionType is VoidType) {
           // It is a compile-time error if s is `return e;`, T_v is neither void
           // nor dynamic, and flatten(S) is void.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               templateInvalidReturnAsync.withArguments(
                   expressionType, returnType, inferrer.isNonNullableByDefault),
@@ -610,7 +616,7 @@ class _AsyncClosureContext implements ClosureContext {
             flattenedReturnType is NullType) {
           // Valid return;
         } else {
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               new NullLiteral()..fileOffset = statement.fileOffset,
               messageReturnWithoutExpression,
               statement.fileOffset,
@@ -644,7 +650,7 @@ class _AsyncClosureContext implements ClosureContext {
             flattenedExpressionType is! DynamicType &&
             flattenedExpressionType is! NullType) {
           // Invalid if T is void and flatten(S) is not void, dynamic, or Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageReturnFromVoidFunction,
               statement.expression!.fileOffset,
@@ -656,7 +662,7 @@ class _AsyncClosureContext implements ClosureContext {
             flattenedReturnType is! NullType) {
           // Invalid if flatten(S) is void and flatten(T) is not void, dynamic,
           // or Null.
-          statement.expression = inferrer.helper!.wrapInProblem(
+          statement.expression = inferrer.helper.wrapInProblem(
               statement.expression!,
               messageVoidExpression,
               statement.expression!.fileOffset,
@@ -674,8 +680,7 @@ class _AsyncClosureContext implements ClosureContext {
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   @override
-  void handleReturn(TypeInferrerImpl inferrer, ReturnStatement statement,
-      DartType type, bool isArrow) {
+  void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {
     // The first return we see tells us if we have an arrow function.
     if (this._isArrow == null) {
       this._isArrow = isArrow;
@@ -689,17 +694,17 @@ class _AsyncClosureContext implements ClosureContext {
       _returnStatements!.add(statement);
       _returnExpressionTypes!.add(type);
     } else if (!inferrer.isTopLevel) {
-      _checkValidReturn(inferrer, _declaredReturnType, statement, type);
+      _checkValidReturn(_declaredReturnType, statement, type);
     }
   }
 
   @override
-  void handleYield(TypeInferrerImpl inferrer, YieldStatement node,
-      ExpressionInferenceResult expressionResult) {
+  void handleYield(
+      YieldStatement node, ExpressionInferenceResult expressionResult) {
     node.expression = expressionResult.expression..parent = node;
   }
 
-  DartType computeAssignableType(TypeInferrerImpl inferrer,
+  DartType computeAssignableType(InferenceVisitorBase inferrer,
       DartType contextType, DartType expressionType) {
     contextType = inferrer.computeGreatestClosure(contextType);
 
@@ -722,7 +727,7 @@ class _AsyncClosureContext implements ClosureContext {
   }
 
   @override
-  DartType inferReturnType(TypeInferrerImpl inferrer,
+  DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
     // ignore: unnecessary_null_comparison
@@ -824,8 +829,8 @@ class _AsyncClosureContext implements ClosureContext {
     }
     if (!inferrer.isTopLevel) {
       for (int i = 0; i < _returnStatements!.length; ++i) {
-        _checkValidReturn(inferrer, inferredType, _returnStatements![i],
-            _returnExpressionTypes![i]);
+        _checkValidReturn(
+            inferredType, _returnStatements![i], _returnExpressionTypes![i]);
       }
     }
 
@@ -835,7 +840,7 @@ class _AsyncClosureContext implements ClosureContext {
 
   @override
   StatementInferenceResult handleImplicitReturn(
-      TypeInferrerImpl inferrer,
+      InferenceVisitorBase inferrer,
       Statement body,
       StatementInferenceResult inferenceResult,
       int fileOffset) {
@@ -856,7 +861,7 @@ class _AsyncClosureContext implements ClosureContext {
       Statement resultStatement =
           inferenceResult.hasChanged ? inferenceResult.statement : body;
       // Create a synthetic return statement with the error.
-      Statement returnStatement = new ReturnStatement(inferrer.helper!
+      Statement returnStatement = new ReturnStatement(inferrer.helper
           .wrapInProblem(
               new NullLiteral()..fileOffset = fileOffset,
               templateImplicitReturnNull.withArguments(
@@ -880,6 +885,8 @@ class _AsyncClosureContext implements ClosureContext {
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
 class _SyncStarClosureContext implements ClosureContext {
+  final InferenceVisitorBase inferrer;
+
   @override
   bool get isAsync => false;
 
@@ -912,8 +919,8 @@ class _SyncStarClosureContext implements ClosureContext {
   @override
   DartType? get futureValueType => null;
 
-  _SyncStarClosureContext(this._yieldElementContext, this._declaredReturnType,
-      this._needToInferReturnType) {
+  _SyncStarClosureContext(this.inferrer, this._yieldElementContext,
+      this._declaredReturnType, this._needToInferReturnType) {
     if (_needToInferReturnType) {
       _yieldElementTypes = [];
     }
@@ -922,12 +929,11 @@ class _SyncStarClosureContext implements ClosureContext {
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   @override
-  void handleReturn(TypeInferrerImpl inferrer, ReturnStatement statement,
-      DartType type, bool isArrow) {}
+  void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {}
 
   @override
-  void handleYield(TypeInferrerImpl inferrer, YieldStatement node,
-      ExpressionInferenceResult expressionResult) {
+  void handleYield(
+      YieldStatement node, ExpressionInferenceResult expressionResult) {
     DartType expectedType = node.isYieldStar
         ? inferrer.wrapType(
             _yieldElementContext,
@@ -955,7 +961,7 @@ class _SyncStarClosureContext implements ClosureContext {
   }
 
   @override
-  DartType inferReturnType(TypeInferrerImpl inferrer,
+  DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
     // ignore: unnecessary_null_comparison
@@ -1002,7 +1008,7 @@ class _SyncStarClosureContext implements ClosureContext {
 
   @override
   StatementInferenceResult handleImplicitReturn(
-      TypeInferrerImpl inferrer,
+      InferenceVisitorBase inferrer,
       Statement body,
       StatementInferenceResult inferenceResult,
       int fileOffset) {
@@ -1014,6 +1020,8 @@ class _SyncStarClosureContext implements ClosureContext {
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
 class _AsyncStarClosureContext implements ClosureContext {
+  final InferenceVisitorBase inferrer;
+
   @override
   bool get isAsync => true;
 
@@ -1046,8 +1054,8 @@ class _AsyncStarClosureContext implements ClosureContext {
   @override
   DartType? get futureValueType => null;
 
-  _AsyncStarClosureContext(this._yieldElementContext, this._declaredReturnType,
-      this._needToInferReturnType) {
+  _AsyncStarClosureContext(this.inferrer, this._yieldElementContext,
+      this._declaredReturnType, this._needToInferReturnType) {
     if (_needToInferReturnType) {
       _yieldElementTypes = [];
     }
@@ -1056,12 +1064,11 @@ class _AsyncStarClosureContext implements ClosureContext {
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   @override
-  void handleReturn(TypeInferrerImpl inferrer, ReturnStatement statement,
-      DartType type, bool isArrow) {}
+  void handleReturn(ReturnStatement statement, DartType type, bool isArrow) {}
 
   @override
-  void handleYield(TypeInferrerImpl inferrer, YieldStatement node,
-      ExpressionInferenceResult expressionResult) {
+  void handleYield(
+      YieldStatement node, ExpressionInferenceResult expressionResult) {
     DartType expectedType = node.isYieldStar
         ? inferrer.wrapType(_yieldElementContext,
             inferrer.coreTypes.streamClass, inferrer.libraryBuilder.nonNullable)
@@ -1088,7 +1095,7 @@ class _AsyncStarClosureContext implements ClosureContext {
   }
 
   @override
-  DartType inferReturnType(TypeInferrerImpl inferrer,
+  DartType inferReturnType(InferenceVisitorBase inferrer,
       {required bool hasImplicitReturn}) {
     assert(_needToInferReturnType);
     // ignore: unnecessary_null_comparison
@@ -1134,7 +1141,7 @@ class _AsyncStarClosureContext implements ClosureContext {
 
   @override
   StatementInferenceResult handleImplicitReturn(
-      TypeInferrerImpl inferrer,
+      InferenceVisitorBase inferrer,
       Statement body,
       StatementInferenceResult inferenceResult,
       int fileOffset) {

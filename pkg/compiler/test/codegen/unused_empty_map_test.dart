@@ -7,7 +7,7 @@
 // Ensure that unused empty HashMap nodes are dropped from the output.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 
@@ -27,7 +27,7 @@ main() {
     var collector = new OutputCollector();
     await runCompiler(
         memorySourceFiles: TEST_SOURCE, outputProvider: collector);
-    String generated = collector.getOutput('', OutputType.js);
+    String generated = collector.getOutput('', api.OutputType.js);
     Expect.isFalse(generated.contains(HASHMAP_EMPTY_CONSTRUCTOR));
   }
 

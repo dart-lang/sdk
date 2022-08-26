@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
+import 'dart:collection';
 import 'dart:typed_data';
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/binary/ast_to_binary.dart';
-import '../closure.dart';
+import '../closure_migrated.dart';
+import '../common.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart';
-import '../diagnostics/source_span.dart';
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
@@ -18,53 +17,60 @@ import '../inferrer/abstract_value_domain.dart';
 import '../ir/constants.dart';
 import '../ir/static_type_base.dart';
 import '../js/js.dart' as js;
-import '../js_model/closure.dart';
+import '../js_model/closure_migrated.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 
+import '../options.dart';
+import 'data_sink.dart';
+import 'data_source.dart';
+import 'deferrable.dart';
+import 'member_data.dart';
+import 'indexed_sink_source.dart';
+import 'tags.dart';
+
+export 'binary_sink.dart';
+export 'binary_source.dart';
+export 'member_data.dart' show ComponentLookup, computeMemberName;
+export 'object_sink.dart';
+export 'object_source.dart';
+export 'tags.dart';
+
 part 'sink.dart';
 part 'source.dart';
-part 'binary_sink.dart';
-part 'binary_source.dart';
 part 'helpers.dart';
-part 'member_data.dart';
-part 'node_indexer.dart';
-part 'object_sink.dart';
-part 'object_source.dart';
 
 abstract class StringInterner {
   String internString(String string);
 }
 
+class ValueInterner {
+  final Map<DartType, DartType> _dartTypeMap = HashMap();
+  final Map<ir.DartType?, ir.DartType?> _dartTypeNodeMap = HashMap();
+
+  DartType internDartType(DartType dartType) {
+    return _dartTypeMap[dartType] ??= dartType;
+  }
+
+  ir.DartType? internDartTypeNode(ir.DartType? dartType) {
+    return _dartTypeNodeMap[dartType] ??= dartType;
+  }
+}
+
 /// Data class representing cache information for a given [T] which can be
 /// passed from a [DataSourceReader] to other [DataSourceReader]s and [DataSinkWriter]s.
 class DataSourceTypeIndices<E, T> {
-  /// Reshapes a [List<T>] to a [Map<E, int>] using [_getValue].
-  Map<E, int> _reshape() {
-    var cache = <E, int>{};
-    for (int i = 0; i < cacheAsList.length; i++) {
-      cache[_getValue(cacheAsList[i])] = i;
-    }
-    return cache;
-  }
+  Map<E, int> get cache => _cache ??= source.reshapeCacheAsMap(_getValue);
 
-  Map<E, int> get cache {
-    return _cache ??= _reshape();
-  }
+  final E Function(T? value)? _getValue;
+  Map<E, int>? _cache;
+  final IndexedSource<T> source;
 
-  final List<T> cacheAsList;
-  E Function(T value) _getValue;
-  Map<E, int> _cache;
-
-  /// Though [DataSourceTypeIndices] supports two types of caches. If the
-  /// exported indices are imported into a [DataSourceReader] then the [cacheAsList]
-  /// will be used as is. If, however, the exported indices are imported into a
-  /// [DataSinkWriter] then we need to reshape the [List<T>] into a [Map<E, int>]
-  /// where [E] is either [T] or some value which can be derived from [T] by
-  /// [_getValue].
-  DataSourceTypeIndices(this.cacheAsList, [this._getValue]) {
+  /// Uses the cache from the provided [source] and reshapes it if necessary
+  /// to create a lookup map of cached entities. If [_getValue] is provided,
+  /// the function will be used to map the cached entities into lookup keys.
+  DataSourceTypeIndices(this.source, [this._getValue]) {
     assert(_getValue != null || T == E);
-    _getValue ??= (T t) => t as E;
   }
 }
 
@@ -72,6 +78,30 @@ class DataSourceTypeIndices<E, T> {
 /// [DataSourceReader].
 class DataSourceIndices {
   final Map<Type, DataSourceTypeIndices> caches = {};
+  final DataSourceReader? previousSourceReader;
+
+  DataSourceIndices(this.previousSourceReader);
+}
+
+/// Interface used for looking up locals by index during deserialization.
+abstract class LocalLookup {
+  Local getLocalByIndex(MemberEntity memberContext, int index);
+}
+
+/// Interface used for reading codegen only data during deserialization.
+abstract class CodegenReader {
+  AbstractValue readAbstractValue(DataSourceReader source);
+  OutputUnit readOutputUnitReference(DataSourceReader source);
+  js.Node readJsNode(DataSourceReader source);
+  TypeRecipe readTypeRecipe(DataSourceReader source);
+}
+
+/// Interface used for writing codegen only data during serialization.
+abstract class CodegenWriter {
+  void writeAbstractValue(DataSinkWriter sink, AbstractValue value);
+  void writeOutputUnitReference(DataSinkWriter sink, OutputUnit value);
+  void writeJsNode(DataSinkWriter sink, js.Node node);
+  void writeTypeRecipe(DataSinkWriter sink, TypeRecipe recipe);
 }
 
 /// Interface used for looking up entities by index during deserialization.
@@ -134,25 +164,4 @@ class EntityWriter {
       DataSinkWriter sink, IndexedTypeVariable value) {
     sink.writeInt(value.typeVariableIndex);
   }
-}
-
-/// Interface used for looking up locals by index during deserialization.
-abstract class LocalLookup {
-  Local getLocalByIndex(MemberEntity memberContext, int index);
-}
-
-/// Interface used for reading codegen only data during deserialization.
-abstract class CodegenReader {
-  AbstractValue readAbstractValue(DataSourceReader source);
-  OutputUnit readOutputUnitReference(DataSourceReader source);
-  js.Node readJsNode(DataSourceReader source);
-  TypeRecipe readTypeRecipe(DataSourceReader source);
-}
-
-/// Interface used for writing codegen only data during serialization.
-abstract class CodegenWriter {
-  void writeAbstractValue(DataSinkWriter sink, AbstractValue value);
-  void writeOutputUnitReference(DataSinkWriter sink, OutputUnit value);
-  void writeJsNode(DataSinkWriter sink, js.Node node);
-  void writeTypeRecipe(DataSinkWriter sink, TypeRecipe recipe);
 }

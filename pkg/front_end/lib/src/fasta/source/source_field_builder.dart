@@ -16,6 +16,7 @@ import '../builder/class_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
@@ -40,7 +41,7 @@ import 'source_class_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceFieldBuilder extends SourceMemberBuilderImpl
-    implements FieldBuilder {
+    implements FieldBuilder, InferredTypeListener, Inferable {
   @override
   final String name;
 
@@ -51,7 +52,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   final List<MetadataBuilder>? metadata;
 
-  final TypeBuilder? type;
+  final TypeBuilder type;
 
   Token? _constInitializerToken;
 
@@ -90,10 +91,13 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       Reference? lateIsSetSetterReference,
       Reference? lateGetterReference,
       Reference? lateSetterReference,
+      Token? initializerToken,
       Token? constInitializerToken,
       this.isSynthesized = false})
       : _constInitializerToken = constInitializerToken,
         super(libraryBuilder, charOffset) {
+    type.registerInferredTypeListener(this);
+
     bool isInstanceMember = fieldNameScheme.isInstanceMember;
 
     Uri fileUri = libraryBuilder.fileUri;
@@ -258,6 +262,20 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
           getterReference: fieldGetterReference,
           setterReference: fieldSetterReference);
     }
+
+    if (type is InferableTypeBuilder) {
+      if (!hasInitializer && isStatic) {
+        // A static field without type and initializer will always be inferred
+        // to have type `dynamic`.
+        type.registerInferredType(const DynamicType());
+      } else {
+        // A field with no type and initializer or an instance field without
+        // type and initializer need to have the type inferred.
+        fieldType =
+            new InferredType.fromFieldInitializer(this, initializerToken);
+        type.registerInferable(this);
+      }
+    }
   }
 
   bool get isLateLowered => _fieldEncoding.isLateLowering;
@@ -280,7 +298,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       membersBuilder.inferFieldType(this, _overrideDependencies!);
       _overrideDependencies = null;
     } else {
-      inferType();
+      type.build(libraryBuilder, TypeUse.fieldType,
+          hierarchy: membersBuilder.hierarchyBuilder);
     }
     _typeEnsured = true;
   }
@@ -325,10 +344,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
         isSynthetic: isSynthetic);
   }
 
-  bool get isEligibleForInference {
-    return type == null && (hasInitializer || isClassInstanceMember);
-  }
-
   @override
   bool get isAssignable {
     if (isConst) return false;
@@ -359,15 +374,15 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   Iterable<Member> get exportedMembers => _fieldEncoding.exportedMembers;
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
-    build();
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+    _build();
     _fieldEncoding.registerMembers(libraryBuilder, this, f);
   }
 
   /// Builds the core AST structures for this field as needed for the outline.
-  void build() {
-    if (type != null) {
-      fieldType = type!.build(libraryBuilder);
+  void _build() {
+    if (type is! InferableTypeBuilder) {
+      fieldType = type.build(libraryBuilder, TypeUse.fieldType);
     }
     _fieldEncoding.build(libraryBuilder, this);
   }
@@ -377,8 +392,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    _fieldEncoding.completeSignature(classHierarchy.coreTypes);
-
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
       MetadataBuilder.buildAnnotations(
           annotatable,
@@ -446,21 +459,26 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     }
   }
 
-  DartType inferType() {
-    if (fieldType is! ImplicitFieldType) {
+  @override
+  void inferTypes(ClassHierarchyBase hierarchy) {
+    inferType(hierarchy);
+  }
+
+  DartType inferType(ClassHierarchyBase hierarchy) {
+    if (fieldType is! InferredType) {
       // We have already inferred a type.
       return fieldType;
     }
 
-    ImplicitFieldType implicitFieldType = fieldType as ImplicitFieldType;
-    DartType inferredType = implicitFieldType.computeType();
-    if (fieldType is ImplicitFieldType) {
+    InferredType implicitFieldType = fieldType as InferredType;
+    DartType inferredType = implicitFieldType.computeType(hierarchy);
+    if (fieldType is InferredType) {
       // `fieldType` may have changed if a circularity was detected when
       // [inferredType] was computed.
       if (!libraryBuilder.isNonNullableByDefault) {
         inferredType = legacyErasure(inferredType);
       }
-      fieldType = implicitFieldType.checkInferred(inferredType);
+      type.registerInferredType(inferredType);
 
       IncludesTypeParametersNonCovariantly? needsCheckVisitor;
       if (parent is ClassBuilder) {
@@ -481,6 +499,11 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       }
     }
     return fieldType;
+  }
+
+  @override
+  void onInferredType(DartType type) {
+    fieldType = type;
   }
 
   DartType get builtType => fieldType;
@@ -507,6 +530,11 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
     library.checkTypesInField(this, typeEnvironment);
+  }
+
+  @override
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+    return 0;
   }
 }
 
@@ -568,10 +596,6 @@ abstract class FieldEncoding {
   /// Returns a list of the setters created by this field encoding.
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder);
 
-  /// Ensures that the signatures all members created by this field encoding
-  /// are fully typed.
-  void completeSignature(CoreTypes coreTypes);
-
   /// Returns `true` if this encoding is a late lowering.
   bool get isLateLowering;
 }
@@ -631,9 +655,6 @@ class RegularFieldEncoding implements FieldEncoding {
   void set type(DartType value) {
     _field.type = value;
   }
-
-  @override
-  void completeSignature(CoreTypes coreTypes) {}
 
   @override
   void createBodies(CoreTypes coreTypes, Expression? initializer) {
@@ -875,11 +896,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void completeSignature(CoreTypes coreTypes) {
-    _lateIsSetField?.type = coreTypes.boolRawType(Nullability.nonNullable);
-  }
-
-  @override
   void createBodies(CoreTypes coreTypes, Expression? initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
@@ -899,6 +915,10 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
     _lateGetter.function.body = _createGetterBody(coreTypes, name, initializer)
       ..parent = _lateGetter.function;
+    // The initializer is copied from [_field] to [_lateGetter] so we copy the
+    // transformer flags to reflect whether the getter contains super calls.
+    _lateGetter.transformerFlags = _field.transformerFlags;
+
     if (_lateSetter != null) {
       _lateSetter!.function.body = _createSetterBody(
           coreTypes, name, _lateSetter!.function.positionalParameters.first)
@@ -1004,10 +1024,10 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   void set type(DartType value) {
-    assert(_type == null || _type is ImplicitFieldType,
+    assert(_type == null || _type is InferredType,
         "Type has already been computed for field $name.");
     _type = value;
-    if (value is! ImplicitFieldType) {
+    if (value is! InferredType) {
       _field.type = value.withDeclaredNullability(Nullability.nullable);
       _lateGetter.function.returnType = value;
       if (_lateSetter != null) {
@@ -1074,7 +1094,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       _lateIsSetField!
         ..isStatic = !isInstanceMember
         ..isStatic = _field.isStatic
-        ..isExtensionMember = isExtensionMember;
+        ..isExtensionMember = isExtensionMember
+        ..type = libraryBuilder.loader
+            .createCoreType('bool', Nullability.nonNullable);
       updatePrivateMemberName(_lateIsSetField!, libraryBuilder);
     }
     _lateGetter
@@ -1642,10 +1664,10 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
 
   @override
   void set type(DartType value) {
-    assert(_type == null || _type is ImplicitFieldType,
+    assert(_type == null || _type is InferredType,
         "Type has already been computed for field ${_fieldBuilder.name}.");
     _type = value;
-    if (value is! ImplicitFieldType) {
+    if (value is! InferredType) {
       if (_isExtensionInstanceMember) {
         SourceExtensionBuilder extensionBuilder =
             _fieldBuilder.parent as SourceExtensionBuilder;
@@ -1695,9 +1717,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       }
     }
   }
-
-  @override
-  void completeSignature(CoreTypes coreTypes) {}
 
   @override
   void createBodies(CoreTypes coreTypes, Expression? initializer) {

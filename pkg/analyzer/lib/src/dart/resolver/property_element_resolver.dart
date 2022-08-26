@@ -18,16 +18,18 @@ import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
-class PropertyElementResolver {
+class PropertyElementResolver with ScopeHelpers {
   final ResolverVisitor _resolver;
 
   PropertyElementResolver(this._resolver);
 
-  LibraryElement get _definingLibrary => _resolver.definingLibrary;
+  @override
+  ErrorReporter get errorReporter => _resolver.errorReporter;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  LibraryElement get _definingLibrary => _resolver.definingLibrary;
 
   ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
 
@@ -68,7 +70,7 @@ class PropertyElementResolver {
     }
 
     var targetType = target.typeOrThrow;
-    targetType = _resolveTypeParameter(targetType);
+    targetType = _typeSystem.resolveToBound(targetType);
 
     if (targetType.isVoid) {
       // TODO(scheglov) Report directly in TypePropertyResolver?
@@ -81,7 +83,7 @@ class PropertyElementResolver {
 
     if (identical(targetType, NeverTypeImpl.instance)) {
       // TODO(scheglov) Report directly in TypePropertyResolver?
-      _errorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         HintCode.RECEIVER_OF_TYPE_NEVER,
         target,
       );
@@ -214,10 +216,18 @@ class PropertyElementResolver {
       );
     }
 
+    final scopeLookupResult = node.scopeLookupResult!;
+    reportDeprecatedExportUse(
+      scopeLookupResult: scopeLookupResult,
+      node: node,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
+
     Element? readElementRequested;
     Element? readElementRecovery;
     if (hasRead) {
-      var readLookup = LexicalLookup.resolveGetter(node.scopeLookupResult!) ??
+      var readLookup = LexicalLookup.resolveGetter(scopeLookupResult) ??
           _resolver.thisLookupGetter(node);
       readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
       if (readElementRequested is PropertyAccessorElement &&
@@ -231,12 +241,12 @@ class PropertyElementResolver {
     Element? writeElementRequested;
     Element? writeElementRecovery;
     if (hasWrite) {
-      var writeLookup = LexicalLookup.resolveSetter(node.scopeLookupResult!) ??
+      var writeLookup = LexicalLookup.resolveSetter(scopeLookupResult) ??
           _resolver.thisLookupSetter(node);
       writeElementRequested = _resolver.toLegacyElement(writeLookup?.requested);
       writeElementRecovery = _resolver.toLegacyElement(writeLookup?.recovery);
 
-      AssignmentVerifier(_resolver.definingLibrary, _errorReporter).verify(
+      AssignmentVerifier(_resolver.definingLibrary, errorReporter).verify(
         node: node,
         requested: writeElementRequested,
         recovery: writeElementRecovery,
@@ -261,7 +271,7 @@ class PropertyElementResolver {
   ) {
     if (element.isStatic) return false;
 
-    _errorReporter.reportErrorForNode(
+    errorReporter.reportErrorForNode(
       CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
       identifier,
       [identifier.name],
@@ -276,7 +286,7 @@ class PropertyElementResolver {
   ) {
     if (element != null && element.isStatic) {
       if (target is ExtensionOverride) {
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
           propertyName,
         );
@@ -296,7 +306,7 @@ class PropertyElementResolver {
           // It is safe to assume that `enclosingElement.name` is non-`null`
           // because it can only be `null` for extensions, and we handle that
           // case above.
-          _errorReporter.reportErrorForNode(
+          errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
               propertyName, [
             propertyName.name,
@@ -326,7 +336,7 @@ class PropertyElementResolver {
   }
 
   bool _isAccessible(ExecutableElement element) {
-    return element.isAccessibleIn(_definingLibrary);
+    return element.isAccessibleIn2(_definingLibrary);
   }
 
   void _reportUnresolvedIndex(
@@ -339,7 +349,7 @@ class PropertyElementResolver {
     var offset = leftBracket.offset;
     var length = rightBracket.end - offset;
 
-    _errorReporter.reportErrorForOffset(errorCode, offset, length, arguments);
+    errorReporter.reportErrorForOffset(errorCode, offset, length, arguments);
   }
 
   PropertyElementResolverResult _resolve({
@@ -408,7 +418,7 @@ class PropertyElementResolver {
     }
 
     if (targetType.isVoid) {
-      _errorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
         propertyName,
       );
@@ -424,13 +434,13 @@ class PropertyElementResolver {
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
       if (hasRead) {
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE,
           propertyName,
           [propertyName.name, target.type.name.name],
         );
       } else {
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE,
           propertyName,
           [propertyName.name, target.type.name.name],
@@ -457,7 +467,7 @@ class PropertyElementResolver {
     if (hasRead) {
       _checkForStaticMember(target, propertyName, result.getter);
       if (result.needsGetterError) {
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_GETTER,
           propertyName,
           [propertyName.name, targetType],
@@ -468,7 +478,7 @@ class PropertyElementResolver {
     if (hasWrite) {
       _checkForStaticMember(target, propertyName, result.setter);
       if (result.needsSetterError) {
-        AssignmentVerifier(_definingLibrary, _errorReporter).verify(
+        AssignmentVerifier(_definingLibrary, errorReporter).verify(
           node: propertyName,
           requested: null,
           recovery: result.getter,
@@ -521,7 +531,7 @@ class PropertyElementResolver {
         var code = typeReference.isEnum
             ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
             : CompileTimeErrorCode.UNDEFINED_GETTER;
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           code,
           propertyName,
           [propertyName.name, typeReference.name],
@@ -536,7 +546,7 @@ class PropertyElementResolver {
       if (writeElement != null) {
         writeElement = _resolver.toLegacyElement(writeElement);
         if (!_isAccessible(writeElement)) {
-          _errorReporter.reportErrorForNode(
+          errorReporter.reportErrorForNode(
             CompileTimeErrorCode.PRIVATE_SETTER,
             propertyName,
             [propertyName.name],
@@ -549,7 +559,7 @@ class PropertyElementResolver {
       } else {
         // Recovery, try to use getter.
         writeElementRecovery = typeReference.getGetter(propertyName.name);
-        AssignmentVerifier(_definingLibrary, _errorReporter).verify(
+        AssignmentVerifier(_definingLibrary, errorReporter).verify(
           node: propertyName,
           requested: null,
           recovery: writeElementRecovery,
@@ -584,7 +594,7 @@ class PropertyElementResolver {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `extension.name` is non-`null`.
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
           propertyName,
           [memberName, extension.name!],
@@ -604,7 +614,7 @@ class PropertyElementResolver {
       writeElement = extension.getSetter(memberName);
 
       if (writeElement == null) {
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           // This method is only called for extension overrides, and extension
           // overrides can only refer to named extensions.  So it is safe to
           // assume that `extension.name` is non-`null`.
@@ -637,7 +647,7 @@ class PropertyElementResolver {
   }) {
     if (target.parent is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
-      _errorReporter.reportErrorForNode(
+      errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
         target.extensionName,
       );
@@ -655,7 +665,7 @@ class PropertyElementResolver {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
           propertyName,
           [memberName, element.name!],
@@ -671,7 +681,7 @@ class PropertyElementResolver {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
           propertyName,
           [memberName, element.name!],
@@ -694,6 +704,12 @@ class PropertyElementResolver {
     required bool forAnnotation,
   }) {
     var lookupResult = target.scope.lookup(identifier.name);
+    reportDeprecatedExportUse(
+      scopeLookupResult: lookupResult,
+      node: identifier,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
 
     var readElement = _resolver.toLegacyElement(lookupResult.getter);
     var writeElement = _resolver.toLegacyElement(lookupResult.setter);
@@ -704,7 +720,7 @@ class PropertyElementResolver {
             prefix: target.name,
             name: identifier.name,
           )) {
-        _errorReporter.reportErrorForNode(
+        errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
           identifier,
           [identifier.name, target.name],
@@ -751,13 +767,13 @@ class PropertyElementResolver {
           readElement =
               _resolver.inheritance.getInherited2(targetType.element, name);
           if (readElement != null) {
-            _errorReporter.reportErrorForNode(
+            errorReporter.reportErrorForNode(
               CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
               propertyName,
               [readElement.kind.displayName, propertyName.name],
             );
           } else {
-            _errorReporter.reportErrorForNode(
+            errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_SUPER_GETTER,
               propertyName,
               [propertyName.name, targetType],
@@ -793,13 +809,13 @@ class PropertyElementResolver {
             inherited: true,
           );
           if (writeElement != null) {
-            _errorReporter.reportErrorForNode(
+            errorReporter.reportErrorForNode(
               CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
               propertyName,
               [writeElement.kind.displayName, propertyName.name],
             );
           } else {
-            _errorReporter.reportErrorForNode(
+            errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_SUPER_SETTER,
               propertyName,
               [propertyName.name, targetType],
@@ -813,15 +829,6 @@ class PropertyElementResolver {
       readElementRequested: readElement,
       writeElementRequested: writeElement,
     );
-  }
-
-  /// If the given [type] is a type parameter, replace with its bound.
-  /// Otherwise, return the original type.
-  DartType _resolveTypeParameter(DartType type) {
-    if (type is TypeParameterType) {
-      return type.resolveToBound(_resolver.typeProvider.objectType);
-    }
-    return type;
   }
 
   PropertyElementResolverResult _toIndexResult(ResolutionResult result) {

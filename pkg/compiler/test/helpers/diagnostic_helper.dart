@@ -8,7 +8,8 @@ library dart2js.test.diagnostic_helper;
 
 import 'dart:collection';
 
-import 'package:compiler/compiler.dart' show CompilerDiagnostics, Diagnostic;
+import 'package:compiler/compiler_api.dart' as api
+    show CompilerDiagnostics, Diagnostic;
 import 'package:compiler/src/diagnostics/messages.dart'
     show Message, MessageKind;
 import 'package:expect/expect.dart';
@@ -19,7 +20,7 @@ class CollectedMessage {
   final int begin;
   final int end;
   final String text;
-  final Diagnostic kind;
+  final api.Diagnostic kind;
 
   CollectedMessage(
       this.message, this.uri, this.begin, this.end, this.text, this.kind);
@@ -33,47 +34,47 @@ class CollectedMessage {
   }
 }
 
-class DiagnosticCollector implements CompilerDiagnostics {
+class DiagnosticCollector implements api.CompilerDiagnostics {
   List<CollectedMessage> messages = <CollectedMessage>[];
 
   @override
   void report(covariant Message message, Uri uri, int begin, int end,
-      String text, Diagnostic kind) {
+      String text, api.Diagnostic kind) {
     messages.add(new CollectedMessage(message, uri, begin, end, text, kind));
   }
 
-  Iterable<CollectedMessage> filterMessagesByKinds(List<Diagnostic> kinds) {
+  Iterable<CollectedMessage> filterMessagesByKinds(List<api.Diagnostic> kinds) {
     return messages
         .where((CollectedMessage message) => kinds.contains(message.kind));
   }
 
   Iterable<CollectedMessage> get errors {
-    return filterMessagesByKinds([Diagnostic.ERROR]);
+    return filterMessagesByKinds([api.Diagnostic.ERROR]);
   }
 
   Iterable<CollectedMessage> get warnings {
-    return filterMessagesByKinds([Diagnostic.WARNING]);
+    return filterMessagesByKinds([api.Diagnostic.WARNING]);
   }
 
   Iterable<CollectedMessage> get hints {
-    return filterMessagesByKinds([Diagnostic.HINT]);
+    return filterMessagesByKinds([api.Diagnostic.HINT]);
   }
 
   Iterable<CollectedMessage> get infos {
-    return filterMessagesByKinds([Diagnostic.INFO]);
+    return filterMessagesByKinds([api.Diagnostic.INFO]);
   }
 
   Iterable<CollectedMessage> get crashes {
-    return filterMessagesByKinds([Diagnostic.CRASH]);
+    return filterMessagesByKinds([api.Diagnostic.CRASH]);
   }
 
   Iterable<CollectedMessage> get verboseInfos {
-    return filterMessagesByKinds([Diagnostic.VERBOSE_INFO]);
+    return filterMessagesByKinds([api.Diagnostic.VERBOSE_INFO]);
   }
 
   /// `true` if non-verbose messages has been collected.
   bool get hasRegularMessages {
-    return messages.any((m) => m.kind != Diagnostic.VERBOSE_INFO);
+    return messages.any((m) => m.kind != api.Diagnostic.VERBOSE_INFO);
   }
 
   void clear() {
@@ -83,10 +84,10 @@ class DiagnosticCollector implements CompilerDiagnostics {
   void checkMessages(List<Expected> expectedMessages) {
     int index = 0;
     Iterable<CollectedMessage> messages = filterMessagesByKinds([
-      Diagnostic.ERROR,
-      Diagnostic.WARNING,
-      Diagnostic.HINT,
-      Diagnostic.INFO
+      api.Diagnostic.ERROR,
+      api.Diagnostic.WARNING,
+      api.Diagnostic.HINT,
+      api.Diagnostic.INFO
     ]);
     for (CollectedMessage message in messages) {
       if (index >= expectedMessages.length) {
@@ -106,21 +107,21 @@ class DiagnosticCollector implements CompilerDiagnostics {
 
 class Expected {
   final MessageKind messageKind;
-  final Diagnostic diagnosticKind;
+  final api.Diagnostic diagnosticKind;
 
   const Expected(this.messageKind, this.diagnosticKind);
 
   const Expected.error(MessageKind messageKind)
-      : this(messageKind, Diagnostic.ERROR);
+      : this(messageKind, api.Diagnostic.ERROR);
 
   const Expected.warning(MessageKind messageKind)
-      : this(messageKind, Diagnostic.WARNING);
+      : this(messageKind, api.Diagnostic.WARNING);
 
   const Expected.hint(MessageKind messageKind)
-      : this(messageKind, Diagnostic.HINT);
+      : this(messageKind, api.Diagnostic.HINT);
 
   const Expected.info(MessageKind messageKind)
-      : this(messageKind, Diagnostic.INFO);
+      : this(messageKind, api.Diagnostic.INFO);
 }
 
 void compareWarningKinds(String text, List expectedWarnings,

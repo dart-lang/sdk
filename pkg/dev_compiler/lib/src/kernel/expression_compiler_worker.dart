@@ -6,8 +6,9 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show stdin, stdout;
 import 'dart:isolate';
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';

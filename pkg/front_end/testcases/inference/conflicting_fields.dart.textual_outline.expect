@@ -1,11 +1,10 @@
-// @dart = 2.9
 class A {
   dynamic field1;
-  int field2;
+  int? field2;
 }
 
 class I {
-  int field1;
+  int? field1;
   dynamic field2;
 }
 

@@ -877,8 +877,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         // the SO_ERROR option at level SOL_SOCKET to determine whether
         // connect() completed successfully (SO_ERROR is zero) or
         // unsuccessfully.
-        final OSError osError = socket.nativeGetError();
-        if (osError.errorCode != 0) {
+        final osError = socket.nativeGetError();
+        if (osError != null) {
           socket.close();
           error ??= osError;
           connectNext();
@@ -1404,8 +1404,16 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
         if (i == errorEvent) {
           if (!isClosing) {
-            final err = nativeGetError();
-            reportError(err, null, err.message);
+            final osError = nativeGetError();
+            if (osError != null) {
+              reportError(osError, null, osError.message);
+            } else {
+              reportError(
+                  Error(),
+                  StackTrace.current,
+                  "Error event raised in event handler : "
+                  "error condition has been reset");
+            }
           }
         } else if (!isClosed) {
           // If the connection is closed right after it's accepted, there's a
@@ -1688,7 +1696,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   @pragma("vm:external-name", "Socket_GetFD")
   external int get fd;
   @pragma("vm:external-name", "Socket_GetError")
-  external OSError nativeGetError();
+  external OSError? nativeGetError();
   @pragma("vm:external-name", "Socket_GetOption")
   external nativeGetOption(int option, int protocol);
   @pragma("vm:external-name", "Socket_GetRawOption")
@@ -1703,6 +1711,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   @pragma("vm:external-name", "Socket_LeaveMulticast")
   external void nativeLeaveMulticast(
       Uint8List addr, Uint8List? interfaceAddr, int interfaceIndex);
+  @pragma("vm:external-name", "Socket_Fatal")
+  external static void _nativeFatal(msg);
 }
 
 class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
@@ -2537,6 +2547,7 @@ Datagram _makeDatagram(
 }
 
 @patch
+@pragma("vm:entry-point")
 class ResourceHandle {
   factory ResourceHandle.fromFile(RandomAccessFile file) {
     int fd = (file as _RandomAccessFile).fd;

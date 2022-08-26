@@ -75,8 +75,10 @@ def LinksForGitCLFormat():
 
 def main(argv):
     arch_id = platform.machine()
-    # Don't try to download binaries if we're on an arm machine.
-    if arch_id.startswith('arm') or arch_id.startswith('aarch64'):
+    # Don't try to download binaries if we're on an arm machine unless it is a
+    # Mac arm machine because the x64 binaries work using rossetta translation.
+    if ((arch_id.startswith('arm') and sys.platform != 'darwin') or
+            arch_id.startswith('aarch64')):
         print('Not downloading buildtools binaries for ' + arch_id)
         return 0
     if sys.platform.startswith('win'):

@@ -37,7 +37,7 @@ class ImpliedType {
 class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
   Map<String, ImpliedType> impliedTypes = <String, ImpliedType>{};
 
-  _ImpliedTypesVisitor(Api api) : super(api);
+  _ImpliedTypesVisitor(super.api);
 
   void storeType(String name, String? nameSuffix, TypeDecl? type, String kind,
       ApiNode apiNode) {

@@ -1,4 +1,4 @@
-library export;
+library export /*isNonNullableByDefault*/;
 import self as self;
 import "foo.dart" as foo;
 additionalExports = (foo::foo)
@@ -6,7 +6,7 @@ additionalExports = (foo::foo)
 export "org-dartlang-testcase:///foo.dart";
 
 
-library foo;
+library foo /*isNonNullableByDefault*/;
 import self as foo;
 import "dart:core" as core;
 

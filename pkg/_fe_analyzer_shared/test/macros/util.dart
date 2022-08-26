@@ -12,54 +12,33 @@ import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
 
-class FakeClassIntrospector extends Fake implements ClassIntrospector {}
+class FakeTypeIntrospector extends Fake implements TypeIntrospector {}
 
-class TestClassIntrospector implements ClassIntrospector {
-  final Map<ClassDeclaration, List<ConstructorDeclaration>> constructors;
-  final Map<ClassDeclaration, List<FieldDeclaration>> fields;
-  final Map<ClassDeclaration, List<ClassDeclarationImpl>> interfaces;
-  final Map<ClassDeclaration, List<ClassDeclarationImpl>> mixins;
-  final Map<ClassDeclaration, List<MethodDeclaration>> methods;
-  final Map<ClassDeclaration, ClassDeclaration?> superclass;
+class TestTypeIntrospector implements TypeIntrospector {
+  final Map<IntrospectableType, List<ConstructorDeclaration>> constructors;
+  final Map<IntrospectableType, List<FieldDeclaration>> fields;
+  final Map<IntrospectableType, List<MethodDeclaration>> methods;
 
-  TestClassIntrospector({
+  TestTypeIntrospector({
     required this.constructors,
     required this.fields,
-    required this.interfaces,
-    required this.mixins,
     required this.methods,
-    required this.superclass,
   });
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
-          covariant ClassDeclaration clazz) async =>
+          covariant IntrospectableType clazz) async =>
       constructors[clazz]!;
 
   @override
   Future<List<FieldDeclaration>> fieldsOf(
-          covariant ClassDeclaration clazz) async =>
+          covariant IntrospectableType clazz) async =>
       fields[clazz]!;
 
   @override
-  Future<List<ClassDeclaration>> interfacesOf(
-          covariant ClassDeclaration clazz) async =>
-      interfaces[clazz]!;
-
-  @override
   Future<List<MethodDeclaration>> methodsOf(
-          covariant ClassDeclaration clazz) async =>
+          covariant IntrospectableType clazz) async =>
       methods[clazz]!;
-
-  @override
-  Future<List<ClassDeclaration>> mixinsOf(
-          covariant ClassDeclaration clazz) async =>
-      mixins[clazz]!;
-
-  @override
-  Future<ClassDeclaration?> superclassOf(
-          covariant ClassDeclaration clazz) async =>
-      superclass[clazz];
 }
 
 class FakeIdentifierResolver extends Fake implements IdentifierResolver {}
@@ -73,9 +52,11 @@ class TestTypeDeclarationResolver implements TypeDeclarationResolver {
   TestTypeDeclarationResolver(this.typeDeclarations);
 
   @override
-  Future<TypeDeclaration> declarationOf(
-          covariant Identifier identifier) async =>
-      typeDeclarations[identifier]!;
+  Future<TypeDeclaration> declarationOf(covariant Identifier identifier) async {
+    var declaration = typeDeclarations[identifier];
+    if (declaration != null) return declaration;
+    throw 'No declaration found for ${identifier.name}';
+  }
 }
 
 class TestTypeResolver implements TypeResolver {
@@ -133,17 +114,13 @@ class TestIdentifier extends IdentifierImpl {
   final ResolvedIdentifier resolved;
 
   TestIdentifier({
-    required int id,
-    required String name,
+    required super.id,
+    required super.name,
     required IdentifierKind kind,
     required Uri uri,
     required String? staticScope,
-  })  : resolved = ResolvedIdentifier(
-            kind: kind, name: name, staticScope: staticScope, uri: uri),
-        super(
-          id: id,
-          name: name,
-        );
+  }) : resolved = ResolvedIdentifier(
+            kind: kind, name: name, staticScope: staticScope, uri: uri);
 }
 
 extension DebugCodeString on Code {
@@ -355,7 +332,7 @@ class Fixtures {
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyClass'),
       isNullable: false,
       typeArguments: const []);
-  static final myClass = ClassDeclarationImpl(
+  static final myClass = IntrospectableClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myClassType.identifier,
       typeParameters: [],
@@ -446,28 +423,23 @@ class Fixtures {
         TestNamedStaticType(stringType.identifier, 'dart:core', []),
     myClass.identifier: myClassStaticType,
   });
-  static final testClassIntrospector = TestClassIntrospector(
+  static final testTypeIntrospector = TestTypeIntrospector(
     constructors: {
       myClass: [myConstructor],
     },
     fields: {
       myClass: [myField],
     },
-    interfaces: {
-      myClass: [myInterface],
-    },
     methods: {
       myClass: [myMethod],
     },
-    mixins: {
-      myClass: [myMixin],
-    },
-    superclass: {
-      myClass: mySuperclass,
-    },
   );
-  static final testTypeDeclarationResolver =
-      TestTypeDeclarationResolver({myClass.identifier: myClass});
+  static final testTypeDeclarationResolver = TestTypeDeclarationResolver({
+    myClass.identifier: myClass,
+    mySuperclass.identifier: mySuperclass,
+    myInterface.identifier: myInterface,
+    myMixin.identifier: myMixin
+  });
 
   static final testTypeInferrer = TestTypeInferrer();
 }

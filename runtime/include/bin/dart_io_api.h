@@ -41,6 +41,12 @@ void SetExecutableArguments(int script_index, char** argv);
 // Set dart:io implementation specific fields of Dart_EmbedderInformation.
 void GetIOEmbedderInformation(Dart_EmbedderInformation* info);
 
+// Appropriate to assign to Dart_InitializeParams.file_open/read/write/close.
+void* OpenFile(const char* name, bool write);
+void ReadFile(uint8_t** data, intptr_t* file_len, void* stream);
+void WriteFile(const void* buffer, intptr_t num_bytes, void* stream);
+void CloseFile(void* stream);
+
 // Generates 'length' random bytes into 'buffer'. Returns true on success
 // and false on failure. This is appropriate to assign to
 // Dart_InitializeParams.entropy_source.

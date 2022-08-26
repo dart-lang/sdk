@@ -431,7 +431,7 @@ class _MyWidgetState extends State<_MyWidget> {
   Future<void> test_notClass() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-/*caret*/main() {}
+/*caret*/void f() {}
 ''');
     await assertNoAssist();
   }
@@ -501,34 +501,6 @@ class _MyWidgetState extends State<MyWidget> {
         Text('${widget.bbb}'),
       ],
     );
-  }
-}
-''');
-  }
-
-  Future<void> test_tail() async {
-    await resolveTestCode(r'''
-import 'package:flutter/material.dart';
-
-class /*caret*/MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-''');
-    await assertHasAssist(r'''
-import 'package:flutter/material.dart';
-
-class MyWidget extends StatefulWidget {
-  @override
-  State<MyWidget> createState() => _MyWidgetState();
-}
-
-class _MyWidgetState extends State<MyWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }
 ''');

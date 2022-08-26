@@ -1,4 +1,3 @@
-// @dart = 2.9
 class C {
   call(x) => 42;
   m(x) => this(x);

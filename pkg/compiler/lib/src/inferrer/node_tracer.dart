@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
@@ -9,7 +11,7 @@ import '../elements/entities.dart';
 import '../util/util.dart' show Setlet;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
-import 'inferrer_engine.dart';
+import 'engine.dart';
 import 'type_graph_nodes.dart';
 
 // A set of selectors we know do not escape the elements inside the

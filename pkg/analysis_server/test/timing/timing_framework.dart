@@ -147,7 +147,8 @@ abstract class TimingTest extends IntegrationTestMixin {
       serverConnected.complete();
     });
     skipShutdown = true;
-    return server.start(/*profileServer: true*/).then((_) {
+    var dartSdkPath = dirname(dirname(Platform.resolvedExecutable));
+    return server.start(dartSdkPath: dartSdkPath).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;

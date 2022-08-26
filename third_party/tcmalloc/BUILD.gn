@@ -128,8 +128,6 @@ source_set("tcmalloc") {
               "gperftools/src/fake_stacktrace_scope.cc",
 
               # Not using the cpuprofiler
-              "gperftools/src/base/thread_lister.c",
-              "gperftools/src/base/thread_lister.h",
               "gperftools/src/profile-handler.cc",
               "gperftools/src/profile-handler.h",
               "gperftools/src/profiledata.cc",

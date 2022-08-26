@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'dart:async';
+
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 /// The abstract class [LspServerCommunicationChannel] defines the behavior of
@@ -20,7 +22,7 @@ abstract class LspServerCommunicationChannel {
   /// the socket, invoke the [onError] function. If the socket is closed by the
   /// client, invoke the [onDone] function.
   /// Only one listener is allowed per channel.
-  void listen(void Function(Message message) onMessage,
+  StreamSubscription<void> listen(void Function(Message message) onMessage,
       {Function onError, void Function() onDone});
 
   /// Send the given [notification] to the client.

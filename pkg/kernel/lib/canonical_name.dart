@@ -5,6 +5,7 @@
 library kernel.canonical_name;
 
 import 'ast.dart';
+import 'src/printer.dart' show AstPrinter, AstTextStrategy;
 
 /// A string sequence that identifies a library, class, or member.
 ///
@@ -284,6 +285,16 @@ class CanonicalName {
     return "${parent!.toStringInternal()}::$name";
   }
 
+  String toText(AstTextStrategy strategy) {
+    AstPrinter printer = new AstPrinter(strategy);
+    toTextInternal(printer);
+    return printer.getText();
+  }
+
+  void toTextInternal(AstPrinter printer) {
+    printer.writeQualifiedCanonicalNameToString(this);
+  }
+
   Reference get reference {
     return _reference ??= (new Reference()..canonicalName = this);
   }
@@ -460,6 +471,21 @@ class Reference {
   @override
   String toString() {
     return "Reference to ${toStringInternal()}";
+  }
+
+  String toText(AstTextStrategy strategy) {
+    AstPrinter printer = new AstPrinter(strategy);
+    toTextInternal(printer);
+    return printer.getText();
+  }
+
+  void toTextInternal(AstPrinter printer) {
+    if (node != null) {
+      return node!.toTextInternal(printer);
+    }
+    if (canonicalName != null) {
+      return canonicalName!.toTextInternal(printer);
+    }
   }
 
   String toStringInternal() {

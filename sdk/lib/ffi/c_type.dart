@@ -21,6 +21,7 @@ part of dart.ffi;
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint8(),
   Abi.androidArm64: Uint8(),
@@ -57,6 +58,7 @@ class Char extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Int8(),
   Abi.androidArm64: Int8(),
@@ -93,6 +95,7 @@ class SignedChar extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint8(),
   Abi.androidArm64: Uint8(),
@@ -129,6 +132,7 @@ class UnsignedChar extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Int16(),
   Abi.androidArm64: Int16(),
@@ -165,6 +169,7 @@ class Short extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint16(),
   Abi.androidArm64: Uint16(),
@@ -201,6 +206,7 @@ class UnsignedShort extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Int32(),
   Abi.androidArm64: Int32(),
@@ -237,6 +243,7 @@ class Int extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint32(),
   Abi.androidArm64: Uint32(),
@@ -274,6 +281,7 @@ class UnsignedInt extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Int32(),
   Abi.androidArm64: Int64(),
@@ -311,6 +319,7 @@ class Long extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint32(),
   Abi.androidArm64: Uint64(),
@@ -347,6 +356,7 @@ class UnsignedLong extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Int64(),
   Abi.androidArm64: Int64(),
@@ -383,6 +393,7 @@ class LongLong extends AbiSpecificInteger {
 /// in Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint64(),
   Abi.androidArm64: Uint64(),
@@ -447,6 +458,7 @@ class IntPtr extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint32(),
   Abi.androidArm64: Uint64(),
@@ -479,6 +491,7 @@ class UintPtr extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint32(),
   Abi.androidArm64: Uint64(),
@@ -514,6 +527,7 @@ class Size extends AbiSpecificInteger {
 /// Dart code.
 /// It occurs only in native type signatures and as annotation on [Struct] and
 /// [Union] fields.
+@Since('2.17')
 @AbiSpecificIntegerMapping({
   Abi.androidArm: Uint32(),
   Abi.androidArm64: Uint32(),

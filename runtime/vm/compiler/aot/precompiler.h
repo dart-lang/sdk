@@ -210,6 +210,37 @@ class TypeArgumentsKeyValueTrait {
 
 typedef DirectChainedHashMap<TypeArgumentsKeyValueTrait> TypeArgumentsSet;
 
+class ProgramElementKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Object* Key;
+  typedef const Object* Value;
+  typedef const Object* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline uword Hash(Key key) {
+    if (key->IsFunction()) {
+      return Function::Cast(*key).Hash();
+    } else if (key->IsField()) {
+      return Field::Cast(*key).kernel_offset();
+    } else if (key->IsClass()) {
+      return Class::Cast(*key).kernel_offset();
+    } else if (key->IsLibrary()) {
+      return Library::Cast(*key).index();
+    }
+    FATAL("Unexpected type: %s\n", key->ToCString());
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->ptr() == key->ptr();
+  }
+};
+
+typedef DirectChainedHashMap<ProgramElementKeyValueTrait> ProgramElementSet;
+
 class InstanceKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -321,6 +352,8 @@ class Precompiler : public ValueObject {
   bool IsHitByTableSelector(const Function& function);
   // Returns the reason if the function must be retained, otherwise nullptr.
   const char* MustRetainFunction(const Function& function);
+  void AddApiUse(const Object& obj);
+  bool HasApiUse(const Object& obj);
 
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
@@ -333,12 +366,17 @@ class Precompiler : public ValueObject {
   void ReplaceFunctionStaticCallEntries();
   void DropFunctions();
   void DropFields();
+  void VisitConstantInstance(ObjectPtr instance,
+                             WeakTable* visited,
+                             ObjectStore* object_store);
+  void DropTransitiveUserDefinedConstants();
   void TraceTypesFromRetainedClasses();
   void DropMetadata();
   void DropLibraryEntries();
   void DropClasses();
   void DropLibraries();
   void DiscardCodeObjects();
+  void PruneDictionaries();
 
   DEBUG_ONLY(FunctionPtr FindUnvisitedRetainedFunction());
 
@@ -370,6 +408,7 @@ class Precompiler : public ValueObject {
   intptr_t dropped_functiontype_count_;
   intptr_t dropped_typeparam_count_;
   intptr_t dropped_library_count_;
+  intptr_t dropped_constants_arrays_entries_count_;
 
   compiler::ObjectPoolBuilder global_object_pool_builder_;
   GrowableObjectArray& libraries_;
@@ -388,6 +427,7 @@ class Precompiler : public ValueObject {
   TypeParameterSet typeparams_to_retain_;
   InstanceSet consts_to_retain_;
   TableSelectorSet seen_table_selectors_;
+  ProgramElementSet api_uses_;
   Error& error_;
 
   compiler::DispatchTableGenerator* dispatch_table_generator_;

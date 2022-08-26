@@ -30,9 +30,8 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
-      String _format(AnalysisError e) =>
-          '${e.location.startLine}: ${e.message}';
-      filesErrors[getFile(decoded.file)] = decoded.errors.map(_format).toList();
+      String format(AnalysisError e) => '${e.location.startLine}: ${e.message}';
+      filesErrors[getFile(decoded.file)] = decoded.errors.map(format).toList();
     }
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
       navigationCount++;
@@ -92,20 +91,20 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
         ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
-    var aaa = newFile2('$workspaceRootPath/aaa/lib/aaa.dart', r'''
+    var aaa = newFile('$workspaceRootPath/aaa/lib/aaa.dart', r'''
 void f(int _) {}
 ''');
 
-    var foo = newFile2('$workspaceRootPath/foo/lib/foo.dart', r'''
+    var foo = newFile('$workspaceRootPath/foo/lib/foo.dart', r'''
 import 'package:aaa/aaa.dart';
-void main() {
+void g() {
   f();
 }
 ''');
 
-    var bar = newFile2('$workspaceRootPath/bar/lib/bar.dart', r'''
+    var bar = newFile('$workspaceRootPath/bar/lib/bar.dart', r'''
 import 'package:aaa/aaa.dart';
-void main() {
+void g() {
   f();
 }
 ''');
@@ -168,7 +167,7 @@ void main() {
   }
 
   Future<void> test_overlayOnly() async {
-    var a = newFile2('$testPackageLibPath/a.dart', '');
+    var a = newFile('$testPackageLibPath/a.dart', '');
     var b = getFile('$testPackageLibPath/b.dart');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -207,7 +206,7 @@ void main() {
     // add an overlay
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFile.path: AddContentOverlay('main() {} main() {}'),
+        testFile.path: AddContentOverlay('void f() {} void f() {}'),
       }).toRequest('0'),
     );
     await waitForTasksFinished();
@@ -216,7 +215,7 @@ void main() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: ChangeContentOverlay([
-          SourceEdit(0, 4, 'main'),
+          SourceEdit(5, 1, 'f'),
         ]),
       }).toRequest('0'),
     );
@@ -234,7 +233,7 @@ void main() {
     // add an overlay
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        testFile.path: AddContentOverlay('main() {} main() {}'),
+        testFile.path: AddContentOverlay('void f() {} void f() {}'),
       }).toRequest('0'),
     );
     await waitForTasksFinished();
@@ -243,7 +242,7 @@ void main() {
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         testFile.path: ChangeContentOverlay([
-          SourceEdit(0, 4, 'main'),
+          SourceEdit(5, 1, 'f'),
         ]),
       }).toRequest('0'),
     );

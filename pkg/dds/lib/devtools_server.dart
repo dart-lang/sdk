@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:browser_launcher/browser_launcher.dart';
+import 'package:devtools_shared/devtools_shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart' as shelf;
@@ -291,7 +292,7 @@ class DevToolsServer {
     if (launchBrowser) {
       if (serviceProtocolUri != null) {
         serviceProtocolUri =
-            _normalizeVmServiceUri(serviceProtocolUri).toString();
+            normalizeVmServiceUri(serviceProtocolUri).toString();
       }
 
       final queryParameters = {
@@ -673,24 +674,5 @@ class DevToolsServer {
       5000
     };
     return uri.hasPort && tunneledPorts.contains(uri.port);
-  }
-
-  // TODO(https://github.com/flutter/devtools/issues/3571): move to devtools_shared.
-  // Note: please keep this copy of normalizeVmServiceUri() in sync with the one
-  // in devtools_app.
-  Uri? _normalizeVmServiceUri(String value) {
-    value = value.trim();
-
-    // Cleanup encoded urls likely copied from the uri of an existing running
-    // DevTools app.
-    if (value.contains('%3A%2F%2F')) {
-      value = Uri.decodeFull(value);
-    }
-    final uri = Uri.parse(value.trim()).removeFragment();
-    if (!uri.isAbsolute) {
-      return null;
-    }
-    if (uri.path.endsWith('/')) return uri;
-    return uri.replace(path: uri.path);
   }
 }

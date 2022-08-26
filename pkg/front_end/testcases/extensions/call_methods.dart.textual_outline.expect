@@ -1,4 +1,3 @@
-// @dart = 2.9
 class A {
   String get call => "My name is A";
 }

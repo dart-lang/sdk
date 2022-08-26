@@ -1,8 +1,7 @@
-// @dart = 2.9
 extension Extension on String {
   int get noSuchMethod => 42;
   void set hashCode(int value) {}
-  int runtimeType() {}
+  int runtimeType() => 0;
   operator ==(other) => false;
   static String toString() => 'Foo';
 }

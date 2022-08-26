@@ -20,7 +20,7 @@ abstract class ConstantOrdering {
 class _ConstantOrdering
     implements ConstantOrdering, ConstantValueVisitor<int, ConstantValue> {
   final Sorter _sorter;
-  _DartTypeOrdering _dartTypeOrdering;
+  late _DartTypeOrdering _dartTypeOrdering;
   _ConstantOrdering(this._sorter) {
     _dartTypeOrdering = _DartTypeOrdering(this);
   }
@@ -35,7 +35,7 @@ class _ConstantOrdering
     return a.accept(this, b);
   }
 
-  static int compareLists<S, T>(int compare(S a, T b), List<S> a, List<T> b) {
+  static int compareLists<T>(int compare(T a, T b), List<T> a, List<T> b) {
     int r = a.length.compareTo(b.length);
     if (r != 0) return r;
     for (int i = 0; i < a.length; i++) {
@@ -52,7 +52,7 @@ class _ConstantOrdering
   }
 
   int compareMembers(MemberEntity a, MemberEntity b) {
-    int r = a.name.compareTo(b.name);
+    int r = a.name!.compareTo(b.name!);
     if (r != 0) return r;
     return _sorter.compareMembersByLocation(a, b);
   }
@@ -137,8 +137,8 @@ class _ConstantOrdering
 
     return compareLists(
         compareValues,
-        aFields.map((field) => a.fields[field]).toList(),
-        aFields.map((field) => b.fields[field]).toList());
+        aFields.map((field) => a.fields[field]!).toList(),
+        aFields.map((field) => b.fields[field]!).toList());
   }
 
   @override
@@ -232,7 +232,7 @@ class _DartTypeKindVisitor implements DartTypeVisitor<int, Null> {
 
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   final _ConstantOrdering _constantOrdering;
-  DartType _root;
+  DartType? _root;
   final List<FunctionTypeVariable> _leftFunctionTypeVariables = [];
   final List<FunctionTypeVariable> _rightFunctionTypeVariables = [];
   _DartTypeOrdering(this._constantOrdering);

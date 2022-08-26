@@ -300,4 +300,21 @@ main() {
 
   Expect.equals(d2, -d1);
   Expect.equals(d1, -d2);
+
+  // Regression test for http://dartbug.com/48841
+  d = const Duration(minutes: -1);
+  Expect.equals("-0:01:00.000000", d.toString());
+  d = const Duration(seconds: -1);
+  Expect.equals("-0:00:01.000000", d.toString());
+  d = const Duration(milliseconds: -1);
+  Expect.equals("-0:00:00.001000", d.toString());
+  d = const Duration(microseconds: -1);
+  Expect.equals("-0:00:00.000001", d.toString());
+  d = const Duration(microseconds: -9223372036854775808); // Min 64-bit int.
+  // Not checking precise values, because they will be off on the web.
+  Expect.equals("-2562047788:00:54.775808", d.toString());
+  Expect.isTrue(d.toString().startsWith("-"));
+  Expect.isFalse(d.toString().startsWith("--"));
+  d = const Duration(minutes: -0); // is -0.0 on web.
+  Expect.equals("0:00:00.000000", d.toString());
 }

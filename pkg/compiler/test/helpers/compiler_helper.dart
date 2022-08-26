@@ -7,7 +7,7 @@
 library compiler_helper;
 
 import 'dart:async';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
@@ -103,7 +103,9 @@ Future<String> compile(String code,
   if (check != null) {
     check(generated);
   }
-  return returnAll ? outputCollector.getOutput('', OutputType.js) : generated;
+  return returnAll
+      ? outputCollector.getOutput('', api.OutputType.js)
+      : generated;
 }
 
 Future<String> compileAll(String code,
@@ -140,7 +142,7 @@ Future<String> compileAll(String code,
       result.isSuccess,
       'Unexpected compilation error(s): '
       '${diagnosticCollector.errors}');
-  return outputCollector.getOutput('', OutputType.js);
+  return outputCollector.getOutput('', api.OutputType.js);
 }
 
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";

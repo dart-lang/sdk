@@ -48,40 +48,49 @@ abstract class TypeResolver {
   Future<StaticType> resolve(TypeAnnotationCode type);
 }
 
-/// The api used to introspect on a [ClassDeclaration].
+/// The api used to introspect on any [TypeDeclaration] which also has the
+/// marker interface [IntrospectableType].
 ///
-/// Available in the declaration and definition phases, but limited in the
-/// declaration phase to immediately annotated [ClassDeclaration]s. This is
-/// done by limiting the access to the [TypeDeclarationResolver] to the
-/// definition phase.
-abstract class ClassIntrospector {
-  /// The fields available for [clazz].
+/// Available in the declaration and definition phases.
+abstract class TypeIntrospector {
+  /// The fields available for [type].
   ///
-  /// This may be incomplete if in the declaration phase and additional macros
-  /// are going to run on this class.
-  Future<List<FieldDeclaration>> fieldsOf(covariant ClassDeclaration clazz);
+  /// This may be incomplete if additional declaration macros are going to run
+  /// on [type].
+  Future<List<FieldDeclaration>> fieldsOf(covariant IntrospectableType type);
 
-  /// The methods available so far for the current class.
+  /// The methods available for [type].
   ///
-  /// This may be incomplete if additional declaration macros are running on
-  /// this class.
-  Future<List<MethodDeclaration>> methodsOf(covariant ClassDeclaration clazz);
+  /// This may be incomplete if additional declaration macros are going to run
+  /// on [type].
+  Future<List<MethodDeclaration>> methodsOf(covariant IntrospectableType type);
 
-  /// The constructors available so far for the current class.
+  /// The constructors available for [type].
   ///
-  /// This may be incomplete if additional declaration macros are running on
-  /// this class.
+  /// This may be incomplete if additional declaration macros are going to run
+  /// on [type].
   Future<List<ConstructorDeclaration>> constructorsOf(
-      covariant ClassDeclaration clazz);
+      covariant IntrospectableType type);
+}
 
-  /// The class that is directly extended via an `extends` clause.
-  Future<ClassDeclaration?> superclassOf(covariant ClassDeclaration clazz);
-
-  /// All of the classes that are mixed in with `with` clauses.
-  Future<List<ClassDeclaration>> mixinsOf(covariant ClassDeclaration clazz);
-
-  /// All of the classes that are implemented with an `implements` clause.
-  Future<List<ClassDeclaration>> interfacesOf(covariant ClassDeclaration clazz);
+/// The interface used by [Macro]s to resolve any [Identifier]s pointing to
+/// types to their type declarations.
+///
+/// Only available in the declaration and definition phases of macro expansion.
+abstract class TypeDeclarationResolver {
+  /// Resolves an [identifier] to its [TypeDeclaration].
+  ///
+  /// If [identifier] does not resolve to a [TypeDeclaration], then an
+  /// [ArgumentError] is thrown.
+  ///
+  /// In the declaration phase, this will return [IntrospectableType] instances
+  /// only for those types that are introspectable. Specifically, types are only
+  /// introspectable of the macro is running on a class declaration, and the
+  /// type appears in the type hierarchy of that class.
+  ///
+  /// In the definition phase, this will return [IntrospectableType] instances
+  /// for all type definitions which can have members (ie: not type aliases).
+  Future<TypeDeclaration> declarationOf(covariant Identifier identifier);
 }
 
 /// The api used by [Macro]s to contribute new (non-type)
@@ -89,7 +98,12 @@ abstract class ClassIntrospector {
 ///
 /// Can also be used to do subtype checks on types.
 abstract class DeclarationBuilder
-    implements Builder, IdentifierResolver, TypeResolver, ClassIntrospector {
+    implements
+        Builder,
+        IdentifierResolver,
+        TypeIntrospector,
+        TypeDeclarationResolver,
+        TypeResolver {
   /// Adds a new regular declaration to the surrounding library.
   ///
   /// Note that type declarations are not supported.
@@ -100,18 +114,6 @@ abstract class DeclarationBuilder
 abstract class ClassMemberDeclarationBuilder implements DeclarationBuilder {
   /// Adds a new declaration to the surrounding class.
   void declareInClass(DeclarationCode declaration);
-}
-
-/// The interface used by [Macro]s to resolve any [Identifier]s pointing to
-/// types to their type declarations.
-///
-/// Only available in the definition phase of macro expansion.
-abstract class TypeDeclarationResolver {
-  /// Resolves an [identifier] to its [TypeDeclaration].
-  ///
-  /// If [identifier] does resolve to a [TypeDeclaration], then an
-  /// [ArgumentError] is thrown.
-  Future<TypeDeclaration> declarationOf(covariant Identifier identifier);
 }
 
 /// The interface used by [Macro]s to get the inferred type for an
@@ -133,10 +135,10 @@ abstract class DefinitionBuilder
     implements
         Builder,
         IdentifierResolver,
-        TypeResolver,
-        ClassIntrospector,
+        TypeIntrospector,
         TypeDeclarationResolver,
-        TypeInferrer {}
+        TypeInferrer,
+        TypeResolver {}
 
 /// The apis used by [Macro]s that run on classes, to fill in the definitions
 /// of any external declarations within that class.

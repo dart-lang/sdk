@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 part of masks;
 
 /// A type mask that wraps another one, and delegates all its
@@ -164,8 +166,11 @@ abstract class ForwardingTypeMask extends TypeMask {
 abstract class AllocationTypeMask extends ForwardingTypeMask {
   const AllocationTypeMask();
 
-  // The [ir.Node] where this type mask was created.
-  ir.Node get allocationNode;
+  // The [ir.Node] where this type mask was created. This value is not used
+  // after type inference and therefore does not need to be serialized by
+  // subclasses. Using it outside of type inference may cause an exception to be
+  // thrown.
+  ir.Node /*?*/ get allocationNode;
 
   // The [Entity] where this type mask was created.
   MemberEntity get allocationElement;

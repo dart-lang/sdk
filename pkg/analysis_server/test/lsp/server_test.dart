@@ -4,8 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,6 +20,34 @@ void main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_capturesLatency_afterStartup() async {
+    await initialize(includeClientRequestTime: true);
+    await openFile(mainFileUri, '');
+    await expectLater(
+      getHover(mainFileUri, startOfDocPos),
+      completes,
+    );
+    expect(server.performanceAfterStartup!.latencyCount, isPositive);
+  }
+
+  Future<void> test_capturesLatency_startup() async {
+    await initialize(includeClientRequestTime: true);
+    expect(server.performanceDuringStartup.latencyCount, isPositive);
+  }
+
+  Future<void> test_capturesRequestPerformance() async {
+    await initialize(includeClientRequestTime: true);
+    await openFile(mainFileUri, '');
+    await expectLater(
+      getHover(mainFileUri, startOfDocPos),
+      completes,
+    );
+    final performanceItems = server.recentPerformance.requests.items;
+    final hoverItems = performanceItems.where(
+        (item) => item.operation == Method.textDocument_hover.toString());
+    expect(hoverItems, hasLength(1));
+  }
+
   Future<void> test_inconsistentStateError() async {
     await initialize(
       // Error is expected and checked below.
@@ -31,13 +58,11 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     // client and server are out of sync and we expect the server to shut down.
     final error = await expectErrorNotification(() async {
       await changeFile(222, mainFileUri, [
-        Either2<TextDocumentContentChangeEvent1,
-                TextDocumentContentChangeEvent2>.t1(
-            TextDocumentContentChangeEvent1(
-                range: Range(
-                    start: Position(line: 99, character: 99),
-                    end: Position(line: 99, character: 99)),
-                text: ' ')),
+        TextDocumentContentChangeEvent.t1(TextDocumentContentChangeEvent1(
+            range: Range(
+                start: Position(line: 99, character: 99),
+                end: Position(line: 99, character: 99)),
+            text: ' ')),
       ]);
     });
 

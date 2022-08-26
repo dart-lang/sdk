@@ -1,4 +1,4 @@
-library test;
+library test /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -7,7 +7,7 @@ library test;
 //       ^
 // pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Context: The field 'M.y' has type 'int', which does not match the corresponding type, 'Object', in the overridden setter, 'I.y'.
 //  - 'Object' is from 'dart:core'.
-//   int y;
+//   int y = 0;
 //       ^
 // pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:43:12: Context: This is the overridden method ('y').
 //   void set y(covariant Object value);
@@ -17,79 +17,49 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     ;
-  get x() → core::int*
+  get x() → core::int
     ;
-  set x(core::int* value) → void
+  set x(core::int value) → void
     ;
-  get y() → core::int*
+  get y() → core::int
     ;
-  set y(core::int* value) → void
+  set y(core::int value) → void
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-abstract class I<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::I<self::I::T*>*
+abstract class I<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::T%>
     ;
-  abstract get x() → self::I::T*;
-  abstract set x(covariant-by-class self::I::T* value) → void;
-  abstract get y() → core::Object*;
-  abstract set y(covariant-by-declaration core::Object* value) → void;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract get x() → self::I::T%;
+  abstract set x(covariant-by-class self::I::T% value) → void;
+  abstract get y() → core::Object;
+  abstract set y(covariant-by-declaration core::Object value) → void;
 }
 class M extends core::Object {
-  field core::int* x;
-  field core::int* y;
-  synthetic constructor •() → self::M*
+  field core::int x;
+  field core::int y;
+  synthetic constructor •() → self::M
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class C = self::B with self::M implements self::I<core::int*> {
-  synthetic constructor •() → self::C*
+class C = self::B with self::M implements self::I<core::int> {
+  synthetic constructor •() → self::C
     : super self::B::•()
     ;
-  mixin-super-stub get x() → core::int*
+  mixin-super-stub get x() → core::int
     return super.{self::M::x};
-  forwarding-stub set x(covariant-by-class core::int* value) → void
+  forwarding-stub set x(covariant-by-class core::int value) → void
     return super.{self::M::x} = value;
-  mixin-super-stub get y() → core::int*
+  mixin-super-stub get y() → core::int
     return super.{self::M::y};
-  forwarding-stub set y(covariant-by-declaration core::int* value) → void
+  forwarding-stub set y(covariant-by-declaration core::int value) → void
     return super.{self::M::y} = value;
 }
-static method expectTypeError(() →* void callback) → void
+static method expectTypeError(() → void callback) → void
   ;
-static method expect(core::Object* value, core::Object* expected) → void
+static method expect(core::Object value, core::Object expected) → void
   ;
-static method test(self::I<core::Object*>* i) → void
+static method test(self::I<core::Object> i) → void
   ;
 static method main() → void
   ;

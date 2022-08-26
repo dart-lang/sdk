@@ -12,39 +12,81 @@ import 'package:collection/collection.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
-void computeLibraryCycle(Uint32List salt, FileState file) {
+void computeLibraryCycle(Uint32List salt, LibraryFileStateKind file) {
   var libraryWalker = _LibraryWalker(salt);
   libraryWalker.walk(libraryWalker.getNode(file));
 }
 
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
+  static int _nextId = 0;
+  final int id = _nextId++;
+
   /// The libraries that belong to this cycle.
-  final List<FileState> libraries;
+  final List<LibraryFileStateKind> libraries;
 
   /// The library cycles that this cycle references directly.
   final Set<LibraryCycle> directDependencies;
 
   /// The cycles that use this cycle, used to [invalidate] transitively.
-  final List<LibraryCycle> _directUsers = [];
+  final List<LibraryCycle> directUsers = [];
 
-  /// The transitive signature of this cycle.
+  /// The transitive API signature of this cycle.
   ///
   /// It is based on the API signatures of all files of the [libraries], and
-  /// transitive signatures of the cycles that the [libraries] reference
-  /// directly.  So, indirectly it is based on the transitive closure of all
-  /// files that [libraries] reference (but we don't compute these files).
-  String transitiveSignature;
+  /// API signatures of the cycles that the [libraries] reference directly.
+  /// So, indirectly it is based on API signatures of the transitive closure
+  /// of all files that [libraries] reference.
+  String apiSignature;
+
+  /// The transitive implementation signature of this cycle.
+  ///
+  /// It is based on the full code signatures of all files of the [libraries],
+  /// and full code signatures of the cycles that the [libraries] reference
+  /// directly. So, indirectly it is based on full code signatures of the
+  /// transitive closure of all files that [libraries] reference.
+  ///
+  /// Usually, when a library is imported we need its [apiSignature], because
+  /// its API is all we can see from outside. But if the library contains
+  /// a macro, and we use it, we run full code of the macro defining library,
+  /// potentially executing every method body of the transitive closure of
+  /// the libraries imported by the macro defining library. So, the resulting
+  /// library (that imports a macro defining library) API signature must
+  /// include [implSignature] of the macro defining library.
+  String implSignature;
+
+  late final bool hasMacroClass = () {
+    for (final library in libraries) {
+      for (final file in library.files) {
+        if (file.unlinked2.macroClasses.isNotEmpty) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }();
+
+  /// Set to `true` if this library cycle contains code that might be executed
+  /// by a macro - declares a macro class itself, or is directly or indirectly
+  /// imported into a cycle that declares one.
+  bool mightBeExecutedByMacroClass = false;
 
   LibraryCycle({
     required this.libraries,
     required this.directDependencies,
-    required this.transitiveSignature,
+    required this.apiSignature,
+    required this.implSignature,
   }) {
     for (var directDependency in directDependencies) {
-      directDependency._directUsers.add(this);
+      directDependency.directUsers.add(this);
     }
   }
+
+  /// The key of the linked libraries in the byte store.
+  String get linkedKey => '$apiSignature.linked';
+
+  /// The key of the macro kernel in the byte store.
+  String get macroKey => '$implSignature.macro_kernel';
 
   /// Invalidate this cycle and any cycles that directly or indirectly use it.
   ///
@@ -54,33 +96,60 @@ class LibraryCycle {
     for (var library in libraries) {
       library.internal_setLibraryCycle(null);
     }
-    for (var user in _directUsers.toList()) {
+    for (var user in directUsers.toList()) {
       user.invalidate();
     }
     for (var directDependency in directDependencies) {
-      directDependency._directUsers.remove(this);
+      directDependency.directUsers.remove(this);
+    }
+  }
+
+  /// Mark this cycle and its dependencies are potentially executed by a macro.
+  void markMightBeExecutedByMacroClass() {
+    if (!mightBeExecutedByMacroClass) {
+      mightBeExecutedByMacroClass = true;
+      // Mark each file of the cycle.
+      for (final library in libraries) {
+        for (final file in library.files) {
+          file.mightBeExecutedByMacroClass = true;
+        }
+      }
+      // Recursively mark all dependencies.
+      for (final dependency in directDependencies) {
+        dependency.markMightBeExecutedByMacroClass();
+      }
     }
   }
 
   @override
   String toString() {
-    return '[${libraries.join(', ')}]';
+    return '[$id][${libraries.join(', ')}]';
   }
 }
 
 /// Node in [_LibraryWalker].
 class _LibraryNode extends graph.Node<_LibraryNode> {
   final _LibraryWalker walker;
-  final FileState file;
+  final LibraryFileStateKind kind;
 
-  _LibraryNode(this.walker, this.file);
+  _LibraryNode(this.walker, this.kind);
 
   @override
-  bool get isEvaluated => file.internal_libraryCycle != null;
+  bool get isEvaluated => kind.internal_libraryCycle != null;
 
   @override
   List<_LibraryNode> computeDependencies() {
-    return file.directReferencedLibraries.map(walker.getNode).toList();
+    final referencedLibraries = {
+      ...kind.imports
+          .whereType<ImportDirectiveWithFile>()
+          .map((import) => import.importedLibrary)
+          .whereNotNull(),
+      ...kind.exports
+          .whereType<ExportDirectiveWithFile>()
+          .map((export) => export.exportedLibrary)
+          .whereNotNull(),
+    };
+    return referencedLibraries.map(walker.getNode).toList();
   }
 }
 
@@ -88,7 +157,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final Uint32List _salt;
-  final Map<FileState, _LibraryNode> nodesOfFiles = {};
+  final Map<LibraryFileStateKind, _LibraryNode> nodesOfFiles = {};
 
   _LibraryWalker(this._salt);
 
@@ -99,39 +168,53 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
   @override
   void evaluateScc(List<_LibraryNode> scc) {
-    var signature = ApiSignature();
-    signature.addUint32List(_salt);
+    var apiSignature = ApiSignature();
+    var implSignature = ApiSignature();
+    apiSignature.addUint32List(_salt);
+    implSignature.addUint32List(_salt);
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
-      var firstPath = first.file.path;
-      var secondPath = second.file.path;
+      var firstPath = first.kind.file.path;
+      var secondPath = second.kind.file.path;
       return firstPath.compareTo(secondPath);
     });
 
     // Append direct referenced cycles.
     var directDependencies = <LibraryCycle>{};
     for (var node in scc) {
-      var file = node.file;
       _appendDirectlyReferenced(
         directDependencies,
-        signature,
-        file.directReferencedLibraries.whereNotNull().toList(),
+        apiSignature,
+        implSignature,
+        graph.Node.getDependencies(node),
       );
     }
 
     // Fill the cycle with libraries.
-    var libraries = <FileState>[];
+    var libraries = <LibraryFileStateKind>[];
     for (var node in scc) {
-      libraries.add(node.file);
+      final file = node.kind.file;
+      libraries.add(node.kind);
 
-      signature.addLanguageVersion(node.file.packageLanguageVersion);
-      signature.addString(node.file.uriStr);
+      apiSignature.addLanguageVersion(file.packageLanguageVersion);
+      apiSignature.addString(file.uriStr);
 
-      signature.addInt(node.file.libraryFiles.length);
-      for (var file in node.file.libraryFiles) {
-        signature.addBool(file.exists);
-        signature.addBytes(file.apiSignature);
+      implSignature.addLanguageVersion(file.packageLanguageVersion);
+      implSignature.addString(file.uriStr);
+
+      final libraryFiles = node.kind.files;
+
+      apiSignature.addInt(libraryFiles.length);
+      for (var file in libraryFiles) {
+        apiSignature.addBool(file.exists);
+        apiSignature.addBytes(file.apiSignature);
+      }
+
+      implSignature.addInt(libraryFiles.length);
+      for (var file in libraryFiles) {
+        implSignature.addBool(file.exists);
+        implSignature.addString(file.contentHash);
       }
     }
 
@@ -139,33 +222,45 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     var cycle = LibraryCycle(
       libraries: libraries,
       directDependencies: directDependencies,
-      transitiveSignature: signature.toHex(),
+      apiSignature: apiSignature.toHex(),
+      implSignature: implSignature.toHex(),
     );
+
+    if (cycle.hasMacroClass) {
+      cycle.markMightBeExecutedByMacroClass();
+    }
 
     // Set the instance into the libraries.
     for (var node in scc) {
-      node.file.internal_setLibraryCycle(cycle);
+      node.kind.internal_setLibraryCycle(cycle);
     }
   }
 
-  _LibraryNode getNode(FileState file) {
+  _LibraryNode getNode(LibraryFileStateKind file) {
     return nodesOfFiles.putIfAbsent(file, () => _LibraryNode(this, file));
   }
 
   void _appendDirectlyReferenced(
     Set<LibraryCycle> directDependencies,
-    ApiSignature signature,
-    List<FileState> directlyReferenced,
+    ApiSignature apiSignature,
+    ApiSignature implSignature,
+    List<_LibraryNode> directlyReferenced,
   ) {
-    signature.addInt(directlyReferenced.length);
+    apiSignature.addInt(directlyReferenced.length);
+    implSignature.addInt(directlyReferenced.length);
     for (var referencedLibrary in directlyReferenced) {
-      var referencedCycle = referencedLibrary.internal_libraryCycle;
+      var referencedCycle = referencedLibrary.kind.internal_libraryCycle;
 
       // We get null when the library is a part of the cycle being build.
       if (referencedCycle == null) continue;
 
       if (directDependencies.add(referencedCycle)) {
-        signature.addString(referencedCycle.transitiveSignature);
+        apiSignature.addString(
+          referencedCycle.hasMacroClass
+              ? referencedCycle.implSignature
+              : referencedCycle.apiSignature,
+        );
+        implSignature.addString(referencedCycle.implSignature);
       }
     }
   }

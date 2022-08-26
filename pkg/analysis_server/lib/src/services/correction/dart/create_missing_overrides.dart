@@ -124,7 +124,4 @@ class CreateMissingOverrides extends CorrectionProducer {
     });
     builder.setSelection(Position(file, location.offset));
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static CreateMissingOverrides newInstance() => CreateMissingOverrides();
 }

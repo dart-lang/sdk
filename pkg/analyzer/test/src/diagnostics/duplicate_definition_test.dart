@@ -1556,12 +1556,12 @@ class A {}
   test_unitMembers_part_library() async {
     var libPath = convertPath('$testPackageLibPath/lib.dart');
     var aPath = convertPath('$testPackageLibPath/a.dart');
-    newFile2(libPath, '''
+    newFile(libPath, '''
 part 'a.dart';
 
 class A {}
 ''');
-    newFile2(aPath, '''
+    newFile(aPath, '''
 part of 'lib.dart';
 
 class A {}
@@ -1581,16 +1581,16 @@ class A {}
     var libPath = convertPath('$testPackageLibPath/lib.dart');
     var aPath = convertPath('$testPackageLibPath/a.dart');
     var bPath = convertPath('$testPackageLibPath/b.dart');
-    newFile2(libPath, '''
+    newFile(libPath, '''
 part 'a.dart';
 part 'b.dart';
 ''');
-    newFile2(aPath, '''
+    newFile(aPath, '''
 part of 'lib.dart';
 
 class A {}
 ''');
-    newFile2(bPath, '''
+    newFile(bPath, '''
 part of 'lib.dart';
 
 class A {}

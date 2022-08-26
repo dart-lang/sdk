@@ -195,10 +195,13 @@ class LspResourceClientConfiguration {
   int? get lineLength =>
       _settings['lineLength'] as int? ?? _fallback?.lineLength;
 
-  /// Maximum number of CompletionItems per completion request.
+  /// Requested maximum number of CompletionItems per completion request.
   ///
-  /// If more than this are available, the list is truncated and isIncomplete
-  /// is set to true.
+  /// If more than this are available, ranked items in the list will be
+  /// truncated and `isIncomplete` is set to `true`.
+  ///
+  /// Unranked items are never truncated so it's still possible that more than
+  /// this number of items will be returned.
   int get maxCompletionItems =>
       _settings['maxCompletionItems'] as int? ??
       _fallback?.maxCompletionItems ??
@@ -210,5 +213,17 @@ class LspResourceClientConfiguration {
   /// Values are "always", "prompt", "never". Any other values should be treated
   /// like "never".
   String get renameFilesWithClasses =>
-      _settings['renameFilesWithClasses'] as String? ?? 'never';
+      _settings['renameFilesWithClasses'] as String? ??
+      _fallback?.renameFilesWithClasses ??
+      'never';
+
+  /// Whether to update imports and other directives when files are renamed.
+  ///
+  /// This setting works by controlling whether the server registers for
+  /// `willRenameFiles` requests from the client. Changing the value after
+  /// initialization will register/unregister appropriately.
+  bool get updateImportsOnRename =>
+      _settings['updateImportsOnRename'] as bool? ??
+      _fallback?.updateImportsOnRename ??
+      true;
 }

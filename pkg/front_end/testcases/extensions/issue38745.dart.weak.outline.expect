@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -28,21 +28,11 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class C<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::C<self::C::T*>*
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension ext<T extends core::Object* = dynamic> on self::C<T*>* {
+extension ext<T extends core::Object? = dynamic> on self::C<T%> {
   field field = self::ext|field;
   field property = self::ext|property;
   field property2 = self::ext|property2;
@@ -51,17 +41,17 @@ extension ext<T extends core::Object* = dynamic> on self::C<T*>* {
   set property = self::ext|set#property;
   static set property2 = set self::ext|property2;
 }
-static field core::int* ext|field;
-static final field core::int* ext|property;
-static final field core::int* ext|property2;
-static method ext|set#property<T extends core::Object* = dynamic>(lowered final self::C<self::ext|set#property::T*>* #this, core::int* value) → void
+static field core::int ext|field;
+static final field core::int ext|property;
+static final field core::int ext|property2;
+static method ext|set#property<T extends core::Object? = dynamic>(lowered final self::C<self::ext|set#property::T%> #this, core::int value) → void
   ;
-static set ext|property2(core::int* value) → void
+static set ext|property2(core::int value) → void
   ;
-static method ext|method<T extends core::Object* = dynamic>(lowered final self::C<self::ext|method::T*>* #this) → dynamic
+static method ext|method<T extends core::Object? = dynamic>(lowered final self::C<self::ext|method::T%> #this) → dynamic
   ;
-static method ext|get#method<T extends core::Object* = dynamic>(lowered final self::C<self::ext|get#method::T*>* #this) → () →* dynamic
-  return () → dynamic => self::ext|method<self::ext|get#method::T*>(#this);
+static method ext|get#method<T extends core::Object? = dynamic>(lowered final self::C<self::ext|get#method::T%> #this) → () → dynamic
+  return () → dynamic => self::ext|method<self::ext|get#method::T%>(#this);
 static method main() → dynamic
   ;
 static method errors() → dynamic

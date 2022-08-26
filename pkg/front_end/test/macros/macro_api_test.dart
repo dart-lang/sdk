@@ -4,9 +4,7 @@
 
 import 'dart:io' show Platform;
 
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolatedExecutor;
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
@@ -29,10 +27,7 @@ Future<void> main(List<String> args) async {
     options.explicitExperimentalFlags[ExperimentalFlag.macros] = true;
     options.packagesFileUri = Platform.script.resolve(
         '../../../_fe_analyzer_shared/test/macros/api/package_config.json');
-    options.macroExecutorProvider = () async {
-      return await isolatedExecutor.start(SerializationMode.byteDataServer);
-    };
-    options.precompiledMacroUris = {};
+    options.macroExecutor ??= new MultiMacroExecutor();
     options.target = options.macroTarget = new VmTarget(new TargetFlags());
     options.macroSerializer = macroSerializer;
 

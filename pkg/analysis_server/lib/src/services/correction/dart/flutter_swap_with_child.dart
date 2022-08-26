@@ -29,7 +29,7 @@ abstract class FlutterParentAndChild extends CorrectionProducer {
             utils.getRangeText(range.startStart(parent, parentArgs));
 
         var parentIndent = utils.getLinePrefix(parent.offset);
-        var childIndent = parentIndent + '  ';
+        var childIndent = '$parentIndent  ';
 
         // Write the beginning of the child.
         builder.write(childText);
@@ -109,7 +109,4 @@ class FlutterSwapWithChild extends FlutterParentAndChild {
 
     await swapParentAndChild(builder, parent, child);
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static FlutterSwapWithChild newInstance() => FlutterSwapWithChild();
 }

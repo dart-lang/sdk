@@ -4,9 +4,7 @@
 
 import 'dart:convert';
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
@@ -45,7 +43,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
 
     Future f;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -86,7 +84,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
 
     Future f;
     ''';
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -122,7 +120,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     // indicating this is not a valid (Dart) int.
     // https://github.com/dart-lang/sdk/issues/42786
 
-    newFile2(mainFilePath, '');
+    newFile(mainFilePath, '');
     await initialize();
 
     final request = makeRequest(
@@ -131,6 +129,9 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
       {
         "textDocument": {
           "uri": "${mainFileUri.toString()}"
+        },
+        "context": {
+          "diagnostics": []
         },
         "range": {
           "start": {
@@ -157,7 +158,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_nonDartFile() async {
-    newFile2(pubspecFilePath, simplePubspecContent);
+    newFile(pubspecFilePath, simplePubspecContent);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -191,7 +192,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -228,7 +229,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
           request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -285,7 +286,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -357,7 +358,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -392,8 +393,8 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     final textEdits = _extractTextDocumentEdits(edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map((edit) => edit.map(
-              (e) => e,
               (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
+              (e) => e,
               (e) => throw 'Expected SnippetTextEdit, got TextEdit',
             ))
         .toList();
@@ -421,7 +422,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     }
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -463,7 +464,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     build() => Contai^ner(child: Container());
     ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -504,7 +505,7 @@ void f() {
 }
 ''';
 
-    newFile2(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
@@ -537,8 +538,8 @@ void f() {
     final textEdits = _extractTextDocumentEdits(edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map((edit) => edit.map(
-              (e) => e,
               (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
+              (e) => e,
               (e) => throw 'Expected SnippetTextEdit, got TextEdit',
             ))
         .toList();
@@ -547,28 +548,20 @@ void f() {
   }
 
   List<TextDocumentEdit> _extractTextDocumentEdits(
-          Either2<
-                  List<TextDocumentEdit>,
-                  List<
-                      Either4<TextDocumentEdit, CreateFile, RenameFile,
-                          DeleteFile>>>
+          List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
               documentChanges) =>
-      documentChanges.map(
-        // Already TextDocumentEdits
-        (edits) => edits,
-        // Extract TextDocumentEdits from union of resource changes
-        (changes) => changes
-            .map(
-              (change) => change.map(
-                (textDocEdit) => textDocEdit,
-                (create) => null,
-                (rename) => null,
-                (delete) => null,
-              ),
-            )
-            .whereNotNull()
-            .toList(),
-      );
+      // Extract TextDocumentEdits from union of resource changes
+      documentChanges
+          .map(
+            (change) => change.map(
+              (create) => null,
+              (delete) => null,
+              (rename) => null,
+              (textDocEdit) => textDocEdit,
+            ),
+          )
+          .whereNotNull()
+          .toList();
 }
 
 class _RawParams extends ToJsonable {

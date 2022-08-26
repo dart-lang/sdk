@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:pedantic/pedantic.dart';
 
 import '../logging.dart';
 import '../protocol_common.dart';

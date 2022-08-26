@@ -69,7 +69,7 @@ class AddReturnType extends CorrectionProducer {
 
     var returnType = _inferReturnType(body);
     if (returnType == null) {
-      return null;
+      return;
     }
 
     final insertBeforeEntity_final = insertBeforeEntity;
@@ -128,9 +128,6 @@ class AddReturnType extends CorrectionProducer {
     }
     return baseType;
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddReturnType newInstance() => AddReturnType();
 }
 
 /// Copied from lib/src/services/refactoring/extract_method.dart", but

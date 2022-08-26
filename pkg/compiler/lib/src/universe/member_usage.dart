@@ -7,7 +7,7 @@ import 'dart:math' as Math;
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../js_model/closure.dart';
+import '../js_model/jrecord_field_interface.dart' show JRecordFieldInterface;
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'call_structure.dart';
@@ -50,10 +50,10 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   MemberUsage.cloned(this.entity, EnumSet<MemberUse> pendingUse)
       : super.cloned(pendingUse);
 
-  factory MemberUsage(MemberEntity member, {MemberAccess potentialAccess}) {
+  factory MemberUsage(MemberEntity member, {MemberAccess? potentialAccess}) {
     /// Create the set of potential accesses to [member], limited to [original]
     /// if provided.
-    EnumSet<Access> createPotentialAccessSet(EnumSet<Access> original) {
+    EnumSet<Access> createPotentialAccessSet(EnumSet<Access>? original) {
       if (original != null) {
         if (original.isEmpty) return emptySet;
         return original.clone();
@@ -64,7 +64,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
       } else if (member.isInstanceMember) {
         return EnumSet.fromValues(Access.values);
       } else {
-        assert(member is JRecordField, "Unexpected member: $member");
+        assert(member is JRecordFieldInterface, "Unexpected member: $member");
         return EnumSet();
       }
     }
@@ -87,7 +87,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
       return createPotentialAccessSet(potentialAccess?.invokes);
     }
 
-    if (member.isField) {
+    if (member is FieldEntity) {
       if (member.isAssignable) {
         return FieldUsage(member,
             potentialReads: createPotentialReads(),
@@ -99,33 +99,35 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
             potentialWrites: emptySet,
             potentialInvokes: createPotentialInvokes());
       }
-    } else if (member.isGetter) {
-      return PropertyUsage(member,
-          potentialReads: createPotentialReads(),
-          potentialWrites: emptySet,
-          potentialInvokes: createPotentialInvokes());
-    } else if (member.isSetter) {
-      return PropertyUsage(member,
-          potentialReads: emptySet,
-          potentialWrites: createPotentialWrites(),
-          potentialInvokes: emptySet);
-    } else if (member.isConstructor) {
-      return MethodUsage(member,
-          potentialReads: emptySet, potentialInvokes: createPotentialInvokes());
-    } else {
-      assert(member is FunctionEntity,
-          failedAt(member, "Unexpected member: $member"));
-      return MethodUsage(member,
-          potentialReads: createPotentialReads(),
-          potentialInvokes: createPotentialInvokes());
+    } else if (member is FunctionEntity) {
+      if (member.isGetter) {
+        return PropertyUsage(member,
+            potentialReads: createPotentialReads(),
+            potentialWrites: emptySet,
+            potentialInvokes: createPotentialInvokes());
+      } else if (member.isSetter) {
+        return PropertyUsage(member,
+            potentialReads: emptySet,
+            potentialWrites: createPotentialWrites(),
+            potentialInvokes: emptySet);
+      } else if (member.isConstructor) {
+        return MethodUsage(member,
+            potentialReads: emptySet,
+            potentialInvokes: createPotentialInvokes());
+      } else {
+        return MethodUsage(member,
+            potentialReads: createPotentialReads(),
+            potentialInvokes: createPotentialInvokes());
+      }
     }
+    throw failedAt(member, "Unexpected member: $member");
   }
 
   /// `true` if [entity] has been initialized.
   bool get hasInit => true;
 
   /// The set of constant initial values for a field.
-  Iterable<ConstantValue> get initialConstants => null;
+  Iterable<ConstantValue>? get initialConstants => null;
 
   /// `true` if [entity] has been read as a value. For a field this is a normal
   /// read access, for a function this is a closurization.
@@ -163,7 +165,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   /// Returns the [ParameterStructure] corresponding to the parameters that are
   /// used in invocations of [entity]. For a field, getter or setter this is
   /// always `null`.
-  ParameterStructure get invokedParameters => null;
+  ParameterStructure? get invokedParameters => null;
 
   /// Whether this member has any potential but unregistered dynamic reads,
   /// writes or invocations.
@@ -277,28 +279,32 @@ class PropertyUsage extends MemberUsage {
   final EnumSet<Access> invokes;
 
   PropertyUsage.cloned(MemberEntity member, EnumSet<MemberUse> pendingUse,
-      {this.potentialReads,
-      this.potentialWrites,
-      this.potentialInvokes,
-      this.reads,
-      this.writes,
-      this.invokes})
-      : assert(potentialReads != null),
-        assert(potentialWrites != null),
-        assert(potentialInvokes != null),
-        assert(reads != null),
-        assert(writes != null),
-        assert(invokes != null),
+      {required this.potentialReads,
+      required this.potentialWrites,
+      required this.potentialInvokes,
+      required this.reads,
+      required this.writes,
+      required this.invokes})
+      : // TODO(48820): Remove asserts when sound.
+        assert((potentialReads as dynamic) != null),
+        assert((potentialWrites as dynamic) != null),
+        assert((potentialInvokes as dynamic) != null),
+        assert((reads as dynamic) != null),
+        assert((writes as dynamic) != null),
+        assert((invokes as dynamic) != null),
         super.cloned(member, pendingUse);
 
   PropertyUsage(MemberEntity member,
-      {this.potentialReads, this.potentialWrites, this.potentialInvokes})
+      {required this.potentialReads,
+      required this.potentialWrites,
+      required this.potentialInvokes})
       : reads = EnumSet(),
         writes = EnumSet(),
         invokes = EnumSet(),
-        assert(potentialReads != null),
-        assert(potentialWrites != null),
-        assert(potentialInvokes != null),
+        // TODO(48820): Remove asserts when sound.
+        assert((potentialReads as dynamic) != null),
+        assert((potentialWrites as dynamic) != null),
+        assert((potentialInvokes as dynamic) != null),
         super.internal(member);
 
   @override
@@ -382,33 +388,37 @@ class FieldUsage extends MemberUsage {
   @override
   final EnumSet<Access> writes;
 
-  List<ConstantValue> _initialConstants;
+  List<ConstantValue>? _initialConstants;
 
   FieldUsage.cloned(FieldEntity field, EnumSet<MemberUse> pendingUse,
-      {this.potentialReads,
-      this.potentialWrites,
-      this.potentialInvokes,
-      this.hasInit,
-      this.reads,
-      this.writes,
-      this.invokes})
-      : assert(potentialReads != null),
-        assert(potentialWrites != null),
-        assert(potentialInvokes != null),
-        assert(reads != null),
-        assert(writes != null),
-        assert(invokes != null),
+      {required this.potentialReads,
+      required this.potentialWrites,
+      required this.potentialInvokes,
+      required this.hasInit,
+      required this.reads,
+      required this.writes,
+      required this.invokes})
+      : // TODO(48820): Remove asserts when sound.
+        assert((potentialReads as dynamic) != null),
+        assert((potentialWrites as dynamic) != null),
+        assert((potentialInvokes as dynamic) != null),
+        assert((reads as dynamic) != null),
+        assert((writes as dynamic) != null),
+        assert((invokes as dynamic) != null),
         super.cloned(field, pendingUse);
 
   FieldUsage(FieldEntity field,
-      {this.potentialReads, this.potentialWrites, this.potentialInvokes})
+      {required this.potentialReads,
+      required this.potentialWrites,
+      required this.potentialInvokes})
       : hasInit = false,
         reads = EnumSet(),
         writes = EnumSet(),
         invokes = EnumSet(),
-        assert(potentialReads != null),
-        assert(potentialWrites != null),
-        assert(potentialInvokes != null),
+        // TODO(48820): Remove asserts when sound.
+        assert((potentialReads as dynamic) != null),
+        assert((potentialWrites as dynamic) != null),
+        assert((potentialInvokes as dynamic) != null),
         super.internal(field);
 
   @override
@@ -425,8 +435,7 @@ class FieldUsage extends MemberUsage {
 
   @override
   EnumSet<MemberUse> constantInit(ConstantValue constant) {
-    _initialConstants ??= [];
-    _initialConstants.add(constant);
+    (_initialConstants ??= []).add(constant);
     return init();
   }
 
@@ -473,7 +482,7 @@ class FieldUsage extends MemberUsage {
 
   @override
   MemberUsage clone() {
-    return FieldUsage.cloned(entity, _pendingUse.clone(),
+    return FieldUsage.cloned(entity as FieldEntity, _pendingUse.clone(),
         potentialReads: potentialReads.clone(),
         potentialWrites: potentialWrites.clone(),
         potentialInvokes: potentialInvokes.clone(),
@@ -513,20 +522,23 @@ class MethodUsage extends MemberUsage {
 
   MethodUsage.cloned(FunctionEntity function, this.parameterUsage,
       EnumSet<MemberUse> pendingUse,
-      {this.potentialReads, this.reads, this.potentialInvokes, this.invokes})
-      : assert(potentialReads != null),
-        assert(potentialInvokes != null),
-        assert(reads != null),
-        assert(invokes != null),
+      {required this.potentialReads,
+      required this.reads,
+      required this.potentialInvokes,
+      required this.invokes})
+      : assert((potentialReads as dynamic) != null),
+        assert((potentialInvokes as dynamic) != null),
+        assert((reads as dynamic) != null),
+        assert((invokes as dynamic) != null),
         super.cloned(function, pendingUse);
 
   MethodUsage(FunctionEntity function,
-      {this.potentialReads, this.potentialInvokes})
+      {required this.potentialReads, required this.potentialInvokes})
       : reads = EnumSet(),
         invokes = EnumSet(),
         parameterUsage = ParameterUsage(function.parameterStructure),
-        assert(potentialReads != null),
-        assert(potentialInvokes != null),
+        assert((potentialReads as dynamic) != null),
+        assert((potentialInvokes as dynamic) != null),
         super.internal(function);
 
   @override
@@ -574,7 +586,7 @@ class MethodUsage extends MemberUsage {
   }
 
   @override
-  ParameterStructure get invokedParameters => parameterUsage.invokedParameters;
+  ParameterStructure? get invokedParameters => parameterUsage.invokedParameters;
 
   @override
   bool get hasPendingDynamicInvoke =>
@@ -584,7 +596,7 @@ class MethodUsage extends MemberUsage {
   @override
   MemberUsage clone() {
     return MethodUsage.cloned(
-        entity, parameterUsage.clone(), _pendingUse.clone(),
+        entity as FunctionEntity, parameterUsage.clone(), _pendingUse.clone(),
         reads: reads.clone(),
         potentialReads: potentialReads.clone(),
         invokes: invokes.clone(),
@@ -680,26 +692,25 @@ class ParameterUsage {
   final ParameterStructure _parameterStructure;
 
   /// `true` if the method or constructor has at least one invocation.
-  bool _hasInvoke;
+  bool _hasInvoke = false;
 
   /// The maximum number of (optional) positional parameters provided in
   /// invocations of the method or constructor.
   ///
   /// If all positional parameters having been provided this is set to `null`.
-  int _providedPositionalParameters;
+  int? _providedPositionalParameters;
 
   /// `true` if all type parameters have been provided in at least one
   /// invocation of the method or constructor.
-  bool _areAllTypeParametersProvided;
+  late bool _areAllTypeParametersProvided;
 
   /// The set of named parameters that have not yet been provided in any
   /// invocation of the method or constructor.
   ///
   /// If all named parameters have been provided this is set to `null`.
-  Set<String> _unprovidedNamedParameters;
+  Set<String>? _unprovidedNamedParameters;
 
   ParameterUsage(this._parameterStructure) {
-    _hasInvoke = false;
     _areAllTypeParametersProvided = _parameterStructure.typeParameters == 0;
     _providedPositionalParameters = _parameterStructure.positionalParameters ==
             _parameterStructure.requiredPositionalParameters
@@ -712,10 +723,10 @@ class ParameterUsage {
   }
 
   ParameterUsage.cloned(this._parameterStructure,
-      {bool hasInvoke,
-      int providedPositionalParameters,
-      bool areAllTypeParametersProvided,
-      Set<String> unprovidedNamedParameters})
+      {required bool hasInvoke,
+      required providedPositionalParameters,
+      required bool areAllTypeParametersProvided,
+      required Set<String>? unprovidedNamedParameters})
       : _hasInvoke = hasInvoke,
         _providedPositionalParameters = providedPositionalParameters,
         _areAllTypeParametersProvided = areAllTypeParametersProvided,
@@ -727,22 +738,23 @@ class ParameterUsage {
     bool changed = false;
     if (_providedPositionalParameters != null) {
       int newProvidedPositionalParameters = Math.max(
-          _providedPositionalParameters, callStructure.positionalArgumentCount);
+          _providedPositionalParameters!,
+          callStructure.positionalArgumentCount);
       changed |=
           newProvidedPositionalParameters != _providedPositionalParameters;
       _providedPositionalParameters = newProvidedPositionalParameters;
-      if (_providedPositionalParameters >=
+      if (_providedPositionalParameters! >=
           _parameterStructure.positionalParameters) {
         _providedPositionalParameters = null;
       }
     }
     if (_unprovidedNamedParameters != null &&
         callStructure.namedArguments.isNotEmpty) {
-      int _providedNamedParametersCount = _unprovidedNamedParameters.length;
-      _unprovidedNamedParameters.removeAll(callStructure.namedArguments);
+      int _providedNamedParametersCount = _unprovidedNamedParameters!.length;
+      _unprovidedNamedParameters!.removeAll(callStructure.namedArguments);
       changed |=
-          _providedNamedParametersCount != _unprovidedNamedParameters.length;
-      if (_unprovidedNamedParameters.isEmpty) {
+          _providedNamedParametersCount != _unprovidedNamedParameters!.length;
+      if (_unprovidedNamedParameters!.isEmpty) {
         _unprovidedNamedParameters = null;
       }
     }
@@ -768,7 +780,7 @@ class ParameterUsage {
     _areAllTypeParametersProvided = true;
   }
 
-  ParameterStructure get invokedParameters {
+  ParameterStructure? get invokedParameters {
     if (!_hasInvoke) return null;
     if (isFullyUsed) return _parameterStructure;
     return ParameterStructure(
@@ -778,7 +790,7 @@ class ParameterUsage {
         _unprovidedNamedParameters == null
             ? _parameterStructure.namedParameters
             : _parameterStructure.namedParameters
-                .where((n) => !_unprovidedNamedParameters.contains(n))
+                .where((n) => !_unprovidedNamedParameters!.contains(n))
                 .toList(),
         _parameterStructure.requiredNamedParameters,
         _areAllTypeParametersProvided ? _parameterStructure.typeParameters : 0);

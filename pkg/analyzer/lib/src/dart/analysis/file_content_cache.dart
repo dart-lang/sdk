@@ -64,8 +64,7 @@ abstract class FileContentCache {
 
 /// [FileContentCache] that caches never.
 class _FileContentCacheEphemeral extends FileContentCache {
-  _FileContentCacheEphemeral(ResourceProvider resourceProvider)
-      : super._(resourceProvider);
+  _FileContentCacheEphemeral(super.resourceProvider) : super._();
 
   @override
   FileContent get(String path) {
@@ -77,8 +76,7 @@ class _FileContentCacheEphemeral extends FileContentCache {
 class _FileContentCacheImpl extends FileContentCache {
   final Map<String, FileContent> _pathToFile = {};
 
-  _FileContentCacheImpl(ResourceProvider resourceProvider)
-      : super._(resourceProvider);
+  _FileContentCacheImpl(super.resourceProvider) : super._();
 
   @override
   FileContent get(String path) {

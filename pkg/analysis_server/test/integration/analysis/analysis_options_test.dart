@@ -17,10 +17,10 @@ void main() {
 
 @reflectiveTest
 class OptionsIntegrationTest extends AbstractAnalysisServerIntegrationTest {
-  void optionsAnalysisSetup() {
+  Future<void> optionsAnalysisSetup() async {
     // Add an empty Dart file; required to trigger analysis (#35383).
     writeFile(sourcePath('test.dart'), '');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
   }
 
   Future<void> test_option_warning_optionFile() async {
@@ -31,7 +31,7 @@ linter:
     - camel_case_typo # :)
 ''');
 
-    optionsAnalysisSetup();
+    await optionsAnalysisSetup();
 
     await analysisFinished;
 

@@ -189,7 +189,20 @@ main() {
     function Five(a, b, c, d, e) {
       this.count = 5;
     }
+
+    globalThis.globalKey = 'foo';
     """);
+
+  group('globalThis', () {
+    test('create', () {
+      expect(identical(js_util.globalThis, js_util.globalThis), isTrue);
+    });
+
+    test('isGlobalThis', () {
+      expect(js_util.hasProperty(js_util.globalThis, 'One'), isTrue);
+      expect(js_util.getProperty(js_util.globalThis, 'globalKey'), 'foo');
+    });
+  });
 
   group('newObject', () {
     test('create', () {

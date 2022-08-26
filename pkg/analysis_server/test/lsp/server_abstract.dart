@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -198,6 +198,7 @@ abstract class AbstractLspAnalysisServerTest
         resourceProvider,
         serverOptions,
         DartSdkManager(sdkRoot.path),
+        AnalyticsManager(NoopAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
         httpClient: httpClient,
@@ -210,7 +211,7 @@ abstract class AbstractLspAnalysisServerTest
     newFolder(join(projectFolderPath, 'lib'));
     // Create a folder and file to aid testing that includes imports/completion.
     newFolder(join(projectFolderPath, 'lib', 'folder'));
-    newFile2(join(projectFolderPath, 'lib', 'file.dart'), '');
+    newFile(join(projectFolderPath, 'lib', 'file.dart'), '');
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = Uri.file(mainFilePath);
     pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
@@ -224,14 +225,31 @@ abstract class AbstractLspAnalysisServerTest
     channel.close();
     await server.shutdown();
   }
+
+  /// Adds a trailing slash (direction based on path context) to [path].
+  ///
+  /// Throws if the path already has a trailing slash.
+  String withTrailingSlash(String path) {
+    final pathSeparator = server.resourceProvider.pathContext.separator;
+    expect(path, isNot(endsWith(pathSeparator)));
+    return '$path$pathSeparator';
+  }
+
+  /// Adds a trailing slash to [uri].
+  ///
+  /// Throws if the URI already has a trailing slash.
+  Uri withTrailingSlashUri(Uri uri) {
+    expect(uri.path, isNot(endsWith('/')));
+    return uri.replace(path: '${uri.path}/');
+  }
 }
 
 mixin ClientCapabilitiesHelperMixin {
   final emptyTextDocumentClientCapabilities = TextDocumentClientCapabilities();
 
-  final emptyWorkspaceClientCapabilities = ClientCapabilitiesWorkspace();
+  final emptyWorkspaceClientCapabilities = WorkspaceClientCapabilities();
 
-  final emptyWindowClientCapabilities = ClientCapabilitiesWindow();
+  final emptyWindowClientCapabilities = WindowClientCapabilities();
 
   TextDocumentClientCapabilities extendTextDocumentCapabilities(
     TextDocumentClientCapabilities source,
@@ -242,26 +260,26 @@ mixin ClientCapabilitiesHelperMixin {
     return TextDocumentClientCapabilities.fromJson(json);
   }
 
-  ClientCapabilitiesWindow extendWindowCapabilities(
-    ClientCapabilitiesWindow source,
+  WindowClientCapabilities extendWindowCapabilities(
+    WindowClientCapabilities source,
     Map<String, dynamic> windowCapabilities,
   ) {
     final json = source.toJson();
     mergeJson(windowCapabilities, json);
-    return ClientCapabilitiesWindow.fromJson(json);
+    return WindowClientCapabilities.fromJson(json);
   }
 
-  ClientCapabilitiesWorkspace extendWorkspaceCapabilities(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities extendWorkspaceCapabilities(
+    WorkspaceClientCapabilities source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
     final json = source.toJson();
     mergeJson(workspaceCapabilities, json);
-    return ClientCapabilitiesWorkspace.fromJson(json);
+    return WorkspaceClientCapabilities.fromJson(json);
   }
 
   void mergeJson(Map<String, dynamic> source, Map<String, dynamic> dest) {
-    source.keys.forEach((key) {
+    for (var key in source.keys) {
       var sourceValue = source[key];
       var destValue = dest[key];
       if (sourceValue is Map<String, dynamic> &&
@@ -270,7 +288,7 @@ mixin ClientCapabilitiesHelperMixin {
       } else {
         dest[key] = source[key];
       }
-    });
+    }
   }
 
   TextDocumentClientCapabilities
@@ -308,8 +326,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withAllSupportedWorkspaceDynamicRegistrations(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withAllSupportedWorkspaceDynamicRegistrations(
+    WorkspaceClientCapabilities source,
   ) {
     // This list (when combined with the textDocument list) should match all of
     // the fields listed in `ClientDynamicRegistrations.supported`.
@@ -318,8 +336,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withApplyEditSupport(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withApplyEditSupport(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {'applyEdit': true});
   }
@@ -409,8 +427,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withConfigurationSupport(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withConfigurationSupport(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {'configuration': true});
   }
@@ -436,16 +454,16 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withDidChangeConfigurationDynamicRegistration(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'didChangeConfiguration': {'dynamicRegistration': true}
     });
   }
 
-  ClientCapabilitiesWorkspace withDocumentChangesSupport(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withDocumentChangesSupport(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'workspaceEdit': {'documentChanges': true}
@@ -473,8 +491,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withFileOperationDynamicRegistration(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withFileOperationDynamicRegistration(
+    WorkspaceClientCapabilities source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'fileOperations': {'dynamicRegistration': true}
@@ -516,8 +534,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWorkspace withResourceOperationKinds(
-    ClientCapabilitiesWorkspace source,
+  WorkspaceClientCapabilities withResourceOperationKinds(
+    WorkspaceClientCapabilities source,
     List<ResourceOperationKind> kinds,
   ) {
     return extendWorkspaceCapabilities(source, {
@@ -550,8 +568,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  ClientCapabilitiesWindow withWorkDoneProgressSupport(
-      ClientCapabilitiesWindow source) {
+  WindowClientCapabilities withWorkDoneProgressSupport(
+      WindowClientCapabilities source) {
     return extendWindowCapabilities(source, {'workDoneProgress': true});
   }
 }
@@ -561,7 +579,7 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
       '${ExperimentStatus.currentVersion.major}.'
       '${ExperimentStatus.currentVersion.minor}';
 
-  String get testPackageLanguageVersion => '2.9';
+  String get testPackageLanguageVersion => latestLanguageVersion;
 
   void writePackageConfig(
     String projectFolderPath, {
@@ -612,7 +630,7 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
 
     var path = '$projectFolderPath/.dart_tool/package_config.json';
     var content = config.toContent(toUriStr: toUriStr);
-    newFile2(path, content);
+    newFile(path, content);
   }
 }
 
@@ -626,8 +644,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   /// A progress token used in tests where the client-provides the token, which
   /// should not be validated as being created by the server first.
-  final clientProvidedTestWorkDoneToken =
-      Either2<int, String>.t2('client-test');
+  final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
 
   int _id = 0;
   late String projectFolderPath,
@@ -646,7 +663,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// null if an initialization request has not yet been sent.
   ClientCapabilities? _clientCapabilities;
 
-  final validProgressTokens = <Either2<num, String>>{};
+  final validProgressTokens = <ProgressToken>{};
+
+  /// Whether to include 'clientRequestTime' fields in outgoing messages.
+  bool includeClientRequestTime = false;
+
+  /// Default initialization options to be used if [initialize] is not provided
+  /// options explicitly.
+  Map<String, Object?>? defaultInitializationOptions;
 
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
@@ -683,8 +707,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyDocumentChanges(
     Map<String, String> fileContents,
-    Either2<List<TextDocumentEdit>,
-            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
         documentChanges, {
     Map<String, int>? expectedVersions,
   }) {
@@ -693,22 +716,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     if (expectedVersions != null) {
       expectDocumentVersions(documentChanges, expectedVersions);
     }
-    documentChanges.map(
-      (edits) => applyTextDocumentEdits(fileContents, edits),
-      (changes) => applyResourceChanges(fileContents, changes),
-    );
+    applyResourceChanges(fileContents, documentChanges);
   }
 
   void applyResourceChanges(
     Map<String, String> oldFileContent,
-    List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> changes,
+    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>> changes,
   ) {
     for (final change in changes) {
       change.map(
-        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
         (create) => applyResourceCreate(oldFileContent, create),
-        (rename) => applyResourceRename(oldFileContent, rename),
         (delete) => throw 'applyResourceChanges:Delete not currently supported',
+        (rename) => applyResourceRename(oldFileContent, rename),
+        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
       );
     }
   }
@@ -717,7 +737,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       Map<String, String> oldFileContent, CreateFile create) {
     final path = Uri.parse(create.uri).toFilePath();
     if (oldFileContent.containsKey(path)) {
-      throw 'Recieved create instruction for $path which already existed.';
+      throw 'Received create instruction for $path which already existed.';
     }
     oldFileContent[path] = '';
   }
@@ -727,7 +747,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final oldPath = Uri.parse(rename.oldUri).toFilePath();
     final newPath = Uri.parse(rename.newUri).toFilePath();
     if (!oldFileContent.containsKey(oldPath)) {
-      throw 'Recieved rename instruction for $oldPath which did not exist.';
+      throw 'Received rename instruction for $oldPath which did not exist.';
     }
     oldFileContent[newPath] = oldFileContent[oldPath]!;
     oldFileContent.remove(oldPath);
@@ -739,18 +759,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void applyTextDocumentEdits(
       Map<String, String> oldFileContent, List<TextDocumentEdit> edits) {
-    edits.forEach((edit) {
+    for (var edit in edits) {
       final path = Uri.parse(edit.textDocument.uri).toFilePath();
       if (!oldFileContent.containsKey(path)) {
-        throw 'Recieved edits for $path which was not provided as a file to be edited. '
+        throw 'Received edits for $path which was not provided as a file to be edited. '
             'Perhaps a CreateFile change was missing from the edits?';
       }
       oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path]!, edit);
-    });
+    }
   }
 
   String applyTextEdit(String content,
-      Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit> change) {
+      Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> change) {
     // Both sites of the union can cast to TextEdit.
     final edit = change.map((e) => e, (e) => e, (e) => e);
     final startPos = edit.range.start;
@@ -814,7 +834,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
     for (final change in sortedChanges) {
       newContent = applyTextEdit(newContent,
-          Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t3(change));
+          Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>.t3(change));
     }
 
     return newContent;
@@ -823,10 +843,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future changeFile(
     int newVersion,
     Uri uri,
-    List<
-            Either2<TextDocumentContentChangeEvent1,
-                TextDocumentContentChangeEvent2>>
-        changes,
+    List<TextDocumentContentChangeEvent> changes,
   ) async {
     var notification = makeNotification(
       Method.textDocument_didChange,
@@ -873,7 +890,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<T> executeCommand<T>(
     Command command, {
     T Function(Map<String, Object?>)? decoder,
-    Either2<int, String>? workDoneToken,
+    ProgressToken? workDoneToken,
   }) async {
     final request = makeRequest(
       Method.workspace_executeCommand,
@@ -903,26 +920,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// Validates the document versions for a set of edits match the versions in
   /// the supplied map.
   void expectDocumentVersions(
-    Either2<List<TextDocumentEdit>,
-            List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
+    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
         documentChanges,
     Map<String, int> expectedVersions,
   ) {
-    documentChanges.map(
-      // Validate versions on simple doc edits
-      (edits) => edits
-          .forEach((edit) => expectDocumentVersion(edit, expectedVersions)),
-      // For resource changes, we only need to validate changes since
-      // creates/renames/deletes do not supply versions.
-      (changes) => changes.forEach((change) {
-        change.map(
-          (edit) => expectDocumentVersion(edit, expectedVersions),
-          (create) => {},
-          (rename) {},
-          (delete) {},
-        );
-      }),
-    );
+    // For resource changes, we only need to validate changes since
+    // creates/renames/deletes do not supply versions.
+    for (var change in documentChanges) {
+      change.map(
+        (create) {},
+        (delete) {},
+        (rename) {},
+        (edit) => expectDocumentVersion(edit, expectedVersions),
+      );
+    }
   }
 
   Future<ShowMessageParams> expectErrorNotification(
@@ -1023,19 +1034,24 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Range? range,
     Position? position,
     List<CodeActionKind>? kinds,
+    CodeActionTriggerKind? triggerKind,
   }) {
     range ??= position != null
         ? Range(start: position, end: position)
-        : startOfDocRange;
+        : throw 'Supply either a Range or Position for CodeActions requests';
     final request = makeRequest(
       Method.textDocument_codeAction,
       CodeActionParams(
         textDocument: TextDocumentIdentifier(uri: fileUri),
         range: range,
-        // TODO(dantup): We may need to revise the tests/implementation when
-        // it's clear how we're supposed to handle diagnostics:
-        // https://github.com/Microsoft/language-server-protocol/issues/583
-        context: CodeActionContext(diagnostics: [], only: kinds),
+        context: CodeActionContext(
+          // TODO(dantup): We may need to revise the tests/implementation when
+          // it's clear how we're supposed to handle diagnostics:
+          // https://github.com/Microsoft/language-server-protocol/issues/583
+          diagnostics: [],
+          only: kinds,
+          triggerKind: triggerKind,
+        ),
       ),
     );
     return expectSuccessfulResponseTo(
@@ -1151,11 +1167,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
-      getDocumentSymbols(String fileUri) {
+      getDocumentSymbols(Uri uri) {
     final request = makeRequest(
       Method.textDocument_documentSymbol,
       DocumentSymbolParams(
-        textDocument: TextDocumentIdentifier(uri: fileUri),
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
       ),
     );
     return expectSuccessfulResponseTo(
@@ -1296,7 +1312,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, Location.fromJson);
   }
 
-  Future<Either2<List<Location>, List<LocationLink>>> getTypeDefinition(
+  Future<TextDocumentTypeDefinitionResult> getTypeDefinition(
       Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_typeDefinition,
@@ -1305,30 +1321,51 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
+
+    // TextDocumentTypeDefinitionResult is a nested Either, so we need to handle
+    // nested fromJson/canParse here.
+    // TextDocumentTypeDefinitionResult: Either2<Definition, List<DefinitionLink>>?
+    // Definition: Either2<List<Location>, Location>
+
+    // Definition = Either2<List<Location>, Location>
+    final definitionCanParse = _generateCanParseFor(
+      _canParseList(Location.canParse),
+      Location.canParse,
+    );
+    final definitionFromJson = _generateFromJsonFor(
+      _canParseList(Location.canParse),
+      _fromJsonList(Location.fromJson),
+      Location.canParse,
+      Location.fromJson,
+    );
+
     return expectSuccessfulResponseTo(
       request,
       _generateFromJsonFor(
-          _canParseList(Location.canParse),
-          _fromJsonList(Location.fromJson),
-          _canParseList(LocationLink.canParse),
-          _fromJsonList(LocationLink.fromJson)),
+          definitionCanParse,
+          definitionFromJson,
+          _canParseList(DefinitionLink.canParse),
+          _fromJsonList(DefinitionLink.fromJson)),
     );
   }
 
   Future<List<Location>> getTypeDefinitionAsLocation(
       Uri uri, Position pos) async {
-    final results = await getTypeDefinition(uri, pos);
+    final results = (await getTypeDefinition(uri, pos))!;
     return results.map(
-      (locations) => locations,
-      (locationLinks) => throw 'Expected List<Location> got List<LocationLink>',
+      (locationOrList) => locationOrList.map(
+        (locations) => locations,
+        (location) => [location],
+      ),
+      (locationLinks) => throw 'Expected Locations, got LocationLinks',
     );
   }
 
   Future<List<LocationLink>> getTypeDefinitionAsLocationLinks(
       Uri uri, Position pos) async {
-    final results = await getTypeDefinition(uri, pos);
+    final results = (await getTypeDefinition(uri, pos))!;
     return results.map(
-      (locations) => throw 'Expected List<LocationLink> got List<Location>',
+      (locationOrList) => throw 'Expected LocationLinks, got Locations',
       (locationLinks) => locationLinks,
     );
   }
@@ -1348,7 +1385,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   ///
   /// This is used for testing things like code actions, where the client initiates
   /// a request but the server does not respond to it until it's sent its own
-  /// request to the client and it recieved a response.
+  /// request to the client and it received a response.
   ///
   ///     Client                                 Server
   ///     1. |- Req: textDocument/codeAction      ->
@@ -1404,14 +1441,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Uri? rootUri,
     List<Uri>? workspaceFolders,
     TextDocumentClientCapabilities? textDocumentCapabilities,
-    ClientCapabilitiesWorkspace? workspaceCapabilities,
-    ClientCapabilitiesWindow? windowCapabilities,
+    WorkspaceClientCapabilities? workspaceCapabilities,
+    WindowClientCapabilities? windowCapabilities,
     Map<String, Object?>? experimentalCapabilities,
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
     bool failTestOnAnyErrorNotification = true,
+    bool includeClientRequestTime = false,
   }) async {
+    this.includeClientRequestTime = includeClientRequestTime;
+
     if (failTestOnAnyErrorNotification) {
       errorNotificationsFromServer.listen((NotificationMessage error) {
         fail('${error.toJson()}');
@@ -1453,7 +1493,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         InitializeParams(
           rootPath: rootPath,
           rootUri: rootUri?.toString(),
-          initializationOptions: initializationOptions,
+          initializationOptions:
+              initializationOptions ?? defaultInitializationOptions,
           capabilities: clientCapabilities,
           workspaceFolders: workspaceFolders?.map(toWorkspaceFolder).toList(),
         ));
@@ -1476,7 +1517,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   NotificationMessage makeNotification(Method method, ToJsonable? params) {
     return NotificationMessage(
-        method: method, params: params, jsonrpc: jsonRpcVersion);
+      method: method,
+      params: params,
+      jsonrpc: jsonRpcVersion,
+      clientRequestTime: includeClientRequestTime
+          ? DateTime.now().millisecondsSinceEpoch
+          : null,
+    );
   }
 
   RequestMessage makeRenameRequest(
@@ -1495,7 +1542,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   RequestMessage makeRequest(Method method, ToJsonable? params) {
     final id = Either2<int, String>.t1(_id++);
     return RequestMessage(
-        id: id, method: method, params: params, jsonrpc: jsonRpcVersion);
+      id: id,
+      method: method,
+      params: params,
+      jsonrpc: jsonRpcVersion,
+      clientRequestTime: includeClientRequestTime
+          ? DateTime.now().millisecondsSinceEpoch
+          : null,
+    );
   }
 
   /// Watches for `client/registerCapability` requests and updates
@@ -1582,7 +1636,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return toPosition(lineInfo.getLocation(offset));
   }
 
-  Future<RangeAndPlaceholder?> prepareRename(Uri uri, Position pos) {
+  Future<PlaceholderAndRange?> prepareRename(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_prepareRename,
       TextDocumentPositionParams(
@@ -1590,7 +1644,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo(request, RangeAndPlaceholder.fromJson);
+    return expectSuccessfulResponseTo(request, PlaceholderAndRange.fromJson);
   }
 
   /// Calls the supplied function and responds to any `workspace/configuration`
@@ -1714,8 +1768,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       newVersion,
       uri,
       [
-        Either2<TextDocumentContentChangeEvent1,
-                TextDocumentContentChangeEvent2>.t2(
+        TextDocumentContentChangeEvent.t2(
             TextDocumentContentChangeEvent2(text: content))
       ],
     );
@@ -1761,22 +1814,22 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   /// Creates a [TextEdit] using the `insert` range of a [InsertReplaceEdit].
-  TextEdit textEditForInsert(Either2<TextEdit, InsertReplaceEdit> edit) =>
+  TextEdit textEditForInsert(Either2<InsertReplaceEdit, TextEdit> edit) =>
       edit.map(
-        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
         (e) => TextEdit(range: e.insert, newText: e.newText),
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
       );
 
   /// Creates a [TextEdit] using the `replace` range of a [InsertReplaceEdit].
-  TextEdit textEditForReplace(Either2<TextEdit, InsertReplaceEdit> edit) =>
+  TextEdit textEditForReplace(Either2<InsertReplaceEdit, TextEdit> edit) =>
       edit.map(
-        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
         (e) => TextEdit(range: e.replace, newText: e.newText),
+        (_) => throw 'Expected InsertReplaceEdit, got TextEdit',
       );
 
-  TextEdit toTextEdit(Either2<TextEdit, InsertReplaceEdit> edit) => edit.map(
-        (e) => e,
+  TextEdit toTextEdit(Either2<InsertReplaceEdit, TextEdit> edit) => edit.map(
         (_) => throw 'Expected TextEdit, got InsertReplaceEdit',
+        (e) => e,
       );
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
@@ -1805,7 +1858,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         if (message.method == CustomMethods.analyzerStatus) {
           if (_clientCapabilities!.window?.workDoneProgress == true) {
             throw Exception(
-                'Recieved ${CustomMethods.analyzerStatus} notification '
+                'Received ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 
@@ -1815,7 +1868,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         } else if (message.method == Method.progress) {
           if (_clientCapabilities!.window?.workDoneProgress != true) {
             throw Exception(
-                'Recieved ${CustomMethods.analyzerStatus} notification '
+                'Received ${CustomMethods.analyzerStatus} notification '
                 'but client supports workDoneProgress');
           }
 
@@ -1914,15 +1967,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   String withoutRangeMarkers(String contents) =>
       contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 
-  bool Function(List<dynamic>, LspJsonReporter) _canParseList<T>(
-          bool Function(Map<String, dynamic>, LspJsonReporter) canParse) =>
-      (input, reporter) => input
-          .cast<Map<String, dynamic>>()
-          .every((item) => canParse(item, reporter));
+  bool Function(Object?, LspJsonReporter) _canParseList<T>(
+          bool Function(Map<String, Object?>, LspJsonReporter) canParse) =>
+      (input, reporter) =>
+          input is List &&
+          input
+              .cast<Map<String, Object?>>()
+              .every((item) => canParse(item, reporter));
 
-  List<T> Function(List<dynamic>) _fromJsonList<T>(
-          T Function(Map<String, dynamic>) fromJson) =>
-      (input) => input.cast<Map<String, dynamic>>().map(fromJson).toList();
+  List<T> Function(List<Object?>) _fromJsonList<T>(
+          T Function(Map<String, Object?>) fromJson) =>
+      (input) => input.cast<Map<String, Object?>>().map(fromJson).toList();
 
   Future<void> _handleProgress(NotificationMessage request) async {
     final params =
@@ -1960,22 +2015,32 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         notification.method == Method.window_showMessage;
   }
 
+  /// Creates a `canParse()` function for an `Either2<T1, T2>` using
+  /// the `canParse` function for each type.
+  static bool Function(Object?, LspJsonReporter) _generateCanParseFor<T1, T2>(
+    bool Function(Object?, LspJsonReporter) canParse1,
+    bool Function(Object?, LspJsonReporter) canParse2,
+  ) {
+    return (input, reporter) =>
+        canParse1(input, reporter) || canParse2(input, reporter);
+  }
+
   /// Creates a `fromJson()` function for an `Either2<T1, T2>` using
   /// the `canParse` and `fromJson` functions for each type.
-  static Either2<T1, T2> Function(R) _generateFromJsonFor<T1, T2, R>(
-      bool Function(R, LspJsonReporter) canParse1,
-      T1 Function(R) fromJson1,
-      bool Function(R, LspJsonReporter) canParse2,
-      T2 Function(R) fromJson2,
+  static Either2<T1, T2> Function(Object?) _generateFromJsonFor<T1, T2, R1, R2>(
+      bool Function(Object?, LspJsonReporter) canParse1,
+      T1 Function(R1) fromJson1,
+      bool Function(Object?, LspJsonReporter) canParse2,
+      T2 Function(R2) fromJson2,
       [LspJsonReporter? reporter]) {
     reporter ??= nullLspJsonReporter;
     return (input) {
       reporter!;
       if (canParse1(input, reporter)) {
-        return Either2<T1, T2>.t1(fromJson1(input));
+        return Either2<T1, T2>.t1(fromJson1(input as R1));
       }
       if (canParse2(input, reporter)) {
-        return Either2<T1, T2>.t2(fromJson2(input));
+        return Either2<T1, T2>.t2(fromJson2(input as R2));
       }
       throw '$input was not one of ($T1, $T2)';
     };

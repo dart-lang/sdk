@@ -8,14 +8,13 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
+import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -27,9 +26,7 @@ class EditGetAssistsHandler extends LegacyHandler
     with RequestHandlerMixin<AnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditGetAssistsHandler(AnalysisServer server, Request request,
-      CancellationToken cancellationToken)
-      : super(server, request, cancellationToken);
+  EditGetAssistsHandler(super.server, super.request, super.cancellationToken);
 
   @override
   Future<void> handle() async {
@@ -104,7 +101,7 @@ class EditGetAssistsHandler extends LegacyHandler
       try {
         var processor = AssistProcessor(context);
         var assists = await processor.compute();
-        assists.sort(Assist.SORT_BY_RELEVANCE);
+        assists.sort(Assist.compareAssists);
         for (var assist in assists) {
           changes.add(assist.change);
         }

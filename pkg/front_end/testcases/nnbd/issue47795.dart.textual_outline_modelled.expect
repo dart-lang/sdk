@@ -1,0 +1,6 @@
+class C<X> {
+  void m1({List<void Function(X)> xs = const []}) {}
+  void m2({List<void Function<Y extends List<X>>(Y)> xs = const []}) {}
+}
+
+void main() => C().m1();

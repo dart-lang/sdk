@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -18,5 +18,5 @@ import self as self;
 import "dart:core" as core;
 
 typedef T = invalid-type;
-typedef F = () →* core::Map<core::String*, dynamic>*;
+typedef F = () → core::Map<core::String, dynamic>;
 static method main() → dynamic {}

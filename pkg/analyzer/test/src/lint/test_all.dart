@@ -8,7 +8,6 @@ import 'config_test.dart' as config;
 import 'io_test.dart' as io;
 import 'lint_rule_test.dart' as lint_rule;
 import 'linter/test_all.dart' as linter;
-import 'project_test.dart' as project;
 import 'pub_test.dart' as pub;
 
 main() {
@@ -17,7 +16,6 @@ main() {
     io.main();
     lint_rule.main();
     linter.main();
-    project.main();
     pub.main();
   }, name: 'lint');
 }

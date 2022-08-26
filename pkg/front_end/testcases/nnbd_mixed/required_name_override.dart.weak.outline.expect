@@ -25,7 +25,7 @@ import "org-dartlang-testcase:///required_name_override_lib.dart";
 class B extends core::Object {
   synthetic constructor •() → self::B
     ;
-  method test_default({core::int? i}) → void
+  method test_default({core::int? i = null}) → void
     ;
   method test_nondefault({core::int? i = 1}) → void
     ;
@@ -33,11 +33,11 @@ class B extends core::Object {
 class A extends self::B implements req::C {
   synthetic constructor •() → self::A
     ;
-  method test_default({required core::int? i}) → void
+  method test_default({required core::int? i = null}) → void
     ;
-  method test_nondefault({required core::int? i}) → void
+  method test_nondefault({required core::int? i = null}) → void
     ;
-  method test_legacy({required core::int? i}) → void
+  method test_legacy({required core::int? i = null}) → void
     ;
   abstract member-signature operator /*isLegacy*/ ==(dynamic other) → core::bool*; -> core::Object::==
 }
@@ -51,7 +51,7 @@ import "dart:core" as core;
 class C extends core::Object {
   synthetic constructor •() → req::C*
     ;
-  method test_legacy({core::int* i}) → void
+  method test_legacy({core::int* i = null}) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

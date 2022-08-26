@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*library: scope=[
   Extension1,
   async.dart.FutureExtensions,
@@ -17,7 +15,7 @@
   method1=Extension1|method1,
   tearoff method1=Extension1|get#method1],
  extension-name=Extension1,
- extension-onType=int
+ extension-onType=int!
 */
 extension Extension1 on int {
   /*member: Extension1|method1:

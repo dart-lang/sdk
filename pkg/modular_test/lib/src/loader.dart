@@ -10,22 +10,12 @@
 ///   * individual .dart files, each file is considered a module. A
 ///   `main.dart` file is required as the entry point of the test.
 ///   * subfolders: each considered a module with multiple files
-///   * (optional) a .packages file:
-///       * if this is not specified, the test will use [defaultPackagesInput]
-///       instead.
-///       * if specified, it will be extended with the definitions in
-///       [defaultPackagesInput]. The list of packages provided is expected to
-///       be disjoint with those in [defaultPackagesInput].
 ///   * a modules.yaml file: a specification of dependencies between modules.
 ///     The format is described in `test_specification_parser.dart`.
 import 'dart:io';
-import 'dart:convert';
-import 'dart:typed_data';
 import 'suite.dart';
 import 'test_specification_parser.dart';
 import 'find_sdk_root.dart';
-
-import 'package:package_config/src/packages_file.dart' as packages_file;
 
 /// Returns the [ModularTest] associated with a folder under [uri].
 ///
@@ -38,13 +28,12 @@ Future<ModularTest> loadTest(Uri uri) async {
   var folder = Directory.fromUri(uri);
   var testUri = folder.uri; // normalized in case the trailing '/' was missing.
   Uri root = await findRoot();
-  Map<String, Uri> defaultPackages =
-      _parseDotPackagesBytesToLibMap(_defaultPackagesInput, root);
+  final defaultTestSpecification = parseTestSpecification(_defaultPackagesSpec);
+  Set<String> defaultPackages = defaultTestSpecification.packages.keys.toSet();
   Module sdkModule = await _createSdkModule(root);
   Map<String, Module> modules = {'sdk': sdkModule};
-  String specString;
-  Module mainModule;
-  Map<String, Uri> packages = {};
+  String? specString;
+  Module? mainModule;
   var entries = folder.listSync(recursive: false).toList()
     // Sort to avoid dependency on file system order.
     ..sort(_compareFileSystemEntity);
@@ -59,13 +48,13 @@ Future<ModularTest> loadTest(Uri uri) async {
               "'$moduleName' which conflicts with the sdk module "
               "that is provided by default.");
         }
-        if (defaultPackages.containsKey(moduleName)) {
+        if (defaultPackages.contains(moduleName)) {
           return _invalidTest("The file '$fileName' defines a module called "
               "'$moduleName' which conflicts with a package by the same name "
               "that is provided by default.");
         }
         if (modules.containsKey(moduleName)) {
-          return _moduleConflict(fileName, modules[moduleName], testUri);
+          return _moduleConflict(fileName, modules[moduleName]!, testUri);
         }
         var relativeUri = Uri.parse(fileName);
         var isMain = moduleName == 'main';
@@ -75,9 +64,6 @@ Future<ModularTest> loadTest(Uri uri) async {
             packageBase: Uri.parse('.'));
         if (isMain) mainModule = module;
         modules[moduleName] = module;
-      } else if (fileName == '.packages') {
-        List<int> packagesBytes = await entry.readAsBytes();
-        packages = _parseDotPackagesBytesToLibMap(packagesBytes, entryUri);
       } else if (fileName == 'modules.yaml') {
         specString = await entry.readAsString();
       }
@@ -90,13 +76,13 @@ Future<ModularTest> loadTest(Uri uri) async {
             "which conflicts with the sdk module "
             "that is provided by default.");
       }
-      if (defaultPackages.containsKey(moduleName)) {
+      if (defaultPackages.contains(moduleName)) {
         return _invalidTest("The folder '$moduleName' defines a module "
             "which conflicts with a package by the same name "
             "that is provided by default.");
       }
       if (modules.containsKey(moduleName)) {
-        return _moduleConflict(moduleName, modules[moduleName], testUri);
+        return _moduleConflict(moduleName, modules[moduleName]!, testUri);
       }
       var sources = await _listModuleSources(entryUri);
       modules[moduleName] = Module(moduleName, [], testUri, sources,
@@ -110,18 +96,23 @@ Future<ModularTest> loadTest(Uri uri) async {
     return _invalidTest("main module is missing");
   }
 
-  _addDefaultPackageEntries(packages, defaultPackages);
-  await _addModulePerPackage(packages, modules);
   TestSpecification spec = parseTestSpecification(specString);
+  for (final name in defaultPackages) {
+    if (spec.packages.containsKey(name)) {
+      _invalidTest(
+          ".packages file defines a conflicting entry for package '$name'.");
+    }
+  }
+  await _addModulePerPackage(defaultTestSpecification.packages, root, modules);
+  await _addModulePerPackage(spec.packages, testUri, modules);
   _attachDependencies(spec.dependencies, modules);
-  _attachDependencies(
-      parseTestSpecification(_defaultPackagesSpec).dependencies, modules);
+  _attachDependencies(defaultTestSpecification.dependencies, modules);
   _addSdkDependencies(modules, sdkModule);
   _detectCyclesAndRemoveUnreachable(modules, mainModule);
   var sortedModules = modules.values.toList()
     ..sort((a, b) => a.name.compareTo(b.name));
   var sortedFlags = spec.flags.toList()..sort();
-  return new ModularTest(sortedModules, mainModule, sortedFlags);
+  return ModularTest(sortedModules, mainModule, sortedFlags);
 }
 
 /// Returns all source files recursively found in a folder as relative URIs.
@@ -142,7 +133,7 @@ Future<List<Uri>> _listModuleSources(Uri root) async {
 void _attachDependencies(
     Map<String, List<String>> dependencies, Map<String, Module> modules) {
   dependencies.forEach((name, moduleDependencies) {
-    var module = modules[name];
+    final module = modules[name];
     if (module == null) {
       _invalidTest(
           "declared dependencies for a non existing module named '$name'");
@@ -151,7 +142,7 @@ void _attachDependencies(
       _invalidTest("Module dependencies have already been declared on $name.");
     }
     moduleDependencies.forEach((dependencyName) {
-      var moduleDependency = modules[dependencyName];
+      final moduleDependency = modules[dependencyName];
       if (moduleDependency == null) {
         _invalidTest("'$name' declares a dependency on a non existing module "
             "named '$dependencyName'");
@@ -170,33 +161,21 @@ void _addSdkDependencies(Map<String, Module> modules, Module sdkModule) {
   }
 }
 
-void _addDefaultPackageEntries(
-    Map<String, Uri> packages, Map<String, Uri> defaultPackages) {
-  for (var name in defaultPackages.keys) {
-    var existing = packages[name];
-    if (existing != null && existing != defaultPackages[name]) {
-      _invalidTest(
-          ".packages file defines an conflicting entry for package '$name'.");
-    }
-    packages[name] = defaultPackages[name];
-  }
-}
-
 /// Create a module for each package dependency.
-Future<void> _addModulePerPackage(
-    Map<String, Uri> packages, Map<String, Module> modules) async {
+Future<void> _addModulePerPackage(Map<String, String> packages, Uri configRoot,
+    Map<String, Module> modules) async {
   for (var packageName in packages.keys) {
     var module = modules[packageName];
     if (module != null) {
       module.isPackage = true;
     } else {
-      var packageLibUri = packages[packageName];
-      var rootUri = Directory.fromUri(packageLibUri).parent.uri;
+      var packageLibUri = configRoot.resolve(packages[packageName]!);
+      var packageRootUri = Directory.fromUri(packageLibUri).parent.uri;
       var sources = await _listModuleSources(packageLibUri);
       // TODO(sigmund): validate that we don't use a different alias for a
       // module that is part of the test (package name and module name should
       // match).
-      modules[packageName] = Module(packageName, [], rootUri, sources,
+      modules[packageName] = Module(packageName, [], packageRootUri, sources,
           isPackage: true, packageBase: Uri.parse('lib/'), isShared: true);
     }
   }
@@ -223,7 +202,7 @@ Future<Module> _createSdkModule(Uri root) async {
       }
     }
   }
-  sources..sort((a, b) => a.path.compareTo(b.path));
+  sources.sort((a, b) => a.path.compareTo(b.path));
   return Module('sdk', [], root, sources, isSdk: true, isShared: true);
 }
 
@@ -249,15 +228,6 @@ _detectCyclesAndRemoveUnreachable(Map<String, Module> modules, Module main) {
   toRemove.forEach(modules.remove);
 }
 
-/// Default entries for a .packages file with paths relative to the SDK root.
-List<int> _defaultPackagesInput = utf8.encode('''
-expect:pkg/expect/lib
-smith:pkg/smith/lib
-async_helper:pkg/async_helper/lib
-meta:pkg/meta/lib
-collection:third_party/pkg/collection/lib
-''');
-
 /// Specifies the dependencies of all packages in [_defaultPackagesInput]. This
 /// string needs to be updated if dependencies between those packages changes
 /// (which is rare).
@@ -270,6 +240,12 @@ dependencies:
   meta: []
   async_helper: []
   collection: []
+packages:
+  expect: pkg/expect/lib
+  smith: pkg/smith/lib
+  async_helper: pkg/async_helper/lib
+  meta: pkg/meta/lib
+  collection: third_party/pkg/collection/lib
 ''';
 
 /// Report an conflict error.
@@ -278,7 +254,7 @@ _moduleConflict(String name, Module existing, Uri root) {
   var entryType = isFile ? 'file' : 'folder';
 
   var existingIsFile =
-      existing.packageBase.path == './' && existing.sources.length == 1;
+      existing.packageBase!.path == './' && existing.sources.length == 1;
   var existingEntryType = existingIsFile ? 'file' : 'folder';
 
   var existingName = existingIsFile
@@ -290,8 +266,8 @@ _moduleConflict(String name, Module existing, Uri root) {
       "'$existingName'.");
 }
 
-_invalidTest(String message) {
-  throw new InvalidTestError(message);
+Never _invalidTest(String message) {
+  throw InvalidTestError(message);
 }
 
 class InvalidTestError extends Error {
@@ -315,16 +291,4 @@ int _compareFileSystemEntity(FileSystemEntity a, FileSystemEntity b) {
       return a.path.compareTo(b.path);
     }
   }
-}
-
-/// Parse [bytes] representing a `.packages` file into the map of package names
-/// to URIs of their `lib` locations.
-Map<String, Uri> _parseDotPackagesBytesToLibMap(Uint8List bytes, Uri baseUri) {
-  var map = <String, Uri>{};
-  var packageConfig =
-      packages_file.parse(bytes, baseUri, (error) => throw error);
-  for (var package in packageConfig.packages) {
-    map[package.name] = package.packageUriRoot;
-  }
-  return map;
 }

@@ -202,6 +202,8 @@ _html_event_types = monitored.Dict(
         'RTCDataChannel.open': ('open', 'Event'),
         'RTCPeerConnection.addstream': ('addStream', 'MediaStreamEvent'),
         'RTCPeerConnection.datachannel': ('dataChannel', 'RtcDataChannelEvent'),
+        'RTCPeerConnection.connectionstatechange':
+        ('connectionStateChange', 'Event'),
         'RTCPeerConnection.icecandidate':
         ('iceCandidate', 'RtcPeerConnectionIceEvent'),
         'RTCPeerConnection.iceconnectionstatechange':

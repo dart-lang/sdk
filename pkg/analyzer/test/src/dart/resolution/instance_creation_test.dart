@@ -57,6 +57,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::t
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -143,6 +146,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::t
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -218,6 +224,7 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@constructor::•::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -256,7 +263,10 @@ InstanceCreationExpression
     arguments
       SimpleIdentifier
         token: s
-        staticElement: s@38
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::t
+          substitution: {T: S}
+        staticElement: self::@function::f::@parameter::s
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>
@@ -407,7 +417,7 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class Foo<X> {
   Foo.bar();
 }
@@ -522,7 +532,7 @@ InstanceCreationExpression
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_prefix() async {
-    newFile2('$testPackageLibPath/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class Foo<X> {
   Foo.bar();
 }
@@ -626,6 +636,7 @@ InstanceCreationExpression
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: self::@class::X::@constructor::•::@parameter::a
         staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
@@ -649,6 +660,7 @@ InstanceCreationExpression
           staticType: C?
           typeArgumentTypes
             C?
+        parameter: self::@class::X::@constructor::•::@parameter::c
       MethodInvocation
         methodName: SimpleIdentifier
           token: g2
@@ -657,6 +669,7 @@ InstanceCreationExpression
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        parameter: self::@class::X::@constructor::•::@parameter::b
         staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
@@ -680,27 +693,10 @@ InstanceCreationExpression
           staticType: D?
           typeArgumentTypes
             D?
+        parameter: self::@class::X::@constructor::•::@parameter::d
     rightParenthesis: )
   staticType: X
 ''');
-
-    var g1 = findNode.methodInvocation('g1()');
-    assertType(g1, 'A');
-    assertParameterElement(g1, findElement.parameter('a'));
-
-    var g2 = findNode.methodInvocation('g2()');
-    assertType(g2, 'B');
-    assertParameterElement(g2, findElement.parameter('b'));
-
-    var named_g3 = findNode.namedExpression('c: g3()');
-    assertType(named_g3.expression, 'C?');
-    assertParameterElement(named_g3, findElement.parameter('c'));
-    assertNamedParameterRef('c:', 'c');
-
-    var named_g4 = findNode.namedExpression('d: g4()');
-    assertType(named_g4.expression, 'D?');
-    assertParameterElement(named_g4, findElement.parameter('d'));
-    assertNamedParameterRef('d:', 'd');
   }
 
   test_typeAlias_generic_class_generic_named_infer_all() async {
@@ -741,6 +737,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::t
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -785,6 +784,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::t
+          substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
         literal: ''
@@ -824,6 +826,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::t
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   staticType: A<int>
@@ -861,6 +866,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::t
+          substitution: {T: int, U: String}
         staticType: int
       SimpleStringLiteral
         literal: ''
@@ -909,6 +917,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::named::@parameter::t
+          substitution: {T: String}
         staticType: int
     rightParenthesis: )
   staticType: A<String>
@@ -948,6 +959,9 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: ParameterMember
+          base: self::@class::A::@constructor::•::@parameter::t
+          substitution: {T: String}
         staticType: int
     rightParenthesis: )
   staticType: A<String>
@@ -982,6 +996,7 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@constructor::•::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1021,6 +1036,7 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@constructor::•::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1060,6 +1076,7 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@constructor::•::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A
@@ -1106,6 +1123,7 @@ InstanceCreationExpression
     arguments
       IntegerLiteral
         literal: 0
+        parameter: self::@class::A::@constructor::•::@parameter::a
         staticType: int
     rightParenthesis: )
   staticType: A

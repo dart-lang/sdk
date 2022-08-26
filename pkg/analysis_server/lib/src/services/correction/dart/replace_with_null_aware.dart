@@ -11,9 +11,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithNullAware extends CorrectionProducer {
   /// The kind of correction to be made.
-  final _CorrectionKind correctionKind;
+  final _CorrectionKind _correctionKind;
 
-  ReplaceWithNullAware(this.correctionKind);
+  ReplaceWithNullAware.inChain() : _correctionKind = _CorrectionKind.inChain;
+
+  ReplaceWithNullAware.single() : _correctionKind = _CorrectionKind.single;
 
   @override
   // NNBD makes this obsolete in the "chain" application; for the "single"
@@ -32,9 +34,9 @@ class ReplaceWithNullAware extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (correctionKind == _CorrectionKind.inChain) {
+    if (_correctionKind == _CorrectionKind.inChain) {
       await _computeInChain(builder);
-    } else if (correctionKind == _CorrectionKind.single) {
+    } else if (_correctionKind == _CorrectionKind.single) {
       await _computeSingle(builder);
     }
   }
@@ -82,14 +84,6 @@ class ReplaceWithNullAware extends CorrectionProducer {
       });
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceWithNullAware inChain() =>
-      ReplaceWithNullAware(_CorrectionKind.inChain);
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceWithNullAware single() =>
-      ReplaceWithNullAware(_CorrectionKind.single);
 }
 
 /// The kinds of corrections supported by [ReplaceWithNullAware].

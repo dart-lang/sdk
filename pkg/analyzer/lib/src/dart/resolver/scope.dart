@@ -180,9 +180,8 @@ class NamespaceBuilder {
   /// [library].
   Namespace createPublicNamespaceForLibrary(LibraryElement library) {
     Map<String, Element> definedNames = HashMap<String, Element>();
-    _addPublicNames(definedNames, library.definingCompilationUnit);
-    for (CompilationUnitElement compilationUnit in library.parts) {
-      _addPublicNames(definedNames, compilationUnit);
+    for (final unitElement in library.units) {
+      _addPublicNames(definedNames, unitElement);
     }
 
     // For libraries that import `dart:core` with a prefix, we have to add
@@ -195,19 +194,6 @@ class NamespaceBuilder {
     }
 
     return Namespace(definedNames);
-  }
-
-  /// Return elements imported with the given [element].
-  Iterable<Element> getImportedElements(ImportElement element) {
-    var importedLibrary = element.importedLibrary;
-
-    // If the URI is invalid.
-    if (importedLibrary == null) {
-      return [];
-    }
-
-    var map = _getExportMapping(importedLibrary);
-    return _applyCombinators(map, element.combinators).values;
   }
 
   /// Add the given [element] to the table of [definedNames] if it has a

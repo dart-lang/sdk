@@ -69,6 +69,9 @@ void main(List<String> args) async {
         negatable: true)
     ..addFlag('weak-null-safety-errors',
         help: 'Treat weak null safety warnings as errors.', defaultsTo: false)
+    ..addFlag('canary',
+        help: 'Enable all compiler features under active development.',
+        defaultsTo: false)
     ..addFlag('observe',
         help:
             'Run the compiler in the Dart VM with --observe. Implies --debug.',
@@ -128,6 +131,7 @@ void main(List<String> args) async {
   var nonNullAsserts = options['null-assertions'] as bool;
   var nativeNonNullAsserts = options['native-null-assertions'] as bool;
   var weakNullSafetyErrors = options['weak-null-safety-errors'] as bool;
+  var canaryFeatures = options['canary'] as bool;
   var entry = p.canonicalize(options.rest.first);
   var out = (options['out'] as String) ?? p.setExtension(entry, '.js');
   var libRoot = p.dirname(entry);
@@ -170,31 +174,28 @@ void main(List<String> args) async {
         mode: ProcessStartMode.inheritStdio, environment: environment);
   }
 
-  Future<void> runDdc(String command, List<String> args) async {
-    if (debug) {
-      // Use unbuilt script.  This only works from a source checkout.
-      var vmServicePort = options.wasParsed('vm-service-port')
-          ? '=${options['vm-service-port']}'
-          : '';
-      var observe =
-          options.wasParsed('vm-service-port') || options['observe'] as bool;
-      args.insertAll(0, [
+  Future<void> runDdc(List<String> ddcArgs) async {
+    var observe =
+        options.wasParsed('vm-service-port') || options['observe'] as bool;
+    var vmServicePort = options.wasParsed('vm-service-port')
+        ? '=${options['vm-service-port']}'
+        : '';
+    var args = <String>[
+      ...?options['compile-vm-options']?.split(' '),
+      if (debug) ...[
         if (observe) ...[
           '--enable-vm-service$vmServicePort',
           '--pause-isolates-on-start',
         ],
         '--enable-asserts',
-        p.join(ddcPath, 'bin', '$command.dart')
-      ]);
-      command = dartBinary;
-    } else {
-      // Use built snapshot.
-      command = p.join(dartSdk, 'bin', command);
-    }
-    var process = await startProcess('DDC', command, args, <String, String>{
-      if (options['compile-vm-options'] != null)
-        'DART_VM_OPTIONS': options['compile-vm-options'] as String
-    });
+        // Use unbuilt script.  This only works from a source checkout.
+        p.join(ddcPath, 'bin', 'dartdevc.dart'),
+      ] else
+        // Use built snapshot.
+        p.join(dartSdk, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
+      ...ddcArgs,
+    ];
+    var process = await startProcess('DDC', dartBinary, args);
     if (await process.exitCode != 0) exit(await process.exitCode);
   }
 
@@ -240,11 +241,12 @@ void main(List<String> args) async {
       if (soundNullSafety) '--sound-null-safety',
       if (options['packages'] != null) '--packages=${options['packages']}',
       if (emitDebugSymbols) '--emit-debug-symbols',
+      if (canaryFeatures) '--canary',
       '-o',
       out,
       entry
     ];
-    await runDdc('dartdevc', ddcArgs);
+    await runDdc(ddcArgs);
   }
 
   if (run) {

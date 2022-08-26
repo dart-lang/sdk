@@ -23,7 +23,7 @@ class RenameToCamelCaseBulkTest extends BulkFixProcessorTest {
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
-main() {
+void f() {
   int my_integer_variable = 42;
   int foo;
   print(my_integer_variable);
@@ -34,7 +34,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   int myIntegerVariable = 42;
   int foo;
   print(myIntegerVariable);

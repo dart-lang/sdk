@@ -1,3 +1,5 @@
+import 'synthesized_super_constructor_with_parameters_lib.dart';
+
 class A1 {
   final int a;
   A1(this.a);
@@ -71,6 +73,30 @@ class A5 extends AA5 {
 class AA5 {
   final int foo;
   AA5([this.foo = 42]);
+}
+
+class D6 extends C6 {
+  D6({super.a});
+}
+
+class B7 {}
+
+class C7 = A7 with B7;
+
+class D7 extends C7 {
+  D7([super.a]);
+}
+
+class D8 extends C8 {
+  D8({super.a});
+}
+
+class B9 {}
+
+class C9 = A9 with B9;
+
+class D9 extends C9 {
+  D9([super.a]);
 }
 
 main() {}

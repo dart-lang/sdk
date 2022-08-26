@@ -1,5 +1,4 @@
-// @dart = 2.9
-A a;
+A a = throw '';
 
 class A<T extends A<T>> {}
 

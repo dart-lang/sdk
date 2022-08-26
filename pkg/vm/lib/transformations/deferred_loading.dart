@@ -5,8 +5,12 @@
 library vm.transformations.deferred_loading;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/target/targets.dart' show Target;
+
 import '../dominators.dart';
 import '../metadata/loading_units.dart';
+import 'pragma.dart';
 
 class _LoadingUnitBuilder {
   late int id;
@@ -37,7 +41,42 @@ class _LibraryVertex extends Vertex<_LibraryVertex> {
   String toString() => "_LibraryVertex(${library.importUri})";
 }
 
-List<LoadingUnit> computeLoadingUnits(Component component) {
+class HasEntryPointVisitor extends RecursiveVisitor {
+  final PragmaAnnotationParser parser;
+  bool _hasEntryPoint = false;
+
+  HasEntryPointVisitor(this.parser);
+
+  visitAnnotations(List<Expression> annotations) {
+    for (var ann in annotations) {
+      ParsedPragma? pragma = parser.parsePragma(ann);
+      if (pragma is ParsedEntryPointPragma) {
+        _hasEntryPoint = true;
+        return;
+      }
+    }
+  }
+
+  @override
+  visitClass(Class klass) {
+    visitAnnotations(klass.annotations);
+    klass.visitChildren(this);
+  }
+
+  @override
+  defaultMember(Member node) {
+    visitAnnotations(node.annotations);
+  }
+
+  bool hasEntryPoint(Library lib) {
+    _hasEntryPoint = false;
+    visitLibrary(lib);
+    return _hasEntryPoint;
+  }
+}
+
+List<LoadingUnit> computeLoadingUnits(
+    Component component, HasEntryPointVisitor visitor) {
   // 1. Build the dominator tree for the library import graph.
   final map = <Library, _LibraryVertex>{};
   for (final lib in component.libraries) {
@@ -51,10 +90,15 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
   }
   final root = map[component.mainMethod!.enclosingLibrary]!;
 
-  // Fake imports from root library to every core library so they end up in
-  // the same loading unit attributed to the user's root library.
+  // Fake imports from root library to every core library or library containing
+  // an entry point pragma so that they end up in the same loading unit
+  // attributed to the user's root library.
   for (final vertex in map.values) {
-    if (vertex.library.importUri.isScheme("dart")) {
+    if (vertex == root) {
+      continue;
+    }
+    if (vertex.library.importUri.isScheme("dart") ||
+        visitor.hasEntryPoint(vertex.library)) {
       root.successors.add(vertex);
       vertex.isLoadingRoot = false;
     }
@@ -108,7 +152,7 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
 
   // 4. Sort loading units so parents are before children. Normally this order
   // would already exist as a side effect of loading sources in import order,
-  // but this isn't guarenteed when combining separately produced kernel files.
+  // but this isn't guaranteed when combining separately produced kernel files.
   for (var unit in loadingUnits) {
     var parent = unit.parent;
     if (parent != null) {
@@ -127,8 +171,12 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
   return loadingUnits.map((u) => u.asLoadingUnit()).toList();
 }
 
-Component transformComponent(Component component) {
-  final metadata = new LoadingUnitsMetadata(computeLoadingUnits(component));
+Component transformComponent(
+    Component component, CoreTypes coreTypes, Target target) {
+  final parser = ConstantPragmaAnnotationParser(coreTypes, target);
+  final visitor = HasEntryPointVisitor(parser);
+  final metadata =
+      new LoadingUnitsMetadata(computeLoadingUnits(component, visitor));
   final repo = new LoadingUnitsMetadataRepository();
   component.addMetadataRepository(repo);
   repo.mapping[component] = metadata;

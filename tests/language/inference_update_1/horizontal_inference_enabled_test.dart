@@ -16,6 +16,16 @@ testLaterUnnamedParameter(void Function<T>(T, void Function(T)) f) {
   });
 }
 
+/// This special case verifies that the implementations correctly associate the
+/// zeroth positional parameter with the corresponding argument (even if that
+/// argument isn't in the zeroth position at the call site).
+testLaterUnnamedParameterDependsOnNamedParameter(
+    void Function<T>(void Function(T), {required T a}) f) {
+  f(a: 0, (x) {
+    x.expectStaticType<Exactly<int>>();
+  });
+}
+
 testEarlierUnnamedParameter(void Function<T>(void Function(T), T) f) {
   f((x) {
     x.expectStaticType<Exactly<int>>();
@@ -38,6 +48,16 @@ testEarlierNamedParameter(
         x.expectStaticType<Exactly<int>>();
       },
       b: 0);
+}
+
+/// This special case verifies that the implementations correctly associate the
+/// zeroth positional parameter with the corresponding argument (even if that
+/// argument isn't in the zeroth position at the call site).
+testEarlierNamedParameterDependsOnUnnamedParameter(
+    void Function<T>(T b, {required void Function(T) a}) f) {
+  f(a: (x) {
+    x.expectStaticType<Exactly<int>>();
+  }, 0);
 }
 
 testPropagateToReturnType(U Function<T, U>(T, U Function(T)) f) {
@@ -71,7 +91,7 @@ testPropagateToLaterClosure(U Function<T, U>(T Function(), U Function(T)) f) {
       .expectStaticType<Exactly<List<int>>>();
 }
 
-testLongDepedencyChain(
+testLongDependencyChain(
     V Function<T, U, V>(T Function(), U Function(T), V Function(U)) f) {
   f(() => [0], (x) => x.single..expectStaticType<Exactly<int>>(),
           (y) => {y}..expectStaticType<Exactly<Set<int>>>())
@@ -82,6 +102,15 @@ testDependencyCycle(Map<T, U> Function<T, U>(T Function(U), U Function(T)) f) {
   f((x) => [x]..expectStaticType<Exactly<List<Object?>>>(),
           (y) => {y}..expectStaticType<Exactly<Set<Object?>>>())
       .expectStaticType<Exactly<Map<List<Object?>, Set<Object?>>>>();
+}
+
+testNecessaryDueToWrongExplicitParameterType(List<int> list) {
+  var a = list.fold(
+      0,
+      (x, int y) =>
+          (x..expectStaticType<Exactly<int>>()) +
+          (y..expectStaticType<Exactly<int>>()));
+  a.expectStaticType<Exactly<int>>();
 }
 
 testPropagateFromContravariantReturnType(
@@ -105,6 +134,51 @@ testReturnTypeRefersToMultipleTypeVars(
   }, (v) {
     v.expectStaticType<Exactly<String>>();
   });
+}
+
+testUnnecessaryDueToNoDependency(T Function<T>(T Function(), T) f) {
+  f(() => 0, null).expectStaticType<Exactly<int?>>();
+}
+
+testUnnecessaryDueToExplicitParameterType(List<int> list) {
+  var a = list.fold(null, (int? x, y) => (x ?? 0) + y);
+  a.expectStaticType<Exactly<int?>>();
+}
+
+testUnnecessaryDueToExplicitParameterTypeNamed(
+    T Function<T>(T, T Function({required T x, required int y})) f) {
+  var a = f(null, ({int? x, required y}) => (x ?? 0) + y);
+  a.expectStaticType<Exactly<int?>>();
+}
+
+testParenthesized(void Function<T>(T, void Function(T)) f) {
+  f(0, ((x) {
+    x.expectStaticType<Exactly<int>>();
+  }));
+}
+
+testParenthesizedNamed(
+    void Function<T>({required T a, required void Function(T) b}) f) {
+  f(
+      a: 0,
+      b: ((x) {
+        x.expectStaticType<Exactly<int>>();
+      }));
+}
+
+testParenthesizedTwice(void Function<T>(T, void Function(T)) f) {
+  f(0, (((x) {
+    x.expectStaticType<Exactly<int>>();
+  })));
+}
+
+testParenthesizedTwiceNamed(
+    void Function<T>({required T a, required void Function(T) b}) f) {
+  f(
+      a: 0,
+      b: (((x) {
+        x.expectStaticType<Exactly<int>>();
+      })));
 }
 
 main() {}

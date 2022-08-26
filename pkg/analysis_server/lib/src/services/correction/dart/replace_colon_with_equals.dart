@@ -38,7 +38,4 @@ class ReplaceColonWithEquals extends CorrectionProducer {
       builder.addSimpleReplacement(range.token(separator), ' =');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceColonWithEquals newInstance() => ReplaceColonWithEquals();
 }

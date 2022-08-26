@@ -11,4 +11,5 @@ dependencies:
   cli_util: any
   collection: any
   path: any
+  pub_semver: any
   yaml: any

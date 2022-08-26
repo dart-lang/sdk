@@ -22,7 +22,7 @@ class GetAvailableRefactoringsTest
 void foo() { }
 ''';
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

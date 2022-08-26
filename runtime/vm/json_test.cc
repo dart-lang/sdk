@@ -169,7 +169,7 @@ ISOLATE_UNIT_TEST_CASE(JSON_JSONStream_DartObject) {
     JSONObject jsobj(&jsarr);
     jsobj.AddProperty("object_key", Object::Handle(Object::null()));
   }
-  // WARNING: This MUST be big enough for the serialised JSON string.
+  // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 2048;
   char buffer[kBufferSize];
   const char* json_str = js.ToCString();

@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -14,94 +15,421 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../resolution/node_text_expectations.dart';
 import 'file_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FileResolver_changeFile_Test);
+    defineReflectiveTests(FileResolver_changeFiles_Test);
     defineReflectiveTests(FileResolverTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class FileResolver_changeFile_Test extends FileResolutionTest {
-  late final String aPath;
-  late final String bPath;
-  late final String cPath;
-
-  @override
-  void setUp() {
-    super.setUp();
-    aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    cPath = convertPath('/workspace/dart/test/lib/c.dart');
-  }
-
+class FileResolver_changeFiles_Test extends FileResolutionTest {
   test_changeFile_refreshedFiles() async {
-    newFile2(aPath, r'''
+    final a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    newFile2(bPath, r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 class B {}
 ''');
 
-    newFile2(cPath, r'''
+    final c = newFile('$testPackageLibPath/c.dart', r'''
 import 'a.dart';
 import 'b.dart';
 ''');
 
     // First time we refresh everything.
-    await resolveFile(cPath);
-    _assertRefreshedFiles([aPath, bPath, cPath], withSdk: true);
+    await resolveFile(c.path);
+
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_2
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_2
+      referencingFiles: file_2
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_0
+          library_1
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 cycle_1 dart:core
+          libraries: library_2
+          apiSignature_2
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /workspace/dart/test/lib/b.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+  /workspace/dart/test/lib/c.dart
+    current: cycle_2
+      key: k05
+    get: []
+    put: [k05]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''');
 
     // Without changes we refresh nothing.
-    await resolveFile(cPath);
-    _assertRefreshedFiles([]);
+    await resolveFile(c.path);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_2
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_2
+      referencingFiles: file_2
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_0
+          library_1
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 cycle_1 dart:core
+          libraries: library_2
+          apiSignature_2
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /workspace/dart/test/lib/b.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+  /workspace/dart/test/lib/c.dart
+    current: cycle_2
+      key: k05
+    get: []
+    put: [k05]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''');
 
     // We already know a.dart, refresh nothing.
-    await resolveFile(aPath);
-    _assertRefreshedFiles([]);
+    await resolveFile(a.path);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_2
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_2
+      referencingFiles: file_2
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_0
+          library_1
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 cycle_1 dart:core
+          libraries: library_2
+          apiSignature_2
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /workspace/dart/test/lib/b.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+  /workspace/dart/test/lib/c.dart
+    current: cycle_2
+      key: k05
+    get: []
+    put: [k05]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''');
 
-    // Change a.dart, refresh a.dart and c.dart, but not b.dart
-    fileResolver.changeFile(aPath);
-    await resolveFile(cPath);
-    _assertRefreshedFiles([aPath, cPath]);
+    // Change a.dart, discard data for a.dart and c.dart, but not b.dart
+    fileResolver.changeFiles([a.path]);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
+    unlinkedGet: []
+    unlinkedPut: [k02]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k03]
+  /workspace/dart/test/lib/b.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+  /workspace/dart/test/lib/c.dart
+    get: []
+    put: [k05]
+elementFactory
+  hasElement
+    package:dart.test/b.dart
+byteStore
+  1: [k01, k04, k06, k07, k08, k09, k10, k11]
+''');
+
+    // Resolve, read again a.dart and c.dart
+    await resolveFile(c.path);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_8
+      kind: library_8
+        imports
+          library_3 dart:core synthetic
+        cycle_4
+          dependencies: dart:core
+          libraries: library_8
+          apiSignature_0
+          users: cycle_5
+      referencingFiles: file_9
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00, k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_5
+      referencingFiles: file_9
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
+    current
+      id: file_9
+      kind: library_9
+        imports
+          library_8
+          library_1
+          library_3 dart:core synthetic
+        cycle_5
+          dependencies: cycle_1 cycle_4 dart:core
+          libraries: library_9
+          apiSignature_2
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02, k02]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_4
+      key: k03
+    get: []
+    put: [k03, k03]
+  /workspace/dart/test/lib/b.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+  /workspace/dart/test/lib/c.dart
+    current: cycle_5
+      key: k05
+    get: []
+    put: [k05, k05]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''');
   }
 
   test_changeFile_resolution() async {
-    newFile2(aPath, r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {}
 ''');
 
-    newFile2(bPath, r'''
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
 import 'a.dart';
 void f(A a, B b) {}
 ''');
 
-    result = await resolveFile(bPath);
+    result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, [
       error(CompileTimeErrorCode.UNDEFINED_CLASS, 29, 1),
     ]);
 
-    newFile2(aPath, r'''
+    newFile(a.path, r'''
 class A {}
 class B {}
 ''');
-    fileResolver.changeFile(aPath);
+    fileResolver.changeFiles([a.path]);
 
-    result = await resolveFile(bPath);
+    result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, []);
   }
 
   test_changeFile_resolution_flushInheritanceManager() async {
-    newFile2(aPath, r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {
   final int foo = 0;
 }
 ''');
 
-    newFile2(bPath, r'''
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
 import 'a.dart';
 
 void f(A a) {
@@ -109,47 +437,50 @@ void f(A a) {
 }
 ''');
 
-    result = await resolveFile(bPath);
+    result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 3),
     ]);
 
-    newFile2(aPath, r'''
+    newFile(a.path, r'''
 class A {
   int foo = 0;
 }
 ''');
-    fileResolver.changeFile(aPath);
+    fileResolver.changeFiles([a.path]);
 
-    result = await resolveFile(bPath);
+    result = await resolveFile(b.path);
     assertErrorsInResolvedUnit(result, []);
   }
 
   test_changeFile_resolution_missingChangeFileForPart() async {
-    newFile2(aPath, r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'b.dart';
 
 var b = B(0);
 ''');
 
-    result = await resolveFile(aPath);
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+part of 'a.dart';
+''');
+
+    result = await resolveFile(a.path);
     assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 24, 1),
     ]);
 
     // Update a.dart, and notify the resolver. We need this to have at least
     // one change, so that we decided to rebuild the library summary.
-    newFile2(aPath, r'''
+    newFile(a.path, r'''
 part 'b.dart';
 
 var b = B(1);
 ''');
-    fileResolver.changeFile(aPath);
+    fileResolver.changeFiles([a.path]);
 
     // Update b.dart, but do not notify the resolver.
     // If we try to read it now, it will throw.
-    newFile2(bPath, r'''
+    newFile(b.path, r'''
 part of 'a.dart';
 
 class B {
@@ -157,64 +488,315 @@ class B {
 }
 ''');
 
-    expect(() async {
-      await resolveFile(aPath);
-    }, throwsStateError);
+    try {
+      await resolveFile(a.path);
+      fail('Expected StateError');
+    } on StateError {
+      // OK
+    }
 
     // Notify the resolver about b.dart, it is OK now.
-    fileResolver.changeFile(bPath);
-    result = await resolveFile(aPath);
+    fileResolver.changeFiles([b.path]);
+    result = await resolveFile(a.path);
     assertErrorsInResolvedUnit(result, []);
   }
 
   test_changePartFile_refreshedFiles() async {
-    newFile2(aPath, r'''
+    newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'b.dart';
 
 class A {}
 ''');
 
-    newFile2(bPath, r'''
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
 part of 'a.dart';
 
 class B extends A {}
 ''');
 
-    newFile2(cPath, r'''
+    // First time we refresh everything.
+    await resolveFile(b.path);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_2 dart:core synthetic
+        parts
+          partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        library: library_0
+      referencingFiles: file_0
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k02
+    get: []
+    put: [k02]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
+''');
+
+    // Change b.dart, discard both b.dart and a.dart
+    fileResolver.changeFiles([b.path]);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    unlinkedGet: []
+    unlinkedPut: [k01]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k02]
+elementFactory
+byteStore
+  1: [k03, k04, k05, k06, k07, k08]
+''');
+
+    // Resolve, read a.dart and b.dart
+    await resolveFile(b.path);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_7
+      kind: library_7
+        imports
+          library_2 dart:core synthetic
+        parts
+          partOfUriKnown_8
+        cycle_2
+          dependencies: dart:core
+          libraries: library_7
+          apiSignature_0
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00, k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_8
+      kind: partOfUriKnown_8
+        library: library_7
+      referencingFiles: file_7
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01, k01]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_2
+      key: k02
+    get: []
+    put: [k02, k02]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08]
+''');
+  }
+
+  test_changePartFile_refreshedFiles_transitive() async {
+    newFile('/workspace/dart/test/lib/a.dart', r'''
+part 'b.dart';
+
+class A {}
+''');
+
+    final b = newFile('/workspace/dart/test/lib/b.dart', r'''
+part of 'a.dart';
+
+class B extends A {}
+''');
+
+    final c = newFile('/workspace/dart/test/lib/c.dart', r'''
 import 'a.dart';
 ''');
 
-    // First time we refresh everything.
-    await resolveFile(bPath);
-    _assertRefreshedFiles([aPath, bPath], withSdk: true);
-    // Change b.dart, refresh a.dart
-    fileResolver.changeFile(bPath);
-    await resolveFile(bPath);
-    _assertRefreshedFiles([aPath, bPath]);
-    // now with c.dart
-    await resolveFile(cPath);
-    _assertRefreshedFiles([cPath]);
-    fileResolver.changeFile(bPath);
-    await resolveFile(cPath);
-    _assertRefreshedFiles([aPath, bPath, cPath]);
-  }
+    await resolveFile(c.path);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_3 dart:core synthetic
+        parts
+          partOfUriKnown_1
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1
+      referencingFiles: file_2
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_1
+      kind: partOfUriKnown_1
+        library: library_0
+      referencingFiles: file_0
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_0
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_2
+          apiSignature_1
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /workspace/dart/test/lib/c.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10]
+''');
 
-  void _assertRefreshedFiles(List<String> expected, {bool withSdk = false}) {
-    var expectedPlusSdk = expected.toSet();
+    // Should invalidate a.dart, b.dart, c.dart
+    fileResolver.changeFiles([b.path]);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
+    unlinkedGet: []
+    unlinkedPut: [k02]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k03]
+  /workspace/dart/test/lib/c.dart
+    get: []
+    put: [k04]
+elementFactory
+byteStore
+  1: [k05, k06, k07, k08, k09, k10]
+''');
 
-    if (withSdk) {
-      expectedPlusSdk
-        ..add(convertPath('/sdk/lib/_internal/internal.dart'))
-        ..add(convertPath('/sdk/lib/async/async.dart'))
-        ..add(convertPath('/sdk/lib/async/stream.dart'))
-        ..add(convertPath('/sdk/lib/core/core.dart'))
-        ..add(convertPath('/sdk/lib/math/math.dart'));
-    }
-
-    var refreshedFiles = fileResolver.fsState!.testView.refreshedFiles;
-    expect(refreshedFiles, unorderedEquals(expectedPlusSdk));
-
-    refreshedFiles.clear();
+    // Read again a.dart, b.dart, c.dart
+    await resolveFile(c.path);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_8
+      kind: library_8
+        imports
+          library_3 dart:core synthetic
+        parts
+          partOfUriKnown_9
+        cycle_3
+          dependencies: dart:core
+          libraries: library_8
+          apiSignature_0
+          users: cycle_4
+      referencingFiles: file_10
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00, k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_9
+      kind: partOfUriKnown_9
+        library: library_8
+      referencingFiles: file_8
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01, k01]
+  /workspace/dart/test/lib/c.dart
+    uri: package:dart.test/c.dart
+    current
+      id: file_10
+      kind: library_10
+        imports
+          library_8
+          library_3 dart:core synthetic
+        cycle_4
+          dependencies: cycle_3 dart:core
+          libraries: library_10
+          apiSignature_1
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02, k02]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_3
+      key: k03
+    get: []
+    put: [k03, k03]
+  /workspace/dart/test/lib/c.dart
+    current: cycle_4
+      key: k04
+    get: []
+    put: [k04, k04]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+    package:dart.test/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10]
+''');
   }
 }
 
@@ -224,7 +806,7 @@ class FileResolverTest extends FileResolutionTest {
   bool get isNullSafetyEnabled => true;
 
   test_analysisOptions_default_fromPackageUri() async {
-    newFile2('/workspace/dart/analysis_options/lib/default.yaml', r'''
+    newFile('/workspace/dart/analysis_options/lib/default.yaml', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
@@ -239,7 +821,7 @@ int b = a;
   }
 
   test_analysisOptions_file_inPackage() async {
-    newAnalysisOptionsYamlFile2('/workspace/dart/test', r'''
+    newAnalysisOptionsYamlFile('/workspace/dart/test', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
@@ -254,13 +836,13 @@ int b = a;
   }
 
   test_analysisOptions_file_inThirdParty() async {
-    newFile2('/workspace/dart/analysis_options/lib/third_party.yaml', r'''
+    newFile('/workspace/dart/analysis_options/lib/third_party.yaml', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
-    newAnalysisOptionsYamlFile2('/workspace/third_party/dart/aaa', r'''
+    newAnalysisOptionsYamlFile('/workspace/third_party/dart/aaa', r'''
 analyzer:
   strong-mode:
     implicit-casts: true
@@ -276,13 +858,13 @@ int b = a;
   }
 
   test_analysisOptions_file_inThirdPartyDartLang() async {
-    newFile2('/workspace/dart/analysis_options/lib/third_party.yaml', r'''
+    newFile('/workspace/dart/analysis_options/lib/third_party.yaml', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
-    newAnalysisOptionsYamlFile2('/workspace/third_party/dart_lang/aaa', r'''
+    newAnalysisOptionsYamlFile('/workspace/third_party/dart_lang/aaa', r'''
 analyzer:
   strong-mode:
     implicit-casts: true
@@ -298,7 +880,7 @@ int b = a;
   }
 
   test_analysisOptions_lints() async {
-    newFile2('/workspace/dart/analysis_options/lib/default.yaml', r'''
+    newFile('/workspace/dart/analysis_options/lib/default.yaml', r'''
 linter:
   rules:
     - omit_local_variable_types
@@ -327,22 +909,65 @@ var b = 1 + 2;
     assertType(findElement.topVar('b').type, 'int');
   }
 
-  test_collectSharedDataIdentifiers() async {
-    var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
-
-    newFile2(aPath, r'''
+  test_dispose() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    await resolveFile(aPath);
-    fileResolver.collectSharedDataIdentifiers();
-    expect(fileResolver.removedCacheIds.length,
-        (fileResolver.byteStore as CiderCachedByteStore).testView!.length);
+    // After resolution the byte store contains unlinked data for files,
+    // and linked data for loaded bundles.
+    await resolveFile(a.path);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k01
+    get: []
+    put: [k01]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
+
+    fileResolver.dispose();
+
+    // After dispose() we don't have any loaded libraries or files.
+    // The byte store is empty - no unlinked or linked data.
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    unlinkedGet: []
+    unlinkedPut: [k00]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    get: []
+    put: [k01]
+elementFactory
+byteStore
+''');
   }
 
   test_elements_export_dartCoreDynamic() async {
     var a_path = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(a_path, r'''
+    newFile(a_path, r'''
 export 'dart:core' show dynamic;
 ''');
 
@@ -353,7 +978,7 @@ export 'dart:core' show dynamic;
     var dartCorePath = a_result.session.uriConverter.uriToPath(
       Uri.parse('dart:core'),
     )!;
-    fileResolver.changeFile(dartCorePath);
+    fileResolver.changeFiles([dartCorePath]);
 
     // Analyze, this will read the element model for `dart:core`.
     // There was a bug that `root::dart:core::dynamic` had no element set.
@@ -376,14 +1001,14 @@ String f(Map<int, String> a) {
 
   test_findReferences_class() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {
   int foo;
 }
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile2(bPath, r'''
+    newFile(bPath, r'''
 import 'a.dart';
 
 void func() {
@@ -396,15 +1021,15 @@ void func() {
     var element = await _findElement(6, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(4, 11)]),
-      CiderSearchMatch(aPath, [CharacterLocation(1, 7)])
+      CiderSearchMatch(bPath,
+          [CiderSearchInfo(CharacterLocation(4, 11), 1, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
   }
 
   test_findReferences_field() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {
   int foo = 0;
 
@@ -419,14 +1044,14 @@ class A {
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
-          aPath, [CharacterLocation(2, 7), CharacterLocation(5, 5)])
+          aPath, [CiderSearchInfo(CharacterLocation(5, 5), 3, MatchKind.WRITE)])
     ];
-    expect(result, unorderedEquals(expected));
+    expect(result, expected);
   }
 
   test_findReferences_function() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 main() {
   foo('Hello');
 }
@@ -438,21 +1063,21 @@ foo(String str) {}
     var element = await _findElement(11, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(
-          aPath, [CharacterLocation(2, 3), CharacterLocation(5, 1)])
+      CiderSearchMatch(aPath,
+          [CiderSearchInfo(CharacterLocation(2, 3), 3, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
   }
 
   test_findReferences_getter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {
   int get foo => 6;
 }
 ''');
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile2(bPath, r'''
+    newFile(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -465,15 +1090,15 @@ main() {
     var element = await _findElement(20, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(5, 15)]),
-      CiderSearchMatch(aPath, [CharacterLocation(2, 11)])
+      CiderSearchMatch(bPath,
+          [CiderSearchInfo(CharacterLocation(5, 15), 3, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
   }
 
   test_findReferences_local_variable() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {
   void func(int n) {
     var foo = bar+1;
@@ -485,15 +1110,15 @@ class A {
     var element = await _findElement(39, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(
-          aPath, [CharacterLocation(3, 9), CharacterLocation(4, 11)])
+      CiderSearchMatch(aPath,
+          [CiderSearchInfo(CharacterLocation(4, 11), 3, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
   }
 
   test_findReferences_method() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {
   void func() {
    print('hello');
@@ -506,7 +1131,7 @@ class A {
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile2(bPath, r'''
+    newFile(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -519,22 +1144,23 @@ main() {
     var element = await _findElement(17, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(5, 5)]),
-      CiderSearchMatch(
-          aPath, [CharacterLocation(2, 8), CharacterLocation(7, 4)])
+      CiderSearchMatch(bPath,
+          [CiderSearchInfo(CharacterLocation(5, 5), 4, MatchKind.REFERENCE)]),
+      CiderSearchMatch(aPath,
+          [CiderSearchInfo(CharacterLocation(7, 4), 4, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
   }
 
   test_findReferences_setter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {
   void set value(int m){ };
 }
 ''');
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile2(bPath, r'''
+    newFile(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -547,8 +1173,8 @@ main() {
     var element = await _findElement(21, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(5, 5)]),
-      CiderSearchMatch(aPath, [CharacterLocation(2, 12)])
+      CiderSearchMatch(
+          bPath, [CiderSearchInfo(CharacterLocation(5, 5), 5, MatchKind.WRITE)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -556,14 +1182,14 @@ main() {
   test_findReferences_top_level_getter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
 
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 int _foo;
 
 int get foo => _foo;
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile2(bPath, r'''
+    newFile(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -575,8 +1201,8 @@ main() {
     var element = await _findElement(19, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(4, 13)]),
-      CiderSearchMatch(aPath, [CharacterLocation(3, 9)])
+      CiderSearchMatch(bPath,
+          [CiderSearchInfo(CharacterLocation(4, 13), 3, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -584,14 +1210,14 @@ main() {
   test_findReferences_top_level_setter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
 
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 int _foo;
 
 void set foo(int bar) { _foo = bar; }
 ''');
 
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile2(bPath, r'''
+    newFile(bPath, r'''
 import 'a.dart';
 
 main() {
@@ -603,8 +1229,8 @@ main() {
     var element = await _findElement(20, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(4, 3)]),
-      CiderSearchMatch(aPath, [CharacterLocation(3, 10)])
+      CiderSearchMatch(bPath,
+          [CiderSearchInfo(CharacterLocation(4, 3), 3, MatchKind.WRITE)]),
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -612,7 +1238,7 @@ main() {
   test_findReferences_top_level_variable() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
 
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 const int C = 42;
 
 void func() {
@@ -625,14 +1251,14 @@ void func() {
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(
-          aPath, [CharacterLocation(1, 11), CharacterLocation(4, 11)])
+          aPath, [CiderSearchInfo(CharacterLocation(4, 11), 1, MatchKind.READ)])
     ];
     expect(result, unorderedEquals(expected));
   }
 
   test_findReferences_type_parameter() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class Foo<T> {
   List<T> l;
 
@@ -644,25 +1270,21 @@ class Foo<T> {
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
       CiderSearchMatch(aPath, [
-        CharacterLocation(1, 11),
-        CharacterLocation(2, 8),
-        CharacterLocation(4, 12)
+        CiderSearchInfo(CharacterLocation(2, 8), 1, MatchKind.REFERENCE),
+        CiderSearchInfo(CharacterLocation(4, 12), 1, MatchKind.REFERENCE)
       ])
     ];
-    expect(result.map((e) => e.path),
-        unorderedEquals(expected.map((e) => e.path)));
-    expect(result.map((e) => e.startPositions),
-        unorderedEquals(expected.map((e) => e.startPositions)));
+    expect(result, expected);
   }
 
   test_findReferences_typedef() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 typedef func = int Function(int);
 
 ''');
     var bPath = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile2(bPath, r'''
+    newFile(bPath, r'''
 import 'a.dart';
 
 void f(func o) {}
@@ -672,8 +1294,8 @@ void f(func o) {}
     var element = await _findElement(8, aPath);
     var result = await fileResolver.findReferences2(element);
     var expected = <CiderSearchMatch>[
-      CiderSearchMatch(bPath, [CharacterLocation(3, 8)]),
-      CiderSearchMatch(aPath, [CharacterLocation(1, 9)])
+      CiderSearchMatch(bPath,
+          [CiderSearchInfo(CharacterLocation(3, 8), 4, MatchKind.REFERENCE)])
     ];
     expect(result, unorderedEquals(expected));
   }
@@ -694,79 +1316,56 @@ var foo = 0;
   }
 
   test_getErrors_reuse() async {
-    addTestFile('var a = b;');
-
-    var path = convertPath('/workspace/dart/test/lib/test.dart');
+    newFile(testFilePath, 'var a = b;');
 
     // No resolved files yet.
-    expect(fileResolver.testView!.resolvedLibraries, isEmpty);
+    _assertResolvedFiles([]);
 
     // No cached, will resolve once.
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
+    _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
+    _assertResolvedFiles([]);
 
-    // New resolver.
-    // Still has cached, will be not resolved.
-    createFileResolver();
+    // Change the file, will be resolved again.
+    newFile(testFilePath, 'var a = c;');
+    fileResolver.changeFiles([testFile.path]);
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
-
-    // Change the file, new resolver.
-    // With changed file the previously cached result cannot be used.
-    addTestFile('var a = c;');
-    createFileResolver();
-    expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
-
-    // New resolver.
-    // Still has cached, will be not resolved.
-    createFileResolver();
-    expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
+    _assertResolvedFiles([testFile]);
   }
 
   test_getErrors_reuse_changeDependency() async {
-    newFile2('/workspace/dart/test/lib/a.dart', r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
 
-    addTestFile(r'''
+    newFile(testFilePath, r'''
 import 'a.dart';
 var b = a.foo;
 ''');
 
-    var path = convertPath('/workspace/dart/test/lib/test.dart');
-
     // No resolved files yet.
-    expect(fileResolver.testView!.resolvedLibraries, isEmpty);
+    _assertResolvedFiles([]);
 
     // No cached, will resolve once.
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
+    _assertResolvedFiles([testFile]);
 
     // Has cached, will be not resolved again.
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
+    _assertResolvedFiles([]);
 
-    // Change the dependency, new resolver.
+    // Change the dependency.
     // The signature of the result is different.
     // The previously cached result cannot be used.
-    newFile2('/workspace/dart/test/lib/a.dart', r'''
+    newFile(a.path, r'''
 var a = 4.2;
 ''');
-    createFileResolver();
+    fileResolver.changeFiles([a.path]);
     expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, [path]);
-
-    // New resolver.
-    // Still has cached, will be not resolved.
-    createFileResolver();
-    expect((await getTestErrors()).errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
+    _assertResolvedFiles([testFile]);
   }
 
   test_getFilesWithTopLevelDeclarations_cached() async {
@@ -795,7 +1394,7 @@ var b = 1 + 2;
   }
 
   test_getLibraryByUri() async {
-    newFile2('/workspace/dart/my/lib/a.dart', r'''
+    newFile('/workspace/dart/my/lib/a.dart', r'''
 class A {}
 ''');
 
@@ -813,7 +1412,7 @@ class A {}
   }
 
   test_getLibraryByUri_partOf() async {
-    newFile2('/workspace/dart/my/lib/a.dart', r'''
+    newFile('/workspace/dart/my/lib/a.dart', r'''
 part of 'b.dart';
 ''');
 
@@ -842,11 +1441,209 @@ import 'dart:math';
 
   test_hint_in_third_party() async {
     var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 import 'dart:math';
 ''');
     await resolveFile(aPath);
     assertNoErrorsInResult();
+  }
+
+  test_linkLibraries() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+final b = a;
+''');
+
+    await fileResolver.linkLibraries2(path: a.path);
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k01
+    get: [k01]
+    put: [k01]
+elementFactory
+  hasReader
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
+
+    await fileResolver.getLibraryByUri2(
+      uriStr: 'package:dart.test/a.dart',
+    );
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k01
+    get: [k01]
+    put: [k01]
+elementFactory
+  hasElement
+    package:dart.test/a.dart
+  hasReader
+    package:dart.test/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
+
+    await fileResolver.linkLibraries2(path: b.path);
+
+    // We discarded all libraries, so each one has `get` and `put`.
+    // We did not discard files, so only `unlinkedPut`.
+    // The reference count for each data is exactly `1`.
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_6
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_6
+      kind: library_6
+        imports
+          library_0
+          library_1 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 dart:core
+          libraries: library_6
+          apiSignature_1
+      unlinkedKey: k08
+    unlinkedGet: []
+    unlinkedPut: [k08]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k01
+    get: [k01, k01]
+    put: [k01]
+  /workspace/dart/test/lib/b.dart
+    current: cycle_2
+      key: k09
+    get: [k09]
+    put: [k09]
+elementFactory
+  hasReader
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
+''');
+
+    final b_library = await fileResolver.getLibraryByUri2(
+      uriStr: 'package:dart.test/b.dart',
+    );
+
+    // Ask types for top-level variables.
+    final b_unit = b_library.definingCompilationUnit;
+    for (final topLevelVariable in b_unit.topLevelVariables) {
+      topLevelVariable.type;
+    }
+
+    // All types are stored in the bundle for b.dart itself, we don't need to
+    // read a.dart to access them, so we keep it as a reader.
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/a.dart
+    uri: package:dart.test/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_6
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/test/lib/b.dart
+    uri: package:dart.test/b.dart
+    current
+      id: file_6
+      kind: library_6
+        imports
+          library_0
+          library_1 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 dart:core
+          libraries: library_6
+          apiSignature_1
+      unlinkedKey: k08
+    unlinkedGet: []
+    unlinkedPut: [k08]
+libraryCycles
+  /workspace/dart/test/lib/a.dart
+    current: cycle_0
+      key: k01
+    get: [k01, k01]
+    put: [k01]
+  /workspace/dart/test/lib/b.dart
+    current: cycle_2
+      key: k09
+    get: [k09]
+    put: [k09]
+elementFactory
+  hasElement
+    package:dart.test/b.dart
+  hasReader
+    package:dart.test/a.dart
+    package:dart.test/b.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09]
+''');
   }
 
   test_linkLibraries_getErrors() async {
@@ -855,20 +1652,85 @@ var a = b;
 var foo = 0;
 ''');
 
-    var path = convertPath('/workspace/dart/test/lib/test.dart');
-    await fileResolver.linkLibraries2(path: path);
+    await fileResolver.linkLibraries2(path: testFile.path);
+
+    // We discarded all libraries, so each one has `get` and `put`.
+    // We did not discard files, so only `unlinkedPut`.
+    // The library for the test file has reader, but not the element yet.
+    // `dart:core` and `dart` have element because of `TypeProvider`.
+    // The reference count for each data is exactly `1`.
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/test.dart
+    uri: package:dart.test/test.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+libraryCycles
+  /workspace/dart/test/lib/test.dart
+    current: cycle_0
+      key: k01
+    get: [k01]
+    put: [k01]
+elementFactory
+  hasReader
+    package:dart.test/test.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
 
     var result = await getTestErrors();
-    expect(result.path, path);
+    expect(result.path, testFile.path);
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.errors, [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
+
+    // We created the library element for the test file, using the reader.
+    assertStateString(r'''
+files
+  /workspace/dart/test/lib/test.dart
+    uri: package:dart.test/test.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+libraryCycles
+  /workspace/dart/test/lib/test.dart
+    current: cycle_0
+      key: k01
+    get: [k01]
+    put: [k01]
+elementFactory
+  hasElement
+    package:dart.test/test.dart
+  hasReader
+    package:dart.test/test.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
   }
 
   test_nameOffset_class_method_fromBytes() async {
-    newFile2('/workspace/dart/test/lib/a.dart', r'''
+    newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {
   void foo() {}
 }
@@ -899,7 +1761,7 @@ void f(A a) {
   }
 
   test_nameOffset_unit_variable_fromBytes() async {
-    newFile2('/workspace/dart/test/lib/a.dart', r'''
+    newFile('/workspace/dart/test/lib/a.dart', r'''
 var a = 0;
 ''');
 
@@ -940,7 +1802,7 @@ void f(int? a) {
   }
 
   test_nullSafety_notEnabled() async {
-    newFile2('/workspace/dart/test/BUILD', '');
+    newFile('/workspace/dart/test/BUILD', '');
 
     await assertErrorsInCode(r'''
 void f(int? a) {}
@@ -962,83 +1824,481 @@ part of 'a.dart';
   }
 
   test_removeFilesNotNecessaryForAnalysisOf() async {
-    var aPath = convertPath('/workspace/dart/aaa/lib/a.dart');
-    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
-    var cPath = convertPath('/workspace/dart/aaa/lib/c.dart');
-
-    newFile2(aPath, r'''
+    newFile('/workspace/dart/aaa/lib/a.dart', r'''
 class A {}
 ''');
 
-    newFile2(bPath, r'''
+    final b = newFile('/workspace/dart/aaa/lib/b.dart', r'''
 import 'a.dart';
-''');
-
-    newFile2(cPath, r'''
-import 'a.dart';
-''');
-
-    await resolveFile(bPath);
-    await resolveFile(cPath);
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([cPath]);
-    _assertRemovedPaths(unorderedEquals([bPath]));
-  }
-
-  test_removeFilesNotNecessaryForAnalysisOf_multiple() async {
-    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
-    var dPath = convertPath('/workspace/dart/aaa/lib/d.dart');
-    var ePath = convertPath('/workspace/dart/aaa/lib/e.dart');
-    var fPath = convertPath('/workspace/dart/aaa/lib/f.dart');
-
-    newFile2('/workspace/dart/aaa/lib/a.dart', r'''
-class A {}
-''');
-
-    newFile2(bPath, r'''
 class B {}
 ''');
 
-    newFile2('/workspace/dart/aaa/lib/c.dart', r'''
+    final c = newFile('/workspace/dart/aaa/lib/c.dart', r'''
+import 'a.dart';
 class C {}
 ''');
 
-    newFile2(dPath, r'''
+    await resolveFile(b.path);
+    await resolveFile(c.path);
+    assertStateString(r'''
+files
+  /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_1 cycle_2
+      referencingFiles: file_1 file_2
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/aaa/lib/b.dart
+    uri: package:dart.aaa/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_0
+          library_3 dart:core synthetic
+        cycle_1
+          dependencies: cycle_0 dart:core
+          libraries: library_1
+          apiSignature_1
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/aaa/lib/c.dart
+    uri: package:dart.aaa/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_0
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 dart:core
+          libraries: library_2
+          apiSignature_2
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+libraryCycles
+  /workspace/dart/aaa/lib/a.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /workspace/dart/aaa/lib/b.dart
+    current: cycle_1
+      key: k04
+    get: []
+    put: [k04]
+  /workspace/dart/aaa/lib/c.dart
+    current: cycle_2
+      key: k05
+    get: []
+    put: [k05]
+elementFactory
+  hasElement
+    package:dart.aaa/a.dart
+    package:dart.aaa/b.dart
+    package:dart.aaa/c.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11]
+''');
+
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([c.path]);
+
+    // No data for b.dart anymore.
+    assertStateString(r'''
+files
+  /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_3 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_2
+      referencingFiles: file_2
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/aaa/lib/b.dart
+    uri: package:dart.aaa/b.dart
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/aaa/lib/c.dart
+    uri: package:dart.aaa/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_0
+          library_3 dart:core synthetic
+        cycle_2
+          dependencies: cycle_0 dart:core
+          libraries: library_2
+          apiSignature_2
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+libraryCycles
+  /workspace/dart/aaa/lib/a.dart
+    current: cycle_0
+      key: k03
+    get: []
+    put: [k03]
+  /workspace/dart/aaa/lib/b.dart
+    get: []
+    put: [k04]
+  /workspace/dart/aaa/lib/c.dart
+    current: cycle_2
+      key: k05
+    get: []
+    put: [k05]
+elementFactory
+  hasElement
+    package:dart.aaa/a.dart
+    package:dart.aaa/c.dart
+byteStore
+  1: [k00, k02, k03, k05, k06, k07, k08, k09, k10, k11]
+''');
+  }
+
+  test_removeFilesNotNecessaryForAnalysisOf_multiple() async {
+    newFile('/workspace/dart/aaa/lib/a.dart', r'''
+class A {}
+''');
+
+    newFile('/workspace/dart/aaa/lib/b.dart', r'''
+class B {}
+''');
+
+    newFile('/workspace/dart/aaa/lib/c.dart', r'''
+class C {}
+''');
+
+    final d = newFile('/workspace/dart/aaa/lib/d.dart', r'''
 import 'a.dart';
 ''');
 
-    newFile2(ePath, r'''
+    final e = newFile('/workspace/dart/aaa/lib/e.dart', r'''
 import 'a.dart';
 import 'b.dart';
 ''');
 
-    newFile2(fPath, r'''
+    final f = newFile('/workspace/dart/aaa/lib/f.dart', r'''
 import 'c.dart';
  ''');
 
-    await resolveFile(dPath);
-    await resolveFile(ePath);
-    await resolveFile(fPath);
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([dPath, fPath]);
-    _assertRemovedPaths(unorderedEquals([bPath, ePath]));
+    await resolveFile(d.path);
+    await resolveFile(e.path);
+    await resolveFile(f.path);
+    assertStateString(r'''
+files
+  /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_6 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_3 cycle_4
+      referencingFiles: file_3 file_4
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/aaa/lib/b.dart
+    uri: package:dart.aaa/b.dart
+    current
+      id: file_1
+      kind: library_1
+        imports
+          library_6 dart:core synthetic
+        cycle_1
+          dependencies: dart:core
+          libraries: library_1
+          apiSignature_1
+          users: cycle_4
+      referencingFiles: file_4
+      unlinkedKey: k01
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/aaa/lib/c.dart
+    uri: package:dart.aaa/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_6 dart:core synthetic
+        cycle_2
+          dependencies: dart:core
+          libraries: library_2
+          apiSignature_2
+          users: cycle_5
+      referencingFiles: file_5
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /workspace/dart/aaa/lib/d.dart
+    uri: package:dart.aaa/d.dart
+    current
+      id: file_3
+      kind: library_3
+        imports
+          library_0
+          library_6 dart:core synthetic
+        cycle_3
+          dependencies: cycle_0 dart:core
+          libraries: library_3
+          apiSignature_3
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /workspace/dart/aaa/lib/e.dart
+    uri: package:dart.aaa/e.dart
+    current
+      id: file_4
+      kind: library_4
+        imports
+          library_0
+          library_1
+          library_6 dart:core synthetic
+        cycle_4
+          dependencies: cycle_0 cycle_1 dart:core
+          libraries: library_4
+          apiSignature_4
+      unlinkedKey: k04
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/aaa/lib/f.dart
+    uri: package:dart.aaa/f.dart
+    current
+      id: file_5
+      kind: library_5
+        imports
+          library_2
+          library_6 dart:core synthetic
+        cycle_5
+          dependencies: cycle_2 dart:core
+          libraries: library_5
+          apiSignature_5
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+libraryCycles
+  /workspace/dart/aaa/lib/a.dart
+    current: cycle_0
+      key: k06
+    get: []
+    put: [k06]
+  /workspace/dart/aaa/lib/b.dart
+    current: cycle_1
+      key: k07
+    get: []
+    put: [k07]
+  /workspace/dart/aaa/lib/c.dart
+    current: cycle_2
+      key: k08
+    get: []
+    put: [k08]
+  /workspace/dart/aaa/lib/d.dart
+    current: cycle_3
+      key: k09
+    get: []
+    put: [k09]
+  /workspace/dart/aaa/lib/e.dart
+    current: cycle_4
+      key: k10
+    get: []
+    put: [k10]
+  /workspace/dart/aaa/lib/f.dart
+    current: cycle_5
+      key: k11
+    get: []
+    put: [k11]
+elementFactory
+  hasElement
+    package:dart.aaa/a.dart
+    package:dart.aaa/b.dart
+    package:dart.aaa/c.dart
+    package:dart.aaa/d.dart
+    package:dart.aaa/e.dart
+    package:dart.aaa/f.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07, k08, k09, k10, k11, k12, k13, k14, k15, k16, k17]
+''');
+
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([d.path, f.path]);
+    // No data for b.dart and e.dart anymore.
+    assertStateString(r'''
+files
+  /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_6 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+          users: cycle_3
+      referencingFiles: file_3
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+  /workspace/dart/aaa/lib/b.dart
+    uri: package:dart.aaa/b.dart
+    unlinkedGet: []
+    unlinkedPut: [k01]
+  /workspace/dart/aaa/lib/c.dart
+    uri: package:dart.aaa/c.dart
+    current
+      id: file_2
+      kind: library_2
+        imports
+          library_6 dart:core synthetic
+        cycle_2
+          dependencies: dart:core
+          libraries: library_2
+          apiSignature_2
+          users: cycle_5
+      referencingFiles: file_5
+      unlinkedKey: k02
+    unlinkedGet: []
+    unlinkedPut: [k02]
+  /workspace/dart/aaa/lib/d.dart
+    uri: package:dart.aaa/d.dart
+    current
+      id: file_3
+      kind: library_3
+        imports
+          library_0
+          library_6 dart:core synthetic
+        cycle_3
+          dependencies: cycle_0 dart:core
+          libraries: library_3
+          apiSignature_3
+      unlinkedKey: k03
+    unlinkedGet: []
+    unlinkedPut: [k03]
+  /workspace/dart/aaa/lib/e.dart
+    uri: package:dart.aaa/e.dart
+    unlinkedGet: []
+    unlinkedPut: [k04]
+  /workspace/dart/aaa/lib/f.dart
+    uri: package:dart.aaa/f.dart
+    current
+      id: file_5
+      kind: library_5
+        imports
+          library_2
+          library_6 dart:core synthetic
+        cycle_5
+          dependencies: cycle_2 dart:core
+          libraries: library_5
+          apiSignature_5
+      unlinkedKey: k05
+    unlinkedGet: []
+    unlinkedPut: [k05]
+libraryCycles
+  /workspace/dart/aaa/lib/a.dart
+    current: cycle_0
+      key: k06
+    get: []
+    put: [k06]
+  /workspace/dart/aaa/lib/b.dart
+    get: []
+    put: [k07]
+  /workspace/dart/aaa/lib/c.dart
+    current: cycle_2
+      key: k08
+    get: []
+    put: [k08]
+  /workspace/dart/aaa/lib/d.dart
+    current: cycle_3
+      key: k09
+    get: []
+    put: [k09]
+  /workspace/dart/aaa/lib/e.dart
+    get: []
+    put: [k10]
+  /workspace/dart/aaa/lib/f.dart
+    current: cycle_5
+      key: k11
+    get: []
+    put: [k11]
+elementFactory
+  hasElement
+    package:dart.aaa/a.dart
+    package:dart.aaa/c.dart
+    package:dart.aaa/d.dart
+    package:dart.aaa/f.dart
+byteStore
+  1: [k00, k02, k03, k05, k06, k08, k09, k11, k12, k13, k14, k15, k16, k17]
+''');
   }
 
   test_removeFilesNotNecessaryForAnalysisOf_unknown() async {
-    var aPath = convertPath('/workspace/dart/aaa/lib/a.dart');
-    var bPath = convertPath('/workspace/dart/aaa/lib/b.dart');
-
-    newFile2(aPath, r'''
+    final a = newFile('/workspace/dart/aaa/lib/a.dart', r'''
 class A {}
 ''');
 
-    await resolveFile(aPath);
+    final b = getFile('/workspace/dart/aaa/lib/b.dart');
 
-    fileResolver.removeFilesNotNecessaryForAnalysisOf([aPath, bPath]);
-    _assertRemovedPaths(isEmpty);
+    await resolveFile(a.path);
+    fileResolver.removeFilesNotNecessaryForAnalysisOf([a.path, b.path]);
+
+    // No b.dart anywhere.
+    assertStateString(r'''
+files
+  /workspace/dart/aaa/lib/a.dart
+    uri: package:dart.aaa/a.dart
+    current
+      id: file_0
+      kind: library_0
+        imports
+          library_1 dart:core synthetic
+        cycle_0
+          dependencies: dart:core
+          libraries: library_0
+          apiSignature_0
+      unlinkedKey: k00
+    unlinkedGet: []
+    unlinkedPut: [k00]
+libraryCycles
+  /workspace/dart/aaa/lib/a.dart
+    current: cycle_0
+      key: k01
+    get: []
+    put: [k01]
+elementFactory
+  hasElement
+    package:dart.aaa/a.dart
+byteStore
+  1: [k00, k01, k02, k03, k04, k05, k06, k07]
+''');
   }
 
   test_resolve_libraryWithPart_noLibraryDiscovery() async {
-    var partPath = '/workspace/dart/test/lib/a.dart';
-    newFile2(partPath, r'''
+    newFile('/workspace/dart/test/lib/a.dart', r'''
 part of 'test.dart';
 
 class A {}
@@ -1052,11 +2312,12 @@ void f(A a) {}
 
     // We started resolution from the library, and then followed to the part.
     // So, the part knows its library, there is no need to discover it.
-    _assertDiscoveredLibraryForParts([]);
+    // TODO(scheglov) Use textual dump
+    // _assertDiscoveredLibraryForParts([]);
   }
 
   test_resolve_part_of_name() async {
-    newFile2('/workspace/dart/test/lib/a.dart', r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 library my.lib;
 
 part 'test.dart';
@@ -1075,11 +2336,15 @@ void func() {
 }
 ''');
 
-    _assertDiscoveredLibraryForParts([result.path]);
+    // TODO(scheglov) Use textual dump
+    final fsState = fileResolver.fsState!;
+    final testState = fsState.getExisting(testFile)!;
+    final testKind = testState.kind as PartFileStateKind;
+    expect(testKind.library?.file, fsState.getExisting(a));
   }
 
   test_resolve_part_of_uri() async {
-    newFile2('/workspace/dart/test/lib/a.dart', r'''
+    final a = newFile('/workspace/dart/test/lib/a.dart', r'''
 part 'test.dart';
 
 class A {
@@ -1096,77 +2361,50 @@ void func() {
 }
 ''');
 
-    _assertDiscoveredLibraryForParts([result.path]);
+    // TODO(scheglov) Use textual dump
+    final fsState = fileResolver.fsState!;
+    final testState = fsState.getExisting(testFile)!;
+    final testKind = testState.kind as PartFileStateKind;
+    expect(testKind.library?.file, fsState.getExisting(a));
   }
 
   test_resolveFile_cache() async {
-    var path = convertPath('/workspace/dart/test/lib/test.dart');
-    newFile2(path, 'var a = 0;');
+    newFile(testFilePath, 'var a = 0;');
 
     // No resolved files yet.
-    var testView = fileResolver.testView!;
-    expect(testView.resolvedLibraries, isEmpty);
+    _assertResolvedFiles([]);
 
-    await resolveFile2(path);
+    await resolveFile2(testFile.path);
     var result1 = result;
 
     // The file was resolved.
-    expect(testView.resolvedLibraries, [path]);
+    _assertResolvedFiles([testFile]);
 
     // The result is cached.
-    expect(fileResolver.cachedResults, contains(path));
+    expect(fileResolver.cachedResults, contains(testFile.path));
 
     // Ask again, no changes, not resolved.
-    await resolveFile2(path);
-    expect(testView.resolvedLibraries, [path]);
+    await resolveFile2(testFile.path);
+    _assertResolvedFiles([]);
 
     // The same result was returned.
     expect(result, same(result1));
 
     // Change a file.
     var a_path = convertPath('/workspace/dart/test/lib/a.dart');
-    fileResolver.changeFile(a_path);
+    fileResolver.changeFiles([a_path]);
 
     // The was a change to a file, no matter which, resolve again.
-    await resolveFile2(path);
-    expect(testView.resolvedLibraries, [path, path]);
+    await resolveFile2(testFile.path);
+    _assertResolvedFiles([testFile]);
 
     // Get should get a new result.
     expect(result, isNot(same(result1)));
   }
 
-  test_resolveFile_dontCache_whenForCompletion() async {
-    var a_path = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(a_path, r'''
-part 'b.dart';
-''');
-
-    var b_path = convertPath('/workspace/dart/test/lib/b.dart');
-    newFile2(b_path, r'''
-part of 'a.dart';
-''');
-
-    // No resolved files yet.
-    var testView = fileResolver.testView!;
-    expect(testView.resolvedLibraries, isEmpty);
-
-    await fileResolver.resolve2(
-      path: b_path,
-      completionLine: 0,
-      completionColumn: 0,
-    );
-
-    // The file was resolved.
-    expect(testView.resolvedLibraries, [a_path]);
-
-    // The completion location was set, so not units are resolved.
-    // So, the result should not be cached.
-    expect(fileResolver.cachedResults, isEmpty);
-  }
-
   test_resolveLibrary() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 part 'test.dart';
 
 class A {
@@ -1174,7 +2412,7 @@ class A {
 }
 ''');
 
-    newFile2('/workspace/dart/test/lib/test.dart', r'''
+    newFile('/workspace/dart/test/lib/test.dart', r'''
 part of 'a.dart';
 
 void func() {
@@ -1190,8 +2428,8 @@ void func() {
   }
 
   test_reuse_compatibleOptions() async {
-    newFile2('/workspace/dart/aaa/BUILD', '');
-    newFile2('/workspace/dart/bbb/BUILD', '');
+    newFile('/workspace/dart/aaa/BUILD', '');
+    newFile('/workspace/dart/bbb/BUILD', '');
 
     var aPath = '/workspace/dart/aaa/lib/a.dart';
     var aResult = await assertErrorsInFile(aPath, r'''
@@ -1214,15 +2452,15 @@ int b = a;
   }
 
   test_reuse_incompatibleOptions_implicitCasts() async {
-    newFile2('/workspace/dart/aaa/BUILD', '');
-    newAnalysisOptionsYamlFile2('/workspace/dart/aaa', r'''
+    newFile('/workspace/dart/aaa/BUILD', '');
+    newAnalysisOptionsYamlFile('/workspace/dart/aaa', r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
-    newFile2('/workspace/dart/bbb/BUILD', '');
-    newAnalysisOptionsYamlFile2('/workspace/dart/bbb', r'''
+    newFile('/workspace/dart/bbb/BUILD', '');
+    newAnalysisOptionsYamlFile('/workspace/dart/bbb', r'''
 analyzer:
   strong-mode:
     implicit-casts: true
@@ -1276,12 +2514,15 @@ import 'foo:bar';
     ]);
   }
 
-  void _assertDiscoveredLibraryForParts(List<String> expected) {
-    expect(fileResolver.fsState!.testView.partsDiscoveredLibraries, expected);
-  }
-
-  void _assertRemovedPaths(Matcher matcher) {
-    expect(fileResolver.fsState!.testView.removedPaths, matcher);
+  void _assertResolvedFiles(
+    List<File> expected, {
+    bool andClear = true,
+  }) {
+    final actual = fileResolver.testData!.resolvedLibraries;
+    expect(actual, expected.map((e) => e.path).toList());
+    if (andClear) {
+      actual.clear();
+    }
   }
 
   Future<Element> _findElement(int offset, String filePath) async {

@@ -2,23 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
+import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
-import 'package:analyzer/src/summary2/scope.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class ImplicitEnumNodes {
   final EnumElementImpl element;
@@ -34,6 +41,7 @@ class ImplicitEnumNodes {
 
 class LibraryBuilder {
   final Linker linker;
+  final LibraryFileStateKind kind;
   final Uri uri;
   final Reference reference;
   final LibraryElementImpl element;
@@ -42,30 +50,55 @@ class LibraryBuilder {
   final List<ImplicitEnumNodes> implicitEnumNodes = [];
 
   /// Local declarations.
-  final Scope localScope = Scope.top();
+  final Map<String, Reference> _declaredReferences = {};
 
   /// The export scope of the library.
-  final Scope exportScope = Scope.top();
+  final ExportScope exportScope = ExportScope();
 
-  final List<Export> exporters = [];
-  late final List<Reference> exports;
+  /// The `export` directives that export this library.
+  final List<Export> exports = [];
+
+  late final LibraryMacroApplier? _macroApplier = () {
+    if (!element.featureSet.isEnabled(Feature.macros)) {
+      return null;
+    }
+
+    final macroExecutor = linker.macroExecutor;
+    if (macroExecutor == null) {
+      return null;
+    }
+
+    return LibraryMacroApplier(
+      macroExecutor: macroExecutor,
+      declarationBuilder: linker.macroDeclarationBuilder,
+      libraryBuilder: this,
+    );
+  }();
 
   LibraryBuilder._({
     required this.linker,
+    required this.kind,
     required this.uri,
     required this.reference,
     required this.element,
     required this.units,
   });
 
+  SourceFactory get _sourceFactory {
+    return linker.elementFactory.analysisContext.sourceFactory;
+  }
+
   void addExporters() {
-    for (var element in element.exports) {
-      var exportedLibrary = element.exportedLibrary;
-      if (exportedLibrary == null) {
+    final exportElements = element.exports;
+    for (var i = 0; i < exportElements.length; i++) {
+      final exportElement = exportElements[i];
+
+      final exportedLibrary = exportElement.exportedLibrary;
+      if (exportedLibrary is! LibraryElementImpl) {
         continue;
       }
 
-      var combinators = element.combinators.map((combinator) {
+      final combinators = exportElement.combinators.map((combinator) {
         if (combinator is ShowElementCombinator) {
           return Combinator.show(combinator.shownNames);
         } else if (combinator is HideElementCombinator) {
@@ -75,39 +108,25 @@ class LibraryBuilder {
         }
       }).toList();
 
-      var exportedUri = exportedLibrary.source.uri;
-      var exportedBuilder = linker.builders[exportedUri];
+      final exportedUri = exportedLibrary.source.uri;
+      final exportedBuilder = linker.builders[exportedUri];
 
-      var export = Export(this, exportedBuilder, combinators);
+      final export = Export(this, i, combinators);
       if (exportedBuilder != null) {
-        exportedBuilder.exporters.add(export);
+        exportedBuilder.exports.add(export);
       } else {
-        var references = linker.elementFactory.exportsOfLibrary('$exportedUri');
-        for (var reference in references) {
-          var name = reference.name;
+        final exportedReferences = exportedLibrary.exportedReferences;
+        for (final exported in exportedReferences) {
+          final reference = exported.reference;
+          final name = reference.name;
           if (reference.isSetter) {
-            export.addToExportScope('$name=', reference);
+            export.addToExportScope('$name=', exported);
           } else {
-            export.addToExportScope(name, reference);
+            export.addToExportScope(name, exported);
           }
         }
       }
     }
-  }
-
-  /// Return `true` if the export scope was modified.
-  bool addToExportScope(String name, Reference reference) {
-    if (name.startsWith('_')) return false;
-    if (reference.isPrefix) return false;
-
-    var existing = exportScope.map[name];
-    if (existing == reference) return false;
-
-    // Ambiguous declaration detected.
-    if (existing != null) return false;
-
-    exportScope.map[name] = reference;
-    return true;
   }
 
   /// Build elements for declarations in the library units, add top-level
@@ -144,8 +163,10 @@ class LibraryBuilder {
   }
 
   void buildInitialExportScope() {
-    localScope.forEach((name, reference) {
-      addToExportScope(name, reference);
+    _declaredReferences.forEach((name, reference) {
+      if (name.startsWith('_')) return;
+      if (reference.isPrefix) return;
+      exportScope.declare(name, reference);
     });
   }
 
@@ -165,6 +186,177 @@ class LibraryBuilder {
         }
       }
     }
+  }
+
+  void declare(String name, Reference reference) {
+    _declaredReferences[name] = reference;
+  }
+
+  Future<void> executeMacroDeclarationsPhase() async {
+    final macroApplier = _macroApplier;
+    if (macroApplier == null) {
+      return;
+    }
+
+    final augmentationLibrary = await macroApplier.executeDeclarationsPhase();
+    if (augmentationLibrary == null) {
+      return;
+    }
+
+    final parseResult = parseString(
+      content: augmentationLibrary,
+      featureSet: element.featureSet,
+      throwIfDiagnostics: false,
+    );
+    final unitNode = parseResult.unit as ast.CompilationUnitImpl;
+
+    // We don't actually keep this unit, but we need it for now as a container.
+    // Eventually we will use actual augmentation libraries.
+    final unitUri = uri.resolve('_macro_declarations.dart');
+    final unitReference = reference.getChild('@unit').getChild('$unitUri');
+    final unitElement = CompilationUnitElementImpl(
+      source: _sourceFactory.forUri2(unitUri)!,
+      librarySource: element.source,
+      lineInfo: parseResult.lineInfo,
+    )
+      ..enclosingElement = element
+      ..isSynthetic = true
+      ..uri = unitUri.toString();
+
+    final elementBuilder = ElementBuilder(
+      libraryBuilder: this,
+      unitReference: unitReference,
+      unitElement: unitElement,
+    );
+    elementBuilder.buildDeclarationElements(unitNode);
+
+    // We move elements, so they don't have real offsets.
+    unitElement.accept(_FlushElementOffsets());
+
+    final nodesToBuildType = NodesToBuildType();
+    final resolver = ReferenceResolver(linker, nodesToBuildType, element);
+    unitNode.accept(resolver);
+    TypesBuilder(linker).build(nodesToBuildType);
+
+    // Transplant built elements as if the augmentation was applied.
+    final augmentedUnitElement = element.definingCompilationUnit;
+    for (final augmentation in unitElement.classes) {
+      // TODO(scheglov) if augmentation
+      final augmented = element.getType(augmentation.name);
+      if (augmented is ClassElementImpl) {
+        augmented.accessors = [
+          ...augmented.accessors,
+          ...augmentation.accessors,
+        ];
+        augmented.constructors = [
+          ...augmented.constructors,
+          ...augmentation.constructors.where((e) => !e.isSynthetic),
+        ];
+        augmented.fields = [
+          ...augmented.fields,
+          ...augmentation.fields,
+        ];
+        augmented.methods = [
+          ...augmented.methods,
+          ...augmentation.methods,
+        ];
+      }
+    }
+    augmentedUnitElement.accessors = [
+      ...augmentedUnitElement.accessors,
+      ...unitElement.accessors,
+    ];
+    augmentedUnitElement.topLevelVariables = [
+      ...augmentedUnitElement.topLevelVariables,
+      ...unitElement.topLevelVariables,
+    ];
+  }
+
+  Future<void> executeMacroTypesPhase({
+    required OperationPerformanceImpl performance,
+  }) async {
+    final macroApplier = _macroApplier;
+    if (macroApplier == null) {
+      return;
+    }
+
+    await performance.runAsync(
+      'buildApplications',
+      (performance) async {
+        await macroApplier.buildApplications(
+          performance: performance,
+        );
+      },
+    );
+
+    final augmentationLibrary = await performance.runAsync(
+      'executeTypesPhase',
+      (performance) async {
+        return await macroApplier.executeTypesPhase();
+      },
+    );
+
+    if (augmentationLibrary == null) {
+      return;
+    }
+
+    var parseResult = parseString(
+      content: augmentationLibrary,
+      featureSet: element.featureSet,
+      throwIfDiagnostics: false,
+    );
+    var unitNode = parseResult.unit as ast.CompilationUnitImpl;
+
+    // For now we model augmentation libraries as parts.
+    var unitUri = uri.resolve('_macro_types.dart');
+    final unitSource = _sourceFactory.forUri2(unitUri)!;
+    var unitElement = CompilationUnitElementImpl(
+      source: unitSource,
+      librarySource: element.source,
+      lineInfo: parseResult.lineInfo,
+    )
+      ..enclosingElement = element
+      ..isSynthetic = true
+      ..uri = unitUri.toString();
+
+    var unitReference = reference.getChild('@unit').getChild('$unitUri');
+    _bindReference(unitReference, unitElement);
+
+    element.parts2.add(
+      PartElementImpl(
+        uri: DirectiveUriWithUnitImpl(
+          relativeUriString: '_macro_types.dart',
+          relativeUri: unitUri,
+          unit: unitElement,
+        ),
+      ),
+    );
+
+    ElementBuilder(
+      libraryBuilder: this,
+      unitReference: unitReference,
+      unitElement: unitElement,
+    ).buildDeclarationElements(unitNode);
+
+    // We move elements, so they don't have real offsets.
+    unitElement.accept(_FlushElementOffsets());
+
+    units.add(
+      LinkingUnit(
+        isDefiningUnit: false,
+        reference: unitReference,
+        node: unitNode,
+        element: unitElement,
+      ),
+    );
+
+    linker.macroGeneratedUnits.add(
+      LinkMacroGeneratedUnit(
+        uri: unitUri,
+        content: parseResult.content,
+        unit: parseResult.unit,
+      ),
+    );
   }
 
   void resolveConstructors() {
@@ -190,12 +382,12 @@ class LibraryBuilder {
   }
 
   void storeExportScope() {
-    exports = exportScope.map.values.toList();
-    linker.elementFactory.setExportsOfLibrary('$uri', exports);
+    element.exportedReferences = exportScope.map.values.toList();
 
     var definedNames = <String, Element>{};
     for (var entry in exportScope.map.entries) {
-      var element = linker.elementFactory.elementOfReference(entry.value);
+      var reference = entry.value.reference;
+      var element = linker.elementFactory.elementOfReference(reference);
       if (element != null) {
         definedNames[entry.key] = element;
       }
@@ -215,28 +407,28 @@ class LibraryBuilder {
     if (reference.name == 'dart:core') {
       var dynamicRef = reference.getChild('dynamic');
       dynamicRef.element = DynamicElementImpl.instance;
-      localScope.declare('dynamic', dynamicRef);
+      declare('dynamic', dynamicRef);
 
       var neverRef = reference.getChild('Never');
       neverRef.element = NeverElementImpl.instance;
-      localScope.declare('Never', neverRef);
+      declare('Never', neverRef);
     }
   }
 
-  static void build(Linker linker, LinkInputLibrary inputLibrary) {
-    var elementFactory = linker.elementFactory;
+  static void build(Linker linker, LibraryFileStateKind inputLibrary) {
+    final elementFactory = linker.elementFactory;
+    final rootReference = linker.rootReference;
 
-    var rootReference = linker.rootReference;
-    var libraryUriStr = inputLibrary.uriStr;
-    var libraryReference = rootReference.getChild(libraryUriStr);
+    final libraryFile = inputLibrary.file;
+    final libraryUriStr = libraryFile.uriStr;
+    final libraryReference = rootReference.getChild(libraryUriStr);
 
-    var definingUnit = inputLibrary.units[0];
-    var definingUnitNode = definingUnit.unit as ast.CompilationUnitImpl;
+    final libraryUnitNode = libraryFile.parse();
 
     var name = '';
     var nameOffset = -1;
     var nameLength = 0;
-    for (var directive in definingUnitNode.directives) {
+    for (final directive in libraryUnitNode.directives) {
       if (directive is ast.LibraryDirective) {
         name = directive.name.components.map((e) => e.name).join('.');
         nameOffset = directive.name.offset;
@@ -245,57 +437,121 @@ class LibraryBuilder {
       }
     }
 
-    var libraryElement = LibraryElementImpl(
+    final libraryElement = LibraryElementImpl(
       elementFactory.analysisContext,
       elementFactory.analysisSession,
       name,
       nameOffset,
       nameLength,
-      definingUnitNode.featureSet,
+      libraryUnitNode.featureSet,
     );
-    libraryElement.isSynthetic = definingUnit.isSynthetic;
-    libraryElement.languageVersion = definingUnitNode.languageVersion!;
+    libraryElement.isSynthetic = !libraryFile.exists;
+    libraryElement.languageVersion = libraryUnitNode.languageVersion!;
     _bindReference(libraryReference, libraryElement);
     elementFactory.setLibraryTypeSystem(libraryElement);
 
-    var unitContainerRef = libraryReference.getChild('@unit');
-    var unitElements = <CompilationUnitElementImpl>[];
-    var isDefiningUnit = true;
-    var linkingUnits = <LinkingUnit>[];
-    for (var inputUnit in inputLibrary.units) {
-      var unitNode = inputUnit.unit as ast.CompilationUnitImpl;
+    final unitContainerRef = libraryReference.getChild('@unit');
 
-      var unitElement = CompilationUnitElementImpl(
-        source: inputUnit.source,
-        librarySource: inputLibrary.source,
-        lineInfo: unitNode.lineInfo,
+    final linkingUnits = <LinkingUnit>[];
+    {
+      final unitElement = CompilationUnitElementImpl(
+        source: libraryFile.source,
+        librarySource: libraryFile.source,
+        lineInfo: libraryUnitNode.lineInfo,
       );
-      unitElement.isSynthetic = inputUnit.isSynthetic;
-      unitElement.uri = inputUnit.partUriStr;
-      unitElement.setCodeRange(0, unitNode.length);
+      unitElement.isSynthetic = !libraryFile.exists;
+      unitElement.setCodeRange(0, libraryUnitNode.length);
 
-      var unitReference = unitContainerRef.getChild(inputUnit.uriStr);
+      final unitReference = unitContainerRef.getChild(libraryFile.uriStr);
       _bindReference(unitReference, unitElement);
 
-      unitElements.add(unitElement);
       linkingUnits.add(
         LinkingUnit(
-          input: inputUnit,
-          isDefiningUnit: isDefiningUnit,
+          isDefiningUnit: true,
           reference: unitReference,
-          node: unitNode,
+          node: libraryUnitNode,
           element: unitElement,
         ),
       );
-      isDefiningUnit = false;
+
+      libraryElement.definingCompilationUnit = unitElement;
     }
 
-    libraryElement.definingCompilationUnit = unitElements[0];
-    libraryElement.parts = unitElements.skip(1).toList();
+    final parts = <PartElementImpl>[];
+    for (final partState in inputLibrary.parts) {
+      final uriState = partState.uri;
 
-    var builder = LibraryBuilder._(
+      final DirectiveUri directiveUri;
+      if (partState is PartDirectiveWithFile) {
+        final includedPart = partState.includedPart;
+        if (includedPart != null) {
+          final partFile = includedPart.file;
+          final partUnitNode = partFile.parse();
+          final unitElement = CompilationUnitElementImpl(
+            source: partFile.source,
+            librarySource: libraryFile.source,
+            lineInfo: partUnitNode.lineInfo,
+          );
+          unitElement.isSynthetic = !partFile.exists;
+          unitElement.uri = partFile.uriStr;
+          unitElement.setCodeRange(0, partUnitNode.length);
+
+          final unitReference = unitContainerRef.getChild(partFile.uriStr);
+          _bindReference(unitReference, unitElement);
+
+          linkingUnits.add(
+            LinkingUnit(
+              isDefiningUnit: false,
+              reference: unitReference,
+              node: partUnitNode,
+              element: unitElement,
+            ),
+          );
+
+          directiveUri = DirectiveUriWithUnitImpl(
+            relativeUriString: partState.uri.relativeUriStr,
+            relativeUri: partState.uri.relativeUri,
+            unit: unitElement,
+          );
+        } else {
+          directiveUri = DirectiveUriWithSourceImpl(
+            relativeUriString: partState.uri.relativeUriStr,
+            relativeUri: partState.uri.relativeUri,
+            source: partState.includedFile.source,
+          );
+        }
+      } else if (uriState is file_state.DirectiveUriWithSource) {
+        directiveUri = DirectiveUriWithSourceImpl(
+          relativeUriString: uriState.relativeUriStr,
+          relativeUri: uriState.relativeUri,
+          source: uriState.source,
+        );
+      } else if (uriState is file_state.DirectiveUriWithUri) {
+        directiveUri = DirectiveUriWithRelativeUriImpl(
+          relativeUriString: uriState.relativeUriStr,
+          relativeUri: uriState.relativeUri,
+        );
+      } else if (uriState is file_state.DirectiveUriWithString) {
+        directiveUri = DirectiveUriWithRelativeUriStringImpl(
+          relativeUriString: uriState.relativeUriStr,
+        );
+      } else {
+        directiveUri = DirectiveUriImpl();
+      }
+
+      parts.add(
+        PartElementImpl(
+          uri: directiveUri,
+        ),
+      );
+    }
+
+    libraryElement.parts2 = parts;
+
+    final builder = LibraryBuilder._(
       linker: linker,
-      uri: inputLibrary.uri,
+      kind: inputLibrary,
+      uri: libraryFile.uri,
       reference: libraryReference,
       element: libraryElement,
       units: linkingUnits,
@@ -311,17 +567,28 @@ class LibraryBuilder {
 }
 
 class LinkingUnit {
-  final LinkInputUnit input;
   final bool isDefiningUnit;
   final Reference reference;
   final ast.CompilationUnitImpl node;
   final CompilationUnitElementImpl element;
 
   LinkingUnit({
-    required this.input,
     required this.isDefiningUnit,
     required this.reference,
     required this.node,
     required this.element,
   });
+}
+
+class _FlushElementOffsets extends GeneralizingElementVisitor<void> {
+  @override
+  void visitElement(covariant ElementImpl element) {
+    element.isTempAugmentation = true;
+    element.nameOffset = -1;
+    if (element is ConstructorElementImpl) {
+      element.periodOffset = null;
+      element.nameEnd = null;
+    }
+    super.visitElement(element);
+  }
 }

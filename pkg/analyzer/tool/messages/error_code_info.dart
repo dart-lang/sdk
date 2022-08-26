@@ -99,7 +99,7 @@ final String frontEndPkgPath =
 /// strings.  TODO(paulberry): share this regexp (and the code for interpreting
 /// it) between the CFE and analyzer.
 final RegExp _placeholderPattern =
-    RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
+    RegExp("#([-a-zA-Z0-9_]+)(?:%([0-9]*).([0-9]+))?");
 
 /// Convert a CFE template string (which uses placeholders like `#string`) to
 /// an analyzer template string (which uses placeholders like `{0}`).
@@ -236,24 +236,15 @@ List<String> _splitText(
 /// analyzer's `messages.yaml` file.
 class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
   AnalyzerErrorCodeInfo(
-      {String? comment,
-      String? correctionMessage,
-      String? documentation,
-      bool hasPublishedDocs = false,
-      bool isUnresolvedIdentifier = false,
-      required String problemMessage,
-      String? sharedName})
-      : super(
-            comment: comment,
-            correctionMessage: correctionMessage,
-            documentation: documentation,
-            hasPublishedDocs: hasPublishedDocs,
-            isUnresolvedIdentifier: isUnresolvedIdentifier,
-            problemMessage: problemMessage,
-            sharedName: sharedName);
+      {super.comment,
+      super.correctionMessage,
+      super.documentation,
+      super.hasPublishedDocs,
+      super.isUnresolvedIdentifier,
+      required super.problemMessage,
+      super.sharedName});
 
-  AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
-      : super.fromYaml(yaml);
+  AnalyzerErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml();
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -502,16 +493,8 @@ abstract class ErrorCodeInfo {
     var out = StringBuffer();
     var comment = this.comment;
     if (comment != null) {
-      out.writeln('$indent/**');
       for (var line in comment.split('\n')) {
-        out.writeln('$indent *${line.isEmpty ? '' : ' '}$line');
-      }
-      out.writeln('$indent */');
-    }
-    var documentation = this.documentation;
-    if (documentation != null) {
-      for (var line in documentation.split('\n')) {
-        out.writeln('$indent//${line.isEmpty ? '' : ' '}$line');
+        out.writeln('$indent/// ${line.isEmpty ? '' : ' '}$line');
       }
     }
     return out.toString();
@@ -539,10 +522,10 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
   /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
   final int? index;
 
-  FrontEndErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
+  FrontEndErrorCodeInfo.fromYaml(super.yaml)
       : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode']),
         index = yaml['index'] as int?,
-        super.fromYaml(yaml);
+        super.fromYaml();
 
   @override
   Map<Object?, Object?> toYaml() => {

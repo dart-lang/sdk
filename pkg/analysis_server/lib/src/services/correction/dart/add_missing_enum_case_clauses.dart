@@ -39,7 +39,7 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
       if (enumElement.isEnum) {
         enumName = enumElement.name;
         for (var field in enumElement.fields) {
-          if (!field.isSynthetic) {
+          if (field.isEnumConstant) {
             enumConstantNames.add(field.name);
           }
         }
@@ -94,7 +94,4 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
       });
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddMissingEnumCaseClauses newInstance() => AddMissingEnumCaseClauses();
 }

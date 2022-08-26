@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler.dart';
+import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
@@ -73,11 +73,11 @@ Future runTest(int index, String code,
       options: options);
   Expect.isTrue(compilationResult.isSuccess,
       "Unsuccessful compilation of test:\n${code}");
-  String sourceMapText = collector.getOutput('', OutputType.sourceMap);
+  String sourceMapText = collector.getOutput('', api.OutputType.sourceMap);
   SingleMapping sourceMap = parse(sourceMapText);
   if (writeJs) {
     new File('out.js')
-        .writeAsStringSync(collector.getOutput('', OutputType.js));
+        .writeAsStringSync(collector.getOutput('', api.OutputType.js));
     new File('out.js.map').writeAsStringSync(sourceMapText);
   }
   Expect.isTrue(sourceMap.lines.isNotEmpty);

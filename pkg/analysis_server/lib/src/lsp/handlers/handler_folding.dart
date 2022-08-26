@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/source/line_info.dart';
 
 class FoldingHandler
     extends MessageHandler<FoldingRangeParams, List<FoldingRange>> {
-  FoldingHandler(LspAnalysisServer server) : super(server);
+  FoldingHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_foldingRange;
 
@@ -22,8 +20,8 @@ class FoldingHandler
       FoldingRangeParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<FoldingRange>>> handle(
-      FoldingRangeParams params, CancellationToken token) async {
+  Future<ErrorOr<List<FoldingRange>>> handle(FoldingRangeParams params,
+      MessageInfo message, CancellationToken token) async {
     final path = pathOfDoc(params.textDocument);
 
     return path.mapResult((path) async {

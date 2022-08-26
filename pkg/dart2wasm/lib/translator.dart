@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:typed_data';
 
 import 'package:dart2wasm/class_info.dart';
@@ -13,6 +15,7 @@ import 'package:dart2wasm/functions.dart';
 import 'package:dart2wasm/globals.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/reference_extensions.dart';
+import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
@@ -27,6 +30,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// Options controlling the translation.
 class TranslatorOptions {
   bool exportAll = false;
+  bool importSharedMemory = false;
   bool inlining = false;
   int inliningLimit = 3;
   bool lazyConstants = false;
@@ -38,6 +42,7 @@ class TranslatorOptions {
   bool printKernel = false;
   bool printWasm = false;
   bool runtimeTypes = false;
+  int? sharedMemoryMaxPages;
   bool stringDataSegments = false;
   List<int>? watchPoints = null;
 
@@ -67,8 +72,10 @@ class Translator {
   late final Class wasmTypesBaseClass;
   late final Class wasmArrayBaseClass;
   late final Class wasmAnyRefClass;
+  late final Class wasmFuncRefClass;
   late final Class wasmEqRefClass;
   late final Class wasmDataRefClass;
+  late final Class wasmFunctionClass;
   late final Class boxedBoolClass;
   late final Class boxedIntClass;
   late final Class boxedDoubleClass;
@@ -78,11 +85,23 @@ class Translator {
   late final Class growableListClass;
   late final Class immutableListClass;
   late final Class immutableMapClass;
+  late final Class immutableSetClass;
   late final Class hashFieldBaseClass;
   late final Class stringBaseClass;
   late final Class oneByteStringClass;
   late final Class twoByteStringClass;
   late final Class typeClass;
+  late final Class neverTypeClass;
+  late final Class dynamicTypeClass;
+  late final Class voidTypeClass;
+  late final Class nullTypeClass;
+  late final Class futureOrTypeClass;
+  late final Class interfaceTypeClass;
+  late final Class functionTypeClass;
+  late final Class genericFunctionTypeClass;
+  late final Class interfaceTypeParameterTypeClass;
+  late final Class genericFunctionTypeParameterTypeClass;
+  late final Class namedParameterClass;
   late final Class stackTraceClass;
   late final Class ffiCompoundClass;
   late final Class ffiPointerClass;
@@ -91,13 +110,21 @@ class Translator {
   late final Class typedListViewClass;
   late final Class byteDataViewClass;
   late final Class typeErrorClass;
+  late final Class typeUniverseClass;
+  late final Procedure wasmFunctionCall;
   late final Procedure stackTraceCurrent;
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
   late final Procedure throwNullCheckError;
+  late final Procedure throwAsCheckError;
+  late final Procedure throwWasmRefError;
   late final Procedure mapFactory;
   late final Procedure mapPut;
-  late final Procedure immutableMapIndexNullable;
+  late final Procedure setFactory;
+  late final Procedure setAdd;
+  late final Procedure hashImmutableIndexNullable;
+  late final Procedure isSubtype;
+  late final Procedure objectRuntimeType;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -106,6 +133,7 @@ class Translator {
   late final DispatchTable dispatchTable;
   late final Globals globals;
   late final Constants constants;
+  late final Types types;
   late final FunctionCollector functions;
 
   // Information about the program used and updated by the various phases.
@@ -122,14 +150,15 @@ class Translator {
   // Lazily create exception tag if used.
   late final w.Tag exceptionTag = createExceptionTag();
   // Lazily import FFI memory if used.
-  late final w.Memory ffiMemory = m.importMemory("ffi", "memory", 0);
+  late final w.Memory ffiMemory = m.importMemory("ffi", "memory",
+      options.importSharedMemory, 0, options.sharedMemoryMaxPages);
 
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
   final Map<int, w.StructType> functionTypeCache = {};
   final Map<w.StructType, int> functionTypeParameterCount = {};
   final Map<int, w.DefinedGlobal> functionTypeRtt = {};
-  final Map<w.DefinedFunction, w.DefinedGlobal> functionRefCache = {};
+  final Map<w.BaseFunction, w.DefinedGlobal> functionRefCache = {};
   final Map<Procedure, w.DefinedFunction> tearOffFunctionCache = {};
 
   ClassInfo get topInfo => classes[0];
@@ -144,6 +173,7 @@ class Translator {
     classInfoCollector = ClassInfoCollector(this);
     dispatchTable = DispatchTable(this);
     functions = FunctionCollector(this);
+    types = Types(this);
 
     Class Function(String) makeLookup(String libraryName) {
       Library library =
@@ -160,8 +190,10 @@ class Translator {
     wasmTypesBaseClass = lookupWasm("_WasmBase");
     wasmArrayBaseClass = lookupWasm("_WasmArray");
     wasmAnyRefClass = lookupWasm("WasmAnyRef");
+    wasmFuncRefClass = lookupWasm("WasmFuncRef");
     wasmEqRefClass = lookupWasm("WasmEqRef");
     wasmDataRefClass = lookupWasm("WasmDataRef");
+    wasmFunctionClass = lookupWasm("WasmFunction");
     boxedBoolClass = lookupCore("_BoxedBool");
     boxedIntClass = lookupCore("_BoxedInt");
     boxedDoubleClass = lookupCore("_BoxedDouble");
@@ -171,12 +203,26 @@ class Translator {
     growableListClass = lookupCore("_GrowableList");
     immutableListClass = lookupCore("_ImmutableList");
     immutableMapClass = lookupCollection("_WasmImmutableLinkedHashMap");
+    immutableSetClass = lookupCollection("_WasmImmutableLinkedHashSet");
     hashFieldBaseClass = lookupCollection("_HashFieldBase");
     stringBaseClass = lookupCore("_StringBase");
     oneByteStringClass = lookupCore("_OneByteString");
     twoByteStringClass = lookupCore("_TwoByteString");
     typeClass = lookupCore("_Type");
+    neverTypeClass = lookupCore("_NeverType");
+    dynamicTypeClass = lookupCore("_DynamicType");
+    voidTypeClass = lookupCore("_VoidType");
+    nullTypeClass = lookupCore("_NullType");
+    futureOrTypeClass = lookupCore("_FutureOrType");
+    interfaceTypeClass = lookupCore("_InterfaceType");
+    functionTypeClass = lookupCore("_FunctionType");
+    genericFunctionTypeClass = lookupCore("_GenericFunctionType");
+    interfaceTypeParameterTypeClass = lookupCore("_InterfaceTypeParameterType");
+    genericFunctionTypeParameterTypeClass =
+        lookupCore("_GenericFunctionTypeParameterType");
+    namedParameterClass = lookupCore("_NamedParameter");
     stackTraceClass = lookupCore("StackTrace");
+    typeUniverseClass = lookupCore("_TypeUniverse");
     ffiCompoundClass = lookupFfi("_Compound");
     ffiPointerClass = lookupFfi("Pointer");
     typeErrorClass = lookupCore("_TypeError");
@@ -184,6 +230,8 @@ class Translator {
     typedListClass = lookupTypedData("_TypedList");
     typedListViewClass = lookupTypedData("_TypedListView");
     byteDataViewClass = lookupTypedData("_ByteDataView");
+    wasmFunctionCall =
+        wasmFunctionClass.procedures.firstWhere((p) => p.name.text == "call");
     stackTraceCurrent =
         stackTraceClass.procedures.firstWhere((p) => p.name.text == "current");
     stringEquals =
@@ -192,22 +240,40 @@ class Translator {
         .firstWhere((p) => p.name.text == "_interpolate");
     throwNullCheckError = typeErrorClass.procedures
         .firstWhere((p) => p.name.text == "_throwNullCheckError");
+    throwAsCheckError = typeErrorClass.procedures
+        .firstWhere((p) => p.name.text == "_throwAsCheckError");
+    throwWasmRefError = typeErrorClass.procedures
+        .firstWhere((p) => p.name.text == "_throwWasmRefError");
     mapFactory = lookupCollection("LinkedHashMap").procedures.firstWhere(
         (p) => p.kind == ProcedureKind.Factory && p.name.text == "_default");
     mapPut = lookupCollection("_CompactLinkedCustomHashMap")
         .superclass! // _LinkedHashMapMixin<K, V>
         .procedures
         .firstWhere((p) => p.name.text == "[]=");
-    immutableMapIndexNullable = lookupCollection("_HashAbstractImmutableBase")
+    setFactory = lookupCollection("LinkedHashSet").procedures.firstWhere(
+        (p) => p.kind == ProcedureKind.Factory && p.name.text == "_default");
+    setAdd = lookupCollection("_CompactLinkedCustomHashSet")
+        .superclass! // _LinkedHashSetMixin<K, V>
+        .procedures
+        .firstWhere((p) => p.name.text == "add");
+    hashImmutableIndexNullable = lookupCollection("_HashAbstractImmutableBase")
         .procedures
         .firstWhere((p) => p.name.text == "_indexNullable");
+    isSubtype = component.libraries
+        .firstWhere((l) => l.name == "dart.core")
+        .procedures
+        .firstWhere((p) => p.name.text == "_isSubtype");
+    objectRuntimeType = lookupCore("Object")
+        .procedures
+        .firstWhere((p) => p.name.text == "_runtimeType");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,
       coreTypes.doubleClass: w.NumType.f64,
-      wasmAnyRefClass: w.RefType.any(nullable: false),
-      wasmEqRefClass: w.RefType.eq(nullable: false),
-      wasmDataRefClass: w.RefType.data(nullable: false),
+      wasmAnyRefClass: const w.RefType.any(nullable: false),
+      wasmFuncRefClass: const w.RefType.func(nullable: false),
+      wasmEqRefClass: const w.RefType.eq(nullable: false),
+      wasmDataRefClass: const w.RefType.data(nullable: false),
       boxedBoolClass: w.NumType.i32,
       boxedIntClass: w.NumType.i64,
       boxedDoubleClass: w.NumType.f64,
@@ -418,6 +484,28 @@ class Translator {
         return w.RefType.def(arrayTypeForDartType(elementType),
             nullable: false);
       }
+      if (type.classNode == wasmFunctionClass) {
+        DartType functionType = type.typeArguments.single;
+        if (functionType is! FunctionType) {
+          throw "The type argument of a WasmFunction must be a function type";
+        }
+        if (functionType.typeParameters.isNotEmpty ||
+            functionType.namedParameters.isNotEmpty ||
+            functionType.requiredParameterCount !=
+                functionType.positionalParameters.length) {
+          throw "A WasmFunction can't have optional/type parameters";
+        }
+        List<w.ValueType> inputs = [
+          for (DartType type in functionType.positionalParameters)
+            translateType(type)
+        ];
+        List<w.ValueType> outputs = [
+          if (functionType.returnType != const VoidType())
+            translateType(functionType.returnType)
+        ];
+        w.FunctionType wasmType = this.functionType(inputs, outputs);
+        return w.RefType.def(wasmType, nullable: type.isPotentiallyNullable);
+      }
       return typeForInfo(
           classInfo[type.classNode]!, type.isPotentiallyNullable);
     }
@@ -454,7 +542,9 @@ class Translator {
   }
 
   w.ArrayType arrayTypeForDartType(DartType type) {
-    while (type is TypeParameterType) type = type.bound;
+    while (type is TypeParameterType) {
+      type = type.bound;
+    }
     return wasmArrayType(
         translateStorageType(type), type.toText(defaultAstTextStrategy));
   }
@@ -495,7 +585,7 @@ class Translator {
     return functionTypeParameterCount[heapType]!;
   }
 
-  w.DefinedGlobal makeFunctionRef(w.DefinedFunction f) {
+  w.DefinedGlobal makeFunctionRef(w.BaseFunction f) {
     return functionRefCache.putIfAbsent(f, () {
       w.DefinedGlobal global = m.addGlobal(
           w.GlobalType(w.RefType.def(f.type, nullable: false), mutable: false));
@@ -602,11 +692,16 @@ class Translator {
         b.ref_as_non_null();
       } else {
         // Downcast
-        var heapType = (to as w.RefType).heapType;
-        ClassInfo? info = classForHeapType[heapType];
         if (from.nullable && !to.nullable) {
           b.ref_as_non_null();
         }
+        var heapType = (to as w.RefType).heapType;
+        if (heapType is w.FunctionType) {
+          b.ref_as_func();
+          ref_cast(b, heapType);
+          return;
+        }
+        ClassInfo? info = classForHeapType[heapType];
         if (!(from as w.RefType).heapType.isSubtypeOf(w.HeapType.data)) {
           b.ref_as_data();
         }
@@ -708,7 +803,7 @@ class Translator {
   // The [type] parameter taken by the methods is either a [ClassInfo] (to use
   // the RTT for the class), an [int] (to use the RTT for the closure struct
   // corresponding to functions with that number of parameters) or a
-  // [w.DataType] (to use the canonical RTT for the type).
+  // [w.DefType] (to use the canonical RTT for the type).
 
   void struct_new(w.Instructions b, Object type) {
     if (options.runtimeTypes) {
@@ -820,7 +915,7 @@ class Translator {
       }
       return struct;
     } else {
-      b.rtt_canon(type as w.DataType);
+      b.rtt_canon(type as w.DefType);
       return type;
     }
   }

@@ -284,7 +284,7 @@ class InputConverter extends Converter<String, Operation?> {
   }
 
   @override
-  _InputSink startChunkedConversion(outSink) {
+  Sink<String> startChunkedConversion(outSink) {
     return _InputSink(this, outSink);
   }
 

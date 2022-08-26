@@ -414,11 +414,12 @@ class VariableDeclarationHelper {
   enum Flag {
     kFinal = 1 << 0,
     kConst = 1 << 1,
-    kCovariant = 1 << 3,
+    kHasDeclaredInitializer = 1 << 2,
     kIsGenericCovariantImpl = 1 << 4,
     kLate = 1 << 5,
     kRequired = 1 << 6,
-    kLowered = 1 << 7,
+    kCovariant = 1 << 7,
+    kLowered = 1 << 8,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -438,6 +439,9 @@ class VariableDeclarationHelper {
   bool IsCovariant() const { return (flags_ & kCovariant) != 0; }
   bool IsLate() const { return (flags_ & kLate) != 0; }
   bool IsRequired() const { return (flags_ & kRequired) != 0; }
+  bool HasDeclaredInitializer() const {
+    return (flags_ & kHasDeclaredInitializer) != 0;
+  }
 
   bool IsGenericCovariantImpl() const {
     return (flags_ & kIsGenericCovariantImpl) != 0;
@@ -586,6 +590,7 @@ class ProcedureHelper {
     kRedirectingFactory = 1 << 4,
     kExtensionMember = 1 << 5,
     kSyntheticProcedure = 1 << 7,
+    kInternalImplementation = 1 << 8,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -604,6 +609,10 @@ class ProcedureHelper {
   bool IsAbstract() const { return (flags_ & kAbstract) != 0; }
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsConst() const { return (flags_ & kConst) != 0; }
+  bool IsSynthetic() const { return (flags_ & kSyntheticProcedure) != 0; }
+  bool IsInternalImplementation() const {
+    return (flags_ & kInternalImplementation) != 0;
+  }
   bool IsForwardingStub() const {
     return stub_kind_ == kAbstractForwardingStubKind ||
            stub_kind_ == kConcreteForwardingStubKind;

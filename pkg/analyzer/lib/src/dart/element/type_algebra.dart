@@ -249,7 +249,7 @@ class _CombinedSubstitution extends Substitution {
 class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
   final Map<TypeParameterElement, DartType> substitution = {};
 
-  _FreshTypeParametersSubstitutor(_TypeSubstitutor outer) : super(outer);
+  _FreshTypeParametersSubstitutor(_TypeSubstitutor super.outer);
 
   @override
   List<TypeParameterElement> freshTypeParameters(

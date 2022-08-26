@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.js.enqueue;
 
 import 'dart:collection' show Queue;
@@ -24,7 +26,6 @@ import '../universe/use.dart'
         StaticUseKind,
         TypeUse,
         TypeUseKind;
-import '../universe/world_impact.dart' show WorldImpactVisitor;
 import '../util/enumset.dart';
 import '../util/util.dart' show Setlet;
 
@@ -44,9 +45,6 @@ class CodegenEnqueuer extends Enqueuer {
   final EnqueuerListener listener;
   final AnnotationsData _annotationsData;
 
-  @override
-  WorldImpactVisitor impactVisitor;
-
   final Queue<WorkItem> _queue = Queue<WorkItem>();
 
   /// All declaration elements that have been processed by codegen.
@@ -58,9 +56,7 @@ class CodegenEnqueuer extends Enqueuer {
 
   CodegenEnqueuer(this.task, this.worldBuilder, this._workItemBuilder,
       this.listener, this._annotationsData)
-      : this.name = 'codegen enqueuer' {
-    impactVisitor = EnqueuerImpactVisitor(this);
-  }
+      : this.name = 'codegen enqueuer';
 
   @override
   Iterable<ClassEntity> get directlyInstantiatedClasses =>

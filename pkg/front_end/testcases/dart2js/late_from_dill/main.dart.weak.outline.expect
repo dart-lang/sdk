@@ -40,33 +40,33 @@ import "dart:_late_helper" as _la;
 import "dart:_internal" as _in;
 
 class C extends core::Object {
-  field core::int _#C#a = _in::createSentinel<core::int>();
-  field core::int _#C#b = _in::createSentinel<core::int>();
-  field core::int _#C#c = _in::createSentinel<core::int>();
-  field core::int _#C#d = _in::createSentinel<core::int>();
+  field core::int _#C#a#A = _in::createSentinel<core::int>();
+  field core::int _#C#b#F = _in::createSentinel<core::int>();
+  field core::int _#C#c#A = _in::createSentinel<core::int>();
+  field core::int _#C#d#F = _in::createSentinel<core::int>();
   synthetic constructor •() → mai::C
     ;
   static method _#new#tearOff() → mai::C
     return new mai::C::•();
   get a() → core::int
-    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#a}{core::int}, "a");
+    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#a#A}{core::int}, "a");
   set a(core::int value) → void
-    this.{mai::C::_#C#a} = value;
+    this.{mai::C::_#C#a#A} = value;
   get b() → core::int
-    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#b}{core::int}, "b");
+    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#b#F}{core::int}, "b");
   set b(core::int value) → void {
-    _la::_lateWriteOnceCheck(this.{mai::C::_#C#b}{core::int}, "b");
-    this.{mai::C::_#C#b} = value;
+    _la::_lateWriteOnceCheck(this.{mai::C::_#C#b#F}{core::int}, "b");
+    this.{mai::C::_#C#b#F} = value;
   }
   get c() → core::int
-    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#c}{core::int}, "c");
+    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#c#A}{core::int}, "c");
   set c(core::int value) → void
-    this.{mai::C::_#C#c} = value;
+    this.{mai::C::_#C#c#A} = value;
   get d() → core::int
-    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#d}{core::int}, "d");
+    return _la::_lateReadCheck<core::int>(this.{mai::C::_#C#d#F}{core::int}, "d");
   set d(core::int value) → void {
-    _la::_lateWriteOnceCheck(this.{mai::C::_#C#d}{core::int}, "d");
-    this.{mai::C::_#C#d} = value;
+    _la::_lateWriteOnceCheck(this.{mai::C::_#C#d#F}{core::int}, "d");
+    this.{mai::C::_#C#d#F} = value;
   }
 }
 class Statics extends core::Object {

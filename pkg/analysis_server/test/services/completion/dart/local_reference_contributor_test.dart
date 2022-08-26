@@ -1258,7 +1258,7 @@ class Z { }''');
     assertNotSuggested('r');
     assertNotSuggested('x');
 
-    // imported elements are portially filtered
+    // imported elements are partially filtered
     //assertNotSuggested('A');
     assertNotSuggested('_B');
     //assertNotSuggested('C');
@@ -1512,7 +1512,7 @@ void f() {
   }
 
   Future<void> test_Block_unimported() async {
-    newFile2('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
     addTestSource('void f() { ^ }');
 
     await computeSuggestions();
@@ -3613,6 +3613,50 @@ class B extends A1 with A2 {
     assertSuggestMethod('y1', 'A1', 'int');
     assertSuggestField('x2', 'int');
     assertSuggestMethod('y2', 'A2', 'int');
+  }
+
+  Future<void> test_inherited_static_field() async {
+    addTestSource('''
+class A {
+  static int f1 = 1;
+  int f2 = 2;
+}
+class B extends A {
+  static int f3 = 3;
+  int f4 = 4;
+
+  void m() {
+    f^
+  }
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('f1');
+    assertSuggestField('f2', 'int');
+    assertSuggestField('f3', 'int');
+    assertSuggestField('f4', 'int');
+  }
+
+  Future<void> test_inherited_static_method() async {
+    addTestSource('''
+class A {
+  static void m1() {};
+  void m2() {};
+}
+class B extends A {
+  static void m3() {};
+  void m4() {};
+
+  void test() {
+    m^
+  }
+}''');
+    await computeSuggestions();
+
+    assertNotSuggested('m1');
+    assertSuggestMethod('m2', 'A', 'void');
+    assertSuggestMethod('m3', 'B', 'void');
+    assertSuggestMethod('m4', 'B', 'void');
   }
 
   Future<void> test_InstanceCreationExpression() async {

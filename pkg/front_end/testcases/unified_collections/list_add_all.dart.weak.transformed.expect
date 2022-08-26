@@ -227,6 +227,196 @@ static method useAddAll() → void {
       #t40.{core::List::addAll}{Invariant}(#t52){(core::Iterable<core::num*>*) →* void};
   } =>#t40;
   self::expect(core::_GrowableList::generate<core::num*>(24, (core::int* i) → core::int* => i), list4);
+  core::List<core::int*>* list5 = block {
+    final core::List<core::int*>* #t53 = core::_GrowableList::•<core::int*>(0);
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = (dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t54 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          final core::int* #t55 = #t54 as{TypeError} core::int*;
+          #t53.{core::List::add}{Invariant}(#t55){(core::int*) →* void};
+        }
+      }
+    }
+    {
+      core::Iterator<dynamic>* :sync-for-iterator = (dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t56 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          final core::int* #t57 = #t56 as{TypeError} core::int*;
+          #t53.{core::List::add}{Invariant}(#t57){(core::int*) →* void};
+        }
+      }
+    }
+    #t53.{core::List::addAll}{Invariant}(iterableIntList){(core::Iterable<core::int*>*) →* void};
+    {
+      core::Iterator<core::num*>* :sync-for-iterator = iterableNumList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t58 = :sync-for-iterator.{core::Iterator::current}{core::num*};
+        {
+          final core::int* #t59 = #t58 as{TypeError} core::int*;
+          #t53.{core::List::add}{Invariant}(#t59){(core::int*) →* void};
+        }
+      }
+    }
+    {
+      core::Iterator<core::num*>* :sync-for-iterator = iterableNumList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t60 = :sync-for-iterator.{core::Iterator::current}{core::num*};
+        {
+          final core::int* #t61 = #t60 as{TypeError} core::int*;
+          #t53.{core::List::add}{Invariant}(#t61){(core::int*) →* void};
+        }
+      }
+    }
+    #t53.{core::List::addAll}{Invariant}(intList){(core::Iterable<core::int*>*) →* void};
+    {
+      core::Iterator<core::num*>* :sync-for-iterator = numList1.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t62 = :sync-for-iterator.{core::Iterator::current}{core::num*};
+        {
+          final core::int* #t63 = #t62 as{TypeError} core::int*;
+          #t53.{core::List::add}{Invariant}(#t63){(core::int*) →* void};
+        }
+      }
+    }
+    {
+      core::Iterator<core::num*>* :sync-for-iterator = numList2.{core::Iterable::iterator}{core::Iterator<core::num*>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t64 = :sync-for-iterator.{core::Iterator::current}{core::num*};
+        {
+          final core::int* #t65 = #t64 as{TypeError} core::int*;
+          #t53.{core::List::add}{Invariant}(#t65){(core::int*) →* void};
+        }
+      }
+    }
+  } =>#t53;
+  self::expect(core::_GrowableList::generate<core::int*>(24, (core::int* i) → core::int* => i), list5);
+  core::List<dynamic>* list6 = block {
+    final core::List<dynamic>* #t66 = core::List::of<dynamic>(dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*);
+    #t66.{core::List::addAll}{Invariant}(dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*){(core::Iterable<dynamic>*) →* void};
+    #t66.{core::List::addAll}{Invariant}(iterableIntList){(core::Iterable<dynamic>*) →* void};
+    #t66.{core::List::addAll}{Invariant}(iterableNumList1){(core::Iterable<dynamic>*) →* void};
+    #t66.{core::List::addAll}{Invariant}(iterableNumList2){(core::Iterable<dynamic>*) →* void};
+    #t66.{core::List::addAll}{Invariant}(intList){(core::Iterable<dynamic>*) →* void};
+    #t66.{core::List::addAll}{Invariant}(numList1){(core::Iterable<dynamic>*) →* void};
+    #t66.{core::List::addAll}{Invariant}(numList2){(core::Iterable<dynamic>*) →* void};
+  } =>#t66;
+  self::expect(core::_GrowableList::generate<dynamic>(24, (core::int* i) → core::int* => i), list6);
+  core::List<core::int*>* list7 = block {
+    final core::List<core::int*>* #t67 = core::_GrowableList::•<core::int*>(0);
+    final core::Iterable<dynamic>* #t68 = dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t68 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t68.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t69 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          final core::int* #t70 = #t69 as{TypeError} core::int*;
+          #t67.{core::List::add}{Invariant}(#t70){(core::int*) →* void};
+        }
+      }
+    }
+    final core::Iterable<dynamic>* #t71 = dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t71 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t71.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t72 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          final core::int* #t73 = #t72 as{TypeError} core::int*;
+          #t67.{core::List::add}{Invariant}(#t73){(core::int*) →* void};
+        }
+      }
+    }
+    final core::Iterable<core::int*>* #t74 = iterableIntList;
+    if(!(#t74 == null))
+      #t67.{core::List::addAll}{Invariant}(#t74){(core::Iterable<core::int*>*) →* void};
+    final core::Iterable<dynamic>* #t75 = iterableNumList1;
+    if(!(#t75 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t75.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t76 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          final core::int* #t77 = #t76 as{TypeError} core::int*;
+          #t67.{core::List::add}{Invariant}(#t77){(core::int*) →* void};
+        }
+      }
+    }
+    final core::Iterable<dynamic>* #t78 = iterableNumList2;
+    if(!(#t78 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t78.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t79 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          final core::int* #t80 = #t79 as{TypeError} core::int*;
+          #t67.{core::List::add}{Invariant}(#t80){(core::int*) →* void};
+        }
+      }
+    }
+    final core::Iterable<core::int*>* #t81 = intList;
+    if(!(#t81 == null))
+      #t67.{core::List::addAll}{Invariant}(#t81){(core::Iterable<core::int*>*) →* void};
+    final core::Iterable<dynamic>* #t82 = numList1;
+    if(!(#t82 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t82.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t83 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          final core::int* #t84 = #t83 as{TypeError} core::int*;
+          #t67.{core::List::add}{Invariant}(#t84){(core::int*) →* void};
+        }
+      }
+    }
+    final core::Iterable<dynamic>* #t85 = numList2;
+    if(!(#t85 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t85.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t86 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        {
+          final core::int* #t87 = #t86 as{TypeError} core::int*;
+          #t67.{core::List::add}{Invariant}(#t87){(core::int*) →* void};
+        }
+      }
+    }
+  } =>#t67;
+  self::expect(core::_GrowableList::generate<core::int*>(24, (core::int* i) → core::int* => i), list7);
+  core::List<dynamic>* list8 = block {
+    final core::List<dynamic>* #t88 = core::_GrowableList::•<dynamic>(0);
+    final core::Iterable<dynamic>* #t89 = dynamicList1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t89 == null))
+      #t88.{core::List::addAll}{Invariant}(#t89){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t90 = dynamicList2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    if(!(#t90 == null))
+      #t88.{core::List::addAll}{Invariant}(#t90){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t91 = iterableIntList;
+    if(!(#t91 == null))
+      #t88.{core::List::addAll}{Invariant}(#t91){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t92 = iterableNumList1;
+    if(!(#t92 == null))
+      #t88.{core::List::addAll}{Invariant}(#t92){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t93 = iterableNumList2;
+    if(!(#t93 == null))
+      #t88.{core::List::addAll}{Invariant}(#t93){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t94 = intList;
+    if(!(#t94 == null))
+      #t88.{core::List::addAll}{Invariant}(#t94){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t95 = numList1;
+    if(!(#t95 == null))
+      #t88.{core::List::addAll}{Invariant}(#t95){(core::Iterable<dynamic>*) →* void};
+    final core::Iterable<dynamic>* #t96 = numList2;
+    if(!(#t96 == null))
+      #t88.{core::List::addAll}{Invariant}(#t96){(core::Iterable<dynamic>*) →* void};
+  } =>#t88;
+  self::expect(core::_GrowableList::generate<dynamic>(24, (core::int* i) → core::int* => i), list8);
+  {
+    core::List<core::int*>* intList1 = core::_GrowableList::_literal3<core::int*>(0, 1, 2);
+    core::List<core::int*>* intList2 = core::_GrowableList::_literal3<core::int*>(3, 4, 5);
+    core::List<core::int*>* list = block {
+      final core::List<core::int*>* #t97 = core::List::of<core::int*>(intList1);
+      #t97.{core::List::addAll}{Invariant}(intList2){(core::Iterable<core::int*>*) →* void};
+    } =>#t97;
+    self::expect(core::_GrowableList::generate<core::int*>(6, (core::int* i) → core::int* => i), list);
+  }
 }
 static method main() → dynamic {
   self::useAddAll();
@@ -239,5 +429,8 @@ static method expect(core::List<dynamic>* list1, core::List<dynamic>* list2) →
     if(!(list1.{core::List::[]}(i){(core::int*) →* dynamic} =={core::Object::==}{(core::Object*) →* core::bool*} list2.{core::List::[]}(i){(core::int*) →* dynamic})) {
       throw "Unexpected element at index ${i}. Expected ${list1.{core::List::[]}(i){(core::int*) →* dynamic}}, actual ${list2.{core::List::[]}(i){(core::int*) →* dynamic}}.";
     }
+  }
+  if(!(list1.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*} =={core::String::==}{(core::Object*) →* core::bool*} list2.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*})) {
+    throw "Runtime time difference: ${list1.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*}} vs ${list2.{core::Object::runtimeType}{core::Type*}.{core::Type::toString}(){() →* core::String*}}";
   }
 }

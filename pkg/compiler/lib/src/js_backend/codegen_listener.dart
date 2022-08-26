@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library js_backend.backend.codegen_listener;
 
 import 'dart:collection';
@@ -163,24 +165,21 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     DartType type = constant.getType(_commonElements);
     _computeImpactForInstantiatedConstantType(type, impactBuilder);
 
-    if (constant.isFunction) {
-      FunctionConstantValue function = constant;
+    if (constant is FunctionConstantValue) {
       impactBuilder
-          .registerStaticUse(StaticUse.staticTearOff(function.element));
-    } else if (constant.isInterceptor) {
+          .registerStaticUse(StaticUse.staticTearOff(constant.element));
+    } else if (constant is InterceptorConstantValue) {
       // An interceptor constant references the class's prototype chain.
-      InterceptorConstantValue interceptor = constant;
-      ClassEntity cls = interceptor.cls;
+      ClassEntity cls = constant.cls;
       _computeImpactForInstantiatedConstantType(
           _elementEnvironment.getThisType(cls), impactBuilder);
-    } else if (constant.isType) {
+    } else if (constant is TypeConstantValue) {
       impactBuilder
           .registerTypeUse(TypeUse.instantiation(_commonElements.typeType));
       // If the type is a web component, we need to ensure the constructors are
       // available to 'upgrade' the native object.
-      TypeConstantValue type = constant;
-      if (type.representedType is InterfaceType) {
-        InterfaceType representedType = type.representedType;
+      if (constant.representedType is InterfaceType) {
+        InterfaceType representedType = constant.representedType;
         _customElementsAnalysis.registerTypeConstant(representedType.element);
       }
     } else if (constant is InstantiationConstantValue) {

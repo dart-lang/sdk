@@ -75,9 +75,6 @@ class IgnoreDiagnosticInFile extends AbstractIgnoreDiagnostic {
       'ignore_for_file',
     );
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static IgnoreDiagnosticInFile newInstance() => IgnoreDiagnosticInFile();
 }
 
 class IgnoreDiagnosticOnLine extends AbstractIgnoreDiagnostic {
@@ -95,7 +92,4 @@ class IgnoreDiagnosticOnLine extends AbstractIgnoreDiagnostic {
       'ignore',
     );
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static IgnoreDiagnosticOnLine newInstance() => IgnoreDiagnosticOnLine();
 }

@@ -1,7 +1,6 @@
-// @dart = 2.9
 library test;
 
-int f(int x) => null;
-String g(int x) => null;
+int f(int x) => 0;
+String g(int x) => '';
 var v = [f, g];
 main() {}

@@ -31,7 +31,7 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 };
 
-// Low and high bytes registers of the the first four general purpose registers.
+// Low and high bytes registers of the first four general purpose registers.
 // The other four general purpose registers do not have byte registers.
 enum ByteRegister {
   AL = 0,
@@ -42,6 +42,7 @@ enum ByteRegister {
   CH = 5,
   DH = 6,
   BH = 7,
+  kNumberOfByteRegisters = 8,
   kNoByteRegister = -1  // Signals an illegal register.
 };
 
@@ -76,15 +77,19 @@ const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
 extern const char* const cpu_reg_abi_names[kNumberOfCpuRegisters];
+extern const char* const cpu_reg_byte_names[kNumberOfByteRegisters];
 extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 // Register aliases.
 const Register TMP = kNoRegister;   // No scratch register used by assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register CODE_REG = EDI;
+// Set when calling Dart functions in JIT mode, used by LazyCompileStub.
+const Register FUNCTION_REG = EAX;
 const Register PP = kNoRegister;     // No object pool pointer.
 const Register SPREG = ESP;          // Stack pointer register.
 const Register FPREG = EBP;          // Frame pointer register.
+const Register IC_DATA_REG = ECX;    // ICData/MegamorphicCache register.
 const Register ARGS_DESC_REG = EDX;  // Arguments descriptor register.
 const Register THR = ESI;            // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = EBX;
@@ -111,6 +116,7 @@ struct InstantiationABI {
   static const Register kFunctionTypeArgumentsReg = ECX;
   static const Register kResultTypeArgumentsReg = EAX;
   static const Register kResultTypeReg = EAX;
+  static const Register kScratchReg = EDI;  // On ia32 we don't use CODE_REG.
 };
 
 // Calling convention when calling SubtypeTestCacheStub.
@@ -165,7 +171,6 @@ struct InitStaticFieldABI {
 
 // Registers used inside the implementation of InitLateStaticFieldStub.
 struct InitLateStaticFieldInternalRegs {
-  static const Register kFunctionReg = EAX;
   static const Register kAddressReg = ECX;
   static const Register kScratchReg = EDI;
 };
@@ -179,7 +184,6 @@ struct InitInstanceFieldABI {
 
 // Registers used inside the implementation of InitLateInstanceFieldStub.
 struct InitLateInstanceFieldInternalRegs {
-  static const Register kFunctionReg = EAX;
   static const Register kAddressReg = ECX;
   static const Register kScratchReg = EDI;
 };
@@ -259,6 +263,70 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = EAX;
 };
 
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
+struct SuspendStubABI {
+  static const Register kArgumentReg = EAX;
+  static const Register kTempReg = EDX;
+  static const Register kFrameSizeReg = ECX;
+  static const Register kSuspendStateReg = EBX;
+  static const Register kFunctionDataReg = EDI;
+  // Can reuse THR.
+  static const Register kSrcFrameReg = ESI;
+  // Can reuse kFunctionDataReg.
+  static const Register kDstFrameReg = EDI;
+
+  // Number of bytes to skip after
+  // suspend stub return address in order to resume.
+  // IA32: mov esp, ebp; pop ebp; ret
+  static const intptr_t kResumePcDistance = 4;
+};
+
+// ABI for InitSuspendableFunctionStub (InitAsyncStub, InitAsyncStarStub,
+// InitSyncStarStub).
+struct InitSuspendableFunctionStubABI {
+  static const Register kTypeArgsReg = EAX;
+};
+
+// ABI for ResumeStub
+struct ResumeStubABI {
+  static const Register kSuspendStateReg = EBX;
+  static const Register kTempReg = EDX;
+  // Registers for the frame copying (the 1st part).
+  static const Register kFrameSizeReg = ECX;
+  // Can reuse THR.
+  static const Register kSrcFrameReg = ESI;
+  // Can reuse CODE_REG.
+  static const Register kDstFrameReg = EDI;
+  // Registers for control transfer.
+  // (the 2nd part, can reuse registers from the 1st part)
+  static const Register kResumePcReg = ECX;
+  // Can also reuse kSuspendStateReg but should not conflict with CODE_REG.
+  static const Register kExceptionReg = EAX;
+  static const Register kStackTraceReg = EBX;
+};
+
+// ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
+// ReturnAsyncStarStub, ReturnSyncStarStub).
+struct ReturnStubABI {
+  static const Register kSuspendStateReg = EBX;
+};
+
+// ABI for AsyncExceptionHandlerStub.
+struct AsyncExceptionHandlerStubABI {
+  static const Register kSuspendStateReg = EBX;
+};
+
+// ABI for CloneSuspendStateStub.
+struct CloneSuspendStateStubABI {
+  static const Register kSourceReg = EAX;
+  static const Register kDestinationReg = EBX;
+  static const Register kTempReg = EDX;
+  static const Register kFrameSizeReg = ECX;
+  // Can reuse THR.
+  static const Register kSrcFrameReg = ESI;
+  static const Register kDstFrameReg = EDI;
+};
+
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
 // table calls (though normal functions will not expect or use this
 // register). This ABI is added to distinguish memory corruption errors from
@@ -277,6 +345,8 @@ const intptr_t kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << THR);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+// No reason to prefer certain registers on IA32.
+constexpr int kRegisterAllocationBias = 0;
 
 const RegList kAbiPreservedCpuRegs = (1 << EDI) | (1 << ESI) | (1 << EBX);
 

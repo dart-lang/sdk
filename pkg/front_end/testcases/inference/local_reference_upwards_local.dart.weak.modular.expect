@@ -1,11 +1,10 @@
-library test;
+library test /*isNonNullableByDefault*/;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
 
 import "dart:async";
 
-static method main() → dynamic {
-  asy::Future<core::int*>* futureInt = null;
-  asy::Future<core::int*>* x = futureInt;
+static method test(asy::Future<core::int> futureInt) → dynamic {
+  asy::Future<core::int> x = futureInt;
 }

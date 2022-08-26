@@ -25,14 +25,14 @@ static method test() → dynamic {
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAlias> foLegacyNonNullable = null; // error
                                          ^" in null;
-  FutureOr<() →? opt::A*>foLegacyNullable = null;
+  has-declared-initializer FutureOr<() →? opt::A*>foLegacyNullable = null;
   FutureOr<opt::A>foNonNullable = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAliasNonNullable> foNonNullable = null; // error
                                               ^" in null;
-  FutureOr<opt::A?>foNullable = null;
-  FutureOr<opt::A?>foNonNullableNullable = null;
-  FutureOr<opt::A?>foNullableNullable = null;
+  has-declared-initializer FutureOr<opt::A?>foNullable = null;
+  has-declared-initializer FutureOr<opt::A?>foNonNullableNullable = null;
+  has-declared-initializer FutureOr<opt::A?>foNullableNullable = null;
 }
 static method main() → dynamic {}
 
@@ -60,7 +60,7 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
-  FutureOr<() →* opt::A*>* foLegacy = null;
-  FutureOr<opt::A*>* foNonNullable = null;
-  FutureOr<opt::A*>* foNullable = null;
+  has-declared-initializer FutureOr<() →* opt::A*>* foLegacy = null;
+  has-declared-initializer FutureOr<opt::A*>* foNonNullable = null;
+  has-declared-initializer FutureOr<opt::A*>* foNullable = null;
 }

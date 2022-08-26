@@ -112,13 +112,33 @@ class Stdin extends _StdStream implements Stream<List<int>> {
 
   /// Whether echo mode is enabled on [stdin].
   ///
-  /// If disabled, input from to console will not be echoed.
+  /// If disabled, input from the console will not be echoed.
   ///
   /// Default depends on the parent process, but is usually enabled.
+  ///
+  /// On POSIX systems this mode is the `echo` local terminal mode. Before
+  /// Dart 2.18, it also controlled the `echonl` mode, which is now controlled
+  /// by [echoNewlineMode].
   ///
   /// On Windows this mode can only be enabled if [lineMode] is enabled as well.
   external bool get echoMode;
   external set echoMode(bool echoMode);
+
+  /// Whether echo newline mode is enabled on [stdin].
+  ///
+  /// If enabled, newlines from the terminal will be echoed even if the regular
+  /// [echoMode] is disabled. This mode may require `lineMode` to be turned on
+  /// to have an effect.
+  ///
+  /// Default depends on the parent process, but is usually disabled.
+  ///
+  /// On POSIX systems this mode is the `echonl` local terminal mode.
+  ///
+  /// On Windows this mode cannot be set.
+  @Since("2.18")
+  external bool get echoNewlineMode;
+  @Since("2.18")
+  external set echoNewlineMode(bool echoNewlineMode);
 
   /// Whether line mode is enabled on [stdin].
   ///
@@ -127,7 +147,10 @@ class Stdin extends _StdStream implements Stream<List<int>> {
   ///
   /// Default depends on the parent process, but is usually enabled.
   ///
-  /// On Windows this mode can only be disabled if [echoMode] is disabled as well.
+  /// On POSIX systems this mode is the `icanon` local terminal mode.
+  ///
+  /// On Windows this mode can only be disabled if [echoMode] is disabled as
+  /// well.
   external bool get lineMode;
   external set lineMode(bool lineMode);
 

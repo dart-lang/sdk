@@ -169,7 +169,7 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
                                 Thread* thread) {
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
-  ASSERT(!IsolateGroup::Current()->null_safety_not_set());
+  ASSERT(!thread->isolate_group()->null_safety_not_set());
 
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
   SuspendLongJumpScope suspend_long_jump_scope(thread);

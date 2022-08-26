@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:collection/collection.dart';
 
 Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
@@ -125,6 +126,69 @@ enum DeclarationKind {
   VARIABLE
 }
 
+/// Visitor that adds [SearchResult]s for references to the [importElement].
+class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
+  final List<SearchResult> results = <SearchResult>[];
+
+  final ImportElement importElement;
+  final CompilationUnitElement enclosingUnitElement;
+
+  late final Set<Element> importedElements;
+
+  ImportElementReferencesVisitor(
+      ImportElement element, this.enclosingUnitElement)
+      : importElement = element {
+    importedElements = element.namespace.definedNames.values.toSet();
+  }
+
+  @override
+  void visitExportDirective(ExportDirective node) {}
+
+  @override
+  void visitImportDirective(ImportDirective node) {}
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    if (importElement.prefix != null) {
+      if (node.staticElement == importElement.prefix) {
+        var parent = node.parent;
+        if (parent is PrefixedIdentifier && parent.prefix == node) {
+          var element = parent.writeOrReadElement?.declaration;
+          if (importedElements.contains(element)) {
+            _addResultForPrefix(node, parent.identifier);
+          }
+        }
+        if (parent is MethodInvocation && parent.target == node) {
+          var element = parent.methodName.staticElement?.declaration;
+          if (importedElements.contains(element)) {
+            _addResultForPrefix(node, parent.methodName);
+          }
+        }
+      }
+    } else {
+      var element = node.writeOrReadElement?.declaration;
+      if (importedElements.contains(element)) {
+        _addResult(node.offset, 0);
+      }
+    }
+  }
+
+  void _addResult(int offset, int length) {
+    Element enclosingElement =
+        _getEnclosingElement(enclosingUnitElement, offset);
+    results.add(SearchResult._(enclosingElement, SearchResultKind.REFERENCE,
+        offset, length, true, false));
+  }
+
+  void _addResultForPrefix(SimpleIdentifier prefixNode, AstNode nextNode) {
+    int prefixOffset = prefixNode.offset;
+    _addResult(prefixOffset, nextNode.offset - prefixOffset);
+  }
+}
+
 /// Search support for an [AnalysisDriver].
 class Search {
   final AnalysisDriver _driver;
@@ -165,109 +229,10 @@ class Search {
   /// Add matching declarations to the [result].
   Future<void> declarations(
       WorkspaceSymbols result, RegExp? regExp, int? maxResults,
-      {String? onlyForFile}) async {
-    if (result.hasMoreDeclarationsThan(maxResults)) {
-      return;
-    }
-
-    void addDeclaration(LineInfo lineInfo, Element element) {
-      if (result.hasMoreDeclarationsThan(maxResults)) {
-        throw const _MaxNumberOfDeclarationsError();
-      }
-
-      if (element.isSynthetic) {
-        return;
-      }
-
-      var source = element.source;
-      if (source == null) {
-        return;
-      }
-
-      var path = source.fullName;
-      if (onlyForFile != null && path != onlyForFile) {
-        return;
-      }
-
-      var name = element.name;
-      if (name == null || name.isEmpty) {
-        return;
-      }
-      if (name.endsWith('=')) {
-        name = name.substring(0, name.length - 1);
-      }
-      if (regExp != null && !regExp.hasMatch(name)) {
-        return;
-      }
-
-      var enclosing = element.enclosingElement;
-
-      String? className;
-      String? mixinName;
-      if (enclosing is ClassElement) {
-        if (enclosing.isEnum) {
-          // skip
-        } else if (enclosing.isMixin) {
-          mixinName = enclosing.name;
-        } else {
-          className = enclosing.name;
-        }
-      }
-
-      var kind = _getSearchElementKind(element);
-      if (kind == null) {
-        return;
-      }
-
-      String? parameters;
-      if (element is ExecutableElement) {
-        var displayString = element.getDisplayString(withNullability: true);
-        var parameterIndex = displayString.indexOf('(');
-        if (parameterIndex > 0) {
-          parameters = displayString.substring(parameterIndex);
-        }
-      }
-
-      element as ElementImpl; // to access codeOffset/codeLength
-      var locationOffset = element.nameOffset;
-      var locationStart = lineInfo.getLocation(locationOffset);
-
-      result.declarations.add(
-        Declaration(
-          result._getPathIndex(path),
-          lineInfo,
-          name,
-          kind,
-          locationOffset,
-          locationStart.lineNumber,
-          locationStart.columnNumber,
-          element.codeOffset ?? 0,
-          element.codeLength ?? 0,
-          className,
-          mixinName,
-          parameters,
-        ),
-      );
-    }
-
-    await _driver.discoverAvailableFiles();
-    var knownFiles = _driver.fsState.knownFiles.toList();
-    for (var file in knownFiles) {
-      var libraryElement = _driver.getLibraryByFile(file);
-      if (libraryElement != null) {
-        for (var unitElement in libraryElement.units) {
-          try {
-            unitElement.accept(
-              _FunctionElementVisitor((element) {
-                addDeclaration(unitElement.lineInfo, element);
-              }),
-            );
-          } on _MaxNumberOfDeclarationsError {
-            return;
-          }
-        }
-      }
-    }
+      {String? onlyForFile, CancellationToken? cancellationToken}) async {
+    await _FindDeclarations(_driver, result, regExp, maxResults,
+            onlyForFile: onlyForFile)
+        .compute(cancellationToken);
   }
 
   /// Returns references to the [element].
@@ -449,10 +414,13 @@ class Search {
     if (name.startsWith('_')) {
       String libraryPath = element.library!.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
-        FileState library = _driver.fsState.getFileForPath(libraryPath);
-        for (FileState file in library.libraryFiles) {
-          if (file.path == path || file.referencedNames.contains(name)) {
-            files.add(file.path);
+        final libraryFile = _driver.fsState.getFileForPath(libraryPath);
+        final libraryKind = libraryFile.kind;
+        if (libraryKind is LibraryFileStateKind) {
+          for (final file in libraryKind.files) {
+            if (file.path == path || file.referencedNames.contains(name)) {
+              files.add(file.path);
+            }
           }
         }
       }
@@ -506,26 +474,25 @@ class Search {
       CompilationUnitElement element) async {
     String path = element.source.fullName;
 
-    // If the path is not known, then the file is not referenced.
-    if (!_driver.fsState.knownFilePaths.contains(path)) {
+    final file = _driver.resourceProvider.getFile(path);
+    final fileState = _driver.fsState.getExisting(file);
+
+    // If the file is not known, then it is not referenced.
+    if (fileState == null) {
       return const <SearchResult>[];
     }
 
-    // Check every file that references the given path.
+    // Check files that reference the given file.
     List<SearchResult> results = <SearchResult>[];
-    List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
-    for (FileState file in knownFiles) {
-      for (FileState referencedFile in file.directReferencedFiles) {
-        if (referencedFile.path == path) {
-          await _addResultsInFile(
-              results,
-              element,
-              const {
-                IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE
-              },
-              file.path);
-        }
-      }
+    for (final reference in fileState.referencingFiles) {
+      await _addResultsInFile(
+        results,
+        element,
+        const {
+          IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+        },
+        reference.path,
+      );
     }
     return results;
   }
@@ -601,7 +568,7 @@ class Search {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResult(unitPath);
       if (unitResult is ResolvedUnitResult) {
-        var visitor = _ImportElementReferencesVisitor(element, unitElement);
+        var visitor = ImportElementReferencesVisitor(element, unitElement);
         unitResult.unit.accept(visitor);
         results.addAll(visitor.results);
       }
@@ -820,6 +787,9 @@ class WorkspaceSymbols {
   final List<String> files = [];
   final Map<String, int> _pathToIndex = {};
 
+  /// Whether this search was marked cancelled before it completed.
+  bool cancelled = false;
+
   bool hasMoreDeclarationsThan(int? maxResults) {
     return maxResults != null && declarations.length >= maxResults;
   }
@@ -855,79 +825,209 @@ class _ContainingElementFinder extends GeneralizingElementVisitor<void> {
   }
 }
 
-/// A visitor that handles any element with a function.
-class _FunctionElementVisitor extends GeneralizingElementVisitor<void> {
-  final void Function(Element element) process;
+class _FindDeclarations {
+  final AnalysisDriver driver;
+  final WorkspaceSymbols result;
+  final int? maxResults;
+  final RegExp? regExp;
+  final String? onlyForFile;
 
-  _FunctionElementVisitor(this.process);
+  _FindDeclarations(this.driver, this.result, this.regExp, this.maxResults,
+      {this.onlyForFile});
 
-  @override
-  void visitElement(Element element) {
-    process(element);
-    super.visitElement(element);
-  }
-}
-
-/// Visitor that adds [SearchResult]s for references to the [importElement].
-class _ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
-  final List<SearchResult> results = <SearchResult>[];
-
-  final ImportElement importElement;
-  final CompilationUnitElement enclosingUnitElement;
-
-  late final Set<Element> importedElements;
-
-  _ImportElementReferencesVisitor(
-      ImportElement element, this.enclosingUnitElement)
-      : importElement = element {
-    importedElements = element.namespace.definedNames.values.toSet();
-  }
-
-  @override
-  void visitExportDirective(ExportDirective node) {}
-
-  @override
-  void visitImportDirective(ImportDirective node) {}
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
+  /// Add matching declarations to the [result].
+  Future<void> compute(CancellationToken? cancellationToken) async {
+    if (result.hasMoreDeclarationsThan(maxResults)) {
       return;
     }
-    if (importElement.prefix != null) {
-      if (node.staticElement == importElement.prefix) {
-        var parent = node.parent;
-        if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.writeOrReadElement?.declaration;
-          if (importedElements.contains(element)) {
-            _addResultForPrefix(node, parent.identifier);
-          }
+
+    await driver.discoverAvailableFiles();
+
+    if (cancellationToken != null &&
+        cancellationToken.isCancellationRequested) {
+      result.cancelled = true;
+      return;
+    }
+
+    var knownFiles = driver.fsState.knownFiles.toList();
+    var filesProcessed = 0;
+    try {
+      for (var file in knownFiles) {
+        var elementResult = await driver.getLibraryByUri(file.uriStr);
+        if (elementResult is LibraryElementResult) {
+          _addUnits(file, elementResult.element.units);
         }
-        if (parent is MethodInvocation && parent.target == node) {
-          var element = parent.methodName.staticElement?.declaration;
-          if (importedElements.contains(element)) {
-            _addResultForPrefix(node, parent.methodName);
+
+        // Periodically yield and check cancellation token.
+        if (cancellationToken != null && (filesProcessed++) % 20 == 0) {
+          await null; // allow cancellation requests to be processed.
+          if (cancellationToken.isCancellationRequested) {
+            result.cancelled = true;
+            return;
           }
         }
       }
-    } else {
-      var element = node.writeOrReadElement?.declaration;
-      if (importedElements.contains(element)) {
-        _addResult(node.offset, 0);
+    } on _MaxNumberOfDeclarationsError {
+      return;
+    }
+  }
+
+  void _addAccessors(FileState file, List<PropertyAccessorElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (!element.isSynthetic) {
+        _addDeclaration(file, element, element.displayName);
       }
     }
   }
 
-  void _addResult(int offset, int length) {
-    Element enclosingElement =
-        _getEnclosingElement(enclosingUnitElement, offset);
-    results.add(SearchResult._(enclosingElement, SearchResultKind.REFERENCE,
-        offset, length, true, false));
+  void _addClasses(FileState file, List<ClassElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addDeclaration(file, element, element.name);
+      _addAccessors(file, element.accessors);
+      _addConstructors(file, element.constructors);
+      _addFields(file, element.fields);
+      _addMethods(file, element.methods);
+    }
   }
 
-  void _addResultForPrefix(SimpleIdentifier prefixNode, AstNode nextNode) {
-    int prefixOffset = prefixNode.offset;
-    _addResult(prefixOffset, nextNode.offset - prefixOffset);
+  void _addConstructors(FileState file, List<ConstructorElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (!element.isSynthetic) {
+        _addDeclaration(file, element, element.name);
+      }
+    }
+  }
+
+  void _addDeclaration(FileState file, Element element, String name) {
+    if (result.hasMoreDeclarationsThan(maxResults)) {
+      throw const _MaxNumberOfDeclarationsError();
+    }
+
+    if (onlyForFile != null && file.path != onlyForFile) {
+      return;
+    }
+
+    if (regExp != null && !regExp!.hasMatch(name)) {
+      return;
+    }
+
+    var enclosing = element.enclosingElement;
+
+    String? className;
+    String? mixinName;
+    if (enclosing is ClassElement) {
+      if (enclosing.isEnum) {
+        // skip
+      } else if (enclosing.isMixin) {
+        mixinName = enclosing.name;
+      } else {
+        className = enclosing.name;
+      }
+    }
+
+    var kind = _getSearchElementKind(element);
+    if (kind == null) {
+      return;
+    }
+
+    String? parameters;
+    if (element is ExecutableElement) {
+      var displayString = element.getDisplayString(withNullability: true);
+      var parameterIndex = displayString.indexOf('(');
+      if (parameterIndex > 0) {
+        parameters = displayString.substring(parameterIndex);
+      }
+    }
+
+    element as ElementImpl; // to access codeOffset/codeLength
+    var locationOffset = element.nameOffset;
+    var locationStart = file.lineInfo.getLocation(locationOffset);
+
+    result.declarations.add(
+      Declaration(
+        result._getPathIndex(file.path),
+        file.lineInfo,
+        name,
+        kind,
+        locationOffset,
+        locationStart.lineNumber,
+        locationStart.columnNumber,
+        element.codeOffset ?? 0,
+        element.codeLength ?? 0,
+        className,
+        mixinName,
+        parameters,
+      ),
+    );
+  }
+
+  void _addExtensions(FileState file, List<ExtensionElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      var name = element.name;
+      if (name != null) {
+        _addDeclaration(file, element, name);
+      }
+      _addAccessors(file, element.accessors);
+      _addFields(file, element.fields);
+      _addMethods(file, element.methods);
+    }
+  }
+
+  void _addFields(FileState file, List<FieldElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (!element.isSynthetic) {
+        _addDeclaration(file, element, element.name);
+      }
+    }
+  }
+
+  void _addFunctions(FileState file, List<FunctionElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addDeclaration(file, element, element.name);
+    }
+  }
+
+  void _addMethods(FileState file, List<MethodElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addDeclaration(file, element, element.name);
+    }
+  }
+
+  void _addTypeAliases(FileState file, List<TypeAliasElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addDeclaration(file, element, element.name);
+    }
+  }
+
+  void _addUnits(FileState file, List<CompilationUnitElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _addAccessors(file, element.accessors);
+      _addClasses(file, element.classes);
+      _addClasses(file, element.enums);
+      _addClasses(file, element.mixins);
+      _addExtensions(file, element.extensions);
+      _addFunctions(file, element.functions);
+      _addTypeAliases(file, element.typeAliases);
+      _addVariables(file, element.topLevelVariables);
+    }
+  }
+
+  void _addVariables(FileState file, List<TopLevelVariableElement> elements) {
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (!element.isSynthetic) {
+        _addDeclaration(file, element, element.name);
+      }
+    }
   }
 }
 
@@ -948,13 +1048,17 @@ class _IndexRequest {
       return;
     }
 
-    var library = file.library ?? file;
+    var library = file.kind.library;
+    if (library == null) {
+      return;
+    }
+
     for (; index.supertypes[superIndex] == superId; superIndex++) {
       var subtype = index.subtypes[superIndex];
       var name = index.strings[subtype.name];
-      var subId = '${library.uriStr};${file.uriStr};$name';
+      var subId = '${library.file.uriStr};${file.uriStr};$name';
       results.add(SubtypeResult(
-        library.uriStr,
+        library.file.uriStr,
         subId,
         name,
         subtype.members.map((m) => index.strings[m]).toList(),

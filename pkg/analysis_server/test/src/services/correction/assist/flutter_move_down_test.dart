@@ -30,7 +30,7 @@ class FlutterMoveDownTest extends AssistProcessorTest {
   Future<void> test_first() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: <Widget>[
       Text('aaa'),
@@ -42,7 +42,7 @@ main() {
 ''');
     await assertHasAssist('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: <Widget>[
       Text('aaa'),
@@ -58,7 +58,7 @@ main() {
   Future<void> test_last() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Column(
     children: <Widget>[
       Text('aaa'),
@@ -74,7 +74,7 @@ main() {
   Future<void> test_notInList() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-main() {
+void f() {
   Center(
     child: /*caret*/Text('aaa'),
   );

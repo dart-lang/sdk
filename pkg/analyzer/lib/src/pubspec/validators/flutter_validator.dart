@@ -5,15 +5,13 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 class FlutterValidator extends BasePubspecValidator {
-  FlutterValidator(ResourceProvider provider, Source source)
-      : super(provider, source);
+  FlutterValidator(super.provider, super.source);
 
   /// Validate the value of the optional `flutter` field.
   void validate(ErrorReporter reporter, Map<dynamic, YamlNode> contents) {

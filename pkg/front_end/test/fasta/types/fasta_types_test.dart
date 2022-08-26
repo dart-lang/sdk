@@ -42,7 +42,8 @@ void main() {
   final Ticker ticker = new Ticker(isVerbose: false);
   final CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()
-        ..packagesFileUri = Uri.base.resolve(".packages")));
+        ..packagesFileUri =
+            Uri.base.resolve(".dart_tool/package_config.json")));
   final Uri uri = Uri.parse("dart:core");
   final TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   final Component sdk = parseSdk(uri, environment);

@@ -534,6 +534,47 @@ class Subclass<T extends A> extends Class<T> {
     ConstantData(
         'const Subclass<B>(B())', 'ConstructedConstant(Subclass<B*>())'),
   ]),
+  TestData('Nested Unevaluated', '''
+//@dart = 2.12
+class Foo {
+  const Foo(
+    int Function(String)? a1,
+    int Function(String)? a2,
+    int Function(String)? a3,
+    int Function(String)? a4,
+  ) : _foo = a1 ??
+            a2 ??
+            a3 ??
+            a4 ??
+            bar;
+  final int Function(String) _foo;
+}
+
+int bar(String o) => int.parse(o);
+ ''', [
+    ConstantData(
+      '''Foo(
+    bool.fromEnvironment("baz") ? int.parse : null,
+    bool.fromEnvironment("baz") ? int.parse : null,
+    bool.fromEnvironment("baz") ? int.parse : null,
+    bool.fromEnvironment("baz") ? int.parse : null,
+  )''',
+      <Map<String, String>, String>{
+        {}: 'ConstructedConstant(Foo(_foo=FunctionConstant(bar)))',
+        {'baz': 'true'}:
+            'ConstructedConstant(Foo(_foo=FunctionConstant(int.parse)))'
+      },
+    ),
+    ConstantData(
+      '''String.fromEnvironment(String.fromEnvironment(String.fromEnvironment("foo")))''',
+      <Map<String, String>, String>{
+        {}: 'StringConstant("")',
+        {'foo': 'bar', 'bar': 'baz'}: 'StringConstant("")',
+        {'foo': 'bar', 'bar': 'baz', 'baz': 'hello'}: 'StringConstant("hello")',
+        {'foo': 'bar', 'bar': 'baz', 'baz': 'world'}: 'StringConstant("world")',
+      },
+    ),
+  ]),
 ];
 
 main(List<String> args) {

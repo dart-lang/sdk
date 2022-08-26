@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F = <T extends core::Object? = dynamic>() → void;
+static method method<T extends core::Object? = dynamic>() → self::method::T%
+  ;
+static method test(<T extends core::Object? = dynamic>() → void f) → dynamic
+  ;
+static method main() → dynamic
+  ;

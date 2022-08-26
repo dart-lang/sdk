@@ -6,9 +6,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer_utilities/html.dart';
+import 'package:analyzer_utilities/html_dom.dart' as dom;
+import 'package:analyzer_utilities/html_generator.dart';
 import 'package:analyzer_utilities/text_formatter.dart';
-import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
@@ -168,6 +168,8 @@ class CodeGenerator {
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
+
+// ignore_for_file: constant_identifier_names
 ''';
     }
     writeln(header.trim());
@@ -275,7 +277,7 @@ abstract class GeneratedContent {
     for (var target in targets) {
       var ok = await target.check(pkgPath);
       if (!ok) {
-        print('${target.output(pkgPath).absolute}'
+        print('${normalize(target.output(pkgPath).absolute.path)}'
             " doesn't have expected contents.");
         generateNeeded = true;
       }
@@ -373,7 +375,7 @@ class GeneratedDirectory extends GeneratedContent {
       var file = entry.key;
       var fileContentsComputer = entry.value;
       var outputFile = File(posix.join(outputDirectory.path, file));
-      print('  ${outputFile.path}');
+      print('  ${normalize(outputFile.path)}');
       var contents = await fileContentsComputer(pkgPath);
       outputFile.writeAsStringSync(contents);
     }
@@ -423,7 +425,7 @@ class GeneratedFile extends GeneratedContent {
   @override
   Future<void> generate(String pkgPath) async {
     var outputFile = output(pkgPath);
-    print('  ${outputFile.path}');
+    print('  ${normalize(outputFile.path)}');
     var contents = await computeContents(pkgPath);
     outputFile.writeAsStringSync(contents);
     if (isDartFile) {
@@ -471,7 +473,7 @@ abstract class HtmlCodeGenerator {
 
   /// Execute [callback], wrapping its output in an element with the given
   /// [name] and [attributes].
-  void element(String name, Map<Object, String> attributes,
+  void element(String name, Map<String, String> attributes,
       [void Function()? callback]) {
     add(makeElement(name, attributes, collectHtml(callback)));
   }
@@ -549,7 +551,7 @@ class _HtmlCodeGeneratorState {
     var lines = text.split('\n');
     if (lines.last.isEmpty) {
       lines.removeLast();
-      buffer.add(dom.Text(lines.join('\n$indent') + '\n'));
+      buffer.add(dom.Text('${lines.join('\n$indent')}\n'));
       indentNeeded = true;
     } else {
       buffer.add(dom.Text(lines.join('\n$indent')));

@@ -31,7 +31,7 @@ class FlutterSurroundWithSetStateTest extends AssistProcessorTest {
     // This code selects the `CompilationUnit` node which has previously
     // caused errors in code assuming the node would have a parent.
     await resolveTestCode('''
-main() {
+void f() {
 // start
   print(0);
 }

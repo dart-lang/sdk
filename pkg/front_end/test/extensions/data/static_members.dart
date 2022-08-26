@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /*library: scope=[
   A2,
   B2,
@@ -19,7 +17,8 @@ class A1 {}
  extension-members=[
   static method1=A2|method1,
   static method2=A2|method2],
- extension-name=A2,extension-onType=A1
+ extension-name=A2,
+ extension-onType=A1!
 */
 extension A2 on A1 {
   /*member: A2|method1:
@@ -51,7 +50,7 @@ class B1<T> {}
   static method1=B2|method1,
   static method2=B2|method2],
  extension-name=B2,
- extension-onType=B1<T>,
+ extension-onType=B1<T%>!,
  extension-type-params=[T]
 */
 extension B2<T> on B1<T> {

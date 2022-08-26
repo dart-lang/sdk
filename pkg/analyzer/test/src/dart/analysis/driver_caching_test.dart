@@ -2,12 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/stream.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../summary/macros_environment.dart';
 import '../resolution/context_collection_resolution.dart';
 
 main() {
@@ -18,11 +25,24 @@ main() {
 
 @reflectiveTest
 class AnalysisDriverCachingTest extends PubPackageResolutionTest {
+  @override
+  bool get retainDataForTesting => true;
+
   String get testFilePathPlatform => convertPath(testFilePath);
 
   List<Set<String>> get _linkedCycles {
     var driver = driverFor(testFilePath);
-    return driver.test.libraryContextTestView.linkedCycles;
+    return driver.testView!.libraryContext.linkedCycles;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      macrosEnvironment: MacrosEnvironment.instance,
+    );
   }
 
   test_analysisOptions_strictCasts() async {
@@ -35,7 +55,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
       ),
     );
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 dynamic a = 0;
 int b = a;
 ''');
@@ -117,7 +137,7 @@ class A {
   test_change_field_staticFinal_hasConstConstructor_changeInitializer() async {
     useEmptyByteStore();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -137,7 +157,7 @@ class A {
     // We will reuse the byte store, so can reuse summaries.
     disposeAnalysisContextCollection();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -158,7 +178,7 @@ class A {
   test_change_functionBody() async {
     useEmptyByteStore();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 void f() {
   print(0);
 }
@@ -175,7 +195,7 @@ void f() {
     // We will reuse the byte store, so can reuse summaries.
     disposeAnalysisContextCollection();
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 void f() {
   print(1);
 }
@@ -188,11 +208,61 @@ void f() {
     _assertNoLinkedCycles();
   }
 
+  test_getLibraryByUri_invalidated_exportNamespace() async {
+    useEmptyByteStore();
+
+    var a = newFile('$testPackageLibPath/a.dart', 'const a1 = 0;');
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+''');
+
+    var driver = driverFor(testFilePath);
+
+    // Link both libraries, keep them.
+    await driver.getLibraryByUri('package:test/a.dart');
+    await driver.getLibraryByUri('package:test/b.dart');
+
+    // Discard both libraries.
+    driver.changeFile(a.path);
+
+    // Read `package:test/a.dart` from bytes.
+    // Don't ask for `exportNamespace`, this used to keep it in the state
+    // "should be asked from LinkedElementLibrary", which will ask it
+    // from the `LibraryReader` current at the moment of `exportNamespace`
+    // access, not necessary the same that created this instance.
+    final aResult = await driver.getLibraryByUri('package:test/a.dart');
+    final aElement = (aResult as LibraryElementResult).element;
+
+    // The element is valid at this point.
+    expect(driver.isValidLibraryElement(aElement), isTrue);
+
+    // Discard both libraries.
+    driver.changeFile(a.path);
+
+    // Read `package:test/b.dart`, actually create `LibraryElement` for it.
+    // We used to create only `LibraryReader` for `package:test/a.dart`.
+    await driver.getLibraryByUri('package:test/b.dart');
+
+    // The element is not valid anymore.
+    expect(driver.isValidLibraryElement(aElement), isFalse);
+
+    // But its `exportNamespace` can be accessed.
+    expect(aElement.exportNamespace.definedNames, isNotEmpty);
+
+    // TODO(scheglov) This is not quite right.
+    // When we return `LibraryElement` that is not fully read, and read
+    // anything lazily, we can be in a situation when there was a change,
+    // and an imported library does not define a referenced element anymore.
+    // But there is still a client that holds this `LibraryElement`, and
+    // its summary information says "get element X from `package:Y"; and when
+    // we attempt to get it, the might be no `X` in `Y`.
+  }
+
   test_lint_dependOnReferencedPackage_update_pubspec_addDependency() async {
     useEmptyByteStore();
 
     var aaaPackageRootPath = '$packagesRootPath/aaa';
-    newFile2('$aaaPackageRootPath/lib/a.dart', '');
+    newFile('$aaaPackageRootPath/lib/a.dart', '');
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
@@ -213,7 +283,7 @@ void f() {
       ),
     );
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 // ignore:unused_import
 import 'package:aaa/a.dart';
 ''');
@@ -256,7 +326,7 @@ import 'package:aaa/a.dart';
       AnalysisOptionsFileConfig(lints: []),
     );
 
-    newFile2(testFilePath, r'''
+    newFile(testFilePath, r'''
 void f() {
   ![0].isEmpty;
 }
@@ -286,6 +356,267 @@ void f() {
 
     // Lints don't affect summaries, nothing should be linked.
     _assertNoLinkedCycles();
+  }
+
+  test_macro_libraryElement_changeMacroCode() async {
+    final macroFile = _newFileWithFixedNameMacro('MacroA');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import 'my_macro.dart';
+
+@MyMacro()
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    final analysisContext = contextFor(macroFile.path);
+
+    Future<LibraryElement> getLibrary(String uriStr) async {
+      final result = await analysisContext.currentSession
+          .getLibraryByUri(uriStr) as LibraryElementResult;
+      return result.element;
+    }
+
+    // This macro generates `MacroA`, but not `MacroB`.
+    {
+      final libraryA = await getLibrary('package:test/a.dart');
+      expect(libraryA.getType('MacroA'), isNotNull);
+      expect(libraryA.getType('MacroB'), isNull);
+      // This propagates transitively.
+      final libraryB = await getLibrary('package:test/b.dart');
+      expect(libraryB.exportNamespace.get('MacroA'), isNotNull);
+      expect(libraryB.exportNamespace.get('MacroB'), isNull);
+    }
+
+    _assertContainsLinkedCycle({a.path});
+    _assertContainsLinkedCycle({b.path}, andClear: true);
+
+    // The macro will generate `MacroB`.
+    _newFileWithFixedNameMacro('MacroB');
+
+    // Notify about changes.
+    analysisContext.changeFile(macroFile.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // This macro generates `MacroB`, but not `MacroA`.
+    {
+      final libraryA = await getLibrary('package:test/a.dart');
+      expect(libraryA.getType('MacroA'), isNull);
+      expect(libraryA.getType('MacroB'), isNotNull);
+      // This propagates transitively.
+      final libraryB = await getLibrary('package:test/b.dart');
+      expect(libraryB.exportNamespace.get('MacroA'), isNull);
+      expect(libraryB.exportNamespace.get('MacroB'), isNotNull);
+    }
+
+    _assertContainsLinkedCycle({a.path});
+    _assertContainsLinkedCycle({b.path}, andClear: true);
+  }
+
+  test_macro_reanalyze_errors_changeCodeUsedByMacro_importedLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+String getClassName() => 'MacroA';
+''');
+
+    newFile('$testPackageLibPath/my_macro.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'a.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  buildTypesForClass(clazz, builder) {
+    final className = getClassName();
+    builder.declareType(
+      '$className',
+      DeclarationCode.fromString('class $className {}'),
+    );
+  }
+}
+''');
+
+    var user = newFile('$testPackageLibPath/user.dart', r'''
+import 'my_macro.dart';
+
+@MyMacro()
+class A {}
+
+void f(MacroA a) {}
+''');
+
+    var analysisContext = contextFor(a.path);
+    var analysisDriver = driverFor(a.path);
+
+    var userErrors = analysisDriver.results
+        .whereType<ErrorsResult>()
+        .where((event) => event.path == user.path);
+
+    // We get errors when the file is added.
+    analysisDriver.addFile(user.path);
+    assertErrorsInList((await userErrors.first).errors, []);
+
+    // The macro will generate `MacroB`.
+    newFile('$testPackageLibPath/a.dart', r'''
+String getClassName() => 'MacroB';
+''');
+
+    // Notify about changes.
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The change to the macro cause re-analysis of the user file.
+    assertErrorsInList((await userErrors.first).errors, [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
+    ]);
+  }
+
+  test_macro_reanalyze_errors_changeCodeUsedByMacro_part() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'my_macro.dart';
+String getClassName() => 'MacroA';
+''');
+
+    newFile('$testPackageLibPath/my_macro.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+part 'a.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  buildTypesForClass(clazz, builder) {
+    final className = getClassName();
+    builder.declareType(
+      '$className',
+      DeclarationCode.fromString('class $className {}'),
+    );
+  }
+}
+''');
+
+    var user = newFile('$testPackageLibPath/user.dart', r'''
+import 'my_macro.dart';
+
+@MyMacro()
+class A {}
+
+void f(MacroA a) {}
+''');
+
+    var analysisContext = contextFor(a.path);
+    var analysisDriver = driverFor(a.path);
+
+    var userErrors = analysisDriver.results
+        .whereType<ErrorsResult>()
+        .where((event) => event.path == user.path);
+
+    // We get errors when the file is added.
+    analysisDriver.addFile(user.path);
+    assertErrorsInList((await userErrors.first).errors, []);
+
+    // The macro will generate `MacroB`.
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'my_macro.dart';
+String getClassName() => 'MacroB';
+''');
+
+    // Notify about changes.
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The change to the macro cause re-analysis of the user file.
+    assertErrorsInList((await userErrors.first).errors, [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
+    ]);
+  }
+
+  test_macro_reanalyze_errors_changeMacroCode() async {
+    var macroFile = _newFileWithFixedNameMacro('MacroA');
+
+    var user = newFile('$testPackageLibPath/user.dart', r'''
+import 'my_macro.dart';
+
+@MyMacro()
+class A {}
+
+void f(MacroA a) {}
+''');
+
+    var analysisContext = contextFor(user.path);
+    var analysisDriver = driverFor(user.path);
+
+    var userErrors = analysisDriver.results
+        .whereType<ErrorsResult>()
+        .where((event) => event.path == user.path);
+
+    // We get errors when the file is added.
+    analysisDriver.addFile(user.path);
+    assertErrorsInList((await userErrors.first).errors, []);
+
+    // The macro will generate `MacroB`.
+    _newFileWithFixedNameMacro('MacroB');
+
+    // Notify about changes.
+    analysisContext.changeFile(macroFile.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // The change to the macro cause re-analysis of the user file.
+    assertErrorsInList((await userErrors.first).errors, [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
+    ]);
+  }
+
+  test_macro_resolvedUnit_changeCodeUsedByMacro() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+String getClassName() => 'MacroA';
+''');
+
+    newFile('$testPackageLibPath/my_macro.dart', r'''
+import 'dart:async';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'a.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  FutureOr<void> buildTypesForClass(clazz, builder) {
+    final className = getClassName();
+    builder.declareType(
+      '$className',
+      DeclarationCode.fromString('class $className {}'),
+    );
+  }
+}
+''');
+
+    // The macro will generate `MacroA`, so no errors.
+    await assertNoErrorsInCode('''
+import 'my_macro.dart';
+
+@MyMacro()
+class A {}
+
+void f(MacroA a) {}
+''');
+
+    // The macro will generate `MacroB`.
+    newFile(a.path, r'''
+String getClassName() => 'MacroB';
+''');
+
+    // Notify about changes.
+    var analysisContext = contextFor(a.path);
+    analysisContext.changeFile(a.path);
+    await analysisContext.applyPendingFileChanges();
+
+    // Resolve the test file, it still references `MacroA`, but the macro
+    // generates `MacroB` now, so we have an error.
+    await resolveTestFile();
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 55, 6),
+    ]);
   }
 
   void _assertContainsLinkedCycle(Set<String> expectedPosix,
@@ -321,5 +652,28 @@ void f() {
         .currentSession
         .getErrors(testFilePathConverted) as ErrorsResult;
     return errorsResult.errors;
+  }
+
+  File _newFileWithFixedNameMacro(String className) {
+    return newFile('$testPackageLibPath/my_macro.dart', '''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      '$className',
+      DeclarationCode.fromString('class $className {}'),
+    );
+  }
+}
+''');
+  }
+}
+
+extension on AnalysisDriver {
+  bool isValidLibraryElement(LibraryElement element) {
+    return identical(element.session, currentSession);
   }
 }

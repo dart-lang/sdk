@@ -135,44 +135,51 @@ template("_application_snapshot") {
   }
 
   # Create a snapshot from kernel built above.
-  dart_action(target_name) {
-    if (defined(invoker.pool)) {
-      pool = invoker.pool
-    }
-    deps = extra_deps + [ ":${target_name}_dill" ]
-    depfile = "$output.d"
+  if (dart_snapshot_kind == "kernel") {
+    copy(target_name) {
+      deps = extra_deps + [ ":${target_name}_dill" ]
+      sources = [ "$target_gen_dir/$name.dart.dill" ]
+      outputs = [ output ]
 
-    script = "$target_gen_dir/$name.dart.dill"
-
-    inputs = extra_inputs
-
-    outputs = [ output ]
-
-    # Explicitly set DFE so Dart doesn't implicitly depend on the kernel service
-    # snapshot (creating a circular dep. for kernel-service_snapshot).
-    dfe = "NEVER_LOADED"
-
-    abs_depfile = rebase_path(depfile)
-    abs_output = rebase_path(output)
-    rel_output = rebase_path(output, root_build_dir)
-
-    vm_args = [
-                "--deterministic",
-                "--packages=$dot_packages",
-                "--snapshot=$abs_output",
-                "--snapshot-depfile=$abs_depfile",
-                "--depfile-output-filename=$rel_output",
-              ] + snapshot_vm_args
-
-    if (dart_snapshot_kind == "kernel") {
-      vm_args += [ "--snapshot-kind=kernel" ]
+      assert(snapshot_vm_args != "", "Ignoring unused argument")
       assert(training_args != "", "Ignoring unused argument")
-      args = []
-    } else if (dart_snapshot_kind == "app-jit") {
-      vm_args += [ "--snapshot-kind=app-jit" ]
-      args = training_args
-    } else {
-      assert(false, "Bad dart_snapshot_kind: $dart_snapshot_kind")
+    }
+  } else {
+    dart_action(target_name) {
+      if (defined(invoker.pool)) {
+        pool = invoker.pool
+      }
+      deps = extra_deps + [ ":${target_name}_dill" ]
+      depfile = "$output.d"
+
+      script = "$target_gen_dir/$name.dart.dill"
+
+      inputs = extra_inputs
+
+      outputs = [ output ]
+
+      # Explicitly set DFE so Dart doesn't implicitly depend on the kernel service
+      # snapshot (creating a circular dep. for kernel-service_snapshot).
+      dfe = "NEVER_LOADED"
+
+      abs_depfile = rebase_path(depfile)
+      abs_output = rebase_path(output)
+      rel_output = rebase_path(output, root_build_dir)
+
+      vm_args = [
+                  "--deterministic",
+                  "--packages=$dot_packages",
+                  "--snapshot=$abs_output",
+                  "--snapshot-depfile=$abs_depfile",
+                  "--depfile-output-filename=$rel_output",
+                ] + snapshot_vm_args
+
+      if (dart_snapshot_kind == "app-jit") {
+        vm_args += [ "--snapshot-kind=app-jit" ]
+        args = training_args
+      } else {
+        assert(false, "Bad dart_snapshot_kind: $dart_snapshot_kind")
+      }
     }
   }
 }

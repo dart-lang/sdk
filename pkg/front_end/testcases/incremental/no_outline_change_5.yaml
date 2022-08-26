@@ -11,7 +11,6 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
-        // @dart=2.9
         part 'myPart.dart';
 
         class Foo {
@@ -25,7 +24,6 @@ worlds:
           print(const Foo());
         }
       myPart.dart: |
-        // @dart=2.9
         part of 'main.dart';
         whatever() async {
           await null;
@@ -40,7 +38,6 @@ worlds:
       - myPart.dart
     sources:
       myPart.dart: |
-        // @dart=2.9
         part of 'main.dart';
         whatever() async {
           await null;
@@ -56,7 +53,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         part 'myPart.dart';
 
         class Foo {

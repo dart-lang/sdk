@@ -1,0 +1,9 @@
+extension Test<T> on T {
+  T Function(T) get test => (a) => this;
+}
+
+class Foo<S extends num> {
+  void test1(S x) {}
+}
+
+void main() {}

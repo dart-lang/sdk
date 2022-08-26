@@ -124,3 +124,11 @@ constants  {
   #C29 = 1000000
   #C30 = dart.core::Duration {_duration:#C29}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-test:///b.dart:
+- Duration. (from org-dartlang-sdk:///sdk/lib/core/duration.dart:173:9)
+- Duration._microseconds (from org-dartlang-sdk:///sdk/lib/core/duration.dart:189:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+

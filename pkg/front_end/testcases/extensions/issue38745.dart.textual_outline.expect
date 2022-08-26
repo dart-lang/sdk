@@ -1,4 +1,3 @@
-// @dart = 2.9
 class C<T> {}
 extension ext<T> on C<T> {
   int field;

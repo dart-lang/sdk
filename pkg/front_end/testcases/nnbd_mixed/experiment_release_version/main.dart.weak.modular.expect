@@ -69,7 +69,7 @@ library;
 import self as self3;
 import "dart:core" as core;
 
-static field core::int? versioned_2_8_Library;
+static field core::int* versioned_2_8_Library;
 
 library;
 //
@@ -86,7 +86,7 @@ library;
 import self as self4;
 import "dart:core" as core;
 
-static field core::int? versioned_2_9_Library;
+static field core::int* versioned_2_9_Library;
 
 library /*isNonNullableByDefault*/;
 import self as self5;

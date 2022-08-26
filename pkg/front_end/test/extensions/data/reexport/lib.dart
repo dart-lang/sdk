@@ -7,8 +7,6 @@
   core.dart.EnumByName,
   core.dart.EnumName]*/
 
-// @dart = 2.9
-
 export 'lib1.dart';
 /*error: errors=['ClashingExtension' is exported from both 'org-dartlang-test:///a/b/c/lib1.dart' and 'org-dartlang-test:///a/b/c/lib2.dart'.]*/
 export 'lib2.dart';

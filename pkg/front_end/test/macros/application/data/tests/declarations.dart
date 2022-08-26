@@ -2,156 +2,253 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*library: 
+Declarations Order:
+ Class1.instanceMethod1:MethodDeclarationsMacro1.new()
+ Class1.instanceGetter1:MethodDeclarationsMacro1.new()
+ Class1.[]:MethodDeclarationsMacro1.new()
+ Class1.instanceField1:FieldDeclarationsMacro1.new()
+ Class1.instanceField2:FieldDeclarationsMacro1.new()
+ Class1.instanceField3:FieldDeclarationsMacro1.new()
+ Class1.instanceSetter1:MethodDeclarationsMacro1.new()
+ Class1.:ConstructorDeclarationsMacro1.new()
+ Class1.redirect:ConstructorDeclarationsMacro1.new()
+ Class1.fact:ConstructorDeclarationsMacro1.new()
+ Class1:ClassDeclarationsMacro2.new()
+ Class1:ClassDeclarationsMacro1.new()
+ Class2.instanceMethod1:MethodDeclarationsMacro1.new()
+ Class2.instanceField1:FieldDeclarationsMacro1.new()
+ Class2:ClassDeclarationsMacro2.new()
+ Class2:ClassDeclarationsMacro1.new()
+ topLevelFunction1:FunctionDeclarationsMacro1.new()
+ topLevelFunction2:FunctionDeclarationsMacro1.new()
+ topLevelField1:VariableDeclarationsMacro1.new()
+ topLevelField2:VariableDeclarationsMacro1.new()
+ topLevelField3:VariableDeclarationsMacro1.new()
+ topLevelField4:VariableDeclarationsMacro1.new()
+ topLevelGetter1:FunctionDeclarationsMacro1.new()
+ topLevelSetter1:FunctionDeclarationsMacro1.new()*/
+
 import 'package:macro/macro.dart';
 
-/*member: topLevelFunction1:
-void topLevelFunction1GeneratedMethod_() {}
-*/
 @FunctionDeclarationsMacro1()
+/*member: topLevelFunction1:
+declarations:
+
+void topLevelFunction1GeneratedMethod_() {}
+
+*/
 void topLevelFunction1() {}
 
-/*member: topLevelFunction2:
-void topLevelFunction2GeneratedMethod_e() {}
-*/
 @FunctionDeclarationsMacro1()
+/*member: topLevelFunction2:
+declarations:
+
+void topLevelFunction2GeneratedMethod_e() {}
+
+*/
 external void topLevelFunction2();
 
-/*member: topLevelField1:
-void topLevelField1GeneratedMethod_() {}
-*/
 @VariableDeclarationsMacro1()
+/*member: topLevelField1:
+declarations:
+
+void topLevelField1GeneratedMethod_() {}
+
+*/
 int? topLevelField1;
 
-/*member: topLevelField2:
-void topLevelField2GeneratedMethod_e() {}
-*/
 @VariableDeclarationsMacro1()
+/*member: topLevelField2:
+declarations:
+
+void topLevelField2GeneratedMethod_e() {}
+
+*/
 external int? topLevelField2;
 
-/*member: topLevelField3:
-void topLevelField3GeneratedMethod_f() {}
-*/
 @VariableDeclarationsMacro1()
+/*member: topLevelField3:
+declarations:
+
+void topLevelField3GeneratedMethod_f() {}
+
+*/
 final int? topLevelField3 = null;
 
-/*member: topLevelField4:
-void topLevelField4GeneratedMethod_l() {}
-*/
 @VariableDeclarationsMacro1()
+/*member: topLevelField4:
+declarations:
+
+void topLevelField4GeneratedMethod_l() {}
+
+*/
 late int? topLevelField4;
 
-/*member: topLevelGetter1:
-void topLevelGetter1GeneratedMethod_g() {}
-*/
 @FunctionDeclarationsMacro1()
+/*member: topLevelGetter1:
+declarations:
+
+void topLevelGetter1GeneratedMethod_g() {}
+
+*/
 int? get topLevelGetter1 => null;
 
-/*member: topLevelSetter1=:
-void topLevelSetter1GeneratedMethod_s() {}
-*/
 @FunctionDeclarationsMacro1()
+/*member: topLevelSetter1=:
+declarations:
+
+void topLevelSetter1GeneratedMethod_s() {}
+
+*/
 void set topLevelSetter1(int? value) {}
 
+@ClassDeclarationsMacro1()
+@ClassDeclarationsMacro2()
 /*class: Class1:
-void Class1GeneratedMethod_() {}
+declarations:
 
 void Class1Introspection() {
   print("constructors='','redirect','fact'");
   print("fields='instanceField1','instanceField2','instanceField3'");
-  print("methods='instanceMethod1','instanceGetter1','[]','instanceSetter1'");
+  print("methods='instanceMethod1','instanceGetter1','[]','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f','instanceSetter1','Class1_GeneratedMethod_','Class1_redirectGeneratedMethod_f','Class1_factGeneratedMethod_f'");
 }
+
+
+
+void Class1GeneratedMethod_() {}
+
 */
-@ClassDeclarationsMacro1()
-@ClassDeclarationsMacro2()
 class Class1 {
+  @ConstructorDeclarationsMacro1()
   /*member: Class1.:
+declarations:
+
 augment class Class1 {
 void Class1_GeneratedMethod_() {}
 
-}*/
-  @ConstructorDeclarationsMacro1()
+}
+*/
   Class1();
 
+  @ConstructorDeclarationsMacro1()
   /*member: Class1.redirect:
+declarations:
+
 augment class Class1 {
 void Class1_redirectGeneratedMethod_f() {}
 
-}*/
-  @ConstructorDeclarationsMacro1()
+}
+*/
   factory Class1.redirect() = Class1;
 
+  @ConstructorDeclarationsMacro1()
   /*member: Class1.fact:
+declarations:
+
 augment class Class1 {
 void Class1_factGeneratedMethod_f() {}
 
-}*/
-  @ConstructorDeclarationsMacro1()
+}
+*/
   factory Class1.fact() => new Class1();
 
-  /*member: Class1.instanceMethod1:
-void Class1_instanceMethod1GeneratedMethod_() {}
-*/
   @MethodDeclarationsMacro1()
+  /*member: Class1.instanceMethod1:
+declarations:
+
+void Class1_instanceMethod1GeneratedMethod_() {}
+
+*/
   void instanceMethod1() {}
 
-  /*member: Class1.instanceGetter1:
-void Class1_instanceGetter1GeneratedMethod_g() {}
-*/
   @MethodDeclarationsMacro1()
+  /*member: Class1.instanceGetter1:
+declarations:
+
+void Class1_instanceGetter1GeneratedMethod_g() {}
+
+*/
   int? get instanceGetter1 => null;
 
-  /*member: Class1.instanceSetter1=:
-void Class1_instanceSetter1GeneratedMethod_s() {}
-*/
   @MethodDeclarationsMacro1()
+  /*member: Class1.instanceSetter1=:
+declarations:
+
+void Class1_instanceSetter1GeneratedMethod_s() {}
+
+*/
   void set instanceSetter1(int? value) {}
 
-  /*member: Class1.[]:
-void Class1_operatorGeneratedMethod_o() {}
-*/
   @MethodDeclarationsMacro1()
+  /*member: Class1.[]:
+declarations:
+
+void Class1_operatorGeneratedMethod_o() {}
+
+*/
   int operator [](int i) => i;
 
-  /*member: Class1.instanceField1:
-void Class1_instanceField1GeneratedMethod_() {}
-*/
   @FieldDeclarationsMacro1()
+  /*member: Class1.instanceField1:
+declarations:
+
+void Class1_instanceField1GeneratedMethod_() {}
+
+*/
   int? instanceField1;
 
-  /*member: Class1.instanceField2:
-void Class1_instanceField2GeneratedMethod_f() {}
-*/
   @FieldDeclarationsMacro1()
+  /*member: Class1.instanceField2:
+declarations:
+
+void Class1_instanceField2GeneratedMethod_f() {}
+
+*/
   final int? instanceField2 = null;
 
-  /*member: Class1.instanceField3:
-void Class1_instanceField3GeneratedMethod_fl() {}
-*/
   @FieldDeclarationsMacro1()
+  /*member: Class1.instanceField3:
+declarations:
+
+void Class1_instanceField3GeneratedMethod_fl() {}
+
+*/
   late final int? instanceField3 = null;
 }
 
+@ClassDeclarationsMacro1()
+@ClassDeclarationsMacro2()
 /*class: Class2:
-void Class2GeneratedMethod_a() {}
+declarations:
 
 void Class2Introspection() {
   print("constructors=");
   print("fields='instanceField1'");
   print("methods='instanceMethod1'");
 }
+
+
+
+void Class2GeneratedMethod_a() {}
+
 */
-@ClassDeclarationsMacro1()
-@ClassDeclarationsMacro2()
 abstract class Class2 {
-  /*member: Class2.instanceMethod1:
-void Class2_instanceMethod1GeneratedMethod_a() {}
-*/
   @MethodDeclarationsMacro1()
+  /*member: Class2.instanceMethod1:
+declarations:
+
+void Class2_instanceMethod1GeneratedMethod_a() {}
+
+*/
   void instanceMethod1();
 
-  /*member: Class2.instanceField1:
-void Class2_instanceField1GeneratedMethod_() {}
-*/
   @FieldDeclarationsMacro1()
+  /*member: Class2.instanceField1:
+declarations:
+
+void Class2_instanceField1GeneratedMethod_() {}
+
+*/
   abstract int? instanceField1;
 }

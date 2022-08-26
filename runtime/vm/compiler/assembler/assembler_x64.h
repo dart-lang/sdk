@@ -407,7 +407,7 @@ class Assembler : public AssemblerBase {
   SIMPLE(lock, 0xF0)
   SIMPLE(rep_movsb, 0xF3, 0xA4)
   SIMPLE(rep_movsw, 0xF3, 0x66, 0xA5)
-  SIMPLE(rep_movsl, 0xF3, 0xA5)
+  SIMPLE(rep_movsd, 0xF3, 0xA5)
   SIMPLE(rep_movsq, 0xF3, 0x48, 0xA5)
 #undef SIMPLE
 // XmmRegister operations with another register or an address.
@@ -583,8 +583,17 @@ class Assembler : public AssemblerBase {
                      OperandSize width = kEightBytes);
 
   void AndImmediate(Register dst, const Immediate& imm);
+  void AndImmediate(Register dst, int32_t value) {
+    AndImmediate(dst, Immediate(value));
+  }
   void OrImmediate(Register dst, const Immediate& imm);
+  void OrImmediate(Register dst, int32_t value) {
+    OrImmediate(dst, Immediate(value));
+  }
   void XorImmediate(Register dst, const Immediate& imm);
+  void LslImmediate(Register dst, int32_t shift) {
+    shlq(dst, Immediate(shift));
+  }
 
   void shldq(Register dst, Register src, Register shifter) {
     ASSERT(shifter == RCX);
@@ -702,6 +711,13 @@ class Assembler : public AssemblerBase {
 
   // Methods for High-level operations and implemented on all architectures.
   void Ret() { ret(); }
+
+  // Sets the return address to [value] as if there was a call.
+  // On X64 pushes [value].
+  void SetReturnAddress(Register value) {
+    PushRegister(value);
+  }
+
   void CompareRegisters(Register a, Register b);
   void CompareObjectRegisters(Register a, Register b) { OBJ(cmp)(a, b); }
   void BranchIf(Condition condition,
@@ -714,6 +730,14 @@ class Assembler : public AssemblerBase {
                     JumpDistance distance = kFarJump) {
     cmpq(src, Immediate(0));
     j(ZERO, label, distance);
+  }
+  void BranchIfBit(Register rn,
+                   intptr_t bit_number,
+                   Condition condition,
+                   Label* label,
+                   JumpDistance distance = kFarJump) {
+    testq(rn, Immediate(1 << bit_number));
+    j(condition, label, distance);
   }
 
   void ExtendValue(Register dst, Register src, OperandSize sz) override;
@@ -740,11 +764,18 @@ class Assembler : public AssemblerBase {
                     OperandSize width = kEightBytes) {
     AddImmediate(reg, Immediate(value), width);
   }
+  void AddRegisters(Register dest, Register src) {
+    addq(dest, src);
+  }
+  void AddImmediate(Register dest, Register src, int32_t value);
   void AddImmediate(const Address& address, const Immediate& imm);
   void SubImmediate(Register reg,
                     const Immediate& imm,
                     OperandSize width = kEightBytes);
   void SubImmediate(const Address& address, const Immediate& imm);
+  void SubRegisters(Register dest, Register src) {
+    subq(dest, src);
+  }
 
   void Drop(intptr_t stack_elements, Register tmp = TMP);
 
@@ -757,6 +788,7 @@ class Assembler : public AssemblerBase {
     LoadImmediate(reg, Immediate(immediate));
   }
   void LoadDImmediate(FpuRegister dst, double immediate);
+  void LoadQImmediate(FpuRegister dst, simd128_value_t immediate);
 
   void LoadIsolate(Register dst);
   void LoadIsolateGroup(Register dst);
@@ -866,6 +898,8 @@ class Assembler : public AssemblerBase {
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
+  void PushRegistersInOrder(std::initializer_list<Register> regs);
+
   void CheckCodePointer();
 
   void EnterFrame(intptr_t frame_space);
@@ -965,6 +999,10 @@ class Assembler : public AssemblerBase {
   void Jump(Label* label, JumpDistance distance = kFarJump) {
     jmp(label, distance);
   }
+  // Unconditional jump to a given address in register.
+  void Jump(Register target) {
+    jmp(target);
+  }
   // Unconditional jump to a given address in memory.
   void Jump(const Address& address) { jmp(address); }
 
@@ -1027,6 +1065,9 @@ class Assembler : public AssemblerBase {
                           int32_t offset,
                           OperandSize sz = kEightBytes) {
     StoreToOffset(src, FieldAddress(base, offset), sz);
+  }
+  void StoreZero(const Address& address, Register temp = kNoRegister) {
+    movq(address, Immediate(0));
   }
   void LoadFromStack(Register dst, intptr_t depth);
   void StoreToStack(Register src, intptr_t depth);
@@ -1097,7 +1138,7 @@ class Assembler : public AssemblerBase {
 #endif
   }
 
-  void CompareWithFieldValue(Register value, FieldAddress address) {
+  void CompareWithMemoryValue(Register value, Address address) {
     cmpq(value, address);
   }
   void CompareWithCompressedFieldFromOffset(Register value,
@@ -1142,7 +1183,7 @@ class Assembler : public AssemblerBase {
   //   pushq r15
   //   .....
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
-  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
+  void LeaveDartFrame();
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
@@ -1178,7 +1219,10 @@ class Assembler : public AssemblerBase {
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
-  void MaybeTraceAllocation(intptr_t cid, Label* trace, JumpDistance distance);
+  void MaybeTraceAllocation(intptr_t cid,
+                            Label* trace,
+                            Register temp_reg = kNoRegister,
+                            JumpDistance distance = JumpDistance::kFarJump);
 
   void TryAllocateObject(intptr_t cid,
                          intptr_t instance_size,
@@ -1195,11 +1239,21 @@ class Assembler : public AssemblerBase {
                         Register end_address,
                         Register temp);
 
+  // Copy [size] bytes from [src] address to [dst] address.
+  // [size] should be a multiple of word size.
+  // Clobbers [src], [dst], [size] and [temp] registers.
+  // X64 requires fixed registers for memory copying:
+  // [src] = RSI, [dst] = RDI, [size] = RCX.
+  void CopyMemoryWords(Register src,
+                       Register dst,
+                       Register size,
+                       Register temp = kNoRegister);
+
   // This emits an PC-relative call of the form "callq *[rip+<offset>]".  The
   // offset is not yet known and needs therefore relocation to the right place
   // before the code can be used.
   //
-  // The neccessary information for the "linker" (i.e. the relocation
+  // The necessary information for the "linker" (i.e. the relocation
   // information) is stored in [UntaggedCode::static_calls_target_table_]: an
   // entry of the form
   //
@@ -1270,7 +1324,6 @@ class Assembler : public AssemblerBase {
  private:
   bool constant_pool_allowed_;
 
-  intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
   void LoadWordFromPoolIndex(Register dst, intptr_t index);

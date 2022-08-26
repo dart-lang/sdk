@@ -13,9 +13,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -35,7 +37,6 @@ import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
-import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
@@ -512,6 +513,21 @@ class LinterContextUnit {
   LinterContextUnit(this.content, this.unit);
 }
 
+/// TODO(scheglov) This class exists only because there are places in the
+/// analyzer and analysis server that instantiate [LinterContextUnit]. This
+/// should not happen, and should be fixed.
+class LinterContextUnit2 implements LinterContextUnit {
+  final FileState file;
+
+  @override
+  final CompilationUnit unit;
+
+  LinterContextUnit2(this.file, this.unit);
+
+  @override
+  String get content => file.content;
+}
+
 /// Thrown when an error occurs in linting.
 class LinterException implements Exception {
   /// A message describing the error.
@@ -627,10 +643,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     return name.compareTo(other.name);
   }
 
-  /// Return a visitor to be passed to provide access to Dart project context
-  /// and to perform project-level analyses.
-  ProjectVisitor? getProjectVisitor() => null;
-
   /// Return a visitor to be passed to pubspecs to perform lint
   /// analysis.
   /// Lint errors are reported via this [Linter]'s error [reporter].
@@ -641,25 +653,31 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
   void reportLint(AstNode? node,
       {List<Object> arguments = const [],
+      List<DiagnosticMessage>? contextMessages,
       ErrorCode? errorCode,
       bool ignoreSyntheticNodes = true}) {
     if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
-      reporter.reportErrorForNode(errorCode ?? lintCode, node, arguments);
+      reporter.reportErrorForNode(
+          errorCode ?? lintCode, node, arguments, contextMessages);
     }
   }
 
   void reportLintForOffset(int offset, int length,
-      {List<Object> arguments = const [], ErrorCode? errorCode}) {
+      {List<Object> arguments = const [],
+      List<DiagnosticMessage>? contextMessages,
+      ErrorCode? errorCode}) {
     reporter.reportErrorForOffset(
-        errorCode ?? lintCode, offset, length, arguments);
+        errorCode ?? lintCode, offset, length, arguments, contextMessages);
   }
 
   void reportLintForToken(Token? token,
       {List<Object> arguments = const [],
+      List<DiagnosticMessage>? contextMessages,
       ErrorCode? errorCode,
       bool ignoreSyntheticTokens = true}) {
     if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
-      reporter.reportErrorForToken(errorCode ?? lintCode, token, arguments);
+      reporter.reportErrorForToken(
+          errorCode ?? lintCode, token, arguments, contextMessages);
     }
   }
 
@@ -874,7 +892,7 @@ class _LintCode extends LintCode {
     return registry[name + message] ??= _LintCode._(name, message);
   }
 
-  _LintCode._(String name, String message) : super(name, message);
+  _LintCode._(super.name, super.message);
 }
 
 /// The state of a [LinterNameInScopeResolutionResult].

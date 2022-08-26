@@ -29,12 +29,17 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   SourceLibraryBuilder get libraryBuilder;
 
   /// Builds the core AST structures for this member as needed for the outline.
-  void buildMembers(void Function(Member, BuiltMemberKind) f);
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f);
 
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+
+  /// Builds the AST nodes for this member as needed for the full compilation.
+  ///
+  /// This includes adding patched bodies and augmented members.
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f);
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// signature of this member.
@@ -52,6 +57,8 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   /// library that conflicts with a member in the origin library.
   bool get isConflictingAugmentationMember;
   void set isConflictingAugmentationMember(bool value);
+
+  AugmentSuperTarget? get augmentSuperTarget;
 }
 
 mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
@@ -60,8 +67,13 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
       retainDataForTesting ? new MemberDataForTesting() : null;
 
   @override
-  void buildMembers(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     assert(false, "Unexpected call to $runtimeType.buildMembers.");
+  }
+
+  @override
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+    return 0;
   }
 
   @override
@@ -74,6 +86,11 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   void set isConflictingAugmentationMember(bool value) {
     assert(false,
         "Unexpected call to $runtimeType.isConflictingAugmentationMember=");
+  }
+
+  @override
+  AugmentSuperTarget? get augmentSuperTarget {
+    throw new UnimplementedError('$runtimeType.augmentSuperTarget}');
   }
 }
 
@@ -146,6 +163,11 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   /// The builder for the enclosing class or extension, if any.
   DeclarationBuilder? get declarationBuilder =>
       parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
+
+  @override
+  AugmentSuperTarget? get augmentSuperTarget {
+    throw new UnimplementedError('$runtimeType.augmentSuperTarget}');
+  }
 }
 
 enum BuiltMemberKind {
@@ -176,4 +198,17 @@ void updatePrivateMemberName(Member member, LibraryBuilder libraryBuilder) {
   if (member.name.isPrivate) {
     member.name = new Name(member.name.text, libraryBuilder.library);
   }
+}
+
+class AugmentSuperTarget {
+  final SourceMemberBuilder declaration;
+  final Member? readTarget;
+  final Member? invokeTarget;
+  final Member? writeTarget;
+
+  AugmentSuperTarget(
+      {required this.declaration,
+      required this.readTarget,
+      required this.invokeTarget,
+      required this.writeTarget});
 }

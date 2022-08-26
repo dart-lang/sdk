@@ -171,7 +171,7 @@ bool _isJsObject(obj) =>
 /// This function should be used to ensure that a function is a native JS
 /// function before it is passed to native JS code.
 @NoReifyGeneric()
-F assertInterop<F extends Function>(F f) {
+F assertInterop<F extends Function?>(F f) {
   assert(
       _isJsObject(f) ||
           !JS<bool>('bool', '# instanceof #.Function', f, global_),

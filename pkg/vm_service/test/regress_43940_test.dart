@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 

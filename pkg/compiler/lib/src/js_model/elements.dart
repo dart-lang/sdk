@@ -11,7 +11,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
-import 'closure.dart';
+import 'closure_migrated.dart';
 
 const String jsElementPrefix = 'j:';
 
@@ -68,7 +68,7 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
   @override
   final bool isAbstract;
 
-  JClass(this.library, this.name, {this.isAbstract});
+  JClass(this.library, this.name, {required this.isAbstract});
 
   /// Deserializes a [JClass] object from [source].
   factory JClass.readFromDataSource(DataSourceReader source) {
@@ -76,7 +76,7 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
     switch (kind) {
       case JClassKind.node:
         source.begin(tag);
-        JLibrary library = source.readLibrary();
+        final library = source.readLibrary() as JLibrary;
         String name = source.readString();
         bool isAbstract = source.readBool();
         source.end(tag);
@@ -86,7 +86,6 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
       case JClassKind.record:
         return JRecord.readFromDataSource(source);
     }
-    throw UnsupportedError("Unexpected ClassKind $kind");
   }
 
   /// Serializes this [JClass] to [sink].
@@ -124,9 +123,9 @@ enum JMemberKind {
 
 abstract class JMember extends IndexedMember {
   @override
-  final JLibrary library;
+  final JLibrary /*!*/ library;
   @override
-  final JClass enclosingClass;
+  final JClass? enclosingClass;
   final Name _name;
   final bool _isStatic;
 
@@ -163,7 +162,6 @@ abstract class JMember extends IndexedMember {
       case JMemberKind.recordField:
         return JRecordField.readFromDataSource(source);
     }
-    throw UnsupportedError("Unexpected JMemberKind $kind");
   }
 
   /// Serializes this [JMember] to [sink].
@@ -212,7 +210,7 @@ abstract class JMember extends IndexedMember {
 
   @override
   String toString() => '${jsElementPrefix}$_kind'
-      '(${enclosingClass != null ? '${enclosingClass.name}.' : ''}$name)';
+      '(${enclosingClass != null ? '${enclosingClass!.name}.' : ''}$name)';
 }
 
 abstract class JFunction extends JMember
@@ -224,7 +222,7 @@ abstract class JFunction extends JMember
   @override
   final AsyncMarker asyncMarker;
 
-  JFunction(JLibrary library, JClass enclosingClass, Name name,
+  JFunction(JLibrary library, JClass? enclosingClass, Name name,
       this.parameterStructure, this.asyncMarker,
       {bool isStatic = false, this.isExternal = false})
       : super(library, enclosingClass, name, isStatic: isStatic);
@@ -234,10 +232,12 @@ abstract class JConstructor extends JFunction
     implements ConstructorEntity, IndexedConstructor {
   @override
   final bool isConst;
+  @override
+  final JClass enclosingClass;
 
   JConstructor(
-      JClass enclosingClass, Name name, ParameterStructure parameterStructure,
-      {bool isExternal, this.isConst})
+      this.enclosingClass, Name name, ParameterStructure parameterStructure,
+      {required bool isExternal, required this.isConst})
       : super(enclosingClass.library, enclosingClass, name, parameterStructure,
             AsyncMarker.SYNC,
             isExternal: isExternal);
@@ -268,13 +268,13 @@ class JGenerativeConstructor extends JConstructor {
 
   JGenerativeConstructor(
       JClass enclosingClass, Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst})
+      {required bool isExternal, required bool isConst})
       : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
   factory JGenerativeConstructor.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    JClass enclosingClass = source.readClass();
+    final enclosingClass = source.readClass() as JClass;
     String name = source.readString();
     ParameterStructure parameterStructure =
         ParameterStructure.readFromDataSource(source);
@@ -315,13 +315,15 @@ class JFactoryConstructor extends JConstructor {
 
   JFactoryConstructor(
       JClass enclosingClass, Name name, ParameterStructure parameterStructure,
-      {bool isExternal, bool isConst, this.isFromEnvironmentConstructor})
+      {required bool isExternal,
+      required bool isConst,
+      required this.isFromEnvironmentConstructor})
       : super(enclosingClass, name, parameterStructure,
             isExternal: isExternal, isConst: isConst);
 
   factory JFactoryConstructor.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    JClass enclosingClass = source.readClass();
+    final enclosingClass = source.readClass() as JClass;
     String name = source.readString();
     ParameterStructure parameterStructure =
         ParameterStructure.readFromDataSource(source);
@@ -371,7 +373,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
 
   factory JConstructorBody.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    JConstructor constructor = source.readMember();
+    final constructor = source.readMember() as JConstructor;
     ParameterStructure parameterStructure =
         ParameterStructure.readFromDataSource(source);
     source.end(tag);
@@ -399,23 +401,25 @@ class JMethod extends JFunction {
   @override
   final bool isAbstract;
 
-  JMethod(JLibrary library, JClass enclosingClass, Name name,
+  JMethod(JLibrary library, JClass? enclosingClass, Name name,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, this.isAbstract})
+      {required bool isStatic,
+      required bool isExternal,
+      required this.isAbstract})
       : super(library, enclosingClass, name, parameterStructure, asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
 
   factory JMethod.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberContextKind kind = source.readEnum(MemberContextKind.values);
-    JLibrary library;
-    JClass enclosingClass;
+    late final JLibrary library;
+    JClass? enclosingClass;
     switch (kind) {
       case MemberContextKind.library:
-        library = source.readLibrary();
+        library = source.readLibrary() as JLibrary;
         break;
       case MemberContextKind.cls:
-        enclosingClass = source.readClass();
+        enclosingClass = source.readClass() as JClass;
         library = enclosingClass.library;
         break;
     }
@@ -438,7 +442,7 @@ class JMethod extends JFunction {
     sink.begin(tag);
     if (enclosingClass != null) {
       sink.writeEnum(MemberContextKind.cls);
-      sink.writeClass(enclosingClass);
+      sink.writeClass(enclosingClass!);
     } else {
       sink.writeEnum(MemberContextKind.library);
       sink.writeLibrary(library);
@@ -477,7 +481,7 @@ class JGeneratorBody extends JFunction {
 
   factory JGeneratorBody.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    JFunction function = source.readMember();
+    final function = source.readMember() as JFunction;
     DartType elementType = source.readDartType();
     source.end(tag);
     return JGeneratorBody(function, elementType);
@@ -504,9 +508,11 @@ class JGetter extends JFunction {
   @override
   final bool isAbstract;
 
-  JGetter(JLibrary library, JClass enclosingClass, Name name,
+  JGetter(JLibrary library, JClass? enclosingClass, Name name,
       AsyncMarker asyncMarker,
-      {bool isStatic, bool isExternal, this.isAbstract})
+      {required bool isStatic,
+      required bool isExternal,
+      required this.isAbstract})
       : super(library, enclosingClass, name, ParameterStructure.getter,
             asyncMarker,
             isStatic: isStatic, isExternal: isExternal);
@@ -514,14 +520,14 @@ class JGetter extends JFunction {
   factory JGetter.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberContextKind kind = source.readEnum(MemberContextKind.values);
-    JLibrary library;
-    JClass enclosingClass;
+    late final JLibrary library;
+    JClass? enclosingClass;
     switch (kind) {
       case MemberContextKind.library:
-        library = source.readLibrary();
+        library = source.readLibrary() as JLibrary;
         break;
       case MemberContextKind.cls:
-        enclosingClass = source.readClass();
+        enclosingClass = source.readClass() as JClass;
         library = enclosingClass.library;
         break;
     }
@@ -541,7 +547,7 @@ class JGetter extends JFunction {
     sink.begin(tag);
     if (enclosingClass != null) {
       sink.writeEnum(MemberContextKind.cls);
-      sink.writeClass(enclosingClass);
+      sink.writeClass(enclosingClass!);
     } else {
       sink.writeEnum(MemberContextKind.library);
       sink.writeLibrary(library);
@@ -569,8 +575,10 @@ class JSetter extends JFunction {
   @override
   final bool isAbstract;
 
-  JSetter(JLibrary library, JClass enclosingClass, Name name,
-      {bool isStatic, bool isExternal, this.isAbstract})
+  JSetter(JLibrary library, JClass? enclosingClass, Name name,
+      {required bool isStatic,
+      required bool isExternal,
+      required this.isAbstract})
       : super(library, enclosingClass, name, ParameterStructure.setter,
             AsyncMarker.SYNC,
             isStatic: isStatic, isExternal: isExternal);
@@ -578,14 +586,14 @@ class JSetter extends JFunction {
   factory JSetter.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberContextKind kind = source.readEnum(MemberContextKind.values);
-    JLibrary library;
-    JClass enclosingClass;
+    late final JLibrary library;
+    JClass? enclosingClass;
     switch (kind) {
       case MemberContextKind.library:
-        library = source.readLibrary();
+        library = source.readLibrary() as JLibrary;
         break;
       case MemberContextKind.cls:
-        enclosingClass = source.readClass();
+        enclosingClass = source.readClass() as JClass;
         library = enclosingClass.library;
         break;
     }
@@ -604,7 +612,7 @@ class JSetter extends JFunction {
     sink.begin(tag);
     if (enclosingClass != null) {
       sink.writeEnum(MemberContextKind.cls);
-      sink.writeClass(enclosingClass);
+      sink.writeClass(enclosingClass!);
     } else {
       sink.writeEnum(MemberContextKind.library);
       sink.writeLibrary(library);
@@ -636,21 +644,23 @@ class JField extends JMember implements FieldEntity, IndexedField {
   @override
   final bool isConst;
 
-  JField(JLibrary library, JClass enclosingClass, Name name,
-      {bool isStatic, this.isAssignable, this.isConst})
+  JField(JLibrary library, JClass? enclosingClass, Name name,
+      {required bool isStatic,
+      required this.isAssignable,
+      required this.isConst})
       : super(library, enclosingClass, name, isStatic: isStatic);
 
   factory JField.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberContextKind kind = source.readEnum(MemberContextKind.values);
-    JLibrary library;
-    JClass enclosingClass;
+    late final JLibrary library;
+    JClass? enclosingClass;
     switch (kind) {
       case MemberContextKind.library:
-        library = source.readLibrary();
+        library = source.readLibrary() as JLibrary;
         break;
       case MemberContextKind.cls:
-        enclosingClass = source.readClass();
+        enclosingClass = source.readClass() as JClass;
         library = enclosingClass.library;
         break;
     }
@@ -669,7 +679,7 @@ class JField extends JMember implements FieldEntity, IndexedField {
     sink.begin(tag);
     if (enclosingClass != null) {
       sink.writeEnum(MemberContextKind.cls);
-      sink.writeClass(enclosingClass);
+      sink.writeClass(enclosingClass!);
     } else {
       sink.writeEnum(MemberContextKind.library);
       sink.writeLibrary(library);
@@ -695,13 +705,13 @@ class JClosureCallMethod extends JMethod {
 
   JClosureCallMethod(ClassEntity enclosingClass,
       ParameterStructure parameterStructure, AsyncMarker asyncMarker)
-      : super(enclosingClass.library, enclosingClass, Names.call,
-            parameterStructure, asyncMarker,
+      : super(enclosingClass.library as JLibrary, enclosingClass as JClass,
+            Names.call, parameterStructure, asyncMarker,
             isStatic: false, isExternal: false, isAbstract: false);
 
   factory JClosureCallMethod.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    JClass enclosingClass = source.readClass();
+    final enclosingClass = source.readClass() as JClass;
     ParameterStructure parameterStructure =
         ParameterStructure.readFromDataSource(source);
     AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
@@ -713,7 +723,7 @@ class JClosureCallMethod extends JMethod {
   void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.closureCallMethod);
     sink.begin(tag);
-    sink.writeClass(enclosingClass);
+    sink.writeClass(enclosingClass!);
     parameterStructure.writeToDataSink(sink);
     sink.writeEnum(asyncMarker);
     sink.end(tag);
@@ -731,13 +741,13 @@ class JSignatureMethod extends JMethod {
   static const String tag = 'signature-method';
 
   JSignatureMethod(ClassEntity enclosingClass)
-      : super(enclosingClass.library, enclosingClass, Names.signature,
-            ParameterStructure.zeroArguments, AsyncMarker.SYNC,
+      : super(enclosingClass.library as JLibrary, enclosingClass as JClass,
+            Names.signature, ParameterStructure.zeroArguments, AsyncMarker.SYNC,
             isStatic: false, isExternal: false, isAbstract: false);
 
   factory JSignatureMethod.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    JClass cls = source.readClass();
+    final cls = source.readClass() as JClass;
     source.end(tag);
     return JSignatureMethod(cls);
   }
@@ -746,7 +756,7 @@ class JSignatureMethod extends JMethod {
   void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JMemberKind.signatureMethod);
     sink.begin(tag);
-    sink.writeClass(enclosingClass);
+    sink.writeClass(enclosingClass!);
     sink.end(tag);
   }
 
@@ -763,7 +773,7 @@ class JTypeVariable extends IndexedTypeVariable {
   static const String tag = 'type-variable';
 
   @override
-  final Entity typeDeclaration;
+  final Entity? typeDeclaration;
   @override
   final String name;
   @override
@@ -775,7 +785,7 @@ class JTypeVariable extends IndexedTypeVariable {
   factory JTypeVariable.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JTypeVariableKind kind = source.readEnum(JTypeVariableKind.values);
-    Entity typeDeclaration;
+    Entity? typeDeclaration;
     switch (kind) {
       case JTypeVariableKind.cls:
         typeDeclaration = source.readClass();
@@ -799,15 +809,14 @@ class JTypeVariable extends IndexedTypeVariable {
   /// Serializes this [JTypeVariable] to [sink].
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    if (typeDeclaration is IndexedClass) {
-      IndexedClass cls = typeDeclaration;
+    final declaration = typeDeclaration;
+    if (declaration is ClassEntity) {
       sink.writeEnum(JTypeVariableKind.cls);
-      sink.writeClass(cls);
-    } else if (typeDeclaration is IndexedMember) {
-      IndexedMember member = typeDeclaration;
+      sink.writeClass(declaration);
+    } else if (declaration is MemberEntity) {
       sink.writeEnum(JTypeVariableKind.member);
-      sink.writeMember(member);
-    } else if (typeDeclaration == null) {
+      sink.writeMember(declaration);
+    } else if (declaration == null) {
       sink.writeEnum(JTypeVariableKind.local);
     } else {
       throw UnsupportedError(
@@ -820,5 +829,5 @@ class JTypeVariable extends IndexedTypeVariable {
 
   @override
   String toString() =>
-      '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';
+      '${jsElementPrefix}type_variable(${typeDeclaration?.name}.$name)';
 }

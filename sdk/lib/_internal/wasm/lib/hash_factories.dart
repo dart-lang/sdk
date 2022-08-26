@@ -46,6 +46,10 @@ class LinkedHashSet<E> {
     return new _CompactLinkedCustomHashSet<E>(equals, hashCode, isValidKey);
   }
 
+  @pragma("wasm:entry-point")
+  factory LinkedHashSet._default() =>
+      _CompactLinkedCustomHashSet<E>(_defaultEquals, _defaultHashCode, null);
+
   @patch
   factory LinkedHashSet.identity() => new _CompactLinkedIdentityHashSet<E>();
 }
@@ -68,5 +72,21 @@ class _WasmImmutableLinkedHashMap<K, V> extends _HashWasmImmutableBase
   factory _WasmImmutableLinkedHashMap._uninstantiable() {
     throw new UnsupportedError(
         "Immutable maps can only be instantiated via constants");
+  }
+}
+
+@pragma("wasm:entry-point")
+class _WasmImmutableLinkedHashSet<E> extends _HashWasmImmutableBase
+    with
+        SetMixin<E>,
+        _HashBase,
+        _OperatorEqualsAndHashCode,
+        _LinkedHashSetMixin<E>,
+        _UnmodifiableSetMixin<E>,
+        _ImmutableLinkedHashSetMixin<E>
+    implements LinkedHashSet<E> {
+  factory _WasmImmutableLinkedHashSet._uninstantiable() {
+    throw new UnsupportedError(
+        "Immutable sets can only be instantiated via constants");
   }
 }

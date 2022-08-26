@@ -23,24 +23,13 @@ class CachedStaticType extends StaticTypeBase implements StaticTypeProvider {
       : super(staticTypeContext.typeEnvironment);
 
   @override
-  ir.DartType getStaticType(ir.Expression node) {
-    ir.DartType type = node.accept(this);
-    assert(type != null, "No static type found for ${node.runtimeType}.");
-    return type;
-  }
+  ir.DartType getStaticType(ir.Expression node) => node.accept(this);
 
   @override
-  ir.DartType getForInIteratorType(ir.ForInStatement node) {
-    ir.DartType type = _cache.getForInIteratorType(node);
-    assert(type != null, "No for-in iterator type found for ${node}.");
-    return type;
-  }
+  ir.DartType getForInIteratorType(ir.ForInStatement node) =>
+      _cache.getForInIteratorType(node)!;
 
-  ir.DartType _getStaticType(ir.Expression node) {
-    ir.DartType type = _cache[node];
-    assert(type != null, "No static type cached for ${node.runtimeType}.");
-    return type;
-  }
+  ir.DartType _getStaticType(ir.Expression node) => _cache[node]!;
 
   @override
   ir.DartType visitVariableGet(ir.VariableGet node) => _getStaticType(node);

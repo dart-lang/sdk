@@ -18,7 +18,7 @@ import "dart:async";
 static method ok<T extends FutureOr<core::num*>*>(self::ok::T* t) → dynamic {}
 static method error<T extends FutureOr<core::int*>*>(self::error::T* t) → dynamic {}
 static method bar(core::bool* condition) → dynamic {
-  FutureOr<core::int*>* x = null;
+  has-declared-initializer FutureOr<core::int*>* x = null;
   core::num* n = 1;
   FutureOr<core::num*>* z = condition ?{FutureOr<core::num*>*} x : n;
   self::ok<FutureOr<core::num*>*>(z);

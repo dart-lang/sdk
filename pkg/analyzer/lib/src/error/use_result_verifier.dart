@@ -15,6 +15,15 @@ class UseResultVerifier {
 
   UseResultVerifier(this._errorReporter);
 
+  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    var element = node.staticElement;
+    if (element == null) {
+      return;
+    }
+
+    _check(node, element);
+  }
+
   void checkMethodInvocation(MethodInvocation node) {
     var element = node.methodName.staticElement;
     if (element == null) {
@@ -39,8 +48,11 @@ class UseResultVerifier {
     }
 
     var parent = node.parent;
-    // Covered by checkPropertyAccess and checkMethodInvocation respectively.
-    if (parent is PropertyAccess || parent is MethodInvocation) {
+    // Covered by checkPropertyAccess, checkMethodInvocation
+    // and checkFunctionExpressionInvocation respectively.
+    if (parent is PropertyAccess ||
+        parent is MethodInvocation ||
+        parent is FunctionExpressionInvocation) {
       return;
     }
 
@@ -53,7 +65,11 @@ class UseResultVerifier {
   }
 
   void _check(AstNode node, Element element) {
-    if (node.parent is CommentReference) {
+    var parent = node.parent;
+    if (parent is PrefixedIdentifier) {
+      parent = parent.parent;
+    }
+    if (parent is CommentReference) {
       // Don't flag references in comments.
       return;
     }
@@ -71,15 +87,21 @@ class UseResultVerifier {
       return;
     }
 
-    var displayName = element.displayName;
+    var toAnnotate = _getNodeToAnnotate(node);
+    String displayName;
+    if (toAnnotate is SimpleIdentifier) {
+      displayName = toAnnotate.name;
+    } else {
+      displayName = element.displayName;
+    }
 
     var message = _getUseResultMessage(annotation);
     if (message == null || message.isEmpty) {
       _errorReporter.reportErrorForNode(
-          HintCode.UNUSED_RESULT, _getNodeToAnnotate(node), [displayName]);
+          HintCode.UNUSED_RESULT, toAnnotate, [displayName]);
     } else {
       _errorReporter.reportErrorForNode(HintCode.UNUSED_RESULT_WITH_MESSAGE,
-          _getNodeToAnnotate(node), [displayName, message]);
+          toAnnotate, [displayName, message]);
     }
   }
 
@@ -115,6 +137,9 @@ class UseResultVerifier {
     }
     if (node is PropertyAccess) {
       return node.propertyName;
+    }
+    if (node is FunctionExpressionInvocation) {
+      return _getNodeToAnnotate(node.function);
     }
     return node;
   }
@@ -168,7 +193,8 @@ class UseResultVerifier {
       }
     }
 
-    if (parent is AwaitExpression ||
+    if (parent is AsExpression ||
+        parent is AwaitExpression ||
         parent is ConditionalExpression ||
         parent is ForElement ||
         parent is IfElement ||
@@ -201,6 +227,7 @@ class UseResultVerifier {
         parent is ListLiteral ||
         parent is MapLiteralEntry ||
         parent is MethodInvocation ||
+        parent is NamedExpression ||
         parent is PropertyAccess ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||

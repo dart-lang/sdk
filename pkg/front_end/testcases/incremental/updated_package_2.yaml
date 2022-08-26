@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 # Compile an application with a package and use it.
-# Then update the package from .packages.
+# Then update the package from .dart_tool/package_config.json.
 # The old package is still included in the dill file we initialize from,
 # but shouldn't cause trouble, nor be included in the output.
 
@@ -12,14 +12,12 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:example/b.dart";
         main() {
           print("hello");
           b();
         }
       package_0.1.0/a.dart: |
-        // @dart=2.9
         a() {
           la1();
         }
@@ -27,12 +25,20 @@ worlds:
           print("v0.1.0");
         }
       package_0.1.0/b.dart: |
-        // @dart=2.9
         import "a.dart";
         b() {
           a();
         }
-      .packages: example:package_0.1.0
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../package_0.1.0"
+            }
+          ]
+        }
     expectedLibraryCount: 3
   - entry: main.dart
     invalidate:
@@ -41,14 +47,12 @@ worlds:
     expectInitializeFromDill: false
     sources:
       main.dart: |
-        // @dart=2.9
         import "package:example/b.dart";
         main() {
           print("hello");
           b();
         }
       package_0.1.0/a.dart: |
-        // @dart=2.9
         a() {
           la1();
         }
@@ -56,15 +60,22 @@ worlds:
           print("v0.1.0");
         }
       package_0.1.0/b.dart: |
-        // @dart=2.9
         import "a.dart";
         b() {
           a();
         }
       package_0.1.1/b.dart: |
-        // @dart=2.9
         b() {
           print("hello from v0.1.1");
         }
-      .packages: example:package_0.1.1
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../package_0.1.1"
+            }
+          ]
+        }
     expectedLibraryCount: 2

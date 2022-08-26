@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:expect/expect.dart';
 import 'package:js_ast/js_ast.dart';
 
-main() {
+void main() {
   Map<Expression, DeferredExpression> map = {};
   VariableUse variableUse = VariableUse('variable');
   DeferredExpression deferred =
@@ -55,7 +53,7 @@ main() {
 void test(Map<Expression, DeferredExpression> map, String template,
     List<Expression> arguments, String expectedOutput) {
   Expression directExpression =
-      js.expressionTemplateFor(template).instantiate(arguments);
+      js.expressionTemplateFor(template).instantiate(arguments) as Expression;
   _Context directContext = _Context();
   Printer directPrinter =
       Printer(const JavaScriptPrintingOptions(), directContext);
@@ -64,7 +62,7 @@ void test(Map<Expression, DeferredExpression> map, String template,
 
   Expression deferredExpression = js
       .expressionTemplateFor(template)
-      .instantiate(arguments.map((e) => map[e]).toList());
+      .instantiate(arguments.map((e) => map[e]).toList()) as Expression;
   _Context deferredContext = _Context();
   Printer deferredPrinter =
       Printer(const JavaScriptPrintingOptions(), deferredContext);
@@ -72,21 +70,21 @@ void test(Map<Expression, DeferredExpression> map, String template,
   Expect.equals(expectedOutput, deferredContext.text);
 
   for (Expression argument in arguments) {
-    DeferredExpression deferred = map[argument];
+    DeferredExpression deferred = map[argument]!;
     Expect.isTrue(
         directContext.enterPositions.containsKey(argument),
-        "Argument ${DebugPrint(argument)} not found in direct enter positions: "
-        "${directContext.enterPositions.keys}");
+        'Argument ${DebugPrint(argument)} not found in direct enter positions: '
+        '${directContext.enterPositions.keys}');
     Expect.isTrue(
         deferredContext.enterPositions.containsKey(argument),
-        "Argument ${DebugPrint(argument)} not found in "
-        "deferred enter positions: "
-        "${deferredContext.enterPositions.keys}");
+        'Argument ${DebugPrint(argument)} not found in '
+        'deferred enter positions: '
+        '${deferredContext.enterPositions.keys}');
     Expect.isTrue(
         deferredContext.enterPositions.containsKey(deferred),
-        "Argument ${DebugPrint(deferred)} not found in "
-        "deferred enter positions: "
-        "${deferredContext.enterPositions.keys}");
+        'Argument ${DebugPrint(deferred)} not found in '
+        'deferred enter positions: '
+        '${deferredContext.enterPositions.keys}');
     Expect.equals(directContext.enterPositions[argument],
         deferredContext.enterPositions[argument]);
     Expect.equals(directContext.enterPositions[argument],
@@ -94,18 +92,18 @@ void test(Map<Expression, DeferredExpression> map, String template,
 
     Expect.isTrue(
         directContext.exitPositions.containsKey(argument),
-        "Argument ${DebugPrint(argument)} not found in direct enter positions: "
-        "${directContext.exitPositions.keys}");
+        'Argument ${DebugPrint(argument)} not found in direct enter positions: '
+        '${directContext.exitPositions.keys}');
     Expect.isTrue(
         deferredContext.exitPositions.containsKey(argument),
-        "Argument ${DebugPrint(argument)} not found in "
-        "deferred enter positions: "
-        "${deferredContext.exitPositions.keys}");
+        'Argument ${DebugPrint(argument)} not found in '
+        'deferred enter positions: '
+        '${deferredContext.exitPositions.keys}');
     Expect.isTrue(
         deferredContext.exitPositions.containsKey(deferred),
-        "Argument ${DebugPrint(deferred)} not found in "
-        "deferred enter positions: "
-        "${deferredContext.exitPositions.keys}");
+        'Argument ${DebugPrint(deferred)} not found in '
+        'deferred enter positions: '
+        '${deferredContext.exitPositions.keys}');
     Expect.equals(directContext.exitPositions[argument],
         deferredContext.exitPositions[argument]);
     Expect.equals(directContext.exitPositions[argument],
@@ -144,7 +142,7 @@ class _Context implements JavaScriptPrintingContext {
 
   @override
   void exitNode(
-      Node node, int startPosition, int endPosition, int closingPosition) {
+      Node node, int startPosition, int endPosition, int? closingPosition) {
     exitPositions[node] =
         _Position(startPosition, endPosition, closingPosition);
     Expect.equals(enterPositions[node], startPosition);
@@ -161,7 +159,7 @@ class _Context implements JavaScriptPrintingContext {
 class _Position {
   final int startPosition;
   final int endPosition;
-  final int closingPosition;
+  final int? closingPosition;
 
   _Position(this.startPosition, this.endPosition, this.closingPosition);
 

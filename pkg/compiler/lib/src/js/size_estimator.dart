@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library js.size_estimator;
 
 import 'package:js_ast/js_ast.dart';
@@ -57,7 +59,7 @@ class SizeEstimator implements NodeVisitor {
       // '<typeHolder>$.<type>' where <typeHolder> is a one byte local and
       // <type> is roughly 3 bytes. However, we also have to initialize the type
       // in the holder, some like ab:f("QQ<b7c>"), ie 16 bytes. For two
-      // occurences we will have on average 13 bytes. For a more detailed
+      // occurrences we will have on average 13 bytes. For a more detailed
       // estimate, we'd have to partially finalize the results.
       return '###_###_###_#';
     } else if (node is StringReference) {
@@ -674,6 +676,11 @@ class SizeEstimator implements NodeVisitor {
       case "%":
         leftPrecedenceRequirement = MULTIPLICATIVE;
         // We cannot remove parenthesis for "*" because of precision issues.
+        rightPrecedenceRequirement = UNARY;
+        break;
+      case "**":
+        leftPrecedenceRequirement = EXPONENTIATION;
+        // We cannot remove parenthesis for "**" because of precision issues.
         rightPrecedenceRequirement = UNARY;
         break;
       default:

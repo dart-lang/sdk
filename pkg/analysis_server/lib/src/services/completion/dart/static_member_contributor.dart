@@ -4,8 +4,6 @@
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -15,15 +13,12 @@ import 'package:analyzer/dart/element/element.dart';
 /// suggestions for expressions of the form `C.^`, where `C` is the name of a
 /// class, enum, or extension.
 class StaticMemberContributor extends DartCompletionContributor {
-  StaticMemberContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) : super(request, builder);
+  StaticMemberContributor(super.request, super.builder);
 
   @override
   Future<void> computeSuggestions() async {
     var library = request.libraryElement;
-    bool isVisible(Element element) => element.isAccessibleIn(library);
+    bool isVisible(Element element) => element.isAccessibleIn2(library);
     var targetId = request.target.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
       var element = targetId.staticElement;

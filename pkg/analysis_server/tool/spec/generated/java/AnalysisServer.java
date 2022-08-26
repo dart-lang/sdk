@@ -209,19 +209,19 @@ public interface AnalysisServer {
    * If an included path represents a file, then server will look in the directory containing the
    * file for a pubspec.yaml file. If none is found, then the parents of the directory will be
    * searched until such a file is found or the root of the file system is reached. If such a file is
-   * found, it will be used to resolve package: URI’s within the file.
+   * found, it will be used to resolve package: URI's within the file.
    *
    * @param included A list of the files and directories that should be analyzed.
    * @param excluded A list of the files and directories within the included directories that should
-   *         not be analyzed.
+   *        not be analyzed.
    * @param packageRoots A mapping from source directories to package roots that should override the
-   *         normal package: URI resolution mechanism. If a package root is a file, then the analyzer
-   *         will behave as though that file is a ".dart_tool/package_config.json" file in the source
-   *         directory. The effect is the same as specifying the file as a "--packages" parameter to
-   *         the Dart VM when executing any Dart file inside the source directory. Files in any
-   *         directories that are not overridden by this mapping have their package: URI's resolved
-   *         using the normal pubspec.yaml mechanism. If this field is absent, or the empty map is
-   *         specified, that indicates that the normal pubspec.yaml mechanism should always be used.
+   *        normal package: URI resolution mechanism. If a package root is a file, then the analyzer
+   *        will behave as though that file is a ".dart_tool/package_config.json" file in the source
+   *        directory. The effect is the same as specifying the file as a "--packages" parameter to
+   *        the Dart VM when executing any Dart file inside the source directory. Files in any
+   *        directories that are not overridden by this mapping have their package: URI's resolved
+   *        using the normal pubspec.yaml mechanism. If this field is absent, or the empty map is
+   *        specified, that indicates that the normal pubspec.yaml mechanism should always be used.
    */
   public void analysis_setAnalysisRoots(List<String> included, List<String> excluded, Map<String, String> packageRoots);
 
@@ -286,7 +286,7 @@ public interface AnalysisServer {
    * the existing subscriptions will remain unchanged.
    *
    * @param subscriptions A table mapping services to a list of the files being subscribed to the
-   *         service.
+   *        service.
    */
   public void analysis_setSubscriptions(Map<String, List<String>> subscriptions);
 
@@ -300,7 +300,7 @@ public interface AnalysisServer {
    * path to a directory on the filesystem.
    *
    * @param files A table mapping the files whose content has changed to a description of the content
-   *         change.
+   *        change.
    */
   public void analysis_updateContent(Map<String, Object> files, UpdateContentConsumer consumer);
 
@@ -396,7 +396,7 @@ public interface AnalysisServer {
    * @param file The path of the file into which this completion is being inserted.
    * @param id The identifier of the AvailableSuggestionSet containing the selected label.
    * @param label The label from the AvailableSuggestionSet with the `id` for which insertion
-   *         information is requested.
+   *        information is requested.
    * @param offset The offset in the file where the completion will be inserted.
    */
   public void completion_getSuggestionDetails(String file, int id, String label, int offset, GetSuggestionDetailsConsumer consumer);
@@ -413,10 +413,10 @@ public interface AnalysisServer {
    * @param file The path of the file into which this completion is being inserted.
    * @param offset The offset in the file where the completion will be inserted.
    * @param completion The completion from the selected CompletionSuggestion. It could be a name of a
-   *         class, or a name of a constructor in form "typeName.constructorName()", or an
-   *         enumeration constant in form "enumName.constantName", etc.
+   *        class, or a name of a constructor in form "typeName.constructorName()", or an enumeration
+   *        constant in form "enumName.constantName", etc.
    * @param libraryUri The URI of the library to import, so that the element referenced in the
-   *         completion becomes accessible.
+   *        completion becomes accessible.
    */
   public void completion_getSuggestionDetails2(String file, int offset, String completion, String libraryUri, GetSuggestionDetails2Consumer consumer);
 
@@ -439,17 +439,17 @@ public interface AnalysisServer {
    * @param file The file containing the point at which suggestions are to be made.
    * @param offset The offset within the file at which suggestions are to be made.
    * @param maxResults The maximum number of suggestions to return. If the number of suggestions
-   *         after filtering is greater than the maxResults, then isIncomplete is set to true.
+   *        after filtering is greater than the maxResults, then isIncomplete is set to true.
    * @param completionCaseMatchingMode The mode of code completion being invoked. If no value is
-   *         provided, MATCH_FIRST_CHAR will be assumed.
+   *        provided, MATCH_FIRST_CHAR will be assumed.
    * @param completionMode The mode of code completion being invoked. If no value is provided, BASIC
-   *         will be assumed. BASIC is also the only currently supported.
+   *        will be assumed. BASIC is also the only currently supported.
    * @param invocationCount The number of times that the user has invoked code completion at the same
-   *         code location, counting from 1. If no value is provided, 1 will be assumed.
+   *        code location, counting from 1. If no value is provided, 1 will be assumed.
    * @param timeout The approximate time in milliseconds that the server should spend. The server
-   *         will perform some steps anyway, even if it takes longer than the specified timeout. This
-   *         field is intended to be used for benchmarking, and usually should not be provided, so
-   *         that the default timeout is used.
+   *        will perform some steps anyway, even if it takes longer than the specified timeout. This
+   *        field is intended to be used for benchmarking, and usually should not be provided, so
+   *        that the default timeout is used.
    */
   public void completion_getSuggestions2(String file, int offset, int maxResults, String completionCaseMatchingMode, String completionMode, int invocationCount, int timeout, GetSuggestions2Consumer consumer);
 
@@ -463,9 +463,9 @@ public interface AnalysisServer {
    * paths are replaced by the given set of paths.
    *
    * @param paths A list of objects each containing a path and the additional libraries from which
-   *         the client is interested in receiving completion suggestions. If one configured path is
-   *         beneath another, the descendent will override the ancestors' configured libraries of
-   *         interest.
+   *        the client is interested in receiving completion suggestions. If one configured path is
+   *        beneath another, the descendent will override the ancestors' configured libraries of
+   *        interest.
    *
    * @deprecated
    */
@@ -508,15 +508,15 @@ public interface AnalysisServer {
    * specified sources if a change in a specified source requires it.
    *
    * @param included A list of the files and directories for which edits should be suggested. If a
-   *         request is made with a path that is invalid, e.g. is not absolute and normalized, an
-   *         error of type INVALID_FILE_PATH_FORMAT will be generated. If a request is made for a
-   *         file which does not exist, or which is not currently subject to analysis (e.g. because
-   *         it is not associated with any analysis root specified to analysis.setAnalysisRoots), an
-   *         error of type FILE_NOT_ANALYZED will be generated.
+   *        request is made with a path that is invalid, e.g. is not absolute and normalized, an
+   *        error of type INVALID_FILE_PATH_FORMAT will be generated. If a request is made for a file
+   *        which does not exist, or which is not currently subject to analysis (e.g. because it is
+   *        not associated with any analysis root specified to analysis.setAnalysisRoots), an error
+   *        of type FILE_NOT_ANALYZED will be generated.
    * @param inTestMode A flag indicating whether the bulk fixes are being run in test mode. The only
-   *         difference is that in test mode the fix processor will look for a configuration file
-   *         that can modify the content of the data file used to compute the fixes when data-driven
-   *         fixes are being considered. If this field is omitted the flag defaults to false.
+   *        difference is that in test mode the fix processor will look for a configuration file that
+   *        can modify the content of the data file used to compute the fixes when data-driven fixes
+   *        are being considered. If this field is omitted the flag defaults to false.
    */
   public void edit_bulkFixes(List<String> included, boolean inTestMode, BulkFixesConsumer consumer);
 
@@ -619,12 +619,12 @@ public interface AnalysisServer {
    * @param offset The offset of the region involved in the refactoring.
    * @param length The length of the region involved in the refactoring.
    * @param validateOnly True if the client is only requesting that the values of the options be
-   *         validated and no change be generated.
+   *        validated and no change be generated.
    * @param options Data used to provide values provided by the user. The structure of the data is
-   *         dependent on the kind of refactoring being performed. The data that is expected is
-   *         documented in the section titled Refactorings, labeled as "Options". This field can be
-   *         omitted if the refactoring does not require any options or if the values of those
-   *         options are not known.
+   *        dependent on the kind of refactoring being performed. The data that is expected is
+   *        documented in the section titled Refactorings, labeled as "Options". This field can be
+   *        omitted if the refactoring does not require any options or if the values of those options
+   *        are not known.
    */
   public void edit_getRefactoring(String kind, String file, int offset, int length, boolean validateOnly, RefactoringOptions options, GetRefactoringConsumer consumer);
 
@@ -655,9 +655,9 @@ public interface AnalysisServer {
    * @param file The file in which the specified elements are to be made accessible.
    * @param elements The elements to be made accessible in the specified file.
    * @param offset The offset at which the specified elements need to be made accessible. If
-   *         provided, this is used to guard against adding imports for text that would be inserted
-   *         into a comment, string literal, or other location where the imports would not be
-   *         necessary.
+   *        provided, this is used to guard against adding imports for text that would be inserted
+   *        into a comment, string literal, or other location where the imports would not be
+   *        necessary.
    */
   public void edit_importElements(String file, List<ImportedElements> elements, int offset, ImportElementsConsumer consumer);
 
@@ -719,7 +719,7 @@ public interface AnalysisServer {
    * responsible for managing the lifetime of execution contexts.
    *
    * @param contextRoot The path of the Dart or HTML file that will be launched, or the path of the
-   *         directory containing the file.
+   *        directory containing the file.
    */
   public void execution_createContext(String contextRoot, CreateContextConsumer consumer);
 
@@ -751,17 +751,17 @@ public interface AnalysisServer {
    * @param code The code to get suggestions in.
    * @param offset The offset within the code to get suggestions at.
    * @param contextFile The path of the context file, e.g. the file of the current debugger frame.
-   *         The combination of the context file and context offset can be used to ensure that all
-   *         variables of the context are available for completion (with their static types).
+   *        The combination of the context file and context offset can be used to ensure that all
+   *        variables of the context are available for completion (with their static types).
    * @param contextOffset The offset in the context file, e.g. the line offset in the current
-   *         debugger frame.
+   *        debugger frame.
    * @param variables The runtime context variables that are potentially referenced in the code.
    * @param expressions The list of sub-expressions in the code for which the client wants to provide
-   *         runtime types. It does not have to be the full list of expressions requested by the
-   *         server, for missing expressions their static types will be used. When this field is
-   *         omitted, the server will return completion suggestions only when there are no
-   *         interesting sub-expressions in the given code. The client may provide an empty list, in
-   *         this case the server will return completion suggestions.
+   *        runtime types. It does not have to be the full list of expressions requested by the
+   *        server, for missing expressions their static types will be used. When this field is
+   *        omitted, the server will return completion suggestions only when there are no interesting
+   *        sub-expressions in the given code. The client may provide an empty list, in this case the
+   *        server will return completion suggestions.
    */
   public void execution_getSuggestions(String code, int offset, String contextFile, int contextOffset, List<RuntimeCompletionVariable> variables, List<RuntimeCompletionExpression> expressions, GetSuggestionsConsumer consumer);
 
@@ -849,7 +849,7 @@ public interface AnalysisServer {
    * the existing subscriptions will remain unchanged.
    *
    * @param subscriptions A table mapping services to a list of the files being subscribed to the
-   *         service.
+   *        service.
    */
   public void flutter_setSubscriptions(Map<String, List<String>> subscriptions);
 
@@ -864,14 +864,14 @@ public interface AnalysisServer {
    * intermediate widgets instantiated.
    *
    * @param id The identifier of the property, previously returned as a part of a
-   *         FlutterWidgetProperty. An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
-   *         generated if the identifier is not valid.
+   *        FlutterWidgetProperty. An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
+   *        generated if the identifier is not valid.
    * @param value The new value to set for the property. If absent, indicates that the property
-   *         should be removed. If the property corresponds to an optional parameter, the
-   *         corresponding named argument is removed. If the property isRequired is true,
-   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated. If the expression is
-   *         not a syntactically valid Dart code, then
-   *         FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
+   *        should be removed. If the property corresponds to an optional parameter, the
+   *        corresponding named argument is removed. If the property isRequired is true,
+   *        FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated. If the expression is
+   *        not a syntactically valid Dart code, then
+   *        FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
    */
   public void flutter_setWidgetPropertyValue(int id, FlutterWidgetPropertyValue value, SetWidgetPropertyValueConsumer consumer);
 
@@ -928,7 +928,7 @@ public interface AnalysisServer {
    * search.results notification as they become available.
    *
    * @param file The file containing the declaration of or reference to the element used to define
-   *         the search.
+   *        the search.
    * @param offset The offset within the file of the declaration of or reference to the element.
    * @param includePotential True if potential matches are to be included in the results.
    */
@@ -979,11 +979,11 @@ public interface AnalysisServer {
    * Return top-level and class member declarations.
    *
    * @param file If this field is provided, return only declarations in this file. If this field is
-   *         missing, return declarations in all files.
+   *        missing, return declarations in all files.
    * @param pattern The regular expression used to match the names of declarations. If this field is
-   *         missing, return all declarations.
+   *        missing, return all declarations.
    * @param maxResults The maximum number of declarations to return. If this field is missing, return
-   *         all matching declarations.
+   *        all matching declarations.
    */
   public void search_getElementDeclarations(String file, String pattern, int maxResults, GetElementDeclarationsConsumer consumer);
 
@@ -993,7 +993,7 @@ public interface AnalysisServer {
    * Return the type hierarchy of the class declared or referenced at the given location.
    *
    * @param file The file containing the declaration or reference to the type for which a hierarchy
-   *         is being requested.
+   *        is being requested.
    * @param offset The offset of the name of the type within the file.
    * @param superOnly True if the client is only requesting superclasses and interfaces hierarchy.
    */

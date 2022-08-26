@@ -154,6 +154,29 @@ class CanBeConstInstanceCreationTest extends AbstractLinterContextTest {
     expect(context.canBeConst(node), expectedResult);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3389')
+  void test_deferred_argument() async {
+    await resolveFileCode('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+}
+
+const aa = A();
+''');
+    await resolve(r'''
+import 'a.dart' deferred as a;
+
+class B {
+  const B(Object a);
+}
+
+main() {
+  print(B(a.aa));
+}
+''');
+    assertCanBeConst('B(a.aa)', false);
+  }
+
   void test_false_argument_invocation() async {
     await resolve('''
 class A {}
@@ -244,7 +267,7 @@ f<U>() => A<U>();
   }
 
   void test_true_computeDependencies() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
 
@@ -285,7 +308,7 @@ A f() => A([1, 2, 3]);
 
   void test_true_importedClass_defaultValue() async {
     var aPath = convertPath('$testPackageLibPath/a.dart');
-    newFile2(aPath, r'''
+    newFile(aPath, r'''
 class A {
   final int a;
   const A({int b = 1}) : a = b * 2;
@@ -334,7 +357,7 @@ f<U>() => [A<U>()];
   }
 
   void test_listLiteral_true_computeDependencies() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
 ''');
 
@@ -499,7 +522,7 @@ var x = a;
   }
 
   test_hasValue_constantReference_imported() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const a = 42;
 ''');
     await resolve('''

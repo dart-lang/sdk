@@ -140,9 +140,9 @@ class Super<T extends core::Object? = dynamic> extends core::Object {
     ;
   method method3(core::num a, core::int b) → void
     ;
-  method method4({required core::num a}) → void
+  method method4({required core::num a = null}) → void
     ;
-  method method5({required core::int b}) → void
+  method method5({required core::int b = null}) → void
     ;
   method method7(covariant-by-class core::Iterable<self::Super::T%> a) → void
     ;
@@ -150,9 +150,9 @@ class Super<T extends core::Object? = dynamic> extends core::Object {
     ;
   method method9(covariant-by-class core::Iterable<self::Super::T%> a, covariant-by-class core::List<self::Super::T%> b) → void
     ;
-  method method10({required covariant-by-class core::Iterable<self::Super::T%> a}) → void
+  method method10({required covariant-by-class core::Iterable<self::Super::T%> a = null}) → void
     ;
-  method method11({required covariant-by-class core::List<self::Super::T%> b}) → void
+  method method11({required covariant-by-class core::List<self::Super::T%> b = null}) → void
     ;
   set setter1(core::num a) → void
     ;
@@ -166,13 +166,13 @@ abstract class Interface<T extends core::Object? = dynamic> extends core::Object
     ;
   method method3(core::num a, covariant-by-declaration core::num b) → void
     ;
-  method method5({required core::int b}) → void
+  method method5({required core::int b = null}) → void
     ;
   method method8(covariant-by-declaration covariant-by-class core::Iterable<self::Interface::T%> b) → void
     ;
   method method9(covariant-by-class core::Iterable<self::Interface::T%> a, covariant-by-declaration covariant-by-class core::Iterable<self::Interface::T%> b) → void
     ;
-  method method11({required covariant-by-class core::List<self::Interface::T%> b}) → void
+  method method11({required covariant-by-class core::List<self::Interface::T%> b = null}) → void
     ;
 }
 class Class<T extends core::Object? = dynamic> extends self::Super<self::Class::T%> implements self::Interface<self::Class::T%> {
@@ -204,9 +204,9 @@ class Class1<T extends core::Object? = dynamic> extends core::Object implements 
     ;
   method method3(covariant-by-declaration core::double a, covariant-by-declaration core::double b) → void
     ;
-  method method4({required core::double a}) → void
+  method method4({required core::double a = null}) → void
     ;
-  method method5({required core::double b}) → void
+  method method5({required core::double b = null}) → void
     ;
   method method7(covariant-by-declaration covariant-by-class core::Set<self::Class1::T%> a) → void
     ;
@@ -214,9 +214,9 @@ class Class1<T extends core::Object? = dynamic> extends core::Object implements 
     ;
   method method9(covariant-by-declaration covariant-by-class core::Set<self::Class1::T%> a, covariant-by-declaration covariant-by-class core::Set<self::Class1::T%> b) → void
     ;
-  method method10({required covariant-by-class core::Set<self::Class1::T%> a}) → void
+  method method10({required covariant-by-class core::Set<self::Class1::T%> a = null}) → void
     ;
-  method method11({required covariant-by-class core::Set<self::Class1::T%> b}) → void
+  method method11({required covariant-by-class core::Set<self::Class1::T%> b = null}) → void
     ;
   set setter1(covariant-by-declaration core::double a) → void
     ;

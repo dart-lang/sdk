@@ -36,9 +36,12 @@ config("sdk") {
     }
   }
 
-  if (is_qemu) {
-    cflags += [ "-DDART_RUN_IN_QEMU_ARMv7" ]
-  }
+  # Enable Large File Support extension (LFS)
+  cflags += [
+    "-D_FILE_OFFSET_BITS=64",
+    "-D_LARGEFILE_SOURCE",
+    "-D_LARGEFILE64_SOURCE",
+  ]
 }
 
 config("executable_config") {

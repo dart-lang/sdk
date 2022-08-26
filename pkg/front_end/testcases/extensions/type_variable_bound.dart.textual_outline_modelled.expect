@@ -1,5 +1,4 @@
 // @dart = 2.9
-// @dart = 2.8
 Class test1<T>(T t1) {}
 
 class Class {}

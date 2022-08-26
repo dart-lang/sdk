@@ -16,17 +16,17 @@ void injectText(AllInfo info) {
   // produces code spans, but excludes the orignal text
   for (var f in info.functions) {
     for (var span in f.code) {
-      _fillSpan(span, f.outputUnit);
+      _fillSpan(span, f.outputUnit!);
     }
   }
   for (var f in info.fields) {
     for (var span in f.code) {
-      _fillSpan(span, f.outputUnit);
+      _fillSpan(span, f.outputUnit!);
     }
   }
   for (var c in info.constants) {
     for (var span in c.code) {
-      _fillSpan(span, c.outputUnit);
+      _fillSpan(span, c.outputUnit!);
     }
   }
 }

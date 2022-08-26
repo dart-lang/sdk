@@ -6,7 +6,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -169,40 +168,5 @@ class _PackageMapUriResolverTest {
     Uri uri = Uri.parse('package:analyzer/analyzer.dart');
     var result = resolver.resolveAbsolute(uri);
     expect(result, isNull);
-  }
-
-  @Deprecated('Use pathToUri() instead')
-  void test_restoreAbsolute() {
-    String pkgFileA = provider.convertPath('/pkgA/lib/libA.dart');
-    String pkgFileB = provider.convertPath('/pkgB/lib/src/libB.dart');
-    provider.newFile(pkgFileA, 'library lib_a;');
-    provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        PackageMapUriResolver(provider, <String, List<Folder>>{
-      'pkgA': <Folder>[provider.getFolder(provider.convertPath('/pkgA/lib'))],
-      'pkgB': <Folder>[provider.getFolder(provider.convertPath('/pkgB/lib'))]
-    });
-    {
-      Source source =
-          _createFileSource(provider.convertPath('/pkgA/lib/libA.dart'));
-      var uri = resolver.restoreAbsolute(source)!;
-      expect(uri.toString(), 'package:pkgA/libA.dart');
-    }
-    {
-      Source source =
-          _createFileSource(provider.convertPath('/pkgB/lib/src/libB.dart'));
-      var uri = resolver.restoreAbsolute(source)!;
-      expect(uri.toString(), 'package:pkgB/src/libB.dart');
-    }
-    {
-      Source source = _createFileSource('/no/such/file');
-      var uri = resolver.restoreAbsolute(source);
-      expect(uri, isNull);
-    }
-  }
-
-  @Deprecated('Use pathToUri() instead')
-  Source _createFileSource(String path) {
-    return NonExistingSource(path, toUri(path));
   }
 }

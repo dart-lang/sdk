@@ -102,7 +102,7 @@ String encodeRpcError(Message message, int code, {String? details}) {
     },
   };
   if (details != null) {
-    response['error']['data'] = <String, String>{
+    (response['error'] as Map<String, dynamic>)['data'] = <String, String>{
       'details': details,
     };
   }
@@ -122,7 +122,8 @@ String encodeInvalidParamError(Message message, String param) {
 String encodeCompilationError(Message message, String diagnostic) =>
     encodeRpcError(message, kExpressionCompilationError, details: diagnostic);
 
-String encodeResult(Message message, Map result) => json.encode({
+String encodeResult(Message message, Map<String, dynamic> result) =>
+    json.encode({
       'jsonrpc': '2.0',
       'id': message.serial,
       'result': result,
@@ -134,10 +135,10 @@ String encodeSuccess(Message message) =>
 const shortDelay = Duration(milliseconds: 10);
 
 /// Called when the server should be started.
-typedef Future ServerStartCallback();
+typedef Future<void> ServerStartCallback();
 
 /// Called when the server should be stopped.
-typedef Future ServerStopCallback();
+typedef Future<void> ServerStopCallback();
 
 /// Called when DDS has connected.
 typedef Future<void> DdsConnectedCallback();
@@ -146,19 +147,19 @@ typedef Future<void> DdsConnectedCallback();
 typedef Future<void> DdsDisconnectedCallback();
 
 /// Called when the service is exiting.
-typedef Future CleanupCallback();
+typedef Future<void> CleanupCallback();
 
 /// Called to create a temporary directory
 typedef Future<Uri> CreateTempDirCallback(String base);
 
 /// Called to delete a directory
-typedef Future DeleteDirCallback(Uri path);
+typedef Future<void> DeleteDirCallback(Uri path);
 
 /// Called to write a file.
-typedef Future WriteFileCallback(Uri path, List<int> bytes);
+typedef Future<void> WriteFileCallback(Uri path, List<int> bytes);
 
 /// Called to write a stream into a file.
-typedef Future WriteStreamFileCallback(Uri path, Stream<List<int>> bytes);
+typedef Future<void> WriteStreamFileCallback(Uri path, Stream<List<int>> bytes);
 
 /// Called to read a file.
 typedef Future<List<int>> ReadFileCallback(Uri path);
@@ -269,7 +270,7 @@ class VMService extends MessageRouter {
           details: 'A DDS instance is already connected at ${_ddsUri!}.');
     }
 
-    final uri = message.params['uri'];
+    final uri = message.params['uri'] as String?;
     if (uri == null) {
       return encodeMissingParamError(message, 'uri');
     }
@@ -340,13 +341,15 @@ class VMService extends MessageRouter {
 
   void _profilerEventMessageHandler(Client client, Response event) {
     final eventJson = event.decodeJson() as Map<String, dynamic>;
-    final eventData = eventJson['params']!['event']!;
+    final params = eventJson['params']! as Map<String, dynamic>;
+    final eventData = params['event']! as Map<String, dynamic>;
     if (eventData['kind']! != 'CpuSamples') {
       client.post(event);
       return;
     }
-    final cpuSamplesEvent = eventData['cpuSamples']!;
-    final updatedSamples = cpuSamplesEvent['samples']!
+    final cpuSamplesEvent = eventData['cpuSamples']! as Map<String, dynamic>;
+    final samples = cpuSamplesEvent['samples']!.cast<Map<String, dynamic>>();
+    final updatedSamples = samples
         .where(
           (s) => client.profilerUserTagFilters.contains(s['userTag']),
         )
@@ -407,13 +410,14 @@ class VMService extends MessageRouter {
     }
   }
 
-  Future<void> _handleNativeRpcCall(message, SendPort replyPort) async {
+  Future<void> _handleNativeRpcCall(
+      List<int> message, SendPort replyPort) async {
     // Keep in sync with 'runtime/vm/service_isolate.cc:InvokeServiceRpc'.
     Response response;
 
     try {
       final rpc = Message.fromJsonRpc(
-          null, json.decode(utf8.decode(message as List<int>)));
+          null, json.decode(utf8.decode(message)) as Map<String, dynamic>);
       if (rpc.type != MessageType.Request) {
         response = Response.internalError(
             'The client sent a non-request json-rpc message.');
@@ -427,7 +431,7 @@ class VMService extends MessageRouter {
     late List<int> bytes;
     switch (response.kind) {
       case ResponsePayloadKind.String:
-        bytes = utf8.encode(response.payload);
+        bytes = utf8.encode(response.payload as String);
         bytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
         break;
       case ResponsePayloadKind.Binary:
@@ -448,7 +452,7 @@ class VMService extends MessageRouter {
     devfs.cleanup();
   }
 
-  Future _exit() async {
+  Future<void> _exit() async {
     isExiting = true;
 
     final serverStop = VMServiceEmbedderHooks.serverStop;
@@ -474,7 +478,8 @@ class VMService extends MessageRouter {
     if (message is List) {
       if (message.length == 2) {
         // This is an event.
-        _eventMessageHandler(message[0], Response.from(message[1]));
+        _eventMessageHandler(
+            message[0] as String, Response.from(message[1] as Object));
         return;
       }
       if (message.length == 1) {
@@ -485,20 +490,25 @@ class VMService extends MessageRouter {
       }
       final opcode = message[0];
       if (message.length == 3 && opcode == Constants.METHOD_CALL_FROM_NATIVE) {
-        _handleNativeRpcCall(message[1], message[2]);
+        _handleNativeRpcCall(message[1] as List<int>, message[2] as SendPort);
         return;
       }
       if (message.length == 4) {
         if ((opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
             (opcode == Constants.SERVER_INFO_MESSAGE_ID)) {
           // This is a message interacting with the web server.
-          _serverMessageHandler(message[0], message[1], message[2], message[3]);
+          _serverMessageHandler(
+            message[0] as int,
+            message[1] as SendPort,
+            message[2] as bool,
+            message[3] as bool?,
+          );
           return;
         } else {
           // This is a message informing us of the birth or death of an
           // isolate.
-          _controlMessageHandler(
-              message[0], message[1], message[2], message[3]);
+          _controlMessageHandler(message[0] as int, message[1] as int,
+              message[2] as SendPort, message[3] as String);
           return;
         }
       }
@@ -543,7 +553,7 @@ class VMService extends MessageRouter {
 
   Future<String> _streamListen(Message message) async {
     final client = message.client!;
-    final streamId = message.params['streamId']!;
+    final streamId = message.params['streamId']! as String;
 
     if (client.streams.contains(streamId)) {
       return encodeRpcError(message, kStreamAlreadySubscribed);
@@ -576,7 +586,7 @@ class VMService extends MessageRouter {
 
   Future<String> _streamCancel(Message message) async {
     final client = message.client!;
-    final streamId = message.params['streamId']!;
+    final streamId = message.params['streamId']! as String;
 
     if (!client.streams.contains(streamId)) {
       return encodeRpcError(message, kStreamNotSubscribed);
@@ -676,11 +686,12 @@ class VMService extends MessageRouter {
   }
 
   Future<String> _getSupportedProtocols(Message message) async {
-    final version = json.decode(
+    final payload = json.decode(
       utf8.decode(
-        (await Message.forMethod('getVersion').sendToVM()).payload,
+        (await Message.forMethod('getVersion').sendToVM()).payload as List<int>,
       ),
-    )['result'];
+    ) as Map<String, dynamic>;
+    final version = payload['result'] as Map<String, dynamic>;
     final protocols = {
       'type': 'ProtocolList',
       'protocols': [
@@ -722,7 +733,8 @@ class VMService extends MessageRouter {
 
     // TODO(bkonyi): handle "subscribe all" case.
     final client = message.client!;
-    final tags = message.params['userTags']!.cast<String>().toSet();
+    final userTags = message.params['userTags']!.cast<String>();
+    final tags = userTags.toSet();
     final newTags = tags.difference(_profilerUserTagSubscriptions);
 
     // Clear the previously set user tag subscriptions for the client and
@@ -755,7 +767,7 @@ class VMService extends MessageRouter {
     return Response.from(response);
   }
 
-  Future _routeRequestImpl(Message message) async {
+  Future<Object?> _routeRequestImpl(Message message) async {
     try {
       if (message.completed) {
         return await message.response;
@@ -798,7 +810,7 @@ class VMService extends MessageRouter {
     final client = message.client!;
     if (client.serviceHandles.containsKey(message.serial)) {
       client.serviceHandles.remove(message.serial)!(message);
-      _serviceRequests.release(message.serial);
+      _serviceRequests.release(message.serial as String);
     }
   }
 }
@@ -841,7 +853,7 @@ external void _vmCancelStream(String streamId);
 
 /// Get the bytes to the tar archive.
 @pragma("vm:external-name", "VMService_RequestAssets")
-external Uint8List _requestAssets();
+external Uint8List? _requestAssets();
 
 @pragma("vm:external-name", "VMService_AddUserTagsToStreamableSampleList")
 external void _addUserTagsToStreamableSampleList(List<String> userTags);

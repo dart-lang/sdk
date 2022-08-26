@@ -62,8 +62,8 @@ class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = #C7;
   static const field self::Enum a = #C3;
   static const field self::Enum b = #C6;
-  const constructor •(core::int index, core::String name) → self::Enum
-    : super core::_Enum::•(index, name)
+  const constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
     ;
   method toString() → core::String
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
@@ -107,7 +107,7 @@ static method returnAsync7() → asy::Future<core::int?> async /* futureValueTyp
 static method yieldSync() → core::Iterable<dynamic> sync* {}
 static method yieldAsync() → asy::Stream<dynamic> async* {}
 static method caseReturn1(self::Enum e) → self::Enum {
-  switch(e) {
+  switch(e) /*isExplicitlyExhaustive*/ {
     #L1:
     case #C3:
       {
@@ -176,7 +176,7 @@ static method localFunctions() → dynamic {
   function yieldSync() → core::Iterable<dynamic> sync* {}
   function yieldAsync() → asy::Stream<dynamic> async* {}
   function caseReturn1(self::Enum e) → self::Enum {
-    switch(e) {
+    switch(e) /*isExplicitlyExhaustive*/ {
       #L5:
       case #C3:
         {

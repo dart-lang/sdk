@@ -4,6 +4,8 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
+#include <memory>
+
 #include "platform/unicode.h"
 #include "platform/utils.h"
 #include "vm/canonical_tables.h"
@@ -66,7 +68,6 @@ DEFINE_FLAG(bool,
             false,
             "Print per-phase breakdown of time spent precompiling");
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
-DEFINE_FLAG(bool, print_gop, false, "Print global object pool");
 DEFINE_FLAG(charp,
             print_object_layout_to,
             nullptr,
@@ -400,6 +401,7 @@ Precompiler::Precompiler(Thread* thread)
       dropped_functiontype_count_(0),
       dropped_typeparam_count_(0),
       dropped_library_count_(0),
+      dropped_constants_arrays_entries_count_(0),
       libraries_(GrowableObjectArray::Handle(
           isolate_->group()->object_store()->libraries())),
       pending_functions_(
@@ -422,6 +424,7 @@ Precompiler::Precompiler(Thread* thread)
       typeparams_to_retain_(),
       consts_to_retain_(),
       seen_table_selectors_(),
+      api_uses_(),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false) {
   ASSERT(Precompiler::singleton_ == NULL);
@@ -583,7 +586,7 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_global_object_pool(pool);
         global_object_pool_builder()->Reset();
 
-        if (FLAG_print_gop) {
+        if (FLAG_disassemble) {
           THR_Print("Global object pool:\n");
           pool.DebugPrint();
         }
@@ -607,6 +610,7 @@ void Precompiler::DoCompileAll() {
 
         DropFunctions();
         DropFields();
+        DropTransitiveUserDefinedConstants();
         TraceTypesFromRetainedClasses();
 
         // Clear these before dropping classes as they may hold onto otherwise
@@ -659,6 +663,8 @@ void Precompiler::DoCompileAll() {
       ProgramVisitor::Dedup(T);
     }
 
+    PruneDictionaries();
+
     if (retained_reasons_writer_ != nullptr) {
       reasons_writer.Write();
       retained_reasons_writer_ = nullptr;
@@ -688,7 +694,9 @@ void Precompiler::DoCompileAll() {
     THR_Print(" %" Pd " type parameters,", dropped_typeparam_count_);
     THR_Print(" %" Pd " type arguments,", dropped_typearg_count_);
     THR_Print(" %" Pd " classes,", dropped_class_count_);
-    THR_Print(" %" Pd " libraries.\n", dropped_library_count_);
+    THR_Print(" %" Pd " libraries,", dropped_library_count_);
+    THR_Print(" %" Pd " constants arrays entries.\n",
+              dropped_constants_arrays_entries_count_);
   }
 }
 
@@ -747,6 +755,7 @@ void Precompiler::AddRoots() {
     }
   }
   if (!main.IsNull()) {
+    AddApiUse(main);
     if (lib.LookupLocalFunction(name) == Function::null()) {
       retain_root_library_caches_ = true;
     }
@@ -1459,6 +1468,14 @@ bool Precompiler::IsHitByTableSelector(const Function& function) {
   return seen_table_selectors_.HasKey(selector_id);
 }
 
+void Precompiler::AddApiUse(const Object& obj) {
+  api_uses_.Insert(&Object::ZoneHandle(Z, obj.ptr()));
+}
+
+bool Precompiler::HasApiUse(const Object& obj) {
+  return api_uses_.HasKey(&obj);
+}
+
 void Precompiler::AddInstantiatedClass(const Class& cls) {
   if (is_tracing()) {
     tracer_->WriteClassInstantiationRef(cls);
@@ -1518,6 +1535,7 @@ void Precompiler::AddAnnotatedRoots() {
                                  &reusable_object_handle) ==
             EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
+          AddApiUse(cls);
         }
       }
 
@@ -1536,6 +1554,7 @@ void Precompiler::AddAnnotatedRoots() {
           if (pragma == EntryPointPragma::kNever) continue;
 
           AddField(field);
+          AddApiUse(field);
 
           if (!field.is_static()) {
             if (pragma != EntryPointPragma::kSetterOnly) {
@@ -1564,6 +1583,7 @@ void Precompiler::AddAnnotatedRoots() {
               type == EntryPointPragma::kCallOnly) {
             functions_with_entry_point_pragmas_.Insert(function);
             AddFunction(function, RetainReasons::kEntryPointPragma);
+            AddApiUse(function);
           }
 
           if ((type == EntryPointPragma::kAlways ||
@@ -1573,10 +1593,16 @@ void Precompiler::AddAnnotatedRoots() {
             function2 = function.ImplicitClosureFunction();
             functions_with_entry_point_pragmas_.Insert(function2);
             AddFunction(function2, RetainReasons::kEntryPointPragma);
+
+            // Not `function2`: Dart_GetField will lookup the regular function
+            // and get the implicit closure function from that.
+            AddApiUse(function);
           }
 
           if (function.IsGenerativeConstructor()) {
             AddInstantiatedClass(cls);
+            AddApiUse(function);
+            AddApiUse(cls);
           }
         }
         if (function.kind() == UntaggedFunction::kImplicitGetter &&
@@ -1586,6 +1612,7 @@ void Precompiler::AddAnnotatedRoots() {
             if (function.accessor_field() == field.ptr()) {
               functions_with_entry_point_pragmas_.Insert(function);
               AddFunction(function, RetainReasons::kImplicitGetter);
+              AddApiUse(function);
             }
           }
         }
@@ -1596,6 +1623,7 @@ void Precompiler::AddAnnotatedRoots() {
             if (function.accessor_field() == field.ptr()) {
               functions_with_entry_point_pragmas_.Insert(function);
               AddFunction(function, RetainReasons::kImplicitSetter);
+              AddApiUse(function);
             }
           }
         }
@@ -1606,8 +1634,14 @@ void Precompiler::AddAnnotatedRoots() {
             if (function.accessor_field() == field.ptr()) {
               functions_with_entry_point_pragmas_.Insert(function);
               AddFunction(function, RetainReasons::kImplicitStaticGetter);
+              AddApiUse(function);
             }
           }
+        }
+        if (function.is_native()) {
+          // The embedder will need to lookup this library to provide the native
+          // resolver, even if there are no embedder calls into the library.
+          AddApiUse(lib);
         }
       }
 
@@ -2266,10 +2300,6 @@ void Precompiler::DropFunctions() {
         }
       }
       if (retained_functions.Length() > 0) {
-        // Last entry must be null.
-        retained_functions.Add(Object::null_object());
-        retained_functions.Add(Object::null_object());
-        retained_functions.Add(Object::null_object());
         functions = Array::MakeFixedLength(retained_functions);
       } else {
         functions = Object::empty_array().ptr();
@@ -2422,6 +2452,190 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
 
   ASSERT(Object::dynamic_type().type_test_stub_entry_point() ==
          StubCode::TopTypeTypeTest().EntryPoint());
+}
+
+enum ConstantVisitedValue { kNotVisited = 0, kRetain, kDrop };
+
+static bool IsUserDefinedClass(Zone* zone,
+                               ClassPtr cls,
+                               ObjectStore* object_store) {
+  intptr_t cid = cls.untag()->id();
+  if (cid < kNumPredefinedCids) {
+    return false;
+  }
+
+  const UntaggedClass* untagged_cls = cls.untag();
+  return ((untagged_cls->library() != object_store->core_library()) &&
+          (untagged_cls->library() != object_store->collection_library()) &&
+          (untagged_cls->library() != object_store->typed_data_library()));
+}
+
+/// Updates |visited| weak table with information about whether object
+/// (transitevly) references constants of user-defined classes: |kDrop|
+/// indicates it does, |kRetain| - does not.
+class ConstantInstanceVisitor {
+ public:
+  ConstantInstanceVisitor(Zone* zone,
+                          WeakTable* visited,
+                          ObjectStore* object_store)
+      : zone_(zone),
+        visited_(visited),
+        object_store_(object_store),
+        object_(Object::Handle(zone)),
+        array_(Array::Handle(zone)) {}
+
+  void Visit(ObjectPtr object_ptr) {
+    if (!object_ptr->IsHeapObject()) {
+      return;
+    }
+    ConstantVisitedValue value = static_cast<ConstantVisitedValue>(
+        visited_->GetValueExclusive(object_ptr));
+    if (value != kNotVisited) {
+      return;
+    }
+    object_ = object_ptr;
+    if (IsUserDefinedClass(zone_, object_.clazz(), object_store_)) {
+      visited_->SetValueExclusive(object_ptr, kDrop);
+      return;
+    }
+
+    // Conservatively assume an object will be retained.
+    visited_->SetValueExclusive(object_ptr, kRetain);
+    switch (object_ptr.untag()->GetClassId()) {
+      case kImmutableArrayCid: {
+        array_ ^= object_ptr;
+        for (intptr_t i = 0; i < array_.Length(); i++) {
+          ObjectPtr element = array_.At(i);
+          Visit(element);
+          if (static_cast<ConstantVisitedValue>(
+                  visited_->GetValueExclusive(element)) == kDrop) {
+            visited_->SetValueExclusive(object_ptr, kDrop);
+            break;
+          }
+        }
+        break;
+      }
+      case kImmutableLinkedHashMapCid: {
+        const LinkedHashMap& map =
+            LinkedHashMap::Handle(LinkedHashMap::RawCast(object_ptr));
+        LinkedHashMap::Iterator iterator(map);
+        while (iterator.MoveNext()) {
+          ObjectPtr element = iterator.CurrentKey();
+          Visit(element);
+          if (static_cast<ConstantVisitedValue>(
+                  visited_->GetValueExclusive(element)) == kDrop) {
+            visited_->SetValueExclusive(object_ptr, kDrop);
+            break;
+          }
+          element = iterator.CurrentValue();
+          Visit(element);
+          if (static_cast<ConstantVisitedValue>(
+                  visited_->GetValueExclusive(element)) == kDrop) {
+            visited_->SetValueExclusive(object_ptr, kDrop);
+            break;
+          }
+        }
+        break;
+      }
+      case kImmutableLinkedHashSetCid: {
+        const LinkedHashSet& set =
+            LinkedHashSet::Handle(LinkedHashSet::RawCast(object_ptr));
+        LinkedHashSet::Iterator iterator(set);
+        while (iterator.MoveNext()) {
+          ObjectPtr element = iterator.CurrentKey();
+          Visit(element);
+          if (static_cast<ConstantVisitedValue>(
+                  visited_->GetValueExclusive(element)) == kDrop) {
+            visited_->SetValueExclusive(object_ptr, kDrop);
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+ private:
+  Zone* zone_;
+  WeakTable* visited_;
+  ObjectStore* object_store_;
+  Object& object_;
+  Array& array_;
+};
+
+// To reduce snapshot size, we remove from constant tables all constants that
+// cannot be sent in messages between isolate groups. Such constants will not
+// be canonicalized at runtime.
+void Precompiler::DropTransitiveUserDefinedConstants() {
+  HANDLESCOPE(T);
+  auto& constants = Array::Handle(Z);
+  auto& obj = Object::Handle(Z);
+  auto& lib = Library::Handle(Z);
+  auto& cls = Class::Handle(Z);
+  auto& instance = Instance::Handle(Z);
+
+  {
+    NoSafepointScope no_safepoint(T);
+    std::unique_ptr<WeakTable> visited(new WeakTable());
+    ObjectStore* object_store = IG->object_store();
+    ConstantInstanceVisitor visitor(Z, visited.get(), object_store);
+
+    for (intptr_t i = 0; i < libraries_.Length(); i++) {
+      lib ^= libraries_.At(i);
+      HANDLESCOPE(T);
+      ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+      while (it.HasNext()) {
+        cls = it.GetNextClass();
+        if (cls.constants() == Array::null()) {
+          continue;
+        }
+        typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
+
+        CanonicalInstancesSet constants_set(cls.constants());
+        CanonicalInstancesSet::Iterator iterator(&constants_set);
+
+        if (IsUserDefinedClass(Z, cls.ptr(), object_store)) {
+          // All constants for user-defined classes can be dropped.
+          constants = cls.constants();
+          dropped_constants_arrays_entries_count_ += constants.Length();
+          if (FLAG_trace_precompiler) {
+            THR_Print("Dropping %" Pd " entries from constants for class %s\n",
+                      constants.Length(), cls.ToCString());
+          }
+          while (iterator.MoveNext()) {
+            obj = constants_set.GetKey(iterator.Current());
+            instance = Instance::RawCast(obj.ptr());
+            consts_to_retain_.Remove(&instance);
+            visited->SetValueExclusive(obj.ptr(), kDrop);
+          }
+        } else {
+          // Core classes might have constants that refer to user-defined
+          // classes. Those should be dropped too.
+          while (iterator.MoveNext()) {
+            obj = constants_set.GetKey(iterator.Current());
+            ConstantVisitedValue value = static_cast<ConstantVisitedValue>(
+                visited->GetValueExclusive(obj.ptr()));
+            if (value == kNotVisited) {
+              visitor.Visit(obj.ptr());
+              value = static_cast<ConstantVisitedValue>(
+                  visited->GetValueExclusive(obj.ptr()));
+            }
+            ASSERT(value == kDrop || value == kRetain);
+            if (value == kDrop) {
+              dropped_constants_arrays_entries_count_++;
+              if (FLAG_trace_precompiler) {
+                THR_Print("Dropping constant entry for class %s instance:%s\n",
+                          cls.ToCString(), obj.ToCString());
+              }
+              instance = Instance::RawCast(obj.ptr());
+              consts_to_retain_.Remove(&instance);
+            }
+          }
+        }
+        constants_set.Release();
+      }
+    }
+  }
 }
 
 void Precompiler::TraceTypesFromRetainedClasses() {
@@ -2882,6 +3096,166 @@ void Precompiler::DiscardCodeObjects() {
   if (FLAG_trace_precompiler) {
     visitor.PrintStatistics();
   }
+}
+
+void Precompiler::PruneDictionaries() {
+  // PRODUCT-only: pruning interferes with various uses of the service protocol,
+  // including heap analysis tools.
+#if defined(PRODUCT)
+  class PruneDictionariesVisitor {
+   public:
+    GrowableObjectArrayPtr PruneLibraries(
+        const GrowableObjectArray& libraries) {
+      for (intptr_t i = 0; i < libraries.Length(); i++) {
+        lib_ ^= libraries.At(i);
+        bool retain = PruneLibrary(lib_);
+        if (retain) {
+          lib_.set_index(retained_libraries_.Length());
+          retained_libraries_.Add(lib_);
+        } else {
+          lib_.set_index(-1);
+          lib_.set_private_key(null_string_);
+        }
+      }
+
+      Library::RegisterLibraries(Thread::Current(), retained_libraries_);
+      return retained_libraries_.ptr();
+    }
+
+    bool PruneLibrary(const Library& lib) {
+      dict_ = lib.dictionary();
+      intptr_t dict_size = dict_.Length() - 1;
+      intptr_t used = 0;
+      for (intptr_t i = 0; i < dict_size; i++) {
+        entry_ = dict_.At(i);
+        if (entry_.IsNull()) continue;
+
+        bool retain = false;
+        if (entry_.IsClass()) {
+          // dart:async: Fix async stack trace lookups in dart:async to annotate
+          // entry points or fail gracefully.
+          // dart:core, dart:collection, dart:typed_data: Isolate messaging
+          // between groups allows any class in these libraries.
+          retain = PruneClass(Class::Cast(entry_)) ||
+                   (lib.url() == Symbols::DartAsync().ptr()) ||
+                   (lib.url() == Symbols::DartCore().ptr()) ||
+                   (lib.url() == Symbols::DartCollection().ptr()) ||
+                   (lib.url() == Symbols::DartTypedData().ptr());
+        } else if (entry_.IsFunction() || entry_.IsField()) {
+          retain = precompiler_->HasApiUse(entry_);
+        } else {
+          FATAL("Unexpected library entry: %s", entry_.ToCString());
+        }
+        if (retain) {
+          used++;
+        } else {
+          dict_.SetAt(i, Object::null_object());
+        }
+      }
+      lib.RehashDictionary(dict_, used * 4 / 3 + 1);
+
+      bool retain = used > 0;
+      cls_ = lib.toplevel_class();
+      if (PruneClass(cls_)) {
+        retain = true;
+      }
+      if (lib.is_dart_scheme()) {
+        retain = true;
+      }
+      if (lib.ptr() == root_lib_.ptr()) {
+        retain = true;
+      }
+      if (precompiler_->HasApiUse(lib)) {
+        retain = true;
+      }
+      return retain;
+    }
+
+    bool PruneClass(const Class& cls) {
+      bool retain = precompiler_->HasApiUse(cls);
+
+      functions_ = cls.functions();
+      retained_functions_ = GrowableObjectArray::New();
+      for (intptr_t i = 0; i < functions_.Length(); i++) {
+        function_ ^= functions_.At(i);
+        if (precompiler_->HasApiUse(function_)) {
+          retained_functions_.Add(function_);
+          retain = true;
+        } else if (precompiler_->functions_called_dynamically_.ContainsKey(
+                       function_)) {
+          retained_functions_.Add(function_);
+          // No `retain = true`: the function must appear in the method
+          // dictionary for lookup, but the class may still be removed from the
+          // library.
+        }
+      }
+      if (retained_functions_.Length() > 0) {
+        functions_ = Array::MakeFixedLength(retained_functions_);
+        cls.SetFunctions(functions_);
+      } else {
+        cls.SetFunctions(Object::empty_array());
+      }
+
+      fields_ = cls.fields();
+      retained_fields_ = GrowableObjectArray::New();
+      for (intptr_t i = 0; i < fields_.Length(); i++) {
+        field_ ^= fields_.At(i);
+        if (precompiler_->HasApiUse(field_)) {
+          retained_fields_.Add(field_);
+          retain = true;
+        }
+      }
+      if (retained_fields_.Length() > 0) {
+        fields_ = Array::MakeFixedLength(retained_fields_);
+        cls.SetFields(fields_);
+      } else {
+        cls.SetFields(Object::empty_array());
+      }
+
+      return retain;
+    }
+
+    explicit PruneDictionariesVisitor(Precompiler* precompiler, Zone* zone)
+        : precompiler_(precompiler),
+          lib_(Library::Handle(zone)),
+          dict_(Array::Handle(zone)),
+          entry_(Object::Handle(zone)),
+          cls_(Class::Handle(zone)),
+          functions_(Array::Handle(zone)),
+          fields_(Array::Handle(zone)),
+          function_(Function::Handle(zone)),
+          field_(Field::Handle(zone)),
+          retained_functions_(GrowableObjectArray::Handle(zone)),
+          retained_fields_(GrowableObjectArray::Handle(zone)),
+          retained_libraries_(
+              GrowableObjectArray::Handle(zone, GrowableObjectArray::New())),
+          root_lib_(Library::Handle(
+              zone,
+              precompiler->isolate_group()->object_store()->root_library())),
+          null_string_(String::Handle(zone)) {}
+
+   private:
+    Precompiler* const precompiler_;
+    Library& lib_;
+    Array& dict_;
+    Object& entry_;
+    Class& cls_;
+    Array& functions_;
+    Array& fields_;
+    Function& function_;
+    Field& field_;
+    GrowableObjectArray& retained_functions_;
+    GrowableObjectArray& retained_fields_;
+    const GrowableObjectArray& retained_libraries_;
+    const Library& root_lib_;
+    const String& null_string_;
+  };
+
+  HANDLESCOPE(T);
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
+  PruneDictionariesVisitor visitor(this, Z);
+  libraries_ = visitor.PruneLibraries(libraries_);
+#endif  // defined(PRODUCT)
 }
 
 // Traits for the HashTable template.

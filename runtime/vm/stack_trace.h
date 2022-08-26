@@ -31,10 +31,27 @@ class CallerClosureFinder {
   // Returns either the `onData` or the Future awaiter.
   ClosurePtr FindCallerInAsyncGenClosure(const Context& receiver_context);
 
+  // Find caller closure from an _AsyncStarStreamController instance
+  // corresponding to async* function.
+  // Returns either the `onData` or the Future awaiter.
+  ClosurePtr FindCallerInAsyncStarStreamController(
+      const Object& async_star_stream_controller);
+
   // Find caller closure from a function receiver closure.
   // For async* functions, async functions, `Future.timeout` and `Future.wait`,
   // we can do this by finding and following their awaited Futures.
   ClosurePtr FindCaller(const Closure& receiver_closure);
+
+  // Find caller closure from a SuspendState of a resumed async function.
+  ClosurePtr FindCallerFromSuspendState(const SuspendState& suspend_state);
+
+  // Returns true if given closure function is a Future callback
+  // corresponding to an async/async* function or async* body callback.
+  bool IsCompactAsyncCallback(const Function& function);
+
+  // Returns SuspendState from the given callback which corresponds
+  // to an async/async* function.
+  SuspendStatePtr GetSuspendStateFromAsyncCallback(const Closure& closure);
 
   // Finds the awaited Future from an async function receiver closure.
   ObjectPtr GetAsyncFuture(const Closure& receiver_closure);
@@ -55,6 +72,11 @@ class CallerClosureFinder {
 
   static bool IsRunningAsync(const Closure& receiver_closure);
 
+  // Tests if given [function] with given value of :suspend_state variable
+  // was suspended at least once and running asynchronously.
+  static bool WasPreviouslySuspended(const Function& function,
+                                     const Object& suspend_state_var);
+
  private:
   ClosurePtr FindCallerInternal(const Closure& receiver_closure);
   ClosurePtr GetCallerInFutureListenerInternal(const Object& future_listener);
@@ -64,6 +86,7 @@ class CallerClosureFinder {
   Context& receiver_context_;
   Function& receiver_function_;
   Function& parent_function_;
+  SuspendState& suspend_state_;
 
   Object& context_entry_;
   Object& future_;
@@ -76,9 +99,9 @@ class CallerClosureFinder {
 
   Class& future_impl_class;
   Class& future_listener_class;
-  Class& async_start_stream_controller_class;
+  Class& async_star_stream_controller_class;
   Class& stream_controller_class;
-  Class& async_stream_controller_class;
+  Class& sync_stream_controller_class;
   Class& controller_subscription_class;
   Class& buffering_stream_subscription_class;
   Class& stream_iterator_class;
@@ -121,46 +144,17 @@ class StackTraceUtils : public AllStatic {
   /// hit which has yielded before (i.e. is not in sync-async case).
   ///
   /// From there on finds the closure of the async/async* frame and starts
-  /// traversing the listeners:
-  ///     while (closure != null) {
-  ///       yield_index = closure.context[Context::kAsyncJumpVarIndex]
-  ///       pc = closure.function.code.pc_descriptors.LookupPcFromYieldIndex(
-  ///           yield_index);
-  ///       <emit pc in frame>
-  ///       closure = closure.context[Context::kAsyncCompleterVarIndex]._future
-  ///           ._resultOrListeners.callback;
-  ///     }
+  /// traversing the listeners.
   ///
   /// If [on_sync_frames] is non-nullptr, it will be called for every
   /// synchronous frame which is collected.
-  static void CollectFramesLazy(
+  static void CollectFrames(
       Thread* thread,
       const GrowableObjectArray& code_array,
       GrowableArray<uword>* pc_offset_array,
       int skip_frames,
       std::function<void(StackFrame*)>* on_sync_frames = nullptr,
       bool* has_async = nullptr);
-
-  /// Counts the number of stack frames.
-  /// Skips over the first |skip_frames|.
-  /// If |async_function| is not null, stops at the function that has
-  /// |async_function| as its parent, and records in 'sync_async_end' whether
-  /// |async_function| was called synchronously.
-  static intptr_t CountFrames(Thread* thread,
-                              int skip_frames,
-                              const Function& async_function,
-                              bool* sync_async_end);
-
-  /// Collects |count| frames into |code_array| and |pc_offset_array|.
-  /// Writing begins at |array_offset|.
-  /// Skips over the first |skip_frames|.
-  /// Returns the number of frames collected.
-  static intptr_t CollectFrames(Thread* thread,
-                                const Array& code_array,
-                                const TypedData& pc_offset_array,
-                                intptr_t array_offset,
-                                intptr_t count,
-                                int skip_frames);
 };
 
 }  // namespace dart

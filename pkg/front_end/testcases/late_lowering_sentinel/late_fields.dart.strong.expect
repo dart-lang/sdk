@@ -43,7 +43,7 @@ static set nonNullableFinalTopLevelField(core::int nonNullableFinalTopLevelField
   else
     throw new _in::LateError::fieldAI("nonNullableFinalTopLevelField");
 static get nullableFinalTopLevelFieldWithInitializer() → core::int?
-  return let final core::int? #t7 = self::_#nullableFinalTopLevelFieldWithInitializer in _in::isSentinel(#t7) ?{core::int?} let final core::int? #t8 = null in _in::isSentinel(self::_#nullableFinalTopLevelFieldWithInitializer) ?{core::int?} self::_#nullableFinalTopLevelFieldWithInitializer = #t8 : throw new _in::LateError::fieldADI("nullableFinalTopLevelFieldWithInitializer") : #t7;
+  return let final core::int? #t7 = self::_#nullableFinalTopLevelFieldWithInitializer in _in::isSentinel(#t7) ?{core::int?} let final has-declared-initializer core::int? #t8 = null in _in::isSentinel(self::_#nullableFinalTopLevelFieldWithInitializer) ?{core::int?} self::_#nullableFinalTopLevelFieldWithInitializer = #t8 : throw new _in::LateError::fieldADI("nullableFinalTopLevelFieldWithInitializer") : #t7;
 static get nonNullableFinalTopLevelFieldWithInitializer() → core::int
   return let final core::int? #t9 = self::_#nonNullableFinalTopLevelFieldWithInitializer in #t9 == null ?{core::int} let final core::int #t10 = 0 in self::_#nonNullableFinalTopLevelFieldWithInitializer == null ?{core::int} self::_#nonNullableFinalTopLevelFieldWithInitializer = #t10 : throw new _in::LateError::fieldADI("nonNullableFinalTopLevelFieldWithInitializer") : #t9{core::int};
 static get neverTopLevelField() → Never

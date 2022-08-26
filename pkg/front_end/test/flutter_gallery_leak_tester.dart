@@ -111,20 +111,13 @@ Future<void> main(List<String> args) async {
         ".pub-cache/hosted/pub.dartlang.org/");
     Directory pubDir = new Directory.fromUri(pubDirUri);
     if (!pubDir.existsSync()) throw "Expected to find $pubDir";
-    File galleryDotPackages = new File("$rootPath/gallery/.packages");
-    if (!galleryDotPackages.existsSync()) {
-      throw "Didn't find $galleryDotPackages";
-    }
-    String data = galleryDotPackages.readAsStringSync();
-    data = data.replaceAll(pubDirUri.toString(), "pub/");
-    galleryDotPackages.writeAsStringSync(data);
 
     File galleryPackageConfig =
         new File("$rootPath/gallery/.dart_tool/package_config.json");
     if (!galleryPackageConfig.existsSync()) {
       throw "Didn't find $galleryPackageConfig";
     }
-    data = galleryPackageConfig.readAsStringSync();
+    String data = galleryPackageConfig.readAsStringSync();
     data = data.replaceAll(pubDirUri.toString(), "../pub/");
     galleryPackageConfig.writeAsStringSync(data);
 
@@ -146,9 +139,10 @@ Future<void> main(List<String> args) async {
     print("Exit code from ln: $processExitCode");
   }
 
-  File galleryDotPackages = new File("$rootPath/gallery/.packages");
-  if (!galleryDotPackages.existsSync()) {
-    throw "Didn't find $galleryDotPackages";
+  File packageConfig =
+      new File("$rootPath/gallery/.dart_tool/package_config.json");
+  if (!packageConfig.existsSync()) {
+    throw "Didn't find $packageConfig";
   }
 
   List<helper.Interest> interests = <helper.Interest>[];
@@ -188,7 +182,7 @@ Future<void> main(List<String> args) async {
     "--output-dill",
     "$rootPath/flutter_server_tmp.dill",
     "--packages",
-    "$rootPath/gallery/.packages",
+    "$rootPath/gallery/.dart_tool/package_config.json",
     "-Ddart.vm.profile=false",
     "-Ddart.vm.product=false",
     "--enable-asserts",
@@ -340,7 +334,7 @@ Future sendAndWaitDebugDidSendFirstFrameEvent(Process _server) async {
     /* expression */ 'WidgetsBinding.instance.debugDidSendFirstFrameEvent',
     /* no definitions */
     /* <boundarykey> */ inputKey,
-    /* no type-defintions */
+    /* no type-definitions */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/binding.dart',
     /* class */ '',
@@ -356,7 +350,7 @@ Future sendAndWaitSetSelection(Process _server) async {
         'arg1, "dummy_68")',
     /* definition #1 */ 'arg1',
     /* <boundarykey> */ inputKey,
-    /* no type-defintions */
+    /* no type-definitions */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
@@ -372,7 +366,7 @@ Future sendAndWaitToObject(Process _server) async {
         '"inspector-836", "tree_112")',
     /* no definitions */
     /* <boundarykey> */ inputKey,
-    /* no type-defintions */
+    /* no type-definitions */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
@@ -388,7 +382,7 @@ Future sendAndWaitToObjectForSourceLocation(Process _server) async {
         'toObjectForSourceLocation("inspector-607", "tree_112")',
     /* no definitions */
     /* <boundarykey> */ inputKey,
-    /* no type-defintions */
+    /* no type-definitions */
     /* <boundarykey> */ inputKey,
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',

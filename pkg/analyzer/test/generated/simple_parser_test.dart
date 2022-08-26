@@ -866,6 +866,20 @@ abstract class Foo {}
     expect(nextToken.type, TokenType.EOF);
   }
 
+  void test_parseCommentReferences_notCodeBlock_4spaces_afterText() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "/// comment:", 0),
+      DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "///    a[i] == b[i]", 0)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(2));
+  }
+
   void test_parseCommentReferences_singleLine() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
       DocumentationCommentToken(
@@ -891,6 +905,36 @@ abstract class Foo {}
     expect(reference.offset, 35);
   }
 
+  void test_parseCommentReferences_skipCodeBlock_4spaces_afterEmptyComment() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "/// Code block:", 0),
+      DocumentationCommentToken(TokenType.SINGLE_LINE_COMMENT, "///", 0),
+      DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "///    a[i] == b[i]", 0)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, isEmpty);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_4spaces_afterEmptyLine() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "/// Code block:", 0),
+      DocumentationCommentToken(TokenType.SINGLE_LINE_COMMENT, "", 0),
+      DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "///    a[i] == b[i]", 0)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, isEmpty);
+  }
+
   void test_parseCommentReferences_skipCodeBlock_4spaces_block() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
       DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
@@ -903,12 +947,10 @@ abstract class Foo {}
     expect(references, isEmpty);
   }
 
-  void test_parseCommentReferences_skipCodeBlock_4spaces_lines() {
+  void test_parseCommentReferences_skipCodeBlock_4spaces_first() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
       DocumentationCommentToken(
-          TokenType.SINGLE_LINE_COMMENT, "/// Code block:", 0),
-      DocumentationCommentToken(
-          TokenType.SINGLE_LINE_COMMENT, "///     a[i] == b[i]", 0)
+          TokenType.SINGLE_LINE_COMMENT, "///    a[i] == b[i]", 0)
     ];
     createParser('');
     List<CommentReference> references = parser.parseCommentReferences(tokens);

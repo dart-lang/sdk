@@ -1905,20 +1905,6 @@ NotAPrefixInTypeAnnotation:
           T.String field;
         }
 
-FunctionUsedAsDec:
-  problemMessage: "'Function' is a built-in identifier, could not used as a #name name."
-  script:
-    - class Function {}
-    - extension Function on int {}
-    - mixin Function {}
-
-FunctionAsTypeParameter:
-  problemMessage: "'Function' is a built-in identifier, could not used as a type identifier."
-  script:
-    - class C<Function> {}
-    - mixin A<Function> {}
-    - extension A<Function> on List<Function> {}
-
 UnresolvedPrefixInTypeAnnotation:
   problemMessage: "'#name.#name2' can't be used as a type because '#name' isn't defined."
   analyzerCode: NOT_A_TYPE
@@ -1964,7 +1950,7 @@ FastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=dart2js|dart2js_server|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+      --target=dart2js|dart2js_server|dart2wasm|dart_runner|dartdevc|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --enable-asserts
@@ -3309,6 +3295,9 @@ SuperAsIdentifier:
   problemMessage: "Expected identifier, but got 'super'."
   analyzerCode: SUPER_AS_EXPRESSION
 
+InvalidAugmentSuper:
+  problemMessage: "'augment super' is only allowed in member augmentations."
+
 SuperAsExpression:
   problemMessage: "Can't use 'super' as an expression."
   correctionMessage: "To delegate a constructor to a super constructor, put the super call as an initializer."
@@ -4453,22 +4442,6 @@ IncorrectTypeArgumentQualified:
     class C<T> { foo<U extends num>() {} }
     main() { new C<String>().foo<String>(); }
 
-IncorrectTypeArgumentInSupertype:
-  problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
-  correctionMessage: "Try changing type arguments so that they conform to the bounds."
-  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
-    class A<T extends num> {}
-    class B extends A<String> {}
-
-IncorrectTypeArgumentInReturnType:
-  problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type."
-  correctionMessage: "Try changing type arguments so that they conform to the bounds."
-  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
-    class A<T extends num> {}
-    A<String> foo() => throw '';
-
 IncorrectTypeArgumentInferred:
   problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
@@ -4484,14 +4457,6 @@ IncorrectTypeArgumentQualifiedInferred:
   script: >
     class C<T> { foo<U extends num>(U u) {} }
     main() { new C<String>().foo(""); }
-
-IncorrectTypeArgumentInSupertypeInferred:
-  problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
-  correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
-  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
-    class A<T extends A<T>> {}
-    class B extends A {}
 
 IncorrectTypeArgumentInstantiation:
   problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
@@ -4559,6 +4524,11 @@ GenericFunctionTypeInferredAsActualTypeArgument:
     foo<X>(X x) => null;
     bar<Y>(Y y) => null;
     main() { foo(bar); }
+
+GenericFunctionTypeAsTypeArgumentThroughTypedef:
+  problemMessage: "Generic function type '#type' used as a type argument through typedef '#type2'."
+  correctionMessage: "Try providing a non-generic function type explicitly."
+  analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
 
 # These two message templates are used for constructing supplemental text
 # about the origins of raw interface types in error messages containing types.
@@ -4681,11 +4651,6 @@ FfiPackedAnnotation:
 FfiPackedAnnotationAlignment:
   # Used by dart:ffi
   problemMessage: "Only packing to 1, 2, 4, 8, and 16 bytes is supported."
-  external: test/ffi_test.dart
-
-FfiPackedNestingNonPacked:
-  # Used by dart:ffi
-  problemMessage: "Nesting the non-packed or less tightly packed struct '#name' in a packed struct '#name2' is not supported."
   external: test/ffi_test.dart
 
 FfiSizeAnnotation:
@@ -5189,6 +5154,9 @@ JsInteropOperatorsNotSupported:
   problemMessage: "JS interop classes do not support operator methods."
   correctionMessage: "Try replacing this with a normal method."
 
+JsInteropInvalidStaticClassMemberName:
+  problemMessage: "JS interop static class members cannot have '.' in their JS name."
+
 JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
@@ -5196,6 +5164,14 @@ JsInteropStaticInteropWithInstanceMembers:
 JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
+
+JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop:
+  problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation."
+  correctionMessage: "Try marking the class using `@staticInterop`."
+
+JsInteropStaticInteropTrustTypesUsageNotAllowed:
+  problemMessage: "JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk."
+  correctionMessage: "Try removing the `@trustTypes` annotation."
 
 DefaultListConstructorError:
   problemMessage: "Can't use the default List constructor."
@@ -5229,6 +5205,19 @@ ClassInNullAwareReceiver:
     }
     method() {
       C?.field;
+    }
+
+ExtensionInNullAwareReceiver:
+  problemMessage: "The extension '#name' cannot be null."
+  correctionMessage: "Try replacing '?.' with '.'"
+  severity: WARNING
+  configuration: nnbd-strong
+  script: |
+    extension E on int {
+      static var field;
+    }
+    method() {
+      E?.field;
     }
 
 NonNullableNotAssignedError:
@@ -5601,3 +5590,69 @@ EnumImplementerContainsRestrictedInstanceDeclaration:
 
 EnumAbstractMember:
   problemMessage: "Enums can't declare abstract members."
+
+MixinInheritsFromNotObject:
+  problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
+  analyzerCode: MIXIN_INHERITS_FROM_NOT_OBJECT
+  script: |
+    class Base {}
+    class Mixin extends Base {}
+    class C extends Base with Mixin {}
+
+MixinApplicationNoConcreteMethod:
+  problemMessage: "The class doesn't have a concrete implementation of the super-invoked member '#name'."
+  analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+  script: |
+    class Super {
+      void method() {}
+    }
+    mixin Mixin on Super {
+      void method() {
+        super.method();
+      }
+    }
+    abstract class AbstractSuper implements Super {}
+    class Class extends AbstractSuper with Mixin {}
+
+MixinApplicationNoConcreteGetter:
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed member '#name'."
+  analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+  script: |
+    class Super {
+      int get getter => 42; 
+    }
+    mixin Mixin on Super {
+      int get getter {
+        return super.getter;
+      }
+    }
+    abstract class AbstractSuper implements Super {}
+    class Class extends AbstractSuper with Mixin {}
+
+MixinApplicationNoConcreteSetter:
+  problemMessage: "The class doesn't have a concrete implementation of the super-accessed setter '#name'."
+  analyzerCode: MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER
+  script: |
+    class Super {
+      void set setter(int value) {} 
+    }
+    mixin Mixin on Super {
+      void set setter(int value) {
+        super.setter = value;
+      }
+    }
+    abstract class AbstractSuper implements Super {}
+    class Class extends AbstractSuper with Mixin {}
+
+MixinApplicationNoConcreteMemberContext:
+  problemMessage: "This is the super-access that doesn't have a concrete target."
+  severity: CONTEXT
+
+NoAugmentSuperReadTarget:
+  problemMessage: "Cannot read from 'augment super'."
+
+NoAugmentSuperWriteTarget:
+  problemMessage: "Cannot write to 'augment super'."
+
+NoAugmentSuperInvokeTarget:
+  problemMessage: "Cannot call 'augment super'."

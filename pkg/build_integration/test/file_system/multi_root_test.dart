@@ -38,9 +38,9 @@ main() {
           .toString();
 
   setUp(() {
-    memoryFs = new MemoryFileSystem(root);
+    memoryFs = MemoryFileSystem(root);
     final rootUris = ['r1', 'r2/', 'A/B/', ''].map((r) => root.resolve(r)).toList();
-    multiRoot = new MultiRootFileSystem('multi-root', rootUris, memoryFs);
+    multiRoot = MultiRootFileSystem('multi-root', rootUris, memoryFs);
   });
 
   test('roots are normalized', () async {
@@ -120,7 +120,7 @@ main() {
 
     // If we remove '' as a root, those URIs are not resolved.
     multiRoot =
-        new MultiRootFileSystem('multi-root', [root.resolve('A/B/')], memoryFs);
+        MultiRootFileSystem('multi-root', [root.resolve('A/B/')], memoryFs);
     expect(await effectiveUriOf('multi-root:///../A/B/a/8.dart'),
         'multi-root:///A/B/a/8.dart');
     expect(await effectiveUriOf('multi-root:///../../A/B/a/8.dart'),

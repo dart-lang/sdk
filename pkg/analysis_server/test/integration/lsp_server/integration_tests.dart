@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -20,6 +20,8 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   LspServerClient? client;
   InstrumentationService? instrumentationService;
   final Map<num, Completer<ResponseMessage>> _completers = {};
+  String dartSdkPath = dirname(dirname(Platform.resolvedExecutable));
+
   LspByteStreamServerChannel get channel => client!.channel!;
 
   @override
@@ -84,7 +86,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
 
     final client = LspServerClient(instrumentationService);
     this.client = client;
-    await client.start(vmArgs: vmArgs);
+    await client.start(dartSdkPath: dartSdkPath, vmArgs: vmArgs);
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
         final id = message.id!.map((number) => number,
@@ -138,26 +140,24 @@ class LspServerClient {
     return dirname(pathname);
   }
 
-  Future start({List<String>? vmArgs}) async {
+  Future start({
+    required String dartSdkPath,
+    List<String>? vmArgs,
+  }) async {
     if (_process != null) {
       throw Exception('Process already started');
     }
 
-    var dartBinary = Platform.executable;
+    var dartBinary = join(dartSdkPath, 'bin', 'dart');
 
-    var useSnapshot = true;
+    // Setting the `TEST_SERVER_SNAPSHOT` env var to 'false' will disable the
+    // snapshot and run from source.
+    var useSnapshot = Platform.environment['TEST_SERVER_SNAPSHOT'] != 'false';
     String serverPath;
 
     if (useSnapshot) {
-      // Look for snapshots/analysis_server.dart.snapshot.
-      serverPath = normalize(join(dirname(Platform.resolvedExecutable),
-          'snapshots', 'analysis_server.dart.snapshot'));
-
-      if (!FileSystemEntity.isFileSync(serverPath)) {
-        // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
-        serverPath = normalize(join(dirname(Platform.resolvedExecutable),
-            'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
-      }
+      serverPath = normalize(join(
+          dartSdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
     } else {
       final rootDir =
           findRoot(Platform.script.toFilePath(windows: Platform.isWindows));

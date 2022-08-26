@@ -4,17 +4,10 @@
 
 library dart2js.code_output;
 
-import '../../compiler.dart';
+import '../../compiler_api.dart' as api show OutputSink;
+import 'code_output_listener.dart';
+export 'code_output_listener.dart';
 import 'source_information.dart';
-
-/// Listener interface for [CodeOutput] activity.
-abstract class CodeOutputListener {
-  /// Called when [text] is added to the output.
-  void onText(String text);
-
-  /// Called when the output is closed with a final length of [length].
-  void onDone(int length);
-}
 
 /// Interface for a mapping of target offsets to source locations and for
 /// tracking inlining frame data.
@@ -33,8 +26,9 @@ abstract class SourceLocations {
   ///
   /// The inlining call-site was made from [pushLocation] and calls
   /// [inlinedMethodName].
+  // TODO(48820): We might have a [pushPosition].
   void addPush(
-      int targetOffset, SourceLocation pushPosition, String inlinedMethodName);
+      int targetOffset, SourceLocation? pushPosition, String inlinedMethodName);
 
   /// Record a return of an inlining call at the [targetOffset].
   ///
@@ -68,7 +62,7 @@ class _SourceLocationsImpl implements SourceLocations {
   }
 
   @override
-  void addPush(int targetOffset, SourceLocation sourceLocation,
+  void addPush(int targetOffset, SourceLocation? sourceLocation,
       String inlinedMethodName) {
     assert(targetOffset <= codeOutput.length);
     List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
@@ -142,12 +136,11 @@ abstract class CodeOutput implements SourceLocationsProvider {
 }
 
 abstract class AbstractCodeOutput extends CodeOutput {
-  final List<CodeOutputListener> _listeners;
+  final List<CodeOutputListener>? _listeners;
 
   AbstractCodeOutput([this._listeners]);
 
-  Map<String, _SourceLocationsImpl> sourceLocationsMap =
-      <String, _SourceLocationsImpl>{};
+  Map<String, _SourceLocationsImpl> sourceLocationsMap = {};
   @override
   bool isClosed = false;
 
@@ -203,7 +196,7 @@ abstract class BufferedCodeOutput {
 class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
   StringBuffer buffer = StringBuffer();
 
-  CodeBuffer([List<CodeOutputListener> listeners]) : super(listeners);
+  CodeBuffer([List<CodeOutputListener>? listeners]) : super(listeners);
 
   @override
   void _addInternal(String text) {
@@ -228,9 +221,9 @@ class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
 class StreamCodeOutput extends AbstractCodeOutput {
   @override
   int length = 0;
-  final OutputSink output;
+  final api.OutputSink output;
 
-  StreamCodeOutput(this.output, [List<CodeOutputListener> listeners])
+  StreamCodeOutput(this.output, [List<CodeOutputListener>? listeners])
       : super(listeners);
 
   @override

@@ -575,7 +575,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateTypeAliasName_invalidCharacters() {
     assertRefactoringStatus(
         validateTypeAliasName('New-Name'), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Type alias name must not contain \'-\'.");
+        expectedMessage: "Type alias name must not contain '-'.");
   }
 
   void test_validateTypeAliasName_leadingBlanks() {

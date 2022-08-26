@@ -10,7 +10,7 @@ import 'dart:async';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
-import '../../compiler.dart' as api;
+import '../../compiler_api.dart' as api;
 
 import '../common.dart';
 import '../io/source_file.dart';
@@ -47,7 +47,6 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
     } catch (e) {
       throw fe.FileSystemException(uri, '$e');
     }
-    if (input == null) throw fe.FileSystemException(uri, "File not found");
     // TODO(sigmund): technically someone could provide dart2js with an input
     // that is not a SourceFile. Note that this assumption is also done in the
     // (non-kernel) ScriptLoader.
@@ -64,7 +63,6 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
     } catch (e) {
       throw fe.FileSystemException(uri, '$e');
     }
-    if (input == null) throw fe.FileSystemException(uri, "File not found");
     return input.data;
   }
 
@@ -74,9 +72,8 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
   @override
   Future<bool> exists() async {
     try {
-      api.Input input = await fs.inputProvider
-          .readFromUri(uri, inputKind: api.InputKind.binary);
-      return input != null;
+      await fs.inputProvider.readFromUri(uri, inputKind: api.InputKind.binary);
+      return true;
     } catch (e) {
       return false;
     }
@@ -91,9 +88,9 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
 void reportFrontEndMessage(
     DiagnosticReporter reporter, fe.DiagnosticMessage message) {
   Spannable _getSpannable(fe.DiagnosticMessage message) {
-    Uri uri = fe.getMessageUri(message);
-    int offset = fe.getMessageCharOffset(message);
-    int length = fe.getMessageLength(message);
+    Uri? uri = fe.getMessageUri(message);
+    int offset = fe.getMessageCharOffset(message)!;
+    int length = fe.getMessageLength(message)!;
     if (uri != null && offset != -1) {
       return SourceSpan(uri, offset, offset + length);
     } else {
@@ -103,11 +100,12 @@ void reportFrontEndMessage(
 
   DiagnosticMessage _convertMessage(fe.DiagnosticMessage message) {
     Spannable span = _getSpannable(message);
-    String text = fe.getMessageHeaderText(message);
-    return reporter.createMessage(span, MessageKind.GENERIC, {'text': text});
+    String? text = fe.getMessageHeaderText(message);
+    return reporter
+        .createMessage(span, MessageKind.GENERIC, {'text': text ?? ''});
   }
 
-  List<fe.DiagnosticMessage> relatedInformation =
+  Iterable<fe.DiagnosticMessage>? relatedInformation =
       fe.getMessageRelatedInformation(message);
   DiagnosticMessage mainMessage = _convertMessage(message);
   List<DiagnosticMessage> infos = relatedInformation != null
@@ -115,7 +113,7 @@ void reportFrontEndMessage(
       : const [];
   switch (message.severity) {
     case fe.Severity.internalProblem:
-      throw mainMessage.message.computeMessage();
+      throw mainMessage.message.message;
     case fe.Severity.error:
       reporter.reportError(mainMessage, infos);
       break;

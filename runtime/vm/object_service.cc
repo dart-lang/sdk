@@ -346,7 +346,13 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    // Token position information is stripped in AOT snapshots, but the line
+    // number is still included.
+    jsobj.AddLocationLine(script, line());
+#else
     jsobj.AddLocation(script, token_pos(), end_token_pos());
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
 
   if (ref) {
@@ -1572,16 +1578,10 @@ void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void Pointer::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // TODO(dacoharkes): what is the JSONStream used for?
-  // should it fail because it's not supported?
-  // or should it print something reasonable as default?
   Instance::PrintJSONImpl(stream, ref);
 }
 
 void DynamicLibrary::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // TODO(dacoharkes): what is the JSONStream used for?
-  // should it fail because it's not supported?
-  // or should it print something reasonable as default?
   Instance::PrintJSONImpl(stream, ref);
 }
 
@@ -1757,6 +1757,10 @@ void UserTag::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void FutureOr::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
+}
+
+void SuspendState::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
 

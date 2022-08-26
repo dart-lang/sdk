@@ -1,48 +1,29 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 part check_bounds_lib.dart;
 class A extends core::Object {
-  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B extends self::A {
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     ;
 }
-class Class<T extends self::A*> extends core::Object {
-  synthetic constructor •() → self::Class<self::Class::T*>*
+class Class<T extends self::A> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T>
     ;
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Extension<T extends self::B*> on self::Class<T*>* {
+extension Extension<T extends self::B> on self::Class<T> {
   method method = self::Extension|method;
   tearoff method = self::Extension|get#method;
   method genericMethod = self::Extension|genericMethod;
   tearoff genericMethod = self::Extension|get#genericMethod;
 }
-static final field self::A* a;
-static final field self::Class<self::A*>* classA;
+static final field self::A a;
+static final field self::Class<self::A> classA;
+static final field self::Class<self::B> classB;
 static final field dynamic field1;
 static final field dynamic field2;
 static final field dynamic field3;
@@ -56,7 +37,6 @@ static final field dynamic field10;
 static final field dynamic field11;
 static final field dynamic field12;
 static final field dynamic field13;
-static final field self::Class<self::B*>* classB;
 static final field dynamic field14;
 static final field dynamic field15;
 static final field dynamic field16;
@@ -73,17 +53,17 @@ static final field dynamic field26;
 static final field dynamic field27;
 static final field dynamic field28;
 static final field dynamic field29;
-static method Extension|method<T extends self::B*>(lowered final self::Class<self::Extension|method::T*>* #this) → dynamic
+static method Extension|method<T extends self::B>(lowered final self::Class<self::Extension|method::T> #this) → dynamic
   ;
-static method Extension|get#method<T extends self::B*>(lowered final self::Class<self::Extension|get#method::T*>* #this) → () →* dynamic
-  return () → dynamic => self::Extension|method<self::Extension|get#method::T*>(#this);
-static method Extension|genericMethod<T extends self::B*, S extends self::B*>(lowered final self::Class<self::Extension|genericMethod::T*>* #this, self::Extension|genericMethod::S* s) → dynamic
+static method Extension|get#method<T extends self::B>(lowered final self::Class<self::Extension|get#method::T> #this) → () → dynamic
+  return () → dynamic => self::Extension|method<self::Extension|get#method::T>(#this);
+static method Extension|genericMethod<T extends self::B, S extends self::B>(lowered final self::Class<self::Extension|genericMethod::T> #this, self::Extension|genericMethod::S s) → dynamic
   ;
-static method Extension|get#genericMethod<T extends self::B*>(lowered final self::Class<self::Extension|get#genericMethod::T*>* #this) → <S extends self::B*>(S*) →* dynamic
-  return <S extends self::B*>(S* s) → dynamic => self::Extension|genericMethod<self::Extension|get#genericMethod::T*, S*>(#this, s);
+static method Extension|get#genericMethod<T extends self::B>(lowered final self::Class<self::Extension|get#genericMethod::T> #this) → <S extends self::B>(S) → dynamic
+  return <S extends self::B>(S s) → dynamic => self::Extension|genericMethod<self::Extension|get#genericMethod::T, S>(#this, s);
 static method main() → dynamic
   ;
-static method test() → dynamic
+static method test(self::A a) → dynamic
   ;
-static method /* from org-dartlang-testcase:///check_bounds_lib.dart */ testInPart() → dynamic
+static method /* from org-dartlang-testcase:///check_bounds_lib.dart */ testInPart(self::A a) → dynamic
   ;

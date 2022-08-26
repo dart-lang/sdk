@@ -807,8 +807,8 @@ class ParserProxy extends analyzer.Parser {
         null,
         null,
         Token(Keyword.CLASS, 0),
-        astFactory.simpleIdentifier(
-            fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
+        astFactory.simpleIdentifier(fasta.StringTokenImpl.fromString(
+            TokenType.IDENTIFIER, className, 6)),
         null,
         null,
         null,

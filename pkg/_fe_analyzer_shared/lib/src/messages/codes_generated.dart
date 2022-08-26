@@ -3847,6 +3847,29 @@ const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
+    templateExtensionInNullAwareReceiver =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate: r"""The extension '#name' cannot be null.""",
+        correctionMessageTemplate: r"""Try replacing '?.' with '.'""",
+        withArguments: _withArgumentsExtensionInNullAwareReceiver);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeExtensionInNullAwareReceiver =
+    const Code<Message Function(String name)>("ExtensionInNullAwareReceiver",
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionInNullAwareReceiver(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeExtensionInNullAwareReceiver,
+      problemMessage: """The extension '${name}' cannot be null.""",
+      correctionMessage: """Try replacing '?.' with '.'""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
     templateExtensionMemberConflictsWithObjectMember =
     const Template<Message Function(String name)>(
         problemMessageTemplate:
@@ -4124,7 +4147,7 @@ const MessageCode messageFastaUsageLong =
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart2wasm|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts
@@ -4611,36 +4634,6 @@ const MessageCode messageFfiPackedAnnotationAlignment = const MessageCode(
         r"""Only packing to 1, 2, 4, 8, and 16 bytes is supported.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        String
-            name2)> templateFfiPackedNestingNonPacked = const Template<
-        Message Function(String name, String name2)>(
-    problemMessageTemplate:
-        r"""Nesting the non-packed or less tightly packed struct '#name' in a packed struct '#name2' is not supported.""",
-    withArguments: _withArgumentsFfiPackedNestingNonPacked);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeFfiPackedNestingNonPacked =
-    const Code<Message Function(String name, String name2)>(
-  "FfiPackedNestingNonPacked",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiPackedNestingNonPacked(String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  return new Message(codeFfiPackedNestingNonPacked,
-      problemMessage:
-          """Nesting the non-packed or less tightly packed struct '${name}' in a packed struct '${name2}' is not supported.""",
-      arguments: {'name': name, 'name2': name2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFfiSizeAnnotation =
     const Template<Message Function(String name)>(
         problemMessageTemplate:
@@ -5018,15 +5011,6 @@ const MessageCode messageForInLoopWithConstVariable = const MessageCode(
     correctionMessage: r"""Try removing the 'const' modifier.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFunctionAsTypeParameter = messageFunctionAsTypeParameter;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFunctionAsTypeParameter = const MessageCode(
-    "FunctionAsTypeParameter",
-    problemMessage:
-        r"""'Function' is a built-in identifier, could not used as a type identifier.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5046,30 +5030,6 @@ const MessageCode messageFunctionTypedParameterVar = const MessageCode(
     problemMessage:
         r"""Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.""",
     correctionMessage: r"""Try replacing the keyword with a return type.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(String name)> templateFunctionUsedAsDec = const Template<
-        Message Function(String name)>(
-    problemMessageTemplate:
-        r"""'Function' is a built-in identifier, could not used as a #name name.""",
-    withArguments: _withArgumentsFunctionUsedAsDec);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFunctionUsedAsDec =
-    const Code<Message Function(String name)>(
-  "FunctionUsedAsDec",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFunctionUsedAsDec(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeFunctionUsedAsDec,
-      problemMessage:
-          """'Function' is a built-in identifier, could not used as a ${name} name.""",
-      arguments: {'name': name});
-}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeGeneratorReturnsValue = messageGeneratorReturnsValue;
@@ -6333,6 +6293,15 @@ const MessageCode messageInterpolationInUri = const MessageCode(
     problemMessage: r"""Can't use string interpolation in a URI.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidAugmentSuper = messageInvalidAugmentSuper;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidAugmentSuper = const MessageCode(
+    "InvalidAugmentSuper",
+    problemMessage:
+        r"""'augment super' is only allowed in member augmentations.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidAwaitFor = messageInvalidAwaitFor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6908,6 +6877,16 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropInvalidStaticClassMemberName =
+    messageJsInteropInvalidStaticClassMemberName;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropInvalidStaticClassMemberName = const MessageCode(
+    "JsInteropInvalidStaticClassMemberName",
+    problemMessage:
+        r"""JS interop static class members cannot have '.' in their JS name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -7021,6 +7000,67 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     "JsInteropOperatorsNotSupported",
     problemMessage: r"""JS interop classes do not support operator methods.""",
     correctionMessage: r"""Try replacing this with a normal method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropStaticInteropTrustTypesUsageNotAllowed =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
+        correctionMessageTemplate:
+            r"""Try removing the `@trustTypes` annotation.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStaticInteropTrustTypesUsageNotAllowed =
+    const Code<Message Function(String name)>(
+  "JsInteropStaticInteropTrustTypesUsageNotAllowed",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropStaticInteropTrustTypesUsageNotAllowed,
+      problemMessage:
+          """JS interop class '${name}' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
+      correctionMessage: """Try removing the `@trustTypes` annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
+        correctionMessageTemplate:
+            r"""Try marking the class using `@staticInterop`.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop =
+    const Code<Message Function(String name)>(
+  "JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(
+      codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
+      problemMessage:
+          """JS interop class '${name}' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
+      correctionMessage: """Try marking the class using `@staticInterop`.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
@@ -7748,6 +7788,101 @@ const MessageCode messageMissingTypedefParameters = const MessageCode(
     correctionMessage: r"""Try adding a parameter list to the typedef.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMixinApplicationNoConcreteGetter = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class doesn't have a concrete implementation of the super-accessed member '#name'.""",
+    withArguments: _withArgumentsMixinApplicationNoConcreteGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMixinApplicationNoConcreteGetter =
+    const Code<Message Function(String name)>(
+        "MixinApplicationNoConcreteGetter",
+        analyzerCodes: <String>[
+      "MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinApplicationNoConcreteGetter(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMixinApplicationNoConcreteGetter,
+      problemMessage:
+          """The class doesn't have a concrete implementation of the super-accessed member '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinApplicationNoConcreteMemberContext =
+    messageMixinApplicationNoConcreteMemberContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinApplicationNoConcreteMemberContext =
+    const MessageCode("MixinApplicationNoConcreteMemberContext",
+        severity: Severity.context,
+        problemMessage:
+            r"""This is the super-access that doesn't have a concrete target.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMixinApplicationNoConcreteMethod = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class doesn't have a concrete implementation of the super-invoked member '#name'.""",
+    withArguments: _withArgumentsMixinApplicationNoConcreteMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMixinApplicationNoConcreteMethod =
+    const Code<Message Function(String name)>(
+        "MixinApplicationNoConcreteMethod",
+        analyzerCodes: <String>[
+      "MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinApplicationNoConcreteMethod(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMixinApplicationNoConcreteMethod,
+      problemMessage:
+          """The class doesn't have a concrete implementation of the super-invoked member '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMixinApplicationNoConcreteSetter = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class doesn't have a concrete implementation of the super-accessed setter '#name'.""",
+    withArguments: _withArgumentsMixinApplicationNoConcreteSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMixinApplicationNoConcreteSetter =
+    const Code<Message Function(String name)>(
+        "MixinApplicationNoConcreteSetter",
+        analyzerCodes: <String>[
+      "MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinApplicationNoConcreteSetter(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMixinApplicationNoConcreteSetter,
+      problemMessage:
+          """The class doesn't have a concrete implementation of the super-accessed setter '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMixinDeclaresConstructor = messageMixinDeclaresConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7764,6 +7899,31 @@ const MessageCode messageMixinFunction = const MessageCode("MixinFunction",
     severity: Severity.ignored,
     problemMessage: r"""Mixing in 'Function' is deprecated.""",
     correctionMessage: r"""Try removing 'Function' from the 'with' clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateMixinInheritsFromNotObject = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The class '#name' can't be used as a mixin because it extends a class other than 'Object'.""",
+    withArguments: _withArgumentsMixinInheritsFromNotObject);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMixinInheritsFromNotObject =
+    const Code<Message Function(String name)>("MixinInheritsFromNotObject",
+        analyzerCodes: <String>["MIXIN_INHERITS_FROM_NOT_OBJECT"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinInheritsFromNotObject(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMixinInheritsFromNotObject,
+      problemMessage:
+          """The class '${name}' can't be used as a mixin because it extends a class other than 'Object'.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -8023,6 +8183,32 @@ const Code<Null> codeNewAsSelector = messageNewAsSelector;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNewAsSelector = const MessageCode("NewAsSelector",
     problemMessage: r"""'new' can only be used as a constructor reference.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNoAugmentSuperInvokeTarget =
+    messageNoAugmentSuperInvokeTarget;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNoAugmentSuperInvokeTarget = const MessageCode(
+    "NoAugmentSuperInvokeTarget",
+    problemMessage: r"""Cannot call 'augment super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNoAugmentSuperReadTarget = messageNoAugmentSuperReadTarget;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNoAugmentSuperReadTarget = const MessageCode(
+    "NoAugmentSuperReadTarget",
+    problemMessage: r"""Cannot read from 'augment super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNoAugmentSuperWriteTarget =
+    messageNoAugmentSuperWriteTarget;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNoAugmentSuperWriteTarget = const MessageCode(
+    "NoAugmentSuperWriteTarget",
+    problemMessage: r"""Cannot write to 'augment super'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

@@ -9,13 +9,16 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/native_data.dart' show NativeBasicData;
-import '../js_model/js_world_builder.dart' show JsToFrontendMap;
+import '../js_model/js_to_frontend_map.dart' show JsToFrontendMap;
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
 
-typedef TypeLookup = Object /*DartType|SpecialType*/
+import 'native_throw_behavior.dart';
+export 'native_throw_behavior.dart';
+
+typedef TypeLookup = Object? /*DartType|SpecialType*/
     Function(String typeString, {bool required});
 
 /// This class is a temporary work-around until we get a more powerful DartType.
@@ -38,94 +41,6 @@ class SpecialType {
     } else {
       throw UnsupportedError("Unknown SpecialType '$name'.");
     }
-  }
-}
-
-/// Description of the exception behaviour of native code.
-class NativeThrowBehavior {
-  static const NativeThrowBehavior NEVER = NativeThrowBehavior._(0);
-  static const NativeThrowBehavior MAY = NativeThrowBehavior._(1);
-
-  /// Throws only if first argument is null.
-  static const NativeThrowBehavior NULL_NSM = NativeThrowBehavior._(2);
-
-  /// Throws if first argument is null, then may throw.
-  static const NativeThrowBehavior NULL_NSM_THEN_MAY = NativeThrowBehavior._(3);
-
-  final int _bits;
-  const NativeThrowBehavior._(this._bits);
-
-  bool get canThrow => this != NEVER;
-
-  /// Does this behavior always throw a noSuchMethod check on a null first
-  /// argument before any side effect or other exception?
-  bool get isNullNSMGuard => this == NULL_NSM || this == NULL_NSM_THEN_MAY;
-
-  /// Does this behavior always act as a null noSuchMethod check, and has no
-  /// other throwing behavior?
-  bool get isOnlyNullNSMGuard => this == NULL_NSM;
-
-  /// Returns the behavior if we assume the first argument is not null.
-  NativeThrowBehavior get onNonNull {
-    if (this == NULL_NSM) return NEVER;
-    if (this == NULL_NSM_THEN_MAY) return MAY;
-    return this;
-  }
-
-  @override
-  String toString() {
-    if (this == NEVER) return 'never';
-    if (this == MAY) return 'may';
-    if (this == NULL_NSM) return 'null(1)';
-    if (this == NULL_NSM_THEN_MAY) return 'null(1)+may';
-    return 'NativeThrowBehavior($_bits)';
-  }
-
-  /// Canonical list of marker values.
-  ///
-  /// Added to make [NativeThrowBehavior] enum-like.
-  static const List<NativeThrowBehavior> values = [
-    NEVER,
-    MAY,
-    NULL_NSM,
-    NULL_NSM_THEN_MAY,
-  ];
-
-  /// Index to this marker within [values].
-  ///
-  /// Added to make [NativeThrowBehavior] enum-like.
-  int get index => values.indexOf(this);
-
-  /// Deserializer helper.
-  static NativeThrowBehavior _bitsToValue(int bits) {
-    switch (bits) {
-      case 0:
-        return NEVER;
-      case 1:
-        return MAY;
-      case 2:
-        return NULL_NSM;
-      case 3:
-        return NULL_NSM_THEN_MAY;
-      default:
-        return null;
-    }
-  }
-
-  /// Sequence operator.
-  NativeThrowBehavior then(NativeThrowBehavior second) {
-    if (this == NEVER) return second;
-    if (this == MAY) return MAY;
-    if (this == NULL_NSM_THEN_MAY) return NULL_NSM_THEN_MAY;
-    assert(this == NULL_NSM);
-    if (second == NEVER) return this;
-    return NULL_NSM_THEN_MAY;
-  }
-
-  /// Choice operator.
-  NativeThrowBehavior or(NativeThrowBehavior other) {
-    if (this == other) return this;
-    return MAY;
   }
 }
 
@@ -170,10 +85,10 @@ class NativeBehavior {
   /// element.
   final List<Object> typesInstantiated = [];
 
-  String codeTemplateText;
+  String? codeTemplateText;
   // If this behavior is for a JS expression, [codeTemplate] contains the
   // parsed tree.
-  js.Template codeTemplate;
+  js.Template? codeTemplate;
 
   final SideEffects sideEffects;
 
@@ -211,7 +126,7 @@ class NativeBehavior {
 
     List<Object> typesReturned = readTypes();
     List<Object> typesInstantiated = readTypes();
-    String codeTemplateText = source.readStringOrNull();
+    String? codeTemplateText = source.readStringOrNull();
     SideEffects sideEffects = SideEffects.readFromDataSource(source);
     int throwBehavior = source.readInt();
     bool isAllocation = source.readBool();
@@ -225,8 +140,8 @@ class NativeBehavior {
       behavior.codeTemplateText = codeTemplateText;
       behavior.codeTemplate = js.js.parseForeignJS(codeTemplateText);
     }
-    behavior.throwBehavior = NativeThrowBehavior._bitsToValue(throwBehavior);
-    assert(behavior.throwBehavior._bits == throwBehavior);
+    behavior.throwBehavior = NativeThrowBehavior.bitsToValue(throwBehavior);
+    assert(behavior.throwBehavior.valueToBits() == throwBehavior);
     behavior.isAllocation = isAllocation;
     behavior.useGvn = useGvn;
     return behavior;
@@ -243,7 +158,7 @@ class NativeBehavior {
         if (type is DartType) {
           dartTypes.add(type);
         } else {
-          specialTypes.add(type);
+          specialTypes.add(type as SpecialType);
         }
       }
       sink.writeDartTypes(dartTypes);
@@ -257,7 +172,7 @@ class NativeBehavior {
     writeTypes(typesInstantiated);
     sink.writeStringOrNull(codeTemplateText);
     sideEffects.writeToDataSink(sink);
-    sink.writeInt(throwBehavior._bits);
+    sink.writeInt(throwBehavior.valueToBits());
     sink.writeBool(isAllocation);
     sink.writeBool(useGvn);
     sink.end(tag);
@@ -367,14 +282,14 @@ class NativeBehavior {
   /// [validTags] can be used to restrict which tags are accepted.
   static void processSpecString(DartTypes dartTypes,
       DiagnosticReporter reporter, Spannable spannable, String specString,
-      {Iterable<String> validTags,
-      void setSideEffects(SideEffects newEffects),
-      void setThrows(NativeThrowBehavior throwKind),
-      void setIsAllocation(bool isAllocation),
-      void setUseGvn(bool useGvn),
-      TypeLookup lookupType,
-      List<Object> typesReturned,
-      List<Object> typesInstantiated,
+      {Iterable<String>? validTags,
+      required void setSideEffects(SideEffects newEffects),
+      void Function(NativeThrowBehavior)? setThrows,
+      void Function(bool)? setIsAllocation,
+      void Function(bool)? setUseGvn,
+      required TypeLookup lookupType,
+      required List<Object> typesReturned,
+      required List<Object> typesInstantiated,
       objectType,
       nullType}) {
     bool seenError = false;
@@ -400,7 +315,9 @@ class NativeBehavior {
     /// *  '' or 'var' - in which case [onVar] is called,
     /// *  'T1|...|Tn' - in which case [onType] is called for each resolved Ti.
     void resolveTypesString(DartTypes dartTypes, String typesString,
-        {onVoid(), onVar(), onType(type)}) {
+        {void Function()? onVoid,
+        void Function()? onVar,
+        required void Function(Object) onType}) {
       // Various things that are not in fact types.
       if (typesString == 'void') {
         if (onVoid != null) {
@@ -465,11 +382,8 @@ class NativeBehavior {
     }
 
     // Enum-like tags are looked up in a map. True signature is:
-    //
-    //  T tagValueLookup<T>(String tag, Map<String, T> map);
-    //
-    dynamic tagValueLookup(String tag, Map<String, dynamic> map) {
-      String tagString = values[tag];
+    T? tagValueLookup<T>(String tag, Map<String, T> map) {
+      String? tagString = values[tag];
       if (tagString == null) return null;
       var value = map[tagString];
       if (value == null) {
@@ -478,7 +392,7 @@ class NativeBehavior {
       return value;
     }
 
-    String returns = values['returns'];
+    String? returns = values['returns'];
     if (returns != null) {
       resolveTypesString(dartTypes, returns, onVar: () {
         typesReturned.add(objectType);
@@ -488,7 +402,7 @@ class NativeBehavior {
       });
     }
 
-    String creates = values['creates'];
+    String? creates = values['creates'];
     if (creates != null) {
       resolveTypesString(dartTypes, creates, onVoid: () {
         reportError("Invalid type string 'creates:$creates'");
@@ -510,11 +424,11 @@ class NativeBehavior {
 
     const boolOptions = <String, bool>{'true': true, 'false': false};
 
-    SideEffects sideEffects =
+    SideEffects? sideEffects =
         processEffects(reportError, values['effects'], values['depends']);
-    NativeThrowBehavior throwsKind = tagValueLookup('throws', throwsOption);
-    bool isAllocation = tagValueLookup('new', boolOptions);
-    bool useGvn = tagValueLookup('gvn', boolOptions);
+    NativeThrowBehavior? throwsKind = tagValueLookup('throws', throwsOption);
+    bool? isAllocation = tagValueLookup('new', boolOptions);
+    bool? useGvn = tagValueLookup('gvn', boolOptions);
 
     if (isAllocation == true && useGvn == true) {
       reportError("'new' and 'gvn' are incompatible");
@@ -525,13 +439,31 @@ class NativeBehavior {
     // TODO(sra): Simplify [throwBehavior] using [sideEffects].
 
     if (sideEffects != null) setSideEffects(sideEffects);
-    if (throwsKind != null) setThrows(throwsKind);
-    if (isAllocation != null) setIsAllocation(isAllocation);
-    if (useGvn != null) setUseGvn(useGvn);
+    if (throwsKind != null) {
+      if (setThrows == null) {
+        reportError("'throws' not allowed here");
+      } else {
+        setThrows(throwsKind);
+      }
+    }
+    if (isAllocation != null) {
+      if (setIsAllocation == null) {
+        reportError("'allocation' not allowed here");
+      } else {
+        setIsAllocation(isAllocation);
+      }
+    }
+    if (useGvn != null) {
+      if (setUseGvn == null) {
+        reportError("'gvn' not allowed here");
+      } else {
+        setUseGvn(useGvn);
+      }
+    }
   }
 
-  static SideEffects processEffects(
-      void reportError(String message), String effects, String depends) {
+  static SideEffects? processEffects(
+      void reportError(String message), String? effects, String? depends) {
     if (effects == null && depends == null) return null;
 
     if (effects == null || depends == null) {
@@ -613,7 +545,7 @@ class NativeBehavior {
     NativeBehavior behavior = NativeBehavior();
 
     behavior.codeTemplateText = codeString;
-    behavior.codeTemplate = js.js.parseForeignJS(behavior.codeTemplateText);
+    behavior.codeTemplate = js.js.parseForeignJS(codeString);
 
     bool sideEffectsAreEncodedInSpecString = false;
 
@@ -648,11 +580,12 @@ class NativeBehavior {
         nullType: commonElements.nullType);
 
     if (!sideEffectsAreEncodedInSpecString) {
-      SideEffectsVisitor(behavior.sideEffects).visit(behavior.codeTemplate.ast);
+      SideEffectsVisitor(behavior.sideEffects)
+          .visit(behavior.codeTemplate!.ast);
     }
     if (!throwBehaviorFromSpecString) {
       behavior.throwBehavior =
-          ThrowBehaviorVisitor().analyze(behavior.codeTemplate.ast);
+          ThrowBehaviorVisitor().analyze(behavior.codeTemplate!.ast);
     }
 
     return behavior;
@@ -665,7 +598,7 @@ class NativeBehavior {
       TypeLookup lookupType,
       DiagnosticReporter reporter,
       CommonElements commonElements,
-      {List<String> validTags}) {
+      {List<String>? validTags}) {
     void setSideEffects(SideEffects newEffects) {
       behavior.sideEffects.setTo(newEffects);
     }
@@ -711,7 +644,7 @@ class NativeBehavior {
     return behavior;
   }
 
-  static dynamic /*DartType|SpecialType*/ _parseType(
+  static Object /*DartType|SpecialType*/ _parseType(
       DartTypes dartTypes, String typeString, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
@@ -768,7 +701,7 @@ class BehaviorBuilder {
   final CompilerOptions options;
   DartTypes get dartTypes => commonElements.dartTypes;
 
-  NativeBehavior _behavior;
+  late NativeBehavior _behavior;
 
   BehaviorBuilder(this.elementEnvironment, this.commonElements,
       this.nativeBasicData, this.reporter, this.options);
@@ -777,8 +710,8 @@ class BehaviorBuilder {
       Iterable<String> returnsAnnotations, TypeLookup lookupType) {
     if (createsAnnotations.isEmpty && returnsAnnotations.isEmpty) return;
 
-    List<Object> creates = _collect(createsAnnotations, lookupType);
-    List<Object> returns = _collect(returnsAnnotations, lookupType);
+    List<Object>? creates = _collect(createsAnnotations, lookupType);
+    List<Object>? returns = _collect(returnsAnnotations, lookupType);
 
     if (creates != null) {
       _behavior.typesInstantiated
@@ -795,14 +728,13 @@ class BehaviorBuilder {
   /// Returns a list of type constraints from the annotations of
   /// [annotationClass].
   /// Returns `null` if no constraints.
-  List<dynamic> _collect(Iterable<String> annotations, TypeLookup lookupType) {
-    List<dynamic> types = null;
+  List<Object>? _collect(Iterable<String> annotations, TypeLookup lookupType) {
+    List<Object>? types = null;
     for (String specString in annotations) {
       for (final typeString in specString.split('|')) {
         var type = NativeBehavior._parseType(
             commonElements.dartTypes, typeString, lookupType);
-        if (types == null) types = [];
-        types.add(type);
+        (types ??= []).add(type);
       }
     }
     return types;
@@ -887,7 +819,7 @@ class BehaviorBuilder {
       Iterable<String> createsAnnotations,
       Iterable<String> returnsAnnotations,
       TypeLookup lookupType,
-      {bool isJsInterop}) {
+      {required bool isJsInterop}) {
     _behavior = NativeBehavior();
     // TODO(sigmund,sra): consider doing something better for numeric types.
     _addReturnType(!isJsInterop ? type : commonElements.dynamicType);
@@ -912,7 +844,7 @@ class BehaviorBuilder {
       Iterable<String> createAnnotations,
       Iterable<String> returnsAnnotations,
       TypeLookup lookupType,
-      {bool isJsInterop}) {
+      {required bool isJsInterop}) {
     _behavior = NativeBehavior();
     DartType returnType = type.returnType;
     // Note: For dart:html and other internal libraries we maintain, we can
@@ -944,19 +876,24 @@ List<String> _getAnnotations(DartTypes dartTypes, DiagnosticReporter reporter,
     Iterable<ConstantValue> metadata, ClassEntity cls) {
   List<String> annotations = [];
   for (ConstantValue value in metadata) {
-    if (!value.isConstructedObject) continue;
-    ConstructedConstantValue constructedObject = value;
-    if (constructedObject.type.element != cls) continue;
+    if (value is ConstructedConstantValue) {
+      if (value.type.element != cls) continue;
 
-    Iterable<ConstantValue> fields = constructedObject.fields.values;
-    // TODO(sra): Better validation of the constant.
-    if (fields.length != 1 || !fields.single.isString) {
-      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-          'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
+      Iterable<ConstantValue> fields = value.fields.values;
+      // TODO(sra): Better validation of the constant.
+      if (fields.length == 1) {
+        ConstantValue field = fields.single;
+        if (field is StringConstantValue) {
+          annotations.add(field.stringValue);
+          continue;
+        }
+      }
+
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE,
+          'Annotations needs one string: '
+          '${value.toStructuredText(dartTypes)}');
     }
-    StringConstantValue specStringConstant = fields.single;
-    String specString = specStringConstant.stringValue;
-    annotations.add(specString);
   }
   return annotations;
 }

@@ -45,7 +45,7 @@ class TypeCheck {
 class ClassChecks {
   final Map<ClassEntity, TypeCheck> _map;
 
-  final ClassFunctionType functionType;
+  final ClassFunctionType? functionType;
 
   ClassChecks(this.functionType) : _map = {};
 
@@ -61,7 +61,7 @@ class ClassChecks {
     checks.forEach(add);
   }
 
-  TypeCheck operator [](ClassEntity cls) => _map[cls];
+  TypeCheck? operator [](ClassEntity cls) => _map[cls];
 
   Iterable<TypeCheck> get checks => _map.values;
 
@@ -92,7 +92,7 @@ class Substitution {
   final bool isFunction;
   final List<DartType> arguments;
   final List<DartType> parameters;
-  final int length;
+  final int? length;
 
   const Substitution.trivial()
       : isTrivial = true,

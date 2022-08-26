@@ -38,7 +38,7 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: a@47
+      staticElement: self::@function::f::@parameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -71,7 +71,7 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: a@43
+      staticElement: self::@function::f::@parameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -102,11 +102,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@63
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@63
+  readElement: self::@function::f::@parameter::x
   readType: A
-  writeElement: x@63
+  writeElement: self::@function::f::@parameter::x
   writeType: Object
   staticElement: self::@class::A::@method::+
   staticType: Object
@@ -130,7 +130,7 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: a@38
+      staticElement: self::@function::f::@parameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -167,7 +167,7 @@ PrefixExpression
   operand: PropertyAccess
     target: SimpleIdentifier
       token: a
-      staticElement: a@43
+      staticElement: self::@function::f::@parameter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -241,7 +241,7 @@ PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
-    staticElement: x@12
+    staticElement: self::@function::f::@parameter::x
     staticType: bool
   staticElement: <null>
   staticType: bool
@@ -252,7 +252,7 @@ PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
-    staticElement: x@12
+    staticElement: self::@function::f::@parameter::x
     staticType: bool*
   staticElement: <null>
   staticType: bool*
@@ -276,7 +276,7 @@ PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: int
   staticElement: <null>
   staticType: bool
@@ -287,7 +287,7 @@ PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: int*
   staticElement: <null>
   staticType: bool*
@@ -315,11 +315,12 @@ PrefixExpression
   operand: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@91
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -338,11 +339,12 @@ PrefixExpression
   operand: IndexExpression
     target: SimpleIdentifier
       token: a
-      staticElement: a@91
+      staticElement: self::@function::f::@parameter::a
       staticType: A*
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -385,6 +387,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -407,6 +410,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -447,6 +451,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int
     rightBracket: ]
     staticElement: <null>
@@ -469,6 +474,7 @@ PrefixExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
+      parameter: self::@class::A::@method::[]=::@parameter::index
       staticType: int*
     rightBracket: ]
     staticElement: <null>
@@ -499,7 +505,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: int
   staticElement: dart:core::@class::int::@method::unary-
   staticType: int
@@ -510,7 +516,7 @@ PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: int*
   staticElement: MethodMember
     base: dart:core::@class::int::@method::unary-
@@ -552,7 +558,8 @@ PrefixExpression
       arguments
         SimpleIdentifier
           token: c
-          staticElement: c@89
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::c
           staticType: C
       rightParenthesis: )
     extendedType: C
@@ -578,7 +585,8 @@ PrefixExpression
       arguments
         SimpleIdentifier
           token: c
-          staticElement: c@89
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::c
           staticType: C*
       rightParenthesis: )
     extendedType: C*
@@ -655,7 +663,7 @@ PrefixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@35
+      staticElement: self::@function::f::@parameter::a
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -678,7 +686,7 @@ PrefixExpression
   operand: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      staticElement: a@35
+      staticElement: self::@function::f::@parameter::a
       staticType: A*
     period: .
     identifier: SimpleIdentifier
@@ -700,7 +708,7 @@ PrefixExpression
   }
 
   test_plusPlus_prefixedIdentifier_topLevel() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 int x = 0;
 ''');
     await assertNoErrorsInCode(r'''
@@ -981,11 +989,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@14
+  readElement: self::@function::f::@parameter::x
   readType: double
-  writeElement: x@14
+  writeElement: self::@function::f::@parameter::x
   writeType: double
   staticElement: dart:core::@class::double::@method::+
   staticType: double
@@ -996,11 +1004,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@14
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@14
+  readElement: self::@function::f::@parameter::x
   readType: double*
-  writeElement: x@14
+  writeElement: self::@function::f::@parameter::x
   writeType: double*
   staticElement: MethodMember
     base: dart:core::@class::double::@method::+
@@ -1024,11 +1032,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: int
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: int
   staticElement: dart:core::@class::num::@method::+
   staticType: int
@@ -1039,11 +1047,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: int*
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: int*
   staticElement: MethodMember
     base: dart:core::@class::num::@method::+
@@ -1067,11 +1075,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: num
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: num
   staticElement: dart:core::@class::num::@method::+
   staticType: num
@@ -1082,11 +1090,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@11
+  readElement: self::@function::f::@parameter::x
   readType: num*
-  writeElement: x@11
+  writeElement: self::@function::f::@parameter::x
   writeType: num*
   staticElement: MethodMember
     base: dart:core::@class::num::@method::+
@@ -1115,11 +1123,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@24
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@24
+  readElement: self::@function::f::@parameter::x
   readType: T
-  writeElement: x@24
+  writeElement: self::@function::f::@parameter::x
   writeType: T
   staticElement: dart:core::@class::num::@method::+
   staticType: num
@@ -1130,11 +1138,11 @@ PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
-    staticElement: x@24
+    staticElement: self::@function::f::@parameter::x
     staticType: null
-  readElement: x@24
+  readElement: self::@function::f::@parameter::x
   readType: T*
-  writeElement: x@24
+  writeElement: self::@function::f::@parameter::x
   writeType: T*
   staticElement: MethodMember
     base: dart:core::@class::num::@method::+
@@ -1192,10 +1200,6 @@ PrefixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_plusPlus_simpleIdentifier_thisGetter_thisSetter() async {
@@ -1243,10 +1247,6 @@ PrefixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter() async {
@@ -1294,10 +1294,6 @@ PrefixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   test_plusPlus_simpleIdentifier_topGetter_topSetter_fromClass() async {
@@ -1347,10 +1343,6 @@ PrefixExpression
   staticType: int*
 ''');
     }
-
-    assertSimpleIdentifierAssignmentTarget(
-      node.operand,
-    );
   }
 
   /// Verify that we get all necessary types when building the dependencies
@@ -1414,7 +1406,7 @@ PrefixExpression
   operator: ~
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: int
   staticElement: dart:core::@class::int::@method::~
   staticType: int
@@ -1425,7 +1417,7 @@ PrefixExpression
   operator: ~
   operand: SimpleIdentifier
     token: x
-    staticElement: x@11
+    staticElement: self::@function::f::@parameter::x
     staticType: int*
   staticElement: MethodMember
     base: dart:core::@class::int::@method::~

@@ -74,7 +74,7 @@ class TimedProgressPrinter extends EventListener {
   int _numTests = 0;
   int _numCompleted = 0;
   bool _allKnown = false;
-  Timer _timer;
+  late Timer _timer;
 
   TimedProgressPrinter() {
     _timer = Timer.periodic(interval, callback);
@@ -180,7 +180,7 @@ class UnexpectedCrashLogger extends EventListener {
         }
 
         // We have found and copied the binary.
-        RandomAccessFile unexpectedCrashesFile;
+        RandomAccessFile? unexpectedCrashesFile;
         try {
           unexpectedCrashesFile =
               File('unexpected-crashes').openSync(mode: FileMode.append);
@@ -205,7 +205,7 @@ class UnexpectedCrashLogger extends EventListener {
 class SummaryPrinter extends EventListener {
   final bool jsonOnly;
 
-  SummaryPrinter({bool jsonOnly}) : jsonOnly = jsonOnly ?? false;
+  SummaryPrinter({this.jsonOnly = false});
 
   void allTestsKnown() {
     if (jsonOnly) {
@@ -228,8 +228,7 @@ class TimingPrinter extends EventListener {
     for (var commandOutput in test.commandOutputs.values) {
       var command = commandOutput.command;
       _commandOutputs.add(commandOutput);
-      _commandToTestCases.putIfAbsent(command, () => <TestCase>[]);
-      _commandToTestCases[command].add(test);
+      _commandToTestCases.putIfAbsent(command, () => <TestCase>[]).add(test);
     }
   }
 
@@ -240,10 +239,9 @@ class TimingPrinter extends EventListener {
     outputs.sort((a, b) {
       return b.time.inMilliseconds - a.time.inMilliseconds;
     });
-    for (var i = 0; i < 20 && i < outputs.length; i++) {
-      var commandOutput = outputs[i];
+    for (var commandOutput in outputs.take(20)) {
       var command = commandOutput.command;
-      var testCases = _commandToTestCases[command];
+      var testCases = _commandToTestCases[command]!;
 
       var testCasesDescription = testCases.map((testCase) {
         return "${testCase.configurationString}/${testCase.displayName}";
@@ -381,7 +379,7 @@ abstract class ProgressIndicator extends EventListener {
 
   ProgressIndicator(this._startTime);
 
-  static EventListener fromProgress(
+  static EventListener? fromProgress(
       Progress progress, DateTime startTime, Formatter formatter) {
     switch (progress) {
       case Progress.compact:
@@ -461,7 +459,7 @@ class LineProgressIndicator extends ProgressIndicator {
 }
 
 class BuildbotProgressIndicator extends ProgressIndicator {
-  static String stepName;
+  static String? stepName;
 
   BuildbotProgressIndicator(DateTime startTime) : super(startTime);
 
@@ -493,9 +491,9 @@ String _timeString(Duration duration) {
 /// Builds and formats the failure output for a failed test.
 class OutputWriter {
   final Formatter _formatter;
-  final List<String> _lines;
-  String _pendingSection;
-  String _pendingSubsection;
+  final List<String?> _lines;
+  String? _pendingSection;
+  String? _pendingSubsection;
   bool _pendingLine = false;
 
   OutputWriter(this._formatter, this._lines);
@@ -511,7 +509,7 @@ class OutputWriter {
     _pendingLine = false;
   }
 
-  void write(String line) {
+  void write(String? line) {
     _writePending();
     _lines.add(line);
   }
@@ -654,8 +652,8 @@ class ResultWriter extends EventListener {
     var index = name.indexOf('/');
     var suite = name.substring(0, index);
     var testName = name.substring(index + 1);
-    var time =
-        test.commandOutputs.values.fold(Duration.zero, (d, o) => d + o.time);
+    var time = test.commandOutputs.values
+        .fold<Duration>(Duration.zero, (d, o) => d + o.time);
     var experiments = test.experiments;
     var record = {
       "name": name,
@@ -686,7 +684,6 @@ class ResultWriter extends EventListener {
   }
 
   void writeOutputFile(List<Map> results, String fileName) {
-    if (_outputDirectory == null) return;
     var path = Uri.directory(_outputDirectory).resolve(fileName);
     File.fromUri(path)
         .writeAsStringSync(newlineTerminated(results.map(jsonEncode)));

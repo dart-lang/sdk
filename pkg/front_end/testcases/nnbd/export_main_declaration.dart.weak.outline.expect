@@ -314,7 +314,7 @@ library /*isNonNullableByDefault*/;
 import self as mai7;
 import "dart:core" as core;
 
-static method main({core::List<core::String> args}) → void
+static method main({has-declared-initializer core::List<core::String> args}) → void
   ;
 
 library /*isNonNullableByDefault*/;
@@ -370,7 +370,7 @@ library /*isNonNullableByDefault*/;
 import self as mai13;
 import "dart:core" as core;
 
-static method main([core::List<core::String> args, dynamic other]) → void
+static method main([has-declared-initializer core::List<core::String> args, dynamic other]) → void
   ;
 
 library /*isNonNullableByDefault*/;

@@ -327,11 +327,11 @@ class DuplicateDefinitionVerifier {
     CompilationUnitElement element = node.declaredElement!;
     if (element != _currentLibrary.definingCompilationUnit) {
       addWithoutChecking(_currentLibrary.definingCompilationUnit);
-      for (CompilationUnitElement part in _currentLibrary.parts) {
-        if (element == part) {
+      for (final unitElement in _currentLibrary.units) {
+        if (element == unitElement) {
           break;
         }
-        addWithoutChecking(part);
+        addWithoutChecking(unitElement);
       }
     }
     for (CompilationUnitMember member in node.declarations) {

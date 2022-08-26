@@ -38,7 +38,7 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
 
   // TODO(rnystrom): Remove this in favor of using surveyor for these kinds of
   // analyses.
-  /// Whether the visitor is currently inside a Flutter "build" method,
+  /// Whether the visitor is currently inside Flutter's "build" method,
   /// either directly or nested inside some other function inside one.
   ///
   /// This is only an approximate guess. It assumes a method is a "build"-like

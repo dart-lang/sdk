@@ -59,6 +59,7 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       receiver_context_(Context::Handle(zone)),
       receiver_function_(Function::Handle(zone)),
       parent_function_(Function::Handle(zone)),
+      suspend_state_(SuspendState::Handle(zone)),
       context_entry_(Object::Handle(zone)),
       future_(Object::Handle(zone)),
       listener_(Object::Handle(zone)),
@@ -69,9 +70,9 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       callback_instance_(Object::Handle(zone)),
       future_impl_class(Class::Handle(zone)),
       future_listener_class(Class::Handle(zone)),
-      async_start_stream_controller_class(Class::Handle(zone)),
+      async_star_stream_controller_class(Class::Handle(zone)),
       stream_controller_class(Class::Handle(zone)),
-      async_stream_controller_class(Class::Handle(zone)),
+      sync_stream_controller_class(Class::Handle(zone)),
       controller_subscription_class(Class::Handle(zone)),
       buffering_stream_subscription_class(Class::Handle(zone)),
       stream_iterator_class(Class::Handle(zone)),
@@ -94,15 +95,15 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
       async_lib.LookupClassAllowPrivate(Symbols::_FutureListener());
   ASSERT(!future_listener_class.IsNull());
   // - async*:
-  async_start_stream_controller_class =
+  async_star_stream_controller_class =
       async_lib.LookupClassAllowPrivate(Symbols::_AsyncStarStreamController());
-  ASSERT(!async_start_stream_controller_class.IsNull());
+  ASSERT(!async_star_stream_controller_class.IsNull());
   stream_controller_class =
       async_lib.LookupClassAllowPrivate(Symbols::_StreamController());
   ASSERT(!stream_controller_class.IsNull());
-  async_stream_controller_class =
-      async_lib.LookupClassAllowPrivate(Symbols::_AsyncStreamController());
-  ASSERT(!async_stream_controller_class.IsNull());
+  sync_stream_controller_class =
+      async_lib.LookupClassAllowPrivate(Symbols::_SyncStreamController());
+  ASSERT(!sync_stream_controller_class.IsNull());
   controller_subscription_class =
       async_lib.LookupClassAllowPrivate(Symbols::_ControllerSubscription());
   ASSERT(!controller_subscription_class.IsNull());
@@ -129,7 +130,7 @@ CallerClosureFinder::CallerClosureFinder(Zone* zone)
   ASSERT(!future_listener_result_field.IsNull());
   // - async*:
   controller_controller_field =
-      async_start_stream_controller_class.LookupFieldAllowPrivate(
+      async_star_stream_controller_class.LookupFieldAllowPrivate(
           Symbols::controller());
   ASSERT(!controller_controller_field.IsNull());
   state_field =
@@ -162,16 +163,21 @@ ClosurePtr CallerClosureFinder::GetCallerInFutureImpl(const Object& future) {
 
 ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
     const Context& receiver_context) {
-  // Get the async* _StreamController.
+  // Get the async* _AsyncStarStreamController.
   context_entry_ = receiver_context.At(Context::kControllerIndex);
-  ASSERT(context_entry_.IsInstance());
-  ASSERT(context_entry_.GetClassId() ==
-         async_start_stream_controller_class.id());
+  return FindCallerInAsyncStarStreamController(context_entry_);
+}
 
-  const Instance& controller = Instance::Cast(context_entry_);
-  controller_ = controller.GetField(controller_controller_field);
+ClosurePtr CallerClosureFinder::FindCallerInAsyncStarStreamController(
+    const Object& async_star_stream_controller) {
+  ASSERT(async_star_stream_controller.IsInstance());
+  ASSERT(async_star_stream_controller.GetClassId() ==
+         async_star_stream_controller_class.id());
+
+  controller_ = Instance::Cast(async_star_stream_controller)
+                    .GetField(controller_controller_field);
   ASSERT(!controller_.IsNull());
-  ASSERT(controller_.GetClassId() == async_stream_controller_class.id());
+  ASSERT(controller_.GetClassId() == sync_stream_controller_class.id());
 
   // Get the _StreamController._state field.
   state_ = Instance::Cast(controller_).GetField(state_field);
@@ -209,7 +215,7 @@ ClosurePtr CallerClosureFinder::FindCallerInAsyncGenClosure(
     // contains the iterator's value. In that case we cannot unwind anymore.
     //
     // Notice: With correct async* semantics this may never be true: The async*
-    // generator should only be invoked to produce a vaue if there's an
+    // generator should only be invoked to produce a value if there's an
     // in-progress `await streamIterator.moveNext()` call. Once such call has
     // finished the async* generator should be paused/yielded until the next
     // such call - and being paused/yielded means it should not appear in stack
@@ -266,6 +272,19 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
   return UnwrapAsyncThen(closure_);
 }
 
+ClosurePtr CallerClosureFinder::FindCallerFromSuspendState(
+    const SuspendState& suspend_state) {
+  context_entry_ = suspend_state.function_data();
+  if (context_entry_.GetClassId() == future_impl_class.id()) {
+    return GetCallerInFutureImpl(context_entry_);
+  } else if (context_entry_.GetClassId() ==
+             async_star_stream_controller_class.id()) {
+    return FindCallerInAsyncStarStreamController(context_entry_);
+  } else {
+    UNREACHABLE();
+  }
+}
+
 ClosurePtr CallerClosureFinder::UnwrapAsyncThen(const Closure& closure) {
   if (closure.IsNull()) return closure.ptr();
 
@@ -280,10 +299,31 @@ ClosurePtr CallerClosureFinder::UnwrapAsyncThen(const Closure& closure) {
   return closure.ptr();
 }
 
+bool CallerClosureFinder::IsCompactAsyncCallback(const Function& function) {
+  parent_function_ = function.parent_function();
+  auto kind = parent_function_.recognized_kind();
+  return (kind == MethodRecognizer::kSuspendState_createAsyncCallbacks) ||
+         (kind == MethodRecognizer::kSuspendState_createAsyncStarCallback);
+}
+
+SuspendStatePtr CallerClosureFinder::GetSuspendStateFromAsyncCallback(
+    const Closure& closure) {
+  ASSERT(IsCompactAsyncCallback(Function::Handle(closure.function())));
+  // Async/async* handler only captures the receiver (SuspendState).
+  receiver_context_ = closure.context();
+  RELEASE_ASSERT(receiver_context_.num_variables() == 1);
+  return SuspendState::RawCast(receiver_context_.At(0));
+}
+
 ClosurePtr CallerClosureFinder::FindCallerInternal(
     const Closure& receiver_closure) {
   receiver_function_ = receiver_closure.function();
   receiver_context_ = receiver_closure.context();
+
+  if (IsCompactAsyncCallback(receiver_function_)) {
+    suspend_state_ = GetSuspendStateFromAsyncCallback(receiver_closure);
+    return FindCallerFromSuspendState(suspend_state_);
+  }
 
   if (receiver_function_.IsAsyncGenClosure()) {
     return FindCallerInAsyncGenClosure(receiver_context_);
@@ -405,6 +445,25 @@ bool CallerClosureFinder::IsRunningAsync(const Closure& receiver_closure) {
   return Bool::Cast(is_sync).value();
 }
 
+bool CallerClosureFinder::WasPreviouslySuspended(
+    const Function& function,
+    const Object& suspend_state_var) {
+  if (!suspend_state_var.IsSuspendState()) {
+    return false;
+  }
+  if (function.IsCompactAsyncFunction()) {
+    // Error callback is set after both 'then' and 'error' callbacks are
+    // registered with the Zone. Callback registration may query
+    // stack trace and should still collect the synchronous stack trace.
+    return SuspendState::Cast(suspend_state_var).error_callback() !=
+           Object::null();
+  } else if (function.IsCompactAsyncStarFunction()) {
+    return true;
+  } else {
+    UNREACHABLE();
+  }
+}
+
 ClosurePtr StackTraceUtils::FindClosureInFrame(ObjectPtr* last_object_in_caller,
                                                const Function& function) {
   NoSafepointScope nsp;
@@ -439,6 +498,23 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
 
   function = frame->LookupDartFunction();
   if (function.IsNull()) {
+    return Closure::null();
+  }
+
+  if (function.IsCompactAsyncFunction() ||
+      function.IsCompactAsyncStarFunction()) {
+    auto& suspend_state = Object::Handle(
+        zone, *reinterpret_cast<ObjectPtr*>(LocalVarAddress(
+                  frame->fp(), runtime_frame_layout.FrameSlotForVariableIndex(
+                                   SuspendState::kSuspendStateVarIndex))));
+    if (caller_closure_finder->WasPreviouslySuspended(function,
+                                                      suspend_state)) {
+      *is_async = true;
+      return caller_closure_finder->FindCallerFromSuspendState(
+          SuspendState::Cast(suspend_state));
+    }
+
+    // Still running the sync part before the first await.
     return Closure::null();
   }
 
@@ -506,6 +582,7 @@ void StackTraceUtils::UnwindAwaiterChain(
   auto& function = Function::Handle(zone);
   auto& closure = Closure::Handle(zone, leaf_closure.ptr());
   auto& pc_descs = PcDescriptors::Handle(zone);
+  auto& suspend_state = SuspendState::Handle(zone);
 
   // Inject async suspension marker.
   code_array.Add(StubCode::AsynchronousGapMarker());
@@ -518,16 +595,31 @@ void StackTraceUtils::UnwindAwaiterChain(
     if (function.IsNull()) {
       continue;
     }
-    // In hot-reload-test-mode we sometimes have to do this:
-    code = function.EnsureHasCode();
-    RELEASE_ASSERT(!code.IsNull());
-    code_array.Add(code);
-    pc_descs = code.pc_descriptors();
-    const intptr_t pc_offset = FindPcOffset(pc_descs, GetYieldIndex(closure));
-    // Unlike other sources of PC offsets, the offset may be 0 here if we
-    // reach a non-async closure receiving the yielded value.
-    ASSERT(pc_offset >= 0);
-    pc_offset_array->Add(pc_offset);
+    if (caller_closure_finder->IsCompactAsyncCallback(function)) {
+      suspend_state =
+          caller_closure_finder->GetSuspendStateFromAsyncCallback(closure);
+      const uword pc = suspend_state.pc();
+      if (pc == 0) {
+        // Async function is already resumed.
+        continue;
+      }
+      code = suspend_state.GetCodeObject();
+      code_array.Add(code);
+      const uword pc_offset = pc - code.PayloadStart();
+      ASSERT(pc_offset > 0 && pc_offset <= code.Size());
+      pc_offset_array->Add(pc_offset);
+    } else {
+      // In hot-reload-test-mode we sometimes have to do this:
+      code = function.EnsureHasCode();
+      RELEASE_ASSERT(!code.IsNull());
+      code_array.Add(code);
+      pc_descs = code.pc_descriptors();
+      const intptr_t pc_offset = FindPcOffset(pc_descs, GetYieldIndex(closure));
+      // Unlike other sources of PC offsets, the offset may be 0 here if we
+      // reach a non-async closure receiving the yielded value.
+      ASSERT(pc_offset >= 0);
+      pc_offset_array->Add(pc_offset);
+    }
 
     // Inject async suspension marker.
     code_array.Add(StubCode::AsynchronousGapMarker());
@@ -535,7 +627,7 @@ void StackTraceUtils::UnwindAwaiterChain(
   }
 }
 
-void StackTraceUtils::CollectFramesLazy(
+void StackTraceUtils::CollectFrames(
     Thread* thread,
     const GrowableObjectArray& code_array,
     GrowableArray<uword>* pc_offset_array,
@@ -602,87 +694,6 @@ void StackTraceUtils::CollectFramesLazy(
   }
 
   return;
-}
-
-intptr_t StackTraceUtils::CountFrames(Thread* thread,
-                                      int skip_frames,
-                                      const Function& async_function,
-                                      bool* sync_async_end) {
-  Zone* zone = thread->zone();
-  intptr_t frame_count = 0;
-  DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != nullptr);  // We expect to find a dart invocation frame.
-  Function& function = Function::Handle(zone);
-  Code& code = Code::Handle(zone);
-  Closure& closure = Closure::Handle(zone);
-  const bool async_function_is_null = async_function.IsNull();
-
-  ASSERT(async_function_is_null || sync_async_end != nullptr);
-
-  for (; frame != nullptr; frame = frames.NextFrame()) {
-    if (skip_frames > 0) {
-      skip_frames--;
-      continue;
-    }
-    code = frame->LookupDartCode();
-    function = code.function();
-
-    frame_count++;
-
-    const bool function_is_null = function.IsNull();
-
-    if (!async_function_is_null && !function_is_null &&
-        function.parent_function() != Function::null()) {
-      if (async_function.ptr() == function.parent_function()) {
-        if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-          ObjectPtr* last_caller_obj =
-              reinterpret_cast<ObjectPtr*>(frame->GetCallerSp());
-          closure = FindClosureInFrame(last_caller_obj, function);
-          if (!closure.IsNull() &&
-              CallerClosureFinder::IsRunningAsync(closure)) {
-            *sync_async_end = false;
-            return frame_count;
-          }
-        }
-        break;
-      }
-    }
-  }
-
-  if (!async_function_is_null) {
-    *sync_async_end = true;
-  }
-
-  return frame_count;
-}
-
-intptr_t StackTraceUtils::CollectFrames(Thread* thread,
-                                        const Array& code_array,
-                                        const TypedData& pc_offset_array,
-                                        intptr_t array_offset,
-                                        intptr_t count,
-                                        int skip_frames) {
-  Zone* zone = thread->zone();
-  DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
-  Code& code = Code::Handle(zone);
-  intptr_t collected_frames_count = 0;
-  for (; (frame != NULL) && (collected_frames_count < count);
-       frame = frames.NextFrame()) {
-    if (skip_frames > 0) {
-      skip_frames--;
-      continue;
-    }
-    code = frame->LookupDartCode();
-    const intptr_t pc_offset = frame->pc() - code.PayloadStart();
-    code_array.SetAt(array_offset, code);
-    pc_offset_array.SetUintPtr(array_offset * kWordSize, pc_offset);
-    array_offset++;
-    collected_frames_count++;
-  }
-  return collected_frames_count;
 }
 
 }  // namespace dart

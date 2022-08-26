@@ -46,7 +46,4 @@ class ConvertFlutterChild extends CorrectionProducer {
       });
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ConvertFlutterChild newInstance() => ConvertFlutterChild();
 }

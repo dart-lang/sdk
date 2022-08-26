@@ -64,7 +64,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(code_comments, bool, false, "Include comments into code and disassembly.") \
   P(dwarf_stack_traces_mode, bool, false,                                      \
     "Use --[no-]dwarf-stack-traces instead.")                                  \
-  P(lazy_async_stacks, bool, true, "Reconstruct async stacks from listeners")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")
@@ -135,6 +134,7 @@ constexpr bool FLAG_support_il_printer = false;
   P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
+  P(lazy_async_stacks, bool, true, "Obsolete, ignored.")                       \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
@@ -234,8 +234,8 @@ constexpr bool FLAG_support_il_printer = false;
   P(use_field_guards, bool, true, "Use field guards and track field types")    \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
   P(use_slow_path, bool, false, "Whether to avoid inlined fast paths.")        \
-  R(verbose_gc, false, bool, false, "Enables verbose GC.")                     \
-  R(verbose_gc_hdr, 40, int, 40, "Print verbose GC header interval.")          \
+  P(verbose_gc, bool, false, "Enables verbose GC.")                            \
+  P(verbose_gc_hdr, int, 40, "Print verbose GC header interval.")              \
   R(verify_after_gc, false, bool, false,                                       \
     "Enables heap verification after GC.")                                     \
   R(verify_before_gc, false, bool, false,                                      \

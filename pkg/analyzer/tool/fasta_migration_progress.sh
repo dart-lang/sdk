@@ -46,7 +46,7 @@ if [[ $logfile == '' ]]; then
   # delete=1
   python3 tools/test.py -m release --checked --use-sdk \
      --vm-options="-DuseFastaParser=true" \
-     --print_passing_stdout \
+     --print-passing-stdout \
      pkg/analy > $logfile
 fi
 

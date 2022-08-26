@@ -27,6 +27,50 @@ main() {
       await client.hitBreakpoint(testFile, breakpointLine);
     });
 
+    test('does not stop at a removed breakpoint', () async {
+      final testFile = dap.createTestFile('''
+void main(List<String> args) async {
+  print('Hello!'); $breakpointMarker
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+
+      final client = dap.client;
+      final breakpoint1Line = lineWith(testFile, breakpointMarker);
+      final breakpoint2Line = breakpoint1Line + 1;
+
+      // Hit the first breakpoint.
+      final stop = await client.hitBreakpoint(testFile, breakpoint1Line,
+          additionalBreakpoints: [breakpoint2Line]);
+
+      // Remove all breakpoints.
+      await client.setBreakpoints(testFile, []);
+
+      // Resume and expect termination (should not hit the second breakpoint).
+      await Future.wait([
+        client.event('terminated'),
+        client.continue_(stop.threadId!),
+      ], eagerError: true);
+    });
+
+    test('does not fail updating breakpoints after a removal', () async {
+      // https://github.com/flutter/flutter/issues/106369 was caused by us not
+      // tracking removals correctly, meaning we could try to remove a removed
+      // breakpoint a second time.
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      await client.hitBreakpoint(testFile, breakpointLine);
+
+      // Remove the breakpoint.
+      await client.setBreakpoints(testFile, []);
+
+      // Send another breakpoint update to ensure it doesn't try to re-remove
+      // the previously removed breakpoint.
+      await client.setBreakpoints(testFile, []);
+    });
+
     test('stops at a line breakpoint in the SDK set via local sources',
         () async {
       final client = dap.client;
@@ -71,6 +115,28 @@ void main(List<String> args) async {
       await Future.wait([
         dap.client.expectStop('step', file: testFile, line: stepLine),
         dap.client.next(stop.threadId!),
+      ], eagerError: true);
+    });
+
+    test(
+        'stops at a line breakpoint and can step over (next) '
+        'when stepping granularity was included', () async {
+      final testFile = dap.createTestFile('''
+void main(List<String> args) async {
+  print('Hello!'); $breakpointMarker
+  print('Hello!'); $stepMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stepLine = lineWith(testFile, stepMarker);
+
+      // Hit the initial breakpoint.
+      final stop = await dap.client.hitBreakpoint(testFile, breakpointLine);
+
+      // Step and expect stopping on the next line with a 'step' stop type.
+      await Future.wait([
+        dap.client.expectStop('step', file: testFile, line: stepLine),
+        dap.client.next(stop.threadId!, granularity: 'statement'),
       ], eagerError: true);
     });
 
@@ -467,8 +533,8 @@ void main(List<String> args) async {
     test('print messages with Dart interpolation', () async {
       await _testLogPoint(
         dap,
-        r'This is a test message in ${DateTime.now().year}',
-        'This is a test message in ${DateTime.now().year}',
+        r'This is a test message in ${DateTime(2000, 1, 1).year}',
+        'This is a test message in ${DateTime(2000, 1, 1).year}',
       );
     });
 
@@ -478,8 +544,8 @@ void main(List<String> args) async {
         // The DAP spec says "Expressions within {} are interpolated" so in the DA
         // we just prefix them with $ and treat them like other Dart interpolation
         // expressions.
-        r'This is a test message in {DateTime.now().year}',
-        'This is a test message in ${DateTime.now().year}',
+        r'This is a test message in {DateTime(2000, 1, 1).year}',
+        'This is a test message in ${DateTime(2000, 1, 1).year}',
       );
     });
 

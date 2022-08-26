@@ -4072,6 +4072,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat32x4WithZ:
     case MethodRecognizer::kFloat32x4Zero:
     case MethodRecognizer::kFloat64x2Abs:
+    case MethodRecognizer::kFloat64x2Clamp:
     case MethodRecognizer::kFloat64x2FromDoubles:
     case MethodRecognizer::kFloat64x2GetSignMask:
     case MethodRecognizer::kFloat64x2GetX:

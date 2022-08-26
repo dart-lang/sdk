@@ -10,7 +10,6 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         main() {
           print("Hello world");
         }
@@ -21,7 +20,6 @@ worlds:
       - main.dart
     sources:
       main.dart: |
-        // @dart=2.9
         main() {
           print("Hello world!");
         }

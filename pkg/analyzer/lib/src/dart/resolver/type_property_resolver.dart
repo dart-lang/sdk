@@ -282,7 +282,7 @@ class TypePropertyResolver {
     bool ifNullSafe = false,
   }) {
     if (_typeSystem.isNonNullableByDefault ? ifNullSafe : ifLegacy) {
-      return type.resolveToBound(_typeProvider.objectType);
+      return _typeSystem.resolveToBound(type);
     } else {
       return type;
     }

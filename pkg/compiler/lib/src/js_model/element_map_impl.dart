@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
@@ -17,7 +19,7 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart';
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart';
+import '../deferred_load/output_unit.dart' show LateOutputUnitDataBuilder;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/indexed.dart';
@@ -36,6 +38,7 @@ import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
+import '../js_model/class_type_variable_access.dart';
 import '../kernel/dart2js_target.dart' show allowedNativeTest;
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
@@ -44,12 +47,12 @@ import '../native/behavior.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
-import '../ssa/type_builder.dart';
 import '../universe/call_structure.dart';
 import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 
 import 'closure.dart';
+import 'closure_migrated.dart' as closureMigrated;
 import 'elements.dart';
 import 'element_map.dart';
 import 'env.dart';
@@ -76,15 +79,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   final DiagnosticReporter reporter;
   final Environment _environment;
-  JCommonElements _commonElements;
-  JsElementEnvironment _elementEnvironment;
-  DartTypeConverter _typeConverter;
-  KernelDartTypes _types;
+  /*late final*/ JCommonElements _commonElements;
+  /*late final*/ JsElementEnvironment _elementEnvironment;
+  /*late final*/ DartTypeConverter _typeConverter;
+  /*late final*/ KernelDartTypes _types;
   ir.CoreTypes _coreTypes;
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
-  Dart2jsConstantEvaluator _constantEvaluator;
-  ConstantValuefier _constantValuefier;
+  Dart2jsConstantEvaluator /*?*/ _constantEvaluator;
+  /*late final*/ ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
   JProgramEnv programEnv;
@@ -202,7 +205,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         ParameterStructure parameterStructure =
             annotations.hasNoElision(constructor)
                 ? constructor.parameterStructure
-                : memberUsage.invokedParameters;
+                : memberUsage.invokedParameters /*!*/;
         if (constructor.isFactoryConstructor) {
           // TODO(redemption): This should be a JFunction.
           newMember = JFactoryConstructor(
@@ -234,7 +237,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         ParameterStructure parameterStructure =
             annotations.hasNoElision(function)
                 ? function.parameterStructure
-                : memberUsage.invokedParameters;
+                : memberUsage.invokedParameters /*!*/;
         newMember = JMethod(newLibrary, newClass, memberName,
             parameterStructure, function.asyncMarker,
             isStatic: function.isStatic,
@@ -356,9 +359,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     source.begin(classDataTag);
     entityLookup.forEachClass((int index, JClass cls) {
       JClassEnv env = JClassEnv.readFromDataSource(source);
+      classes.preRegisterByIndex(index, cls, env);
       JClassData data = JClassData.readFromDataSource(source);
-      classMap[env.cls] = classes.registerByIndex(index, cls, data, env);
-      if (cls is! JRecord && cls is! JClosureClass) {
+      classes.postRegisterData(cls, data);
+      classMap[env.cls] = cls;
+      if (cls is! closureMigrated.JRecord &&
+          cls is! closureMigrated.JClosureClass) {
         // Synthesized classes are not part of the library environment.
         libraries.getEnv(cls.library).registerClass(cls.name, env);
       }
@@ -390,6 +396,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
     source.begin(typeVariableDataTag);
     entityLookup.forEachTypeVariable((int index, JTypeVariable typeVariable) {
+      // TODO(natebiggs): Defer reading these type variables as they trigger
+      //   loading of some method bodies in the Kernel AST.
       JTypeVariableData data = JTypeVariableData.readFromDataSource(source);
       typeVariableMap[data.node] =
           typeVariables.registerByIndex(index, typeVariable, data);
@@ -543,12 +551,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       } else if (spannable is JLocal) {
         return getSourceSpan(spannable.memberContext, currentElement);
       }
-      return null;
+      return SourceSpan.unknown();
     }
 
     SourceSpan sourceSpan = fromSpannable(spannable);
-    sourceSpan ??= fromSpannable(currentElement);
-    return sourceSpan;
+    if (sourceSpan.isKnown) return sourceSpan;
+    return fromSpannable(currentElement);
   }
 
   LibraryEntity lookupLibrary(Uri uri) {
@@ -766,7 +774,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           //
           // so we need get the superclasses from the on-clause, A, B, and C,
           // through [superclassConstraints].
-          for (ir.Supertype constraint in node.superclassConstraints()) {
+          for (ir.Supertype constraint in node.onClause) {
             interfaces.add(processSupertype(constraint));
           }
           // Set superclass to `Object`.
@@ -1128,7 +1136,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.interfaces;
+    return data.interfaces /*!*/;
   }
 
   MemberDefinition getMemberDefinitionInternal(covariant IndexedMember member) {
@@ -1488,7 +1496,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // computation.
       ir.StaticTypeContext staticTypeContext =
           getStaticTypeContext(memberContext);
-      ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
+      ir.Constant constant = constantEvaluator.evaluateOrNull(
+          staticTypeContext, node,
           requireConstant: requireConstant);
       if (constant == null) {
         if (requireConstant) {
@@ -1641,10 +1650,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         }
       }
     }
-    assert(
-        typeVariable != null,
-        "No type variable entity for $node on "
-        "${node.parent is ir.FunctionNode ? node.parent.parent : node.parent}");
+    if (typeVariable == null) {
+      throw failedAt(
+          CURRENT_ELEMENT_SPANNABLE,
+          "No type variable entity for $node on "
+          "${node.parent is ir.FunctionNode ? node.parent.parent : node.parent}");
+    }
     return typeVariable;
   }
 
@@ -1656,15 +1667,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   JConstructorBody _getConstructorBody(IndexedConstructor constructor) {
     JConstructorDataImpl data = members.getData(constructor);
-    if (data.constructorBody == null) {
+    JConstructorBody /*?*/ constructorBody = data.constructorBody;
+    if (constructorBody == null) {
       /// The constructor calls the constructor body with all parameters.
       // TODO(johnniwinther): Remove parameters that are not used in the
       //  constructor body.
       ParameterStructure parameterStructure =
           _getParameterStructureFromFunctionNode(data.node.function);
 
-      JConstructorBody constructorBody =
-          createConstructorBody(constructor, parameterStructure);
+      constructorBody = createConstructorBody(constructor, parameterStructure);
       members.register<IndexedFunction, FunctionData>(
           constructorBody,
           ConstructorBodyDataImpl(
@@ -1681,7 +1692,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           constructor, constructorBody);
       data.constructorBody = constructorBody;
     }
-    return data.constructorBody;
+    return constructorBody;
   }
 
   @override
@@ -1771,7 +1782,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       NodeBox box = info.capturedVariablesAccessor;
 
       Map<String, IndexedMember> memberMap = {};
-      JRecord container = JRecord(member.library, box.name);
+      closureMigrated.JRecord container =
+          closureMigrated.JRecord(member.library, box.name);
       BoxLocal boxLocal = BoxLocal(container);
       InterfaceType thisType =
           types.interfaceType(container, const <DartType>[]);
@@ -1839,7 +1851,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     SourceSpan location = computeSourceSpanFromTreeNode(node);
     Map<String, IndexedMember> memberMap = {};
 
-    JClass classEntity = JClosureClass(enclosingLibrary, name);
+    JClass classEntity = closureMigrated.JClosureClass(enclosingLibrary, name);
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
     InterfaceType thisType =
@@ -1857,7 +1869,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       ir.FunctionDeclaration parent = node.parent;
       closureEntityNode = parent.variable;
     } else if (node.parent is ir.FunctionExpression) {
-      closureEntity = AnonymousClosureLocal(classEntity);
+      closureEntity = closureMigrated.AnonymousClosureLocal(classEntity);
     }
 
     IndexedFunction callMethod = JClosureCallMethod(classEntity,
@@ -2152,14 +2164,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     JGeneratorBody generatorBody = _generatorBodies[function];
     if (generatorBody == null) {
       FunctionData functionData = members.getData(function);
-      ir.TreeNode node = functionData.definition.node;
       DartType elementType =
           elementEnvironment.getFunctionAsyncOrSyncStarElementType(function);
       generatorBody = createGeneratorBody(function, elementType);
       members.register<IndexedFunction, FunctionData>(
           generatorBody,
-          GeneratorBodyFunctionData(functionData,
-              SpecialMemberDefinition(node, MemberKind.generatorBody)));
+          GeneratorBodyFunctionData(
+              functionData,
+              SpecialMemberDefinition.from(
+                  functionData.definition, MemberKind.generatorBody)));
 
       if (function.enclosingClass != null) {
         // TODO(sra): Integrate this with ClassEnvImpl.addConstructorBody ?

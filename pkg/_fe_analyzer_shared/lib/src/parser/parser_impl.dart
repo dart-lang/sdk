@@ -617,12 +617,35 @@ class Parser {
         } else if (identical(value, 'library')) {
           context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkLibrary(this, keyword);
-          return parseLibraryName(keyword);
+          final Token tokenAfterKeyword = keyword.next!;
+          if (tokenAfterKeyword.isIdentifier &&
+              tokenAfterKeyword.lexeme == 'augment') {
+            return parseLibraryAugmentation(keyword, tokenAfterKeyword);
+          } else {
+            return parseLibraryName(keyword);
+          }
         }
       }
     }
 
     throw "Internal error: Unhandled top level keyword '$value'.";
+  }
+
+  /// ```
+  /// libraryAugmentationDirective:
+  ///   'library' 'augment' uri ';'
+  /// ;
+  /// ```
+  Token parseLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+    assert(optional('library', libraryKeyword));
+    assert(optional('augment', augmentKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(libraryKeyword);
+    listener.beginLibraryAugmentation(libraryKeyword, augmentKeyword);
+    Token start = augmentKeyword;
+    Token token = ensureLiteralString(start);
+    Token semicolon = ensureSemicolon(token);
+    listener.endLibraryAugmentation(libraryKeyword, augmentKeyword, semicolon);
+    return semicolon;
   }
 
   /// ```
@@ -4992,7 +5015,7 @@ class Parser {
           if (optional(':', token.next!.next!)) {
             return parseLabeledStatement(token);
           }
-          if (looksLikeYieldStatement(token)) {
+          if (looksLikeYieldStatement(token, AwaitOrYieldContext.Statement)) {
             // Recovery: looks like an expression preceded by `yield` but not
             // inside an Async or AsyncStar context. parseYieldStatement will
             // report the error.
@@ -5012,7 +5035,7 @@ class Parser {
       return parseExpressionStatementOrConstDeclaration(token);
     } else if (identical(value, 'await')) {
       if (inPlainSync) {
-        if (!looksLikeAwaitExpression(token)) {
+        if (!looksLikeAwaitExpression(token, AwaitOrYieldContext.Statement)) {
           return parseExpressionStatementOrDeclaration(token);
         }
         // Recovery: looks like an expression preceded by `await`
@@ -5625,7 +5648,8 @@ class Parser {
     // Prefix:
     if (identical(value, 'await')) {
       if (inPlainSync) {
-        if (!looksLikeAwaitExpression(token)) {
+        if (!looksLikeAwaitExpression(
+            token, AwaitOrYieldContext.UnaryExpression)) {
           return parsePrimary(token, IdentifierContext.expression);
         }
         // Recovery: Looks like an expression preceded by `await`.
@@ -5803,6 +5827,9 @@ class Parser {
         return parseThisExpression(token, context);
       } else if (identical(value, "super")) {
         return parseSuperExpression(token, context);
+      } else if (identical(value, "augment") &&
+          optional('super', token.next!.next!)) {
+        return parseAugmentSuperExpression(token, context);
       } else if (identical(value, "new")) {
         return parseNewExpression(token);
       } else if (identical(value, "const")) {
@@ -5938,6 +5965,21 @@ class Parser {
       listener.handleSend(superToken, token.next!);
     } else if (optional("?.", next)) {
       reportRecoverableError(next, codes.messageSuperNullAware);
+    }
+    return token;
+  }
+
+  Token parseAugmentSuperExpression(Token token, IdentifierContext context) {
+    Token augmentToken = token = token.next!;
+    assert(optional('augment', token));
+    Token superToken = token = token.next!;
+    assert(optional('super', token));
+    listener.handleAugmentSuperExpression(augmentToken, superToken, context);
+    Token next = token.next!;
+    if (optional('(', next)) {
+      listener.handleNoTypeArguments(next);
+      token = parseArguments(token);
+      listener.handleSend(augmentToken, token.next!);
     }
     return token;
   }
@@ -6787,14 +6829,26 @@ class Parser {
   TypeInfo computeTypeAfterIsOrAs(Token token) {
     TypeInfo typeInfo = computeType(token, /* required = */ true);
     if (typeInfo.isNullable) {
-      Token next = typeInfo.skipType(token).next!;
-      if (!isOneOfOrEof(
-          next, const [')', '?', '??', ',', ';', ':', 'is', 'as', '..'])) {
+      Token skipToken = typeInfo.skipType(token);
+      Token next = skipToken.next!;
+      if (isOneOfOrEof(
+          next, const [')', '}', '?', '??', ',', ';', ':', 'is', 'as', '..'])) {
         // TODO(danrubel): investigate other situations
         // where `?` should be considered part of the type info
         // rather than the start of a conditional expression.
-        typeInfo = typeInfo.asNonNullable;
+        return typeInfo;
       }
+      if (optional('{', next)) {
+        // <expression> is/as <type> ? {
+        // This could be either a nullable type (e.g. last initializer in a
+        // constructor with a body), or a non-nullable type and a conditional.
+        // As with "?[" we check and have it as a conditional if it can be.
+        bool isConditional = canParseAsConditional(skipToken);
+        if (!isConditional) {
+          return typeInfo;
+        }
+      }
+      typeInfo = typeInfo.asNonNullable;
     }
     return typeInfo;
   }
@@ -6925,7 +6979,9 @@ class Parser {
     Token? varFinalOrConst;
 
     if (isModifier(next)) {
-      if (optional('var', next) ||
+      if (optional('augment', next) && optional('super', next.next!)) {
+        return parseExpressionStatement(start);
+      } else if (optional('var', next) ||
           optional('final', next) ||
           optional('const', next)) {
         varFinalOrConst = token = token.next!;
@@ -7038,7 +7094,7 @@ class Parser {
       Token afterIdentifier = next.next!;
       //
       // found <typeref> `?` <identifier>
-      // with no annotations or modifiers preceeding it
+      // with no annotations or modifiers preceding it
       //
       if (optional('=', afterIdentifier)) {
         //
@@ -7507,7 +7563,8 @@ class Parser {
 
   /// Determine if the following tokens look like an expression and not a local
   /// variable or local function declaration.
-  bool looksLikeExpression(Token token) {
+  bool looksLikeExpressionAfterAwaitOrYield(
+      Token token, AwaitOrYieldContext context) {
     // TODO(srawlins): Consider parsing the potential expression once doing so
     //  does not modify the token stream. For now, use simple look ahead and
     //  ensure no false positives.
@@ -7517,14 +7574,36 @@ class Parser {
       token = token.next!;
       if (optional('(', token)) {
         token = token.endGroup!.next!;
-        if (isOneOf(token, [';', '.', '..', '?', '?.'])) {
+        if (isOneOf(token, const [';', '.', ',', '..', '?', '?.', ')'])) {
+          // E.g. (in a non-async function): `await f();`.
+          return true;
+        } else if (token.type.isBinaryOperator) {
+          // E.g. (in a non-async function):
+          // `await returnsFuture() + await returnsFuture()`.
           return true;
         }
-      } else if (isOneOf(token, ['.', ')', ']'])) {
+      } else if (isOneOf(token, const ['.', ')', ']'])) {
         // TODO(srawlins): Also consider when `token` is `;`. There is still not
         // good error recovery on `yield x;`. This would also require
         // modification to analyzer's
         // test_parseCompilationUnit_pseudo_asTypeName.
+
+        // E.g. (in a non-async function): `if (await f) {}`.
+        return true;
+      } else if (optional(',', token) &&
+          context == AwaitOrYieldContext.UnaryExpression) {
+        // E.g. (in a non-async function): `xor(await f, await f, await f);`,
+        // but not `await y, z` (`await` is a class here so it's declaring two
+        // variables).
+        return true;
+      } else if (token.type.isBinaryOperator) {
+        // E.g. (in a non-async function): (first part of) `await f + await f;`,
+        return true;
+      } else if (optional(';', token) &&
+          context == AwaitOrYieldContext.UnaryExpression) {
+        // E.g. (in a non-async function): (second part of) `await f + await f;`
+        // but not `await f;` (`await` is a class here so it's a variable
+        // declaration).
         return true;
       }
     } else if (token == Keyword.NULL) {
@@ -7541,20 +7620,20 @@ class Parser {
 
   /// Determine if the following tokens look like an 'await' expression
   /// and not a local variable or local function declaration.
-  bool looksLikeAwaitExpression(Token token) {
+  bool looksLikeAwaitExpression(Token token, AwaitOrYieldContext context) {
     token = token.next!;
     assert(optional('await', token));
 
-    return looksLikeExpression(token);
+    return looksLikeExpressionAfterAwaitOrYield(token, context);
   }
 
   /// Determine if the following tokens look like a 'yield' expression and not a
   /// local variable or local function declaration.
-  bool looksLikeYieldStatement(Token token) {
+  bool looksLikeYieldStatement(Token token, AwaitOrYieldContext context) {
     token = token.next!;
     assert(optional('yield', token));
 
-    return looksLikeExpression(token);
+    return looksLikeExpressionAfterAwaitOrYield(token, context);
   }
 
   /// ```
@@ -8452,9 +8531,20 @@ class Parser {
         if (comment.indexOf('```', /* start = */ 3) != -1) {
           inCodeBlock = !inCodeBlock;
         }
-        if (!inCodeBlock && !comment.startsWith('///    ')) {
-          count += parseCommentReferencesInText(
-              token, /* start = */ 3, comment.length);
+        if (!inCodeBlock) {
+          bool parseReferences;
+          if (comment.startsWith('///    ')) {
+            String? previousComment = token.previous?.lexeme;
+            parseReferences = previousComment != null &&
+                previousComment.startsWith('///') &&
+                previousComment.trim().length > 3;
+          } else {
+            parseReferences = true;
+          }
+          if (parseReferences) {
+            count += parseCommentReferencesInText(
+                token, /* start = */ 3, comment.length);
+          }
         }
       }
       token = token.next;
@@ -8669,3 +8759,5 @@ class Parser {
 
 // TODO(ahe): Remove when analyzer supports generalized function syntax.
 typedef _MessageWithArgument<T> = codes.Message Function(T);
+
+enum AwaitOrYieldContext { Statement, UnaryExpression }

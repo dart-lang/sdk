@@ -151,7 +151,7 @@ void f(int x) {
 
 mixin UndefinedSetterTestCases on PubPackageResolutionTest {
   test_importWithPrefix_defined() async {
-    newFile2('$testPackageLibPath/lib.dart', r'''
+    newFile('$testPackageLibPath/lib.dart', r'''
 library lib;
 set y(int value) {}''');
     await assertNoErrorsInCode(r'''
@@ -212,14 +212,17 @@ f(var a) {
   }
 
   test_static_conditionalAccess_defined() async {
-    // The conditional access operator '?.' can be used to access static
-    // fields.
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 class A {
   static var x;
 }
 f() { A?.x = 1; }
-''');
+''',
+      expectedErrorsByNullability(nullable: [
+        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 35, 2),
+      ], legacy: []),
+    );
   }
 
   test_static_definedInSuperclass() async {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 part of layout;
 
 // This file has classes representing the grid sizing functions
@@ -20,7 +18,7 @@ class SizingFunction {
   bool get isMaxContentSized => false;
   bool get isFraction => false;
 
-  num resolveLength(num gridSize) => 0;
+  num resolveLength(num? gridSize) => 0;
 
   num get fractionValue => 0;
 
@@ -46,16 +44,16 @@ class FixedSizing extends SizingFunction {
   FixedSizing(this.length, [this.units = 'px']) : _contentSized = false {
     if (units != 'px' && units != '%') {
       // TODO(jmesserly): support other unit types
-      throw new UnsupportedError('Units other than px and %');
+      throw UnsupportedError('Units other than px and %');
     }
   }
 
   // TODO(jmesserly): this is only needed because of our mutable property
-  FixedSizing clone() => new FixedSizing(length, units);
+  FixedSizing clone() => FixedSizing(length, units);
 
   bool get isMinContentSized => _contentSized;
 
-  num resolveLength(num gridSize) {
+  num resolveLength(num? gridSize) {
     if (units == '%') {
       if (gridSize == null) {
         // Use content size when the grid doesn't have an absolute size in this
@@ -120,38 +118,38 @@ class TrackSizing {
   TrackSizing(this.min, this.max) {}
 
   // TODO(jmesserly): this is only needed because FixedSizing is mutable
-  TrackSizing clone() => new TrackSizing(min.clone(), max.clone());
+  TrackSizing clone() => TrackSizing(min.clone(), max.clone());
 }
 
 /** Represents a GridTrack breadth property. */
 // TODO(jmesserly): these classes could be replaced with reflection/mirrors
 abstract class _BreadthAccumulator {
-  void setSize(GridTrack t, num value);
-  num getSize(GridTrack t);
+  void setSize(GridTrack? t, num value);
+  num? getSize(GridTrack? t);
 
-  SizingFunction getSizingFunction(GridTrack t);
+  SizingFunction getSizingFunction(GridTrack? t);
 }
 
 class _UsedBreadthAccumulator implements _BreadthAccumulator {
   const _UsedBreadthAccumulator();
 
-  void setSize(GridTrack t, num value) {
-    t.usedBreadth = value;
+  void setSize(GridTrack? t, num value) {
+    t!.usedBreadth = value;
   }
 
-  num getSize(GridTrack t) => t.usedBreadth;
+  num? getSize(GridTrack? t) => t!.usedBreadth;
 
-  SizingFunction getSizingFunction(GridTrack t) => t.minSizing;
+  SizingFunction getSizingFunction(GridTrack? t) => t!.minSizing;
 }
 
 class _MaxBreadthAccumulator implements _BreadthAccumulator {
   const _MaxBreadthAccumulator();
 
-  void setSize(GridTrack t, num value) {
-    t.maxBreadth = value;
+  void setSize(GridTrack? t, num value) {
+    t!.maxBreadth = value;
   }
 
-  num getSize(GridTrack t) => t.maxBreadth;
+  num? getSize(GridTrack? t) => t!.maxBreadth;
 
-  SizingFunction getSizingFunction(GridTrack t) => t.maxSizing;
+  SizingFunction getSizingFunction(GridTrack? t) => t!.maxSizing;
 }

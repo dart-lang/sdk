@@ -22,7 +22,7 @@ class AnalysisErrorIntegrationTest
     var packagePath = sourcePath('package');
     var filePath = sourcePath('package/lib/test.dart');
     var content = '''
-main() {
+void f() {
   print(null) // parse error: missing ';'
 }''';
     await sendServerSetSubscriptions([ServerService.STATUS]);
@@ -36,19 +36,19 @@ main() {
     expect(errors[0].location.file, equals(filePath));
   }
 
-  Future<void> test_detect_simple_error() {
+  Future<void> test_detect_simple_error() async {
     var pathname = sourcePath('test.dart');
     writeFile(pathname, '''
-main() {
+void f() {
   print(null) // parse error: missing ';'
 }''');
-    standardAnalysisSetup();
-    return analysisFinished.then((_) {
-      expect(currentAnalysisErrors[pathname], isList);
-      var errors = existingErrorsForFile(pathname);
-      expect(errors, hasLength(1));
-      expect(errors[0].location.file, equals(pathname));
-    });
+    await standardAnalysisSetup();
+
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isList);
+    var errors = existingErrorsForFile(pathname);
+    expect(errors, hasLength(1));
+    expect(errors[0].location.file, equals(pathname));
   }
 
   @failingTest
@@ -77,7 +77,7 @@ abstract class C extends B {
     // ignore: deprecated_member_use_from_same_package
     await sendAnalysisUpdateOptions(
         AnalysisOptions()..enableSuperMixins = true);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);
     var errors = currentAnalysisErrors[pathname];

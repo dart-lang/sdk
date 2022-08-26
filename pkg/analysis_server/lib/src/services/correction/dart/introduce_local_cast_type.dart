@@ -87,9 +87,6 @@ class IntroduceLocalCastType extends CorrectionProducer {
     return null;
   }
 
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static IntroduceLocalCastType newInstance() => IntroduceLocalCastType();
-
   static Expression? _getCondition(AstNode node) {
     if (node is IfStatement) {
       return node.condition;

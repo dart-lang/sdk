@@ -8,7 +8,8 @@ import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/deferred_load/output_unit.dart';
+import 'package:compiler/src/deferred_load/output_unit.dart'
+    show OutputUnit, OutputUnitData;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_model/element_map.dart';
@@ -288,7 +289,7 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
     if (node is ir.Field && node.isConst) {
       ir.Expression initializer = node.initializer;
       ConstantValue constant = _elementMap.getConstantValue(node, initializer);
-      if (!constant.isPrimitive) {
+      if (constant is! PrimitiveConstantValue) {
         SourceSpan span = computeSourceSpanFromTreeNode(initializer);
         if (initializer is ir.ConstructorInvocation) {
           // Adjust the source-span to match the AST-based location. The kernel FE
@@ -320,7 +321,7 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
   @override
   visitConstantExpression(ir.ConstantExpression node) {
     ConstantValue constant = _elementMap.getConstantValue(null, node);
-    if (!constant.isPrimitive) {
+    if (constant is! PrimitiveConstantValue) {
       _constants.add('${constant.toStructuredText(_elementMap.types)}='
           '${outputUnitString(_data.outputUnitForConstant(constant))}');
     }

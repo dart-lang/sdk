@@ -11,5 +11,5 @@ class Foo extends core::Object {
 }
 static method main() → dynamic
   ;
-static method test_nullable_function_type_formal_param({() →? core::int f}) → core::int
+static method test_nullable_function_type_formal_param({has-declared-initializer () →? core::int f}) → core::int
   ;

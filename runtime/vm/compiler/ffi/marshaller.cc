@@ -389,6 +389,15 @@ Location CallMarshaller::LocInFfiCall(intptr_t def_index_global) const {
     return loc.AsLocation();
   }
 
+  // Force all handles to be Stack locations.
+  // Since non-leaf calls block all registers, Any locations effectively mean
+  // Stack.
+  // TODO(dartbug.com/38985): Once we start inlining FFI trampolines, the inputs
+  // can be constants as well.
+  if (IsHandle(arg_index)) {
+    return Location::Any();
+  }
+
   if (loc.IsMultiple()) {
     const intptr_t def_index_in_arg =
         def_index_global - FirstDefinitionIndex(arg_index);
@@ -453,6 +462,13 @@ intptr_t CallMarshaller::PassByPointerStackOffset(intptr_t arg_index) const {
   // First the native arguments are on the stack.
   // This is governed by the native ABI, the rest we can chose freely.
   stack_offset += native_calling_convention_.StackTopInBytes();
+#if (defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_MACOS)) &&    \
+    defined(TARGET_ARCH_ARM64)
+  // Add extra padding for possibly non stack-aligned word-size writes.
+  // TODO(https://dartbug.com/48806): Re-engineer the moves to not over-
+  // approximate struct sizes on stack.
+  stack_offset += 4;
+#endif
   stack_offset = Utils::RoundUp(stack_offset, compiler::target::kWordSize);
   if (arg_index == kResultIndex) {
     return stack_offset;

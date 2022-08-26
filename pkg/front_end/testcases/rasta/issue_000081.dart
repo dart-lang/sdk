@@ -1,13 +1,13 @@
 // Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
-// @dart=2.9
+
 class Base {
   int hashCode = 42;
 }
 
 class Sub extends Base {
-  int _hashCode = null;
+  int? _hashCode = null;
 
   get hashCode => _hashCode ??= super.hashCode;
 
@@ -18,6 +18,6 @@ class Sub extends Base {
 
 main() {
   print(new Sub().hashCode);
-  var l = [null];
+  var l = <String?>[null];
   l[0] ??= "fisk";
 }

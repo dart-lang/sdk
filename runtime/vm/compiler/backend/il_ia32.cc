@@ -116,7 +116,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case 4:
     case 8:
     case 16:
-      __ rep_movsl();
+      __ rep_movsd();
       break;
   }
 
@@ -233,6 +233,13 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->in(0).reg();
   ASSERT(result == EAX);
 
+  if (compiler->parsed_function().function().IsSuspendableFunction()) {
+    ASSERT(compiler->flow_graph().graph_entry()->NeedsFrame());
+    const Code& stub = GetReturnStub(compiler);
+    compiler->EmitJumpToStub(stub);
+    return;
+  }
+
   if (!compiler->flow_graph().graph_entry()->NeedsFrame()) {
     __ ret();
     return;
@@ -256,7 +263,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (yield_index() != UntaggedPcDescriptors::kInvalidYieldIndex) {
     compiler->EmitYieldPositionMetadata(source(), yield_index());
   }
-  __ LeaveFrame();
+  __ LeaveDartFrame();
   __ ret();
 }
 
@@ -272,8 +279,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return_in_st0 = true;
   }
 
-  // Leave Dart frame.
-  __ LeaveFrame();
+  __ LeaveDartFrame();
 
   // EDI is the only sane choice for a temporary register here because:
   //
@@ -1044,7 +1050,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(stack_required);
 
-  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp);
+  // No second temp: PointerToMemoryLocation is not used for arguments in ia32.
+  EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp,
+                 kNoRegister);
 
   if (is_leaf_) {
     // We store the pre-align SP at a fixed offset from the final SP.
@@ -1137,7 +1145,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             compiler::Address(SPREG, marshaller_.RequiredStackSpaceInBytes()));
   } else {
     // Leave dummy exit frame.
-    __ LeaveFrame();
+    __ LeaveDartFrame();
 
     // Instead of returning to the "fake" return address, we just pop it.
     __ popl(temp);
@@ -1238,6 +1246,34 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Continue with Dart frame setup.
   FunctionEntryInstr::EmitNativeCode(compiler);
+}
+
+#define R(r) (1 << r)
+
+LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
+                                                 bool is_optimizing) const {
+  constexpr Register saved_fp = CallingConventions::kSecondNonArgumentRegister;
+  constexpr Register temp0 = CallingConventions::kFfiAnyNonAbiRegister;
+  static_assert(saved_fp < temp0, "Unexpected ordering of registers in set.");
+  return MakeLocationSummaryInternal(zone, (R(saved_fp) | R(temp0)));
+}
+
+#undef R
+
+void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp0 = locs()->temp(1).reg();
+
+  __ MoveRegister(saved_fp, FPREG);
+  const intptr_t frame_space = native_calling_convention_.StackTopInBytes();
+  __ EnterCFrame(frame_space);
+
+  EmitParamMoves(compiler, saved_fp, temp0);
+
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  __ CallCFunction(target_address);
+
+  __ LeaveCFrame();
 }
 
 static bool CanBeImmediateIndex(Value* value, intptr_t cid) {
@@ -2896,7 +2932,7 @@ class CheckStackOverflowSlowPath
         instruction(), /*num_slow_path_args=*/0);
     compiler->pending_deoptimization_env_ = env;
 
-    __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
+    __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
     compiler->EmitCallsiteMetadata(
         instruction()->source(), instruction()->deopt_id(),
         UntaggedPcDescriptors::kOther, instruction()->locs(), env);
@@ -4570,6 +4606,15 @@ DEFINE_EMIT(Float32x4Clamp,
   __ maxps(left, lower);
 }
 
+DEFINE_EMIT(Float64x2Clamp,
+            (SameAsFirstInput,
+             XmmRegister left,
+             XmmRegister lower,
+             XmmRegister upper)) {
+  __ minpd(left, upper);
+  __ maxpd(left, lower);
+}
+
 DEFINE_EMIT(Int32x4FromInts,
             (XmmRegister result, Register, Register, Register, Register)) {
   // TODO(dartbug.com/30949) avoid transfer through memory.
@@ -4719,6 +4764,7 @@ DEFINE_EMIT(Int32x4Select,
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float64x2Zero)                                                        \
   SIMPLE(Float32x4Clamp)                                                       \
+  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Int32x4GetFlagX)                                                        \
   CASE(Int32x4GetFlagY)                                                        \
   CASE(Int32x4GetFlagZ)                                                        \
@@ -6457,8 +6503,8 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
               EBP, compiler::target::frame_layout.code_from_fp * kWordSize));
   // Load instructions object (active_instructions and Code::entry_point() may
   // not point to this instruction object any more; see Code::DisableDartCode).
-  __ movl(target_reg, compiler::FieldAddress(
-                          target_reg, Code::saved_instructions_offset()));
+  __ movl(target_reg,
+          compiler::FieldAddress(target_reg, Code::instructions_offset()));
   __ addl(target_reg,
           compiler::Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ addl(target_reg, offset);
@@ -6572,7 +6618,7 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(EAX));  // Function.
+  summary->set_in(0, Location::RegisterLocation(FUNCTION_REG));  // Function.
   summary->set_out(0, Location::RegisterLocation(EAX));
   return summary;
 }
@@ -6582,16 +6628,17 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t argument_count = ArgumentCount();  // Includes type args.
   const Array& arguments_descriptor =
       Array::ZoneHandle(Z, GetArgumentsDescriptor());
-  __ LoadObject(EDX, arguments_descriptor);
+  __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
 
   // EBX: Code (compiled code or lazy compile stub).
-  ASSERT(locs()->in(0).reg() == EAX);
-  __ movl(EBX, compiler::FieldAddress(EAX, Function::entry_point_offset()));
+  ASSERT(locs()->in(0).reg() == FUNCTION_REG);
+  __ movl(EBX,
+          compiler::FieldAddress(FUNCTION_REG, Function::entry_point_offset()));
 
-  // EAX: Function.
-  // EDX: Arguments descriptor array.
+  // FUNCTION_REG: Function.
+  // ARGS_DESC_REG: Arguments descriptor array.
   // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-  __ xorl(ECX, ECX);
+  __ xorl(IC_DATA_REG, IC_DATA_REG);
   __ call(EBX);
   compiler->EmitCallsiteMetadata(source(), deopt_id(),
                                  UntaggedPcDescriptors::kOther, locs(), env());

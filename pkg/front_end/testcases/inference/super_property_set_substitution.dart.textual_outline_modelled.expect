@@ -1,16 +1,15 @@
-// @dart = 2.9
 library test;
 
 import 'dart:async';
 
-T f<T>() => null;
+T f<T>() => throw '';
 
 class B<T> {
-  D<T> x;
+  D<T> x = throw '';
 }
 
 class C<U> extends B<Future<U>> {
-  E<Future<U>> get x => null;
+  E<Future<U>> get x => throw '';
   void g() {}
   void set x(Object x) {}
 }

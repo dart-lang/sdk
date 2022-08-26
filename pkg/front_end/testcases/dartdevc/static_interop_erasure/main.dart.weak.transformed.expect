@@ -1,0 +1,57 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib.dart" as sta;
+import "dart:_interceptors" as _in;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → void {
+  sta::setUp();
+  _in::JavaScriptObject staticJs = sta::StaticJSClass::factory|staticInteropFactoryStub();
+}
+
+@#C2
+library static_interop /*isNonNullableByDefault*/;
+import self as sta;
+import "package:js/js.dart" as js;
+import "dart:core" as core;
+import "dart:_interceptors" as _in;
+
+import "package:js/js.dart";
+
+@#C4
+@#C5
+class StaticJSClass extends core::Object {
+  external constructor •() → sta::StaticJSClass
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff() → _in::JavaScriptObject
+    return new sta::StaticJSClass::•() as _in::JavaScriptObject;
+  static factory factory() → sta::StaticJSClass {
+    return new sta::StaticJSClass::•();
+  }
+  static method _#factory#tearOff() → _in::JavaScriptObject
+    return sta::StaticJSClass::factory|staticInteropFactoryStub();
+  static method /*isLegacy*/ factory|staticInteropFactoryStub() → _in::JavaScriptObject {
+    return (new sta::StaticJSClass::•() as _in::JavaScriptObject) as _in::JavaScriptObject;
+  }
+}
+@#C2
+external static method eval(core::String code) → void;
+static method setUp() → void {
+  sta::eval("function JSClass() {}");
+}
+
+constants  {
+  #C1 = null
+  #C2 = js::JS {name:#C1}
+  #C3 = "JSClass"
+  #C4 = js::JS {name:#C3}
+  #C5 = js::_StaticInterop {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main_lib.dart:
+- JS. (from org-dartlang-testcase-sdk:///pkg/js/lib/js.dart:23:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart:-1:-1)

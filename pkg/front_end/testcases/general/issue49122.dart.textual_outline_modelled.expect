@@ -1,0 +1,2 @@
+test(x) => x();
+void test2() {}

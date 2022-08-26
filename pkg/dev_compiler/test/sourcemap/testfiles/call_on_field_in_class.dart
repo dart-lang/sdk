@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 void main() {
   /* bl */ var foo = /*sl:1*/ Foo();
   foo.foo = foo. /*sl:2*/ fooMethod;
@@ -14,11 +12,11 @@ void main() {
   // (back in dart.callMethod) -> dart._checkAndCall -> fooMethod
   // which seems unlikely to be something the user is going to step through.
   // As a "fix" here a breakpoint has been set on the line in fooMethod.
-  foo. /*sl:5*/ foo();
+  foo. /*sl:5*/ foo!();
 }
 
 class Foo {
-  void Function() foo;
+  void Function()? foo;
 
   void fooMethod() {
     /*bl*/ /*s:4*/ /*s:6*/ print('Hello from fooMethod');

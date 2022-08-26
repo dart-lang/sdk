@@ -36,7 +36,7 @@ void func(int param) {
   topLevelVar.add(localVar);
 }
 
-main() {
+void f() {
   // comment
   func(35);
 }
@@ -133,7 +133,7 @@ main() {
 
   Future<void> test_getHover() async {
     writeFile(pathname, text);
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     // Note: analysis.getHover doesn't wait for analysis to complete--it simply
     // returns the latest results that are available at the time that the

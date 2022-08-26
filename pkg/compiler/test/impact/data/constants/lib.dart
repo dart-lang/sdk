@@ -37,6 +37,7 @@ class Class extends SuperClass {
 
   const Class(field1, this.field2) : super(field1);
 
+  /*member: Class.staticMethodField:*/
   static staticMethodField() {}
 }
 
@@ -99,6 +100,7 @@ const int Function(int) _instantiation = id;
 
 const dynamic instantiationField = _instantiation;
 
+/*member: topLevelMethod:*/
 topLevelMethod() {}
 
 const dynamic topLevelTearOffField = topLevelMethod;

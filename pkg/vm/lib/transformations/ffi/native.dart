@@ -19,7 +19,7 @@ import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
-import 'common.dart' show FfiTransformer;
+import 'common.dart' show FfiStaticTypeError, FfiTransformer;
 
 /// Transform @FfiNative annotated functions into FFI native function pointer
 /// functions.
@@ -186,19 +186,13 @@ class FfiNativeTransformer extends FfiTransformer {
         ]))
       ..fileOffset = fileOffset;
 
-    // NativeFunctionPointer.asFunction
-    //     <Double Function(Double), double Function(double)>(..., isLeaf:true)
-    final asFunctionInvocation = StaticInvocation(
-        asFunctionMethod,
-        Arguments(<Expression>[
-          fromAddressInvocation
-        ], types: <DartType>[
-          ffiFunctionType,
-          dartFunctionType
-        ], named: <NamedExpression>[
-          NamedExpression('isLeaf', BoolLiteral(isLeaf))
-        ]))
-      ..fileOffset = fileOffset;
+    final asFunctionInvocation = buildAsFunctionInternal(
+      functionPointer: fromAddressInvocation,
+      dartSignature: dartFunctionType,
+      nativeSignature: ffiFunctionType,
+      isLeaf: isLeaf,
+      fileOffset: fileOffset,
+    );
 
     // static final _doXyz$FfiNative$Ptr = ...
     final fieldName =
@@ -346,7 +340,7 @@ class FfiNativeTransformer extends FfiTransformer {
   // annotation matches.
   bool _verifySignatures(Procedure node, FunctionType dartFunctionType,
       FunctionType ffiFunctionType, int annotationOffset) {
-    if (ffiFunctionType.namedParameters.length > 0) {
+    if (ffiFunctionType.namedParameters.isNotEmpty) {
       diagnosticReporter.report(
           templateCantHaveNamedParameters.withArguments('FfiNative'),
           annotationOffset,
@@ -412,6 +406,19 @@ class FfiNativeTransformer extends FfiTransformer {
     // int Function(Pointer<Void>)
     final wrappedDartFunctionType =
         _wrapFunctionType(dartFunctionType, ffiFunctionType);
+
+    final nativeType = InterfaceType(
+        nativeFunctionClass, Nullability.legacy, [ffiFunctionType]);
+    try {
+      ensureNativeTypeValid(nativeType, node);
+      ensureNativeTypeToDartType(nativeType, wrappedDartFunctionType, node);
+      ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
+    } on FfiStaticTypeError {
+      // It's OK to swallow the exception because the diagnostics issued will
+      // cause compilation to fail. By continuing, we can report more
+      // diagnostics before compilation ends.
+      return node;
+    }
 
     final parent = node.parent;
 

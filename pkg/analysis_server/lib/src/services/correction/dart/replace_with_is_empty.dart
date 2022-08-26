@@ -45,9 +45,6 @@ class ReplaceWithIsEmpty extends CorrectionProducer {
     });
   }
 
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceWithIsEmpty newInstance() => ReplaceWithIsEmpty();
-
   static _Replacement? _analyzeBinaryExpression(BinaryExpression binary) {
     var operator = binary.operator.type;
     var rightValue = _getIntValue(binary.rightOperand);

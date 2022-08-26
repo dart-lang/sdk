@@ -2834,8 +2834,19 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "connectionstatechangeEvent": [
+          "/**",
+          "   * Static factory designed to expose `connectionstatechange` events to event",
+          "   * handlers that are not necessarily instances of [RtcPeerConnection].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
         "onaddstream": [
           "/// Stream of `addstream` events handled by this [RtcPeerConnection]."
+        ],
+        "onconnectionstatechange": [
+          "/// Stream of `connectionstatechange` events handled by this [RtcPeerConnection]."
         ],
         "ondatachannel": [
           "/// Stream of `datachannel` events handled by this [RtcPeerConnection]."

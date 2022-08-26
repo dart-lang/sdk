@@ -59,7 +59,7 @@ class A {} // 2
   }
 
   test_class_inPart() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 class A {}
 ''');
@@ -300,7 +300,7 @@ int get x => 0;
     await resolveTestCode(r'''
 library foo;
 ''');
-    var element = findElement.unitElement.enclosingElement;
+    var element = this.result.libraryElement;
     var result = await getElementDeclaration(element);
     expect(result, isNull);
   }

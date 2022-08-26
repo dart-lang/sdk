@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io';
@@ -40,17 +38,23 @@ const _binaryName = 'dartdevc -k';
 
 /// Invoke the compiler with [args].
 ///
-/// Returns `true` if the program compiled without any fatal errors.
-Future<CompilerResult> compile(List<String> args,
-    {fe.InitializedCompilerState compilerState,
-    bool isWorker = false,
-    bool useIncrementalCompiler = false,
-    Map<Uri, List<int>> inputDigests}) async {
+/// Returns a [CompilerResult], with a success flag indicating whether the
+/// program compiled without any fatal errors.
+///
+/// The result may also contain a [previousResult], which can be passed back in
+/// for batch/worker executions to attempt to existing state.
+Future<CompilerResult> compile(ParsedArguments args,
+    {fe.InitializedCompilerState? compilerState,
+    Map<Uri, List<int>>? inputDigests}) {
+  if (compilerState != null && !args.isBatchOrWorker) {
+    throw ArgumentError(
+        'previousResult requires --batch or --bazel_worker mode/');
+  }
   try {
-    return await _compile(args,
+    return _compile(args.rest,
         compilerState: compilerState,
-        isWorker: isWorker,
-        useIncrementalCompiler: useIncrementalCompiler,
+        isWorker: args.isWorker,
+        useIncrementalCompiler: args.useIncrementalCompiler,
         inputDigests: inputDigests);
   } catch (error, stackTrace) {
     print('''
@@ -60,13 +64,13 @@ You can report this bug at:
 Please include the information below in your report, along with
 any other information that may help us track it down. Thanks!
 -------------------- %< --------------------
-    $_binaryName arguments: ${args.join(' ')}
+    $_binaryName arguments: ${args.rest.join(' ')}
     dart --version: ${Platform.version}
 
 $error
 $stackTrace
 ''');
-    return CompilerResult(70);
+    return Future.value(CompilerResult(70));
   }
 }
 
@@ -77,10 +81,10 @@ String _usageMessage(ArgParser ddcArgParser) =>
     '${ddcArgParser.usage}';
 
 Future<CompilerResult> _compile(List<String> args,
-    {fe.InitializedCompilerState compilerState,
+    {fe.InitializedCompilerState? compilerState,
     bool isWorker = false,
     bool useIncrementalCompiler = false,
-    Map<Uri, List<int>> inputDigests}) async {
+    Map<Uri, List<int>>? inputDigests}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
@@ -92,7 +96,9 @@ Future<CompilerResult> _compile(List<String> args,
         defaultsTo: false,
         hide: true)
     ..addFlag('track-widget-creation',
-        help: 'Enable inspecting of Flutter widgets.', hide: true)
+        help: 'Enable inspecting of Flutter widgets.',
+        defaultsTo: false,
+        hide: true)
     // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
@@ -192,9 +198,10 @@ Future<CompilerResult> _compile(List<String> args,
 
   var summaryPaths = options.summaryModules.keys.toList();
   var summaryModules = Map.fromIterables(
-      summaryPaths.map(sourcePathToUri), options.summaryModules.values);
-  var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
-  var librarySpecPath = argResults['libraries-file'] as String;
+      summaryPaths.map(sourcePathToUri).cast<Uri>(),
+      options.summaryModules.values);
+  var sdkSummaryPath = argResults['dart-sdk-summary'] as String?;
+  var librarySpecPath = argResults['libraries-file'] as String?;
   if (sdkSummaryPath == null) {
     sdkSummaryPath =
         defaultSdkSummaryPath(soundNullSafety: options.soundNullSafety);
@@ -228,7 +235,7 @@ Future<CompilerResult> _compile(List<String> args,
     }
   }
 
-  /// The .packages file path provided by the user.
+  /// The .dart_tool/package_config.json file path provided by the user.
   //
   // TODO(jmesserly): the default location is based on the current working
   // directory, to match the behavior of dartanalyzer/dartdevc. However the
@@ -237,10 +244,12 @@ Future<CompilerResult> _compile(List<String> args,
   // Ultimately this is just the default behavior; in practice users call DDC
   // through a build tool, which generally passes in `--packages=`.
   //
-  // TODO(jmesserly): conceptually CFE should not need a .packages file to
-  // resolve package URIs that are in the input summaries, but it seems to.
+  // TODO(jmesserly): conceptually CFE should not need a
+  // .dart_tool/package_config.json file to resolve package URIs that are in the
+  // input summaries, but it seems to.
   // This needs further investigation.
-  var packageFile = argResults['packages'] as String ?? _findPackagesFilePath();
+  var packageFile =
+      argResults['packages'] as String? ?? _findPackagesFilePath();
 
   var succeeded = true;
   void diagnosticMessageHandler(fe.DiagnosticMessage message) {
@@ -253,24 +262,26 @@ Future<CompilerResult> _compile(List<String> args,
   var explicitExperimentalFlags = fe.parseExperimentalFlags(options.experiments,
       onError: stderr.writeln, onWarning: print);
 
-  var trackWidgetCreation =
-      argResults['track-widget-creation'] as bool ?? false;
+  var trackWidgetCreation = argResults['track-widget-creation'] as bool;
 
   var compileSdk = argResults['compile-sdk'] == true;
   var oldCompilerState = compilerState;
-  List<Component> doneAdditionalDills;
-  fe.IncrementalCompiler incrementalCompiler;
-  fe.WorkerInputComponent cachedSdkInput;
   var recordUsedInputs = argResults['used-inputs-file'] != null;
   var additionalDills = summaryModules.keys.toList();
+  fe.DdcResult? result;
 
+  // TODO(jmesserly): is there a cleaner way to do this?
+  //
+  // Ideally we'd manage our own batch compilation caching rather than rely on
+  // `initializeCompiler`. Also we should be able to pass down Components for
+  // SDK and summaries.
   if (!useIncrementalCompiler) {
     compilerState = fe.initializeCompiler(
         oldCompilerState,
         compileSdk,
         sourcePathToUri(getSdkPath()),
         compileSdk ? null : sourcePathToUri(sdkSummaryPath),
-        sourcePathToUri(packageFile),
+        packageFile != null ? sourcePathToUri(packageFile) : null,
         sourcePathToUri(librarySpecPath),
         additionalDills,
         DevCompilerTarget(TargetFlags(
@@ -281,13 +292,15 @@ Future<CompilerResult> _compile(List<String> args,
         environmentDefines: declaredVariables,
         nnbdMode:
             options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
+    result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with
     // fake input digests).
-    if (!isWorker && (inputDigests == null || inputDigests.isEmpty)) {
+    inputDigests ??= {};
+    if (!isWorker && inputDigests.isEmpty) {
       oldCompilerState = null;
-      inputDigests ??= {};
+
       if (!compileSdk) {
         inputDigests[sourcePathToUri(sdkSummaryPath)] = const [0];
       }
@@ -295,8 +308,8 @@ Future<CompilerResult> _compile(List<String> args,
         inputDigests[uri] = const [0];
       }
     }
-
-    doneAdditionalDills = List<Component>(summaryModules.length);
+    var doneAdditionalDills =
+        List.filled(summaryModules.length, dummyComponent);
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
         {
@@ -308,7 +321,7 @@ Future<CompilerResult> _compile(List<String> args,
         compileSdk,
         sourcePathToUri(getSdkPath()),
         compileSdk ? null : sourcePathToUri(sdkSummaryPath),
-        sourcePathToUri(packageFile),
+        packageFile != null ? sourcePathToUri(packageFile) : null,
         sourcePathToUri(librarySpecPath),
         additionalDills,
         inputDigests,
@@ -321,21 +334,9 @@ Future<CompilerResult> _compile(List<String> args,
         trackNeededDillLibraries: recordUsedInputs,
         nnbdMode:
             options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
-    incrementalCompiler = compilerState.incrementalCompiler;
-    cachedSdkInput =
-        compilerState.workerInputCache[sourcePathToUri(sdkSummaryPath)];
-  }
-
-  // TODO(jmesserly): is there a cleaner way to do this?
-  //
-  // Ideally we'd manage our own batch compilation caching rather than rely on
-  // `initializeCompiler`. Also we should be able to pass down Components for
-  // SDK and summaries.
-  //
-  fe.DdcResult result;
-  if (!useIncrementalCompiler) {
-    result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
-  } else {
+    var incrementalCompiler = compilerState.incrementalCompiler!;
+    var cachedSdkInput =
+        compilerState.workerInputCache![sourcePathToUri(sdkSummaryPath)];
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
     var incrementalCompilerResult = await incrementalCompiler.computeDelta(
         entryPoints: inputs,
@@ -343,9 +344,9 @@ Future<CompilerResult> _compile(List<String> args,
         trackNeededDillLibraries: recordUsedInputs);
     result = fe.DdcResult(
         incrementalCompilerResult.component,
-        cachedSdkInput.component,
+        cachedSdkInput?.component,
         doneAdditionalDills,
-        incrementalCompilerResult.classHierarchy,
+        incrementalCompilerResult.classHierarchy!,
         incrementalCompilerResult.neededDillLibraries);
   }
   compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
@@ -387,7 +388,7 @@ Future<CompilerResult> _compile(List<String> args,
     kernel.BinaryPrinter(sink).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
-  String fullDillUri;
+  String? fullDillUri;
   if (argResults['experimental-output-compiled-kernel'] as bool) {
     if (outPaths.length > 1) {
       print(
@@ -427,7 +428,7 @@ Future<CompilerResult> _compile(List<String> args,
   final summaryToModule = Map<Component, String>.identity();
   for (var i = 0; i < result.additionalDills.length; i++) {
     var additionalDill = result.additionalDills[i];
-    var moduleImport = summaryModules[additionalDills[i]];
+    var moduleImport = summaryModules[additionalDills[i]]!;
     for (var l in additionalDill.libraries) {
       assert(!importToSummary.containsKey(l));
       importToSummary[l] = additionalDill;
@@ -481,12 +482,12 @@ Future<CompilerResult> _compile(List<String> args,
   if (recordUsedInputs) {
     var usedOutlines = <Uri>{};
     if (useIncrementalCompiler) {
-      var neededDillLibraries = result.neededDillLibraries;
-      compilerState.incrementalCompiler.updateNeededDillLibrariesWithHierarchy(
+      var neededDillLibraries = result.neededDillLibraries!;
+      compilerState.incrementalCompiler!.updateNeededDillLibrariesWithHierarchy(
           neededDillLibraries, result.classHierarchy);
       for (var lib in neededDillLibraries) {
         if (lib.importUri.isScheme('dart')) continue;
-        var uri = compilerState.libraryToInputDill[lib.importUri];
+        var uri = compilerState.libraryToInputDill![lib.importUri];
         if (uri == null) {
           throw StateError('Library ${lib.importUri} was recorded as used, '
               'but was not in the list of known libraries.');
@@ -644,20 +645,20 @@ class JSCode {
   ///
   /// The source paths will initially be absolute paths. They can be adjusted
   /// using [placeSourceMap].
-  final Map sourceMap;
+  final Map? sourceMap;
 
   /// Module and library information
   ///
   /// The [metadata] is a contract between compiler and the debugger,
   /// helping the debugger map between libraries, modules, source paths.
   /// see: https://goto.google.com/dart-web-debugger-metadata
-  final ModuleMetadata metadata;
+  final ModuleMetadata? metadata;
 
   /// Module debug symbols.
   ///
   /// The [symbols] is a contract between compiler and the debugger,
   /// helping the debugger map between dart and JS objects.
-  final ModuleSymbols symbols;
+  final ModuleSymbols? symbols;
 
   JSCode(this.code, this.sourceMap, {this.symbols, this.metadata});
 }
@@ -671,18 +672,18 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     bool inlineSourceMap = false,
     bool emitDebugMetadata = false,
     bool emitDebugSymbols = false,
-    String jsUrl,
-    String mapUrl,
-    String fullDillUri,
-    String sourceMapBase,
-    String customScheme,
-    String multiRootOutputPath,
-    ProgramCompiler compiler,
-    Component component}) {
+    String? jsUrl,
+    String? mapUrl,
+    String? fullDillUri,
+    String? sourceMapBase,
+    String? customScheme,
+    String? multiRootOutputPath,
+    ProgramCompiler? compiler,
+    Component? component}) {
   var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   js_ast.SimpleJavaScriptPrintingContext printer;
-  SourceMapBuilder sourceMap;
+  SourceMapBuilder? sourceMap;
   if (buildSourceMap) {
     var sourceMapContext = SourceMapPrintingContext();
     sourceMap = sourceMapContext.sourceMap;
@@ -696,9 +697,9 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   tree.accept(js_ast.Printer(opts, printer,
       localNamer: js_ast.TemporaryNamer(tree, nameListener)));
 
-  Map builtMap;
+  Map? builtMap;
   if (buildSourceMap && sourceMap != null) {
-    builtMap = placeSourceMap(sourceMap.build(jsUrl), mapUrl, customScheme,
+    builtMap = placeSourceMap(sourceMap.build(jsUrl!), mapUrl!, customScheme,
         multiRootOutputPath: multiRootOutputPath, sourceMapBase: sourceMapBase);
     var jsDir = p.dirname(p.fromUri(jsUrl));
     var relative = p.relative(p.fromUri(mapUrl), from: jsDir);
@@ -727,19 +728,19 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   // our runtime metrics gathering would obtain this information from the
   // compilation server, not the browser.  We don't yet have the infra for that.
   var compileTimeStatistics = {
-    'dartSize': component != null ? _computeDartSize(component) : null,
+    'dartSize': _computeDartSize(component!),
     'sourceMapSize': encodedMap.length
   };
   text = text.replaceFirst(
       SharedCompiler.metricsLocationID, '$compileTimeStatistics');
 
   var debugMetadata = emitDebugMetadata
-      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl, fullDillUri)
+      ? _emitMetadata(moduleTree, component, mapUrl!, jsUrl!, fullDillUri)
       : null;
 
   var debugSymbols = emitDebugSymbols
       ? _emitSymbols(
-          compiler, moduleTree.name, nameListener.identifierNames, component)
+          compiler!, moduleTree.name!, nameListener!.identifierNames, component)
       : null;
 
   return JSCode(text, builtMap, symbols: debugSymbols, metadata: debugMetadata);
@@ -753,17 +754,26 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 /// names used when outputting the JavaScript.
 ModuleSymbols _emitSymbols(ProgramCompiler compiler, String moduleName,
     Map<js_ast.Identifier, String> identifierNames, Component component) {
+  /// Returns the name selected in the final Javascript for [id].
+  String lookupName(js_ast.Identifier id) {
+    var name = identifierNames[id];
+    if (name == null) {
+      throw Exception('No recorded naming decision found for Identifier with '
+          'name: ${id.name}');
+    }
+    return name;
+  }
+
   var classJsNames = <Class, String>{
-    for (var e in compiler.classIdentifiers.entries)
-      e.key: identifierNames[e.value],
+    for (var e in compiler.classIdentifiers.entries) e.key: lookupName(e.value),
   };
   var procedureJsNames = <Procedure, String>{
     for (var e in compiler.procedureIdentifiers.entries)
-      e.key: identifierNames[e.value],
+      e.key: lookupName(e.value),
   };
   var variableJsNames = <VariableDeclaration, String>{
     for (var e in compiler.variableIdentifiers.entries)
-      e.key: identifierNames[e.value],
+      e.key: lookupName(e.value),
   };
 
   return ModuleSymbolsCollector(moduleName, classJsNames, compiler.memberNames,
@@ -772,10 +782,10 @@ ModuleSymbols _emitSymbols(ProgramCompiler compiler, String moduleName,
 }
 
 ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
-    String sourceMapUri, String moduleUri, String fullDillUri) {
+    String sourceMapUri, String moduleUri, String? fullDillUri) {
   var metadata = ModuleMetadata(
-      program.name,
-      loadFunctionName(program.name),
+      program.name!,
+      loadFunctionName(program.name!),
       sourceMapUri,
       moduleUri,
       fullDillUri,
@@ -797,7 +807,7 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   var declaredVariables = <String, String>{};
   for (var i = 0; i < args.length;) {
     var arg = args[i];
-    String rest;
+    String? rest;
     const defineFlag = '--define';
     if (arg.startsWith('-D') && arg.length > 2) {
       rest = arg.substring(2);
@@ -829,7 +839,7 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
 
 /// The default path of the kernel summary for the Dart SDK given the
 /// [soundNullSafety] mode.
-String defaultSdkSummaryPath({bool soundNullSafety}) {
+String defaultSdkSummaryPath({required bool soundNullSafety}) {
   var outlineDill = soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_sdk.dill';
   return p.join(getSdkPath(), 'lib', '_internal', outlineDill);
 }
@@ -844,10 +854,11 @@ String getSdkPath() => p.dirname(p.dirname(Platform.resolvedExecutable));
 ///
 /// Checks for a `.dart_tool/package_config.json` file in the current working
 /// directory, or in any parent directory.
-String _findPackagesFilePath() {
+String? _findPackagesFilePath() {
   // TODO(jmesserly): this was copied from package:package_config/discovery.dart
   // Unfortunately the relevant function is not public. CFE APIs require a URI
-  // to the .packages file, rather than letting us provide the package map data.
+  // to the .dart_tool/package_config.json file, rather than letting us provide
+  // the package map data.
   var dir = Directory.current;
   if (!dir.isAbsolute) dir = dir.absolute;
   if (!dir.existsSync()) return null;
@@ -866,9 +877,9 @@ String _findPackagesFilePath() {
 }
 
 /// Inputs must be absolute paths. Returns null if no prefixing path is found.
-String _longestPrefixingPath(Uri baseUri, List<Uri> prefixingPaths) {
+String? _longestPrefixingPath(Uri baseUri, List<Uri> prefixingPaths) {
   var basePath = baseUri.path;
-  return prefixingPaths.fold(null, (String previousValue, Uri element) {
+  return prefixingPaths.fold(null, (String? previousValue, Uri element) {
     if (basePath.startsWith(element.path) &&
         (previousValue == null || previousValue.length < element.path.length)) {
       return element.path;

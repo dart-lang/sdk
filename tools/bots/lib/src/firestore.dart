@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io' show File, HttpStatus;
 
@@ -28,11 +26,11 @@ class FirestoreDatabase {
   final Uri _commitUrl;
 
   /// The current transaction ID in base64 (or `null`)
-  String _currentTransaction;
+  String? _currentTransaction;
 
   /// Returns the current transaction escaped to be useable as part of a URI.
   String get _escapedCurrentTransaction {
-    return Uri.encodeFull(_currentTransaction)
+    return Uri.encodeFull(_currentTransaction!)
         // The Firestore API does not accept '+' in URIs
         .replaceAll("+", "%2B");
   }
@@ -117,7 +115,7 @@ class FirestoreDatabase {
     }
   }
 
-  Future<bool> commit([List<Write> writes]) async {
+  Future<bool> commit({required List<Write> writes}) async {
     if (_currentTransaction == null) {
       throw Exception('"commit" called without transaction');
     }
@@ -156,7 +154,7 @@ abstract class Write {
 class Update implements Write {
   @override
   final Map data;
-  Update(List<String> updateMask, Map document, {String updateTime})
+  Update(List<String> updateMask, Map document, {String? updateTime})
       : data = {
           if (updateTime != null) "currentDocument": {"updateTime": updateTime},
           "updateMask": {"fieldPaths": updateMask},
@@ -166,7 +164,7 @@ class Update implements Write {
 
 class Query {
   final Map data;
-  Query(String collection, Filter filter, {int limit})
+  Query(String collection, Filter filter, {int? limit})
       : data = {
           'structuredQuery': {
             'from': [

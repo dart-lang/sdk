@@ -215,7 +215,7 @@ class B implements A {
   }
 
   test_method_parameter_functionTyped_optOut_extends_optIn() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 abstract class A {
   A catchError(void Function(Object) a);
 }
@@ -232,7 +232,7 @@ class B implements A {
   }
 
   test_method_parameter_interfaceOptOut_concreteOptIn() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo(Object a) {}
 }
@@ -249,7 +249,7 @@ class B extends A {
   }
 
   test_mixedInheritance_1() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
@@ -263,7 +263,7 @@ class Bq {
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -281,7 +281,7 @@ class D extends C implements Bq {}
   }
 
   test_mixedInheritance_2() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
@@ -295,7 +295,7 @@ class Bq {
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -416,7 +416,7 @@ abstract class B implements A {
   }
 
   test_viaLegacy_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A1 {
   int m() => 0;
   int get g => 0;
@@ -430,7 +430,7 @@ class A2 {
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 // @dart=2.6
 import 'a.dart';
 
@@ -455,7 +455,7 @@ class Y extends L {
   }
 
   test_viaLegacy_mixin() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A1 {
   int m() => 0;
   int get g => 0;
@@ -469,7 +469,7 @@ mixin A2 {
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 // @dart=2.6
 import 'a.dart';
 

@@ -122,6 +122,9 @@ final String? authToken =
 final Element? editListElement =
     document.querySelector('.edit-list .panel-content');
 
+final Element? editListHeading =
+    document.querySelector('.edit-list .panel-heading');
+
 final Element? editPanel = document.querySelector('.edit-panel .panel-content');
 
 final Element? footerPanel = document.querySelector('footer');
@@ -286,7 +289,8 @@ check its output for a fresh URL, and use that URL to perform your migration.
 Uri getGitHubErrorUri(
         String description, Object? exception, Object? stackTrace) =>
     Uri.https('github.com', 'dart-lang/sdk/issues/new', {
-      'title': 'Customer-reported issue with NNBD migration tool: $description',
+      'title': 'Customer-reported issue with null safety migration tool: '
+          '$description',
       'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
       'body': '''
 $description
@@ -316,7 +320,7 @@ $stackTrace
 /// pre-populating some labels and a body template.
 Uri getGitHubProblemUri() =>
     Uri.https('github.com', 'dart-lang/sdk/issues/new', {
-      'title': 'Customer-reported issue with NNBD migration tool',
+      'title': 'Customer-reported issue with null safety migration tool',
       'labels': 'area-analyzer,analyzer-nnbd-migration,type-bug',
       'body': '''
 #### Steps to reproduce
@@ -646,6 +650,14 @@ void populateProposedEdits(
   editListElement!.innerHtml = '';
 
   var editCount = edits.length;
+
+  if (editCount < 2) {
+    editListHeading!.innerText = 'Proposed Edits';
+  } else {
+    int total = edits.entries.fold(0, (sum, edit) => sum + edit.value.length);
+    editListHeading!.innerText = '$total Proposed Edits';
+  }
+
   if (editCount == 0) {
     Element p = document.createElement('p');
     editListElement!.append(p);

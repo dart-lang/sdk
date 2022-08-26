@@ -115,11 +115,10 @@ class AnnotationResolver {
               resolver: _resolver,
               node: node,
               argumentList: argumentList,
-              rawType: null,
               contextType: null,
               whyNotPromotedList: whyNotPromotedList,
               constructorName: constructorName)
-          .resolveInvocation();
+          .resolveInvocation(rawType: null);
       return;
     }
 
@@ -133,11 +132,10 @@ class AnnotationResolver {
             resolver: _resolver,
             node: node,
             argumentList: argumentList,
-            rawType: constructorRawType,
             contextType: null,
             whyNotPromotedList: whyNotPromotedList,
             constructorName: constructorName)
-        .resolveInvocation();
+        .resolveInvocation(rawType: constructorRawType);
   }
 
   void _extensionGetter(
@@ -407,11 +405,10 @@ class AnnotationResolver {
               resolver: _resolver,
               node: node,
               argumentList: arguments,
-              rawType: null,
               contextType: null,
               whyNotPromotedList: whyNotPromotedList,
               constructorName: null)
-          .resolveInvocation();
+          .resolveInvocation(rawType: null);
     }
   }
 }

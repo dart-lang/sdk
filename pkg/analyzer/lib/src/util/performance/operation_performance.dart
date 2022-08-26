@@ -56,7 +56,7 @@ class OperationPerformanceDataImpl_int
   @override
   int value = 0;
 
-  OperationPerformanceDataImpl_int(String name) : super(name);
+  OperationPerformanceDataImpl_int(super.name);
 
   void add(int item) {
     value += item;
@@ -103,6 +103,12 @@ class OperationPerformanceImpl implements OperationPerformance {
       Duration.zero,
       (sum, child) => sum + child.elapsed,
     );
+  }
+
+  /// Collapse any children into this operation, making [elapsedSelf] equal
+  /// to [elapsed].
+  void collapse() {
+    _children.clear();
   }
 
   @override

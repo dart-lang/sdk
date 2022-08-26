@@ -1,3 +1,222 @@
+## 2.18.0
+
+### Language
+
+The following features are new in the Dart 2.18 [language version][]. To use
+them, you must set the lower bound on the SDK constraint for your package to
+2.18 or greater (`sdk: '>=2.18.0 <3.0.0'`).
+
+[language version]: https://dart.dev/guides/language/evolution
+
+-  **[Enhanced type inference for generic invocations with function
+   literals][]**: Invocations of generic methods/constructors that supply
+   function literal arguments now have improved type inference.  This primarily
+   affects the `Iterable.fold` method.  For example, in previous versions of
+   Dart, the compiler would fail to infer an appropriate type for the parameter
+   `a`:
+
+   ```dart
+   void main() {
+     List<int> ints = [1, 2, 3];
+     var maximum = ints.fold(0, (a, b) => a < b ? b : a);
+   }
+   ```
+
+   With this improvement, `a` receives its type from the initial value, `0`.
+
+   On rare occasions, the wrong type will be inferred, leading to a compile-time
+   error, for example in this code, type inference will infer that `a` has a
+   type of `Null`:
+
+   ```dart
+   void main() {
+     List<int> ints = [1, 2, 3];
+     var maximumOrNull = ints.fold(null,
+         (a, b) => a == null || a < b ? b : a);
+   }
+   ```
+
+   This can be worked around by supplying the appropriate type as an explicit
+   type argument to `fold`:
+
+   ```dart
+   void main() {
+     List<int> ints = [1, 2, 3];
+     var maximumOrNull = ints.fold<int?>(null,
+         (a, b) => a == null || a < b ? b : a);
+   }
+   ```
+
+- **Breaking Change** [#48167](https://github.com/dart-lang/sdk/issues/48167):
+  Mixin of classes that don't extend `Object` is no longer supported:
+  ```dart
+  class Base {}
+  class Mixin extends Base {}
+  class C extends Base with Mixin {}
+  ```
+  This should instead be written using a mixin declaration of `Mixin`:
+  ```dart
+  class Base {}
+  mixin Mixin on Base {}
+  class C extends Base with Mixin {}
+  ```
+  This feature has not been supported in most compilation targets for some
+  time but is now completely removed.
+
+### Core libraries
+
+#### `dart:async`
+
+- The `Stream.fromIterable` stream can now be listened to more than once.
+
+### `dart:collection`
+
+- Deprecates `BidirectionalIterator`.
+
+#### `dart:html`
+
+- Add `connectionState` attribute and `connectionstatechange` listener to
+  `RtcPeerConnection`.
+
+#### `dart:io`
+
+- **Breaking Change** [#49045](https://github.com/dart-lang/sdk/issues/49045):
+  The `uri` property of `RedirectException` in `dart:io` has been changed to
+  be nullable. Programs must be updated to handle the `null` case.
+
+- **Breaking Change** [#34218](https://github.com/dart-lang/sdk/issues/34218):
+  Constants in `dart:io`'s networking APIs following the `SCREAMING_CAPS`
+  convention have been removed (they were previously deprecated). Please use
+  the corresponding `lowerCamelCase` constants instead.
+
+- **Breaking Change** [#45630][]: The Dart VM no longer automatically restores
+    the initial terminal settings upon exit. Programs that change the `Stdin`
+    settings `lineMode` and `echoMode` are now responsible for restoring the
+    settings upon program exit. E.g. a program disabling `echoMode` will now
+    need to restore the setting itself and handle exiting by the appropriate
+    signals if desired:
+
+    ```dart
+    import 'dart:io';
+    import 'dart:async';
+
+    main() {
+      bool echoWasEnabled = stdin.echoMode;
+      try {
+        late StreamSubscription subscription;
+        subscription = ProcessSignal.sigint.watch().listen((ProcessSignal signal) {
+          stdin.echoMode = echoWasEnabled;
+          subscription.cancel();
+          Process.killPid(pid, signal); /* Die by the signal. */
+        });
+        stdin.echoMode = false;
+      } finally {
+        stdin.echoMode = echoWasEnabled;
+      }
+    }
+    ```
+
+    This change is needed to fix [#36453][] where the dart programs not caring
+    about the terminal settings can inadverently corrupt the terminal settings
+    when e.g. piping into less.
+
+    Furthermore the `echoMode` setting now only controls the `echo` local mode
+    and no longer sets the `echonl` local mode on POSIX systems (which controls
+    whether newline are echoed even if the regular echo mode is disabled). The
+    `echonl` local mode is usually turned off in common shell environments.
+    Programs that wish to control the `echonl` local mode can use the new
+    `echoNewlineMode` setting.
+
+    The Windows console code pages (if not UTF-8) and ANSI escape code support
+    (if disabled) remain restored when the VM exits.
+
+[#45630]: https://github.com/dart-lang/sdk/issues/45630
+[#36453]: https://github.com/dart-lang/sdk/issues/36453
+
+#### `dart:js_util`
+
+- Added `dartify` and a number of minor helper functions.
+
+#### `dart:core`
+
+- Allow omitting the `unencodedPath` positional argument to `Uri.http` and
+  `Uri.https` to default to an empty path.
+
+### Dart VM
+
+Implementation of `async`/`async*`/`sync*` is revamped in Dart VM,
+both in JIT and AOT modes. This also affects Flutter except Flutter Web.
+
+Besides smaller code size and better performance of async methods,
+the new implementation carries a few subtle changes in behavior:
+
+- If `async` method returns before reaching the first `await`, it now returns a completed Future.
+  Previously `async` methods completed resulting Future in separate microtasks.
+
+- Stack traces no longer have duplicate entries for `async` methods.
+
+- New implementation now correctly throws an error if `null` occurs as
+  an argument of a logical expression (`&&` and `||`) which also contains
+  an `await`.
+
+- New implementation avoids unnecessary extending the liveness of local
+  variables in `async`/`async*`/`sync*` methods, which means that unused
+  objects stored in local variables in such methods might be garbage
+  collected earlier than they were before
+  (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983) for details).
+
+### Tools
+
+#### Dart command line
+
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dart2js` and `dartdevc` tools have been removed as previously
+  announced. `dart2js` is replaced by the `dart compile js` command, `dartdevc`
+  is no longer exposed as a command-line tool.
+
+- **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartanalyzer` tool has been removed as previously
+  announced. `dartanalyzer` is replaced by the `dart analyze` command.
+
+#### Linter
+
+Updated the Linter to `1.25.0`, which includes changes that
+
+- add new lint: `discarded_futures`.
+- improve message and highlight range for `no_duplicate_case_values`
+- improve performance for `lines_longer_than_80_chars`,
+  `prefer_const_constructors_in_immutables`, and
+  `prefer_initializing_formals`.
+- fix `prefer_final_parameters` to support super parameters.
+- add new lint: `unnecessary_to_list_in_spreads`.
+- fix `unawaited_futures` to handle string interpolated
+  futures.
+- update `use_colored_box` to not flag nullable colors,
+- add new lint:
+  `unnecessary_null_aware_operator_on_extension_on_nullable`.
+- fix `no_leading_underscores_for_local_identifiers`
+  to lint local function declarations.
+- fix `avoid_init_to_null` to correctly handle super
+  initializing defaults that are non-null.
+- update `no_leading_underscores_for_local_identifiers`
+  to allow identifiers with just underscores.
+- fix `flutter_style_todos` to support usernames that
+  start with a digit.
+- update `require_trailing_commas` to handle functions
+  in asserts and multi-line strings.
+- update `unsafe_html` to allow assignments to
+  `img.src`.
+- fix `unnecessary_null_checks` to properly handle map
+  literal entries.
+
+#### Pub
+
+* Breaking: `dart pub get` and `dart pub upgrade` no longer creates the
+  [deprecated](https://github.com/dart-lang/sdk/issues/47431) `.packages` file.
+  It can still be created with the `--legacy-packages-file` flag.
+* `dart pub outdated` now shows which of your dependencies are discontinued.
+* `dart pub publish` will now list all the files it is about to publish.
+
 ## 2.17.7 - 2022-08-24
 
 This is a patch release that:
@@ -10,9 +229,9 @@ This is a patch release that:
 
 This is a patch release that:
 
-- improves code completion for Flutter (issue [#49054][]).
-- fixes a crash on ARM (issue [#106510][]).
-- fixes a compiler crash with Finalizable parameters (issue [#49402][]).
+- Improves code completion for Flutter (issue [#49054][]).
+- Fixes a crash on ARM (issue [#106510][]).
+- Fixes a compiler crash with Finalizable parameters (issue [#49402][]).
 
 [#49054]: https://github.com/dart-lang/sdk/issues/49054
 [#106510]: https://github.com/flutter/flutter/issues/106510
@@ -20,11 +239,10 @@ This is a patch release that:
 
 ## 2.17.5 - 2022-06-22
 
-This is a patch release that:
+This is a patch release that fixes:
 
-- improves analysis of enums and switch (issue [#49188][]).
-- fixes a compiler crash when initializing Finalizable objects
-  (issue [#49075][]).
+- Improve analysis of enums and switch (issue [#49188]).
+- Fix compiler crash when initializing Finalizable objects (issue [#49075]).
 
 [#49188]: https://github.com/dart-lang/sdk/issues/49188
 [#49075]: https://github.com/dart-lang/sdk/issues/49075
@@ -324,7 +542,7 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 Updated the Linter to `1.22.0`, which includes changes that
 
-- fixes null-safe variance exceptions in `invariant_booleans`
+- fixes null-safe variance exceptions in `invariant_booleans`.
 - updates `depend_on_referenced_packages` to treat `flutter_gen` as a virtual
   package, not needing an explicit dependency.
 - updates `unnecessary_null_checks` and
@@ -1915,11 +2133,11 @@ This is a patch release that fixes the following issues:
 
 ### Dart2JS
 
-- Adds support for deferred loading of types seperately from classes. This
+- Adds support for deferred loading of types separately from classes. This
   enables dart2js to make better optimization choices when deferred loading.
   This work is necessary to address unsoundness in the deferred loading
   algorithm. Currently, fixing this unsoundness would result in code bloat, but
-  loading types seperately from classes will allow us to fix the unsoundness
+  loading types separately from classes will allow us to fix the unsoundness
   with only a minimal regression. To explicitly disable deferred loading of
   types, pass `--no-defer-class-types`. See the original post on the
   [unsoundness in the deferred loading algorithm][].

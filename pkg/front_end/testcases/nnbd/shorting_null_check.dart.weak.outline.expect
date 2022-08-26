@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   field core::int zero;
   field core::int? zeroOrNull;
-  constructor •(core::int zero, [core::int? zeroOrNull]) → self::A
+  constructor •(core::int zero, [core::int? zeroOrNull = null]) → self::A
     ;
 }
 class Foo extends core::Object {

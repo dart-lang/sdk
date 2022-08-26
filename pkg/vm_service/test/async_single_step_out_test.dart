@@ -1,18 +1,16 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// VMOptions=--lazy-async-stacks
 
 import 'dart:developer';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_A = 18;
-const LINE_B = 19;
-const LINE_C = 24;
-const LINE_D = 25;
-const LINE_E = 26;
+const LINE_A = 16;
+const LINE_B = 17;
+const LINE_C = 22;
+const LINE_D = 23;
+const LINE_E = 24;
 
 helper() async {
   print('helper'); // LINE_A.
@@ -44,14 +42,10 @@ var tests = <IsolateTest>[
   stepInto, // exit helper via a single step.
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(20), // return null (weird dispatching)
-  stepInto, // exit helper via a single step.
-
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(25), // await helper (weird dispatching)
+  stoppedAtLine(LINE_D), // await helper
   smartNext,
 
-  hasStoppedAtBreakpoint, //19
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_E), // arrive after the await.
   resumeIsolate
 ];

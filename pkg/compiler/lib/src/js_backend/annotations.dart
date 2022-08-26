@@ -22,6 +22,10 @@ class PragmaAnnotation {
   final bool forFieldsOnly;
   final bool internalOnly;
 
+  // TODO(sra): Review [forFunctionsOnly] and [forFieldsOnly]. Fields have
+  // implied getters and setters, so some annotations meant only for functions
+  // could reasonable be placed on a field to apply to the getter and setter.
+
   const PragmaAnnotation(this._index, this.name,
       {this.forFunctionsOnly = false,
       this.forFieldsOnly = false,
@@ -41,15 +45,20 @@ class PragmaAnnotation {
   static const PragmaAnnotation tryInline =
       PragmaAnnotation(1, 'tryInline', forFunctionsOnly: true);
 
+  /// Annotation on a member that tells the optimizing compiler to disable
+  /// inlining at call sites within the member.
+  static const PragmaAnnotation disableInlining =
+      PragmaAnnotation(2, 'disable-inlining');
+
   static const PragmaAnnotation disableFinal = PragmaAnnotation(
-      2, 'disableFinal',
+      3, 'disableFinal',
       forFunctionsOnly: true, internalOnly: true);
 
-  static const PragmaAnnotation noElision = PragmaAnnotation(3, 'noElision');
+  static const PragmaAnnotation noElision = PragmaAnnotation(4, 'noElision');
 
   /// Tells the optimizing compiler that the annotated method cannot throw.
   /// Requires @pragma('dart2js:noInline') to function correctly.
-  static const PragmaAnnotation noThrows = PragmaAnnotation(4, 'noThrows',
+  static const PragmaAnnotation noThrows = PragmaAnnotation(5, 'noThrows',
       forFunctionsOnly: true, internalOnly: true);
 
   /// Tells the optimizing compiler that the annotated method has no
@@ -58,7 +67,7 @@ class PragmaAnnotation {
   ///
   /// Requires @pragma('dart2js:noInline') to function correctly.
   static const PragmaAnnotation noSideEffects = PragmaAnnotation(
-      5, 'noSideEffects',
+      6, 'noSideEffects',
       forFunctionsOnly: true, internalOnly: true);
 
   /// Use this as metadata on method declarations to disable closed world
@@ -66,48 +75,61 @@ class PragmaAnnotation {
   /// could be any value. Note that the constraints due to static types still
   /// apply.
   static const PragmaAnnotation assumeDynamic = PragmaAnnotation(
-      6, 'assumeDynamic',
+      7, 'assumeDynamic',
       forFunctionsOnly: true, internalOnly: true);
 
-  static const PragmaAnnotation asTrust = PragmaAnnotation(7, 'as:trust',
+  static const PragmaAnnotation asTrust = PragmaAnnotation(8, 'as:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation asCheck = PragmaAnnotation(8, 'as:check',
+  static const PragmaAnnotation asCheck = PragmaAnnotation(9, 'as:check',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation typesTrust = PragmaAnnotation(9, 'types:trust',
+  static const PragmaAnnotation typesTrust = PragmaAnnotation(10, 'types:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation typesCheck = PragmaAnnotation(10, 'types:check',
+  static const PragmaAnnotation typesCheck = PragmaAnnotation(11, 'types:check',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation parameterTrust = PragmaAnnotation(
-      11, 'parameter:trust',
+      12, 'parameter:trust',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation parameterCheck = PragmaAnnotation(
-      12, 'parameter:check',
+      13, 'parameter:check',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation downcastTrust = PragmaAnnotation(
-      13, 'downcast:trust',
+      14, 'downcast:trust',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation downcastCheck = PragmaAnnotation(
-      14, 'downcast:check',
+      15, 'downcast:check',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation indexBoundsTrust = PragmaAnnotation(
-      15, 'index-bounds:trust',
+      16, 'index-bounds:trust',
       forFunctionsOnly: false, internalOnly: false);
 
   static const PragmaAnnotation indexBoundsCheck = PragmaAnnotation(
-      16, 'index-bounds:check',
+      17, 'index-bounds:check',
       forFunctionsOnly: false, internalOnly: false);
+
+  /// Annotation for a `late` field to omit the checks on the late field. The
+  /// annotation is not restricted to a field since it is copied from the field
+  /// to the getter and setter.
+  // TODO(45682): Make this annotation apply to local and static late variables.
+  static const PragmaAnnotation lateTrust = PragmaAnnotation(18, 'late:trust');
+
+  /// Annotation for a `late` field to perform the checks on the late field. The
+  /// annotation is not restricted to a field since it is copied from the field
+  /// to the getter and setter.
+  // TODO(45682): Make this annotation apply to local and static late variables.
+  static const PragmaAnnotation lateCheck = PragmaAnnotation(19, 'late:check');
 
   static const List<PragmaAnnotation> values = [
     noInline,
     tryInline,
+    disableInlining,
     disableFinal,
     noElision,
     noThrows,
@@ -123,6 +145,8 @@ class PragmaAnnotation {
     downcastCheck,
     indexBoundsTrust,
     indexBoundsCheck,
+    lateTrust,
+    lateCheck,
   ];
 
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
@@ -140,6 +164,8 @@ class PragmaAnnotation {
     downcastCheck: {downcastTrust},
     asTrust: {asCheck},
     asCheck: {asTrust},
+    lateTrust: {lateCheck},
+    lateCheck: {lateTrust},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
     noThrows: {noInline},
@@ -211,7 +237,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
   Map<PragmaAnnotation, EnumSet<PragmaAnnotation>> reportedExclusions = {};
   for (PragmaAnnotation annotation
       in annotations.iterable(PragmaAnnotation.values)) {
-    Set<PragmaAnnotation> implies = PragmaAnnotation.implies[annotation];
+    Set<PragmaAnnotation>? implies = PragmaAnnotation.implies[annotation];
     if (implies != null) {
       for (PragmaAnnotation other in implies) {
         if (annotations.contains(other)) {
@@ -223,7 +249,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
         }
       }
     }
-    Set<PragmaAnnotation> excludes = PragmaAnnotation.excludes[annotation];
+    Set<PragmaAnnotation>? excludes = PragmaAnnotation.excludes[annotation];
     if (excludes != null) {
       for (PragmaAnnotation other in excludes) {
         if (annotations.contains(other) &&
@@ -237,7 +263,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
         }
       }
     }
-    Set<PragmaAnnotation> requires = PragmaAnnotation.requires[annotation];
+    Set<PragmaAnnotation>? requires = PragmaAnnotation.requires[annotation];
     if (requires != null) {
       for (PragmaAnnotation other in requires) {
         if (!annotations.contains(other)) {
@@ -273,6 +299,9 @@ abstract class AnnotationsData {
   /// annotation.
   bool hasTryInline(MemberEntity member);
 
+  /// Returns `true` if inlining is disabled at call sites inside [member].
+  bool hasDisableInlining(MemberEntity member);
+
   /// Returns `true` if [member] has a `@pragma('dart2js:disableFinal')`
   /// annotation.
   bool hasDisableFinal(MemberEntity member);
@@ -304,33 +333,37 @@ abstract class AnnotationsData {
   /// annotation.
   void forEachNoSideEffects(void f(FunctionEntity function));
 
-  /// What should the compiler do with parameter type assertions in [member].
+  /// What the compiler should do with parameter type assertions in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getParameterCheckPolicy(MemberEntity member);
+  CheckPolicy getParameterCheckPolicy(MemberEntity? member);
 
-  /// What should the compiler do with implicit downcasts in [member].
+  /// What the compiler should do with implicit downcasts in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity member);
+  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity? member);
 
   /// What the compiler should do with a boolean value in a condition context
   /// in [member] when the language specification says it is a runtime error for
   /// it to be null.
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getConditionCheckPolicy(MemberEntity member);
+  CheckPolicy getConditionCheckPolicy(MemberEntity? member);
 
-  /// Whether should the compiler do with explicit casts in [member].
+  /// What the compiler should do with explicit casts in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getExplicitCastCheckPolicy(MemberEntity member);
+  CheckPolicy getExplicitCastCheckPolicy(MemberEntity? member);
 
-  /// What should the compiler do with index bounds checks `[]`, `[]=` and
+  /// What the compiler should do with index bounds checks `[]`, `[]=` and
   /// `removeLast()` operations in the body of [member].
   ///
   /// If [member] is `null`, the default policy is returned.
-  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity member);
+  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity? member);
+
+  /// What the compiler should do with late field checks in the body of
+  /// [member]. [member] is usually the getter or setter for a late field.
+  CheckPolicy getLateVariableCheckPolicy(MemberEntity member);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -343,6 +376,8 @@ class AnnotationsDataImpl implements AnnotationsData {
   final CheckPolicy _defaultConditionCheckPolicy;
   final CheckPolicy _defaultExplicitCastCheckPolicy;
   final CheckPolicy _defaultIndexBoundsCheckPolicy;
+  final CheckPolicy _defaultLateVariableCheckPolicy;
+  final bool _defaultDisableInlining;
   final Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations;
 
   AnnotationsDataImpl(CompilerOptions options, this.pragmaAnnotations)
@@ -353,7 +388,9 @@ class AnnotationsDataImpl implements AnnotationsData {
         this._defaultExplicitCastCheckPolicy =
             options.defaultExplicitCastCheckPolicy,
         this._defaultIndexBoundsCheckPolicy =
-            options.defaultIndexBoundsCheckPolicy;
+            options.defaultIndexBoundsCheckPolicy,
+        this._defaultLateVariableCheckPolicy = CheckPolicy.checked,
+        this._defaultDisableInlining = options.disableInlining;
 
   factory AnnotationsDataImpl.readFromDataSource(
       CompilerOptions options, DataSourceReader source) {
@@ -376,7 +413,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   bool _hasPragma(MemberEntity member, PragmaAnnotation annotation) {
-    EnumSet<PragmaAnnotation> set = pragmaAnnotations[member];
+    EnumSet<PragmaAnnotation>? set = pragmaAnnotations[member];
     return set != null && set.contains(annotation);
   }
 
@@ -391,6 +428,11 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   bool hasTryInline(MemberEntity member) =>
       _hasPragma(member, PragmaAnnotation.tryInline);
+
+  @override
+  bool hasDisableInlining(MemberEntity member) =>
+      _hasPragma(member, PragmaAnnotation.disableInlining) ||
+      _defaultDisableInlining;
 
   @override
   bool hasDisableFinal(MemberEntity member) =>
@@ -413,7 +455,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
       if (set.contains(PragmaAnnotation.noInline)) {
-        f(member);
+        f(member as FunctionEntity);
       }
     });
   }
@@ -423,7 +465,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
       if (set.contains(PragmaAnnotation.tryInline)) {
-        f(member);
+        f(member as FunctionEntity);
       }
     });
   }
@@ -433,7 +475,7 @@ class AnnotationsDataImpl implements AnnotationsData {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
       if (set.contains(PragmaAnnotation.noThrows)) {
-        f(member);
+        f(member as FunctionEntity);
       }
     });
   }
@@ -443,15 +485,15 @@ class AnnotationsDataImpl implements AnnotationsData {
     pragmaAnnotations
         .forEach((MemberEntity member, EnumSet<PragmaAnnotation> set) {
       if (set.contains(PragmaAnnotation.noSideEffects)) {
-        f(member);
+        f(member as FunctionEntity);
       }
     });
   }
 
   @override
-  CheckPolicy getParameterCheckPolicy(MemberEntity member) {
+  CheckPolicy getParameterCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.typesTrust)) {
           return CheckPolicy.trusted;
@@ -468,9 +510,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity member) {
+  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.typesTrust)) {
           return CheckPolicy.trusted;
@@ -487,9 +529,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  CheckPolicy getConditionCheckPolicy(MemberEntity member) {
+  CheckPolicy getConditionCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.typesTrust)) {
           return CheckPolicy.trusted;
@@ -506,9 +548,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  CheckPolicy getExplicitCastCheckPolicy(MemberEntity member) {
+  CheckPolicy getExplicitCastCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.asTrust)) {
           return CheckPolicy.trusted;
@@ -521,9 +563,9 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity member) {
+  CheckPolicy getIndexBoundsCheckPolicy(MemberEntity? member) {
     if (member != null) {
-      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.indexBoundsTrust)) {
           return CheckPolicy.trusted;
@@ -533,6 +575,20 @@ class AnnotationsDataImpl implements AnnotationsData {
       }
     }
     return _defaultIndexBoundsCheckPolicy;
+  }
+
+  @override
+  CheckPolicy getLateVariableCheckPolicy(MemberEntity member) {
+    EnumSet<PragmaAnnotation>? annotations = pragmaAnnotations[member];
+    if (annotations != null) {
+      if (annotations.contains(PragmaAnnotation.lateTrust)) {
+        return CheckPolicy.trusted;
+      } else if (annotations.contains(PragmaAnnotation.lateCheck)) {
+        return CheckPolicy.checked;
+      }
+    }
+    // TODO(sra): Look for annotations on enclosing class and library.
+    return _defaultLateVariableCheckPolicy;
   }
 }
 

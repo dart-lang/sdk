@@ -18,5 +18,5 @@ class Class extends core::Object {
 }
 
 constants  {
-  #C1 = #lib1::ToStringMacro {}
+  #C1 = mac::ToStringMacro {}
 }

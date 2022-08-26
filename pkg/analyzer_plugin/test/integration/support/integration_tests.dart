@@ -447,6 +447,7 @@ class Server {
         return;
       }
       _recordStdio('RECV: $trimmedLine');
+      // ignore: prefer_typing_uninitialized_variables
       var message;
       try {
         message = json.decoder.convert(trimmedLine);
@@ -670,7 +671,7 @@ class _ListOf extends Matcher {
 }
 
 /// Matcher that matches a map of objects, where each key/value pair in the
-/// map satisies the given key and value matchers.
+/// map satisfies the given key and value matchers.
 class _MapOf extends _RecursiveMatcher {
   /// Matcher which every key in the map must satisfy.
   final Matcher keyMatcher;

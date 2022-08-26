@@ -63,18 +63,10 @@ class Selector {
 
   String get name => memberName.text;
 
-  LibraryEntity get library => memberName.library;
+  LibraryEntity? get library => memberName.library;
 
   static bool isOperatorName(String name) {
-    if (name == Names.INDEX_SET_NAME.text) {
-      return true;
-    } else if (name == UnaryOperator.NEGATE.selectorName) {
-      return true;
-    } else if (name == UnaryOperator.COMPLEMENT.selectorName) {
-      return true;
-    } else {
-      return BinaryOperator.parseUserDefinable(name) != null;
-    }
+    return instanceMethodOperatorNames.contains(name);
   }
 
   Selector.internal(
@@ -107,6 +99,10 @@ class Selector {
       Map<int, List<Selector>>();
 
   factory Selector(SelectorKind kind, Name name, CallStructure callStructure) {
+    // TODO(48820): Remove this check when callers are migrated.
+    if ((callStructure as dynamic) == null) {
+      throw ArgumentError('callStructure is null');
+    }
     // TODO(johnniwinther): Maybe use equality instead of implicit hashing.
     int hashCode = computeHashCode(kind, name, callStructure);
     List<Selector> list = canonicalizedValues.putIfAbsent(hashCode, () => []);
@@ -125,14 +121,14 @@ class Selector {
   factory Selector.fromElement(MemberEntity element) {
     Name name = element.memberName;
     if (element.isFunction) {
-      FunctionEntity function = element;
+      FunctionEntity function = element as FunctionEntity;
       if (name == Names.INDEX_NAME) {
         return Selector.index();
       } else if (name == Names.INDEX_SET_NAME) {
         return Selector.indexSet();
       }
       CallStructure callStructure = function.parameterStructure.callStructure;
-      if (isOperatorName(element.name)) {
+      if (isOperatorName(element.name!)) {
         // Operators cannot have named arguments, however, that doesn't prevent
         // a user from declaring such an operator.
         return Selector(SelectorKind.OPERATOR, name, callStructure);
@@ -178,7 +174,7 @@ class Selector {
       Selector(SelectorKind.CALL, name, callStructure);
 
   factory Selector.callClosure(int arity,
-          [List<String> namedArguments, int typeArgumentCount = 0]) =>
+          [List<String>? namedArguments, int typeArgumentCount = 0]) =>
       Selector(SelectorKind.CALL, Names.call,
           CallStructure(arity, namedArguments, typeArgumentCount));
 
@@ -186,7 +182,7 @@ class Selector {
       Selector(SelectorKind.CALL, Names.call, selector.callStructure);
 
   factory Selector.callConstructor(Name name,
-          [int arity = 0, List<String> namedArguments]) =>
+          [int arity = 0, List<String>? namedArguments]) =>
       Selector(SelectorKind.CALL, name, CallStructure(arity, namedArguments));
 
   factory Selector.callDefaultConstructor() =>
@@ -203,7 +199,7 @@ class Selector {
     source.begin(tag);
     SelectorKind kind = source.readEnum(SelectorKind.values);
     bool isSetter = source.readBool();
-    LibraryEntity library = source.readLibraryOrNull();
+    LibraryEntity? library = source.readLibraryOrNull();
     String text = source.readString();
     CallStructure callStructure = CallStructure.readFromDataSource(source);
     source.end(tag);
@@ -260,7 +256,7 @@ class Selector {
     }
     if (isGetter) return true;
     if (isSetter) return false;
-    return signatureApplies(element);
+    return signatureApplies(element as FunctionEntity);
   }
 
   /// Whether [this] could be a valid selector on `Null` without throwing.

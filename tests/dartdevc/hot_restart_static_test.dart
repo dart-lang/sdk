@@ -23,7 +23,20 @@ class StaticsGeneric<T> {
   static int withInitializer = 3;
 }
 
-main() {
+class StaticsSetter {
+  static int counter = 0;
+  static const field = 5;
+  static const field2 = null;
+  static set field(int value) => StaticsSetter.counter += 1;
+  static set field2(value) => 42;
+}
+
+void main() {
+  testStaticFields();
+  testStaticSetterOfConstField();
+}
+
+void testStaticFields() {
   var resetFieldCount = dart.resetFields.length;
 
   // Set static fields without explicit initializers. Avoid calling getters for
@@ -80,5 +93,51 @@ main() {
 
   // Six new field resets from 6 getter calls.
   expectedResets = resetFieldCount + 6;
+  Expect.equals(expectedResets, dart.resetFields.length);
+}
+
+void testStaticSetterOfConstField() {
+  var resetFieldCount = dart.resetFields.length;
+
+  // Static setters of const fields should behave according to spec.
+  Expect.equals(StaticsSetter.counter, 0);
+  Expect.equals(StaticsSetter.field, 5);
+  StaticsSetter.field = 100;
+  StaticsSetter.field = 100;
+  StaticsSetter.field = 100;
+  Expect.equals(StaticsSetter.field, 5);
+  Expect.equals(StaticsSetter.counter, 3);
+
+  // 2 new field resets: [StaticsSetter.counter] and [StaticsSetter.field].
+  var expectedResets = resetFieldCount + 2;
+  Expect.equals(expectedResets, dart.resetFields.length);
+
+  dart.hotRestart();
+  resetFieldCount = dart.resetFields.length;
+
+  // Static setters of const fields should be properly reset.
+  Expect.equals(StaticsSetter.counter, 0);
+  Expect.equals(StaticsSetter.field, 5);
+  StaticsSetter.field = 100;
+  StaticsSetter.field = 100;
+  StaticsSetter.field = 100;
+  Expect.equals(StaticsSetter.field, 5);
+  Expect.equals(StaticsSetter.counter, 3);
+
+  // 2 new field resets: [StaticsSetter.counter] and [StaticsSetter.field].
+  expectedResets = resetFieldCount + 2;
+  Expect.equals(expectedResets, dart.resetFields.length);
+
+  dart.hotRestart();
+  dart.hotRestart();
+  resetFieldCount = dart.resetFields.length;
+
+  // Invoke the static setter but not the getter.
+  StaticsSetter.field2 = 100;
+  StaticsSetter.field2 = 100;
+  StaticsSetter.field2 = 100;
+
+  // 1 new field reset: [StaticsSetter.field2].
+  expectedResets = resetFieldCount + 1;
   Expect.equals(expectedResets, dart.resetFields.length);
 }

@@ -57,7 +57,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
       }
       return;
     }
-    fail('Expected to find |$message| but got: ' + change.message);
+    fail('Expected to find |$message| but got: ${change.message}');
   }
 
   Future<void> _computeCompletion(int offset) async {

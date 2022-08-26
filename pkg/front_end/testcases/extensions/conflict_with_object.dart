@@ -1,11 +1,11 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// @dart=2.9
+
 extension Extension on String {
   int get noSuchMethod => 42;
   void set hashCode(int value) {}
-  int runtimeType() {}
+  int runtimeType() => 0;
   operator ==(other) => false;
   static String toString() => 'Foo';
 }

@@ -110,6 +110,30 @@ test() {
         _isEnabled ? 'List<int>' : 'List<dynamic>');
   }
 
+  test_horizontal_inference_necessary_due_to_wrong_explicit_parameter_type() async {
+    // In this example, horizontal type inference is needed because although the
+    // type of `y` is explicit, it's actually `x` that would have needed to be
+    // explicit.
+    await assertErrorsInCode('''
+test(List<int> list) {
+  var a = list.fold(0, (x, int y) => x + y);
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      if (!_isEnabled)
+        error(
+            CompileTimeErrorCode
+                .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+            62,
+            1),
+    ]);
+    assertType(findElement.localVar('a').type, _isEnabled ? 'int' : 'dynamic');
+    assertType(findElement.parameter('x').type, _isEnabled ? 'int' : 'Object?');
+    assertType(findElement.parameter('y').type, 'int');
+    expect(findNode.binary('+ y').staticElement?.enclosingElement.name,
+        _isEnabled ? 'num' : null);
+  }
+
   test_horizontal_inference_propagate_to_earlier_closure() async {
     await assertErrorsInCode('''
 U f<T, U>(U Function(T) g, T Function() h) => throw '';
@@ -205,6 +229,118 @@ test() => f(t: 0, g: (x) {});
         _isEnabled ? 'int' : 'Object?');
   }
 
+  test_horizontal_inference_simple_parenthesized() async {
+    await assertNoErrorsInCode('''
+void f<T>(T t, void Function(T) g) {}
+test() => f(0, ((x) {}));
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function(int, void Function(int))');
+    assertType(findNode.simpleParameter('x').declaredElement!.type,
+        _isEnabled ? 'int' : 'Object?');
+  }
+
+  test_horizontal_inference_simple_parenthesized_named() async {
+    await assertNoErrorsInCode('''
+void f<T>({required T t, required void Function(T) g}) {}
+test() => f(t: 0, g: ((x) {}));
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function({required void Function(int) g, required int t})');
+    assertType(findNode.simpleParameter('x').declaredElement!.type,
+        _isEnabled ? 'int' : 'Object?');
+  }
+
+  test_horizontal_inference_simple_parenthesized_twice() async {
+    await assertNoErrorsInCode('''
+void f<T>(T t, void Function(T) g) {}
+test() => f(0, (((x) {})));
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function(int, void Function(int))');
+    assertType(findNode.simpleParameter('x').declaredElement!.type,
+        _isEnabled ? 'int' : 'Object?');
+  }
+
+  test_horizontal_inference_simple_parenthesized_twice_named() async {
+    await assertNoErrorsInCode('''
+void f<T>({required T t, required void Function(T) g}) {}
+test() => f(t: 0, g: (((x) {})));
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function({required void Function(int) g, required int t})');
+    assertType(findNode.simpleParameter('x').declaredElement!.type,
+        _isEnabled ? 'int' : 'Object?');
+  }
+
+  test_horizontal_inference_unnecessary_due_to_explicit_parameter_type() async {
+    // In this example, there is no need for horizontal type inference because
+    // the type of `x` is explicit.
+    await assertErrorsInCode('''
+test(List<int> list) {
+  var a = list.fold(null, (int? x, y) => (x ?? 0) + y);
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+    ]);
+    assertType(findElement.localVar('a').type, 'int?');
+    assertType(findElement.parameter('x').type, 'int?');
+    assertType(findElement.parameter('y').type, 'int');
+    expect(findNode.binary('+ y').staticElement!.enclosingElement.name, 'num');
+  }
+
+  test_horizontal_inference_unnecessary_due_to_explicit_parameter_type_named() async {
+    // In this example, there is no need for horizontal type inference because
+    // the type of `x` is explicit.
+    await assertErrorsInCode('''
+T f<T>(T a, T Function({required T x, required int y}) b) => throw '';
+test() {
+  var a = f(null, ({int? x, required y}) => (x ?? 0) + y);
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 86, 1),
+    ]);
+    assertType(findElement.localVar('a').type, 'int?');
+    assertType(findElement.parameter('x').type, 'int?');
+    assertType(findElement.parameter('y').type, 'int');
+    expect(findNode.binary('+ y').staticElement!.enclosingElement.name, 'num');
+  }
+
+  test_horizontal_inference_unnecessary_due_to_no_dependency() async {
+    // In this example, there is no dependency between the two parameters of
+    // `f`, so there should be no horizontal type inference between inferring
+    // `null` and inferring `() => 0`.  (If there were horizontal type inference
+    // between them, that would be a problem, because we would infer a type of
+    // `null` for `T`).
+    await assertNoErrorsInCode('''
+void f<T>(T Function() g, T t) {}
+test() => f(() => 0, null);
+''');
+    assertType(
+        findNode.methodInvocation('f(').typeArgumentTypes!.single, 'int?');
+    assertType(findNode.methodInvocation('f(').staticInvokeType,
+        'void Function(int? Function(), int?)');
+  }
+
+  test_horizontal_inference_with_callback() async {
+    await assertNoErrorsInCode('''
+test(void Function<T>(T, void Function(T)) f) {
+  f(0, (x) {
+    x;
+  });
+}
+''');
+    assertType(findNode.simple('x;'), _isEnabled ? 'int' : 'Object?');
+  }
+
   test_write_capture_deferred() async {
     await assertNoErrorsInCode('''
 test(int? i) {
@@ -243,5 +379,35 @@ void f({required void Function() g, Object? x}) {}
     // At (2), after the call to `f`, the write capture has taken place
     // regardless of whether the experiment is enabled.
     assertType(findNode.simple('i; // (2)'), 'int?');
+  }
+
+  test_write_capture_deferred_redirecting_constructor() async {
+    await assertNoErrorsInCode('''
+class C {
+  C(int? i) : this.other(i!, () { i = null; }, i);
+  C.other(Object? x, void Function() g, Object? y);
+}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `this.other`, so the `i` passed to `y` is not
+    // yet write captured and retains its promoted value.  With the experiment
+    // disabled, it is write captured immediately.
+    assertType(findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
+  }
+
+  test_write_capture_deferred_super_constructor() async {
+    await assertNoErrorsInCode('''
+class B {
+  B(Object? x, void Function() g, Object? y);
+}
+class C extends B {
+  C(int? i) : super(i!, () { i = null; }, i);
+}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `this.other`, so the `i` passed to `y` is not
+    // yet write captured and retains its promoted value.  With the experiment
+    // disabled, it is write captured immediately.
+    assertType(findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
   }
 }

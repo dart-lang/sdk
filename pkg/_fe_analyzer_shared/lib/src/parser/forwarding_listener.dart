@@ -282,6 +282,17 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {
+    listener?.beginLibraryAugmentation(libraryKeyword, augmentKeyword);
+  }
+
+  @override
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    listener?.endLibraryAugmentation(libraryKeyword, augmentKeyword, semicolon);
+  }
+
+  @override
   void beginLibraryName(Token token) {
     listener?.beginLibraryName(token);
   }
@@ -1734,6 +1745,12 @@ class ForwardingListener implements Listener {
   @override
   void handleSuperExpression(Token token, IdentifierContext context) {
     listener?.handleSuperExpression(token, context);
+  }
+
+  @override
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
+    listener?.handleAugmentSuperExpression(augmentToken, superToken, context);
   }
 
   @override

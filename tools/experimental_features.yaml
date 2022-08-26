@@ -103,7 +103,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.17.0'
+current-version: '2.18.0'
 
 features:
   variance:
@@ -125,8 +125,8 @@ features:
   macros:
     help: "Static meta-programming"
 
-  inference-update-1:
-    help: "Enhanced type inference"
+  inference-update-2:
+    help: "Type promotion for fields"
 
 # Experiment flag only used for testing.
   test-experiment:
@@ -233,6 +233,7 @@ features:
       void main() {
         T.t.test();
       }
+    expired: true
 
   named-arguments-anywhere:
     help: "Named Arguments Anywhere"
@@ -246,6 +247,7 @@ features:
       void main() {
         test(enabled : true, 'feature enabled');
       }
+    expired: true
 
   super-parameters:
     help: "Super-Initializer Parameters"
@@ -260,4 +262,22 @@ features:
       }
       void main(){
         print(C('feature enabled').foo);
+      }
+    expired: true
+
+  inference-update-1:
+    help: "Horizontal type inference for function expressions passed to generic invocations."
+    enabledIn: '2.18.0'
+    validation: |
+      void test(List<int> list) {
+        var a = list.fold(0, (x, y) => x + y);
+        f(a);
+      }
+      void f<T>(T t) {
+        if (T == int) {
+          print('feature enabled');
+        }
+      }
+      void main() {
+        test([1, 2, 3]);
       }

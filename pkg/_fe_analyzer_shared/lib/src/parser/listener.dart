@@ -953,6 +953,16 @@ class Listener implements UnescapeErrorListener {
     logEvent("LabeledStatement");
   }
 
+  void beginLibraryAugmentation(Token libraryKeyword, Token augmentKeyword) {}
+
+  /// Handle the end of a library augmentation directive.  Substructures:
+  /// - metadata
+  /// - uri
+  void endLibraryAugmentation(
+      Token libraryKeyword, Token augmentKeyword, Token semicolon) {
+    logEvent("LibraryAugmentation");
+  }
+
   void beginLibraryName(Token token) {}
 
   /// Handle the end of a library directive.  Substructures:
@@ -1758,6 +1768,11 @@ class Listener implements UnescapeErrorListener {
 
   void handleSuperExpression(Token token, IdentifierContext context) {
     logEvent("SuperExpression");
+  }
+
+  void handleAugmentSuperExpression(
+      Token augmentToken, Token superToken, IdentifierContext context) {
+    logEvent("AugmentSuperExpression");
   }
 
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}

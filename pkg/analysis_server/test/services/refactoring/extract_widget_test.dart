@@ -146,7 +146,7 @@ class Test extends StatelessWidget {
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
-Widget main() {
+Widget f() {
   Widget foo() {
     return new Row(
       children: <Widget>[
@@ -163,7 +163,7 @@ Widget main() {
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
 
-Widget main() {
+Widget f() {
   Widget foo() {
     return new Row(
       children: <Widget>[
@@ -228,7 +228,7 @@ class Test extends StatelessWidget {
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
-Widget main() {
+Widget f() {
   return new Container();
 }
 ''');
@@ -240,7 +240,7 @@ Widget main() {
       await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
 
-Widget main() {
+Widget f() {
   return Test();
 }
 
@@ -275,7 +275,7 @@ class Test extends StatelessWidget {
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
-Widget main() {
+Widget f() {
   return new Row(
     children: <Widget>[
       new Text('AAA'),
@@ -289,7 +289,7 @@ Widget main() {
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
 
-Widget main() {
+Widget f() {
   return new Row(
     children: <Widget>[
       Test(),
@@ -1127,7 +1127,7 @@ class MyWidget extends StatelessWidget {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
-Widget main() {
+Widget f() {
   var index = 0;
   var a = 'a $index';
 // start
@@ -1146,7 +1146,7 @@ Widget main() {
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
 
-Widget main() {
+Widget f() {
   var index = 0;
   var a = 'a $index';
 // start
@@ -1182,7 +1182,7 @@ class Test extends StatelessWidget {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
 // start
 // end
 }
@@ -1197,7 +1197,7 @@ void main() {
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
 
-void main() {
+void f() {
 // start
   new Text('text');
 // end

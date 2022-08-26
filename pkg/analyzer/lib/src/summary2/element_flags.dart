@@ -35,6 +35,7 @@ class ConstructorElementFlags {
   static const int _isExternal = 1 << 1;
   static const int _isFactory = 1 << 2;
   static const int _isSynthetic = 1 << 3;
+  static const int _isTempAugmentation = 1 << 4;
 
   static void read(SummaryDataReader reader, ConstructorElementImpl element) {
     var byte = reader.readByte();
@@ -42,6 +43,7 @@ class ConstructorElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isFactory = (byte & _isFactory) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
+    element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, ConstructorElementImpl element) {
@@ -50,6 +52,7 @@ class ConstructorElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFactory ? _isFactory : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
+    result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeByte(result);
   }
 }
@@ -82,6 +85,7 @@ class FieldElementFlags {
   static const int _isLate = 1 << 9;
   static const int _isStatic = 1 << 10;
   static const int _isSynthetic = 1 << 11;
+  static const int _isTempAugmentation = 1 << 12;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -97,6 +101,7 @@ class FieldElementFlags {
     element.isLate = (byte & _isLate) != 0;
     element.isStatic = (byte & _isStatic) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
+    element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, FieldElementImpl element) {
@@ -113,6 +118,7 @@ class FieldElementFlags {
     result |= element.isLate ? _isLate : 0;
     result |= element.isStatic ? _isStatic : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
+    result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeUInt30(result);
   }
 }
@@ -182,16 +188,18 @@ class LibraryElementFlags {
 
 class MethodElementFlags {
   static const int _hasImplicitReturnType = 1 << 0;
-  static const int _isAbstract = 1 << 1;
-  static const int _isAsynchronous = 1 << 2;
-  static const int _isExternal = 1 << 3;
-  static const int _isGenerator = 1 << 4;
-  static const int _isStatic = 1 << 5;
-  static const int _isSynthetic = 1 << 6;
+  static const int _invokesSuperSelf = 1 << 1;
+  static const int _isAbstract = 1 << 2;
+  static const int _isAsynchronous = 1 << 3;
+  static const int _isExternal = 1 << 4;
+  static const int _isGenerator = 1 << 5;
+  static const int _isStatic = 1 << 6;
+  static const int _isSynthetic = 1 << 7;
 
   static void read(SummaryDataReader reader, MethodElementImpl element) {
     var byte = reader.readByte();
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
+    element.invokesSuperSelf = (byte & _invokesSuperSelf) != 0;
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
     element.isExternal = (byte & _isExternal) != 0;
@@ -203,6 +211,7 @@ class MethodElementFlags {
   static void write(BufferedSink sink, MethodElementImpl element) {
     var result = 0;
     result |= element.hasImplicitReturnType ? _hasImplicitReturnType : 0;
+    result |= element.invokesSuperSelf ? _invokesSuperSelf : 0;
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
     result |= element.isExternal ? _isExternal : 0;
@@ -253,20 +262,23 @@ class ParameterElementFlags {
 }
 
 class PropertyAccessorElementFlags {
-  static const int _isGetter = 1 << 0;
-  static const int _isSetter = 1 << 1;
-  static const int _hasImplicitReturnType = 1 << 2;
-  static const int _isAbstract = 1 << 3;
-  static const int _isAsynchronous = 1 << 4;
-  static const int _isExternal = 1 << 5;
-  static const int _isGenerator = 1 << 6;
-  static const int _isStatic = 1 << 7;
+  static const int _invokesSuperSelf = 1 << 0;
+  static const int _isGetter = 1 << 1;
+  static const int _isSetter = 1 << 2;
+  static const int _hasImplicitReturnType = 1 << 3;
+  static const int _isAbstract = 1 << 4;
+  static const int _isAsynchronous = 1 << 5;
+  static const int _isExternal = 1 << 6;
+  static const int _isGenerator = 1 << 7;
+  static const int _isStatic = 1 << 8;
+  static const int _isTempAugmentation = 1 << 9;
 
   static void read(
     SummaryDataReader reader,
     PropertyAccessorElementImpl element,
   ) {
     var byte = reader.readUInt30();
+    element.invokesSuperSelf = (byte & _invokesSuperSelf) != 0;
     element.isGetter = (byte & _isGetter) != 0;
     element.isSetter = (byte & _isSetter) != 0;
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
@@ -275,10 +287,12 @@ class PropertyAccessorElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
+    element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, PropertyAccessorElementImpl element) {
     var result = 0;
+    result |= element.invokesSuperSelf ? _invokesSuperSelf : 0;
     result |= element.isGetter ? _isGetter : 0;
     result |= element.isSetter ? _isSetter : 0;
     result |= element.hasImplicitReturnType ? _hasImplicitReturnType : 0;
@@ -287,6 +301,7 @@ class PropertyAccessorElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
+    result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeUInt30(result);
   }
 }
@@ -297,6 +312,7 @@ class TopLevelVariableElementFlags {
   static const int _isExternal = 1 << 2;
   static const int _isFinal = 1 << 3;
   static const int _isLate = 1 << 4;
+  static const int _isTempAugmentation = 1 << 5;
 
   static void read(
     SummaryDataReader reader,
@@ -308,6 +324,7 @@ class TopLevelVariableElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
+    element.isTempAugmentation = (byte & _isTempAugmentation) != 0;
   }
 
   static void write(BufferedSink sink, TopLevelVariableElementImpl element) {
@@ -317,6 +334,7 @@ class TopLevelVariableElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
+    result |= element.isTempAugmentation ? _isTempAugmentation : 0;
     sink.writeByte(result);
   }
 }

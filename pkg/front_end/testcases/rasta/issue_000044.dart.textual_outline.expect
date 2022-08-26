@@ -1,4 +1,3 @@
-// @dart = 2.9
 a b(c) = d;
 class C {
   const C.constant();

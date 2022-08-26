@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +18,7 @@ main() {
 class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
     with PrefixedIdentifierResolutionTestCases {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
@@ -91,26 +90,32 @@ void f(E e) {
 ''');
 
     var assignment = findNode.assignment('foo = 1');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
-
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.parameter('e'),
-      type: 'E',
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
+    assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: e
+      staticElement: self::@function::f::@parameter::e
+      staticType: E
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    parameter: self::@enum::E::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@enum::E::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
   }
 
   test_hasReceiver_typeAlias_staticGetter() async {
@@ -145,7 +150,7 @@ void f() {
   }
 
   test_implicitCall_tearOff_nullable() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int call() => 0;
 }
@@ -171,7 +176,7 @@ int Function() foo() {
   }
 
   test_read_typedef_interfaceType() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef A = List<int>;
 ''');
 
@@ -298,7 +303,7 @@ void f() {
   }
 
   test_class_read_typedef_functionType() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef A = void Function();
 ''');
 
@@ -341,29 +346,65 @@ void f(A a) {
 ''');
 
     var assignment = findNode.assignment('foo += 1');
-    assertAssignment(
-      assignment,
-      readElement: findElement.getter('foo'),
-      readType: 'int',
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isLegacyLibrary,
-      ),
-      type: 'int',
-    );
-
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.parameter('a'),
-      type: 'A',
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: self::@class::A::@getter::foo
+  readType: int
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A*
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    parameter: ParameterMember
+      base: dart:core::@class::num::@method::+::@parameter::other
+      isLegacy: true
+    staticType: int*
+  readElement: self::@class::A::@getter::foo
+  readType: int*
+  writeElement: self::@class::A::@setter::foo
+  writeType: int*
+  staticElement: MethodMember
+    base: dart:core::@class::num::@method::+
+    isLegacy: true
+  staticType: int*
+''');
+    }
   }
 
   test_class_write() async {
@@ -378,26 +419,61 @@ void f(A a) {
 ''');
 
     var assignment = findNode.assignment('foo = 1');
-    assertAssignment(
-      assignment,
-      readElement: null,
-      readType: null,
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      operatorElement: null,
-      type: 'int',
-    );
-
-    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
-    assertSimpleIdentifier(
-      prefixed.prefix,
-      element: findElement.parameter('a'),
-      type: 'A',
-    );
-
-    assertSimpleIdentifierAssignmentTarget(
-      prefixed.identifier,
-    );
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    parameter: self::@class::A::@setter::foo::@parameter::_foo
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(assignment, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A*
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    parameter: self::@class::A::@setter::foo::@parameter::_foo
+    staticType: int*
+  readElement: <null>
+  readType: null
+  writeElement: self::@class::A::@setter::foo
+  writeType: int*
+  staticElement: <null>
+  staticType: int*
+''');
+    }
   }
 
   test_dynamic_explicitCore_withPrefix() async {
@@ -431,7 +507,7 @@ void f(int Function(String) a) {
   }
 
   test_implicitCall_tearOff() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int call() => 0;
 }

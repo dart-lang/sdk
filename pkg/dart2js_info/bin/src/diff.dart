@@ -27,25 +27,25 @@ class DiffCommand extends Command<void> with PrintUsageException {
 
   @override
   void run() async {
-    var args = argResults.rest;
+    final argRes = argResults!;
+    var args = argRes.rest;
     if (args.length < 2) {
       usageException(
           'Missing arguments, expected two dump-info files to compare');
-      return;
     }
 
-    var oldInfo = await infoFromFile(args[0]);
-    var newInfo = await infoFromFile(args[1]);
-    var summaryOnly = argResults['summary-only'];
+    final oldInfo = await infoFromFile(args[0]);
+    final newInfo = await infoFromFile(args[1]);
+    final summaryOnly = argRes['summary-only'];
 
-    var diffs = diff(oldInfo, newInfo);
+    final diffs = diff(oldInfo, newInfo);
 
     // Categorize the diffs
-    var adds = <AddDiff>[];
-    var removals = <RemoveDiff>[];
-    var sizeChanges = <SizeDiff>[];
-    var becameDeferred = <DeferredStatusDiff>[];
-    var becameUndeferred = <DeferredStatusDiff>[];
+    final adds = <AddDiff>[];
+    final removals = <RemoveDiff>[];
+    final sizeChanges = <SizeDiff>[];
+    final becameDeferred = <DeferredStatusDiff>[];
+    final becameUndeferred = <DeferredStatusDiff>[];
 
     for (var diff in diffs) {
       switch (diff.kind) {
@@ -124,7 +124,7 @@ void reportSummary(
     List<DeferredStatusDiff> becameDeferred,
     List<DeferredStatusDiff> becameUndeferred,
     Map<List<Diff>, int> totalSizes) {
-  var overallSizeDiff = newInfo.program.size - oldInfo.program.size;
+  var overallSizeDiff = newInfo.program!.size - oldInfo.program!.size;
   print('total_size_difference $overallSizeDiff');
 
   print('total_added ${totalSizes[adds]}');
@@ -180,7 +180,7 @@ void reportFull(
   }
 }
 
-void _section(String title, {int size}) {
+void _section(String title, {int? size}) {
   print('$title ($size bytes)');
   print('=' * 72);
 }

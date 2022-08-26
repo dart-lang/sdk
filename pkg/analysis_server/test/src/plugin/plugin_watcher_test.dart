@@ -36,7 +36,7 @@ class PluginWatcherTest extends AbstractContextTest {
 
   Future<void> test_addedDriver() async {
     newPubspecYamlFile('/foo', 'name: foo');
-    newFile2(
+    newFile(
       join('/foo', PluginLocator.toolsFolderName,
           PluginLocator.defaultPluginFolderName, 'bin', 'plugin.dart'),
       '',
@@ -114,7 +114,7 @@ class TestPluginManager implements PluginManager {
   Future<void> addPluginToContextRoot(
       ContextRoot contextRoot, String path) async {
     addedContextRoots.add(contextRoot);
-    return null;
+    return;
   }
 
   @override

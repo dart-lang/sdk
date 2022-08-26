@@ -335,8 +335,8 @@ class C {
 
   @FailingTest(reason: 'No support for OverlayResourceProvider')
   Future<void> test_syntheticImportPrefix() async {
-    newFile2('/test/lib/a.dart', 'class A {}');
-    newFile2('/test/lib/b.dart', 'class B {}');
+    newFile('/test/lib/a.dart', 'class A {}');
+    newFile('/test/lib/b.dart', 'class B {}');
     addContextFile(r'''
 import 'a.dart';
 impoty 'b.dart';

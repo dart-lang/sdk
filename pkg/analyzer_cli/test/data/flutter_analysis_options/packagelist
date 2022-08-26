@@ -1,2 +1,15 @@
-flutter:somepkgs/flutter/lib/
-meta:somepkgs/meta/lib/
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "flutter",
+      "rootUri": "somepkgs/flutter/",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "meta",
+      "rootUri": "somepkgs/meta/",
+      "packageUri": "lib/"
+    }
+  ]
+}

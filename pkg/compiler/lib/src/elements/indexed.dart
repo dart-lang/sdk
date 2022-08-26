@@ -7,7 +7,7 @@
 import '../elements/entities.dart';
 
 abstract class _Indexed {
-  int _index;
+  late final int _index;
 }
 
 abstract class IndexedLibrary extends _Indexed implements LibraryEntity {
@@ -54,10 +54,10 @@ abstract class EntityMapBase<E extends _Indexed> {
   bool _closed = false;
 
   int _size = 0;
-  final List<E> _list = <E>[];
+  final List<E?> _list = <E?>[];
 
   /// Returns the [index]th entity in the map.
-  E getEntity(int index) => _list[index];
+  E? getEntity(int index) => _list[index];
 
   /// Returns the number of non-null entities in the map.
   int get size => _size;
@@ -83,8 +83,7 @@ class EntityMap<E extends _Indexed> extends EntityMapBase<E> {
   E0 register<E0 extends E>(E0 entity) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
-    assert(entity != null);
-    assert(entity._index == null);
+    assert((entity as dynamic) != null); // TODO(48820): Remove.
     entity._index = _list.length;
     _list.add(entity);
     _size++;
@@ -101,7 +100,7 @@ class EntityMap<E extends _Indexed> extends EntityMapBase<E> {
   /// Calls [f] for each non-null entity.
   void forEach<E0 extends E>(void f(E0 entity)) {
     for (int index = 0; index < _list.length; index++) {
-      E entity = _list[index];
+      final entity = _list[index] as E0?;
       if (entity != null) {
         f(entity);
       }
@@ -113,7 +112,7 @@ class EntityMap<E extends _Indexed> extends EntityMapBase<E> {
 /// corresponding data object of type [D].
 abstract class EntityDataMapBase<E extends _Indexed, D>
     extends EntityMapBase<E> {
-  final List<D> _data = <D>[];
+  final List<D?> _data = <D?>[];
 
   /// Returns the data object stored for the [index]th entity.
   D getData(E entity) {
@@ -122,7 +121,7 @@ abstract class EntityDataMapBase<E extends _Indexed, D>
       throw StateError(
           'Data is in the process of being created for ${_list[index]}.');
     }
-    return _data[index];
+    return _data[index]!;
   }
 }
 
@@ -143,8 +142,7 @@ class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
   E0 register<E0 extends E, D0 extends D>(E0 entity, D0 data) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
-    assert(entity != null);
-    assert(entity._index == null);
+    assert((entity as dynamic) != null); // TODO(48820): Remove.
     assert(
         _list.length == _data.length,
         'Data list length ${_data.length} inconsistent '
@@ -172,9 +170,9 @@ class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
       throw StateError('Data is in the process of being created.');
     }
     for (int index = 0; index < _list.length; index++) {
-      E entity = _list[index];
+      final entity = _list[index] as E0?;
       if (entity != null) {
-        f(entity, _data[index]);
+        f(entity, _data[index] as D0);
       }
     }
   }
@@ -210,8 +208,7 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
       E0 entity, D0 data, V0 env) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
-    assert(entity != null);
-    assert(entity._index == null);
+    assert((entity as dynamic) != null); // TODO(48820): Remove.
     assert(
         _list.length == _data.length,
         'Data list length ${_data.length} inconsistent '
@@ -239,6 +236,45 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
     return register(entity, data, env);
   }
 
+  void _preRegister<E0 extends E, V0 extends V>(E0 entity, V0 env) {
+    assert(
+        !_closed, "Trying to register $entity @ ${_list.length} when closed.");
+    assert((entity as dynamic) != null); // TODO(48820): Remove.
+    assert(
+        _list.length == _env.length,
+        'Env list length ${_env.length} inconsistent '
+        'with entity list length ${_list.length}.');
+    entity._index = _list.length;
+    _list.add(entity);
+    _size++;
+    assert(env != null);
+    _env.add(env);
+  }
+
+  /// Registers a new [entity] with an associated environment [env] by the given
+  /// [index]. [postRegisterData] should be called with the same [entity] after
+  /// this is called and before any other entity is registered.
+  void preRegisterByIndex<E0 extends E, V0 extends V>(
+      int index, E0 entity, V0 env) {
+    assert(index >= _list.length);
+    _list.length = _data.length = _env.length = index;
+    _preRegister(entity, env);
+  }
+
+  /// Registers an [entity] with an associated [data] object. This should only
+  /// be used if the entity was pre-registered with [preRegisterByIndex].
+  void postRegisterData<E0 extends E, D0 extends D>(E0 entity, D0 data) {
+    assert(
+        !_closed, "Trying to register $entity @ ${_list.length} when closed.");
+    assert((entity as dynamic) != null); // TODO(48820): Remove.
+    assert(
+        (_list.length - 1) == _data.length,
+        'Data list length ${_data.length} inconsistent '
+        'with entity list length ${_list.length}.');
+    assert(data != null);
+    _data.add(data);
+  }
+
   /// Calls [f] for each non-null entity with its corresponding data object and
   /// environment.
   void forEach<E0 extends E, D0 extends D, V0 extends V>(
@@ -250,9 +286,9 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
       throw StateError('Env is in the process of being created.');
     }
     for (int index = 0; index < _list.length; index++) {
-      E entity = _list[index];
+      final entity = _list[index] as E0?;
       if (entity != null) {
-        f(entity, _data[index], _env[index]);
+        f(entity, _data[index] as D0, _env[index] as V0);
       }
     }
   }

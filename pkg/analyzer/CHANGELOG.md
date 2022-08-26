@@ -1,3 +1,44 @@
+## 4.3.0-dev
+* Deprecated `Directive.keyword`, use corresponding `xyzToken` in specific directives.
+* Deprecated `LibraryElement.parts`, use `parts2` instead.
+
+## 4.2.0
+* Update SDK constraints to `>=2.17.0 <3.0.0`.
+* Deprecated `ImportDirective.COMPARATOR`, use appropriate custom logic, if necessary.
+* Deprecated `Element.isAccessibleIn()`, use `isAccessibleIn2()` instead.
+* Bug fixes: 49225. 
+
+## 4.1.0
+* Deprecated `ParameterElement.isNotOptional`, use `isRequired` instead.
+* Deprecated `ResourceProviderMixin.newFile2`, use `newFile` instead.
+* Deprecated `ResourceProviderMixin.newAnalysisOptionsYamlFile2`, use `newAnalysisOptionsYamlFile` instead.
+* Deprecated `DartType.resolveToBound`, use `TypeSystem.resolveToBound` instead.
+* Deprecated `LibraryElement.getImportsWithPrefix`, use `PrefixElement.imports` instead.
+* Fix for `AnalysisSession.getFile()` to return updated content after `applyPendingFileChanges`.
+
+## 4.0.0
+* Removed deprecated `UriKind` and `Source.uriKind`.
+* Removed deprecated `LibraryElement.hasExtUri`.
+* Removed deprecated `LibraryElement.hasLoadLibraryFunction`.
+* Removed deprecated `ImportElement.prefixOffset`.
+* Removed deprecated `CompilationUnitElement.types`.
+* Removed deprecated `Source.encoding`.
+* Removed deprecated `Source.isInSystemLibrary`.
+* Removed deprecated `Source.modificationStamp`.
+* Removed deprecated `stamp` in `MemoryResourceProvider`.
+* Removed deprecated `SourceFactory.restoreUri`, use `pathToUri` instead.
+* Removed deprecated `AnalysisContext.workspace`.
+* The `isNonNullableByDefault` parameter in `ErrorReporter` is now required.
+* Removed `Element.SORT_BY_OFFSET`, it is not used.
+* Changed synchronous `AnalysisSession.getFile` and `getParsedUnit` to fail
+  if there are pending file changes, instead of reading. As for any other
+  `AnalysisSession` method, await `AnalysisContext.applyPendingFileChanges()`.
+* Removed `Token.copy()` and `copyComments()`.
+* Removed `CommentToken.remove()`.
+* Removed deprecated `astFactory` and `AstFactory`.
+* Removed `AnalysisOptions.signature` and `signaturesEqual`.
+* Removed deprecated `buildSdkSummary()`.
+
 ## 3.4.1
 * Remove checks for consistency after operations in `AnalysisSession`.
 
@@ -441,7 +482,7 @@
 * Deprecated `AstFactory.indexExpressionForTarget()`.  Please use
   `indexExpressionForTarget2` instead.
 * Deprecated `ClassElement.isOrInheritsProxy` and `ClassElement.isProxy`.  The
-  `@proxy` annotation is deprecated in the langauge, and will be removed.
+  `@proxy` annotation is deprecated in the language, and will be removed.
 * Added new error codes: BODY_MIGHT_COMPLETE_NORMALLY,
   CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
   DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, LATE_FINAL_LOCAL_ALREADY_ASSIGNED,

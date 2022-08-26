@@ -43,7 +43,7 @@ int 42
   }
 
   test_location_partDirective() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
 
@@ -54,10 +54,15 @@ const foo = 42;
 ''');
 
     var annotation = findNode.annotation('@foo');
-    assertElement2(
-      annotation,
-      declaration: findElement.topGet('foo'),
-    );
+    assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: foo
+    staticElement: self::@getter::foo
+    staticType: null
+  element: self::@getter::foo
+''');
 
     var annotationElement = annotation.elementAnnotation!;
     _assertElementAnnotationValueText(annotationElement, r'''
@@ -66,11 +71,11 @@ int 42
   }
 
   test_location_partOfDirective() async {
-    var libPath = newFile2('$testPackageLibPath/lib.dart', r'''
+    var libPath = newFile('$testPackageLibPath/lib.dart', r'''
 part 'part.dart';
 ''').path;
 
-    var partPath = newFile2('$testPackageLibPath/part.dart', r'''
+    var partPath = newFile('$testPackageLibPath/part.dart', r'''
 @foo
 part of 'lib.dart';
 const foo = 42;
@@ -84,10 +89,15 @@ void f() {}
     assertNoErrorsInResult();
 
     var annotation = findNode.annotation('@foo');
-    assertElement2(
-      annotation,
-      declaration: findElement.topGet('foo'),
-    );
+    assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: foo
+    staticElement: package:test/lib.dart::@getter::foo
+    staticType: null
+  element: package:test/lib.dart::@getter::foo
+''');
 
     var annotationElement = annotation.elementAnnotation!;
     _assertElementAnnotationValueText(annotationElement, r'''
@@ -158,8 +168,10 @@ Annotation
           arguments
             IntegerLiteral
               literal: 0
+              parameter: self::@class::A::@constructor::•::@parameter::f
               staticType: int
           rightParenthesis: )
+        parameter: self::@class::A::@constructor::•::@parameter::f
         staticType: A
     rightParenthesis: )
   element: self::@class::A::@constructor::•
@@ -198,6 +210,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 3
+        parameter: self::@class::A::@constructor::•::@parameter::a
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::•
@@ -212,7 +225,7 @@ A
   }
 
   test_optIn_fromOptOut_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(int a);
 }
@@ -226,20 +239,31 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@A'),
-      declaration: import_a.unnamedConstructor('A'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@A'), r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          isLegacy: true
+        staticType: int*
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::•
+    isLegacy: true
+''');
   }
 
   test_optIn_fromOptOut_class_constructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final int a;
   const A.named(this.a);
@@ -254,16 +278,40 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.named('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@A'),
-      declaration: import_a.constructor('named', of: 'A'),
-      isLegacy: true,
-    );
+    var annotation = findNode.annotation('@A');
+    assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::A::@constructor::named
+        isLegacy: true
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::named
+      isLegacy: true
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          isLegacy: true
+        staticType: int*
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::named
+    isLegacy: true
+''');
 
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
@@ -273,7 +321,7 @@ A*
   }
 
   test_optIn_fromOptOut_class_constructor_withDefault() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final int a;
   const A.named({this.a = 42});
@@ -288,16 +336,33 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.named('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@A'),
-      declaration: import_a.constructor('named', of: 'A'),
-      isLegacy: true,
-    );
+    var annotation = findNode.annotation('@A');
+    assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      staticElement: ConstructorMember
+        base: package:test/a.dart::@class::A::@constructor::named
+        isLegacy: true
+      staticType: null
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::named
+      isLegacy: true
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::named
+    isLegacy: true
+''');
 
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
@@ -307,7 +372,7 @@ A*
   }
 
   test_optIn_fromOptOut_class_getter() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 42;
 }
@@ -321,16 +386,29 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.foo'),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@A.foo'),
-      declaration: import_a.getter('foo'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@A'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: PropertyAccessorMember
+        base: package:test/a.dart::@class::A::@getter::foo
+        isLegacy: true
+      staticType: null
+    staticElement: PropertyAccessorMember
+      base: package:test/a.dart::@class::A::@getter::foo
+      isLegacy: true
+    staticType: null
+  element: PropertyAccessorMember
+    base: package:test/a.dart::@class::A::@getter::foo
+    isLegacy: true
+''');
 
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
@@ -339,7 +417,7 @@ int 42
   }
 
   test_optIn_fromOptOut_getter() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const foo = 42;
 ''');
 
@@ -351,11 +429,19 @@ import 'a.dart';
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.annotation('@foo'),
-      declaration: import_a.topGet('foo'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@foo'), r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: package:test/a.dart::@getter::foo
+      isLegacy: true
+    staticType: null
+  element: PropertyAccessorMember
+    base: package:test/a.dart::@getter::foo
+    isLegacy: true
+''');
 
     _assertElementAnnotationValueText(
         findElement.function('f').metadata[0], r'''
@@ -364,7 +450,7 @@ int 42
   }
 
   test_optIn_fromOptOut_prefix_class() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(int a);
 }
@@ -378,20 +464,39 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@a.A'),
-      declaration: import_a.unnamedConstructor('A'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@a.A'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          isLegacy: true
+        staticType: int*
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::•
+    isLegacy: true
+''');
   }
 
   test_optIn_fromOptOut_prefix_class_constructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named(int a);
 }
@@ -405,20 +510,46 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.named('),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@a.A'),
-      declaration: import_a.constructor('named', of: 'A'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@a.A'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    staticElement: ConstructorMember
+      base: package:test/a.dart::@class::A::@constructor::named
+      isLegacy: true
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: ParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::a
+          isLegacy: true
+        staticType: int*
+    rightParenthesis: )
+  element: ConstructorMember
+    base: package:test/a.dart::@class::A::@constructor::named
+    isLegacy: true
+''');
   }
 
   test_optIn_fromOptOut_prefix_class_getter() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 0;
 }
@@ -432,20 +563,36 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.simple('A.foo'),
-      declaration: import_a.class_('A'),
-    );
-
-    assertElement2(
-      findNode.annotation('@a.A'),
-      declaration: import_a.getter('foo'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@a.A'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      staticElement: package:test/a.dart::@class::A
+      staticType: null
+    staticElement: package:test/a.dart::@class::A
+    staticType: null
+  period: .
+  constructorName: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: package:test/a.dart::@class::A::@getter::foo
+      isLegacy: true
+    staticType: null
+  element: PropertyAccessorMember
+    base: package:test/a.dart::@class::A::@getter::foo
+    isLegacy: true
+''');
   }
 
   test_optIn_fromOptOut_prefix_getter() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 const foo = 0;
 ''');
 
@@ -457,11 +604,29 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-    assertElement2(
-      findNode.annotation('@a.foo'),
-      declaration: import_a.topGet('foo'),
-      isLegacy: true,
-    );
+    assertResolvedNodeText(findNode.annotation('@a'), r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: PropertyAccessorMember
+        base: package:test/a.dart::@getter::foo
+        isLegacy: true
+      staticType: null
+    staticElement: PropertyAccessorMember
+      base: package:test/a.dart::@getter::foo
+      isLegacy: true
+    staticType: null
+  element: PropertyAccessorMember
+    base: package:test/a.dart::@getter::foo
+    isLegacy: true
+''');
   }
 
   test_value_class_inference_namedConstructor() async {
@@ -496,6 +661,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: self::@class::A::@constructor::named::@parameter::f
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::named
@@ -568,6 +734,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: self::@class::A::@constructor::•::@parameter::f
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::•
@@ -620,6 +787,9 @@ Annotation
       ListLiteral
         leftBracket: [
         rightBracket: ]
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
   element: ConstructorMember
@@ -663,6 +833,9 @@ Annotation
       ListLiteral
         leftBracket: [
         rightBracket: ]
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
   element: ConstructorMember
@@ -717,6 +890,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -758,6 +934,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -840,6 +1019,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -926,6 +1108,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -977,6 +1162,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1019,6 +1207,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1064,6 +1255,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1108,6 +1302,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1149,6 +1346,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1189,6 +1389,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1230,6 +1433,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1273,6 +1479,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1324,6 +1533,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: ParameterMember
+          base: self::@class::B::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1338,7 +1550,7 @@ B<int>
   }
 
   test_value_otherLibrary_implicitConst() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final int f;
   const A(this.f);
@@ -1369,14 +1581,14 @@ B
   }
 
   test_value_otherLibrary_namedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final int f;
   const A.named(this.f);
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 
 @A.named(42)
@@ -1398,14 +1610,14 @@ A
   }
 
   test_value_otherLibrary_unnamedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final int f;
   const A(this.f);
 }
 ''');
 
-    newFile2('$testPackageLibPath/b.dart', r'''
+    newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 
 @A(42)
@@ -1427,7 +1639,7 @@ A
   }
 
   test_value_prefix_typeAlias_class_staticConstField() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const int foo = 42;
 }
@@ -1470,7 +1682,7 @@ int 42
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_inference_namedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -1513,6 +1725,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1532,7 +1747,7 @@ A<int>
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -1568,6 +1783,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1587,7 +1805,7 @@ A<int>
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   final T f;
   const A.named(this.f);
@@ -1640,6 +1858,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1659,7 +1880,7 @@ A<int>
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   final T f;
   const A(this.f);
@@ -1705,6 +1926,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: package:test/a.dart::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1802,9 +2026,15 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::t
+          substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::u
+          substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
   element: ConstructorMember
@@ -1867,9 +2097,15 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::t
+          substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::u
+          substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
   element: ConstructorMember
@@ -1933,6 +2169,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -1977,6 +2216,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2038,6 +2280,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2092,6 +2337,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2148,6 +2396,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::named::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2192,6 +2443,9 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: FieldFormalParameterMember
+          base: self::@class::A::@constructor::•::@parameter::f
+          substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
@@ -2244,6 +2498,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: self::@class::A::@constructor::named::@parameter::f
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::named
@@ -2285,6 +2540,7 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
+        parameter: self::@class::A::@constructor::•::@parameter::f
         staticType: int
     rightParenthesis: )
   element: self::@class::A::@constructor::•

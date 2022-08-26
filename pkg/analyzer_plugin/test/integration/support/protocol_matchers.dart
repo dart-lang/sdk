@@ -6,6 +6,8 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
+// ignore_for_file: constant_identifier_names
+
 /// Matchers for data types defined in the analysis server API.
 import 'package:test/test.dart';
 
@@ -865,6 +867,7 @@ final Matcher isRequestErrorCode = MatchesEnum('RequestErrorCode', [
 ///   "edits": List<SourceFileEdit>
 ///   "linkedEditGroups": List<LinkedEditGroup>
 ///   "selection": optional Position
+///   "selectionLength": optional int
 ///   "id": optional String
 /// }
 final Matcher isSourceChange =
@@ -874,6 +877,7 @@ final Matcher isSourceChange =
           'linkedEditGroups': isListOf(isLinkedEditGroup)
         }, optionalFields: {
           'selection': isPosition,
+          'selectionLength': isInt,
           'id': isString
         }));
 

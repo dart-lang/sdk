@@ -2,29 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Null pattern implementation of the [CompilerOutput] interface.
+/// Null pattern implementation of the [api.CompilerOutput] interface.
 
 library compiler.null_api;
 
-import '../compiler.dart';
+import '../compiler_api.dart' as api;
 
-/// Null pattern implementation of the [CompilerOutput] interface.
-class NullCompilerOutput implements CompilerOutput {
+/// Null pattern implementation of the [api.CompilerOutput] interface.
+class NullCompilerOutput implements api.CompilerOutput {
   const NullCompilerOutput();
 
   @override
-  OutputSink createOutputSink(String name, String extension, OutputType type) {
+  api.OutputSink createOutputSink(
+      String name, String extension, api.OutputType type) {
     return NullSink.outputProvider(name, extension, type);
   }
 
   @override
-  BinaryOutputSink createBinarySink(Uri uri) {
+  api.BinaryOutputSink createBinarySink(Uri uri) {
     return NullBinarySink(uri);
   }
 }
 
-/// A sink that drains into /dev/null.
-class NullSink implements OutputSink {
+/// A sink that discards the data.
+class NullSink implements api.OutputSink {
   final String name;
 
   NullSink(this.name);
@@ -40,18 +41,18 @@ class NullSink implements OutputSink {
 
   /// Convenience method for getting an [api.CompilerOutputProvider].
   static NullSink outputProvider(
-      String name, String extension, OutputType type) {
+      String name, String extension, api.OutputType type) {
     return NullSink('$name.$extension.$type');
   }
 }
 
-class NullBinarySink implements BinaryOutputSink {
+class NullBinarySink implements api.BinaryOutputSink {
   final Uri uri;
 
   NullBinarySink(this.uri);
 
   @override
-  void write(List<int> buffer, [int start = 0, int end]) {}
+  void write(List<int> buffer, [int start = 0, int? end]) {}
 
   @override
   void close() {}

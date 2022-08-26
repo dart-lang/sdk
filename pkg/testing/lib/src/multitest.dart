@@ -26,10 +26,10 @@ bool isCheckedModeError(Set<String> expectations) {
 
 class MultitestTransformer
     extends StreamTransformerBase<TestDescription, TestDescription> {
-  static RegExp multitestMarker = new RegExp(r"//[#/]");
+  static RegExp multitestMarker = RegExp(r"//[#/]");
   static int _multitestMarkerLength = 3;
 
-  static const List<String> validOutcomesList = const <String>[
+  static const List<String> validOutcomesList = <String>[
     "ok",
     "syntax error",
     "compile-time error",
@@ -39,8 +39,7 @@ class MultitestTransformer
     "checked mode compile-time error",
   ];
 
-  static final Set<String> validOutcomes =
-      new Set<String>.from(validOutcomesList);
+  static final Set<String> validOutcomes = Set<String>.from(validOutcomesList);
 
   Stream<TestDescription> bind(Stream<TestDescription> stream) async* {
     List<String> errors = <String>[];
@@ -70,7 +69,7 @@ class MultitestTransformer
         "none": linesWithoutAnnotations,
       };
       Map<String, Set<String>> outcomes = <String, Set<String>>{
-        "none": new Set<String>(),
+        "none": Set<String>(),
       };
       int lineNumber = 0;
       for (String line in splitLines(contents!)) {
@@ -97,11 +96,11 @@ class MultitestTransformer
           }
         }
         if (subtestName != null) {
-          List<String> lines = testsAsLines.putIfAbsent(subtestName,
-              () => new List<String>.from(linesWithoutAnnotations));
+          List<String> lines = testsAsLines.putIfAbsent(
+              subtestName, () => List<String>.from(linesWithoutAnnotations));
           lines.add(line);
           Set<String> subtestOutcomes =
-              outcomes.putIfAbsent(subtestName, () => new Set<String>());
+              outcomes.putIfAbsent(subtestName, () => Set<String>());
           if (subtestOutcomesList!.length != 1 ||
               subtestOutcomesList.single != "continued") {
             for (String outcome in subtestOutcomesList) {
@@ -123,14 +122,14 @@ class MultitestTransformer
       }
       Uri root = Uri.base.resolve("generated/");
       Directory generated =
-          new Directory.fromUri(root.resolve(multitest.shortName));
+          Directory.fromUri(root.resolve(multitest.shortName));
       generated = await generated.create(recursive: true);
       for (MapEntry<String, List<String>> entry in testsAsLines.entries) {
         String name = entry.key;
         List<String> lines = entry.value;
         Uri uri = generated.uri.resolve("${name}_generated.dart");
         FileBasedTestDescription subtest =
-            new FileBasedTestDescription(root, new File.fromUri(uri));
+            FileBasedTestDescription(root, File.fromUri(uri));
         subtest.multitestExpectations = outcomes[name];
         await subtest.file.writeAsString(lines.join(""));
         yield subtest;

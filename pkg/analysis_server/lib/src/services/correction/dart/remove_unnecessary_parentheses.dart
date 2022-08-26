@@ -27,14 +27,17 @@ class RemoveUnnecessaryParentheses extends CorrectionProducer {
     var outer = coveredNode;
     if (outer is ParenthesizedExpression &&
         outer.parent is! ParenthesizedExpression) {
+      var left = outer.leftParenthesis;
+
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.token(outer.leftParenthesis));
+        builder.addReplacement(range.token(left), (builder) {
+          if ((left.previous?.isKeywordOrIdentifier ?? false) &&
+              left.previous?.end == left.offset) {
+            builder.write(' ');
+          }
+        });
         builder.addDeletion(range.token(outer.rightParenthesis));
       });
     }
   }
-
-  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveUnnecessaryParentheses newInstance() =>
-      RemoveUnnecessaryParentheses();
 }

@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_subscribe() async {
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     // ignore: deprecated_member_use_from_same_package
     await sendExecutionSetSubscriptions([ExecutionService.LAUNCH_DATA]);
   }

@@ -65,10 +65,7 @@ class SplitVariableDeclaration extends CorrectionProducer {
 
       var indent = utils.getNodePrefix(statement);
       var name = variable.name.name;
-      builder.addSimpleInsertion(variable.name.end, ';' + eol + indent + name);
+      builder.addSimpleInsertion(variable.name.end, ';$eol$indent$name');
     });
   }
-
-  /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
-  static SplitVariableDeclaration newInstance() => SplitVariableDeclaration();
 }

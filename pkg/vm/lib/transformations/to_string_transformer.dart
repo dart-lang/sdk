@@ -75,11 +75,21 @@ class ToStringVisitor extends RecursiveVisitor {
         _isInTargetPackage(node) &&
         !_hasKeepAnnotation(node) &&
         !_hasInheritedKeepAnnotation(node.enclosingClass!)) {
+      Procedure findSuperMethod(Class cls) {
+        for (Procedure procedure in cls.procedures) {
+          if (procedure.name.text == 'toString' && !procedure.isAbstract) {
+            return procedure;
+          }
+        }
+        return findSuperMethod(cls.superclass!);
+      }
+
       node.function.body!.replaceWith(
         ReturnStatement(
           SuperMethodInvocation(
             node.name,
             Arguments(<Expression>[]),
+            findSuperMethod(node.enclosingClass!.superclass!),
           ),
         ),
       );

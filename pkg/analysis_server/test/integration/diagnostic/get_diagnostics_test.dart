@@ -16,7 +16,7 @@ void main() {
 @reflectiveTest
 class GetDiagnosticsTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_getDiagnostics() async {
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
     await analysisFinished;
 
     var result = await sendDiagnosticGetDiagnostics();

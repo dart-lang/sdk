@@ -247,7 +247,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     thread_ = Thread::Current();
     page_space_->AcquireLock(freelist_);
 
-    LongJumpScope jump;
+    LongJumpScope jump(thread_);
     if (setjmp(*jump.Set()) == 0) {
       scavenger_->IterateRoots(this);
     } else {
@@ -256,7 +256,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void ProcessSurvivors() {
-    LongJumpScope jump;
+    LongJumpScope jump(thread_);
     if (setjmp(*jump.Set()) == 0) {
       // Iterate until all work has been drained.
       do {
@@ -269,7 +269,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void ProcessAll() {
-    LongJumpScope jump;
+    LongJumpScope jump(thread_);
     if (setjmp(*jump.Set()) == 0) {
       do {
         do {
@@ -865,23 +865,32 @@ Scavenger::~Scavenger() {
 
 intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
                                    GCReason reason) const {
-  if (reason != GCReason::kNewSpace) {
-    // If we GC for a reason other than new-space being full, that's not an
-    // indication that new-space is too small.
-    return old_size_in_words;
+  bool grow = false;
+  if (2 * heap_->isolate_group()->MutatorCount() >
+      (old_size_in_words / kNewPageSizeInWords)) {
+    // Not enough TLABs to give two to each mutator.
+    grow = true;
   }
 
-  if (stats_history_.Size() != 0) {
-    double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
-    if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
-      // Too much survived last time; grow new-space in the hope that a greater
-      // fraction of objects will become unreachable before new-space becomes
-      // full.
-      return Utils::Minimum(max_semi_capacity_in_words_,
-                            old_size_in_words * FLAG_new_gen_growth_factor);
+  if (reason == GCReason::kNewSpace) {
+    // If we GC for a reason other than new-space being full (i.e., full
+    // collection for old-space or store-buffer overflow), that's not an
+    // indication that new-space is too small.
+    if (stats_history_.Size() != 0) {
+      double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
+      if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
+        // Too much survived last time; grow new-space in the hope that a
+        // greater fraction of objects will become unreachable before new-space
+        // becomes full.
+        grow = true;
+      }
     }
   }
 
+  if (grow) {
+    return Utils::Minimum(max_semi_capacity_in_words_,
+                          old_size_in_words * FLAG_new_gen_growth_factor);
+  }
   return old_size_in_words;
 }
 
@@ -1212,9 +1221,13 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
       if (UNLIKELY(class_id == kFinalizerEntryCid)) {
         FinalizerEntryPtr raw_entry =
             static_cast<FinalizerEntryPtr>(raw_object);
+        if (FLAG_trace_finalizers) {
+          THR_Print("Scavenger::IterateStoreBuffers Processing Entry %p\n",
+                    raw_entry->untag());
+        }
         // Detect `FinalizerEntry::value` promotion to update external space.
         //
-        // This treats old-space FinalizerEntry fields as strong. Values, deatch
+        // This treats old-space FinalizerEntry fields as strong. Values, detach
         // keys, and finalizers in new space won't be reclaimed until after they
         // are promoted.
         // This will only visit the strong references, end enqueue the entry.
@@ -1225,13 +1238,15 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
           const Heap::Space after_gc_space = SpaceForExternal(raw_entry);
           if (after_gc_space == Heap::kOld) {
             const intptr_t external_size = raw_entry->untag()->external_size_;
-            if (FLAG_trace_finalizers) {
-              THR_Print(
-                  "Scavenger %p Store buffer, promoting external size %" Pd
-                  " bytes from new to old space\n",
-                  visitor, external_size);
+            if (external_size > 0) {
+              if (FLAG_trace_finalizers) {
+                THR_Print(
+                    "Scavenger %p Store buffer, promoting external size %" Pd
+                    " bytes from new to old space\n",
+                    visitor, external_size);
+              }
+              visitor->isolate_group()->heap()->PromotedExternal(external_size);
             }
-            visitor->isolate_group()->heap()->PromotedExternal(external_size);
           }
         }
       } else {
@@ -1267,7 +1282,6 @@ void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
 enum RootSlices {
   kIsolate = 0,
   kObjectIdRing,
-  kCards,
   kStoreBuffer,
   kNumRootSlices,
 };
@@ -1277,7 +1291,7 @@ void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
   for (;;) {
     intptr_t slice = root_slices_started_.fetch_add(1);
     if (slice >= kNumRootSlices) {
-      return;  // No more slices.
+      break;  // No more slices.
     }
 
     switch (slice) {
@@ -1287,9 +1301,6 @@ void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
       case kObjectIdRing:
         IterateObjectIdTable(visitor);
         break;
-      case kCards:
-        IterateRememberedCards(visitor);
-        break;
       case kStoreBuffer:
         IterateStoreBuffers(visitor);
         break;
@@ -1297,6 +1308,8 @@ void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
         UNREACHABLE();
     }
   }
+
+  IterateRememberedCards(visitor);
 }
 
 bool Scavenger::IsUnreachable(ObjectPtr* p) {
@@ -1657,11 +1670,18 @@ ObjectPtr Scavenger::FindObject(FindObjectVisitor* visitor) {
   return Object::null();
 }
 
-void Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t min_size) {
+void Scavenger::TryAllocateNewTLAB(Thread* thread,
+                                   intptr_t min_size,
+                                   bool can_safepoint) {
   ASSERT(heap_ != Dart::vm_isolate_group()->heap());
   ASSERT(!scavenging_);
 
   AbandonRemainingTLAB(thread);
+
+  if (can_safepoint && !thread->force_growth()) {
+    ASSERT(thread->no_safepoint_scope_depth() == 0);
+    heap_->CheckConcurrentMarking(thread, GCReason::kNewSpace, kNewPageSize);
+  }
 
   MutexLocker ml(&space_lock_);
   for (NewPage* page = to_->head(); page != nullptr; page = page->next()) {
@@ -1725,23 +1745,19 @@ uword ScavengerVisitorBase<parallel>::TryAllocateCopySlow(intptr_t size) {
   return tail_->TryAllocateGC(size);
 }
 
-void Scavenger::Scavenge(GCReason reason) {
+void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   int64_t start = OS::GetCurrentMonotonicMicros();
 
-  // Ensure that all threads for this isolate are at a safepoint (either stopped
-  // or in native code). If two threads are racing at this point, the loser
-  // will continue with its scavenge after waiting for the winner to complete.
-  // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
-  // logic to avoid needless collections.
-  Thread* thread = Thread::Current();
-  GcSafepointOperationScope safepoint_scope(thread);
-
-  int64_t safe_point = OS::GetCurrentMonotonicMicros();
-  heap_->RecordTime(kSafePoint, safe_point - start);
+  ASSERT(thread->IsAtSafepoint());
 
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
   scavenging_ = true;
+
+  if (type == GCType::kEvacuate) {
+    // Forces the next scavenge to promote all the objects in the new space.
+    early_tenure_ = true;
+  }
 
   if (FLAG_verify_before_gc) {
     OS::PrintErr("Verifying before Scavenge...");
@@ -1783,6 +1799,7 @@ void Scavenger::Scavenge(GCReason reason) {
   ASSERT(promotion_stack_.IsEmpty());
   MournWeakHandles();
   MournWeakTables();
+  heap_->old_space()->ResetProgressBars();
 
   // Restore write-barrier assumptions.
   heap_->isolate_group()->RememberLiveTemporaries();
@@ -1804,6 +1821,11 @@ void Scavenger::Scavenge(GCReason reason) {
   // Done scavenging. Reset the marker.
   ASSERT(scavenging_);
   scavenging_ = false;
+
+  // It is possible for objects to stay in the new space
+  // if the VM cannot create more pages for these objects.
+  ASSERT((type != GCType::kEvacuate) || (UsedInWords() == 0) ||
+         failed_to_promote_);
 }
 
 intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
@@ -1966,24 +1988,5 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
 #endif  // !PRODUCT
-
-void Scavenger::Evacuate(GCReason reason) {
-  // We need a safepoint here to prevent allocation right before or right after
-  // the scavenge.
-  // The former can introduce an object that we might fail to collect.
-  // The latter means even if the scavenge promotes every object in the new
-  // space, the new allocation means the space is not empty,
-  // causing the assertion below to fail.
-  GcSafepointOperationScope scope(Thread::Current());
-
-  // Forces the next scavenge to promote all the objects in the new space.
-  early_tenure_ = true;
-
-  Scavenge(reason);
-
-  // It is possible for objects to stay in the new space
-  // if the VM cannot create more pages for these objects.
-  ASSERT((UsedInWords() == 0) || failed_to_promote_);
-}
 
 }  // namespace dart

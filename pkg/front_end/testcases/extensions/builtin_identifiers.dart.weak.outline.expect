@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -17,11 +17,11 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension mixin on core::int* {
+extension mixin on core::int {
 }
-extension extension on core::int* {
+extension extension on core::int {
 }
-extension as on core::int* {
+extension as on core::int {
 }
 static method main() → void
   ;

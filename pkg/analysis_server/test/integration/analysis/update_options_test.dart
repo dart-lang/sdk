@@ -28,7 +28,7 @@ class Foo {
   void bar() {}
 }
 ''');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     // ignore: deprecated_member_use_from_same_package
     await sendAnalysisUpdateOptions(AnalysisOptions()..generateHints = false);

@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show File;
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
@@ -67,8 +68,7 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
     expect(metadata, equals(mapping[node]));
     sink.writeByteList(utf8.encode(metadata.string));
     sink.writeStringReference(metadata.string);
-    sink.writeNullAllowedCanonicalNameReference(
-        metadata.member?.reference.canonicalName);
+    sink.writeNullAllowedCanonicalNameReference(metadata.member?.reference);
     sink.writeDartType(metadata.type);
   }
 

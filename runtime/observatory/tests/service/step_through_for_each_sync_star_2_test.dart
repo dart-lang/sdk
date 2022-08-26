@@ -36,7 +36,6 @@ List<String> expected = [
   "$file:${LINE + 2}:5", // on 'print'
   "$file:${LINE + 1}:25", // on 'generator' (in 'for' line)
 
-  "$file:${LINE + 6}:10", // after 'generator' (definition line)
   "$file:${LINE + 10}:11", // on '+' in 'x + y'
   "$file:${LINE + 10}:3", // on yield
 
@@ -45,7 +44,6 @@ List<String> expected = [
   "$file:${LINE + 2}:5", // on 'print'
   "$file:${LINE + 1}:25", // on 'generator' (in 'for' line)
 
-  "$file:${LINE + 6}:10", // after 'generator' (definition line)
   "$file:${LINE + 11}:1", // on ending '}' of 'generator'
 
   "$file:${LINE + 4}:1", // on ending '}' of 'code''

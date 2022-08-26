@@ -192,6 +192,8 @@ class StackZone : public StackResource {
   // Delete all memory associated with the zone.
   virtual ~StackZone();
 
+  // DART_USE_ABSL encodes the use of fibers in the Dart VM for threading,
+#if defined(DART_USE_ABSL)
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
   uintptr_t SizeInBytes() const { return zone_->SizeInBytes(); }
@@ -200,9 +202,34 @@ class StackZone : public StackResource {
   intptr_t CapacityInBytes() const { return zone_->CapacityInBytes(); }
 
   Zone* GetZone() { return zone_; }
+#else
+  // Compute the total size of this zone. This includes wasted space that is
+  // due to internal fragmentation in the segments.
+  uintptr_t SizeInBytes() const {
+    return zone_.SizeInBytes();
+  }
+
+  // Computes the used space in the zone.
+  intptr_t CapacityInBytes() const {
+    return zone_.CapacityInBytes();
+  }
+
+  Zone* GetZone() {
+    return &zone_;
+  }
+#endif  // defined(DART_USE_ABSL)
 
  private:
+#if defined(DART_USE_ABSL)
+  // When fibers are used we have to make do with a smaller stack size and hence
+  // the first zone is allocated instead of being a stack resource.
   Zone* zone_;
+#else
+  // For regular configurations that have larger stack sizes it is ok to
+  // have the first zone be a stack resource, avoids the overhead of a malloc
+  // call for every stack zone creation.
+  Zone zone_;
+#endif  // defined(DART_USE_ABSL)
 
   template <typename T>
   friend class GrowableArray;

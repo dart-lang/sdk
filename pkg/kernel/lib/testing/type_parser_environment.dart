@@ -414,14 +414,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
             f.positionalParameters, f.returnType, Nullability.nonNullable,
             namedParameters: f.namedParameters,
             typeParameters: f.typeParameters,
-            requiredParameterCount: f.requiredParameterCount,
-            typedefType: new TypedefType(
-                def,
-                Nullability.nonNullable,
-                def.typeParameters
-                    .map((p) => new TypeParameterType(
-                        p, TypeParameterType.computeNullabilityFromBound(p)))
-                    .toList()));
+            requiredParameterCount: f.requiredParameterCount);
       }
     }
     return def..type = type;

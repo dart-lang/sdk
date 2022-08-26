@@ -22,7 +22,7 @@ class GetTypeHierarchyTest extends AbstractAnalysisServerIntegrationTest {
 
   Future getTypeHierarchy_badTarget() async {
     var text = r'''
-main() {
+void f() {
   if /* target */ (true) {
     print('Hello');
   }
@@ -193,7 +193,7 @@ class Pivot /* target */ extends Base2 {}
     // Write a dummy file which will be overridden by tests using
     // [sendAnalysisUpdateContent].
     writeFile(pathname, '// dummy');
-    standardAnalysisSetup();
+    await standardAnalysisSetup();
 
     // Run all the getTypeHierarchy tests at once so that the server can take
     // advantage of incremental analysis and the test doesn't time out.

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.10
+
 library dart2js.kernel.frontend_strategy;
 
 import 'package:kernel/ast.dart' as ir;
@@ -9,7 +11,6 @@ import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart' show Uris;
-import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../compiler.dart';
@@ -27,7 +28,6 @@ import '../js_backend/backend_impact.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/custom_elements_analysis.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
-import '../js_backend/impact_transformer.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -46,14 +46,15 @@ import '../universe/world_impact.dart';
 import '../util/enumset.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
+import 'kernel_strategy_migrated.dart'; // TODO(48820): Remove when migrated.
 import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontendStrategy {
+class KernelFrontendStrategy implements KernelFrontendStrategyForBackendUsage {
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
-  KernelToElementMap _elementMap;
+  /*late*/ KernelToElementMap _elementMap;
   RuntimeTypesNeedBuilder _runtimeTypesNeedBuilder;
 
   KernelAnnotationProcessor _annotationProcessor;
@@ -146,7 +147,7 @@ class KernelFrontendStrategy {
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
-    _fieldAnalysis = KFieldAnalysis(this);
+    _fieldAnalysis = KFieldAnalysis(elementMap);
     ClassHierarchyBuilder classHierarchyBuilder =
         ClassHierarchyBuilder(commonElements, elementMap);
     AnnotationsDataBuilder annotationsDataBuilder = AnnotationsDataBuilder();
@@ -155,17 +156,6 @@ class KernelFrontendStrategy {
     // before creating the resolution enqueuer.
     AnnotationsData annotationsData = AnnotationsDataImpl(
         compiler.options, annotationsDataBuilder.pragmaAnnotations);
-    final impactTransformer = JavaScriptImpactTransformer(
-        elementEnvironment,
-        commonElements,
-        impacts,
-        nativeBasicData,
-        _nativeResolutionEnqueuer,
-        _backendUsageBuilder,
-        _customElementsResolutionAnalysis,
-        rtiNeedBuilder,
-        classHierarchyBuilder,
-        annotationsData);
     InterceptorDataBuilder interceptorDataBuilder = InterceptorDataBuilderImpl(
         nativeBasicData, elementEnvironment, commonElements);
     return ResolutionEnqueuer(
@@ -207,12 +197,17 @@ class KernelFrontendStrategy {
             nativeBasicData,
             nativeDataBuilder,
             annotationsDataBuilder,
-            impactTransformer,
             closureModels,
             compiler.impactCache,
             _fieldAnalysis,
             _modularStrategy,
-            _irAnnotationData),
+            _irAnnotationData,
+            impacts,
+            _nativeResolutionEnqueuer,
+            _backendUsageBuilder,
+            _customElementsResolutionAnalysis,
+            rtiNeedBuilder,
+            annotationsData),
         annotationsData);
   }
 
@@ -235,7 +230,7 @@ class KernelFrontendStrategy {
     }
   }
 
-  void registerModuleData(List<ModuleData> data) {
+  void registerModuleData(ModuleData data) {
     if (data == null) {
       _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     } else {
@@ -255,6 +250,7 @@ class KernelFrontendStrategy {
 
   /// Returns the [CommonElements] for the element model used in this
   /// strategy.
+  @override
   KCommonElements get commonElements => _elementMap.commonElements;
 
   KernelToElementMap get elementMap => _elementMap;
@@ -279,6 +275,7 @@ class KernelFrontendStrategy {
       _runtimeTypesNeedBuilder;
 
   /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
+  @override
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
   }
@@ -287,7 +284,6 @@ class KernelFrontendStrategy {
 class KernelWorkItemBuilder implements WorkItemBuilder {
   final CompilerTask _compilerTask;
   final KernelToElementMap _elementMap;
-  final JavaScriptImpactTransformer _impactTransformer;
   final KernelNativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   final Map<MemberEntity, ClosureScopeModel> _closureModels;
@@ -295,6 +291,12 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final KFieldAnalysis _fieldAnalysis;
   final ModularStrategy _modularStrategy;
   final IrAnnotationData _irAnnotationData;
+  final BackendImpacts _impacts;
+  final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  final BackendUsageBuilder _backendUsageBuilder;
+  final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final AnnotationsData _annotationsData;
 
   KernelWorkItemBuilder(
       this._compilerTask,
@@ -302,12 +304,17 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       this._annotationsDataBuilder,
-      this._impactTransformer,
       this._closureModels,
       this._impactCache,
       this._fieldAnalysis,
       this._modularStrategy,
-      this._irAnnotationData)
+      this._irAnnotationData,
+      this._impacts,
+      this._nativeResolutionEnqueuer,
+      this._backendUsageBuilder,
+      this._customElementsResolutionAnalysis,
+      this._rtiNeedBuilder,
+      this._annotationsData)
       : _nativeMemberResolver = KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
@@ -316,7 +323,6 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
     return KernelWorkItem(
         _compilerTask,
         _elementMap,
-        _impactTransformer,
         _nativeMemberResolver,
         _annotationsDataBuilder,
         entity,
@@ -324,14 +330,19 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
         _impactCache,
         _fieldAnalysis,
         _modularStrategy,
-        _irAnnotationData);
+        _irAnnotationData,
+        _impacts,
+        _nativeResolutionEnqueuer,
+        _backendUsageBuilder,
+        _customElementsResolutionAnalysis,
+        _rtiNeedBuilder,
+        _annotationsData);
   }
 }
 
 class KernelWorkItem implements WorkItem {
   final CompilerTask _compilerTask;
   final KernelToElementMap _elementMap;
-  final JavaScriptImpactTransformer _impactTransformer;
   final KernelNativeMemberResolver _nativeMemberResolver;
   final AnnotationsDataBuilder _annotationsDataBuilder;
   @override
@@ -341,11 +352,16 @@ class KernelWorkItem implements WorkItem {
   final KFieldAnalysis _fieldAnalysis;
   final ModularStrategy _modularStrategy;
   final IrAnnotationData _irAnnotationData;
+  final BackendImpacts _impacts;
+  final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  final BackendUsageBuilder _backendUsageBuilder;
+  final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
+  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final AnnotationsData _annotationsData;
 
   KernelWorkItem(
       this._compilerTask,
       this._elementMap,
-      this._impactTransformer,
       this._nativeMemberResolver,
       this._annotationsDataBuilder,
       this.element,
@@ -353,7 +369,13 @@ class KernelWorkItem implements WorkItem {
       this._impactCache,
       this._fieldAnalysis,
       this._modularStrategy,
-      this._irAnnotationData);
+      this._irAnnotationData,
+      this._impacts,
+      this._nativeResolutionEnqueuer,
+      this._backendUsageBuilder,
+      this._customElementsResolutionAnalysis,
+      this._rtiNeedBuilder,
+      this._annotationsData);
 
   @override
   WorldImpact run() {
@@ -383,10 +405,15 @@ class KernelWorkItem implements WorkItem {
       }
       ImpactBuilderData impactBuilderData = modularMemberData.impactBuilderData;
       return _compilerTask.measureSubtask('worldImpact', () {
-        ResolutionImpact impact =
-            _elementMap.computeWorldImpact(element, impactBuilderData);
-        WorldImpact worldImpact =
-            _impactTransformer.transformResolutionImpact(impact);
+        WorldImpact worldImpact = _elementMap.computeWorldImpact(
+            element,
+            _impacts,
+            _nativeResolutionEnqueuer,
+            _backendUsageBuilder,
+            _customElementsResolutionAnalysis,
+            _rtiNeedBuilder,
+            _annotationsData,
+            impactBuilderData);
         if (_impactCache != null) {
           _impactCache[element] = worldImpact;
         }
@@ -416,12 +443,8 @@ class KernelModularStrategy extends ModularStrategy {
     ScopeModel scopeModel = _compilerTask.measureSubtask(
         'closures', () => ScopeModel.from(node, _elementMap.constantEvaluator));
     return _compilerTask.measureSubtask('worldImpact', () {
-      return computeModularMemberData(node,
-          options: _elementMap.options,
-          typeEnvironment: _elementMap.typeEnvironment,
-          classHierarchy: _elementMap.classHierarchy,
-          scopeModel: scopeModel,
-          annotations: annotations);
+      return computeModularMemberData(
+          _elementMap, node, scopeModel, annotations);
     });
   }
 }
@@ -432,9 +455,10 @@ class DeserializedModularStrategy extends ModularStrategy {
   final Map<ir.Member, ImpactBuilderData> _cache = {};
 
   DeserializedModularStrategy(
-      this._compilerTask, this._elementMap, List<ModuleData> data) {
-    for (var module in data) {
-      _cache.addAll(module.impactData);
+      this._compilerTask, this._elementMap, ModuleData data) {
+    for (Map<ir.Member, ImpactBuilderData> moduleData
+        in data.impactData.values) {
+      _cache.addAll(moduleData);
     }
   }
 

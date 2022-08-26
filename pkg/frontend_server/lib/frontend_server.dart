@@ -7,7 +7,8 @@ library frontend_server;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' hide FileSystemEntity;
+import 'dart:io' show Directory, File, IOSink, stdin, stdout;
+import 'dart:typed_data' show BytesBuilder;
 
 import 'package:args/args.dart';
 import 'package:dev_compiler/dev_compiler.dart'
@@ -36,6 +37,7 @@ import 'package:usage/uuid/uuid.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 
+import 'src/binary_protocol.dart';
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
 
@@ -56,6 +58,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null)
+  ..addFlag('compact-async',
+      help: 'Enable new compact async/await implementation.', defaultsTo: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -89,7 +93,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('depfile',
       help: 'Path to output Ninja depfile. Only used in batch mode.')
   ..addOption('packages',
-      help: '.packages file to use for compilation', defaultsTo: null)
+      help: '.dart_tool/package_config.json file to use for compilation',
+      defaultsTo: null)
   ..addMultiOption('source',
       help: 'List additional source files to include into compilation.',
       defaultsTo: const <String>[])
@@ -114,6 +119,10 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
           ' option',
       defaultsTo: 'org-dartlang-root',
       hide: true)
+  ..addOption('binary-protocol-address',
+      hide: true,
+      help: 'The server will establish TCP connection to this address, and'
+          ' will exchange binary requests and responses with the client.')
   ..addFlag('enable-http-uris',
       defaultsTo: false, hide: true, help: 'Enables support for http uris.')
   ..addFlag('verbose', help: 'Enables verbose output from the compiler.')
@@ -196,7 +205,12 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: false)
   ..addFlag('print-incremental-dependencies',
       help: 'Print list of sources added and removed from compilation',
-      defaultsTo: true);
+      defaultsTo: true)
+  ..addOption('verbosity',
+      help: 'Sets the verbosity level of the compilation',
+      defaultsTo: Verbosity.defaultValue,
+      allowed: Verbosity.allowedValues,
+      allowedHelp: Verbosity.allowedValuesHelp);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -388,26 +402,19 @@ class FrontendCompiler implements CompilerInterface {
   final List<String> errors = <String>[];
 
   _onDiagnostic(DiagnosticMessage message) {
-    // TODO(https://dartbug.com/44867): The frontend server should take a
-    // verbosity argument and put that in CompilerOptions and use it here.
-    bool printMessage;
     switch (message.severity) {
       case Severity.error:
       case Severity.internalProblem:
-        printMessage = true;
         errors.addAll(message.plainTextFormatted);
         break;
       case Severity.warning:
-        printMessage = true;
-        break;
       case Severity.info:
-        printMessage = false;
         break;
       case Severity.context:
       case Severity.ignored:
         throw 'Unexpected severity: ${message.severity}';
     }
-    if (printMessage) {
+    if (Verbosity.shouldPrint(_compilerOptions.verbosity, message)) {
       printDiagnosticMessage(message, _outputStream.writeln);
     }
   }
@@ -459,7 +466,10 @@ class FrontendCompiler implements CompilerInterface {
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
       ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
-      ..onDiagnostic = _onDiagnostic;
+      ..onDiagnostic = _onDiagnostic
+      ..verbosity = Verbosity.parseArgument(options['verbosity'],
+          onError: (msg) => errors.add(msg));
+    _compilerOptions = compilerOptions;
 
     if (options.wasParsed('libraries-spec')) {
       compilerOptions.librariesSpecificationUri =
@@ -533,6 +543,7 @@ class FrontendCompiler implements CompilerInterface {
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
+      compactAsync: options['compact-async'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
@@ -546,7 +557,6 @@ class FrontendCompiler implements CompilerInterface {
       ];
     }
 
-    _compilerOptions = compilerOptions;
     _processedOptions = ProcessedOptions(options: compilerOptions);
 
     KernelCompilationResults results;
@@ -624,7 +634,7 @@ class FrontendCompiler implements CompilerInterface {
     return errors.isEmpty;
   }
 
-  void _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
+  Future<void> _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
     if (!_printIncrementalDependencies) {
       return;
     }
@@ -661,7 +671,8 @@ class FrontendCompiler implements CompilerInterface {
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat) async {
     var packageConfig = await loadPackageConfigUri(
-        _compilerOptions.packagesFileUri ?? File('.packages').absolute.uri);
+        _compilerOptions.packagesFileUri ??
+            File('.dart_tool/package_config.json').absolute.uri);
     var soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
     final Component component = results.component;
     // Compute strongly connected components.
@@ -937,7 +948,7 @@ class FrontendCompiler implements CompilerInterface {
     final procedure = await expressionCompiler.compileExpressionToJs(
         libraryUri, line, column, jsFrameValues, expression);
 
-    final result = errors.length > 0 ? errors[0] : procedure;
+    final result = errors.isNotEmpty ? errors[0] : procedure;
 
     // TODO(annagrin): kernelBinaryFilename is too specific
     // rename to _outputFileName?
@@ -1234,7 +1245,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           // definitions (one per line)
           // ...
           // <boundarykey>
-          // type-defintions (one per line)
+          // type-definitions (one per line)
           // ...
           // <boundarykey>
           // <libraryUri: String>
@@ -1260,8 +1271,9 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         if (string == boundaryKey) {
           compiler.recompileDelta(entryPoint: recompileEntryPoint);
           state = _State.READY_FOR_INSTRUCTION;
-        } else
+        } else {
           compiler.invalidate(Uri.base.resolve(string));
+        }
         break;
       case _State.COMPILE_EXPRESSION_EXPRESSION:
         compileExpressionRequest.expression = string;
@@ -1419,6 +1431,12 @@ Future<int> starter(
     } finally {
       temp.deleteSync(recursive: true);
     }
+  }
+
+  final binaryProtocolAddressStr = options['binary-protocol-address'];
+  if (binaryProtocolAddressStr is String) {
+    runBinaryProtocol(binaryProtocolAddressStr);
+    return 0;
   }
 
   compiler ??= FrontendCompiler(output,

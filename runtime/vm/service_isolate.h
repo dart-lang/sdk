@@ -31,11 +31,11 @@ class ServiceIsolate : public AllStatic {
   static Dart_Port Port();
   static void WaitForServiceIsolateStartup();
 
-  // Returns `true` if the request was sucessfully sent.  If it was, the
+  // Returns `true` if the request was successfully sent.  If it was, the
   // [reply_port] will receive a Dart_TypedData_kUint8 response json.
   //
   // If sending the rpc failed and [error] is not `nullptr` then [error] might
-  // be set to a string containting the reason for the failure. If so, the
+  // be set to a string containing the reason for the failure. If so, the
   // caller is responsible for free()ing the error.
   static bool SendServiceRpc(uint8_t* request_json,
                              intptr_t request_json_length,

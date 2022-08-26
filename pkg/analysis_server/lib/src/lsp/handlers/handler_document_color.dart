@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_color.dart'
     show ColorComputer, ColorReference;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
@@ -20,7 +18,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 /// [DocumentColorPresentationHandler]).
 class DocumentColorHandler
     extends MessageHandler<DocumentColorParams, List<ColorInformation>> {
-  DocumentColorHandler(LspAnalysisServer server) : super(server);
+  DocumentColorHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentColor;
 
@@ -29,8 +27,8 @@ class DocumentColorHandler
       DocumentColorParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<ColorInformation>>> handle(
-      DocumentColorParams params, CancellationToken token) async {
+  Future<ErrorOr<List<ColorInformation>>> handle(DocumentColorParams params,
+      MessageInfo message, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success([]);
     }
@@ -41,7 +39,7 @@ class DocumentColorHandler
   }
 
   ErrorOr<List<ColorInformation>> _getColors(ResolvedUnitResult unit) {
-    ColorInformation _toColorInformation(ColorReference reference) {
+    ColorInformation toColorInformation(ColorReference reference) {
       return ColorInformation(
         range: toRange(unit.lineInfo, reference.offset, reference.length),
         color: Color(
@@ -57,6 +55,6 @@ class DocumentColorHandler
 
     final computer = ColorComputer(unit);
     final colors = computer.compute();
-    return success(colors.map(_toColorInformation).toList());
+    return success(colors.map(toColorInformation).toList());
   }
 }

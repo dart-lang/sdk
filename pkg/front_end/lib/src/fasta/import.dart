@@ -62,7 +62,7 @@ class Import {
 
   Uri get fileUri => importer.fileUri;
 
-  void finalizeImports(LibraryBuilder importer) {
+  void finalizeImports(SourceLibraryBuilder importer) {
     if (nativeImportPath != null) return;
     void Function(String, Builder) add;
     if (prefixBuilder == null) {

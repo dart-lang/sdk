@@ -20,7 +20,7 @@ main() {
 class InvalidOverrideDifferentDefaultValuesNamedTest
     extends InvalidOverrideDifferentDefaultValuesNamedWithoutNullSafetyTest {
   test_concrete_equal_optIn_extends_optOut() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A {
   void foo({int a = 0}) {}
@@ -39,7 +39,7 @@ class B extends A {
   }
 
   test_concrete_equal_optOut_extends_optIn() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo({int a = 0}) {}
 }
@@ -217,7 +217,7 @@ class B extends A {
   }
 
   test_concrete_equal_otherLibrary() async {
-    newFile2('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo([a = 0]) {}
 }
@@ -232,7 +232,7 @@ class C extends A {
   }
 
   test_concrete_equal_otherLibrary_listLiteral() async {
-    newFile2('$testPackageLibPath/other.dart', '''
+    newFile('$testPackageLibPath/other.dart', '''
 class C {
   void foo({x: const ['x']}) {}
 }

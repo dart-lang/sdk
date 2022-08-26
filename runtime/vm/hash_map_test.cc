@@ -11,7 +11,9 @@ namespace dart {
 class TestValue {
  public:
   explicit TestValue(intptr_t x) : x_(x) {}
-  uword Hash() const { return x_ & 1; }
+  // FinalizeHash is used here to provide coverage for FinalizeHash(...)
+  // function.
+  uword Hash() const { return FinalizeHash(static_cast<uint32_t>(x_) & 1); }
   bool Equals(const TestValue& other) { return x_ == other.x_; }
 
  private:
