@@ -1069,6 +1069,91 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
   EXPECT(load_field_in_loop2->calls_initializer());
 }
 
+#if !defined(TARGET_ARCH_IA32)
+
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializingStoreAOT) {
+  const char* kScript = R"(
+class Vec3 {
+  final double x, y, z;
+
+  @pragma('vm:prefer-inline')
+  const Vec3(this.x, this.y, this.z);
+
+  @override
+  @pragma('vm:prefer-inline')
+  String toString() => _vec3ToString(x, y, z);
+}
+
+@pragma('vm:never-inline')
+String _vec3ToString(double x, double y, double z) => '';
+
+// Boxed storage for Vec3.
+// Fields are unboxed.
+class Vec3Mut {
+  double _x = 0.0;
+  double _y = 0.0;
+  double _z = 0.0;
+
+  Vec3Mut(Vec3 v)
+      : _x = v.x,
+        _y = v.y,
+        _z = v.z;
+
+  @override
+  String toString() => _vec3ToString(_x, _y, _z);
+
+  @pragma('vm:prefer-inline')
+  set vec(Vec3 v) {
+      _x = v.x;
+      _y = v.y;
+      _z = v.z;
+  }
+}
+
+Vec3Mut main() {
+  final a = Vec3(3, 4, 5);
+  final b = Vec3(8, 9, 10);
+  final c = Vec3(18, 19, 20);
+  final d = Vec3(180, 190, 200);
+  final e = Vec3(1800, 1900, 2000);
+  final v = Vec3Mut(a);
+  v.vec = b;
+  v.vec = c;
+  v.vec = d;
+  v.vec = e;
+  return v;
+}
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  auto entry = flow_graph->graph_entry()->normal_entry();
+
+  AllocateObjectInstr* allocate;
+  StoreFieldInstr* store1;
+  StoreFieldInstr* store2;
+  StoreFieldInstr* store3;
+
+  ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveAllocateObject, &allocate},
+      {kMatchAndMoveStoreField, &store1},
+      {kMatchAndMoveStoreField, &store2},
+      {kMatchAndMoveStoreField, &store3},
+      kMatchReturn,
+  }));
+
+  EXPECT(store1->instance()->definition() == allocate);
+  EXPECT(store2->instance()->definition() == allocate);
+  EXPECT(store3->instance()->definition() == allocate);
+}
+
+#endif  // !defined(TARGET_ARCH_IA32)
+
 ISOLATE_UNIT_TEST_CASE(AllocationSinking_Arrays) {
   const char* kScript = R"(
 import 'dart:typed_data';
