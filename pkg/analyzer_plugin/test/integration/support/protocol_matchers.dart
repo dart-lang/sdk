@@ -410,6 +410,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   LITERAL_INTEGER
 ///   LITERAL_LIST
 ///   LITERAL_MAP
+///   LITERAL_RECORD
 ///   LITERAL_STRING
 ///   LOCAL_FUNCTION_DECLARATION
 ///   LOCAL_FUNCTION_REFERENCE
@@ -492,6 +493,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'LITERAL_INTEGER',
   'LITERAL_LIST',
   'LITERAL_MAP',
+  'LITERAL_RECORD',
   'LITERAL_STRING',
   'LOCAL_FUNCTION_DECLARATION',
   'LOCAL_FUNCTION_REFERENCE',

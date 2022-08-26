@@ -1925,6 +1925,7 @@ class HighlightRegion implements HasToJson {
 ///   LITERAL_INTEGER
 ///   LITERAL_LIST
 ///   LITERAL_MAP
+///   LITERAL_RECORD
 ///   LITERAL_STRING
 ///   LOCAL_FUNCTION_DECLARATION
 ///   LOCAL_FUNCTION_REFERENCE
@@ -2094,6 +2095,9 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType LITERAL_MAP =
       HighlightRegionType._('LITERAL_MAP');
 
+  static const HighlightRegionType LITERAL_RECORD =
+      HighlightRegionType._('LITERAL_RECORD');
+
   static const HighlightRegionType LITERAL_STRING =
       HighlightRegionType._('LITERAL_STRING');
 
@@ -2257,6 +2261,7 @@ class HighlightRegionType implements Enum {
     LITERAL_INTEGER,
     LITERAL_LIST,
     LITERAL_MAP,
+    LITERAL_RECORD,
     LITERAL_STRING,
     LOCAL_FUNCTION_DECLARATION,
     LOCAL_FUNCTION_REFERENCE,
@@ -2389,6 +2394,8 @@ class HighlightRegionType implements Enum {
         return LITERAL_LIST;
       case 'LITERAL_MAP':
         return LITERAL_MAP;
+      case 'LITERAL_RECORD':
+        return LITERAL_RECORD;
       case 'LITERAL_STRING':
         return LITERAL_STRING;
       case 'LOCAL_FUNCTION_DECLARATION':
