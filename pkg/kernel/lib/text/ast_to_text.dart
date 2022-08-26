@@ -2178,6 +2178,27 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitRecordIndexGet(RecordIndexGet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.\$${node.index}');
+    writeSymbol('{');
+    writeType(node.receiverType.positional[node.index]);
+    writeSymbol('}');
+  }
+
+  @override
+  void visitRecordNameGet(RecordNameGet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.${node.name}');
+    writeSymbol('{');
+    // TODO(johnniwinther): Should we store the result type in the node?
+    writeType(node.receiverType.named
+        .singleWhere((element) => element.name == node.name)
+        .type);
+    writeSymbol('}');
+  }
+
+  @override
   void visitExpressionStatement(ExpressionStatement node) {
     writeIndentation();
     writeExpression(node.expression);

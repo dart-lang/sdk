@@ -6021,6 +6021,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType receiverType = result.nullAwareActionType;
 
     node.receiver = receiver..parent = node;
+
+    if (receiverType is RecordType) {
+      // TODO(johnniwinther): Handle nullable record types and null shorting.
+      String name = node.name.text;
+      if (name.startsWith('\$')) {
+        int? index = int.tryParse(name.substring(1));
+        if (index != null) {
+          if (index < receiverType.positional.length) {
+            DartType fieldType = receiverType.positional[index];
+            return new ExpressionInferenceResult(
+                fieldType,
+                new RecordIndexGet(receiver, receiverType, index)
+                  ..fileOffset = node.fileOffset);
+          }
+        }
+      }
+      for (NamedType field in receiverType.named) {
+        if (field.name == name) {
+          return new ExpressionInferenceResult(
+              field.type,
+              new RecordNameGet(receiver, receiverType, name)
+                ..fileOffset = node.fileOffset);
+        }
+      }
+    }
+
     PropertyGetInferenceResult propertyGetInferenceResult = _computePropertyGet(
         node.fileOffset, receiver, receiverType, node.name, typeContext,
         isThisReceiver: node.receiver is ThisExpression);
