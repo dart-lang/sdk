@@ -10,8 +10,6 @@ import 'dart:io'
         exit,
         File,
         InternetAddress,
-        Link,
-        Platform,
         ProcessSignal,
         ServerSocket,
         Socket;
@@ -34,9 +32,7 @@ import '../frontend_server.dart';
 /// required.
 const _STAT_GRANULARITY = const Duration(seconds: 1);
 
-const RESIDENT_SERVER_LINK_POSTFIX = '_link';
-
-/// Ensures the symbolic link is removed if ctrl-C is sent to the server.
+/// Ensures the info file is removed if Ctrl-C is sent to the server.
 /// Mostly used when debugging.
 StreamSubscription<ProcessSignal> _cleanupHandler;
 
@@ -427,24 +423,18 @@ Future<Map<String, dynamic>> sendAndReceiveResponse(
 }
 
 /// Closes the ServerSocket and removes the [serverInfoFile] that is used
-/// to access this instance of the Resident Frontend Server as well as the
-/// lock to prevent the concurrent start race.
+/// to access this instance of the Resident Frontend Server.
 Future<void> residentServerCleanup(
     ServerSocket server, File serverInfoFile) async {
-  final serverFilesystemLock =
-      Link('${serverInfoFile.path}$RESIDENT_SERVER_LINK_POSTFIX');
   try {
     if (_cleanupHandler != null) {
       _cleanupHandler.cancel();
     }
-    if (serverInfoFile.existsSync()) {
-      serverInfoFile.deleteSync();
-    }
   } catch (_) {
   } finally {
     try {
-      if (serverFilesystemLock.existsSync()) {
-        serverFilesystemLock.deleteSync();
+      if (serverInfoFile.existsSync()) {
+        serverInfoFile.deleteSync();
       }
     } catch (_) {}
   }
@@ -469,25 +459,10 @@ Future<StreamSubscription<Socket>> residentListenAndCompile(
     InternetAddress address, int port, File serverInfoFile,
     {Duration inactivityTimeout = const Duration(minutes: 30)}) async {
   ServerSocket server;
-  // Create a link to the serverInfoFile to ensure that concurrent requests
-  // to start the server result in only 1 server being started. This
-  // also ensures that the serverInfoFile is only
-  // visible once the server is started and ready to receive connections.
-  // TODO https://github.com/dart-lang/sdk/issues/49647 use exclusive mode
-  // on File objects
-  final serverInfoLink =
-      Link('${serverInfoFile.path}$RESIDENT_SERVER_LINK_POSTFIX');
   try {
     try {
-      serverInfoLink.createSync(serverInfoFile.path);
+      serverInfoFile.createSync(exclusive: true);
     } catch (e) {
-      // TODO: https://github.com/dart-lang/sdk/issues/49647 Using a File
-      // in exclusive mode removes the need for this check.
-      if (Platform.isWindows && e.toString().contains('errno = 1314')) {
-        throw StateError('Dart must be running in Administrator mode '
-            'or Developer mode must be enabled when '
-            'using the Resident Frontend Compiler.');
-      }
       throw StateError('A server is already running.');
     }
     server = await ServerSocket.bind(address, port);
@@ -498,9 +473,9 @@ Future<StreamSubscription<Socket>> residentListenAndCompile(
     print('Error: $e\n');
     return null;
   } catch (e) {
-    // lock was acquired but bind or writing failed
+    // If we created a file, but bind or writing failed, clean up.
     try {
-      serverInfoLink.deleteSync();
+      serverInfoFile.deleteSync();
     } catch (_) {}
     print('Error: $e\n');
     return null;

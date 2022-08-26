@@ -577,9 +577,6 @@ void main() async {
       expect(serverSubscription, isNot(null));
       expect(startWhileAlreadyRunning, null);
       expect(serverInfo.existsSync(), true);
-      expect(
-          Link('${serverInfo.path}$RESIDENT_SERVER_LINK_POSTFIX').existsSync(),
-          true);
 
       final info = serverInfo.readAsStringSync();
       final address = InternetAddress(
@@ -590,9 +587,6 @@ void main() async {
           address, port, ResidentFrontendServer.shutdownCommand);
       expect(shutdownResult, equals(<String, dynamic>{"shutdown": true}));
       expect(serverInfo.existsSync(), false);
-      expect(
-          Link('${serverInfo.path}$RESIDENT_SERVER_LINK_POSTFIX').existsSync(),
-          false);
     });
 
     test('resident server starter', () async {
