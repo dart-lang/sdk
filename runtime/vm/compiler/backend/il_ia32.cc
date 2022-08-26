@@ -1174,6 +1174,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(ESI);
   __ pushl(EDI);
 
+  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
+
   // Load the thread object.
   //
   // Create another frame to align the frame before continuing in "native" code.
@@ -1183,7 +1185,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
 
-    __ movl(compiler::Address(SPREG, 0), compiler::Immediate(callback_id_));
+    __ movl(compiler::Address(SPREG, 0), compiler::Immediate(callback_id));
     __ movl(EAX, compiler::Immediate(reinterpret_cast<intptr_t>(
                      DLRT_GetThreadForNativeCallback)));
     __ call(EAX);
@@ -1227,7 +1229,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                    EAX, compiler::target::GrowableObjectArray::data_offset()));
   __ movl(CODE_REG, compiler::FieldAddress(
                         EAX, compiler::target::Array::data_offset() +
-                                 callback_id_ * compiler::target::kWordSize));
+                                 callback_id * compiler::target::kWordSize));
 
   // Put the code object in the reserved slot.
   __ movl(compiler::Address(FPREG,

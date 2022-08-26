@@ -1636,6 +1636,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                 reinterpret_cast<uword>(DLRT_GetThreadForNativeCallback)));
   }
 
+  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
+
   // Load the thread object. If we were called by a trampoline, the thread is
   // already loaded.
   if (!NativeCallbackTrampolines::Enabled()) {
@@ -1644,7 +1646,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ EnterFrame(1 << FP, 0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ LoadImmediate(R0, callback_id_);
+    __ LoadImmediate(R0, callback_id);
     __ blx(R1);
     __ mov(THR, compiler::Operand(R0));
 
@@ -1689,7 +1691,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          compiler::target::GrowableObjectArray::data_offset());
   __ LoadFieldFromOffset(CODE_REG, R0,
                          compiler::target::Array::data_offset() +
-                             callback_id_ * compiler::target::kWordSize);
+                             callback_id * compiler::target::kWordSize);
 
   // Put the code object in the reserved slot.
   __ StoreToOffset(CODE_REG, FPREG,

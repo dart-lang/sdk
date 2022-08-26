@@ -4745,9 +4745,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
 
-  auto* const native_entry = new (Z) NativeEntryInstr(
-      marshaller, graph_entry_, AllocateBlockId(), CurrentTryIndex(),
-      GetNextDeoptId(), function.FfiCallbackId());
+  auto* const native_entry =
+      new (Z) NativeEntryInstr(marshaller, graph_entry_, AllocateBlockId(),
+                               CurrentTryIndex(), GetNextDeoptId());
 
   graph_entry_->set_normal_entry(native_entry);
 
@@ -4793,9 +4793,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
     body += Drop();
     body += IntConstant(0);
   } else if (!marshaller.IsHandle(compiler::ffi::kResultIndex)) {
-    body +=
-        CheckNullOptimized(String::ZoneHandle(Z, String::New("return_value")),
-                           CheckNullInstr::kArgumentError);
+    body += CheckNullOptimized(
+        String::ZoneHandle(Z, Symbols::New(H.thread(), "return_value")),
+        CheckNullInstr::kArgumentError);
   }
 
   if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {

@@ -2746,9 +2746,6 @@ class Function : public Object {
   int32_t FfiCallbackId() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiCallbackId(int32_t value) const;
-
-  // Can only be called on FFI trampolines.
   bool FfiIsLeaf() const;
 
   // Can only be called on FFI trampolines.

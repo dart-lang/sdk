@@ -1431,9 +1431,9 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
   // calls. The callback id is also used to for verifying that callbacks are
   // called on the correct isolate. See DLRT_VerifyCallbackIsolate for details.
   //
-  // Will be 0 for non-callbacks. Check 'callback_target_' to determine if this
-  // is a callback or not.
-  uint32_t callback_id_;
+  // Callback id is -1 for non-callbacks or when id is not allocated yet.
+  // Check 'callback_target_' to determine if this is a callback or not.
+  int32_t callback_id_;
 
   // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
   bool is_leaf_;

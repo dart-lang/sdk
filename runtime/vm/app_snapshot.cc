@@ -1387,7 +1387,7 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
       WriteFromTo(data);
 
       if (s->kind() == Snapshot::kFullAOT) {
-        s->WriteUnsigned(data->untag()->callback_id_);
+        s->Write<int32_t>(data->untag()->callback_id_);
       } else {
         // FFI callbacks can only be written to AOT snapshots.
         ASSERT(data->untag()->callback_target() == Object::null());
@@ -1420,7 +1420,7 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
                                      FfiTrampolineData::InstanceSize());
       d.ReadFromTo(data);
       data->untag()->callback_id_ =
-          d_->kind() == Snapshot::kFullAOT ? d.ReadUnsigned() : 0;
+          d_->kind() == Snapshot::kFullAOT ? d.Read<int32_t>() : -1;
     }
   }
 };

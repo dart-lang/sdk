@@ -114,7 +114,8 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
   // _pointerFromFunction and will not leak out into user code.
   arguments->SetReturn(
       Function::Handle(zone, compiler::ffi::NativeCallbackFunction(
-                                 native_signature, func, exceptional_return)));
+                                 native_signature, func, exceptional_return,
+                                 /*register_function=*/false)));
 
   // Because we have already set the return value.
   return Object::sentinel().ptr();
