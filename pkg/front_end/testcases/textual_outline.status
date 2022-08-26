@@ -115,8 +115,10 @@ macros/augment_super: FormatterCrash
 macros/class_members: FormatterCrash
 macros/extend_augmented: FormatterCrash
 macros/inject_constructor: FormatterCrash
+macros/library_members: FormatterCrash
 macros/macro_class: FormatterCrash
 macros/multiple_imports: FormatterCrash
+macros/scope_access: FormatterCrash
 nnbd_mixed/inheritance_from_opt_in: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash

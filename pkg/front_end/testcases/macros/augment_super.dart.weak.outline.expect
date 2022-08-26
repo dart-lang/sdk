@@ -36,7 +36,5 @@ static set nullableTopLevelProperty(core::List<core::int>? value) → void
   ;
 static method main() → dynamic
   ;
-static method /* from org-dartlang-testcase:///augment_super_lib.dart */ topLevelMethodError() → void
-  ;
 static method /* from org-dartlang-testcase:///augment_super_lib.dart */ injectedTopLevelMethod() → void
   ;

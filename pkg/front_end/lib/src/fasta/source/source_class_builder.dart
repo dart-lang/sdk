@@ -113,7 +113,23 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final bool isAugmentation;
 
+  bool? _isConflictingAugmentationMember;
+
+  /// Returns `true` if this class is a class declared in an augmentation
+  /// library that conflicts with a declaration in the origin library.
+  bool get isConflictingAugmentationMember {
+    return _isConflictingAugmentationMember ??= false;
+  }
+
+  void set isConflictingAugmentationMember(bool value) {
+    assert(_isConflictingAugmentationMember == null,
+        '$this.isConflictingAugmentationMember has already been fixed.');
+    _isConflictingAugmentationMember = value;
+  }
+
   List<SourceClassBuilder>? _patches;
+
+  MergedClassMemberScope? _mergedScope;
 
   SourceClassBuilder(
       List<MetadataBuilder>? metadata,
@@ -144,6 +160,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 
+  MergedClassMemberScope get mergedScope => _mergedScope ??=
+      isPatch ? origin.mergedScope : new MergedClassMemberScope(this);
+
   List<SourceClassBuilder>? get patchesForTesting => _patches;
 
   SourceClassBuilder? actualOrigin;
@@ -167,7 +186,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     void buildBuilders(Builder declaration) {
       if (declaration.parent != this) {
-        if (declaration.parent?.origin != this) {
+        if (declaration.parent?.origin != origin) {
           if (fileUri != declaration.parent?.fileUri) {
             unexpected("$fileUri", "${declaration.parent?.fileUri}", charOffset,
                 fileUri);
@@ -183,24 +202,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         SourceMemberBuilder memberBuilder = declaration;
         memberBuilder
             .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
-          member.parent = cls;
-          if (!memberBuilder.isPatch &&
-              !memberBuilder.isDuplicate &&
-              !memberBuilder.isConflictingSetter &&
-              !memberBuilder.isConflictingAugmentationMember) {
-            if (member is Procedure) {
-              cls.addProcedure(member);
-            } else if (member is Field) {
-              cls.addField(member);
-            } else if (member is Constructor) {
-              cls.addConstructor(member);
-            } else if (member is RedirectingFactory) {
-              cls.addRedirectingFactory(member);
-            } else {
-              unhandled("${member.runtimeType}", "getMember", member.fileOffset,
-                  member.fileUri);
-            }
-          }
+          _addMemberToClass(declaration, member, memberKind);
         });
       } else {
         unhandled("${declaration.runtimeType}", "buildBuilders",
@@ -386,16 +388,24 @@ class SourceClassBuilder extends ClassBuilderImpl
     // and from the patch don't intersect.
     assert(
         _patches == null ||
-            _patches!.every((patchClass) => patchClass.scope.localMembers
-                .where((b) => b is SourceFieldBuilder)
-                .map((b) => (b as SourceFieldBuilder).name)
+            _patches!.every((patchClass) => patchClass.scope
+                .filteredIterator<SourceFieldBuilder>(
+                    parent: patchClass,
+                    includeDuplicates: false,
+                    includeAugmentations: false)
+                .toList()
+                .map((b) => b.name)
                 .toSet()
-                .intersection(scope.localMembers
-                    .where((b) => b is SourceFieldBuilder)
-                    .map((b) => (b as SourceFieldBuilder).name)
+                .intersection(scope
+                    .filteredIterator<SourceFieldBuilder>(
+                        parent: this,
+                        includeDuplicates: false,
+                        includeAugmentations: false)
+                    .toList()
+                    .map((b) => b.name)
                     .toSet())
                 .isEmpty),
-        "Detected an attempt to patch a field.");
+        "Detected an attempt to patch a field");
     new ClassMemberNameIterator<SourceFieldBuilder>(this,
             includeDuplicates: false)
         .forEach(callback);
@@ -575,85 +585,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       patch.actualOrigin = this;
       (_patches ??= []).add(patch);
 
-      void applyAugmentation(String name, SourceMemberBuilder patchMember,
-          {required bool setter}) {
-        Builder? originMember = scope.lookupLocalMember(name, setter: setter);
-        if (patch.isAugmentation) {
-          if (originMember != null) {
-            if (patchMember.isAugmentation) {
-              originMember.applyPatch(patchMember);
-            } else {
-              patchMember.isConflictingAugmentationMember = true;
-              libraryBuilder.addProblem(
-                  templateNonAugmentationClassMemberConflict
-                      .withArguments(name),
-                  patchMember.charOffset,
-                  name.length,
-                  patchMember.fileUri,
-                  context: [
-                    messageNonAugmentationClassMemberConflictCause.withLocation(
-                        originMember.fileUri!,
-                        originMember.charOffset,
-                        name.length)
-                  ]);
-            }
-          } else {
-            if (patchMember.isAugmentation) {
-              libraryBuilder.addProblem(
-                  templateUnmatchedAugmentationClassMember.withArguments(name),
-                  patchMember.charOffset,
-                  name.length,
-                  patchMember.fileUri);
-            } else {
-              scope.addLocalMember(name, patchMember, setter: setter);
-            }
-          }
-        } else {
-          if (originMember != null) {
-            // Patch class implicitly assume matching members are patch
-            // members.
-            originMember.applyPatch(patchMember);
-          } else {
-            // Members injected into patch are not part of the origin scope.
-          }
-        }
-      }
-
-      patch.scope.forEachLocalMember((String name, Builder patchMember) {
-        if (patchMember is SourceMemberBuilder) {
-          applyAugmentation(name, patchMember, setter: false);
-        } else {
-          assert(false,
-              "Unexpected member ${patchMember} (${patchMember.runtimeType})");
-        }
-      });
-
-      patch.scope.forEachLocalSetter((String name, Builder patchMember) {
-        if (patchMember is SourceMemberBuilder) {
-          applyAugmentation(name, patchMember, setter: true);
-        } else {
-          assert(false,
-              "Unexpected member ${patchMember} (${patchMember.runtimeType})");
-        }
-      });
-
-      patch.constructorScope.local
-          .forEach((String name, MemberBuilder patchConstructor) {
-        MemberBuilder? originConstructor = constructorScope.local[name];
-        if (patch.isAugmentation) {
-          if (originConstructor != null) {
-            // TODO(johnniwinther): Should we support constructor augmentation?
-            // Currently the syntax doesn't allow it.
-            originConstructor.applyPatch(patchConstructor);
-          } else {
-            constructorScope.addLocalMember(name, patchConstructor);
-          }
-        } else {
-          if (originConstructor != null) {
-            originConstructor.applyPatch(patchConstructor);
-          }
-        }
-      });
+      mergedScope.addAugmentationScope(patch);
 
       int originLength = typeVariables?.length ?? 0;
       int patchLength = patch.typeVariables?.length ?? 0;
@@ -1134,14 +1066,13 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
-    Map<String, MemberBuilder> constructors = this.constructorScope.local;
-    for (Builder? constructor in constructors.values) {
-      do {
-        if (constructor is RedirectingFactoryBuilder) {
-          _checkRedirectingFactory(constructor, typeEnvironment);
-        }
-        constructor = constructor!.next;
-      } while (constructor != null);
+    Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
+        parent: this, includeDuplicates: true, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      Builder constructor = iterator.current;
+      if (constructor is RedirectingFactoryBuilder) {
+        _checkRedirectingFactory(constructor, typeEnvironment);
+      }
     }
   }
 
@@ -1355,7 +1286,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
       if (builder is SourceMemberBuilder) {
         count += builder.buildBodyNodes((Member member, BuiltMemberKind kind) {
-          _buildMember(builder, member, kind);
+          _addMemberToClass(builder, member, kind);
         });
       }
     }
@@ -1371,12 +1302,23 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  void _buildMember(SourceMemberBuilder memberBuilder, Member member,
+  void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member,
       BuiltMemberKind memberKind) {
     member.parent = cls;
-    if (!memberBuilder.isDuplicate &&
-        !memberBuilder.isConflictingSetter &&
-        !memberBuilder.isConflictingAugmentationMember) {
+    if (!memberBuilder.isPatch &&
+        !memberBuilder.isDuplicate &&
+        !memberBuilder.isConflictingSetter) {
+      if (memberBuilder.isConflictingAugmentationMember) {
+        if (member is Field && member.isStatic ||
+            member is Procedure && member.isStatic) {
+          member.name = new Name(
+              '${member.name}#${memberBuilder.libraryBuilder.patchIndex}',
+              member.name.library);
+        } else {
+          return;
+        }
+      }
+
       if (member is Procedure) {
         cls.addProcedure(member);
       } else if (member is Field) {
@@ -1732,129 +1674,125 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     int count = constructorReferences!.length;
     if (count != 0) {
-      Map<String, MemberBuilder> constructors = this.constructorScope.local;
-      // Copy keys to avoid concurrent modification error.
-      for (MapEntry<String, MemberBuilder> entry in constructors.entries) {
-        Builder? declaration = entry.value;
-        while (declaration != null) {
-          if (declaration.parent != this) {
-            unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
-                fileUri);
-          }
-          if (declaration is RedirectingFactoryBuilder) {
-            // Compute the immediate redirection target, not the effective.
-
-            ConstructorReferenceBuilder redirectionTarget =
-                declaration.redirectionTarget;
-            List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
-            Builder? target = redirectionTarget.target;
-            if (typeArguments != null && target is MemberBuilder) {
-              Object? redirectionTargetName = redirectionTarget.name;
-              if (redirectionTargetName is String) {
-                // Do nothing. This is the case of an identifier followed by
-                // type arguments, such as the following:
-                //   B<T>
-                //   B<T>.named
-              } else if (redirectionTargetName is QualifiedName) {
-                if (target.name.isEmpty) {
-                  // Do nothing. This is the case of a qualified
-                  // non-constructor prefix (for example, with a library
-                  // qualifier) followed by type arguments, such as the
-                  // following:
-                  //   lib.B<T>
-                } else if (target.name != redirectionTargetName.suffix.lexeme) {
-                  // Do nothing. This is the case of a qualified
-                  // non-constructor prefix followed by type arguments followed
-                  // by a constructor name, such as the following:
-                  //   lib.B<T>.named
-                } else {
-                  // TODO(cstefantsova,johnniwinther): Handle this in case in
-                  // ConstructorReferenceBuilder.resolveIn and unify with other
-                  // cases of handling of type arguments after constructor
-                  // names.
-                  addProblem(
-                      messageConstructorWithTypeArguments,
-                      redirectionTargetName.charOffset,
-                      redirectionTargetName.name.length);
-                }
-              }
-            }
-
-            // ignore: unnecessary_null_comparison
-            if (redirectionTarget != null) {
-              Builder? targetBuilder = redirectionTarget.target;
-              if (declaration.next == null) {
-                // Only the first one (that is, the last on in the linked list)
-                // is actually in the kernel tree. This call creates a StaticGet
-                // to [declaration.target] in a field `_redirecting#` which is
-                // only legal to do to things in the kernel tree.
-                Reference? fieldReference;
-                Reference? getterReference;
-                if (referencesFromIndexed != null) {
-                  Name name =
-                      new Name(redirectingName, referencesFromIndexed!.library);
-                  fieldReference =
-                      referencesFromIndexed!.lookupFieldReference(name);
-                  getterReference =
-                      referencesFromIndexed!.lookupGetterReference(name);
-                }
-                _addRedirectingConstructor(
-                    declaration, library, fieldReference, getterReference);
-              }
-              Member? targetNode;
-              if (targetBuilder is FunctionBuilder) {
-                targetNode = targetBuilder.member;
-              } else if (targetBuilder is DillMemberBuilder) {
-                targetNode = targetBuilder.member;
-              } else if (targetBuilder is AmbiguousBuilder) {
-                _addProblemForRedirectingFactory(
-                    declaration,
-                    templateDuplicatedDeclarationUse
-                        .withArguments(redirectionTarget.fullNameForErrors),
-                    redirectionTarget.charOffset,
-                    noLength);
-              } else {
-                _addProblemForRedirectingFactory(
-                    declaration,
-                    templateRedirectionTargetNotFound
-                        .withArguments(redirectionTarget.fullNameForErrors),
-                    redirectionTarget.charOffset,
-                    noLength);
-              }
-              if (targetNode != null &&
-                  targetNode is Constructor &&
-                  targetNode.enclosingClass.isAbstract) {
-                _addProblemForRedirectingFactory(
-                    declaration,
-                    templateAbstractRedirectedClassInstantiation
-                        .withArguments(redirectionTarget.fullNameForErrors),
-                    redirectionTarget.charOffset,
-                    noLength);
-                targetNode = null;
-              }
-              if (targetNode != null &&
-                  targetNode is Constructor &&
-                  targetNode.enclosingClass.isEnum) {
-                _addProblemForRedirectingFactory(
-                    declaration,
-                    messageEnumFactoryRedirectsToConstructor,
-                    redirectionTarget.charOffset,
-                    noLength);
-                targetNode = null;
-              }
-              if (targetNode != null) {
-                List<DartType> typeArguments = declaration.typeArguments ??
-                    new List<DartType>.filled(
-                        targetNode.enclosingClass!.typeParameters.length,
-                        const UnknownType());
-                declaration.setRedirectingFactoryBody(
-                    targetNode, typeArguments);
-              }
-            }
-          }
-          declaration = declaration.next;
+      constructorScope
+          .filteredIterator(
+              parent: this, includeDuplicates: true, includeAugmentations: true)
+          .forEach((MemberBuilder declaration) {
+        if (declaration.parent?.origin != origin) {
+          unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
+              fileUri);
         }
-      }
+        if (declaration is RedirectingFactoryBuilder) {
+          // Compute the immediate redirection target, not the effective.
+
+          ConstructorReferenceBuilder redirectionTarget =
+              declaration.redirectionTarget;
+          List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
+          Builder? target = redirectionTarget.target;
+          if (typeArguments != null && target is MemberBuilder) {
+            Object? redirectionTargetName = redirectionTarget.name;
+            if (redirectionTargetName is String) {
+              // Do nothing. This is the case of an identifier followed by
+              // type arguments, such as the following:
+              //   B<T>
+              //   B<T>.named
+            } else if (redirectionTargetName is QualifiedName) {
+              if (target.name.isEmpty) {
+                // Do nothing. This is the case of a qualified
+                // non-constructor prefix (for example, with a library
+                // qualifier) followed by type arguments, such as the
+                // following:
+                //   lib.B<T>
+              } else if (target.name != redirectionTargetName.suffix.lexeme) {
+                // Do nothing. This is the case of a qualified
+                // non-constructor prefix followed by type arguments followed
+                // by a constructor name, such as the following:
+                //   lib.B<T>.named
+              } else {
+                // TODO(cstefantsova,johnniwinther): Handle this in case in
+                // ConstructorReferenceBuilder.resolveIn and unify with other
+                // cases of handling of type arguments after constructor
+                // names.
+                addProblem(
+                    messageConstructorWithTypeArguments,
+                    redirectionTargetName.charOffset,
+                    redirectionTargetName.name.length);
+              }
+            }
+          }
+
+          // ignore: unnecessary_null_comparison
+          if (redirectionTarget != null) {
+            Builder? targetBuilder = redirectionTarget.target;
+            if (declaration.next == null) {
+              // Only the first one (that is, the last on in the linked list)
+              // is actually in the kernel tree. This call creates a StaticGet
+              // to [declaration.target] in a field `_redirecting#` which is
+              // only legal to do to things in the kernel tree.
+              Reference? fieldReference;
+              Reference? getterReference;
+              if (referencesFromIndexed != null) {
+                Name name =
+                    new Name(redirectingName, referencesFromIndexed!.library);
+                fieldReference =
+                    referencesFromIndexed!.lookupFieldReference(name);
+                getterReference =
+                    referencesFromIndexed!.lookupGetterReference(name);
+              }
+              _addRedirectingConstructor(
+                  declaration, library, fieldReference, getterReference);
+            }
+            Member? targetNode;
+            if (targetBuilder is FunctionBuilder) {
+              targetNode = targetBuilder.member;
+            } else if (targetBuilder is DillMemberBuilder) {
+              targetNode = targetBuilder.member;
+            } else if (targetBuilder is AmbiguousBuilder) {
+              _addProblemForRedirectingFactory(
+                  declaration,
+                  templateDuplicatedDeclarationUse
+                      .withArguments(redirectionTarget.fullNameForErrors),
+                  redirectionTarget.charOffset,
+                  noLength);
+            } else {
+              _addProblemForRedirectingFactory(
+                  declaration,
+                  templateRedirectionTargetNotFound
+                      .withArguments(redirectionTarget.fullNameForErrors),
+                  redirectionTarget.charOffset,
+                  noLength);
+            }
+            if (targetNode != null &&
+                targetNode is Constructor &&
+                targetNode.enclosingClass.isAbstract) {
+              _addProblemForRedirectingFactory(
+                  declaration,
+                  templateAbstractRedirectedClassInstantiation
+                      .withArguments(redirectionTarget.fullNameForErrors),
+                  redirectionTarget.charOffset,
+                  noLength);
+              targetNode = null;
+            }
+            if (targetNode != null &&
+                targetNode is Constructor &&
+                targetNode.enclosingClass.isEnum) {
+              _addProblemForRedirectingFactory(
+                  declaration,
+                  messageEnumFactoryRedirectsToConstructor,
+                  redirectionTarget.charOffset,
+                  noLength);
+              targetNode = null;
+            }
+            if (targetNode != null) {
+              List<DartType> typeArguments = declaration.typeArguments ??
+                  new List<DartType>.filled(
+                      targetNode.enclosingClass!.typeParameters.length,
+                      const UnknownType());
+              declaration.setRedirectingFactoryBody(targetNode, typeArguments);
+            }
+          }
+        }
+      });
     }
     return count;
   }

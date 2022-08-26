@@ -17,8 +17,8 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class PropertyState#1<I extends core::Object? = dynamic, O extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::PropertyState#1<self::PropertyState#1::I%, self::PropertyState#1::O%>
+class PropertyState#1#0<I extends core::Object? = dynamic, O extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::PropertyState#1#0<self::PropertyState#1#0::I%, self::PropertyState#1#0::O%>
     ;
   method dispose() → void
     ;

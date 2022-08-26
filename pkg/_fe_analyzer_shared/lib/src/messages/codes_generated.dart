@@ -8463,12 +8463,51 @@ Message _withArgumentsNonAsciiWhitespace(int codePoint) {
 const Template<
     Message Function(
         String
+            name)> templateNonAugmentationClassConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Class '#name' conflicts with an existing class of the same name in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the class or adding an 'augment' modifier.""",
+    withArguments: _withArgumentsNonAugmentationClassConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonAugmentationClassConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationClassConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationClassConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationClassConflict,
+      problemMessage:
+          """Class '${name}' conflicts with an existing class of the same name in the augmented library.""",
+      correctionMessage: """Try changing the name of the class or adding an 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationClassConflictCause =
+    messageNonAugmentationClassConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationClassConflictCause = const MessageCode(
+    "NonAugmentationClassConflictCause",
+    severity: Severity.context,
+    problemMessage: r"""This is the existing class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateNonAugmentationClassMemberConflict = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
         r"""Member '#name' conflicts with an existing member of the same name in the augmented class.""",
     correctionMessageTemplate:
-        r"""Try changing the name to an existing member or adding an 'augment' modifier.""",
+        r"""Try changing the name of the member or adding an 'augment' modifier.""",
     withArguments: _withArgumentsNonAugmentationClassMemberConflict);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8485,19 +8524,127 @@ Message _withArgumentsNonAugmentationClassMemberConflict(String name) {
   return new Message(codeNonAugmentationClassMemberConflict,
       problemMessage:
           """Member '${name}' conflicts with an existing member of the same name in the augmented class.""",
-      correctionMessage: """Try changing the name to an existing member or adding an 'augment' modifier.""",
+      correctionMessage: """Try changing the name of the member or adding an 'augment' modifier.""",
       arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonAugmentationClassMemberConflictCause =
-    messageNonAugmentationClassMemberConflictCause;
+const Template<
+    Message Function(
+        String
+            name)> templateNonAugmentationConstructorConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Constructor '#name' conflicts with an existing constructor of the same name in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the constructor or adding an 'augment' modifier.""",
+    withArguments: _withArgumentsNonAugmentationConstructorConflict);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonAugmentationClassMemberConflictCause =
-    const MessageCode("NonAugmentationClassMemberConflictCause",
+const Code<Message Function(String name)>
+    codeNonAugmentationConstructorConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationConstructorConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationConstructorConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationConstructorConflict,
+      problemMessage:
+          """Constructor '${name}' conflicts with an existing constructor of the same name in the augmented class.""",
+      correctionMessage: """Try changing the name of the constructor or adding an 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationConstructorConflictCause =
+    messageNonAugmentationConstructorConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationConstructorConflictCause =
+    const MessageCode("NonAugmentationConstructorConflictCause",
         severity: Severity.context,
-        problemMessage: r"""This is the existing member.""");
+        problemMessage: r"""This is the existing constructor.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationDeclarationConflictCause =
+    messageNonAugmentationDeclarationConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationDeclarationConflictCause =
+    const MessageCode("NonAugmentationDeclarationConflictCause",
+        severity: Severity.context,
+        problemMessage: r"""This is the existing declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonAugmentationLibraryConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Declaration '#name' conflicts with an existing declaration of the same name in the augmented library.""",
+    correctionMessageTemplate: r"""Try changing the name of the declaration.""",
+    withArguments: _withArgumentsNonAugmentationLibraryConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonAugmentationLibraryConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationLibraryConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationLibraryConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationLibraryConflict,
+      problemMessage:
+          """Declaration '${name}' conflicts with an existing declaration of the same name in the augmented library.""",
+      correctionMessage: """Try changing the name of the declaration.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonAugmentationLibraryMemberConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' conflicts with an existing member of the same name in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the member or adding an 'augment' modifier.""",
+    withArguments: _withArgumentsNonAugmentationLibraryMemberConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeNonAugmentationLibraryMemberConflict =
+    const Code<Message Function(String name)>(
+  "NonAugmentationLibraryMemberConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonAugmentationLibraryMemberConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonAugmentationLibraryMemberConflict,
+      problemMessage:
+          """Member '${name}' conflicts with an existing member of the same name in the augmented library.""",
+      correctionMessage: """Try changing the name of the member or adding an 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonAugmentationMemberConflictCause =
+    messageNonAugmentationMemberConflictCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonAugmentationMemberConflictCause = const MessageCode(
+    "NonAugmentationMemberConflictCause",
+    severity: Severity.context,
+    problemMessage: r"""This is the existing member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonConstConstructor = messageNonConstConstructor;
@@ -11131,6 +11278,35 @@ const MessageCode messageUnexpectedTokens = const MessageCode(
 const Template<
     Message Function(
         String
+            name)> templateUnmatchedAugmentationClass = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation class '#name' doesn't match a class in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing class or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedAugmentationClass =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationClass",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationClass(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationClass,
+      problemMessage:
+          """Augmentation class '${name}' doesn't match a class in the augmented library.""",
+      correctionMessage: """Try changing the name to an existing class or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateUnmatchedAugmentationClassMember = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
@@ -11152,6 +11328,94 @@ Message _withArgumentsUnmatchedAugmentationClassMember(String name) {
   return new Message(codeUnmatchedAugmentationClassMember,
       problemMessage:
           """Augmentation member '${name}' doesn't match a member in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedAugmentationConstructor = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation constructor '#name' doesn't match a constructor in the augmented class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing constructor or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedAugmentationConstructor =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationConstructor",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationConstructor,
+      problemMessage:
+          """Augmentation constructor '${name}' doesn't match a constructor in the augmented class.""",
+      correctionMessage: """Try changing the name to an existing constructor or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedAugmentationDeclaration = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation '#name' doesn't match a declaration in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing declaration or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedAugmentationDeclaration =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationDeclaration,
+      problemMessage:
+          """Augmentation '${name}' doesn't match a declaration in the augmented library.""",
+      correctionMessage: """Try changing the name to an existing declaration or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedAugmentationLibraryMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Augmentation member '#name' doesn't match a member in the augmented library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or removing the 'augment' modifier.""",
+    withArguments: _withArgumentsUnmatchedAugmentationLibraryMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeUnmatchedAugmentationLibraryMember =
+    const Code<Message Function(String name)>(
+  "UnmatchedAugmentationLibraryMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedAugmentationLibraryMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedAugmentationLibraryMember,
+      problemMessage:
+          """Augmentation member '${name}' doesn't match a member in the augmented library.""",
       correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
       arguments: {'name': name});
 }

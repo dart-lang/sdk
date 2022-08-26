@@ -250,6 +250,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   List<SourceLibraryBuilder>? _patchLibraries;
 
+  int patchIndex = 0;
+
   /// `true` if this is an augmentation library.
   final bool isAugmentation;
 
@@ -259,6 +261,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// This is used in macro generated code to create type annotations from
   /// inferred types in the original code.
   final Map<String, Builder>? _omittedTypeDeclarationBuilders;
+
+  MergedLibraryScope? _mergedScope;
 
   SourceLibraryBuilder.internal(
       SourceLoader loader,
@@ -324,6 +328,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         !importUri.isScheme('dart') || _packageUri == null,
         "Package uri '$_packageUri' set on dart: library with import uri "
         "'${importUri}'.");
+  }
+
+  MergedLibraryScope get mergedScope {
+    return _mergedScope ??=
+        isPatch ? origin.mergedScope : new MergedLibraryScope(this);
   }
 
   TypeParameterScopeBuilder get libraryTypeParameterScopeBuilderForTesting =>
@@ -447,6 +456,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(!patchLibrary.isPart,
         "Patch library ${patchLibrary} cannot be a part .");
     (_patchLibraries ??= []).add(patchLibrary);
+    patchLibrary.patchIndex = _patchLibraries!.length;
   }
 
   /// Creates a synthesized augmentation library for the [source] code and
@@ -3074,23 +3084,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// Builds the core AST structures for [declaration] needed for the outline.
   void _buildOutlineNodes(Builder declaration, LibraryBuilder coreLibrary) {
-    String findDuplicateSuffix(Builder declaration) {
-      if (declaration.next != null) {
-        int count = 0;
-        Builder? current = declaration.next;
-        while (current != null) {
-          count++;
-          current = current.next;
-        }
-        return "#$count";
-      }
-      return "";
-    }
-
     if (declaration is SourceClassBuilder) {
       Class cls = declaration.build(coreLibrary);
       if (!declaration.isPatch) {
-        cls.name += findDuplicateSuffix(declaration);
+        if (declaration.isDuplicate ||
+            declaration.isConflictingAugmentationMember) {
+          cls.name = '${cls.name}'
+              '#${declaration.duplicateIndex}'
+              '#${declaration.libraryBuilder.patchIndex}';
+        }
         library.addClass(cls);
       }
     } else if (declaration is SourceExtensionBuilder) {
@@ -3126,6 +3128,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (member is Field) {
       member.isStatic = true;
       if (!declaration.isPatch && !declaration.isDuplicate) {
+        if (declaration.isConflictingAugmentationMember) {
+          member.name = new Name(
+              '${member.name.text}#${declaration.libraryBuilder.patchIndex}',
+              member.name.library);
+        }
         library.addField(member);
       }
     } else if (member is Procedure) {
@@ -3133,6 +3140,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!declaration.isPatch &&
           !declaration.isDuplicate &&
           !declaration.isConflictingSetter) {
+        if (declaration.isConflictingAugmentationMember) {
+          member.name = new Name(
+              '${member.name.text}#${declaration.libraryBuilder.patchIndex}',
+              member.name.library);
+        }
         library.addProcedure(member);
       }
     } else {
@@ -3184,8 +3196,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (import.deferred && import.prefixBuilder?.dependency != null) {
           library.addDependency(import.prefixBuilder!.dependency!);
         } else {
-          library.addDependency(new LibraryDependency.import(
-              import.imported!.library,
+          LibraryBuilder imported = import.imported!.origin;
+          Library targetLibrary = imported.library;
+          library.addDependency(new LibraryDependency.import(targetLibrary,
               name: import.prefix,
               combinators: toKernelCombinators(import.combinators))
             ..fileOffset = import.charOffset);
@@ -3897,7 +3910,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  @override
+  /// If this is a patch library, apply its patches to [origin].
   void applyPatches() {
     if (!isPatch) return;
 
@@ -3923,44 +3936,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    NameIterator originDeclarations = origin.localMembersNameIterator;
-    while (originDeclarations.moveNext()) {
-      String name = originDeclarations.name;
-      Builder member = originDeclarations.current;
-      bool isSetter = member.isSetter;
-      Builder? patch = scope.lookupLocalMember(name, setter: isSetter);
-      if (patch != null) {
-        // [patch] has the same name as a [member] in [origin] library, so it
-        // must be a patch to [member].
-        member.applyPatch(patch);
-        // TODO(ahe): Verify that patch has the @patch annotation.
-      } else {
-        // No member with [name] exists in this library already. So we need to
-        // import it into the patch library. This ensures that the origin
-        // library is in scope of the patch library.
-        if (isSetter) {
-          scope.addLocalMember(name, member as MemberBuilder, setter: true);
-        } else {
-          scope.addLocalMember(name, member, setter: false);
-        }
-      }
-    }
-    NameIterator patchDeclarations = localMembersNameIterator;
-    while (patchDeclarations.moveNext()) {
-      String name = patchDeclarations.name;
-      Builder member = patchDeclarations.current;
-      // We need to inject all non-patch members into the origin library. This
-      // should only apply to private members.
-      // For augmentation libraries, all members are injected into the origin
-      // library, regardless of privacy.
-      if (member.isPatch) {
-        // Ignore patches.
-      } else if (name.startsWith("_") || isAugmentation) {
-        origin.injectMemberFromPatch(name, member);
-      } else {
-        origin.exportMemberFromPatch(name, member);
-      }
-    }
+    mergedScope.addAugmentationScope(this);
+    return;
   }
 
   /// Builds the AST nodes needed for the full compilation.
@@ -4003,42 +3980,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     return count;
-  }
-
-  void injectMemberFromPatch(String name, Builder member) {
-    if (member.isSetter) {
-      assert(
-          scope.lookupLocalMember(name, setter: true) == null,
-          "Setter $name already bound to "
-          "${scope.lookupLocalMember(name, setter: true)}, "
-          "trying to add $member.");
-      scope.addLocalMember(name, member as MemberBuilder, setter: true);
-    } else {
-      assert(
-          scope.lookupLocalMember(name, setter: false) == null,
-          "Member $name already bound to "
-          "${scope.lookupLocalMember(name, setter: false)}, "
-          "trying to add $member.");
-      scope.addLocalMember(name, member, setter: false);
-    }
-  }
-
-  void exportMemberFromPatch(String name, Builder member) {
-    if (!importUri.isScheme("dart") || !importUri.path.startsWith("_")) {
-      addProblem(templatePatchInjectionFailed.withArguments(name, importUri),
-          member.charOffset, noLength, member.fileUri);
-    }
-    // Platform-private libraries, such as "dart:_internal" have special
-    // semantics: public members are injected into the origin library.
-    // TODO(ahe): See if we can remove this special case.
-
-    // If this member already exist in the origin library scope, it should
-    // have been marked as patch.
-    assert((member.isSetter &&
-            scope.lookupLocalMember(name, setter: true) == null) ||
-        (!member.isSetter &&
-            scope.lookupLocalMember(name, setter: false) == null));
-    addToExportScope(name, member);
   }
 
   void _reportTypeArgumentIssues(

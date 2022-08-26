@@ -7,7 +7,7 @@ augment void topLevelMethod() {
   augment super;
 }
 
-augment void topLevelMethodError() {
+augment void topLevelMethodErrors() {
   augment int local; // Error
   augment; // Error
 }

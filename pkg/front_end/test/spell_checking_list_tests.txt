@@ -330,6 +330,7 @@ hosted
 hosting
 hot
 hotreload
+hover
 hunk
 hurray
 i'm
@@ -648,6 +649,7 @@ timings
 tinv
 tk
 told
+tooltip
 touch
 tpt
 transitively
