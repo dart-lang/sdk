@@ -3987,41 +3987,39 @@ class BodyBuilder extends StackListenerImpl
     // Pop all elements. This will put them in evaluation order.
     List<Object?>? elements =
         const FixedNullableList<Object>().pop(stack, count);
-    if (elements == null) {
-      push(new ParserRecovery(token.charOffset));
-      return;
-    }
 
     List<Object> originalElementOrder = [];
     List<Expression> positional = [];
     List<NamedExpression> named = [];
     Map<String, NamedExpression>? namedElements;
-    for (Object? element in elements) {
-      if (element is NamedExpression) {
-        namedElements ??= {};
-        NamedExpression? existingExpression = namedElements[element.name];
-        if (existingExpression != null) {
-          existingExpression.value = buildProblem(
-              templateDuplicatedRecordLiteralFieldName
-                  .withArguments(element.name),
-              element.fileOffset,
-              element.name.length,
-              context: [
-                templateDuplicatedRecordLiteralFieldNameContext
-                    .withArguments(element.name)
-                    .withLocation(
-                        uri, existingExpression.fileOffset, element.name.length)
-              ])
-            ..parent = existingExpression;
+    if (elements != null) {
+      for (Object? element in elements) {
+        if (element is NamedExpression) {
+          namedElements ??= {};
+          NamedExpression? existingExpression = namedElements[element.name];
+          if (existingExpression != null) {
+            existingExpression.value = buildProblem(
+                templateDuplicatedRecordLiteralFieldName
+                    .withArguments(element.name),
+                element.fileOffset,
+                element.name.length,
+                context: [
+                  templateDuplicatedRecordLiteralFieldNameContext
+                      .withArguments(element.name)
+                      .withLocation(uri, existingExpression.fileOffset,
+                          element.name.length)
+                ])
+              ..parent = existingExpression;
+          } else {
+            originalElementOrder.add(element);
+            namedElements[element.name] = element;
+            named.add(element);
+          }
         } else {
-          originalElementOrder.add(element);
-          namedElements[element.name] = element;
-          named.add(element);
+          Expression expression = toValue(element);
+          positional.add(expression);
+          originalElementOrder.add(expression);
         }
-      } else {
-        Expression expression = toValue(element);
-        positional.add(expression);
-        originalElementOrder.add(expression);
       }
     }
     push(new InternalRecordLiteral(

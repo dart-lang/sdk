@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 method() {
+  ();
   (0, 1);
   (0, b: 1);
   (a: 0, b: 1);

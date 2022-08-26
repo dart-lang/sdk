@@ -1,4 +1,12 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/record_literal.dart:6:4: Error: Expected an identifier, but got ')'.
+// Try inserting an identifier before ')'.
+//   ();
+//    ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -11,6 +19,9 @@ class Class extends core::Object {
   }
 }
 static method method() → dynamic {
+  invalid-expression "pkg/front_end/testcases/records/record_literal.dart:6:4: Error: This couldn't be parsed.
+  ();
+   ^";
   null{<invalid>}.foo(0, 1);
   null{<invalid>}.foo(0, b: 1);
   null{<invalid>}.foo(a: 0, b: 1);
