@@ -23,6 +23,9 @@ import 'package:analyzer/src/generated/super_context.dart';
 import 'package:collection/collection.dart';
 
 class PropertyElementResolver with ScopeHelpers {
+  /// A regular expression used to match positional field names.
+  static final RegExp _recordPositionalFieldName = RegExp(r'^\$([0-9]+)$');
+
   final ResolverVisitor _resolver;
 
   PropertyElementResolver(this._resolver);
@@ -451,13 +454,12 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (targetType is RecordType) {
-      final field = targetType.namedFields.firstWhereOrNull(
-        (field) => field.name == propertyName.name,
+      final result = _resolveTargetRecordType(
+        targetType: targetType,
+        propertyName: propertyName,
       );
-      if (field != null) {
-        return PropertyElementResolverResult(
-          recordField: field,
-        );
+      if (result != null) {
+        return result;
       }
     }
 
@@ -748,6 +750,32 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  PropertyElementResolverResult? _resolveTargetRecordType({
+    required RecordType targetType,
+    required SimpleIdentifier propertyName,
+  }) {
+    final namedField = targetType.namedFields.firstWhereOrNull(
+      (field) => field.name == propertyName.name,
+    );
+    if (namedField != null) {
+      return PropertyElementResolverResult(
+        recordField: namedField,
+      );
+    }
+
+    final match = _recordPositionalFieldName.firstMatch(propertyName.name);
+    if (match != null) {
+      final index = int.tryParse(match.group(1)!);
+      if (index != null && index < targetType.positionalFields.length) {
+        return PropertyElementResolverResult(
+          recordField: targetType.positionalFields[index],
+        );
+      }
+    }
+
+    return null;
+  }
+
   PropertyElementResolverResult _resolveTargetSuperExpression({
     required Expression node,
     required SuperExpression target,
@@ -864,7 +892,7 @@ class PropertyElementResolverResult {
   final Element? writeElementRequested;
   final Element? writeElementRecovery;
   final FunctionType? functionTypeCallType;
-  final RecordTypeNamedField? recordField;
+  final RecordTypeField? recordField;
 
   /// If [IndexExpression] is resolved, the context type of the index.
   /// Might be `null` if `[]` or `[]=` are not resolved or invalid.
