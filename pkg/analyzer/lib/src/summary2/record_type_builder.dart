@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
 /// The type builder for a [RecordType].
@@ -19,13 +20,48 @@ class RecordTypeBuilder extends TypeBuilder {
   /// The node for which this builder is created.
   final RecordTypeAnnotationImpl node;
 
+  /// The ordered list of field types, first positional, then named.
+  final List<DartType> fieldTypes;
+
+  @override
+  final NullabilitySuffix nullabilitySuffix;
+
   /// This flag is set to `true` while building this type.
   bool _isBuilding = false;
 
   /// The actual built type, not a [TypeBuilder] anymore.
   RecordTypeImpl? _type;
 
-  RecordTypeBuilder(this.typeSystem, this.node);
+  RecordTypeBuilder({
+    required this.typeSystem,
+    required this.node,
+    required this.fieldTypes,
+    required this.nullabilitySuffix,
+  });
+
+  factory RecordTypeBuilder.of(
+    TypeSystemImpl typeSystem,
+    RecordTypeAnnotationImpl node,
+  ) {
+    return RecordTypeBuilder(
+      typeSystem: typeSystem,
+      node: node,
+      fieldTypes: node.fields.map((field) => field.type.typeOrThrow).toList(),
+      nullabilitySuffix: node.question != null
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.none,
+    );
+  }
+
+  @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    if (visitor is LinkingTypeVisitor<R>) {
+      var visitor2 = visitor as LinkingTypeVisitor<R>;
+      return visitor2.visitRecordTypeBuilder(this);
+    } else {
+      throw StateError('Should not happen outside linking.');
+    }
+  }
 
   @override
   RecordTypeImpl build() {
@@ -35,15 +71,14 @@ class RecordTypeBuilder extends TypeBuilder {
     }
 
     if (_isBuilding) {
-      return _type = buildType(
-        node,
-        dynamicType: typeSystem.typeProvider.dynamicType,
+      return _type = _buildRecordType(
+        recursionFound: true,
       );
     }
 
     _isBuilding = true;
     try {
-      return _type = buildType(node);
+      return _type = _buildRecordType();
     } finally {
       _isBuilding = false;
     }
@@ -54,22 +89,52 @@ class RecordTypeBuilder extends TypeBuilder {
     return node.toSource();
   }
 
-  /// If [dynamicType] is not `null`, we found a cycle, and recovering by
-  /// using the same shape, but replacing all field types with `dynamic`.
-  static RecordTypeImpl buildType(
-    RecordTypeAnnotationImpl node, {
-    DartType? dynamicType,
+  RecordTypeImpl _buildRecordType({
+    bool recursionFound = false,
   }) {
+    var fieldTypeIndex = 0;
+
+    DartType nextFieldType() {
+      if (recursionFound) {
+        return typeSystem.typeProvider.dynamicType;
+      } else {
+        final type = fieldTypes[fieldTypeIndex++];
+        return _buildType(type);
+      }
+    }
+
     final positionalFields = node.positionalFields.map((field) {
       return RecordTypePositionalFieldImpl(
-        type: dynamicType ?? _buildFieldType(field),
+        type: nextFieldType(),
       );
     }).toList();
 
     final namedFields = node.namedFields?.fields.map((field) {
       return RecordTypeNamedFieldImpl(
         name: field.name.lexeme,
-        type: dynamicType ?? _buildFieldType(field),
+        type: nextFieldType(),
+      );
+    }).toList();
+
+    return node.type = RecordTypeImpl(
+      positionalFields: positionalFields,
+      namedFields: namedFields ?? const [],
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  /// TODO(scheglov) Move to [RecordTypeAnnotationResolver].
+  static RecordTypeImpl buildType(RecordTypeAnnotationImpl node) {
+    final positionalFields = node.positionalFields.map((field) {
+      return RecordTypePositionalFieldImpl(
+        type: field.type.typeOrThrow,
+      );
+    }).toList();
+
+    final namedFields = node.namedFields?.fields.map((field) {
+      return RecordTypeNamedFieldImpl(
+        name: field.name.lexeme,
+        type: field.type.typeOrThrow,
       );
     }).toList();
 
@@ -80,10 +145,6 @@ class RecordTypeBuilder extends TypeBuilder {
           ? NullabilitySuffix.question
           : NullabilitySuffix.none,
     );
-  }
-
-  static DartType _buildFieldType(RecordTypeAnnotationField field) {
-    return _buildType(field.type.typeOrThrow);
   }
 
   /// If the [type] is a [TypeBuilder], build it; otherwise return as is.

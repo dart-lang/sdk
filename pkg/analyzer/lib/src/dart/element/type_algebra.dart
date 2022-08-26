@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 /// Generates a fresh copy of the given type parameters, with their bounds
 /// substituted to reference the new parameters.
@@ -573,6 +574,12 @@ abstract class _TypeSubstitutor
       nullabilitySuffix: type.nullabilitySuffix,
       alias: alias,
     );
+  }
+
+  @override
+  DartType visitRecordTypeBuilder(RecordTypeBuilder type) {
+    // TODO: implement visitRecordTypeBuilder
+    throw UnimplementedError();
   }
 
   @override

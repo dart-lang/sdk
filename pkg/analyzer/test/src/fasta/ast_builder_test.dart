@@ -948,6 +948,29 @@ RecordTypeAnnotation
 ''');
   }
 
+  void test_recordTypeAnnotation_topFunction_returnType_withTypeParameter() {
+    var parseResult = parseStringWithErrors(r'''
+(int, T) f<T>() {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: T
+  rightParenthesis: )
+''');
+  }
+
   void test_superFormalParameter() {
     var parseResult = parseStringWithErrors(r'''
 class A {

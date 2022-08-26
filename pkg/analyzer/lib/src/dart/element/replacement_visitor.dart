@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 /// Helper visitor that clones a type if a nested type is replaced, and
 /// otherwise returns `null`.
@@ -136,28 +137,6 @@ class ReplacementVisitor
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
       promotedBound: newPromotedBound ?? promotedBound,
       alias: type.alias,
-    );
-  }
-
-  RecordTypeImpl? createRecordType({
-    required RecordTypeImpl type,
-    required InstantiatedTypeAliasElement? newAlias,
-    required List<RecordTypePositionalFieldImpl>? newPositionalFields,
-    required List<RecordTypeNamedFieldImpl>? newNamedFields,
-    required NullabilitySuffix? newNullability,
-  }) {
-    if (newAlias == null &&
-        newPositionalFields == null &&
-        newNamedFields == null &&
-        newNullability == null) {
-      return null;
-    }
-
-    return RecordTypeImpl(
-      positionalFields: newPositionalFields ?? type.positionalFields,
-      namedFields: newNamedFields ?? type.namedFields,
-      nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
-      alias: newAlias ?? type.alias,
     );
   }
 
@@ -490,12 +469,45 @@ class ReplacementVisitor
       }
     }
 
-    return createRecordType(
-      type: type,
-      newAlias: newAlias,
-      newPositionalFields: newPositionalFields,
-      newNamedFields: newNamedFields,
-      newNullability: newNullability,
+    if (newAlias == null &&
+        newPositionalFields == null &&
+        newNamedFields == null &&
+        newNullability == null) {
+      return null;
+    }
+
+    return RecordTypeImpl(
+      positionalFields: newPositionalFields ?? type.positionalFields,
+      namedFields: newNamedFields ?? type.namedFields,
+      nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
+      alias: newAlias ?? type.alias,
+    );
+  }
+
+  @override
+  DartType? visitRecordTypeBuilder(RecordTypeBuilder type) {
+    List<DartType>? newFieldTypes;
+    final fieldTypes = type.fieldTypes;
+    for (var i = 0; i < fieldTypes.length; i++) {
+      final fieldType = fieldTypes[i];
+      final newFieldType = fieldType.accept(this);
+      if (newFieldType != null) {
+        newFieldTypes ??= fieldTypes.toList(growable: false);
+        newFieldTypes[i] = newFieldType;
+      }
+    }
+
+    final newNullability = visitNullability(type);
+
+    if (newFieldTypes == null && newNullability == null) {
+      return null;
+    }
+
+    return RecordTypeBuilder(
+      typeSystem: type.typeSystem,
+      node: type.node,
+      fieldTypes: newFieldTypes ?? type.fieldTypes,
+      nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
     );
   }
 
