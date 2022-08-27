@@ -123,30 +123,6 @@ class RecordTypeBuilder extends TypeBuilder {
     );
   }
 
-  /// TODO(scheglov) Move to [RecordTypeAnnotationResolver].
-  static RecordTypeImpl buildType(RecordTypeAnnotationImpl node) {
-    final positionalFields = node.positionalFields.map((field) {
-      return RecordTypePositionalFieldImpl(
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
-
-    final namedFields = node.namedFields?.fields.map((field) {
-      return RecordTypeNamedFieldImpl(
-        name: field.name.lexeme,
-        type: field.type.typeOrThrow,
-      );
-    }).toList();
-
-    return node.type = RecordTypeImpl(
-      positionalFields: positionalFields,
-      namedFields: namedFields ?? const [],
-      nullabilitySuffix: node.question != null
-          ? NullabilitySuffix.question
-          : NullabilitySuffix.none,
-    );
-  }
-
   /// If the [type] is a [TypeBuilder], build it; otherwise return as is.
   static DartType _buildType(DartType type) {
     if (type is TypeBuilder) {

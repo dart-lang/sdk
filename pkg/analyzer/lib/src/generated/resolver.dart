@@ -51,7 +51,6 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
-import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
@@ -252,9 +251,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   late final RecordLiteralResolver _recordLiteralResolver =
       RecordLiteralResolver(resolver: this);
-
-  late final RecordTypeAnnotationResolver _recordTypeAnnotationResolver =
-      RecordTypeAnnotationResolver(resolver: this);
 
   late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
 
@@ -2196,49 +2192,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     DartType? contextType,
   }) {
     checkUnreachableNode(node);
-    if (contextType is RecordType) {
-      var positionalFields = contextType.positionalFields;
-      var namedFields = contextType.namedFields;
-
-      RecordTypeNamedField? getNamedField(String name) {
-        for (var field in namedFields) {
-          if (field.name == name) {
-            return field;
-          }
-        }
-        return null;
-      }
-
-      var index = 0;
-      for (var field in node.fields) {
-        DartType? fieldContextType;
-        if (field is NamedExpression) {
-          var name = field.name.label.name;
-          fieldContextType = getNamedField(name)?.type;
-        } else {
-          if (index < positionalFields.length) {
-            fieldContextType = positionalFields[index++].type;
-          }
-        }
-        analyzeExpression(field, fieldContextType);
-      }
-    } else {
-      for (var field in node.fields) {
-        analyzeExpression(field, null);
-      }
-    }
-    typeAnalyzer.visitRecordLiteral(node, contextType: contextType);
-    _recordLiteralResolver
-      ..reportDuplicateFieldDefinitions(node)
-      ..reportInvalidFieldNames(node);
+    _recordLiteralResolver.resolve(node, contextType: contextType);
   }
 
   @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
+    // All RecordTypeAnnotation(s) are already resolved, so we don't resolve
+    // it here. But there might be types with Expression(s), such as default
+    // values for formal parameters of GenericFunctionType(s). These are
+    // invalid, but if they exist, they should be resolved.
     node.visitChildren(this);
-    _recordTypeAnnotationResolver
-      ..reportDuplicateFieldDefinitions(node)
-      ..reportInvalidFieldNames(node);
   }
 
   @override

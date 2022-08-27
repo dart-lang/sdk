@@ -1246,6 +1246,7 @@ class LowerBoundTest extends _BoundsTestBase {
     }
 
     check('(int)', '(int, String)');
+    check('(int)', r'({int $0})');
 
     check('({int f1, String f2})', '({int f1})');
     check('({int f1})', '({int f2})');
@@ -2628,6 +2629,7 @@ class UpperBound_RecordTypes_Test extends _BoundsTestBase {
     }
 
     check('(int)', '(int, String)');
+    check('(int)', r'({int $0})');
 
     check('({int f1, String f2})', '({int f1})');
     check('({int f1})', '({int f2})');

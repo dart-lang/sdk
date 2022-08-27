@@ -124,3 +124,14 @@ extension ParameterElementExtensions on ParameterElement {
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
   }
 }
+
+extension RecordTypeExtension on RecordType {
+  RecordTypeNamedField? namedField(String name) {
+    for (final field in namedFields) {
+      if (field.name == name) {
+        return field;
+      }
+    }
+    return null;
+  }
+}

@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -67,8 +71,73 @@ class RecordLiteralResolver {
     }
   }
 
-  void resolve(RecordLiteralImpl node, {required DartType? contextType}) {
-    // TODO(brianwilkerson) Move resolution from the `visitRecordLiteral`
-    //  methods of `ResolverVisitor` and `StaticTypeAnalyzer` to this class.
+  void resolve(
+    RecordLiteralImpl node, {
+    required DartType? contextType,
+  }) {
+    _resolveFields(node, contextType);
+    _buildType(node, contextType);
+
+    reportDuplicateFieldDefinitions(node);
+    reportInvalidFieldNames(node);
+  }
+
+  void _buildType(RecordLiteralImpl node, DartType? contextType) {
+    final positionalFields = <RecordTypePositionalFieldImpl>[];
+    final namedFields = <RecordTypeNamedFieldImpl>[];
+    for (final field in node.fields) {
+      final fieldType = field.typeOrThrow;
+      if (field is NamedExpression) {
+        namedFields.add(
+          RecordTypeNamedFieldImpl(
+            name: field.name.label.name,
+            type: fieldType,
+          ),
+        );
+      } else {
+        positionalFields.add(
+          RecordTypePositionalFieldImpl(
+            type: fieldType,
+          ),
+        );
+      }
+    }
+
+    _resolver.inferenceHelper.recordStaticType(
+      node,
+      RecordTypeImpl(
+        positionalFields: positionalFields,
+        namedFields: namedFields,
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+      contextType: contextType,
+    );
+  }
+
+  void _resolveField(Expression field, DartType? contextType) {
+    _resolver.analyzeExpression(field, contextType);
+  }
+
+  void _resolveFields(RecordLiteralImpl node, DartType? contextType) {
+    if (contextType is RecordType) {
+      var index = 0;
+      for (final field in node.fields) {
+        DartType? fieldContextType;
+        if (field is NamedExpression) {
+          final name = field.name.label.name;
+          fieldContextType = contextType.namedField(name)?.type;
+        } else {
+          final positionalFields = contextType.positionalFields;
+          if (index < positionalFields.length) {
+            fieldContextType = positionalFields[index++].type;
+          }
+        }
+        _resolveField(field, fieldContextType);
+      }
+    } else {
+      for (final field in node.fields) {
+        _resolveField(field, null);
+      }
+    }
   }
 }

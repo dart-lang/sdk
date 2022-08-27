@@ -72,11 +72,6 @@
     "Dynamic update to 'dart.io::_owner'.": 1,
     "Dynamic access of 'length'.": 1
   },
-  "org-dartlang-sdk:///lib/io/stdio.dart": {
-    "Dynamic invocation of 'writeFromSync'.": 1,
-    "Dynamic invocation of 'cancel'.": 1,
-    "Dynamic invocation of 'closeSync'.": 1
-  },
   "org-dartlang-sdk:///lib/io/common.dart": {
     "Dynamic invocation of '[]'.": 3
   },

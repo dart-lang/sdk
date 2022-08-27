@@ -19,11 +19,11 @@ import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
+import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 class ElementHolder {
   final ElementImpl _element;
@@ -65,6 +65,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
   final NamedTypeResolver _namedTypeResolver;
+  final RecordTypeAnnotationResolver _recordTypeResolver;
 
   /// This index is incremented every time we visit a [LibraryDirective].
   /// There is just one [LibraryElement], so we can support only one node.
@@ -111,6 +112,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       errorReporter,
     );
 
+    final recordTypeResolver = RecordTypeAnnotationResolver(
+      typeProvider: typeProvider,
+      errorReporter: errorReporter,
+    );
+
     return ResolutionVisitor._(
       libraryElement,
       typeProvider,
@@ -119,6 +125,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       errorReporter,
       AstRewriter(errorReporter, typeProvider),
       namedTypeResolver,
+      recordTypeResolver,
       nameScope,
       elementWalker,
       ElementHolder(unitElement),
@@ -133,6 +140,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._errorReporter,
     this._astRewriter,
     this._namedTypeResolver,
+    this._recordTypeResolver,
     this._nameScope,
     this._elementWalker,
     this._elementHolder,
@@ -971,7 +979,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
     node.visitChildren(this);
-    RecordTypeBuilder.buildType(node);
+    _recordTypeResolver.resolve(node);
   }
 
   @override

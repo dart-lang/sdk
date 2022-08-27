@@ -3,25 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.g.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [RecordTypeAnnotation]s.
 class RecordTypeAnnotationResolver {
   /// A regular expression used to match positional field names.
   static final RegExp positionalFieldName = RegExp(r'^\$[0-9]+$');
 
-  final ResolverVisitor _resolver;
+  final TypeProviderImpl typeProvider;
+  final ErrorReporter errorReporter;
 
   RecordTypeAnnotationResolver({
-    required ResolverVisitor resolver,
-  }) : _resolver = resolver;
-
-  ErrorReporter get errorReporter => _resolver.errorReporter;
+    required this.typeProvider,
+    required this.errorReporter,
+  });
 
   /// Report any named fields in the record type [node] that use a previously
   /// defined name.
@@ -44,8 +46,7 @@ class RecordTypeAnnotationResolver {
 
   /// Report any fields in the record type [node] that use an invalid name.
   void reportInvalidFieldNames(RecordTypeAnnotationImpl node) {
-    var fields = node.fields;
-    for (var field in fields) {
+    for (var field in node.fields) {
       var nameToken = field.name;
       if (nameToken != null) {
         var name = nameToken.lexeme;
@@ -56,7 +57,7 @@ class RecordTypeAnnotationResolver {
           errorReporter.reportErrorForToken(
               CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameToken);
         } else {
-          var objectElement = _resolver.typeProvider.objectElement;
+          var objectElement = typeProvider.objectElement;
           if (objectElement.getGetter(name) != null ||
               objectElement.getMethod(name) != null) {
             errorReporter.reportErrorForToken(
@@ -67,16 +68,32 @@ class RecordTypeAnnotationResolver {
     }
   }
 
-  void resolve(RecordTypeAnnotationImpl node,
-      {required DartType? contextType}) {
-    // TODO(brianwilkerson) Move resolution from the `visitRecordTypeAnnotation`
-    //  methods of `ResolverVisitor` and `StaticTypeAnalyzer` to this class.
+  void resolve(RecordTypeAnnotationImpl node) {
+    _buildType(node);
+    reportDuplicateFieldDefinitions(node);
+    reportInvalidFieldNames(node);
   }
-}
 
-extension on RecordTypeAnnotation {
-  List<RecordTypeAnnotationField> get fields => [
-        ...positionalFields,
-        ...?namedFields?.fields,
-      ];
+  void _buildType(RecordTypeAnnotationImpl node) {
+    final positionalFields = node.positionalFields.map((field) {
+      return RecordTypePositionalFieldImpl(
+        type: field.type.typeOrThrow,
+      );
+    }).toList();
+
+    final namedFields = node.namedFields?.fields.map((field) {
+      return RecordTypeNamedFieldImpl(
+        name: field.name.lexeme,
+        type: field.type.typeOrThrow,
+      );
+    }).toList();
+
+    node.type = RecordTypeImpl(
+      positionalFields: positionalFields,
+      namedFields: namedFields ?? const [],
+      nullabilitySuffix: node.question != null
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.none,
+    );
+  }
 }

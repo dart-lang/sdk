@@ -628,6 +628,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _writeByte(Tag.RecordLiteral);
+    _writeByte(
+      AstBinaryFlags.encode(
+        isConst: node.constKeyword != null,
+      ),
+    );
+    _writeNodeList(node.fields);
+    _storeExpression(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _writeByte(Tag.RedirectingConstructorInvocation);

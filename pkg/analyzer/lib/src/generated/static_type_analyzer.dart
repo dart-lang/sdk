@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -218,37 +216,6 @@ class StaticTypeAnalyzer {
     Expression expression = node.expression;
     _inferenceHelper.recordStaticType(node, expression.typeOrThrow,
         contextType: contextType);
-  }
-
-  void visitRecordLiteral(RecordLiteralImpl node, {DartType? contextType}) {
-    final positionalFields = <RecordTypePositionalFieldImpl>[];
-    final namedFields = <RecordTypeNamedFieldImpl>[];
-    for (final field in node.fields) {
-      final fieldType = field.typeOrThrow;
-      if (field is NamedExpression) {
-        namedFields.add(
-          RecordTypeNamedFieldImpl(
-            name: field.name.label.name,
-            type: fieldType,
-          ),
-        );
-      } else {
-        positionalFields.add(
-          RecordTypePositionalFieldImpl(
-            type: fieldType,
-          ),
-        );
-      }
-    }
-    _inferenceHelper.recordStaticType(
-      node,
-      RecordTypeImpl(
-        positionalFields: positionalFields,
-        namedFields: namedFields,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-      contextType: contextType,
-    );
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is

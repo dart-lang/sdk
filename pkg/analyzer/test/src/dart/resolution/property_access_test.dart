@@ -349,6 +349,33 @@ PropertyAccess
 ''');
   }
 
+  test_ofRecordType_namedField_hasExtension() async {
+    await assertNoErrorsInCode('''
+extension E on ({int foo}) {
+  bool get foo => false;
+}
+
+void f(({int foo}) r) {
+  r.foo;
+}
+''');
+
+    final node = findNode.propertyAccess('foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: ({int foo})
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
   test_ofRecordType_namedField_nullAware() async {
     await assertNoErrorsInCode('''
 void f(({int foo})? r) {
@@ -392,6 +419,206 @@ PropertyAccess
     staticElement: dart:core::@class::Object::@getter::hashCode
     staticType: int
   staticType: int
+''');
+  }
+
+  test_ofRecordType_positionalField_0() async {
+    await assertNoErrorsInCode(r'''
+void f((int, String) r) {
+  r.$0;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_positionalField_0_hasExtension() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String) {
+  bool get $0 => false;
+}
+
+void f((int, String) r) {
+  r.$0;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofRecordType_positionalField_1() async {
+    await assertNoErrorsInCode(r'''
+void f((int, String) r) {
+  r.$1;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$1;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $1
+    staticElement: <null>
+    staticType: String
+  staticType: String
+''');
+  }
+
+  test_ofRecordType_positionalField_2_fromExtension() async {
+    await assertNoErrorsInCode(r'''
+extension on (int, String) {
+  bool get $2 => false;
+}
+
+void f((int, String) r) {
+  r.$2;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$2;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $2
+    staticElement: self::@extension::0::@getter::$2
+    staticType: bool
+  staticType: bool
+''');
+  }
+
+  test_ofRecordType_positionalField_2_unresolved() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$2;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
+    ]);
+
+    final node = findNode.propertyAccess(r'$2;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $2
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_ofRecordType_positionalField_dollarDigitLetter() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$0a;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
+    ]);
+
+    final node = findNode.propertyAccess(r'$0a;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0a
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_ofRecordType_positionalField_dollarName() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$zero;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 5),
+    ]);
+
+    final node = findNode.propertyAccess(r'$zero;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $zero
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_ofRecordType_positionalField_letterDollarZero() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.a$0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3),
+    ]);
+
+    final node = findNode.propertyAccess(r'a$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a$0
+    staticElement: <null>
+    staticType: dynamic
+  staticType: dynamic
 ''');
   }
 

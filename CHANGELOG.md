@@ -67,6 +67,11 @@
   to be deleted in a future release. See the related breaking change
   request [#49536](https://github.com/dart-lang/sdk/issues/49536).
 
+### `dart:io`
+ - **Breaking change** [#49647][]: `File.create` now takes new optional
+   `exclusive` `bool` parameter, and when it is `true` the operation
+   will fail if target file already exists.
+
 #### `dart:isolate`
 
 - Add `Isolate.run` to run a function in a new isolate.

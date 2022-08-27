@@ -3040,6 +3040,11 @@ class StoreOptimizer : public LivenessAnalysis {
   }
 
   bool CanEliminateStore(Instruction* instr) {
+    if (CompilerState::Current().is_aot()) {
+      // Tracking initializing stores is important for proper shared boxes
+      // initialization, which doesn't happen in AOT.
+      return true;
+    }
     switch (instr->tag()) {
       case Instruction::kStoreField: {
         StoreFieldInstr* store_instance = instr->AsStoreField();

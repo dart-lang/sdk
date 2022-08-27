@@ -2021,6 +2021,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _tokenOrNull(node.leftParenthesis);
+    _tokenOrNull(node.rightParenthesis);
+    super.visitRecordLiteral(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _tokenOrNull(node.thisKeyword);

@@ -397,6 +397,7 @@ class TypeProviderImpl extends TypeProviderBase {
     return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
   }
 
+  @override
   InterfaceType get recordType {
     return _recordType ??= recordElement.instantiate(
       typeArguments: const [],

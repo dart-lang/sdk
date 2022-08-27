@@ -4206,7 +4206,8 @@ abstract class ExpressionImpl extends AstNodeImpl
         child is MapLiteralEntry ||
         child is SpreadElement ||
         child is IfElement ||
-        child is ForElement) {
+        child is ForElement ||
+        child is RecordLiteral) {
       var parent = child.parent;
       if (parent is ConstantContextForExpressionImpl) {
         return true;
@@ -9637,6 +9638,9 @@ class PropertyAccessImpl extends CommentReferableExpressionImpl
 
 class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @override
+  Token? constKeyword;
+
+  @override
   Token leftParenthesis;
 
   /// The syntactic elements used to compute the fields of the record.
@@ -9647,14 +9651,15 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 
   /// Initialize a newly created record literal.
   RecordLiteralImpl(
-      {required this.leftParenthesis,
+      {this.constKeyword,
+      required this.leftParenthesis,
       required List<Expression> fields,
       required this.rightParenthesis}) {
     _fields._initialize(this, fields);
   }
 
   @override
-  Token get beginToken => leftParenthesis;
+  Token get beginToken => constKeyword ?? leftParenthesis;
 
   @override
   Token get endToken => rightParenthesis;
@@ -9663,8 +9668,12 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   NodeList<Expression> get fields => _fields;
 
   @override
+  bool get isConst => constKeyword != null || inConstantContext;
+
+  @override
   // TODO(paulberry): add commas.
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('constKeyword', constKeyword)
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNodeList('fields', fields)
     ..addToken('rightParenthesis', rightParenthesis);
