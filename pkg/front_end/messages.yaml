@@ -330,7 +330,7 @@ EmptyRecordTypeFieldsList:
   experiments: records
   script: >
     main() {
-      (/*missing*/) record = (1, 2,);
+      (/*missing*/) record = ((1, 2,) as dynamic);
     }
 
 EmptyRecordTypeNamedFieldsList:
@@ -350,7 +350,7 @@ OnlyOneRecordTypeFieldsList:
   experiments: records
   script: >
     main() {
-      (int /*missing*/) record = (1, 2,);
+      (int /*missing*/) record = ((1, 2,) as dynamic);
     }
 
 DuplicatedRecordTypeFieldName:

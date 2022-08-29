@@ -134,6 +134,8 @@ class CoreTypes {
 
   late final Class functionClass = index.getClass('dart:core', 'Function');
 
+  late final Class recordClass = index.getClass('dart:core', 'Record');
+
   late final Class futureClass = index.getClass('dart:core', 'Future');
 
   late final Procedure futureSyncFactory =
