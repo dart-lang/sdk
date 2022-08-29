@@ -99,8 +99,7 @@ class JClosureClass extends JClass {
   /// debugging data stream.
   static const String tag = 'closure-class';
 
-  JClosureClass(JLibrary library, String name)
-      : super(library, name, isAbstract: false);
+  JClosureClass(super.library, super.name) : super(isAbstract: false);
 
   factory JClosureClass.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
@@ -168,11 +167,10 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
             isAssignable: isAssignable,
             isConst: isConst);
 
-  JClosureField.internal(JLibrary library, JClosureClass enclosingClass,
-      Name memberName, this.declaredName,
-      {required bool isConst, required bool isAssignable})
-      : super(library, enclosingClass, memberName,
-            isAssignable: isAssignable, isConst: isConst, isStatic: false);
+  JClosureField.internal(super.library, JClosureClass super.enclosingClass,
+      super.memberName, this.declaredName,
+      {required super.isConst, required super.isAssignable})
+      : super(isStatic: false);
 
   factory JClosureField.readFromDataSource(DataSourceReader source) {
     source.begin(tag);

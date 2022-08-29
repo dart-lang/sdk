@@ -84,14 +84,13 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
   final CustomElementsAnalysisJoin join;
 
   CustomElementsResolutionAnalysis(
-      ElementEnvironment elementEnvironment,
-      CommonElements commonElements,
-      NativeBasicData nativeData,
+      super.elementEnvironment,
+      super.commonElements,
+      super.nativeData,
       BackendUsageBuilder backendUsageBuilder)
       : join = CustomElementsAnalysisJoin(
             elementEnvironment, commonElements, nativeData,
-            backendUsageBuilder: backendUsageBuilder),
-        super(elementEnvironment, commonElements, nativeData) {
+            backendUsageBuilder: backendUsageBuilder) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
     // both joins only when we see a construct generating an unknown [Type] but
     // we can't currently recognize all cases.  In particular, the work-around

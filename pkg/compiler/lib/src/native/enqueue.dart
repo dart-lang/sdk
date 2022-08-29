@@ -166,13 +166,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuer {
   /// and exactly one of [unusedClasses] and [registeredClasses].
   final Set<ClassEntity> _nativeClasses = {};
 
-  NativeResolutionEnqueuer(
-      CompilerOptions options,
-      ElementEnvironment elementEnvironment,
-      CommonElements commonElements,
-      DartTypes dartTypes,
-      this._nativeClassFinder)
-      : super(options, elementEnvironment, commonElements, dartTypes);
+  NativeResolutionEnqueuer(super.options, super.elementEnvironment,
+      super.commonElements, super.dartTypes, this._nativeClassFinder);
 
   Iterable<ClassEntity> get nativeClassesForTesting => _nativeClasses;
 
@@ -209,14 +204,13 @@ class NativeCodegenEnqueuer extends NativeEnqueuer {
   final Set<ClassEntity> _doneAddSubtypes = {};
 
   NativeCodegenEnqueuer(
-      CompilerOptions options,
-      ElementEnvironment elementEnvironment,
-      CommonElements commonElements,
-      DartTypes dartTypes,
+      super.options,
+      super.elementEnvironment,
+      super.commonElements,
+      super.dartTypes,
       this._emitter,
       this._nativeClasses,
-      this._nativeData)
-      : super(options, elementEnvironment, commonElements, dartTypes);
+      this._nativeData);
 
   @override
   WorldImpact processNativeClasses(Iterable<Uri> libraries) {

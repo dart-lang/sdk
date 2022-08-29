@@ -17,8 +17,8 @@ import '../util/util.dart' show Setlet;
 import '../world_interfaces.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
-import 'locals_handler.dart' show ArgumentsTypes;
 import 'engine_interfaces.dart';
+import 'locals_handler.dart' show ArgumentsTypes;
 import 'type_system.dart';
 
 /// Common class for all nodes in the graph. The current nodes are:
@@ -753,23 +753,27 @@ class ParameterTypeInformation extends ElementTypeInformation {
   bool _isTearOffClosureParameter = false;
 
   ParameterTypeInformation.localFunction(
-      AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context,
+      super.abstractValueDomain,
+      MemberTypeInformation super.context,
       this._parameter,
       this._type,
       this._method)
       : _isInstanceMemberParameter = false,
         _isClosureParameter = true,
         _isInitializingFormal = false,
-        super._internal(abstractValueDomain, context);
+        super._internal();
 
-  ParameterTypeInformation.static(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation context, this._parameter, this._type, this._method,
+  ParameterTypeInformation.static(
+      super.abstractValueDomain,
+      MemberTypeInformation super.context,
+      this._parameter,
+      this._type,
+      this._method,
       {bool isInitializingFormal = false})
       : _isInstanceMemberParameter = false,
         _isClosureParameter = false,
         _isInitializingFormal = isInitializingFormal,
-        super._internal(abstractValueDomain, context);
+        super._internal();
 
   ParameterTypeInformation.instanceMember(
       AbstractValueDomain abstractValueDomain,
@@ -1483,7 +1487,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
 /// because we know such node will never be refined to a different
 /// type.
 class ConcreteTypeInformation extends TypeInformation {
-  ConcreteTypeInformation(AbstractValue type) : super.untracked(type) {
+  ConcreteTypeInformation(super.type) : super.untracked() {
     this.isStable = true;
   }
 
@@ -1717,9 +1721,8 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
 /// An [ElementInContainerTypeInformation] holds the common type of the
 /// elements in a [ListTypeInformation].
 class ElementInContainerTypeInformation extends InferredTypeInformation {
-  ElementInContainerTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, elementType)
-      : super(abstractValueDomain, context, elementType);
+  ElementInContainerTypeInformation(
+      super.abstractValueDomain, super.context, super.elementType);
 
   @override
   String toString() => 'Element in container $type';
@@ -1784,9 +1787,8 @@ class SetTypeInformation extends TypeInformation with TracedTypeInformation {
 /// An [ElementInSetTypeInformation] holds the common type of the elements in a
 /// [SetTypeInformation].
 class ElementInSetTypeInformation extends InferredTypeInformation {
-  ElementInSetTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, elementType)
-      : super(abstractValueDomain, context, elementType);
+  ElementInSetTypeInformation(
+      super.abstractValueDomain, super.context, super.elementType);
 
   @override
   String toString() => 'Element in set $type';
@@ -1966,9 +1968,8 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
 /// A [KeyInMapTypeInformation] holds the common type
 /// for the keys in a [MapTypeInformation]
 class KeyInMapTypeInformation extends InferredTypeInformation {
-  KeyInMapTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, TypeInformation keyType)
-      : super(abstractValueDomain, context, keyType);
+  KeyInMapTypeInformation(
+      super.abstractValueDomain, super.context, TypeInformation super.keyType);
 
   @override
   accept(TypeInformationVisitor visitor) {
@@ -1987,10 +1988,9 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
   // mode can ever be marked as [nonNull].
   final bool nonNull;
 
-  ValueInMapTypeInformation(AbstractValueDomain abstractValueDomain,
-      MemberTypeInformation? context, TypeInformation? valueType,
-      [this.nonNull = false])
-      : super(abstractValueDomain, context, valueType);
+  ValueInMapTypeInformation(
+      super.abstractValueDomain, super.context, super.valueType,
+      [this.nonNull = false]);
 
   @override
   accept(TypeInformationVisitor visitor) {

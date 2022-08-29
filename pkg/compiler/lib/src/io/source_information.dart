@@ -399,8 +399,7 @@ class OffsetSourceLocation extends AbstractSourceLocation {
   @override
   final String sourceName;
 
-  OffsetSourceLocation(SourceFile sourceFile, this.offset, this.sourceName)
-      : super(sourceFile);
+  OffsetSourceLocation(super.sourceFile, this.offset, this.sourceName);
 
   @override
   String get shortText => '${super.shortText}:$sourceName';

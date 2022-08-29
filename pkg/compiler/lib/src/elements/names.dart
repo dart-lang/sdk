@@ -115,8 +115,7 @@ class PrivateName extends PublicName {
   @override
   final Uri uri;
 
-  PrivateName(String text, this.uri, {bool isSetter = false})
-      : super(text, isSetter: isSetter);
+  PrivateName(super.text, this.uri, {super.isSetter});
 
   @override
   Name get getter => isSetter ? PrivateName(text, uri) : this;
