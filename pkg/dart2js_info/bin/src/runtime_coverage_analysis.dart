@@ -35,6 +35,7 @@ import 'package:collection/collection.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 import 'package:dart2js_info/src/util.dart';
+import 'package:dart2js_info/src/runtime_coverage_utils.dart';
 
 import 'usage_exception.dart';
 
@@ -274,12 +275,9 @@ Future<void> _reportWithClassFilter(
   // The value associated with each coverage item isn't used for now.
   Set<String> coverage = coverageRaw.keys.toSet();
 
-  final classFilterData = <String, RuntimeClassInfo>{};
-  for (final runtimeClassInfo in File(filterFile)
-      .readAsLinesSync()
-      .map((l) => RuntimeClassInfo.fromAngularInfo(l))) {
-    classFilterData[runtimeClassInfo.key] = runtimeClassInfo;
-  }
+  final classFilterData = {
+    for (final info in runtimeInfoFromAngularInfo(filterFile)) info.key: info
+  };
 
   // Ensure that a used class's super, mixed in, and implemented classes are
   // correctly marked as used.
@@ -444,89 +442,4 @@ void _show(String msg, int size, int total) {
 
 void _leftPadded(String msg1, String msg2) {
   print(' ${pad(msg1, 50, right: true)} $msg2');
-}
-
-class RuntimePackageInfo {
-  final elements = PriorityQueue<BasicInfo>((a, b) => b.size.compareTo(a.size));
-
-  num mainUnitSize = 0;
-  num totalSize = 0;
-  num unusedMainUnitSize = 0;
-  num unusedSize = 0;
-  num usedRatio = 0;
-  num usedSize = 0;
-
-  RuntimePackageInfo();
-
-  void add(BasicInfo i, {bool used = true}) {
-    totalSize += i.size;
-    if (used) {
-      usedSize += i.size;
-    } else {
-      unusedSize += i.size;
-    }
-    if (i.outputUnit!.name == 'main') {
-      mainUnitSize += i.size;
-      if (!used) {
-        unusedMainUnitSize += i.size;
-      }
-    }
-    elements.add(i);
-    usedRatio = usedSize / totalSize;
-  }
-}
-
-class RuntimeClassInfo {
-  late String scheme;
-  late String package;
-  late String? path;
-  late String name;
-
-  late num size;
-  late bool used;
-  late bool inMainUnit;
-  late ClassInfo info;
-
-  bool annotated = false;
-
-  RuntimeClassInfo();
-
-  /// Ingests the output from Angular's info generator.
-  ///
-  /// Example: 'fully:qualified/path/to/file.dart - ClassName'
-  RuntimeClassInfo.fromAngularInfo(String input) {
-    final colonIndex = input.indexOf(':');
-    if (colonIndex < 0) {
-      throw ArgumentError('AngularInfo format cannot accept undefined schemes.'
-          ' No scheme found for: $input');
-    }
-    final slashIndex = input.indexOf('/');
-    final spaceIndex = input.indexOf(' ');
-    final separatorSize = ' - '.length;
-    scheme = input.substring(0, colonIndex);
-    if (slashIndex < 0) {
-      path = null;
-      package = input.substring(colonIndex + 1, spaceIndex);
-    } else {
-      package = input.substring(colonIndex + 1, slashIndex);
-      path = input.substring(slashIndex + 1, spaceIndex);
-    }
-    name = input.substring(spaceIndex + separatorSize, input.length);
-  }
-
-  String get key =>
-      '$package${path == null ? '' : '/$path'}:$name'.replaceAll('/lib/', '/');
-
-  void annotateWithClassInfo(ClassInfo i, {bool used = true}) {
-    size = i.size;
-    this.used = used;
-    inMainUnit = i.outputUnit!.name == 'main';
-    info = i;
-    annotated = true;
-  }
-
-  @override
-  String toString() {
-    return '$package/$path - $name';
-  }
 }
