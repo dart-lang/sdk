@@ -381,9 +381,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// the entire `if` statement (or the collection literal entry).
   void ifStatement_thenBegin(Expression condition, Node ifNode);
 
-  /// Call this method after visiting the initializer of a variable declaration.
+  /// Call this method after visiting the initializer of a variable declaration,
+  /// or a variable pattern that is being matched (and hence being initialized
+  /// with an implicit value).
+  ///
+  /// If the initialized value is not known (i.e. because this is a variable
+  /// pattern that's being matched), pass `null` for [initializerExpression].
   void initialize(
-      Variable variable, Type initializerType, Expression initializerExpression,
+      Variable variable, Type matchedType, Expression? initializerExpression,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped});
@@ -525,6 +530,17 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   @visibleForTesting
   SsaNode<Type>? ssaNodeForTesting(Variable variable);
 
+  /// Call this method just after visiting a `when` part of a case clause.  See
+  /// [switchStatement_expressionEnd] for details.
+  ///
+  /// [when] should be the expression following the `when` keyword.
+  void switchStatement_afterWhen(Expression when);
+
+  /// Call this method just before visiting a sequence of two or more `case` or
+  /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
+  /// for details.`
+  void switchStatement_beginAlternatives();
+
   /// Call this method just before visiting one of the cases in the body of a
   /// switch statement.  See [switchStatement_expressionEnd] for details.
   ///
@@ -532,7 +548,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///
   /// [node] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the switch statement.
-  void switchStatement_beginCase(bool hasLabel, Node node);
+  void switchStatement_beginCase(bool hasLabel, Statement? node);
 
   /// Call this method just after visiting the body of a switch statement.  See
   /// [switchStatement_expressionEnd] for details.
@@ -542,17 +558,37 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// were listed in cases.
   void switchStatement_end(bool isExhaustive);
 
+  /// Call this method just after visiting a `case` or `default` clause, if it
+  /// shares a body with at least one other `case` or `default` clause.  See
+  /// [switchStatement_expressionEnd] for details.`
+  void switchStatement_endAlternative();
+
+  /// Call this method just after visiting a sequence of two or more `case` or
+  /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
+  /// for details.`
+  void switchStatement_endAlternatives();
+
   /// Call this method just after visiting the expression part of a switch
-  /// statement.
+  /// statement or expression.  [switchStatement] should be the switch statement
+  /// itself (or `null` if this is a switch expression).
   ///
   /// The order of visiting a switch statement should be:
   /// - Visit the switch expression.
   /// - Call [switchStatement_expressionEnd].
-  /// - For each switch case (including the default case, if any):
+  /// - For each case body:
   ///   - Call [switchStatement_beginCase].
-  ///   - Visit the case.
+  ///   - If there is more than one `case` or `default` clause associated with
+  ///     this case body, call [switchStatement_beginAlternatives].
+  ///   - For each `case` or `default` clause associated with this case body:
+  ///     - If a `when` clause is present, visit it and then call
+  ///       [switchStatement_afterWhen].
+  ///     - If there is more than one `case` or `default` clause associated with
+  ///       this case body, call [switchStatement_endAlternative].
+  ///   - If there is more than one `case` or `default` clause associated with
+  ///     this case body, call [switchStatement_endAlternatives].
+  ///   - Visit the case body.
   /// - Call [switchStatement_end].
-  void switchStatement_expressionEnd(Statement switchStatement);
+  void switchStatement_expressionEnd(Statement? switchStatement);
 
   /// Call this method just after visiting the expression `this` (or the
   /// pseudo-expression `super`, in the case of the analyzer, which represents
@@ -1009,16 +1045,15 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   @override
   void initialize(
-      Variable variable, Type initializerType, Expression initializerExpression,
+      Variable variable, Type matchedType, Expression? initializerExpression,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped}) {
     _wrap(
-        'initialize($variable, $initializerType, $initializerExpression, '
+        'initialize($variable, $matchedType, $initializerExpression, '
         'isFinal: $isFinal, isLate: $isLate, '
         'isImplicitlyTyped: $isImplicitlyTyped)',
-        () => _wrapped.initialize(
-            variable, initializerType, initializerExpression,
+        () => _wrapped.initialize(variable, matchedType, initializerExpression,
             isFinal: isFinal,
             isLate: isLate,
             isImplicitlyTyped: isImplicitlyTyped));
@@ -1168,7 +1203,19 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Node node) {
+  void switchStatement_afterWhen(Expression when) {
+    _wrap('switchStatement_afterWhen($when)',
+        () => _wrapped.switchStatement_afterWhen(when));
+  }
+
+  @override
+  void switchStatement_beginAlternatives() {
+    _wrap('switchStatement_beginAlternatives()',
+        () => _wrapped.switchStatement_beginAlternatives());
+  }
+
+  @override
+  void switchStatement_beginCase(bool hasLabel, Statement? node) {
     _wrap('switchStatement_beginCase($hasLabel, $node)',
         () => _wrapped.switchStatement_beginCase(hasLabel, node));
   }
@@ -1180,7 +1227,19 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_expressionEnd(Statement switchStatement) {
+  void switchStatement_endAlternative() {
+    _wrap('switchStatement_endAlternative()',
+        () => _wrapped.switchStatement_endAlternative());
+  }
+
+  @override
+  void switchStatement_endAlternatives() {
+    _wrap('switchStatement_endAlternatives()',
+        () => _wrapped.switchStatement_endAlternatives());
+  }
+
+  @override
+  void switchStatement_expressionEnd(Statement? switchStatement) {
     _wrap('switchStatement_expressionEnd($switchStatement)',
         () => _wrapped.switchStatement_expressionEnd(switchStatement));
   }
@@ -3474,7 +3533,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void initialize(
-      Variable variable, Type initializerType, Expression initializerExpression,
+      Variable variable, Type matchedType, Expression? initializerExpression,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped}) {
@@ -3488,18 +3547,18 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       // initializer expressions for implicitly typed variables, in order to
       // preserve the buggy behavior of
       // https://github.com/dart-lang/language/issues/1785.
-    } else {
+    } else if (initializerExpression != null) {
       expressionInfo = _getExpressionInfo(initializerExpression);
     }
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
         expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
-    _current = _current.write(this, null, variable, variableKey,
-        initializerType, newSsaNode, operations,
+    _current = _current.write(
+        this, null, variable, variableKey, matchedType, newSsaNode, operations,
         promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal);
-    if (isImplicitlyTyped && operations.isTypeParameterType(initializerType)) {
+    if (isImplicitlyTyped && operations.isTypeParameterType(matchedType)) {
       _current = _current
           .tryPromoteForTypeCheck(
-              this, _variableReference(variable, variableKey), initializerType)
+              this, _variableReference(variable, variableKey), matchedType)
           .ifTrue;
     }
   }
@@ -3681,11 +3740,27 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Node node) {
-    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+  void switchStatement_afterWhen(Expression when) {
+    ExpressionInfo<Type>? expressionInfo = _getExpressionInfo(when);
+    if (expressionInfo != null) {
+      _current = expressionInfo.ifTrue;
+    }
+  }
+
+  @override
+  void switchStatement_beginAlternatives() {
+    _current = _current.split();
+    _SwitchAlternativesContext<Type> context =
+        new _SwitchAlternativesContext<Type>(_current);
+    _stack.add(context);
+  }
+
+  @override
+  void switchStatement_beginCase(bool hasLabel, Statement? node) {
     _SimpleStatementContext<Type> context =
         _stack.last as _SimpleStatementContext<Type>;
     if (hasLabel) {
+      AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
       _current =
           context._previous.conservativeJoin(this, info.written, info.captured);
     } else {
@@ -3710,12 +3785,29 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_expressionEnd(Statement switchStatement) {
+  void switchStatement_endAlternative() {
+    _SwitchAlternativesContext<Type> context =
+        _stack.last as _SwitchAlternativesContext<Type>;
+    context._combinedModel = _join(context._combinedModel, _current);
+    _current = context._previous;
+  }
+
+  @override
+  void switchStatement_endAlternatives() {
+    _SwitchAlternativesContext<Type> context =
+        _stack.removeLast() as _SwitchAlternativesContext<Type>;
+    _current = context._combinedModel!.unsplit();
+  }
+
+  @override
+  void switchStatement_expressionEnd(Statement? switchStatement) {
     _current = _current.split();
     _SimpleStatementContext<Type> context =
         new _SimpleStatementContext<Type>(_current.reachable.parent!, _current);
     _stack.add(context);
-    _statementToContext[switchStatement] = context;
+    if (switchStatement != null) {
+      _statementToContext[switchStatement] = context;
+    }
   }
 
   @override
@@ -4325,7 +4417,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void initialize(
-      Variable variable, Type initializerType, Expression initializerExpression,
+      Variable variable, Type matchedType, Expression? initializerExpression,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped}) {}
@@ -4508,13 +4600,25 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Node node) {}
+  void switchStatement_afterWhen(Expression when) {}
+
+  @override
+  void switchStatement_beginAlternatives() {}
+
+  @override
+  void switchStatement_beginCase(bool hasLabel, Statement? node) {}
 
   @override
   void switchStatement_end(bool isExhaustive) {}
 
   @override
-  void switchStatement_expressionEnd(Statement switchStatement) {}
+  void switchStatement_endAlternative() {}
+
+  @override
+  void switchStatement_endAlternatives() {}
+
+  @override
+  void switchStatement_expressionEnd(Statement? switchStatement) {}
 
   @override
   void thisOrSuper(Expression expression, Type staticType) {}
@@ -4758,6 +4862,14 @@ class _SimpleStatementContext<Type extends Object>
   String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
       'continueModel: $_continueModel, previous: $_previous, '
       'checkpoint: $_checkpoint)';
+}
+
+class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
+  final FlowModel<Type> _previous;
+
+  FlowModel<Type>? _combinedModel;
+
+  _SwitchAlternativesContext(this._previous);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the information we

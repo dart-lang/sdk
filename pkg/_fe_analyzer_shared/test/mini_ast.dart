@@ -17,7 +17,7 @@ import 'package:test/test.dart';
 import 'mini_ir.dart';
 import 'mini_types.dart';
 
-Expression get nullLiteral => new _NullLiteral();
+Literal get nullLiteral => new _NullLiteral();
 
 Expression get this_ => new _This();
 
@@ -28,10 +28,15 @@ Statement block(List<Statement> statements) => new _Block(statements);
 
 Expression booleanLiteral(bool value) => _BooleanLiteral(value);
 
-Statement break_([LabeledStatement? target]) => new _Break(target);
+Statement break_([Label? target]) => new _Break(target);
 
-SwitchCase case_(List<Statement> body, {bool hasLabel = false}) =>
-    SwitchCase._(hasLabel, new _Block(body));
+StatementCase case_(Pattern pattern,
+        {Expression? when, required List<Statement> body}) =>
+    StatementCase._(pattern, when, _Block(body));
+
+ExpressionCase caseExpr(Pattern pattern,
+        {Expression? when, required Expression body}) =>
+    ExpressionCase._(pattern, when, body);
 
 /// Creates a pseudo-statement whose function is to verify that flow analysis
 /// considers [variable]'s assigned state to be [expectedAssignedState].
@@ -67,11 +72,17 @@ Statement declare(Var variable,
         String? type,
         Expression? initializer,
         String? expectInferredType}) =>
-    new _Declare(variable, initializer,
+    new _Declare(
+        variable.pattern(type: type, expectInferredType: expectInferredType),
+        initializer,
         isLate: isLate,
-        isFinal: isFinal,
-        declaredType: type == null ? null : Type(type),
-        expectInferredType: expectInferredType);
+        isFinal: isFinal);
+
+StatementCase default_({required List<Statement> body}) =>
+    StatementCase._(null, null, _Block(body));
+
+ExpressionCase defaultExpr({required Expression body}) =>
+    ExpressionCase._(null, null, body);
 
 Statement do_(List<Statement> body, Expression condition) =>
     _Do(block(body), condition);
@@ -133,22 +144,23 @@ Statement if_(Expression condition, List<Statement> ifTrue,
         [List<Statement>? ifFalse]) =>
     new _If(condition, block(ifTrue), ifFalse == null ? null : block(ifFalse));
 
-Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
+Literal intLiteral(int value, {bool? expectConversionToDouble}) =>
     new _IntLiteral(value, expectConversionToDouble: expectConversionToDouble);
-
-Statement labeled(Statement Function(LabeledStatement) callback) {
-  var labeledStatement = LabeledStatement._();
-  labeledStatement._body = callback(labeledStatement);
-  return labeledStatement;
-}
 
 Statement localFunction(List<Statement> body) => _LocalFunction(block(body));
 
+Statement match(Pattern pattern, Expression initializer,
+        {bool isLate = false, bool isFinal = false}) =>
+    new _Declare(pattern, initializer, isLate: isLate, isFinal: isFinal);
+
 Statement return_() => new _Return();
 
-Statement switch_(Expression expression, List<SwitchCase> cases,
+Statement switch_(Expression expression, List<StatementCase> cases,
         {required bool isExhaustive}) =>
-    new _Switch(expression, cases, isExhaustive);
+    new _SwitchStatement(expression, cases, isExhaustive);
+
+Expression switchExpr(Expression expression, List<ExpressionCase> cases) =>
+    new _SwitchExpression(expression, cases);
 
 PromotableLValue thisOrSuperProperty(String name) =>
     new _ThisOrSuperProperty(name);
@@ -255,13 +267,43 @@ abstract class Expression extends Node {
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context);
 }
 
-class Harness with TypeOperations<Type> implements Operations<Var, Type> {
+/// Representation of a single case clause in a switch expression.  Use
+/// [caseExpr] to create instances of this class.
+class ExpressionCase extends Node
+    implements ExpressionCaseInfo<Expression, Node> {
+  @override
+  final Pattern? pattern;
+
+  @override
+  final Expression? when;
+
+  @override
+  final Expression body;
+
+  ExpressionCase._(this.pattern, this.when, this.body) : super._();
+
+  String toString() => [
+        pattern == null ? 'default' : 'case $pattern',
+        if (when != null) ' when $when',
+        ': $body'
+      ].join('');
+
+  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    pattern?.preVisit(assignedVariables);
+    body.preVisit(assignedVariables);
+  }
+}
+
+class Harness
+    with TypeOperations<Type>, TypeOperations2<Type>
+    implements Operations<Var, Type> {
   static const Map<String, bool> _coreSubtypes = const {
     'bool <: int': false,
     'bool <: Object': true,
     'double <: double?': true,
     'double <: Object': true,
     'double <: Object?': true,
+    'double <: Never': false,
     'double <: num': true,
     'double <: num?': true,
     'double <: int': false,
@@ -272,6 +314,7 @@ class Harness with TypeOperations<Type> implements Operations<Var, Type> {
     'int <: int?': true,
     'int <: Iterable': false,
     'int <: List': false,
+    'int <: Never': false,
     'int <: Null': false,
     'int <: num': true,
     'int <: num?': true,
@@ -381,6 +424,11 @@ class Harness with TypeOperations<Type> implements Operations<Var, Type> {
     'num* - Object': Type('Never'),
   };
 
+  static final Map<String, Type> _coreLubs = {
+    'double, int': Type('num'),
+    'Never, int': Type('int'),
+  };
+
   bool _started = false;
 
   late final FlowAnalysis<Node, Statement, Expression, Var, Type> flow;
@@ -392,6 +440,8 @@ class Harness with TypeOperations<Type> implements Operations<Var, Type> {
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
 
   final Map<String, Type> _factorResults = Map.of(_coreFactors);
+
+  final Map<String, Type> _lubs = Map.of(_coreLubs);
 
   final Map<String, _PropertyElement> _members = {};
 
@@ -501,6 +551,15 @@ class Harness with TypeOperations<Type> implements Operations<Var, Type> {
   bool isTypeParameterType(Type type) => type is PromotedTypeVariableType;
 
   @override
+  Type lub(Type type1, Type type2) {
+    if (type1.type == type2.type) return type1;
+    var typeNames = [type1.type, type2.type];
+    typeNames.sort();
+    var query = typeNames.join(', ');
+    return _lubs[query] ?? fail('Unknown lub query: $query');
+  }
+
+  @override
   Type promoteToNonNull(Type type) {
     if (type.type.endsWith('?')) {
       return Type(type.type.substring(0, type.type.length - 1));
@@ -528,6 +587,7 @@ class Harness with TypeOperations<Type> implements Operations<Var, Type> {
             promotableFields: promotableFields);
     typeAnalyzer.dispatchStatement(b);
     typeAnalyzer.finish();
+    expect(typeAnalyzer.errors._accumulatedErrors, isEmpty);
   }
 
   @override
@@ -583,23 +643,33 @@ class Harness with TypeOperations<Type> implements Operations<Var, Type> {
   }
 }
 
-class LabeledStatement extends Statement {
-  late final Statement _body;
+class Label extends Node {
+  final String _name;
 
-  LabeledStatement._();
+  late final Node _binding;
 
-  @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    _body.preVisit(assignedVariables);
+  Label(this._name) : super._();
+
+  StatementCase thenCase(StatementCase case_) {
+    case_.labels.insert(0, this);
+    return case_;
+  }
+
+  Statement thenStmt(Statement statement) {
+    if (statement is! _LabeledStatement) {
+      statement = _LabeledStatement(statement);
+    }
+    statement._labels.insert(0, this);
+    _binding = statement;
+    return statement;
   }
 
   @override
-  String toString() => 'labeled: $_body';
+  String toString() => _name;
+}
 
-  @override
-  void visit(Harness h) {
-    h.typeAnalyzer.analyzeLabeledStatement(this, _body);
-  }
+abstract class Literal extends Expression {
+  Pattern get pattern => _ConstantPattern(this);
 }
 
 /// Representation of an expression that can appear on the left hand side of an
@@ -626,9 +696,37 @@ class Node {
 
   final int id;
 
+  String? _errorId;
+
   Node._() : id = _nextId++;
 
+  String get errorId {
+    String? errorId = _errorId;
+    if (errorId == null) {
+      fail('No error ID assigned for $runtimeType $this');
+    } else {
+      return errorId;
+    }
+  }
+
+  set errorId(String value) {
+    _errorId = value;
+  }
+
   String toString() => 'Node#$id';
+}
+
+abstract class Pattern extends Node {
+  Pattern._() : super._();
+
+  void preVisit(AssignedVariables<Node, Var> assignedVariables);
+
+  @override
+  String toString() => _debugString(needsKeywordOrType: true);
+
+  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h);
+
+  String _debugString({required bool needsKeywordOrType});
 }
 
 /// Base class for language constructs that, at a given point in flow analysis,
@@ -658,6 +756,9 @@ abstract class Statement extends Node {
   /// the IR produced matches [expectedIr].
   Statement checkIr(String expectedIr) => _CheckStatementIr(this, expectedIr);
 
+  Statement expectErrors(Set<String> expectedErrors) =>
+      _ExpectStatementErrors(this, expectedErrors);
+
   void preVisit(AssignedVariables<Node, Var> assignedVariables);
 
   /// If `this` is a statement `x`, creates a pseudo-expression that models
@@ -671,20 +772,36 @@ abstract class Statement extends Node {
 
 /// Representation of a single case clause in a switch statement.  Use [case_]
 /// to create instances of this class.
-class SwitchCase {
-  final bool _hasLabel;
-  final _Block _body;
+class StatementCase extends Node
+    implements StatementCaseInfo<Statement, Expression, Node> {
+  @override
+  final List<Label> labels = [];
 
-  SwitchCase._(this._hasLabel, this._body);
+  @override
+  final Pattern? pattern;
+
+  @override
+  final Expression? when;
+
+  final _Block _statements;
+
+  StatementCase._(this.pattern, this.when, this._statements) : super._();
+
+  @override
+  List<Statement> get body => _statements.statements;
+
+  @override
+  Node get node => this;
 
   String toString() => [
-        if (_hasLabel) '<label>:',
-        'case <value>:',
-        ..._body.statements
+        for (var label in labels) '$label:',
+        pattern == null ? 'default:' : 'case $pattern:',
+        ...body
       ].join(' ');
 
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    _body.preVisit(assignedVariables);
+    pattern?.preVisit(assignedVariables);
+    _Block(body).preVisit(assignedVariables);
   }
 }
 
@@ -727,6 +844,10 @@ class Var implements Promotable {
     }
     _type = value;
   }
+
+  Pattern pattern({String? type, String? expectInferredType}) =>
+      new _VariablePattern(
+          type == null ? null : Type(type), this, expectInferredType);
 
   @override
   void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
@@ -815,7 +936,7 @@ class _Block extends Statement {
   }
 }
 
-class _BooleanLiteral extends Expression {
+class _BooleanLiteral extends Literal {
   final bool value;
 
   _BooleanLiteral(this.value);
@@ -835,7 +956,7 @@ class _BooleanLiteral extends Expression {
 }
 
 class _Break extends Statement {
-  final LabeledStatement? target;
+  final Label? target;
 
   _Break(this.target);
 
@@ -847,7 +968,7 @@ class _Break extends Statement {
 
   @override
   void visit(Harness h) {
-    h.typeAnalyzer.analyzeBreakStatement(target);
+    h.typeAnalyzer.analyzeBreakStatement(target?._binding as Statement?);
     h.irBuilder.apply('break', 0);
   }
 }
@@ -1092,6 +1213,24 @@ class _Conditional extends Expression {
   }
 }
 
+class _ConstantPattern extends Pattern {
+  final Expression constant;
+
+  _ConstantPattern(this.constant) : super._();
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    constant.preVisit(assignedVariables);
+  }
+
+  @override
+  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) =>
+      h.typeAnalyzer.analyzeConstOrLiteralPattern(this, constant);
+
+  @override
+  _debugString({required bool needsKeywordOrType}) => constant.toString();
+}
+
 class _Continue extends Statement {
   @override
   void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
@@ -1109,21 +1248,22 @@ class _Continue extends Statement {
 class _Declare extends Statement {
   final bool isLate;
   final bool isFinal;
-  final Type? declaredType;
-  final Var variable;
+  final Pattern pattern;
   final Expression? initializer;
-  final String? expectInferredType;
 
-  _Declare(this.variable, this.initializer,
-      {required this.isLate,
-      required this.isFinal,
-      required this.declaredType,
-      this.expectInferredType});
+  _Declare(this.pattern, this.initializer,
+      {required this.isLate, required this.isFinal});
 
   @override
   void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    assignedVariables.declare(variable);
+    pattern.preVisit(assignedVariables);
+    if (isLate) {
+      assignedVariables.beginNode();
+    }
     initializer?.preVisit(assignedVariables);
+    if (isLate) {
+      assignedVariables.endNode(this);
+    }
   }
 
   @override
@@ -1131,8 +1271,7 @@ class _Declare extends Statement {
     var parts = <String>[
       if (isLate) 'late',
       if (isFinal) 'final',
-      if (declaredType != null) declaredType!.type else if (!isFinal) 'var',
-      variable.name,
+      pattern._debugString(needsKeywordOrType: !isFinal),
       if (initializer != null) '= $initializer'
     ];
     return '${parts.join(' ')};';
@@ -1140,16 +1279,26 @@ class _Declare extends Statement {
 
   @override
   void visit(Harness h) {
-    h.irBuilder.atom(variable.name);
-    h.typeAnalyzer.analyzeVariableDeclaration(
-        this, declaredType, variable, initializer,
-        isFinal: isFinal, isLate: isLate);
-    var expectInferredType = this.expectInferredType;
-    if (expectInferredType != null) {
-      expect(variable.type.type, expectInferredType);
+    String irName;
+    int numArgs;
+    var initializer = this.initializer;
+    if (initializer == null) {
+      var pattern = this.pattern as _VariablePattern;
+      var inferredType = h.typeAnalyzer.analyzeUninitializedVariableDeclaration(
+          this, pattern.variable, pattern.declaredType,
+          isFinal: isFinal, isLate: isLate);
+      h.typeAnalyzer.handleVariablePattern(pattern, inferredType);
+      irName = 'declare';
+      numArgs = 1;
+    } else {
+      h.typeAnalyzer.analyzeInitializedVariableDeclaration(
+          this, pattern, initializer,
+          isFinal: isFinal, isLate: isLate);
+      irName = 'match';
+      numArgs = 2;
     }
     h.irBuilder.apply(
-        ['declare', if (isLate) 'late', if (isFinal) 'final'].join('_'), 2);
+        [irName, if (isLate) 'late', if (isFinal) 'final'].join('_'), numArgs);
   }
 }
 
@@ -1200,6 +1349,28 @@ class _Equal extends Expression {
         h.typeAnalyzer.analyzeBinaryExpression(this, lhs, operatorName, rhs);
     h.irBuilder.apply(operatorName, 2);
     return result;
+  }
+}
+
+class _ExpectStatementErrors extends Statement {
+  final Statement _statement;
+
+  final Set<String> _expectedErrors;
+
+  _ExpectStatementErrors(this._statement, this._expectedErrors);
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    _statement.preVisit(assignedVariables);
+  }
+
+  @override
+  void visit(Harness h) {
+    var previousErrors = h.typeAnalyzer.errors;
+    h.typeAnalyzer.errors = _MiniAstErrors();
+    h.typeAnalyzer.dispatchStatement(_statement);
+    expect(h.typeAnalyzer.errors._accumulatedErrors, _expectedErrors);
+    h.typeAnalyzer.errors = previousErrors;
   }
 }
 
@@ -1410,7 +1581,7 @@ class _IfNull extends Expression {
   }
 }
 
-class _IntLiteral extends Expression {
+class _IntLiteral extends Literal {
   final int value;
 
   /// `true` or `false` if we should assert that int->double conversion either
@@ -1456,6 +1627,27 @@ class _Is extends Expression {
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer
         .analyzeTypeTest(this, target, type, isInverted: isInverted);
+  }
+}
+
+class _LabeledStatement extends Statement {
+  final List<Label> _labels = [];
+
+  final Statement _body;
+
+  _LabeledStatement(this._body);
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    _body.preVisit(assignedVariables);
+  }
+
+  @override
+  String toString() => [..._labels, _body].join(': ');
+
+  @override
+  void visit(Harness h) {
+    h.typeAnalyzer.analyzeLabeledStatement(this, _body);
   }
 }
 
@@ -1526,9 +1718,65 @@ enum _LValueDisposition {
   readWrite,
 }
 
+class _MiniAstErrors implements TypeAnalyzerErrors<Node, Var, Type> {
+  final Set<String> _accumulatedErrors = {};
+
+  @override
+  void assertInErrorRecovery() {
+    if (_accumulatedErrors.isEmpty) {
+      fail('Error recovery code path encountered, but no error reported yet');
+    }
+  }
+
+  @override
+  void inconsistentMatchVar(
+      {required Node pattern,
+      required Type type,
+      required Node previousPattern,
+      required Type previousType}) {
+    _recordError(
+        'inconsistentMatchVar(pattern: ${pattern.errorId}, type: ${type.type}, '
+        'previousPattern: ${previousPattern.errorId}, '
+        'previousType: ${previousType.type})');
+  }
+
+  @override
+  void inconsistentMatchVarExplicitness(
+      {required Node pattern, required Node previousPattern}) {
+    _recordError(
+        'inconsistentMatchVarExplicitness(pattern: ${pattern.errorId}, '
+        'previousPattern: ${previousPattern.errorId})');
+  }
+
+  @override
+  void matchVarOverlap({required Node pattern, required Node previousPattern}) {
+    _recordError('matchVarOverlap(pattern: ${pattern.errorId}, '
+        'previousPattern: ${previousPattern.errorId})');
+  }
+
+  @override
+  void missingMatchVar(Node alternative, Var variable) {
+    _recordError('missingMatchVar(${alternative.errorId}, ${variable.name})');
+  }
+
+  @override
+  void patternDoesNotAllowLate(Node pattern) {
+    _recordError('patternDoesNotAllowLate(${pattern.errorId})');
+  }
+
+  void _recordError(String errorText) {
+    if (!_accumulatedErrors.add(errorText)) {
+      fail('Same error reported twice: $errorText');
+    }
+  }
+}
+
 class _MiniAstTypeAnalyzer
     with TypeAnalyzer<Node, Statement, Expression, Var, Type> {
   final Harness _harness;
+
+  @override
+  late _MiniAstErrors errors = _MiniAstErrors();
 
   Statement? _currentBreakTarget;
 
@@ -1536,6 +1784,7 @@ class _MiniAstTypeAnalyzer
 
   final _irBuilder = MiniIrBuilder();
 
+  @override
   late final Type boolType = Type('bool');
 
   @override
@@ -1563,7 +1812,7 @@ class _MiniAstTypeAnalyzer
   Type get thisType => _harness._thisType!;
 
   @override
-  TypeOperations<Type> get typeOperations => _harness;
+  TypeOperations2<Type> get typeOperations => _harness;
 
   void analyzeAssertStatement(Expression condition, Expression? message) {
     flow.assert_begin();
@@ -1668,14 +1917,11 @@ class _MiniAstTypeAnalyzer
     flow.doStatement_end(condition);
   }
 
+  @override
   Type analyzeExpression(Expression expression, [Type? context]) {
     // TODO(paulberry): make the [context] argument required.
     context ??= unknownType;
-    var result = dispatchExpression(expression, context);
-    if (flow.operations.isNever(result.provisionalType)) {
-      flow.handleExit();
-    }
-    return result.resolveShorting();
+    return super.analyzeExpression(expression, context);
   }
 
   void analyzeExpressionStatement(Expression expression) {
@@ -1757,20 +2003,6 @@ class _MiniAstTypeAnalyzer
     flow.handleExit();
   }
 
-  void analyzeSwitchStatement(
-      _Switch node, Expression expression, List<SwitchCase> cases) {
-    analyzeExpression(expression);
-    flow.switchStatement_expressionEnd(node);
-    var previousBreakTarget = _currentBreakTarget;
-    _currentBreakTarget = node;
-    for (var case_ in cases) {
-      flow.switchStatement_beginCase(case_._hasLabel, node);
-      dispatchStatement(case_._body);
-    }
-    _currentBreakTarget = previousBreakTarget;
-    flow.switchStatement_end(isSwitchExhaustive(node));
-  }
-
   SimpleTypeAnalysisResult<Type> analyzeThis(Expression node) {
     var thisType = this.thisType;
     flow.thisOrSuper(node, thisType);
@@ -1837,25 +2069,6 @@ class _MiniAstTypeAnalyzer
     return new SimpleTypeAnalysisResult<Type>(type: boolType);
   }
 
-  void analyzeVariableDeclaration(
-      Statement node, Type? declaredType, Var variable, Expression? initializer,
-      {required bool isFinal, required bool isLate}) {
-    if (initializer == null) {
-      handleNoInitializer();
-      flow.declare(variable, false);
-      variable.type = declaredType ?? dynamicType;
-    } else {
-      var initializerType = analyzeExpression(initializer);
-      flow.declare(variable, true);
-      variable.type =
-          declaredType ?? variableTypeFromInitializerType(initializerType);
-      flow.initialize(variable, initializerType, initializer,
-          isFinal: isFinal,
-          isLate: isLate,
-          isImplicitlyTyped: declaredType == null);
-    }
-  }
-
   SimpleTypeAnalysisResult<Type> analyzeVariableGet(
       Expression node, Var variable, void Function(Type?)? callback) {
     var promotedType = flow.variableRead(node, variable);
@@ -1878,11 +2091,51 @@ class _MiniAstTypeAnalyzer
       _irBuilder.guard(expression, () => expression.visit(_harness, context));
 
   @override
+  PatternDispatchResult<Node, Expression, Var, Type> dispatchPattern(
+      covariant Pattern node) {
+    return node.visit(_harness);
+  }
+
+  @override
   void dispatchStatement(Statement statement) =>
       _irBuilder.guard(statement, () => statement.visit(_harness));
 
   void finish() {
     flow.finish();
+  }
+
+  @override
+  void finishExpressionCase(Expression node, int caseIndex) {
+    _irBuilder.apply('case', 2);
+  }
+
+  @override
+  void finishStatementCase(Statement node, int caseIndex, int numStatements) {
+    _irBuilder.apply('block', numStatements);
+    _irBuilder.apply('case', 2);
+  }
+
+  @override
+  void handleCase_afterCaseHeads(List<Node> labels, int numHeads) {
+    for (var label in labels) {
+      _irBuilder.atom((label as Label)._name);
+    }
+    _irBuilder.apply('heads', numHeads + labels.length);
+  }
+
+  @override
+  void handleCaseHead({required bool hasWhen}) {
+    _irBuilder.apply('head', hasWhen ? 2 : 1);
+  }
+
+  @override
+  void handleConstOrLiteralPattern() {
+    _irBuilder.apply('const', 1);
+  }
+
+  @override
+  void handleDefault() {
+    _irBuilder.atom('default');
   }
 
   void handleNoCondition() {
@@ -1901,7 +2154,25 @@ class _MiniAstTypeAnalyzer
     _irBuilder.atom('noop');
   }
 
-  bool isSwitchExhaustive(_Switch node) {
+  @override
+  void handleVariablePattern(
+      covariant _VariablePattern node, Type? inferredType) {
+    _irBuilder.atom(node.variable.name);
+    if (inferredType == null) {
+      _irBuilder.apply('varPattern', 1);
+    } else {
+      _irBuilder.atom(inferredType.type);
+      _irBuilder.apply('varPattern', 2);
+    }
+    var expectInferredType = node.expectInferredType;
+    if (expectInferredType != null) {
+      expect(inferredType?.type, expectInferredType);
+    }
+  }
+
+  @override
+  bool isSwitchExhaustive(
+      covariant _SwitchStatement node, Type expressionType) {
     return node.isExhaustive;
   }
 
@@ -1913,10 +2184,14 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  void setVariableType(Var variable, Type type) {
+    variable.type = type;
+  }
+
+  @override
   String toString() => _irBuilder.toString();
 
-  /// Computes the type that should be inferred for an implicitly typed variable
-  /// whose initializer expression has static type [type].
+  @override
   Type variableTypeFromInitializerType(Type type) {
     // Variables whose initializer has type `Null` receive the inferred type
     // `dynamic`.
@@ -2015,7 +2290,7 @@ class _NullAwareAccess extends Expression {
   }
 }
 
-class _NullLiteral extends Expression {
+class _NullLiteral extends Literal {
   _NullLiteral();
 
   @override
@@ -2126,16 +2401,51 @@ class _Return extends Statement {
   }
 }
 
-class _Switch extends Statement {
-  final Expression expression;
-  final List<SwitchCase> cases;
-  final bool isExhaustive;
+class _SwitchExpression extends Expression {
+  final Expression scrutinee;
+  final List<ExpressionCase> cases;
 
-  _Switch(this.expression, this.cases, this.isExhaustive);
+  _SwitchExpression(this.scrutinee, this.cases);
 
   @override
   void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    expression.preVisit(assignedVariables);
+    scrutinee.preVisit(assignedVariables);
+    for (var case_ in cases) {
+      case_._preVisit(assignedVariables);
+    }
+  }
+
+  @override
+  String toString() {
+    String body;
+    if (cases.isEmpty) {
+      body = '{}';
+    } else {
+      var contents = cases.join(' ');
+      body = '{ $contents }';
+    }
+    return 'switch ($scrutinee) $body';
+  }
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result =
+        h.typeAnalyzer.analyzeSwitchExpression(this, scrutinee, cases, context);
+    h.irBuilder.apply('switchExpr', cases.length + 1);
+    return result;
+  }
+}
+
+class _SwitchStatement extends Statement {
+  final Expression scrutinee;
+  final List<StatementCase> cases;
+  final bool isExhaustive;
+
+  _SwitchStatement(this.scrutinee, this.cases, this.isExhaustive);
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    scrutinee.preVisit(assignedVariables);
     assignedVariables.beginNode();
     for (var case_ in cases) {
       case_._preVisit(assignedVariables);
@@ -2153,13 +2463,20 @@ class _Switch extends Statement {
       var contents = cases.join(' ');
       body = '{ $contents }';
     }
-    return 'switch<$exhaustiveness> ($expression) $body';
+    return 'switch<$exhaustiveness> ($scrutinee) $body';
   }
 
   @override
   void visit(Harness h) {
-    h.typeAnalyzer.analyzeSwitchStatement(this, expression, cases);
-    h.irBuilder.apply('switch', cases.length + 1);
+    var previousBreakTarget = h.typeAnalyzer._currentBreakTarget;
+    h.typeAnalyzer._currentBreakTarget = this;
+    var previousContinueTarget = h.typeAnalyzer._currentContinueTarget;
+    h.typeAnalyzer._currentContinueTarget = this;
+    var numExecutionPaths =
+        h.typeAnalyzer.analyzeSwitchStatement(this, scrutinee, cases);
+    h.irBuilder.apply('switch', numExecutionPaths + 1);
+    h.typeAnalyzer._currentBreakTarget = previousBreakTarget;
+    h.typeAnalyzer._currentContinueTarget = previousContinueTarget;
   }
 }
 
@@ -2275,6 +2592,37 @@ class _TryStatement extends TryStatement {
     h.typeAnalyzer.analyzeTryStatement(this, _body, _catches, _finally);
     h.irBuilder.apply('try', 2 + _catches.length);
   }
+}
+
+class _VariablePattern extends Pattern {
+  final Type? declaredType;
+
+  final Var variable;
+
+  final String? expectInferredType;
+
+  _VariablePattern(this.declaredType, this.variable, this.expectInferredType)
+      : super._();
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    assignedVariables.declare(variable);
+  }
+
+  @override
+  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) {
+    return h.typeAnalyzer.analyzeVariablePattern(this, variable, declaredType);
+  }
+
+  @override
+  _debugString({required bool needsKeywordOrType}) => [
+        if (declaredType != null)
+          declaredType!.type
+        else if (needsKeywordOrType)
+          'var',
+        variable.name,
+        if (expectInferredType != null) '(expected type $expectInferredType)'
+      ].join(' ');
 }
 
 class _VariableReference extends LValue {

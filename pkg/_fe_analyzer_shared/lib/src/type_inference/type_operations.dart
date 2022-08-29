@@ -75,3 +75,15 @@ mixin TypeOperations<Type extends Object> {
   /// promoted type if it succeeds, otherwise null.
   Type? tryPromoteToType(Type to, Type from);
 }
+
+/// Interface used by [TypeAnalyzer] as a replacement for [TypeOperations].
+///
+/// This interface includes additional methods that are not needed by flow
+/// analysis.
+///
+/// TODO(paulberry): once the analyzer and front end both use [TypeAnalyzer],
+/// combine this mixin with [TypeOperations].
+mixin TypeOperations2<Type extends Object> implements TypeOperations<Type> {
+  /// Computes the least upper bound of [type1] and [type2].
+  Type lub(Type type1, Type type2);
+}

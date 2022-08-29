@@ -85,5 +85,359 @@ main() {
         ]);
       });
     });
+
+    group('Switch:', () {
+      test('IR', () {
+        h.run([
+          switchExpr(expr('int'), [
+            defaultExpr(body: intLiteral(0)),
+          ]).checkIr('switchExpr(expr(int), case(heads(default), 0))').stmt,
+        ]);
+      });
+
+      test('scrutinee expression context', () {
+        h.run([
+          switchExpr(expr('int').checkContext('?'), [
+            defaultExpr(body: intLiteral(0)),
+          ]).inContext('num'),
+        ]);
+      });
+
+      test('body expression context', () {
+        h.run([
+          switchExpr(expr('int'), [
+            defaultExpr(body: nullLiteral.checkContext('C?')),
+          ]).inContext('C?'),
+        ]);
+      });
+
+      test('least upper bound behavior', () {
+        h.run([
+          switchExpr(expr('int'), [
+            caseExpr(intLiteral(0).pattern, body: expr('int')),
+            defaultExpr(body: expr('double')),
+          ]).checkType('num').stmt
+        ]);
+      });
+
+      test('when clause', () {
+        var i = Var('i');
+        h.run([
+          switchExpr(expr('int'), [
+            caseExpr(i.pattern(),
+                when: i.expr
+                    .checkType('int')
+                    .eq(expr('num'))
+                    .checkContext('bool'),
+                body: expr('String')),
+          ])
+              .checkIr('switchExpr(expr(int), '
+                  'case(heads(head(varPattern(i, int), ==(i, expr(num)))), '
+                  'expr(String)))')
+              .stmt,
+        ]);
+      });
+    });
+  });
+
+  group('Statements:', () {
+    group('Switch:', () {
+      test('const pattern', () {
+        h.run([
+          switch_(
+                  expr('int').checkContext('?'),
+                  [
+                    case_(intLiteral(0).pattern, body: [
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false)
+              .checkIr('switch(expr(int), '
+                  'case(heads(head(const(0))), block(break())))'),
+        ]);
+      });
+
+      group('var pattern:', () {
+        test('untyped', () {
+          var x = Var('x');
+          h.run([
+            switch_(
+                    expr('int').checkContext('?'),
+                    [
+                      case_(x.pattern(), body: [
+                        break_(),
+                      ]),
+                    ],
+                    isExhaustive: false)
+                .checkIr('switch(expr(int), '
+                    'case(heads(head(varPattern(x, int))), '
+                    'block(break())))'),
+          ]);
+        });
+
+        test('typed', () {
+          var x = Var('x');
+          h.run([
+            switch_(
+                    expr('int').checkContext('?'),
+                    [
+                      case_(x.pattern(type: 'num'), body: [
+                        break_(),
+                      ]),
+                    ],
+                    isExhaustive: false)
+                .checkIr('switch(expr(int), '
+                    'case(heads(head(varPattern(x, num))), '
+                    'block(break())))'),
+          ]);
+        });
+      });
+
+      test('scrutinee expression context', () {
+        h.run([
+          switch_(
+              expr('int').checkContext('?'),
+              [
+                case_(intLiteral(0).pattern, body: [
+                  break_(),
+                ]),
+              ],
+              isExhaustive: false),
+        ]);
+      });
+
+      test('merge cases', () {
+        h.run([
+          switch_(
+                  expr('int'),
+                  [
+                    case_(intLiteral(0).pattern, body: []),
+                    case_(intLiteral(1).pattern, body: [
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false)
+              .checkIr('switch(expr(int), '
+                  'case(heads(head(const(0)), head(const(1))), '
+                  'block(break())))'),
+        ]);
+      });
+
+      test('merge labels', () {
+        var x = Var('x');
+        var l = Label('l');
+        h.run([
+          declare(x, type: 'int?', initializer: expr('int?')),
+          x.expr.as_('int').stmt,
+          switch_(
+                  expr('int'),
+                  [
+                    l.thenCase(case_(intLiteral(0).pattern, body: [])),
+                    case_(intLiteral(1).pattern, body: [
+                      x.expr.checkType('int?').stmt,
+                      break_(),
+                    ]),
+                    case_(intLiteral(2).pattern, body: [
+                      x.expr.checkType('int').stmt,
+                      x.write(nullLiteral).stmt,
+                      continue_(),
+                    ])
+                  ],
+                  isExhaustive: false)
+              .checkIr('switch(expr(int), '
+                  'case(heads(head(const(0)), head(const(1)), l), '
+                  'block(x, break())), '
+                  'case(heads(head(const(2))), block(x, null, continue())))'),
+        ]);
+      });
+
+      test('empty final case', () {
+        h.run([
+          switch_(
+                  expr('int'),
+                  [
+                    case_(intLiteral(0).pattern, body: [
+                      break_(),
+                    ]),
+                    case_(intLiteral(1).pattern, body: []),
+                  ],
+                  isExhaustive: false)
+              .checkIr('switch(expr(int), '
+                  'case(heads(head(const(0))), block(break())), '
+                  'case(heads(head(const(1))), block()))'),
+        ]);
+      });
+
+      test('when clause', () {
+        var i = Var('i');
+        h.run([
+          switch_(
+                  expr('int'),
+                  [
+                    case_(i.pattern(),
+                        when: i.expr
+                            .checkType('int')
+                            .eq(expr('num'))
+                            .checkContext('bool'),
+                        body: [
+                          break_(),
+                        ]),
+                  ],
+                  isExhaustive: true)
+              .checkIr('switch(expr(int), '
+                  'case(heads(head(varPattern(i, int), ==(i, expr(num)))), '
+                  'block(break())))'),
+        ]);
+      });
+
+      group('missing var:', () {
+        test('default', () {
+          var x = Var('x');
+          h.run([
+            switch_(
+                    expr('int'),
+                    [
+                      case_(x.pattern(), body: []),
+                      default_(body: [])..errorId = 'DEFAULT',
+                    ],
+                    isExhaustive: true)
+                .expectErrors({'missingMatchVar(DEFAULT, x)'}),
+          ]);
+        });
+
+        test('case', () {
+          var x = Var('x');
+          h.run([
+            switch_(
+                    expr('int'),
+                    [
+                      case_(intLiteral(0).pattern, body: [])
+                        ..errorId = 'CASE(0)',
+                      case_(x.pattern(), body: []),
+                    ],
+                    isExhaustive: true)
+                .expectErrors({'missingMatchVar(CASE(0), x)'}),
+          ]);
+        });
+
+        test('label', () {
+          var x = Var('x');
+          var l = Label('l')..errorId = 'LABEL';
+          h.run([
+            switch_(
+                    expr('int'),
+                    [
+                      l.thenCase(case_(x.pattern(), body: [])),
+                    ],
+                    isExhaustive: true)
+                .expectErrors({'missingMatchVar(LABEL, x)'}),
+          ]);
+        });
+      });
+
+      group('conflicting var:', () {
+        test('explicit/explicit type', () {
+          var x = Var('x');
+          h.run([
+            switch_(
+                    expr('num'),
+                    [
+                      case_(x.pattern(type: 'int')..errorId = 'PATTERN(int x)',
+                          body: []),
+                      case_(x.pattern(type: 'num')..errorId = 'PATTERN(num x)',
+                          body: []),
+                    ],
+                    isExhaustive: true)
+                .expectErrors({
+              'inconsistentMatchVar(pattern: PATTERN(num x), type: num, '
+                  'previousPattern: PATTERN(int x), previousType: int)'
+            }),
+          ]);
+        });
+
+        test('explicit/implicit type', () {
+          // TODO(paulberry): not sure whether this should be treated as a
+          // conflict.  See https://github.com/dart-lang/language/issues/2424.
+          var x = Var('x');
+          h.run([
+            switch_(
+                    expr('int'),
+                    [
+                      case_(x.pattern()..errorId = 'PATTERN(x)', body: []),
+                      case_(x.pattern(type: 'int')..errorId = 'PATTERN(int x)',
+                          body: []),
+                    ],
+                    isExhaustive: true)
+                .expectErrors({
+              'inconsistentMatchVarExplicitness(pattern: PATTERN(int x), '
+                  'previousPattern: PATTERN(x))'
+            }),
+          ]);
+        });
+
+        test('implicit/implicit type', () {
+          // TODO(paulberry): need more support to be able to test this
+        });
+      });
+    });
+
+    group('Variable declaration:', () {
+      test('initialized, typed', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num', initializer: expr('int').checkContext('num'))
+              .checkIr('match(expr(int), varPattern(x, num))'),
+        ]);
+      });
+
+      test('initialized, untyped', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('int').checkContext('?'))
+              .checkIr('match(expr(int), varPattern(x, int))'),
+        ]);
+      });
+
+      test('uninitialized, typed', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int').checkIr('declare(varPattern(x, int))'),
+        ]);
+      });
+
+      test('uninitialized, untyped', () {
+        var x = Var('x');
+        h.run([
+          declare(x).checkIr('declare(varPattern(x, dynamic))'),
+        ]);
+      });
+
+      test('promoted initializer', () {
+        h.addSubtype('T&int', 'T', true);
+        h.addSubtype('T&int', 'Object', true);
+        h.addFactor('T', 'T&int', 'T');
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('T&int'))
+              .checkIr('match(expr(T&int), varPattern(x, T))'),
+        ]);
+      });
+
+      test('legal late pattern', () {
+        var x = Var('x');
+        h.run([
+          match(x.pattern(), intLiteral(0), isLate: true)
+              .checkIr('match_late(0, varPattern(x, int))'),
+        ]);
+      });
+
+      test('illegal late pattern', () {
+        h.run([
+          match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0),
+                  isLate: true)
+              .expectErrors({'patternDoesNotAllowLate(PATTERN)'}),
+        ]);
+      });
+    });
   });
 }
