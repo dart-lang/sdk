@@ -2678,6 +2678,30 @@ class _HttpClient implements HttpClient {
     }
   }
 
+  bool _isValidToken(String token) {
+    checkNotNullable(token, "token");
+    // from https://www.rfc-editor.org/rfc/rfc2616#page-15
+    //
+    // CTL            = <any US-ASCII control character
+    //                  (octets 0 - 31) and DEL (127)>
+    // separators     = "(" | ")" | "<" | ">" | "@"
+    //                | "," | ";" | ":" | "\" | <">
+    //                | "/" | "[" | "]" | "?" | "="
+    //                | "{" | "}" | SP | HT
+    // token          = 1*<any CHAR except CTLs or separators>
+    const _validChars = r"                                "
+        r" ! #$%&'  *+ -. 0123456789      "
+        r" ABCDEFGHIJKLMNOPQRSTUVWXYZ   ^_"
+        r"`abcdefghijklmnopqrstuvwxyz | ~ ";
+    for (int codeUnit in token.codeUnits) {
+      if (codeUnit >= _validChars.length ||
+          _validChars.codeUnitAt(codeUnit) == 0x20) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   Future<_HttpClientRequest> _openUrl(String method, Uri uri) {
     if (_closing) {
       throw StateError("Client is closed");
@@ -2686,9 +2710,11 @@ class _HttpClient implements HttpClient {
     // Ignore any fragments on the request URI.
     uri = uri.removeFragment();
 
-    if (method == null) {
-      throw ArgumentError(method);
+    // from https://www.rfc-editor.org/rfc/rfc2616#page-35
+    if (!_isValidToken(method)) {
+      throw ArgumentError.value(method, "method");
     }
+
     if (method != "CONNECT") {
       if (uri.host.isEmpty) {
         throw ArgumentError("No host specified in URI $uri");

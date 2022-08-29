@@ -5,7 +5,11 @@
 library dart._http;
 
 import 'dart:_internal'
-    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
+    show
+        checkNotNullable,
+        Since,
+        valueOfNonNullableParamWithDefault,
+        HttpStatus;
 import 'dart:async';
 import 'dart:collection'
     show

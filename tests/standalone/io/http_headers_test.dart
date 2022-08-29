@@ -16,7 +16,11 @@ import "dart:typed_data";
 import "package:expect/expect.dart";
 
 import "../../../sdk/lib/internal/internal.dart"
-    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
+    show
+        checkNotNullable,
+        Since,
+        valueOfNonNullableParamWithDefault,
+        HttpStatus;
 
 part "../../../sdk/lib/_http/crypto.dart";
 part "../../../sdk/lib/_http/embedder_config.dart";
