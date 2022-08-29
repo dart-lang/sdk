@@ -187,7 +187,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('libraries-spec',
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
-      help: 'Use debugger-friendly modules names', defaultsTo: true)
+      help: 'Use debugger-friendly modules names', defaultsTo: false)
   ..addFlag('experimental-emit-debug-metadata',
       help: 'Emit module and library metadata for the debugger',
       defaultsTo: false)
@@ -285,7 +285,7 @@ abstract class CompilerInterface {
   /// accepted state.
   Future<void> rejectLastDelta();
 
-  /// This let's compiler know that source file identifed by `uri` was changed.
+  /// This let's compiler know that source file identified by `uri` was changed.
   void invalidate(Uri uri);
 
   /// Resets incremental compiler accept/reject status so that next time
@@ -668,7 +668,7 @@ class FrontendCompiler implements CompilerInterface {
     previouslyReportedDependencies = uris;
   }
 
-  /// Write a JavaScript bundle containg the provided component.
+  /// Write a JavaScript bundle containing the provided component.
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat,
       {bool fullComponent}) async {
@@ -689,10 +689,13 @@ class FrontendCompiler implements CompilerInterface {
       soundNullSafety: soundNullSafety,
     );
     if (fullComponent) {
-      await _bundler.initialize(component, _mainSource);
+      await _bundler.initialize(component, _mainSource, packageConfig);
     } else {
       await _bundler.invalidate(
-          component, _generator.lastKnownGoodResult?.component, _mainSource);
+          component,
+          _generator.lastKnownGoodResult?.component,
+          _mainSource,
+          packageConfig);
     }
 
     // Create JavaScript bundler.
@@ -908,7 +911,7 @@ class FrontendCompiler implements CompilerInterface {
 
   /// Program compilers per module.
   ///
-  /// Produced suring initial compilation of the module to JavaScript,
+  /// Produced during initial compilation of the module to JavaScript,
   /// cached to be used for expression compilation in [compileExpressionToJs].
   final Map<String, ProgramCompiler> cachedProgramCompilers = {};
 

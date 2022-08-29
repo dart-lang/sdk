@@ -178,7 +178,6 @@ Future<void> main(List<String> args) async {
     "$rootPath/flutter_patched_sdk/",
     "--incremental",
     "--target=flutter",
-    "--debugger-module-names",
     "--output-dill",
     "$rootPath/flutter_server_tmp.dill",
     "--packages",
