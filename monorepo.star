@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 """
 Defines the monorepo builders.
-Currently only triggered manually, while prototyping.
 """
 
 load("//lib/dart.star", "dart")
@@ -16,6 +15,7 @@ dart.ci_sandbox_builder(
     execution_timeout = 60 * time.minute,
     notifies = None,
     priority = priority.high,
+    triggered_by = ["dart-gitiles-trigger-monorepo"],
     schedule = "triggered",
 )
 
@@ -23,9 +23,10 @@ dart.ci_sandbox_builder(
     name = "monorepo-builder-v2",
     channels = [],
     dimensions = {"pool": "dart.tests"},
-    executable = dart.flutter_recipe("engine_v2/builder_v2"),
+    executable = dart.flutter_recipe("engine_v2/builder"),
     execution_timeout = 60 * time.minute,
     notifies = None,
     priority = priority.high,
-    schedule = "triggered",
+    triggered_by = [],
+    schedule = None,
 )

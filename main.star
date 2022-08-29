@@ -177,6 +177,13 @@ luci.gitiles_poller(
 )
 
 luci.gitiles_poller(
+    name = "dart-gitiles-trigger-monorepo",
+    bucket = "ci",
+    repo = "https://dart.googlesource.com/monorepo/",
+    refs = ["refs/heads/main"],
+)
+
+luci.gitiles_poller(
     name = "dart-ci-test-data-trigger",
     bucket = "ci",
     path_regexps = ["tools/bots/ci_test_data_trigger"],
