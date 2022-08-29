@@ -249,6 +249,39 @@ void f() {
     ]);
   }
 
+  /// While linking `b.dart` and `c.dart` library cycle, we build their
+  /// import scopes, and while doing this we access `hasDeprecated` on the
+  /// `export a.dart` in `b.dart`. But because the metadata is not resolved
+  /// yet (we are still linking!), we cache metadata flags that don't
+  /// reflect the actual state. So, we need to reset them after linking.
+  /// If we don't, we will fail to report the hint.
+  test_deprecated_libraryCycle() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo() {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'c.dart';
+
+@deprecated
+export 'a.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+import 'b.dart';
+''');
+
+    await assertErrorsInCode('''
+import 'b.dart';
+
+void f() {
+  foo();
+}
+''', [
+      error(HintCode.DEPRECATED_EXPORT_USE, 31, 3),
+    ]);
+  }
+
   test_deprecated_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 void set foo(int _) {}

@@ -4053,7 +4053,9 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  LibraryExportElement? get element2 => super.element2 as LibraryExportElement?;
+  LibraryExportElementImpl? get element2 {
+    return super.element2 as LibraryExportElementImpl?;
+  }
 
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;

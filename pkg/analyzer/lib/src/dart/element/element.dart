@@ -2759,6 +2759,10 @@ abstract class ElementImpl implements Element {
     return true;
   }
 
+  void resetMetadataFlags() {
+    _metadataFlags = 0;
+  }
+
   /// Use the given [visitor] to visit all of the [children] in the given array.
   void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
     for (Element child in children) {
