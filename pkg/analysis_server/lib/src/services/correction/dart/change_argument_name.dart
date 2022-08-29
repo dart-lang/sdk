@@ -71,7 +71,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [ChangeArgumentName] producer.
 class _ChangeName extends CorrectionProducer {
   /// The name of the argument being changed.

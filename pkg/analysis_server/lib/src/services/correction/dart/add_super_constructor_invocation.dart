@@ -50,7 +50,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [AddSuperConstructorInvocation] producer.
 class _AddInvocation extends CorrectionProducer {
   /// The constructor to be invoked.
