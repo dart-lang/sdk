@@ -8,6 +8,7 @@
 general/error_recovery/issue_38415.crash: EmptyOutput
 general/error_recovery/issue_39024.crash: EmptyOutput
 general/error_recovery/issue_39058.crash: EmptyOutput
+general/issue49357a: EmptyOutput
 rasta/bad_interpolation: EmptyOutput
 rasta/issue_000035: EmptyOutput
 rasta/issue_000035a: EmptyOutput
