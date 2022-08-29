@@ -452,6 +452,25 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
   }
 
   @override
+  RecordType visitRecordType(
+      ParsedRecordType node, TypeParserEnvironment environment) {
+    List<DartType> positional = <DartType>[];
+    List<NamedType> named = <NamedType>[];
+    {
+      for (ParsedType positionalField in node.positional) {
+        positional.add(_parseType(positionalField, environment));
+      }
+      for (ParsedNamedArgument namedField in node.named) {
+        named.add(new NamedType(
+            namedField.name, _parseType(namedField.type, environment)));
+      }
+    }
+    named.sort();
+    return new RecordType(
+        positional, named, interpretParsedNullability(node.parsedNullability));
+  }
+
+  @override
   VoidType visitVoidType(
       ParsedVoidType node, TypeParserEnvironment environment) {
     return const VoidType();

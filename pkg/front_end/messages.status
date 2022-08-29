@@ -217,10 +217,6 @@ DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 DuplicatedRecordLiteralFieldName/analyzerCode: Fail
 DuplicatedRecordTypeFieldName/analyzerCode: Fail
-EmptyRecordTypeFieldsList/part_wrapped_script: Crash # Missing subtyping for record types
-EmptyRecordTypeFieldsList/script: Crash # Missing subtyping for record types
-EmptyRecordTypeNamedFieldsList/part_wrapped_script: Crash # Missing subtyping for record types
-EmptyRecordTypeNamedFieldsList/script: Crash # Missing subtyping for record types
 Encoding/analyzerCode: Fail
 EnumAbstractMember/analyzerCode: Fail
 EnumAbstractMember/example: Fail
@@ -752,8 +748,6 @@ NullableTearoffError/analyzerCode: Fail
 NullableTearoffError/example: Fail
 NullableTearoffWarning/analyzerCode: Fail
 NullableTearoffWarning/example: Fail
-OnlyOneRecordTypeFieldsList/part_wrapped_script: Crash # Missing subtyping for record types
-OnlyOneRecordTypeFieldsList/script: Crash # Missing subtyping for record types
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail

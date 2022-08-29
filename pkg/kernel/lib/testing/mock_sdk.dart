@@ -16,4 +16,5 @@ class Null;
 class Function;
 class String;
 class bool;
+class Record;
 """;
