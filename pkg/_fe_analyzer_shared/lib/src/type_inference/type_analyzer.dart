@@ -208,7 +208,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       Node? pattern = caseInfo.pattern;
       if (pattern != null) {
         dispatchPattern(pattern)
-            .match(expressionType, bindings, isFinal: true, isLate: false);
+            .match(expressionType, bindings, isFinal: false, isLate: false);
         Expression? when = caseInfo.when;
         bool hasWhen = when != null;
         if (hasWhen) {
@@ -284,7 +284,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
           Node? pattern = caseInfo.pattern;
           if (pattern != null) {
             dispatchPattern(pattern)
-                .match(expressionType, bindings, isFinal: true, isLate: false);
+                .match(expressionType, bindings, isFinal: false, isLate: false);
             Expression? when = caseInfo.when;
             bool hasWhen = when != null;
             if (hasWhen) {

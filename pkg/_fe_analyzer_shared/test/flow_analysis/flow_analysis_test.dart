@@ -1944,17 +1944,11 @@ main() {
     });
 
     test('switchExpression var promotes', () {
-      // TODO(paulberry): I wrote this code assuming that variable patterns in
-      // switch expressions are final, therefore the implicit assignment
-      // performed by the pattern match should *not* promote from `int?` to
-      // `int`.  But it has been decided that we should do the opposite, so this
-      // behavior needs to be changed--see
-      // https://github.com/dart-lang/language/issues/2416.
       var x = Var('x');
       h.run([
         switchExpr(expr('int'), [
           caseExpr(x.pattern(type: 'int?'),
-              body: checkNotPromoted(x).thenExpr(nullLiteral)),
+              body: checkPromoted(x, 'int').thenExpr(nullLiteral)),
         ]).stmt,
       ]);
     });
@@ -1977,18 +1971,13 @@ main() {
     });
 
     test('switchStatement var promotes', () {
-      // TODO(paulberry): I'm currently assuming that variable patterns in
-      // switch expressions are final, therefore the implicit assignment
-      // performed by the pattern match should *not* promote from `int?` to
-      // `int`.  But this has not been decided--see
-      // https://github.com/dart-lang/language/issues/2416.
       var x = Var('x');
       h.run([
         switch_(
             expr('int'),
             [
               case_(x.pattern(type: 'int?'), body: [
-                checkNotPromoted(x),
+                checkPromoted(x, 'int'),
               ]),
             ],
             isExhaustive: true),
