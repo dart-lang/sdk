@@ -9,6 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -20,12 +21,8 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
-import 'package:collection/collection.dart';
 
 class PropertyElementResolver with ScopeHelpers {
-  /// A regular expression used to match positional field names.
-  static final RegExp _recordPositionalFieldName = RegExp(r'^\$([0-9]+)$');
-
   final ResolverVisitor _resolver;
 
   PropertyElementResolver(this._resolver);
@@ -454,12 +451,12 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (targetType is RecordType) {
-      final result = _resolveTargetRecordType(
-        targetType: targetType,
-        propertyName: propertyName,
-      );
-      if (result != null) {
-        return result;
+      final name = propertyName.name;
+      final field = targetType.fieldByName(name);
+      if (field != null) {
+        return PropertyElementResolverResult(
+          recordField: field,
+        );
       }
     }
 
@@ -748,32 +745,6 @@ class PropertyElementResolver with ScopeHelpers {
       writeElementRequested: writeElement,
       writeElementRecovery: null,
     );
-  }
-
-  PropertyElementResolverResult? _resolveTargetRecordType({
-    required RecordType targetType,
-    required SimpleIdentifier propertyName,
-  }) {
-    final namedField = targetType.namedFields.firstWhereOrNull(
-      (field) => field.name == propertyName.name,
-    );
-    if (namedField != null) {
-      return PropertyElementResolverResult(
-        recordField: namedField,
-      );
-    }
-
-    final match = _recordPositionalFieldName.firstMatch(propertyName.name);
-    if (match != null) {
-      final index = int.tryParse(match.group(1)!);
-      if (index != null && index < targetType.positionalFields.length) {
-        return PropertyElementResolverResult(
-          recordField: targetType.positionalFields[index],
-        );
-      }
-    }
-
-    return null;
   }
 
   PropertyElementResolverResult _resolveTargetSuperExpression({
