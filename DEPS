@@ -108,7 +108,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "49bc3ff32b5578b6e19f8fd376d668130941ee29", # manually rev'd
 
-  "dartdoc_rev": "63e2f2bd0816223cf886609bbeef5f49d2a16a1f",
+  "dartdoc_rev": "14581efa5b7a6083b51f8406ae9e3c5466316a03",
   "devtools_rev": "d131d19091f6b89ac89486bd92440a25a523e8b0",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
@@ -117,7 +117,7 @@ vars = {
   "html_rev": "8243e967caad9932c13971af3b2a7c8f028383d5",
   "http_multi_server_rev": "20bf079c8955d1250a45afb9cb096472a724a551",
   "http_parser_rev": "b968f7ddde0588273a6cbd1d2eb6569f418606ac",
-  "http_rev": "c7ee0ef0a8bd3488ce88698148df8a8778d78529",
+  "http_rev": "26793c20e5e51c2161bfa900e2b73f0b81b5e39a",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "7e3a1bbdeff241323f56295d8991c004bef815e6",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -127,7 +127,7 @@ vars = {
   "logging_rev": "d10e24844c2e01d3f6d2b5a1a2bb8717359c6a87",
   "markdown_rev": "32a94505ded3863b82310b86344a003a19c00341",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "matcher_rev": "cba63ebf8ed1daeffd5f3c55fd30085152c4512d",
+  "matcher_rev": "eacb003c0af376863d3a298ad035a589bd9fcbd8",
   "mime_rev": "0a75a41445eb642674a0a271eecde78cb025ee60",
   "mockito_rev": "2acf22f4d400c6e1eee0f6ca595092220fba8b34",
   "oauth2_rev": "199ebf15cbd5b07958438184f32e41c4447a57bf",
@@ -135,7 +135,7 @@ vars = {
   "path_rev": "9955b27b9bb98d87591208e19eb01c51d29fd467",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
-  "protobuf_rev": "19c4eb63e05e7a87c61a98ecca868fff904b589c",
+  "protobuf_rev": "53a1448f6da7a8035654cf502f1c62b45885bb63",
   "pub_rev": "ec35d46261b610e558dfd0d8525ca3fc8387b4b7", # manually rev'd
   "pub_semver_rev": "9fd28757ba45961ac5449e0f2b0020670e921475",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
