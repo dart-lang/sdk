@@ -26,6 +26,7 @@ import 'avoid_unused_constructor_parameters_test.dart'
 import 'avoid_void_async_test.dart' as avoid_void_async;
 import 'conditional_uri_does_not_exist_test.dart'
     as conditional_uri_does_not_exist;
+import 'constant_identifier_names_test.dart' as constant_identifier_names;
 import 'deprecated_consistency_test.dart' as deprecated_consistency;
 import 'discarded_futures_test.dart' as discarded_futures;
 import 'file_names_test.dart' as file_names;
@@ -88,6 +89,7 @@ void main() {
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
   conditional_uri_does_not_exist.main();
+  constant_identifier_names.main();
   deprecated_consistency.main();
   discarded_futures.main();
   file_names.main();
