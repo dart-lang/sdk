@@ -352,7 +352,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     void performRecoveryForErroneousCase() {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.isSuperInitializingFormal) {
-          formal.variable!.type = const DynamicType();
+          formal.type.registerInferredType(const InvalidType());
         }
       }
     }
