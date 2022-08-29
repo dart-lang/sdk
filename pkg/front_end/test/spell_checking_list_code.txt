@@ -1225,6 +1225,7 @@ sh
 sha
 shadowed
 shallow
+shares
 shas
 shelf
 shifts

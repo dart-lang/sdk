@@ -14,28 +14,35 @@ class ExpressionCaseInfo<Expression, Node> {
   /// For a `case` clause, the case pattern.  For a `default` clause, `null`.
   final Node? pattern;
 
+  /// For a `case` clause that has a `when` part, the expression following
+  /// `when`.  Otherwise `null`.
+  final Expression? when;
+
   /// The body of the `case` or `default` clause.
   final Expression body;
 
-  ExpressionCaseInfo(this.pattern, this.body);
+  ExpressionCaseInfo({required this.pattern, this.when, required this.body});
 }
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchStatement]
 /// about an individual `case` or `default` clause.
 ///
 /// The client is free to `implement` or `extend` this class.
-class StatementCaseInfo<Statement, Node> {
+class StatementCaseInfo<Statement, Expression, Node> {
   /// The AST node for this `case` or `default` clause.  This is used for error
   /// reporting, in case errors arise from mismatch among the variables bound by
   /// various cases that share a body.
   final Node node;
 
-  /// Indicates whether this `case` or `default` clause is preceded by one or
-  /// more `goto` labels.
-  final bool hasLabel;
+  /// The labels preceding this `case` or `default` clause, if any.
+  final List<Node> labels;
 
   /// For a `case` clause, the case pattern.  For a `default` clause, `null`.
   final Node? pattern;
+
+  /// For a `case` clause that has a `when` part, the expression following
+  /// `when`.  Otherwise `null`.
+  final Expression? when;
 
   /// The statements following this `case` or `default` clause.  If this list is
   /// empty, and this is not the last `case` or `default` clause, this clause
@@ -45,8 +52,9 @@ class StatementCaseInfo<Statement, Node> {
 
   StatementCaseInfo(
       {required this.node,
-      required this.hasLabel,
+      this.labels = const [],
       required this.pattern,
+      this.when,
       required this.body});
 }
 
@@ -70,6 +78,9 @@ class StatementCaseInfo<Statement, Node> {
 mixin TypeAnalyzer<Node extends Object, Statement extends Node,
         Expression extends Node, Variable extends Object, Type extends Object>
     implements VariableBindingCallbacks<Node, Variable, Type> {
+  /// Returns the type `bool`.
+  Type get boolType;
+
   /// Returns the type `double`.
   Type get doubleType;
 
@@ -175,6 +186,8 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// - [analyzeExpression]
   /// - For each `case` or `default` clause:
   ///   - [dispatchPattern] if this is a `case` clause
+  ///   - [analyzeExpression] if this is a `case` clause with a `when` part
+  ///   - [handleCaseHead] if this is a `case` clause
   ///   - [handleDefault] if this is a `default` clause
   ///   - [handleCase_afterCaseHeads]
   ///   - [analyzeExpression]
@@ -196,10 +209,17 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       if (pattern != null) {
         dispatchPattern(pattern)
             .match(expressionType, bindings, isFinal: true, isLate: false);
+        Expression? when = caseInfo.when;
+        bool hasWhen = when != null;
+        if (hasWhen) {
+          analyzeExpression(when, boolType);
+          flow?.switchStatement_afterWhen(when);
+        }
+        handleCaseHead(hasWhen: hasWhen);
       } else {
         handleDefault();
       }
-      handleCase_afterCaseHeads(1);
+      handleCase_afterCaseHeads(const [], 1);
       Type type = analyzeExpression(caseInfo.body, context);
       if (lubType == null) {
         lubType = type;
@@ -217,8 +237,11 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Invokes the following [TypeAnalyzer] methods (in order):
   /// - [dispatchExpression]
   /// - For each `case` or `default` body:
-  ///   - [dispatchPattern] for each `case` pattern associated with the body
-  ///   - [handleDefault] if a `default` clause is associated with the body
+  ///   - For each `case` or `default` clause associated with the body:
+  ///     - [dispatchPattern] if this is a `case` clause
+  ///     - [analyzeExpression] if this is a `case` clause with a `when` part
+  ///     - [handleCaseHead] if this is a `case` clause
+  ///     - [handleDefault] if this is a `default` clause
   ///   - [handleCase_afterCaseHeads]
   ///   - [dispatchStatement] for each statement in the body
   ///   - [finishStatementCase]
@@ -228,42 +251,65 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// length of [cases] because a case with no statements get merged into the
   /// case that follows).
   int analyzeSwitchStatement(Statement node, Expression scrutinee,
-      List<StatementCaseInfo<Statement, Node>> cases) {
+      List<StatementCaseInfo<Statement, Expression, Node>> cases) {
     Type expressionType = analyzeExpression(scrutinee, unknownType);
     flow?.switchStatement_expressionEnd(node);
-    bool hasLabel = false;
-    List<StatementCaseInfo<Statement, Node>>? casesInThisExecutionPath;
+    List<Node> labels = [];
+    List<StatementCaseInfo<Statement, Expression, Node>>?
+        casesInThisExecutionPath;
     int numExecutionPaths = 0;
     for (int i = 0; i < cases.length; i++) {
-      StatementCaseInfo<Statement, Node> caseInfo = cases[i];
-      hasLabel = hasLabel || caseInfo.hasLabel;
+      StatementCaseInfo<Statement, Expression, Node> caseInfo = cases[i];
+      labels.addAll(caseInfo.labels);
       (casesInThisExecutionPath ??= []).add(caseInfo);
       if (i == cases.length - 1 || caseInfo.body.isNotEmpty) {
         numExecutionPaths++;
-        flow?.switchStatement_beginCase(hasLabel, node);
+        flow?.switchStatement_beginCase(labels.isNotEmpty, node);
         VariableBindings<Node, Variable, Type> bindings =
             new VariableBindings(this);
         bindings.startAlternatives();
-        for (int i = 0; i < casesInThisExecutionPath.length; i++) {
-          StatementCaseInfo<Statement, Node> caseInfo =
+        // Labels count as empty patterns for the purposes of bindings.
+        for (Node label in labels) {
+          bindings.startAlternative(label);
+          bindings.finishAlternative();
+        }
+        int numCasesInThisExecutionPath = casesInThisExecutionPath.length;
+        if (numCasesInThisExecutionPath > 1) {
+          flow?.switchStatement_beginAlternatives();
+        }
+        for (int i = 0; i < numCasesInThisExecutionPath; i++) {
+          StatementCaseInfo<Statement, Expression, Node> caseInfo =
               casesInThisExecutionPath[i];
           bindings.startAlternative(caseInfo.node);
           Node? pattern = caseInfo.pattern;
           if (pattern != null) {
             dispatchPattern(pattern)
                 .match(expressionType, bindings, isFinal: true, isLate: false);
+            Expression? when = caseInfo.when;
+            bool hasWhen = when != null;
+            if (hasWhen) {
+              analyzeExpression(when, boolType);
+              flow?.switchStatement_afterWhen(when);
+            }
+            handleCaseHead(hasWhen: hasWhen);
           } else {
             handleDefault();
           }
           bindings.finishAlternative();
+          if (numCasesInThisExecutionPath > 1) {
+            flow?.switchStatement_endAlternative();
+          }
         }
         bindings.finishAlternatives();
-        handleCase_afterCaseHeads(casesInThisExecutionPath.length);
+        if (numCasesInThisExecutionPath > 1) {
+          flow?.switchStatement_endAlternatives();
+        }
+        handleCase_afterCaseHeads(labels, numCasesInThisExecutionPath);
         for (Statement statement in caseInfo.body) {
           dispatchStatement(statement);
         }
         finishStatementCase(node, i, caseInfo.body.length);
-        hasLabel = false;
+        labels.clear();
         casesInThisExecutionPath = null;
       }
     }
@@ -334,7 +380,10 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   void finishStatementCase(Statement node, int caseIndex, int numStatements);
 
   /// See [analyzeSwitchStatement] and [analyzeSwitchExpression].
-  void handleCase_afterCaseHeads(int numHeads);
+  void handleCase_afterCaseHeads(List<Node> labels, int numHeads);
+
+  /// See [analyzeSwitchStatement] and [analyzeSwitchExpression].
+  void handleCaseHead({required bool hasWhen});
 
   /// See [analyzeConstOrLiteralPattern].
   void handleConstOrLiteralPattern();

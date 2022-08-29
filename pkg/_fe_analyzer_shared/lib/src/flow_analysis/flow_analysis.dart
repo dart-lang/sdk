@@ -530,6 +530,17 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   @visibleForTesting
   SsaNode<Type>? ssaNodeForTesting(Variable variable);
 
+  /// Call this method just after visiting a `when` part of a case clause.  See
+  /// [switchStatement_expressionEnd] for details.
+  ///
+  /// [when] should be the expression following the `when` keyword.
+  void switchStatement_afterWhen(Expression when);
+
+  /// Call this method just before visiting a sequence of two or more `case` or
+  /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
+  /// for details.`
+  void switchStatement_beginAlternatives();
+
   /// Call this method just before visiting one of the cases in the body of a
   /// switch statement.  See [switchStatement_expressionEnd] for details.
   ///
@@ -547,6 +558,16 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// were listed in cases.
   void switchStatement_end(bool isExhaustive);
 
+  /// Call this method just after visiting a `case` or `default` clause, if it
+  /// shares a body with at least one other `case` or `default` clause.  See
+  /// [switchStatement_expressionEnd] for details.`
+  void switchStatement_endAlternative();
+
+  /// Call this method just after visiting a sequence of two or more `case` or
+  /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
+  /// for details.`
+  void switchStatement_endAlternatives();
+
   /// Call this method just after visiting the expression part of a switch
   /// statement or expression.  [switchStatement] should be the switch statement
   /// itself (or `null` if this is a switch expression).
@@ -554,9 +575,18 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// The order of visiting a switch statement should be:
   /// - Visit the switch expression.
   /// - Call [switchStatement_expressionEnd].
-  /// - For each switch case (including the default case, if any):
+  /// - For each case body:
   ///   - Call [switchStatement_beginCase].
-  ///   - Visit the case.
+  ///   - If there is more than one `case` or `default` clause associated with
+  ///     this case body, call [switchStatement_beginAlternatives].
+  ///   - For each `case` or `default` clause associated with this case body:
+  ///     - If a `when` clause is present, visit it and then call
+  ///       [switchStatement_afterWhen].
+  ///     - If there is more than one `case` or `default` clause associated with
+  ///       this case body, call [switchStatement_endAlternative].
+  ///   - If there is more than one `case` or `default` clause associated with
+  ///     this case body, call [switchStatement_endAlternatives].
+  ///   - Visit the case body.
   /// - Call [switchStatement_end].
   void switchStatement_expressionEnd(Statement? switchStatement);
 
@@ -1173,6 +1203,18 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  void switchStatement_afterWhen(Expression when) {
+    _wrap('switchStatement_afterWhen($when)',
+        () => _wrapped.switchStatement_afterWhen(when));
+  }
+
+  @override
+  void switchStatement_beginAlternatives() {
+    _wrap('switchStatement_beginAlternatives()',
+        () => _wrapped.switchStatement_beginAlternatives());
+  }
+
+  @override
   void switchStatement_beginCase(bool hasLabel, Statement? node) {
     _wrap('switchStatement_beginCase($hasLabel, $node)',
         () => _wrapped.switchStatement_beginCase(hasLabel, node));
@@ -1182,6 +1224,18 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   void switchStatement_end(bool isExhaustive) {
     _wrap('switchStatement_end($isExhaustive)',
         () => _wrapped.switchStatement_end(isExhaustive));
+  }
+
+  @override
+  void switchStatement_endAlternative() {
+    _wrap('switchStatement_endAlternative()',
+        () => _wrapped.switchStatement_endAlternative());
+  }
+
+  @override
+  void switchStatement_endAlternatives() {
+    _wrap('switchStatement_endAlternatives()',
+        () => _wrapped.switchStatement_endAlternatives());
   }
 
   @override
@@ -3686,6 +3740,22 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
+  void switchStatement_afterWhen(Expression when) {
+    ExpressionInfo<Type>? expressionInfo = _getExpressionInfo(when);
+    if (expressionInfo != null) {
+      _current = expressionInfo.ifTrue;
+    }
+  }
+
+  @override
+  void switchStatement_beginAlternatives() {
+    _current = _current.split();
+    _SwitchAlternativesContext<Type> context =
+        new _SwitchAlternativesContext<Type>(_current);
+    _stack.add(context);
+  }
+
+  @override
   void switchStatement_beginCase(bool hasLabel, Statement? node) {
     _SimpleStatementContext<Type> context =
         _stack.last as _SimpleStatementContext<Type>;
@@ -3712,6 +3782,21 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (!isExhaustive) breakState = _join(breakState, context._previous);
 
     _current = breakState.unsplit();
+  }
+
+  @override
+  void switchStatement_endAlternative() {
+    _SwitchAlternativesContext<Type> context =
+        _stack.last as _SwitchAlternativesContext<Type>;
+    context._combinedModel = _join(context._combinedModel, _current);
+    _current = context._previous;
+  }
+
+  @override
+  void switchStatement_endAlternatives() {
+    _SwitchAlternativesContext<Type> context =
+        _stack.removeLast() as _SwitchAlternativesContext<Type>;
+    _current = context._combinedModel!.unsplit();
   }
 
   @override
@@ -4515,10 +4600,22 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
+  void switchStatement_afterWhen(Expression when) {}
+
+  @override
+  void switchStatement_beginAlternatives() {}
+
+  @override
   void switchStatement_beginCase(bool hasLabel, Statement? node) {}
 
   @override
   void switchStatement_end(bool isExhaustive) {}
+
+  @override
+  void switchStatement_endAlternative() {}
+
+  @override
+  void switchStatement_endAlternatives() {}
 
   @override
   void switchStatement_expressionEnd(Statement? switchStatement) {}
@@ -4765,6 +4862,14 @@ class _SimpleStatementContext<Type extends Object>
   String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
       'continueModel: $_continueModel, previous: $_previous, '
       'checkpoint: $_checkpoint)';
+}
+
+class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
+  final FlowModel<Type> _previous;
+
+  FlowModel<Type>? _combinedModel;
+
+  _SwitchAlternativesContext(this._previous);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the information we

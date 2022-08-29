@@ -90,7 +90,7 @@ main() {
       test('IR', () {
         h.run([
           switchExpr(expr('int'), [
-            defaultExpr(intLiteral(0)),
+            defaultExpr(body: intLiteral(0)),
           ]).checkIr('switchExpr(expr(int), case(heads(default), 0))').stmt,
         ]);
       });
@@ -98,7 +98,7 @@ main() {
       test('scrutinee expression context', () {
         h.run([
           switchExpr(expr('int').checkContext('?'), [
-            defaultExpr(intLiteral(0)),
+            defaultExpr(body: intLiteral(0)),
           ]).inContext('num'),
         ]);
       });
@@ -106,7 +106,7 @@ main() {
       test('body expression context', () {
         h.run([
           switchExpr(expr('int'), [
-            defaultExpr(nullLiteral.checkContext('C?')),
+            defaultExpr(body: nullLiteral.checkContext('C?')),
           ]).inContext('C?'),
         ]);
       });
@@ -114,9 +114,27 @@ main() {
       test('least upper bound behavior', () {
         h.run([
           switchExpr(expr('int'), [
-            caseExpr(intLiteral(0).pattern, expr('int')),
-            defaultExpr(expr('double')),
+            caseExpr(intLiteral(0).pattern, body: expr('int')),
+            defaultExpr(body: expr('double')),
           ]).checkType('num').stmt
+        ]);
+      });
+
+      test('when clause', () {
+        var i = Var('i');
+        h.run([
+          switchExpr(expr('int'), [
+            caseExpr(i.pattern(),
+                when: i.expr
+                    .checkType('int')
+                    .eq(expr('num'))
+                    .checkContext('bool'),
+                body: expr('String')),
+          ])
+              .checkIr('switchExpr(expr(int), '
+                  'case(heads(head(varPattern(i, int), ==(i, expr(num)))), '
+                  'expr(String)))')
+              .stmt,
         ]);
       });
     });
@@ -129,13 +147,13 @@ main() {
           switch_(
                   expr('int').checkContext('?'),
                   [
-                    case_(intLiteral(0).pattern, [
+                    case_(intLiteral(0).pattern, body: [
                       break_(),
                     ]),
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(const(0)), block(break())))'),
+                  'case(heads(head(const(0))), block(break())))'),
         ]);
       });
 
@@ -146,13 +164,13 @@ main() {
             switch_(
                     expr('int').checkContext('?'),
                     [
-                      case_(x.pattern(), [
+                      case_(x.pattern(), body: [
                         break_(),
                       ]),
                     ],
                     isExhaustive: false)
                 .checkIr('switch(expr(int), '
-                    'case(heads(varPattern(x, int)), '
+                    'case(heads(head(varPattern(x, int))), '
                     'block(break())))'),
           ]);
         });
@@ -163,13 +181,13 @@ main() {
             switch_(
                     expr('int').checkContext('?'),
                     [
-                      case_(x.pattern(type: 'num'), [
+                      case_(x.pattern(type: 'num'), body: [
                         break_(),
                       ]),
                     ],
                     isExhaustive: false)
                 .checkIr('switch(expr(int), '
-                    'case(heads(varPattern(x, num)), '
+                    'case(heads(head(varPattern(x, num))), '
                     'block(break())))'),
           ]);
         });
@@ -180,7 +198,7 @@ main() {
           switch_(
               expr('int').checkContext('?'),
               [
-                case_(intLiteral(0).pattern, [
+                case_(intLiteral(0).pattern, body: [
                   break_(),
                 ]),
               ],
@@ -193,37 +211,43 @@ main() {
           switch_(
                   expr('int'),
                   [
-                    case_(intLiteral(0).pattern, []),
-                    case_(intLiteral(1).pattern, [
+                    case_(intLiteral(0).pattern, body: []),
+                    case_(intLiteral(1).pattern, body: [
                       break_(),
                     ]),
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(const(0), const(1)), block(break())))'),
+                  'case(heads(head(const(0)), head(const(1))), '
+                  'block(break())))'),
         ]);
       });
 
       test('merge labels', () {
         var x = Var('x');
+        var l = Label('l');
         h.run([
           declare(x, type: 'int?', initializer: expr('int?')),
           x.expr.as_('int').stmt,
           switch_(
-              expr('int'),
-              [
-                case_(intLiteral(0).pattern, [], hasLabel: true),
-                case_(intLiteral(1).pattern, [
-                  x.expr.checkType('int?').stmt,
-                  break_(),
-                ]),
-                case_(intLiteral(2).pattern, [
-                  x.expr.checkType('int').stmt,
-                  x.write(nullLiteral).stmt,
-                  continue_(),
-                ])
-              ],
-              isExhaustive: false),
+                  expr('int'),
+                  [
+                    l.thenCase(case_(intLiteral(0).pattern, body: [])),
+                    case_(intLiteral(1).pattern, body: [
+                      x.expr.checkType('int?').stmt,
+                      break_(),
+                    ]),
+                    case_(intLiteral(2).pattern, body: [
+                      x.expr.checkType('int').stmt,
+                      x.write(nullLiteral).stmt,
+                      continue_(),
+                    ])
+                  ],
+                  isExhaustive: false)
+              .checkIr('switch(expr(int), '
+                  'case(heads(head(const(0)), head(const(1)), l), '
+                  'block(x, break())), '
+                  'case(heads(head(const(2))), block(x, null, continue())))'),
         ]);
       });
 
@@ -232,15 +256,37 @@ main() {
           switch_(
                   expr('int'),
                   [
-                    case_(intLiteral(0).pattern, [
+                    case_(intLiteral(0).pattern, body: [
                       break_(),
                     ]),
-                    case_(intLiteral(1).pattern, []),
+                    case_(intLiteral(1).pattern, body: []),
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(const(0)), block(break())), '
-                  'case(heads(const(1)), block()))'),
+                  'case(heads(head(const(0))), block(break())), '
+                  'case(heads(head(const(1))), block()))'),
+        ]);
+      });
+
+      test('when clause', () {
+        var i = Var('i');
+        h.run([
+          switch_(
+                  expr('int'),
+                  [
+                    case_(i.pattern(),
+                        when: i.expr
+                            .checkType('int')
+                            .eq(expr('num'))
+                            .checkContext('bool'),
+                        body: [
+                          break_(),
+                        ]),
+                  ],
+                  isExhaustive: true)
+              .checkIr('switch(expr(int), '
+                  'case(heads(head(varPattern(i, int), ==(i, expr(num)))), '
+                  'block(break())))'),
         ]);
       });
 
@@ -251,8 +297,8 @@ main() {
             switch_(
                     expr('int'),
                     [
-                      case_(x.pattern(), []),
-                      default_([])..errorId = 'DEFAULT',
+                      case_(x.pattern(), body: []),
+                      default_(body: [])..errorId = 'DEFAULT',
                     ],
                     isExhaustive: true)
                 .expectErrors({'missingMatchVar(DEFAULT, x)'}),
@@ -265,11 +311,26 @@ main() {
             switch_(
                     expr('int'),
                     [
-                      case_(intLiteral(0).pattern, [])..errorId = 'CASE(0)',
-                      case_(x.pattern(), []),
+                      case_(intLiteral(0).pattern, body: [])
+                        ..errorId = 'CASE(0)',
+                      case_(x.pattern(), body: []),
                     ],
                     isExhaustive: true)
                 .expectErrors({'missingMatchVar(CASE(0), x)'}),
+          ]);
+        });
+
+        test('label', () {
+          var x = Var('x');
+          var l = Label('l')..errorId = 'LABEL';
+          h.run([
+            switch_(
+                    expr('int'),
+                    [
+                      l.thenCase(case_(x.pattern(), body: [])),
+                    ],
+                    isExhaustive: true)
+                .expectErrors({'missingMatchVar(LABEL, x)'}),
           ]);
         });
       });
@@ -282,9 +343,9 @@ main() {
                     expr('num'),
                     [
                       case_(x.pattern(type: 'int')..errorId = 'PATTERN(int x)',
-                          []),
+                          body: []),
                       case_(x.pattern(type: 'num')..errorId = 'PATTERN(num x)',
-                          []),
+                          body: []),
                     ],
                     isExhaustive: true)
                 .expectErrors({
@@ -302,9 +363,9 @@ main() {
             switch_(
                     expr('int'),
                     [
-                      case_(x.pattern()..errorId = 'PATTERN(x)', []),
+                      case_(x.pattern()..errorId = 'PATTERN(x)', body: []),
                       case_(x.pattern(type: 'int')..errorId = 'PATTERN(int x)',
-                          []),
+                          body: []),
                     ],
                     isExhaustive: true)
                 .expectErrors({

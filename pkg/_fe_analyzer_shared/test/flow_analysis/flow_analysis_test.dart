@@ -1628,10 +1628,11 @@ main() {
 
     test('labeledBlock without break', () {
       var x = Var('x');
+      var l = Label('l');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.isNot('int'), [
-          labeled((_) => return_()),
+          l.thenStmt(return_()),
         ]),
         checkPromoted(x, 'int'),
       ]);
@@ -1639,15 +1640,16 @@ main() {
 
     test('labeledBlock with break joins', () {
       var x = Var('x');
+      var l = Label('l');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         if_(x.expr.isNot('int'), [
-          labeled((t) => block([
-                if_(expr('bool'), [
-                  break_(t),
-                ]),
-                return_(),
-              ])),
+          l.thenStmt(block([
+            if_(expr('bool'), [
+              break_(l),
+            ]),
+            return_(),
+          ])),
         ]),
         checkNotPromoted(x),
       ]);
@@ -1914,8 +1916,8 @@ main() {
       h.run([
         switchExpr(throw_(expr('C')), [
           caseExpr(intLiteral(0).pattern,
-              checkReachable(false).thenExpr(intLiteral(1))),
-          defaultExpr(checkReachable(false).thenExpr(intLiteral(2))),
+              body: checkReachable(false).thenExpr(intLiteral(1))),
+          defaultExpr(body: checkReachable(false).thenExpr(intLiteral(2))),
         ]).stmt,
         checkReachable(false),
       ]);
@@ -1924,8 +1926,8 @@ main() {
     test('switchExpression throw in case body has isolated effect', () {
       h.run([
         switchExpr(expr('int'), [
-          caseExpr(intLiteral(0).pattern, throw_(expr('C'))),
-          defaultExpr(checkReachable(true).thenExpr(intLiteral(2))),
+          caseExpr(intLiteral(0).pattern, body: throw_(expr('C'))),
+          defaultExpr(body: checkReachable(true).thenExpr(intLiteral(2))),
         ]).stmt,
         checkReachable(true),
       ]);
@@ -1934,8 +1936,8 @@ main() {
     test('switchExpression throw in all case bodies affects flow after', () {
       h.run([
         switchExpr(expr('int'), [
-          caseExpr(intLiteral(0).pattern, throw_(expr('C'))),
-          defaultExpr(throw_(expr('C'))),
+          caseExpr(intLiteral(0).pattern, body: throw_(expr('C'))),
+          defaultExpr(body: throw_(expr('C'))),
         ]).stmt,
         checkReachable(false),
       ]);
@@ -1952,7 +1954,7 @@ main() {
       h.run([
         switchExpr(expr('int'), [
           caseExpr(x.pattern(type: 'int?'),
-              checkNotPromoted(x).thenExpr(nullLiteral)),
+              body: checkNotPromoted(x).thenExpr(nullLiteral)),
         ]).stmt,
       ]);
     });
@@ -1962,10 +1964,10 @@ main() {
         switch_(
             throw_(expr('C')),
             [
-              case_(intLiteral(0).pattern, [
+              case_(intLiteral(0).pattern, body: [
                 checkReachable(false),
               ]),
-              case_(intLiteral(1).pattern, [
+              case_(intLiteral(1).pattern, body: [
                 checkReachable(false),
               ]),
             ],
@@ -1985,11 +1987,36 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(x.pattern(type: 'int?'), [
+              case_(x.pattern(type: 'int?'), body: [
                 checkNotPromoted(x),
               ]),
             ],
             isExhaustive: true),
+      ]);
+    });
+
+    test('switchStatement_afterWhen() promotes', () {
+      var x = Var('x');
+      h.run([
+        switch_(
+            expr('num'),
+            [
+              case_(x.pattern(), when: x.expr.is_('int'), body: [
+                checkPromoted(x, 'int'),
+              ]),
+            ],
+            isExhaustive: true),
+      ]);
+    });
+
+    test('switchStatement_afterWhen() called for switch expressions', () {
+      var x = Var('x');
+      h.run([
+        switchExpr(expr('num'), [
+          caseExpr(x.pattern(),
+              when: x.expr.is_('int'),
+              body: checkPromoted(x, 'int').thenExpr(expr('String'))),
+        ]).stmt,
       ]);
     });
 
@@ -2001,12 +2028,12 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, [
+              case_(intLiteral(0).pattern, body: [
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
               ]),
-              case_(intLiteral(1).pattern, [
+              case_(intLiteral(1).pattern, body: [
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -2024,7 +2051,7 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, [
+              case_(intLiteral(0).pattern, body: [
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -2043,7 +2070,7 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, [
+              case_(intLiteral(0).pattern, body: [
                 checkPromoted(x, 'int'),
                 localFunction([
                   x.write(expr('int?')).stmt,
@@ -2057,6 +2084,7 @@ main() {
 
     test('switchStatement_beginCase(true) un-promotes', () {
       var x = Var('x');
+      var l = Label('l');
       late SsaNode<Type> ssaBeforeSwitch;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
@@ -2067,16 +2095,13 @@ main() {
               getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
             ])),
             [
-              case_(
-                  intLiteral(0).pattern,
-                  [
-                    checkNotPromoted(x),
-                    getSsaNodes(
-                        (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
-                    x.write(expr('int?')).stmt,
-                    checkNotPromoted(x),
-                  ],
-                  hasLabel: true),
+              l.thenCase(case_(intLiteral(0).pattern, body: [
+                checkNotPromoted(x),
+                getSsaNodes(
+                    (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
+                x.write(expr('int?')).stmt,
+                checkNotPromoted(x),
+              ])),
             ],
             isExhaustive: false),
       ]);
@@ -2084,23 +2109,21 @@ main() {
 
     test('switchStatement_beginCase(true) handles write captures in cases', () {
       var x = Var('x');
+      var l = Label('l');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
             expr('int'),
             [
-              case_(
-                  intLiteral(0).pattern,
-                  [
-                    x.expr.as_('int').stmt,
-                    checkNotPromoted(x),
-                    localFunction([
-                      x.write(expr('int?')).stmt,
-                    ]),
-                    checkNotPromoted(x),
-                  ],
-                  hasLabel: true),
+              l.thenCase(case_(intLiteral(0).pattern, body: [
+                x.expr.as_('int').stmt,
+                checkNotPromoted(x),
+                localFunction([
+                  x.write(expr('int?')).stmt,
+                ]),
+                checkNotPromoted(x),
+              ])),
             ],
             isExhaustive: false),
       ]);
@@ -2119,7 +2142,7 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, [
+              case_(intLiteral(0).pattern, body: [
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
                 break_(),
@@ -2148,13 +2171,13 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, [
+              case_(intLiteral(0).pattern, body: [
                 w.expr.as_('int').stmt,
                 y.expr.as_('int').stmt,
                 x.write(expr('int?')).stmt,
                 break_(),
               ]),
-              default_([
+              default_(body: [
                 w.expr.as_('int').stmt,
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
@@ -2176,14 +2199,38 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, [
+              case_(intLiteral(0).pattern, body: [
                 x.expr.as_('int').stmt,
                 break_(),
               ]),
-              default_([]),
+              default_(body: []),
             ],
             isExhaustive: true),
         checkNotPromoted(x),
+      ]);
+    });
+
+    test('switchStatement_endAlternative() joins branches', () {
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
+      h.run([
+        declare(y, type: 'num'),
+        declare(z, type: 'num'),
+        switch_(
+            expr('num'),
+            [
+              case_(x.pattern(),
+                  when: x.expr.is_('int').and(y.expr.is_('int')), body: []),
+              case_(x.pattern(),
+                  when: y.expr.is_('int').and(z.expr.is_('int')),
+                  body: [
+                    checkNotPromoted(x),
+                    checkPromoted(y, 'int'),
+                    checkNotPromoted(z),
+                  ]),
+            ],
+            isExhaustive: true),
       ]);
     });
 

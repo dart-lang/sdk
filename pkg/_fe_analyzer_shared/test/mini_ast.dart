@@ -28,14 +28,15 @@ Statement block(List<Statement> statements) => new _Block(statements);
 
 Expression booleanLiteral(bool value) => _BooleanLiteral(value);
 
-Statement break_([LabeledStatement? target]) => new _Break(target);
+Statement break_([Label? target]) => new _Break(target);
 
-StatementCase case_(Pattern pattern, List<Statement> body,
-        {bool hasLabel = false}) =>
-    StatementCase._(hasLabel, pattern, _Block(body));
+StatementCase case_(Pattern pattern,
+        {Expression? when, required List<Statement> body}) =>
+    StatementCase._(pattern, when, _Block(body));
 
-ExpressionCase caseExpr(Pattern pattern, Expression expression) =>
-    ExpressionCase._(pattern, expression);
+ExpressionCase caseExpr(Pattern pattern,
+        {Expression? when, required Expression body}) =>
+    ExpressionCase._(pattern, when, body);
 
 /// Creates a pseudo-statement whose function is to verify that flow analysis
 /// considers [variable]'s assigned state to be [expectedAssignedState].
@@ -77,11 +78,11 @@ Statement declare(Var variable,
         isLate: isLate,
         isFinal: isFinal);
 
-StatementCase default_(List<Statement> body, {bool hasLabel = false}) =>
-    StatementCase._(hasLabel, null, _Block(body));
+StatementCase default_({required List<Statement> body}) =>
+    StatementCase._(null, null, _Block(body));
 
-ExpressionCase defaultExpr(Expression expression) =>
-    ExpressionCase._(null, expression);
+ExpressionCase defaultExpr({required Expression body}) =>
+    ExpressionCase._(null, null, body);
 
 Statement do_(List<Statement> body, Expression condition) =>
     _Do(block(body), condition);
@@ -145,12 +146,6 @@ Statement if_(Expression condition, List<Statement> ifTrue,
 
 Literal intLiteral(int value, {bool? expectConversionToDouble}) =>
     new _IntLiteral(value, expectConversionToDouble: expectConversionToDouble);
-
-Statement labeled(Statement Function(LabeledStatement) callback) {
-  var labeledStatement = LabeledStatement._();
-  labeledStatement._body = callback(labeledStatement);
-  return labeledStatement;
-}
 
 Statement localFunction(List<Statement> body) => _LocalFunction(block(body));
 
@@ -280,12 +275,18 @@ class ExpressionCase extends Node
   final Pattern? pattern;
 
   @override
+  final Expression? when;
+
+  @override
   final Expression body;
 
-  ExpressionCase._(this.pattern, this.body) : super._();
+  ExpressionCase._(this.pattern, this.when, this.body) : super._();
 
-  String toString() =>
-      [pattern == null ? 'default:' : 'case $pattern:', '$body'].join(' ');
+  String toString() => [
+        pattern == null ? 'default' : 'case $pattern',
+        if (when != null) ' when $when',
+        ': $body'
+      ].join('');
 
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
     pattern?.preVisit(assignedVariables);
@@ -642,23 +643,29 @@ class Harness
   }
 }
 
-class LabeledStatement extends Statement {
-  late final Statement _body;
+class Label extends Node {
+  final String _name;
 
-  LabeledStatement._();
+  late final Node _binding;
 
-  @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    _body.preVisit(assignedVariables);
+  Label(this._name) : super._();
+
+  StatementCase thenCase(StatementCase case_) {
+    case_.labels.insert(0, this);
+    return case_;
+  }
+
+  Statement thenStmt(Statement statement) {
+    if (statement is! _LabeledStatement) {
+      statement = _LabeledStatement(statement);
+    }
+    statement._labels.insert(0, this);
+    _binding = statement;
+    return statement;
   }
 
   @override
-  String toString() => 'labeled: $_body';
-
-  @override
-  void visit(Harness h) {
-    h.typeAnalyzer.analyzeLabeledStatement(this, _body);
-  }
+  String toString() => _name;
 }
 
 abstract class Literal extends Expression {
@@ -765,16 +772,20 @@ abstract class Statement extends Node {
 
 /// Representation of a single case clause in a switch statement.  Use [case_]
 /// to create instances of this class.
-class StatementCase extends Node implements StatementCaseInfo<Statement, Node> {
+class StatementCase extends Node
+    implements StatementCaseInfo<Statement, Expression, Node> {
   @override
-  final bool hasLabel;
+  final List<Label> labels = [];
 
   @override
   final Pattern? pattern;
 
+  @override
+  final Expression? when;
+
   final _Block _statements;
 
-  StatementCase._(this.hasLabel, this.pattern, this._statements) : super._();
+  StatementCase._(this.pattern, this.when, this._statements) : super._();
 
   @override
   List<Statement> get body => _statements.statements;
@@ -783,7 +794,7 @@ class StatementCase extends Node implements StatementCaseInfo<Statement, Node> {
   Node get node => this;
 
   String toString() => [
-        if (hasLabel) '<label>:',
+        for (var label in labels) '$label:',
         pattern == null ? 'default:' : 'case $pattern:',
         ...body
       ].join(' ');
@@ -945,7 +956,7 @@ class _BooleanLiteral extends Literal {
 }
 
 class _Break extends Statement {
-  final LabeledStatement? target;
+  final Label? target;
 
   _Break(this.target);
 
@@ -957,7 +968,7 @@ class _Break extends Statement {
 
   @override
   void visit(Harness h) {
-    h.typeAnalyzer.analyzeBreakStatement(target);
+    h.typeAnalyzer.analyzeBreakStatement(target?._binding as Statement?);
     h.irBuilder.apply('break', 0);
   }
 }
@@ -1619,6 +1630,27 @@ class _Is extends Expression {
   }
 }
 
+class _LabeledStatement extends Statement {
+  final List<Label> _labels = [];
+
+  final Statement _body;
+
+  _LabeledStatement(this._body);
+
+  @override
+  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    _body.preVisit(assignedVariables);
+  }
+
+  @override
+  String toString() => [..._labels, _body].join(': ');
+
+  @override
+  void visit(Harness h) {
+    h.typeAnalyzer.analyzeLabeledStatement(this, _body);
+  }
+}
+
 class _LocalFunction extends Statement {
   final Statement body;
 
@@ -1752,6 +1784,7 @@ class _MiniAstTypeAnalyzer
 
   final _irBuilder = MiniIrBuilder();
 
+  @override
   late final Type boolType = Type('bool');
 
   @override
@@ -2083,8 +2116,16 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleCase_afterCaseHeads(int numHeads) {
-    _irBuilder.apply('heads', numHeads);
+  void handleCase_afterCaseHeads(List<Node> labels, int numHeads) {
+    for (var label in labels) {
+      _irBuilder.atom((label as Label)._name);
+    }
+    _irBuilder.apply('heads', numHeads + labels.length);
+  }
+
+  @override
+  void handleCaseHead({required bool hasWhen}) {
+    _irBuilder.apply('head', hasWhen ? 2 : 1);
   }
 
   @override
