@@ -52,7 +52,6 @@
     "Dynamic invocation of '[]'.": 7
   },
   "org-dartlang-sdk:///lib/io/io_resource_info.dart": {
-    "Dynamic invocation of '[]'.": 1,
     "Dynamic access of 'path'.": 1,
     "Dynamic access of 'dart.io::_path'.": 1,
     "Dynamic access of 'pid'.": 1,

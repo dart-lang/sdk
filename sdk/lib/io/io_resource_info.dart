@@ -112,7 +112,8 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
     ));
   }
 
-  static Future<ServiceExtensionResponse> getOpenFiles(function, params) {
+  static Future<ServiceExtensionResponse> getOpenFiles(
+      String function, Map<String, String> params) {
     assert(function == 'ext.dart.io.getOpenFiles');
     final data = {
       'type': 'OpenFileList',
@@ -125,7 +126,7 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
   Map<String, dynamic> get fileInfoMap => fullValueMap;
 
   static Future<ServiceExtensionResponse> getOpenFileInfoMapByID(
-      function, params) {
+      String function, Map<String, String> params) {
     final id = int.parse(params['id']!);
     final result = openFiles.containsKey(id) ? openFiles[id]!.fileInfoMap : {};
     final jsonValue = json.encode(result);
