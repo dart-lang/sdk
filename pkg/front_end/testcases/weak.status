@@ -4,6 +4,8 @@
 
 # Status file for the weak_suite.dart test suite.
 
+macros/scope_access: SemiFuzzCrash
+
 const_functions/const_functions_list: SemiFuzzCrash
 generic_metadata/typedef_generic_types_in_arguments_and_bounds: SemiFuzzCrash
 nnbd_mixed/mixed_mixin: SemiFuzzFailure
