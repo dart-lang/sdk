@@ -19,27 +19,27 @@ class VariableBinding<Node extends Object, Variable extends Object,
   /// [TypeAnalyzerErrors.matchVarOverlap].
   Node? _latestAlternative;
 
-  /// The type that was inferred when visiting [_latestPattern].  This is used
-  /// to detect [TypeAnalyzerErrors.inconsistentMatchVar].
-  Type _latestInferredType;
+  /// The static type of [_latestPattern].  This is used to detect
+  /// [TypeAnalyzerErrors.inconsistentMatchVar].
+  Type _latestStaticType;
 
   /// Indicates whether [_latestPattern] used an implicit type.  This is used to
   /// detect [TypeAnalyzerErrors.inconsistentMatchVarExplicitness].
   bool _isImplicitlyTyped;
 
   VariableBinding._(this._latestPattern, this.variable,
-      {required Type inferredType,
+      {required Type staticType,
       required bool isImplicitlyTyped,
       required Node? currentAlternative})
       : _latestAlternative = currentAlternative,
-        _latestInferredType = inferredType,
+        _latestStaticType = staticType,
         _isImplicitlyTyped = isImplicitlyTyped;
-
-  /// The type that was inferred for this variable.
-  Type get inferredType => _latestInferredType;
 
   /// Indicates whether this variable was implicitly typed.
   bool get isImplicitlyTyped => _isImplicitlyTyped;
+
+  /// The static type of this variable.
+  Type get staticType => _latestStaticType;
 }
 
 /// Callbacks used by [VariableBindings] to access members of [TypeAnalyzer].
@@ -85,11 +85,11 @@ class VariableBindings<Node extends Object, Variable extends Object,
 
   /// Updates the set of bindings to account for the presence of a variable
   /// pattern.  [pattern] is the variable pattern, [variable] is the variable it
-  /// refers to, [inferredType] is the type of the variable (inferred or
+  /// refers to, [staticType] is the static type of the variable (inferred or
   /// declared), and [isImplicitlyTyped] indicates whether the variable pattern
   /// had an explicit type.
   bool add(Node pattern, Variable variable,
-      {required Type inferredType, required bool isImplicitlyTyped}) {
+      {required Type staticType, required bool isImplicitlyTyped}) {
     VariableBinding<Node, Variable, Type>? binding = _bindings[variable];
     if (binding == null) {
       for (List<Node> alternatives in _alternatives) {
@@ -99,7 +99,7 @@ class VariableBindings<Node extends Object, Variable extends Object,
       }
       _bindings[variable] = new VariableBinding._(pattern, variable,
           currentAlternative: _currentAlternative,
-          inferredType: inferredType,
+          staticType: staticType,
           isImplicitlyTyped: isImplicitlyTyped);
       return true;
     } else {
@@ -108,13 +108,13 @@ class VariableBindings<Node extends Object, Variable extends Object,
             pattern: pattern, previousPattern: binding._latestPattern);
       }
       if (!_callbacks.typeOperations
-          .isSameType(binding._latestInferredType, inferredType)) {
+          .isSameType(binding._latestStaticType, staticType)) {
         _callbacks.errors.inconsistentMatchVar(
             pattern: pattern,
-            type: inferredType,
+            type: staticType,
             previousPattern: binding._latestPattern,
-            previousType: binding._latestInferredType);
-        binding._latestInferredType = inferredType;
+            previousType: binding._latestStaticType);
+        binding._latestStaticType = staticType;
       } else if (binding._isImplicitlyTyped != isImplicitlyTyped) {
         _callbacks.errors.inconsistentMatchVarExplicitness(
             pattern: pattern, previousPattern: binding._latestPattern);

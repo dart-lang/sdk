@@ -132,8 +132,8 @@ main() {
                 body: expr('String')),
           ])
               .checkIr('switchExpr(expr(int), '
-                  'case(heads(head(varPattern(i, int), ==(i, expr(num)))), '
-                  'expr(String)))')
+                  'case(heads(head(varPattern(i, matchedType: int, '
+                  'staticType: int), ==(i, expr(num)))), expr(String)))')
               .stmt,
         ]);
       });
@@ -153,7 +153,8 @@ main() {
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(head(const(0))), block(break())))'),
+                  'case(heads(head(const(0, matchedType: int))), '
+                  'block(break())))'),
         ]);
       });
 
@@ -170,8 +171,8 @@ main() {
                     ],
                     isExhaustive: false)
                 .checkIr('switch(expr(int), '
-                    'case(heads(head(varPattern(x, int))), '
-                    'block(break())))'),
+                    'case(heads(head(varPattern(x, matchedType: int, '
+                    'staticType: int))), block(break())))'),
           ]);
         });
 
@@ -187,8 +188,8 @@ main() {
                     ],
                     isExhaustive: false)
                 .checkIr('switch(expr(int), '
-                    'case(heads(head(varPattern(x, num))), '
-                    'block(break())))'),
+                    'case(heads(head(varPattern(x, matchedType: int, '
+                    'staticType: num))), block(break())))'),
           ]);
         });
       });
@@ -218,8 +219,8 @@ main() {
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(head(const(0)), head(const(1))), '
-                  'block(break())))'),
+                  'case(heads(head(const(0, matchedType: int)), '
+                  'head(const(1, matchedType: int))), block(break())))'),
         ]);
       });
 
@@ -245,9 +246,10 @@ main() {
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(head(const(0)), head(const(1)), l), '
-                  'block(x, break())), '
-                  'case(heads(head(const(2))), block(x, null, continue())))'),
+                  'case(heads(head(const(0, matchedType: int)), '
+                  'head(const(1, matchedType: int)), l), block(x, break())), '
+                  'case(heads(head(const(2, matchedType: int))), '
+                  'block(x, null, continue())))'),
         ]);
       });
 
@@ -263,8 +265,9 @@ main() {
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(head(const(0))), block(break())), '
-                  'case(heads(head(const(1))), block()))'),
+                  'case(heads(head(const(0, matchedType: int))), '
+                  'block(break())), '
+                  'case(heads(head(const(1, matchedType: int))), block()))'),
         ]);
       });
 
@@ -285,8 +288,8 @@ main() {
                   ],
                   isExhaustive: true)
               .checkIr('switch(expr(int), '
-                  'case(heads(head(varPattern(i, int), ==(i, expr(num)))), '
-                  'block(break())))'),
+                  'case(heads(head(varPattern(i, matchedType: int, '
+                  'staticType: int), ==(i, expr(num)))), block(break())))'),
         ]);
       });
 
@@ -386,7 +389,8 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'num', initializer: expr('int').checkContext('num'))
-              .checkIr('match(expr(int), varPattern(x, num))'),
+              .checkIr('match(expr(int), '
+                  'varPattern(x, matchedType: int, staticType: num))'),
         ]);
       });
 
@@ -394,21 +398,24 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('int').checkContext('?'))
-              .checkIr('match(expr(int), varPattern(x, int))'),
+              .checkIr('match(expr(int), '
+                  'varPattern(x, matchedType: int, staticType: int))'),
         ]);
       });
 
       test('uninitialized, typed', () {
         var x = Var('x');
         h.run([
-          declare(x, type: 'int').checkIr('declare(varPattern(x, int))'),
+          declare(x, type: 'int').checkIr(
+              'declare(varPattern(x, matchedType: int, staticType: int))'),
         ]);
       });
 
       test('uninitialized, untyped', () {
         var x = Var('x');
         h.run([
-          declare(x).checkIr('declare(varPattern(x, dynamic))'),
+          declare(x).checkIr('declare(varPattern(x, matchedType: dynamic, '
+              'staticType: dynamic))'),
         ]);
       });
 
@@ -418,8 +425,8 @@ main() {
         h.addFactor('T', 'T&int', 'T');
         var x = Var('x');
         h.run([
-          declare(x, initializer: expr('T&int'))
-              .checkIr('match(expr(T&int), varPattern(x, T))'),
+          declare(x, initializer: expr('T&int')).checkIr('match(expr(T&int), '
+              'varPattern(x, matchedType: T&int, staticType: T))'),
         ]);
       });
 
@@ -427,16 +434,78 @@ main() {
         var x = Var('x');
         h.run([
           match(x.pattern(), intLiteral(0), isLate: true)
-              .checkIr('match_late(0, varPattern(x, int))'),
+              .checkIr('match_late(0, varPattern(x, matchedType: int, '
+                  'staticType: int))'),
         ]);
       });
 
       test('illegal late pattern', () {
+        // TODO(paulberry): once we support some kind of irrefutable pattern
+        // other than a variable declaration, adjust this test so that the only
+        // error it expects is `patternDoesNotAllowLate`.
         h.run([
-          match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0),
+          (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0),
                   isLate: true)
-              .expectErrors({'patternDoesNotAllowLate(PATTERN)'}),
+                ..errorId = 'CONTEXT')
+              .expectErrors({
+            'patternDoesNotAllowLate(PATTERN)',
+            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          }),
         ]);
+      });
+
+      test('illegal refutable pattern', () {
+        h.run([
+          (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
+                ..errorId = 'CONTEXT')
+              .expectErrors(
+                  {'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'}),
+        ]);
+      });
+    });
+  });
+
+  group('Patterns:', () {
+    group('Const or literal:', () {
+      test('Refutability', () {
+        h.run([
+          (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
+                ..errorId = 'CONTEXT')
+              .expectErrors(
+                  {'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'}),
+        ]);
+      });
+    });
+
+    group('Variable:', () {
+      group('Refutability:', () {
+        test('When matched type is a subtype of variable type', () {
+          var x = Var('x');
+          h.run([
+            match(x.pattern(type: 'num'), expr('int'))
+                .checkIr('match(expr(int), '
+                    'varPattern(x, matchedType: int, staticType: num))'),
+          ]);
+        });
+
+        test('When matched type is dynamic', () {
+          var x = Var('x');
+          h.run([
+            match(x.pattern(type: 'num'), expr('dynamic'))
+                .checkIr('match(expr(dynamic), '
+                    'varPattern(x, matchedType: dynamic, staticType: num))'),
+          ]);
+        });
+
+        test('When matched type is not a subtype of variable type', () {
+          var x = Var('x');
+          h.run([
+            (match(x.pattern(type: 'num')..errorId = 'PATTERN', expr('String'))
+                  ..errorId = 'CONTEXT')
+                .expectErrors(
+                    {'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'}),
+          ]);
+        });
       });
     });
   });

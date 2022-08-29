@@ -446,6 +446,7 @@ es
 escalate
 establish
 established
+establishes
 estimate
 et
 eval
@@ -581,6 +582,7 @@ h
 hacky
 hadn't
 hang
+happening
 happy
 hardcode
 harness
@@ -695,6 +697,7 @@ ints
 invariants
 io
 ipv
+irrefutable
 isolate
 isolated
 isolates
@@ -1111,6 +1114,7 @@ refined
 reflect
 reflectee
 reflective
+refutable
 reg
 regenerations
 regis
