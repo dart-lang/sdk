@@ -121,7 +121,7 @@ class MakeVariableNullable extends CorrectionProducer {
       _variableName = parameter.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
         // Add '?' after `)`.
-        builder.addSimpleInsertion(parameter.endToken.end, '?');
+        builder.addSimpleInsertion(parameter.end, '?');
       });
     } else {
       var type = parameter.type;
@@ -144,7 +144,7 @@ class MakeVariableNullable extends CorrectionProducer {
     _variableName = parameter.name.lexeme;
     await builder.addDartFileEdit(file, (builder) {
       // Add '?' after `)`.
-      builder.addSimpleInsertion(parameter.endToken.end, '?');
+      builder.addSimpleInsertion(parameter.end, '?');
     });
   }
 
@@ -177,7 +177,7 @@ class MakeVariableNullable extends CorrectionProducer {
       _variableName = parameter.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
         // Add '?' after `)`.
-        builder.addSimpleInsertion(parameter.endToken.end, '?');
+        builder.addSimpleInsertion(parameter.end, '?');
       });
     } else {
       var type = parameter.type;

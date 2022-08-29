@@ -1444,17 +1444,22 @@ typedef int64_t Dart_Port;
 /**
  * A message notification callback.
  *
- * This callback allows the embedder to provide an alternate wakeup
- * mechanism for the delivery of inter-isolate messages.  It is the
- * responsibility of the embedder to call Dart_HandleMessage to
- * process the message.
+ * This callback allows the embedder to provide a custom wakeup mechanism for
+ * the delivery of inter-isolate messages. This function is called once per
+ * message on an arbitrary thread. It is the responsibility of the embedder to
+ * eventually call Dart_HandleMessage once per callback received with the
+ * destination isolate set as the current isolate to process the message.
  */
-typedef void (*Dart_MessageNotifyCallback)(Dart_Isolate dest_isolate);
+typedef void (*Dart_MessageNotifyCallback)(Dart_Isolate destination_isolate);
 
 /**
- * Allows embedders to provide an alternative wakeup mechanism for the
- * delivery of inter-isolate messages. This setting only applies to
- * the current isolate.
+ * Allows embedders to provide a custom wakeup mechanism for the delivery of
+ * inter-isolate messages. This setting only applies to the current isolate.
+ *
+ * This mechanism is optional: if not provided, the isolate will be scheduled on
+ * a VM-managed thread pool. An embedder should provide this callback if it
+ * wants to run an isolate on a specific thread or to interleave handling of
+ * inter-isolate messages with other event sources.
  *
  * Most embedders will only call this function once, before isolate
  * execution begins. If this function is called after isolate

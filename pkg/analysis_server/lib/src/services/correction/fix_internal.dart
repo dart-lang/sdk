@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/dart/add_diagnostic_prop
 import 'package:analysis_server/src/services/correction/dart/add_enum_constant.dart';
 import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
+import 'package:analysis_server/src/services/correction/dart/add_extension_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_key_to_constructors.dart';
 import 'package:analysis_server/src/services/correction/dart/add_late.dart';
@@ -716,6 +717,9 @@ class FixProcessor extends BaseProcessor {
   /// generators used for lint rules are in the [lintMultiProducerMap].
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
+    CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS: [
+      AddExtensionOverride.new,
+    ],
     CompileTimeErrorCode.CAST_TO_NON_TYPE: [
       ImportLibrary.forType,
     ],

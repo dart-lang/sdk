@@ -138,6 +138,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Add EOL at end of file',
   );
+  static const ADD_EXTENSION_OVERRIDE = FixKind(
+    'dart.fix.add.extensionOverride',
+    DartFixKindPriority.DEFAULT,
+    "Add an extension override for '{0}'",
+  );
   static const ADD_FIELD_FORMAL_PARAMETERS = FixKind(
     'dart.fix.add.fieldFormalParameters',
     70,

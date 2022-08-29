@@ -102,9 +102,7 @@ CompileTimeErrorCode.AMBIGUOUS_EXPORT:
   notes: |-
     For each exported name, add a fix to hide the name.
 CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
-  status: needsFix
-  notes: |-
-    For each extension, add a fix to add an extension override.
+  status: hasFix
 CompileTimeErrorCode.AMBIGUOUS_IMPORT:
   status: needsFix
   notes: |-

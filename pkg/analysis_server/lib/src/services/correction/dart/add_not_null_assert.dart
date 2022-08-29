@@ -70,8 +70,8 @@ class AddNotNullAssert extends CorrectionProducer {
         // adding the statement to the beginning of the list, special casing
         // when there are no statements (or when there's a single statement
         // and the whole block is on the same line).
-        var offset = min(utils.getLineNext(body_final.beginToken.offset),
-            body_final.endToken.offset);
+        var offset = min(
+            utils.getLineNext(body_final.offset), body_final.endToken.offset);
         builder.addSimpleInsertion(
             offset, '$prefix${indent}assert($id != null);$eol');
       });

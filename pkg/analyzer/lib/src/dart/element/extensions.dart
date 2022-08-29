@@ -126,10 +126,30 @@ extension ParameterElementExtensions on ParameterElement {
 }
 
 extension RecordTypeExtension on RecordType {
+  /// A regular expression used to match positional field names.
+  static final RegExp _positionalName = RegExp(r'^\$([0-9]+)$');
+
+  /// The [name] is either an actual name like `foo` in `({int foo})`, or
+  /// the name of a positional field like `$0` in `(int, String)`.
+  RecordTypeField? fieldByName(String name) {
+    return namedField(name) ?? positionalField(name);
+  }
+
   RecordTypeNamedField? namedField(String name) {
     for (final field in namedFields) {
       if (field.name == name) {
         return field;
+      }
+    }
+    return null;
+  }
+
+  RecordTypePositionalField? positionalField(String name) {
+    final match = _positionalName.firstMatch(name);
+    if (match != null) {
+      final index = int.tryParse(match.group(1)!);
+      if (index != null && index < positionalFields.length) {
+        return positionalFields[index];
       }
     }
     return null;

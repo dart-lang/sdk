@@ -5434,19 +5434,18 @@ class CssStyleDeclaration extends JavaScriptObject
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
-  Iterable<CssStyleDeclaration>? _elementCssStyleDeclarationSetIterable;
+  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
-  _CssStyleDeclarationSet(this._elementIterable) {
-    _elementCssStyleDeclarationSetIterable =
-        new List.from(_elementIterable).map((e) => e.style);
-  }
+  _CssStyleDeclarationSet(this._elementIterable)
+      : _elementCssStyleDeclarationSetIterable =
+            new List.of(_elementIterable).map((e) => e.style);
 
   String getPropertyValue(String propertyName) =>
-      _elementCssStyleDeclarationSetIterable!.first
+      _elementCssStyleDeclarationSetIterable.first
           .getPropertyValue(propertyName);
 
   void setProperty(String propertyName, String? value, [String? priority]) {
-    _elementCssStyleDeclarationSetIterable!
+    _elementCssStyleDeclarationSetIterable
         .forEach((e) => e.setProperty(propertyName, value, priority));
   }
 
@@ -34638,6 +34637,7 @@ abstract class _DocumentType extends Node implements ChildNode {
   }
 
   // From ChildNode
+
 }
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35752,6 +35752,7 @@ abstract class _WorkerLocation extends JavaScriptObject
   }
 
   // From URLUtilsReadOnly
+
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35769,6 +35770,7 @@ abstract class _WorkerNavigator extends NavigatorConcurrentHardware
   // From NavigatorID
 
   // From NavigatorOnLine
+
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40596,7 +40598,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       view = window;
     }
 
-    dynamic eventObj;
+    KeyboardEvent eventObj;
 
     // Currently this works on everything but Safari. Safari throws an
     // "Attempting to change access mechanism for an unconfigurable property"
@@ -40607,7 +40609,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     // initialize initKeyEvent.
 
     eventObj = new Event.eventType('KeyboardEvent', type,
-        canBubble: canBubble, cancelable: cancelable);
+        canBubble: canBubble, cancelable: cancelable) as KeyboardEvent;
 
     // Chromium Hack
     JS(

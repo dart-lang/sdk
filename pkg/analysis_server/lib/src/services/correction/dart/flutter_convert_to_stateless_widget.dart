@@ -343,7 +343,7 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
         var target = parent.target;
         var operator = parent.operator;
         if (target != null && operator != null) {
-          var offset = target.beginToken.offset;
+          var offset = target.offset;
           var length = operator.end - offset;
           edits.add(SourceEdit(offset - linesRange.offset, length, ''));
         }

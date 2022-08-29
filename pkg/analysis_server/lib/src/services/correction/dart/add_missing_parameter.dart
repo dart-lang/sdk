@@ -38,7 +38,7 @@ class AddMissingParameter extends MultiCorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
   _AddMissingOptionalPositionalParameter(super.context);
@@ -60,7 +60,7 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 abstract class _AddMissingParameter extends CorrectionProducer {
   ExecutableParameters context;
@@ -93,7 +93,7 @@ abstract class _AddMissingParameter extends CorrectionProducer {
   }
 }
 
-/// A correction processor that can make one of the possible change computed by
+/// A correction processor that can make one of the possible changes computed by
 /// the [AddMissingParameter] producer.
 class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
   _AddMissingRequiredPositionalParameter(super.context);
