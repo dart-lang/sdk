@@ -4,7 +4,51 @@
 
 import '../flow_analysis/flow_analysis.dart';
 import 'type_analysis_result.dart';
-import 'type_operations.dart';
+import 'variable_bindings.dart';
+
+/// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
+/// about an individual `case` or `default` clause.
+///
+/// The client is free to `implement` or `extend` this class.
+class ExpressionCaseInfo<Expression, Node> {
+  /// For a `case` clause, the case pattern.  For a `default` clause, `null`.
+  final Node? pattern;
+
+  /// The body of the `case` or `default` clause.
+  final Expression body;
+
+  ExpressionCaseInfo(this.pattern, this.body);
+}
+
+/// Information supplied by the client to [TypeAnalyzer.analyzeSwitchStatement]
+/// about an individual `case` or `default` clause.
+///
+/// The client is free to `implement` or `extend` this class.
+class StatementCaseInfo<Statement, Node> {
+  /// The AST node for this `case` or `default` clause.  This is used for error
+  /// reporting, in case errors arise from mismatch among the variables bound by
+  /// various cases that share a body.
+  final Node node;
+
+  /// Indicates whether this `case` or `default` clause is preceded by one or
+  /// more `goto` labels.
+  final bool hasLabel;
+
+  /// For a `case` clause, the case pattern.  For a `default` clause, `null`.
+  final Node? pattern;
+
+  /// The statements following this `case` or `default` clause.  If this list is
+  /// empty, and this is not the last `case` or `default` clause, this clause
+  /// will be considered to share a body with the `case` or `default` clause
+  /// that follows.
+  final List<Statement> body;
+
+  StatementCaseInfo(
+      {required this.node,
+      required this.hasLabel,
+      required this.pattern,
+      required this.body});
+}
 
 /// Type analysis logic to be shared between the analyzer and front end.  The
 /// intention is that the client's main type inference visitor class can include
@@ -24,7 +68,8 @@ import 'type_operations.dart';
 /// representation of core types), and to trigger recursive analysis of child
 /// AST nodes.
 mixin TypeAnalyzer<Node extends Object, Statement extends Node,
-    Expression extends Node, Variable extends Object, Type extends Object> {
+        Expression extends Node, Variable extends Object, Type extends Object>
+    implements VariableBindingCallbacks<Node, Variable, Type> {
   /// Returns the type `double`.
   Type get doubleType;
 
@@ -41,11 +86,79 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Returns the type `int`.
   Type get intType;
 
-  /// Returns the client's implementation of the [TypeOperations] class.
-  TypeOperations<Type> get typeOperations;
-
   /// Returns the unknown type context (`?`) used in type inference.
   Type get unknownType;
+
+  /// Analyzes a constant pattern or literal pattern.  [node] is the pattern
+  /// itself, and [expression] is the constant or literal expression.  Depending
+  /// on the client's representation, [node] and [expression] might or might not
+  /// be identical.
+  ///
+  /// These [TypeAnalyzer] methods will be invoked at the time the pattern is
+  /// matched (in order):
+  /// - [analyzeExpression]
+  /// - [handleConstOrLiteralPattern]
+  PatternDispatchResult<Node, Expression, Variable, Type>
+      analyzeConstOrLiteralPattern(Node node, Expression expression) {
+    return new _ConstOrLiteralPatternDispatchResult<Node, Expression, Variable,
+        Type>(this, node, expression);
+  }
+
+  /// Analyzes an expression.  [node] is the expression to analyze, and
+  /// [context] is the type schema which should be used for type inference.
+  ///
+  /// Invokes the following [TypeAnalyzer] methods (in order):
+  /// - [dispatchExpression]
+  /// - [ExpressionTypeAnalysisResult.resolveShorting]
+  Type analyzeExpression(Expression node, Type context) {
+    ExpressionTypeAnalysisResult<Type> result =
+        dispatchExpression(node, context);
+    if (typeOperations.isNever(result.provisionalType)) {
+      flow?.handleExit();
+    }
+    return result.resolveShorting();
+  }
+
+  /// Analyzes a variable declaration statement of the form
+  /// `pattern = initializer;`.
+  ///
+  /// [node] should be the AST node for the entire declaration, [pattern] for
+  /// the pattern, and [initializer] for the initializer.  [isFinal] and
+  /// [isLate] indicate whether this is a final declaration and/or a late
+  /// declaration, respectively.
+  ///
+  /// Note that the only kind of pattern allowed in a late declaration is a
+  /// variable pattern; [TypeAnalyzerErrors.patternDoesNotAllowLate] will be
+  /// reported if any other kind of pattern is used.
+  ///
+  /// Invokes the following [TypeAnalyzer] methods (in order):
+  /// - [dispatchPattern]
+  /// - [analyzeExpression]
+  /// - Whatever calls are invoked from recursively matching the pattern (see
+  ///   the `analyze...` methods for the various pattern types).
+  void analyzeInitializedVariableDeclaration(
+      Node node, Node pattern, Expression initializer,
+      {required bool isFinal, required bool isLate}) {
+    PatternDispatchResult<Node, Expression, Variable, Type>
+        patternDispatchResult = dispatchPattern(pattern);
+    if (isLate &&
+        patternDispatchResult is! _VariablePatternDispatchResult<Object, Object,
+            Object, Object>) {
+      errors.patternDoesNotAllowLate(pattern);
+    }
+    if (isLate) {
+      flow?.lateInitializer_begin(node);
+    }
+    Type initializerType =
+        analyzeExpression(initializer, patternDispatchResult.typeSchema);
+    if (isLate) {
+      flow?.lateInitializer_end();
+    }
+    VariableBindings<Node, Variable, Type> bindings =
+        new VariableBindings(this);
+    patternDispatchResult.match(initializerType, bindings,
+        isFinal: isFinal, isLate: isLate, initializer: initializer);
+  }
 
   /// Analyzes an integer literal, given the type context [context].
   IntTypeAnalysisResult<Type> analyzeIntLiteral(Type context) {
@@ -56,6 +169,143 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
         type: type, convertedToDouble: convertToDouble);
   }
 
+  /// Analyzes an expression of the form `switch (expression) { cases }`.
+  ///
+  /// Invokes the following [TypeAnalyzer] methods (in order):
+  /// - [analyzeExpression]
+  /// - For each `case` or `default` clause:
+  ///   - [dispatchPattern] if this is a `case` clause
+  ///   - [handleDefault] if this is a `default` clause
+  ///   - [handleCase_afterCaseHeads]
+  ///   - [analyzeExpression]
+  ///   - [finishExpressionCase]
+  SimpleTypeAnalysisResult<Type> analyzeSwitchExpression(
+      Expression node,
+      Expression scrutinee,
+      List<ExpressionCaseInfo<Expression, Node>> cases,
+      Type context) {
+    Type expressionType = analyzeExpression(scrutinee, unknownType);
+    flow?.switchStatement_expressionEnd(null);
+    Type? lubType;
+    for (int i = 0; i < cases.length; i++) {
+      ExpressionCaseInfo<Expression, Node> caseInfo = cases[i];
+      flow?.switchStatement_beginCase(false, null);
+      VariableBindings<Node, Variable, Type> bindings =
+          new VariableBindings(this);
+      Node? pattern = caseInfo.pattern;
+      if (pattern != null) {
+        dispatchPattern(pattern)
+            .match(expressionType, bindings, isFinal: true, isLate: false);
+      } else {
+        handleDefault();
+      }
+      handleCase_afterCaseHeads(1);
+      Type type = analyzeExpression(caseInfo.body, context);
+      if (lubType == null) {
+        lubType = type;
+      } else {
+        lubType = typeOperations.lub(lubType, type);
+      }
+      finishExpressionCase(node, i);
+    }
+    flow?.switchStatement_end(true);
+    return new SimpleTypeAnalysisResult<Type>(type: lubType!);
+  }
+
+  /// Analyzes a statement of the form `switch (expression) { cases }`.
+  ///
+  /// Invokes the following [TypeAnalyzer] methods (in order):
+  /// - [dispatchExpression]
+  /// - For each `case` or `default` body:
+  ///   - [dispatchPattern] for each `case` pattern associated with the body
+  ///   - [handleDefault] if a `default` clause is associated with the body
+  ///   - [handleCase_afterCaseHeads]
+  ///   - [dispatchStatement] for each statement in the body
+  ///   - [finishStatementCase]
+  /// - [isSwitchExhaustive]
+  ///
+  /// Returns the total number of execution paths (this is not the same as the
+  /// length of [cases] because a case with no statements get merged into the
+  /// case that follows).
+  int analyzeSwitchStatement(Statement node, Expression scrutinee,
+      List<StatementCaseInfo<Statement, Node>> cases) {
+    Type expressionType = analyzeExpression(scrutinee, unknownType);
+    flow?.switchStatement_expressionEnd(node);
+    bool hasLabel = false;
+    List<StatementCaseInfo<Statement, Node>>? casesInThisExecutionPath;
+    int numExecutionPaths = 0;
+    for (int i = 0; i < cases.length; i++) {
+      StatementCaseInfo<Statement, Node> caseInfo = cases[i];
+      hasLabel = hasLabel || caseInfo.hasLabel;
+      (casesInThisExecutionPath ??= []).add(caseInfo);
+      if (i == cases.length - 1 || caseInfo.body.isNotEmpty) {
+        numExecutionPaths++;
+        flow?.switchStatement_beginCase(hasLabel, node);
+        VariableBindings<Node, Variable, Type> bindings =
+            new VariableBindings(this);
+        bindings.startAlternatives();
+        for (int i = 0; i < casesInThisExecutionPath.length; i++) {
+          StatementCaseInfo<Statement, Node> caseInfo =
+              casesInThisExecutionPath[i];
+          bindings.startAlternative(caseInfo.node);
+          Node? pattern = caseInfo.pattern;
+          if (pattern != null) {
+            dispatchPattern(pattern)
+                .match(expressionType, bindings, isFinal: true, isLate: false);
+          } else {
+            handleDefault();
+          }
+          bindings.finishAlternative();
+        }
+        bindings.finishAlternatives();
+        handleCase_afterCaseHeads(casesInThisExecutionPath.length);
+        for (Statement statement in caseInfo.body) {
+          dispatchStatement(statement);
+        }
+        finishStatementCase(node, i, caseInfo.body.length);
+        hasLabel = false;
+        casesInThisExecutionPath = null;
+      }
+    }
+    flow?.switchStatement_end(isSwitchExhaustive(node, expressionType));
+    return numExecutionPaths;
+  }
+
+  /// Analyzes a variable declaration of the form `type variable;` or
+  /// `var variable;`.
+  ///
+  /// [node] should be the AST node for the entire declaration, [variable] for
+  /// the variable, and [declaredType] for the type (if present).  [isFinal] and
+  /// [isLate] indicate whether this is a final declaration and/or a late
+  /// declaration, respectively.
+  ///
+  /// Invokes the following [TypeAnalyzer] methods (in order):
+  /// - [setVariableType]
+  ///
+  /// Returns the inferred type of the variable.
+  Type analyzeUninitializedVariableDeclaration(
+      Node node, Variable variable, Type? declaredType,
+      {required bool isFinal, required bool isLate}) {
+    Type inferredType = declaredType ?? dynamicType;
+    flow?.declare(variable, false);
+    setVariableType(variable, inferredType);
+    return inferredType;
+  }
+
+  /// Analyzes a variable pattern.  [node] is the pattern itself, [variable] is
+  /// the variable, and [declaredType] is the explicitly declared type (if
+  /// present).
+  ///
+  /// These [TypeAnalyzer] methods will be invoked at the time the pattern is
+  /// matched (in order):
+  /// - [setVariableType] (if this variable hasn't been seen before)
+  /// - [handleVariablePattern]
+  PatternDispatchResult<Node, Expression, Variable, Type>
+      analyzeVariablePattern(Node node, Variable variable, Type? declaredType) {
+    return new _VariablePatternDispatchResult<Node, Expression, Variable, Type>(
+        this, node, variable, declaredType);
+  }
+
   /// Calls the appropriate `analyze` method according to the form of
   /// [expression].
   ///
@@ -64,9 +314,192 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
       Expression expression, Type context);
 
+  /// Calls the appropriate `analyze` method according to the form of [pattern].
+  ///
+  /// For example, if [pattern] is a variable pattern, calls
+  /// [analyzeVariablePattern].
+  PatternDispatchResult<Node, Expression, Variable, Type> dispatchPattern(
+      Node pattern);
+
   /// Calls the appropriate `analyze` method according to the form of
   /// [statement].
   ///
   /// For example, if [statement] is a `while` loop, calls [analyzeWhileLoop].
   void dispatchStatement(Statement statement);
+
+  /// See [analyzeSwitchExpression].
+  void finishExpressionCase(Expression node, int caseIndex);
+
+  /// See [analyzeSwitchStatement].
+  void finishStatementCase(Statement node, int caseIndex, int numStatements);
+
+  /// See [analyzeSwitchStatement] and [analyzeSwitchExpression].
+  void handleCase_afterCaseHeads(int numHeads);
+
+  /// See [analyzeConstOrLiteralPattern].
+  void handleConstOrLiteralPattern();
+
+  /// See [analyzeSwitchStatement] and [analyzeSwitchExpression].
+  void handleDefault();
+
+  /// See [analyzeVariablePattern].
+  void handleVariablePattern(Node node, Type? type);
+
+  /// Queries whether the switch statement or expression represented by [node]
+  /// was exhaustive.  See [analyzeSwitchStatement] and
+  /// [analyzeSwitchExpression].
+  bool isSwitchExhaustive(Node node, Type expressionType);
+
+  /// See [analyzeUninitializedVariableDeclaration] and
+  /// [analyzeVariablePattern].
+  void setVariableType(Variable variable, Type type);
+
+  /// Computes the type that should be inferred for an implicitly typed variable
+  /// whose initializer expression has static type [type].
+  Type variableTypeFromInitializerType(Type type);
+}
+
+/// Interface used by the shared [TypeAnalyzer] logic to report error conditions
+/// up to the client.
+abstract class TypeAnalyzerErrors<Node extends Object, Variable extends Object,
+    Type extends Object> {
+  /// Called when the [TypeAnalyzer] encounters a condition which should be
+  /// impossible if the user's code is free from static errors, but which might
+  /// arise as a result of error recovery.  To verify this invariant, the client
+  /// should double check (preferably using an assertion) that at least one
+  /// error has already been reported.
+  void assertInErrorRecovery();
+
+  /// Called if a single variable is bound using two different types within the
+  /// same pattern, or between two patterns in a set of case clauses that share
+  /// a body.
+  ///
+  /// [pattern] is the variable pattern that was being processed at the time the
+  /// inconsistency was discovered, and [type] is its type (which might have
+  /// been inferred).  [previousPattern] is the previous variable pattern that
+  /// was binding the same variable, and [previousType] is its type.
+  void inconsistentMatchVar(
+      {required Node pattern,
+      required Type type,
+      required Node previousPattern,
+      required Type previousType});
+
+  /// Called if a single variable is bound both with an explicit type and with
+  /// an implicit type within the same pattern, or between two patterns in a set
+  /// of case clauses that share a body.
+  ///
+  /// [pattern] is the variable pattern that was being processed at the time the
+  /// inconsistency was discovered.  [previousPattern] is the previous variable
+  /// pattern that was binding the same variable.
+  ///
+  /// TODO(paulberry): the spec might be changed so that this is not an error
+  /// condition.  See https://github.com/dart-lang/language/issues/2424.
+  void inconsistentMatchVarExplicitness(
+      {required Node pattern, required Node previousPattern});
+
+  /// Called if two subpatterns of a pattern attempt to declare the same
+  /// variable (with the exception of `_` and logical-or patterns).
+  ///
+  /// [pattern] is the variable pattern that was being processed at the time the
+  /// overlap was discovered.  [previousPattern] is the previous variable
+  /// pattern that overlaps with it.
+  void matchVarOverlap({required Node pattern, required Node previousPattern});
+
+  /// Called if a variable is bound by one of the alternatives of a logical-or
+  /// pattern but not the other, or if it is bound by one of the cases in a set
+  /// of case clauses that share a body, but not all of them.
+  ///
+  /// [alternative] is the AST node which fails to bind the variable.  This will
+  /// either be one of the immediate sub-patterns of a logical-or pattern, or a
+  /// value of [StatementCaseInfo.node].
+  ///
+  /// [variable] is the variable that is not bound within [alternative].
+  void missingMatchVar(Node alternative, Variable variable);
+
+  /// Called if a pattern is illegally used in a variable declaration statement
+  /// that is marked `late`, and that pattern is not allowed in such a
+  /// declaration.  The only kind of pattern that may be used in a late variable
+  /// declaration is a variable pattern.
+  ///
+  /// [pattern] is the AST node of the illegal pattern.
+  void patternDoesNotAllowLate(Node pattern);
+}
+
+/// Specialization of [PatternDispatchResult] returned by
+/// [TypeAnalyzer.analyzeConstOrLiteralPattern]
+class _ConstOrLiteralPatternDispatchResult<Node extends Object,
+        Expression extends Node, Variable extends Object, Type extends Object>
+    extends _PatternDispatchResultImpl<Node, Expression, Variable, Type> {
+  /// The constant or literal expression.
+  ///
+  /// Depending on the client's representation, this might or might not be
+  /// identical to [node].
+  final Expression _expression;
+
+  _ConstOrLiteralPatternDispatchResult(
+      super.typeAnalyzer, super.node, this._expression);
+
+  @override
+  Type get typeSchema {
+    // Note: the type schema only matters for patterns that appear in variable
+    // declarations, and variable declarations are not allowed to contain
+    // constant patterns.  So this code should only be reachable during error
+    // recovery.
+    _typeAnalyzer.errors.assertInErrorRecovery();
+    return _typeAnalyzer.unknownType;
+  }
+
+  @override
+  void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
+      {required bool isFinal, required bool isLate, Expression? initializer}) {
+    _typeAnalyzer.analyzeExpression(_expression, matchedType);
+    _typeAnalyzer.handleConstOrLiteralPattern();
+  }
+}
+
+/// Common base class for all specializations of [PatternDispatchResult]
+/// returned by methods in [TypeAnalyzer].
+abstract class _PatternDispatchResultImpl<Node extends Object,
+        Expression extends Node, Variable extends Object, Type extends Object>
+    implements PatternDispatchResult<Node, Expression, Variable, Type> {
+  /// Pointer back to the [TypeAnalyzer].
+  final TypeAnalyzer<Node, Node, Expression, Variable, Type> _typeAnalyzer;
+
+  @override
+  final Node node;
+
+  _PatternDispatchResultImpl(this._typeAnalyzer, this.node);
+}
+
+class _VariablePatternDispatchResult<Node extends Object,
+        Expression extends Node, Variable extends Object, Type extends Object>
+    extends _PatternDispatchResultImpl<Node, Expression, Variable, Type> {
+  final Variable _variable;
+
+  final Type? _declaredType;
+
+  _VariablePatternDispatchResult(
+      super._typeAnalyzer, super.node, this._variable, this._declaredType);
+
+  @override
+  Type get typeSchema => _declaredType ?? _typeAnalyzer.unknownType;
+
+  @override
+  void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
+      {required bool isFinal, required bool isLate, Expression? initializer}) {
+    Type inferredType = _declaredType ??
+        _typeAnalyzer.variableTypeFromInitializerType(matchedType);
+    bool isImplicitlyTyped = _declaredType == null;
+    bool added = bindings.add(node, _variable,
+        inferredType: inferredType, isImplicitlyTyped: isImplicitlyTyped);
+    if (added) {
+      _typeAnalyzer.flow?.declare(_variable, false);
+      _typeAnalyzer.setVariableType(_variable, inferredType);
+      _typeAnalyzer.flow?.initialize(_variable, matchedType, initializer,
+          isFinal: isFinal,
+          isLate: isLate,
+          isImplicitlyTyped: isImplicitlyTyped);
+    }
+    _typeAnalyzer.handleVariablePattern(node, added ? inferredType : null);
+  }
 }

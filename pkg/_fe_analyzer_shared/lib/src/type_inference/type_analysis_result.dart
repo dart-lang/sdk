@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'variable_bindings.dart';
+
 /// Container for the result of running type analysis on an expression.
 ///
 /// This class keeps track of a provisional type of the expression (prior to
@@ -21,6 +23,9 @@ abstract class ExpressionTypeAnalysisResult<Type extends Object> {
   /// of analyzing `(... as int?)?.isEven`, then calling [resolveShorting] will
   /// cause the `?.` to be desugared (if code generation is occurring) and will
   /// return the type `bool?`.
+  ///
+  /// TODO(paulberry): document what calls back to the client might be made by
+  /// invoking this method.
   Type resolveShorting();
 }
 
@@ -31,6 +36,38 @@ class IntTypeAnalysisResult<Type extends Object>
   final bool convertedToDouble;
 
   IntTypeAnalysisResult({required super.type, required this.convertedToDouble});
+}
+
+/// Data structure returned by the [TypeAnalyzer] `analyze` methods for
+/// patterns.
+abstract class PatternDispatchResult<Node extends Object,
+    Expression extends Node, Variable extends Object, Type extends Object> {
+  /// The AST node for this pattern.
+  Node get node;
+
+  /// The type schema for this pattern.
+  Type get typeSchema;
+
+  /// Called by the [TypeAnalyzer] when an attempt is made to match this
+  /// pattern.
+  ///
+  /// [matchedType] is the type of the thing being matched (for a variable
+  /// declaration, this is the type of the initializer or substructure thereof;
+  /// for a switch statement this is the type of the scrutinee or substructure
+  /// thereof).
+  ///
+  /// [bindings] is a data structure keeping track of the variable patterns seen
+  /// so far and their type information.
+  ///
+  /// [isFinal] and [isLate] only apply to variable patterns, and indicate
+  /// whether the variable in question should be late and/or final.
+  ///
+  /// [initializer] is only present if [node] is the principal pattern of a
+  /// variable declaration; it is the variable declaration's initializer
+  /// expression.  This is used by flow analysis to track when the truth or
+  /// falsity of a boolean variable causes other variables to be promoted.
+  void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
+      {required bool isFinal, required bool isLate, Expression? initializer});
 }
 
 /// Container for the result of running type analysis on an expression that does

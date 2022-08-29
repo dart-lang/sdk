@@ -1910,20 +1910,103 @@ main() {
       ]);
     });
 
+    test('switchExpression throw in scrutinee makes all cases unreachable', () {
+      h.run([
+        switchExpr(throw_(expr('C')), [
+          caseExpr(intLiteral(0).pattern,
+              checkReachable(false).thenExpr(intLiteral(1))),
+          defaultExpr(checkReachable(false).thenExpr(intLiteral(2))),
+        ]).stmt,
+        checkReachable(false),
+      ]);
+    });
+
+    test('switchExpression throw in case body has isolated effect', () {
+      h.run([
+        switchExpr(expr('int'), [
+          caseExpr(intLiteral(0).pattern, throw_(expr('C'))),
+          defaultExpr(checkReachable(true).thenExpr(intLiteral(2))),
+        ]).stmt,
+        checkReachable(true),
+      ]);
+    });
+
+    test('switchExpression throw in all case bodies affects flow after', () {
+      h.run([
+        switchExpr(expr('int'), [
+          caseExpr(intLiteral(0).pattern, throw_(expr('C'))),
+          defaultExpr(throw_(expr('C'))),
+        ]).stmt,
+        checkReachable(false),
+      ]);
+    });
+
+    test('switchExpression var promotes', () {
+      // TODO(paulberry): I wrote this code assuming that variable patterns in
+      // switch expressions are final, therefore the implicit assignment
+      // performed by the pattern match should *not* promote from `int?` to
+      // `int`.  But it has been decided that we should do the opposite, so this
+      // behavior needs to be changed--see
+      // https://github.com/dart-lang/language/issues/2416.
+      var x = Var('x');
+      h.run([
+        switchExpr(expr('int'), [
+          caseExpr(x.pattern(type: 'int?'),
+              checkNotPromoted(x).thenExpr(nullLiteral)),
+        ]).stmt,
+      ]);
+    });
+
+    test('switchStatement throw in scrutinee makes all cases unreachable', () {
+      h.run([
+        switch_(
+            throw_(expr('C')),
+            [
+              case_(intLiteral(0).pattern, [
+                checkReachable(false),
+              ]),
+              case_(intLiteral(1).pattern, [
+                checkReachable(false),
+              ]),
+            ],
+            isExhaustive: false),
+        checkReachable(false),
+      ]);
+    });
+
+    test('switchStatement var promotes', () {
+      // TODO(paulberry): I'm currently assuming that variable patterns in
+      // switch expressions are final, therefore the implicit assignment
+      // performed by the pattern match should *not* promote from `int?` to
+      // `int`.  But this has not been decided--see
+      // https://github.com/dart-lang/language/issues/2416.
+      var x = Var('x');
+      h.run([
+        switch_(
+            expr('int'),
+            [
+              case_(x.pattern(type: 'int?'), [
+                checkNotPromoted(x),
+              ]),
+            ],
+            isExhaustive: true),
+      ]);
+    });
+
     test('switchStatement_beginCase(false) restores previous promotions', () {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('Null'),
+            expr('int'),
             [
-              case_([
+              case_(intLiteral(0).pattern, [
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
               ]),
-              case_([
+              case_(intLiteral(1).pattern, [
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -1939,9 +2022,9 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('Null'),
+            expr('int'),
             [
-              case_([
+              case_(intLiteral(0).pattern, [
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -1958,9 +2041,9 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('Null'),
+            expr('int'),
             [
-              case_([
+              case_(intLiteral(0).pattern, [
                 checkPromoted(x, 'int'),
                 localFunction([
                   x.write(expr('int?')).stmt,
@@ -1979,18 +2062,21 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('Null').thenStmt(block([
+            expr('int').thenStmt(block([
               checkPromoted(x, 'int'),
               getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
             ])),
             [
-              case_([
-                checkNotPromoted(x),
-                getSsaNodes(
-                    (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
-                x.write(expr('int?')).stmt,
-                checkNotPromoted(x),
-              ], hasLabel: true),
+              case_(
+                  intLiteral(0).pattern,
+                  [
+                    checkNotPromoted(x),
+                    getSsaNodes(
+                        (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
+                    x.write(expr('int?')).stmt,
+                    checkNotPromoted(x),
+                  ],
+                  hasLabel: true),
             ],
             isExhaustive: false),
       ]);
@@ -2002,16 +2088,19 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
         switch_(
-            expr('Null'),
+            expr('int'),
             [
-              case_([
-                x.expr.as_('int').stmt,
-                checkNotPromoted(x),
-                localFunction([
-                  x.write(expr('int?')).stmt,
-                ]),
-                checkNotPromoted(x),
-              ], hasLabel: true),
+              case_(
+                  intLiteral(0).pattern,
+                  [
+                    x.expr.as_('int').stmt,
+                    checkNotPromoted(x),
+                    localFunction([
+                      x.write(expr('int?')).stmt,
+                    ]),
+                    checkNotPromoted(x),
+                  ],
+                  hasLabel: true),
             ],
             isExhaustive: false),
       ]);
@@ -2028,9 +2117,9 @@ main() {
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
         switch_(
-            expr('Null'),
+            expr('int'),
             [
-              case_([
+              case_(intLiteral(0).pattern, [
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
                 break_(),
@@ -2057,15 +2146,15 @@ main() {
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
         switch_(
-            expr('Null'),
+            expr('int'),
             [
-              case_([
+              case_(intLiteral(0).pattern, [
                 w.expr.as_('int').stmt,
                 y.expr.as_('int').stmt,
                 x.write(expr('int?')).stmt,
                 break_(),
               ]),
-              case_([
+              default_([
                 w.expr.as_('int').stmt,
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
@@ -2085,13 +2174,13 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         switch_(
-            expr('Null'),
+            expr('int'),
             [
-              case_([
+              case_(intLiteral(0).pattern, [
                 x.expr.as_('int').stmt,
                 break_(),
               ]),
-              case_([]),
+              default_([]),
             ],
             isExhaustive: true),
         checkNotPromoted(x),

@@ -125,6 +125,7 @@ biased
 bin
 binder
 binders
+bindings
 binds
 bj
 bk
@@ -463,6 +464,7 @@ expando
 expense
 experimentation
 explaining
+explicitness
 explore
 exportable
 exportee
@@ -478,6 +480,7 @@ faced
 factor
 factored
 fairly
+falsity
 fangorn
 fasta
 favored
@@ -584,6 +587,7 @@ harness
 hashes
 hashing
 havoc
+heads
 heap
 height
 hello
@@ -617,6 +621,7 @@ ids
 idx
 iff
 il
+illegally
 imitate
 immutability
 impl
@@ -806,6 +811,7 @@ masking
 masks
 master
 materialize
+matters
 mature
 mb
 mc
@@ -915,6 +921,7 @@ outputs
 outputting
 overlap
 overlapping
+overlaps
 overloader
 overlooked
 overshadowed
@@ -983,6 +990,7 @@ precompiled
 precompiling
 preexisted
 preexisting
+preferably
 prefixing
 premark
 preorder
@@ -995,6 +1003,7 @@ presuming
 prev
 primarily
 prime
+principal
 printer
 printf
 println
@@ -1187,6 +1196,7 @@ scc
 scheglov
 scoped
 scoping
+scrutinee
 sdk's
 seconds
 sections
@@ -1265,6 +1275,7 @@ spawns
 spec
 spec'ed
 specialization
+specializations
 specially
 specifications
 specifics
@@ -1324,6 +1335,7 @@ subgraph
 subname
 subnode
 subnodes
+subpatterns
 subscription
 subsection
 subsections
@@ -1333,6 +1345,7 @@ subst
 substed
 substitutes
 substitutor
+substructure
 subtracted
 subtracting
 subtraction
@@ -1391,6 +1404,7 @@ textualize
 textualized
 th
 therein
+thereof
 they'll
 thought
 ti
