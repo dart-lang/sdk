@@ -282,11 +282,17 @@ abstract class _BroadcastStreamController<T>
 
   // _EventSink interface, called from AddStreamState.
   void _add(T data) {
-    _sendData(data);
+    if (_isEmpty) return;
+    _forEachListener((_BufferingStreamSubscription<T> subscription) {
+      subscription._add(data);
+    });
   }
 
   void _addError(Object error, StackTrace stackTrace) {
-    _sendError(error, stackTrace);
+    if (_isEmpty) return;
+    _forEachListener((_BufferingStreamSubscription<T> subscription) {
+      subscription._addError(error, stackTrace);
+    });
   }
 
   void _close() {
