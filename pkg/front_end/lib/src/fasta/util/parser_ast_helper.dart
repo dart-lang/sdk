@@ -2445,9 +2445,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endRecordLiteral(Token token, int count) {
-    RecordLiteralEnd data =
-        new RecordLiteralEnd(ParserAstType.END, token: token, count: count);
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
+    RecordLiteralEnd data = new RecordLiteralEnd(ParserAstType.END,
+        token: token, count: count, constKeyword: constKeyword);
     seen(data);
   }
 
@@ -7058,15 +7058,17 @@ class ParenthesizedExpressionOrRecordLiteralBegin extends ParserAstNode {
 class RecordLiteralEnd extends ParserAstNode {
   final Token token;
   final int count;
+  final Token? constKeyword;
 
   RecordLiteralEnd(ParserAstType type,
-      {required this.token, required this.count})
+      {required this.token, required this.count, this.constKeyword})
       : super("RecordLiteral", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "count": count,
+        "constKeyword": constKeyword,
       };
 }
 

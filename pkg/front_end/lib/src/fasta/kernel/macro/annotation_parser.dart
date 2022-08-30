@@ -1957,7 +1957,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endRecordLiteral(Token token, int count) {
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
     _unhandled();
   }
 

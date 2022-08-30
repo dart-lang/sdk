@@ -141,6 +141,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET,
   ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET,
   ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED,
+  ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+  ParserErrorCode.RECORD_LITERAL_EMPTY,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -1379,6 +1381,19 @@ class ParserErrorCode extends ErrorCode {
     'PREFIX_AFTER_COMBINATOR',
     "The prefix ('as' clause) should come before any show/hide combinators.",
     correctionMessage: "Try moving the prefix before the combinators.",
+  );
+
+  static const ParserErrorCode RECORD_LITERAL_EMPTY = ParserErrorCode(
+    'RECORD_LITERAL_EMPTY',
+    "Record literal can't be empty.",
+    correctionMessage: "Try adding elements or use 'Record.empty()' instead.",
+  );
+
+  static const ParserErrorCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =
+      ParserErrorCode(
+    'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "Record literal with one entry requires a trailing comma.",
+    correctionMessage: "Try adding a trailing comma.",
   );
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =

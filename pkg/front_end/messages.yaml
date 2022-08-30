@@ -323,6 +323,28 @@ EmptyNamedParameterList:
       foo();
     }
 
+RecordLiteralOnePositionalFieldNoTrailingComma:
+  problemMessage: "Record literal with one entry requires a trailing comma."
+  correctionMessage: "Try adding a trailing comma."
+  analyzerCode: ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+  index: 127
+  experiments: records
+  script: >
+    main() {
+      var record = const (1);
+    }
+
+RecordLiteralEmpty:
+  problemMessage: "Record literal can't be empty."
+  correctionMessage: "Try adding elements or use 'Record.empty()' instead."
+  analyzerCode: ParserErrorCode.RECORD_LITERAL_EMPTY
+  index: 128
+  experiments: records
+  script: >
+    main() {
+      var record = const ();
+    }
+
 EmptyRecordTypeFieldsList:
   problemMessage: "Record type fields list cannot be empty."
   correctionMessage: "Try adding a record type field to the list."
