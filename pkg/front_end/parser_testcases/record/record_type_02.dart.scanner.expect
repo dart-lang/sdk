@@ -1,15 +1,23 @@
-void foo() {
+void errors() {
 (int, int, { }) record1 = (1, 2);
-(int ) record2 = (1);
-({int ok}) record3 = (ok: 1);
-( ) record4 = ();
+(int ) record2 = (1, );
+}
+
+void ok() {
+(int, ) record1 = (1, );
+({int ok}) record2 = (ok: 1);
+() record3 = Record.empty;
 }
 
 
-void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+void[KeywordToken] errors[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 ([BeginToken]int[StringToken],[SimpleToken] int[StringToken],[SimpleToken] {[BeginToken] }[SimpleToken])[SimpleToken] record1[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
-([BeginToken]int[StringToken] )[SimpleToken] record2[StringToken] =[SimpleToken] ([BeginToken]1[StringToken])[SimpleToken];[SimpleToken]
-([BeginToken]{[BeginToken]int[StringToken] ok[StringToken]}[SimpleToken])[SimpleToken] record3[StringToken] =[SimpleToken] ([BeginToken]ok[StringToken]:[SimpleToken] 1[StringToken])[SimpleToken];[SimpleToken]
-([BeginToken] )[SimpleToken] record4[StringToken] =[SimpleToken] ([BeginToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken] )[SimpleToken] record2[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] )[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] ok[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+([BeginToken]int[StringToken],[SimpleToken] )[SimpleToken] record1[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] )[SimpleToken];[SimpleToken]
+([BeginToken]{[BeginToken]int[StringToken] ok[StringToken]}[SimpleToken])[SimpleToken] record2[StringToken] =[SimpleToken] ([BeginToken]ok[StringToken]:[SimpleToken] 1[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken])[SimpleToken] record3[StringToken] =[SimpleToken] Record[StringToken].[SimpleToken]empty[StringToken];[SimpleToken]
 }[SimpleToken]
 [SimpleToken]

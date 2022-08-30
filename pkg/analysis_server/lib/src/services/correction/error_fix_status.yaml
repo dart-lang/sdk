@@ -2107,6 +2107,8 @@ ParserErrorCode.EMPTY_ENUM_BODY:
   notes: |-
     We can't guess at the names or number of the enum constants that should be
     added.
+ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
+  status: needsEvaluation
 ParserErrorCode.ENUM_IN_CLASS:
   status: needsEvaluation
 ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
@@ -2384,6 +2386,8 @@ ParserErrorCode.PREFIX_AFTER_COMBINATOR:
 ParserErrorCode.RECORD_LITERAL_EMPTY:
   status: needsEvaluation
 ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  status: needsEvaluation
+ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: needsEvaluation
 ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
   status: needsEvaluation

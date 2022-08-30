@@ -13,7 +13,7 @@ main() {
   // [cfe] This requires the experimental 'records' language feature to be enabled.
   //                ^
   // [analyzer] SYNTACTIC_ERROR.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
-  // [cfe] Record literal with one entry requires a trailing comma.
+  // [cfe] Record literal with one field requires a trailing comma.
 
   var r2 = const ();
   //             ^

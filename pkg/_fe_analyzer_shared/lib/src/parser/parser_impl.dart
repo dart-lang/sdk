@@ -1394,6 +1394,7 @@ class Parser {
     /// parameterCount counting the presence of named fields as 1.
     int parameterCount = 0;
     bool hasNamedFields = false;
+    bool sawComma = false;
     while (true) {
       Token next = token.next!;
       if (optional(')', next)) {
@@ -1436,15 +1437,17 @@ class Parser {
           }
         }
         break;
+      } else {
+        sawComma = true;
       }
       token = next;
     }
     assert(optional(')', token));
 
-    if (parameterCount == 0) {
-      reportRecoverableError(token, codes.messageEmptyRecordTypeFieldsList);
-    } else if (parameterCount == 1 && !hasNamedFields) {
-      reportRecoverableError(token, codes.messageOnlyOneRecordTypeFieldsList);
+    if (parameterCount == 1 && !hasNamedFields && !sawComma) {
+      // Single non-named element without trailing comma.
+      reportRecoverableError(
+          token, codes.messageRecordTypeOnePositionalFieldNoTrailingComma);
     }
 
     Token? questionMark = token.next!;

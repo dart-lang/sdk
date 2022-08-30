@@ -4,7 +4,7 @@ parser/error_recovery/issue_26073:3:16: Expected 'Function' before this.
 typedef c = foo(int x); // error.
                ^
 
-parser/error_recovery/issue_26073:4:19: Record type fields list cannot contain only one element without a named field.
+parser/error_recovery/issue_26073:4:19: Record type with one entry requires a trailing comma.
 typedef d = (int x); // error.
                   ^
 
@@ -122,7 +122,7 @@ beginCompilationUnit(typedef)
           handleType(int, null)
           handleIdentifier(x, recordFieldDeclaration)
         endRecordTypeEntry()
-        handleRecoverableError(OnlyOneRecordTypeFieldsList, ), ))
+        handleRecoverableError(RecordTypeOnePositionalFieldNoTrailingComma, ), ))
       endRecordType((, null, 1, false)
     endTypedef(typedef, =, ;)
   endTopLevelDeclaration(typedef)

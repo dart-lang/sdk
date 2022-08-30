@@ -143,6 +143,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED,
   ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
   ParserErrorCode.RECORD_LITERAL_EMPTY,
+  ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST,
+  ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -431,6 +433,13 @@ class ParserErrorCode extends ErrorCode {
     'EMPTY_ENUM_BODY',
     "An enum must declare at least one constant name.",
     correctionMessage: "Try declaring a constant.",
+  );
+
+  static const ParserErrorCode EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST =
+      ParserErrorCode(
+    'EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST',
+    "Record type named fields list can't be empty.",
+    correctionMessage: "Try adding a record type named field to the list.",
   );
 
   static const ParserErrorCode ENUM_IN_CLASS = ParserErrorCode(
@@ -1392,7 +1401,14 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA =
       ParserErrorCode(
     'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-    "Record literal with one entry requires a trailing comma.",
+    "Record literal with one field requires a trailing comma.",
+    correctionMessage: "Try adding a trailing comma.",
+  );
+
+  static const ParserErrorCode RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA =
+      ParserErrorCode(
+    'RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA',
+    "Record type with one entry requires a trailing comma.",
     correctionMessage: "Try adding a trailing comma.",
   );
 

@@ -2882,25 +2882,14 @@ const MessageCode messageEmptyOptionalParameterList = const MessageCode(
     correctionMessage: r"""Try adding an optional parameter to the list.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeEmptyRecordTypeFieldsList =
-    messageEmptyRecordTypeFieldsList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEmptyRecordTypeFieldsList = const MessageCode(
-    "EmptyRecordTypeFieldsList",
-    analyzerCodes: <String>["MISSING_IDENTIFIER"],
-    problemMessage: r"""Record type fields list cannot be empty.""",
-    correctionMessage: r"""Try adding a record type field to the list.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEmptyRecordTypeNamedFieldsList =
     messageEmptyRecordTypeNamedFieldsList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEmptyRecordTypeNamedFieldsList = const MessageCode(
     "EmptyRecordTypeNamedFieldsList",
-    analyzerCodes: <String>["MISSING_IDENTIFIER"],
-    problemMessage: r"""Record type named fields list cannot be empty.""",
+    index: 129,
+    problemMessage: r"""Record type named fields list can't be empty.""",
     correctionMessage:
         r"""Try adding a record type named field to the list.""");
 
@@ -9125,19 +9114,6 @@ const MessageCode messageObjectMixesIn = const MessageCode("ObjectMixesIn",
     problemMessage: r"""The class 'Object' can't use mixins.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeOnlyOneRecordTypeFieldsList =
-    messageOnlyOneRecordTypeFieldsList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageOnlyOneRecordTypeFieldsList = const MessageCode(
-    "OnlyOneRecordTypeFieldsList",
-    analyzerCodes: <String>["MISSING_IDENTIFIER"],
-    problemMessage:
-        r"""Record type fields list cannot contain only one element without a named field.""",
-    correctionMessage:
-        r"""Try adding another record type field to the list or add a named field.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9934,7 +9910,19 @@ const MessageCode messageRecordLiteralOnePositionalFieldNoTrailingComma =
     const MessageCode("RecordLiteralOnePositionalFieldNoTrailingComma",
         index: 127,
         problemMessage:
-            r"""Record literal with one entry requires a trailing comma.""",
+            r"""Record literal with one field requires a trailing comma.""",
+        correctionMessage: r"""Try adding a trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRecordTypeOnePositionalFieldNoTrailingComma =
+    messageRecordTypeOnePositionalFieldNoTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRecordTypeOnePositionalFieldNoTrailingComma =
+    const MessageCode("RecordTypeOnePositionalFieldNoTrailingComma",
+        index: 130,
+        problemMessage:
+            r"""Record type with one entry requires a trailing comma.""",
         correctionMessage: r"""Try adding a trailing comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
