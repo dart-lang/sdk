@@ -35101,6 +35101,19 @@ library
 ''');
   }
 
+  test_recordType_topFunction_returnType_positional_one() async {
+    var library = await buildLibrary('''
+(int,) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @7
+        returnType: (int)
+''');
+  }
+
   test_recordType_topVariable() async {
     var library = await buildLibrary('''
 final (int, String) x;
