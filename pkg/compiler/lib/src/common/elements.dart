@@ -1022,8 +1022,7 @@ abstract class CommonElements {
 }
 
 class KCommonElements extends CommonElements {
-  KCommonElements(DartTypes dartTypes, ElementEnvironment env)
-      : super(dartTypes, env);
+  KCommonElements(super.dartTypes, super.env);
 
   // From package:js
 
@@ -1067,8 +1066,7 @@ class KCommonElements extends CommonElements {
 class JCommonElements extends CommonElements {
   FunctionEntity? _jsStringSplit;
 
-  JCommonElements(DartTypes dartTypes, ElementEnvironment env)
-      : super(dartTypes, env);
+  JCommonElements(super.dartTypes, super.env);
 
   /// Returns `true` if [element] is the unnamed constructor of `List`.
   ///

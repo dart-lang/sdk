@@ -66,8 +66,15 @@ abstract class PatternDispatchResult<Node extends Object,
   /// variable declaration; it is the variable declaration's initializer
   /// expression.  This is used by flow analysis to track when the truth or
   /// falsity of a boolean variable causes other variables to be promoted.
+  ///
+  /// If the match is happening in an irrefutable context, [irrefutableContext]
+  /// should be the containing AST node that establishes the context as
+  /// irrefutable.  Otherwise it should be `null`.
   void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
-      {required bool isFinal, required bool isLate, Expression? initializer});
+      {required bool isFinal,
+      required bool isLate,
+      Expression? initializer,
+      required Node? irrefutableContext});
 }
 
 /// Container for the result of running type analysis on an expression that does

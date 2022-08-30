@@ -52,8 +52,19 @@ class MiniIrBuilder {
   /// Pops the top [numArgs] nodes from the stack and pushes a node that
   /// combines them using [name].  For example, if the stack contains `1, 2, 3`,
   /// calling `apply('f', 2)` results in a stack of `1, f(2, 3)`.
-  void apply(String name, int numArgs) =>
-      _push('$name(${_popList(numArgs).join(', ')})');
+  ///
+  /// Optional argument [names] allows applying names to the last n arguments.
+  /// For example, if the stack contains `1, 2, 3`, calling
+  /// `apply('f', 3, names: ['a', 'b'])` results in a stack of
+  /// `f(1, a: 2, b: 3)`.
+  void apply(String name, int numArgs, {List<String> names = const []}) {
+    var args = _popList(numArgs);
+    for (int i = 1; i <= names.length; i++) {
+      args[args.length - i] =
+          '${names[names.length - i]}: ${args[args.length - i]}';
+    }
+    _push('$name(${args.join(', ')})');
+  }
 
   /// Pushes a node on the stack representing a single atomic expression (for
   /// example a literal value or a variable reference).

@@ -98,24 +98,15 @@ class KernelScopeInfo {
 
 class KernelCapturedScope extends KernelScopeInfo {
   KernelCapturedScope(
-      Set<ir.VariableDeclaration> boxedVariables,
-      NodeBox? capturedVariablesAccessor,
-      Set<ir.VariableDeclaration> localsUsedInTryOrSync,
-      Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */ >
-          freeVariables,
-      Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,
-      bool thisUsedAsFreeVariable,
-      Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti,
-      bool hasThisLocal)
-      : super.withBoxedVariables(
-            boxedVariables,
-            capturedVariablesAccessor,
-            localsUsedInTryOrSync,
-            freeVariables,
-            freeVariablesForRti,
-            thisUsedAsFreeVariable,
-            thisUsedAsFreeVariableIfNeedsRti,
-            hasThisLocal);
+      super.boxedVariables,
+      super.capturedVariablesAccessor,
+      super.localsUsedInTryOrSync,
+      super.freeVariables,
+      super.freeVariablesForRti,
+      super.thisUsedAsFreeVariable,
+      super.thisUsedAsFreeVariableIfNeedsRti,
+      super.hasThisLocal)
+      : super.withBoxedVariables();
 
   // Loops through the free variables of an existing KernelCapturedScope and
   // creates a new KernelCapturedScope that only captures type variables.

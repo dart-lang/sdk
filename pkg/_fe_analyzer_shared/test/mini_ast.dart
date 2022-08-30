@@ -334,6 +334,7 @@ class Harness
     'Null <: int': false,
     'Null <: Object': false,
     'Null <: Object?': true,
+    'Null <: dynamic': true,
     'num <: int': false,
     'num <: Iterable': false,
     'num <: List': false,
@@ -379,6 +380,7 @@ class Harness
     'Object? <: Null': false,
     'String <: int': false,
     'String <: int?': false,
+    'String <: num': false,
     'String <: num?': false,
     'String <: Object': true,
     'String <: Object?': true,
@@ -531,6 +533,12 @@ class Harness
   }
 
   @override
+  bool isAssignableTo(Type leftType, Type rightType) {
+    if (leftType.type == 'dynamic') return true;
+    return isSubtypeOf(leftType, rightType);
+  }
+
+  @override
   bool isNever(Type type) {
     return type.type == 'Never';
   }
@@ -588,6 +596,12 @@ class Harness
     typeAnalyzer.dispatchStatement(b);
     typeAnalyzer.finish();
     expect(typeAnalyzer.errors._accumulatedErrors, isEmpty);
+    var assertInErrorRecoveryStack =
+        typeAnalyzer.errors._assertInErrorRecoveryStack;
+    if (assertInErrorRecoveryStack != null) {
+      fail('assertInErrorRecovery called but no errors reported: '
+          '$assertInErrorRecoveryStack');
+    }
   }
 
   @override
@@ -1284,10 +1298,11 @@ class _Declare extends Statement {
     var initializer = this.initializer;
     if (initializer == null) {
       var pattern = this.pattern as _VariablePattern;
-      var inferredType = h.typeAnalyzer.analyzeUninitializedVariableDeclaration(
+      var staticType = h.typeAnalyzer.analyzeUninitializedVariableDeclaration(
           this, pattern.variable, pattern.declaredType,
           isFinal: isFinal, isLate: isLate);
-      h.typeAnalyzer.handleVariablePattern(pattern, inferredType);
+      h.typeAnalyzer.handleVariablePattern(pattern,
+          matchedType: staticType, staticType: staticType);
       irName = 'declare';
       numArgs = 1;
     } else {
@@ -1721,10 +1736,16 @@ enum _LValueDisposition {
 class _MiniAstErrors implements TypeAnalyzerErrors<Node, Var, Type> {
   final Set<String> _accumulatedErrors = {};
 
+  /// If [assertInErrorRecovery] is called prior to any errors being reported,
+  /// the stack trace is captured and stored in this variable, so that if no
+  /// errors are reported by the end of running the test, we can use it to
+  /// highlight the point of failure.
+  StackTrace? _assertInErrorRecoveryStack;
+
   @override
   void assertInErrorRecovery() {
     if (_accumulatedErrors.isEmpty) {
-      fail('Error recovery code path encountered, but no error reported yet');
+      _assertInErrorRecoveryStack ??= StackTrace.current;
     }
   }
 
@@ -1764,7 +1785,14 @@ class _MiniAstErrors implements TypeAnalyzerErrors<Node, Var, Type> {
     _recordError('patternDoesNotAllowLate(${pattern.errorId})');
   }
 
+  @override
+  void refutablePatternInIrrefutableContext(Node pattern, Node context) {
+    _recordError('refutablePatternInIrrefutableContext(${pattern.errorId}, '
+        '${context.errorId})');
+  }
+
   void _recordError(String errorText) {
+    _assertInErrorRecoveryStack = null;
     if (!_accumulatedErrors.add(errorText)) {
       fail('Same error reported twice: $errorText');
     }
@@ -2129,8 +2157,9 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleConstOrLiteralPattern() {
-    _irBuilder.apply('const', 1);
+  void handleConstOrLiteralPattern({required Type matchedType}) {
+    _irBuilder.atom(matchedType.type);
+    _irBuilder.apply('const', 2, names: ['matchedType']);
   }
 
   @override
@@ -2155,18 +2184,19 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleVariablePattern(
-      covariant _VariablePattern node, Type? inferredType) {
+  void handleVariablePattern(covariant _VariablePattern node,
+      {required Type matchedType, Type? staticType}) {
     _irBuilder.atom(node.variable.name);
-    if (inferredType == null) {
-      _irBuilder.apply('varPattern', 1);
+    _irBuilder.atom(matchedType.type);
+    if (staticType == null) {
+      _irBuilder.apply('varPattern', 2, names: ['matchedType']);
     } else {
-      _irBuilder.atom(inferredType.type);
-      _irBuilder.apply('varPattern', 2);
+      _irBuilder.atom(staticType.type);
+      _irBuilder.apply('varPattern', 3, names: ['matchedType', 'staticType']);
     }
     var expectInferredType = node.expectInferredType;
     if (expectInferredType != null) {
-      expect(inferredType?.type, expectInferredType);
+      expect(staticType?.type, expectInferredType);
     }
   }
 

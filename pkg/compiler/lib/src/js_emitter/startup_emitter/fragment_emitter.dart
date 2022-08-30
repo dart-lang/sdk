@@ -1184,7 +1184,7 @@ class FragmentEmitter {
     Map<Class, List<Class>> subclasses = {};
     Set<Class> seen = Set();
 
-    void collect(cls) {
+    void collect(Class cls) {
       if (cls == null || seen.contains(cls)) return;
 
       Class superclass = cls.superclass;
@@ -1530,7 +1530,8 @@ class FragmentEmitter {
         }
       }
       for (Class cls in library.classes) {
-        var methods = cls.methods.where((dynamic m) => m.needsTearOff).toList();
+        var methods =
+            cls.methods.where((m) => (m as DartMethod).needsTearOff).toList();
         js.Expression container = js.js("#.prototype", classReference(cls));
         js.Expression reference = container;
         if (methods.length > 1) {

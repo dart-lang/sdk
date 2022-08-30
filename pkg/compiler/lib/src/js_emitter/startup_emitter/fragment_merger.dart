@@ -672,7 +672,7 @@ class FragmentMerger {
           .map((fragment) =>
               deferredPartFileName(_options, fragment.canonicalOutputUnit.name))
           .toList();
-      libraryMap["imports"][importDeferName] = partFileNames;
+      (libraryMap["imports"] as Map)[importDeferName] = partFileNames;
     });
     return mapping;
   }

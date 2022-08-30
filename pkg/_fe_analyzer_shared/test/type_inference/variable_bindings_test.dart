@@ -264,7 +264,7 @@ class _Harness implements VariableBindingCallbacks<_Node, String, String> {
       var entryStrings = [
         for (var entry in _bindings.entries.toList())
           [
-            entry.inferredType,
+            entry.staticType,
             entry.variable,
             if (entry.isImplicitlyTyped) '(implicit)'
           ].join(' ')
@@ -322,17 +322,17 @@ class _TypeOperations implements TypeOperations2<String> {
 }
 
 class _VarPattern extends _Node {
-  final String inferredType;
+  final String staticType;
   final String variable;
   final bool isImplicitlyTyped;
   final bool? expectNew;
 
-  _VarPattern(this.inferredType, this.variable,
+  _VarPattern(this.staticType, this.variable,
       {this.isImplicitlyTyped = false, this.expectNew});
 
   @override
   String _toDebugString() => [
-        inferredType,
+        staticType,
         variable,
         if (isImplicitlyTyped) '(implicit)',
         if (expectNew != null) '(expectNew: $expectNew)'
@@ -341,7 +341,7 @@ class _VarPattern extends _Node {
   @override
   void _visit(_Harness h) {
     var isNew = h._bindings.add(this, variable,
-        inferredType: inferredType, isImplicitlyTyped: isImplicitlyTyped);
+        staticType: staticType, isImplicitlyTyped: isImplicitlyTyped);
     if (expectNew != null) {
       expect(isNew, expectNew);
     }

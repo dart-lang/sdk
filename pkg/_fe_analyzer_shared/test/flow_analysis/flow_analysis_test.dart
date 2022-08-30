@@ -1333,6 +1333,7 @@ main() {
         'parameter types', () {
       test('when not final', () {
         var x = Var('x');
+        h.addSubtype('T&int', 'T', true);
         h.run([
           declare(x, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1341,6 +1342,7 @@ main() {
 
       test('when final', () {
         var x = Var('x');
+        h.addSubtype('T&int', 'T', true);
         h.run([
           declare(x, isFinal: true, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),

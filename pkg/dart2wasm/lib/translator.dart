@@ -185,18 +185,21 @@ class Translator {
     types = Types(this);
     dynamics = DynamicDispatcher(this);
 
-    Class Function(String) makeLookup(String libraryName) {
-      Library library =
-          component.libraries.firstWhere((l) => l.name == libraryName);
-      return (name) => library.classes.firstWhere((c) => c.name == name);
+    Library lookupLibrary(String importUriString) => component.libraries
+        .firstWhere((l) => l.importUri == Uri.parse(importUriString));
+
+    Class Function(String) makeLookup(String importUriString) {
+      return (name) => lookupLibrary(importUriString)
+          .classes
+          .firstWhere((c) => c.name == name);
     }
 
-    Class Function(String) lookupCore = makeLookup("dart.core");
-    Class Function(String) lookupCollection = makeLookup("dart.collection");
-    Class Function(String) lookupFfi = makeLookup("dart.ffi");
-    Class Function(String) lookupInternal = makeLookup("dart._internal");
-    Class Function(String) lookupTypedData = makeLookup("dart.typed_data");
-    Class Function(String) lookupWasm = makeLookup("dart.wasm");
+    Class Function(String) lookupCore = makeLookup("dart:core");
+    Class Function(String) lookupCollection = makeLookup("dart:collection");
+    Class Function(String) lookupFfi = makeLookup("dart:ffi");
+    Class Function(String) lookupInternal = makeLookup("dart:_internal");
+    Class Function(String) lookupTypedData = makeLookup("dart:typed_data");
+    Class Function(String) lookupWasm = makeLookup("dart:wasm");
 
     wasmTypesBaseClass = lookupWasm("_WasmBase");
     wasmArrayBaseClass = lookupWasm("_WasmArray");
@@ -250,12 +253,10 @@ class Translator {
         .firstWhere((p) => p.name.text == "callIndirect");
     stackTraceCurrent =
         stackTraceClass.procedures.firstWhere((p) => p.name.text == "current");
-    asyncHelper = component.libraries
-        .firstWhere((l) => l.name == "dart.async")
+    asyncHelper = lookupLibrary("dart:async")
         .procedures
         .firstWhere((p) => p.name.text == "_asyncHelper");
-    awaitHelper = component.libraries
-        .firstWhere((l) => l.name == "dart.async")
+    awaitHelper = lookupLibrary("dart:async")
         .procedures
         .firstWhere((p) => p.name.text == "_awaitHelper");
     stringEquals =
@@ -285,8 +286,7 @@ class Translator {
     hashImmutableIndexNullable = lookupCollection("_HashAbstractImmutableBase")
         .procedures
         .firstWhere((p) => p.name.text == "_indexNullable");
-    isSubtype = component.libraries
-        .firstWhere((l) => l.name == "dart.core")
+    isSubtype = lookupLibrary("dart:core")
         .procedures
         .firstWhere((p) => p.name.text == "_isSubtype");
     objectRuntimeType = lookupCore("Object")

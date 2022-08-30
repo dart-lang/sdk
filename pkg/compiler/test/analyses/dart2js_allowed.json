@@ -19,9 +19,7 @@
     "Dynamic invocation of '~/'.": 1
   },
   "pkg/compiler/lib/src/dart2js.dart": {
-    "Dynamic invocation of 'call'.": 1,
-    "Dynamic invocation of 'pause'.": 1,
-    "Dynamic invocation of 'resume'.": 1
+    "Dynamic invocation of 'call'.": 1
   },
   "pkg/compiler/lib/src/deferred_load/deferred_load.dart": {
     "Dynamic access of 'memberContext'.": 1,
@@ -34,13 +32,6 @@
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
     "Dynamic invocation of '[]='.": 1,
     "Dynamic invocation of 'add'.": 1
-  },
-  "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart": {
-    "Dynamic access of 'needsTearOff'.": 1,
-    "Dynamic access of 'superclass'.": 1
-  },
-  "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_merger.dart": {
-    "Dynamic invocation of '[]='.": 1
   },
   "pkg/compiler/lib/src/serialization/binary_sink.dart": {
     "Dynamic access of 'index'.": 1

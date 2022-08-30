@@ -6,7 +6,7 @@
 
 library dart2js.cmdline;
 
-import 'dart:async' show Future;
+import 'dart:async' show Future, StreamSubscription;
 import 'dart:convert' show utf8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 import 'dart:isolate' show Isolate;
@@ -1492,7 +1492,7 @@ void batchMain(List<String> batchArguments) {
   };
 
   var stream = stdin.transform(utf8.decoder).transform(LineSplitter());
-  var subscription;
+  StreamSubscription subscription;
   fe.InitializedCompilerState kernelInitializedCompilerState;
   subscription = stream.listen((line) {
     Future.sync(() {

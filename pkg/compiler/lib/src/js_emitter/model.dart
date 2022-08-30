@@ -439,7 +439,7 @@ abstract class DartMethod extends Method {
   // `call$1$name` (in unminified mode).
   final js.Name? callName;
 
-  DartMethod(FunctionEntity element, js.Name name, js.Expression code,
+  DartMethod(FunctionEntity super.element, super.name, super.code,
       this.parameterStubs, this.callName,
       {required this.needsTearOff,
       this.tearOffName,
@@ -447,8 +447,7 @@ abstract class DartMethod extends Method {
       required this.requiredParameterCount,
       this.optionalParameterDefaultValues,
       this.functionType,
-      required this.applyIndex})
-      : super(element, name, code) {
+      required this.applyIndex}) {
     assert(!needsTearOff || tearOffName != null);
     assert(!canBeApplied || optionalParameterDefaultValues != null);
   }
@@ -485,31 +484,24 @@ class InstanceMethod extends DartMethod {
   ///final js.Name applyName;
 
   InstanceMethod(
-    FunctionEntity element,
-    js.Name name,
-    js.Expression code,
-    List<ParameterStubMethod> parameterStubs,
-    js.Name callName, {
-    required bool needsTearOff,
-    js.Name? tearOffName,
+    super.element,
+    super.name,
+    super.code,
+    super.parameterStubs,
+    js.Name super.callName, {
+    required super.needsTearOff,
+    super.tearOffName,
     this.aliasName,
     required this.tearOffNeedsDirectAccess,
-    required bool canBeApplied,
-    required int requiredParameterCount,
-    /* List | Map */ optionalParameterDefaultValues,
+    required super.canBeApplied,
+    required super.requiredParameterCount,
+    /* List | Map */ super.optionalParameterDefaultValues,
     required this.isClosureCallMethod,
     required this.inheritsApplyMetadata,
     required this.isIntercepted,
-    js.Expression? functionType,
-    required int applyIndex,
-  }) : super(element, name, code, parameterStubs, callName,
-            needsTearOff: needsTearOff,
-            tearOffName: tearOffName,
-            canBeApplied: canBeApplied,
-            requiredParameterCount: requiredParameterCount,
-            optionalParameterDefaultValues: optionalParameterDefaultValues,
-            functionType: functionType,
-            applyIndex: applyIndex);
+    super.functionType,
+    required super.applyIndex,
+  });
 
   @override
   bool get isStatic => false;
@@ -567,23 +559,15 @@ class ParameterStubMethod extends StubMethod {
 abstract class StaticMethod implements Method {}
 
 class StaticDartMethod extends DartMethod implements StaticMethod {
-  StaticDartMethod(FunctionEntity element, js.Name name, js.Expression code,
-      List<ParameterStubMethod> parameterStubs, js.Name callName,
-      {required bool needsTearOff,
-      js.Name? tearOffName,
-      required bool canBeApplied,
-      required int requiredParameterCount,
-      /* List | Map */ optionalParameterDefaultValues,
-      js.Expression? functionType,
-      required int applyIndex})
-      : super(element, name, code, parameterStubs, callName,
-            needsTearOff: needsTearOff,
-            tearOffName: tearOffName,
-            canBeApplied: canBeApplied,
-            requiredParameterCount: requiredParameterCount,
-            optionalParameterDefaultValues: optionalParameterDefaultValues,
-            functionType: functionType,
-            applyIndex: applyIndex);
+  StaticDartMethod(super.element, super.name, super.code, super.parameterStubs,
+      js.Name super.callName,
+      {required super.needsTearOff,
+      super.tearOffName,
+      required super.canBeApplied,
+      required super.requiredParameterCount,
+      /* List | Map */ super.optionalParameterDefaultValues,
+      super.functionType,
+      required super.applyIndex});
 
   @override
   bool get isStatic => true;

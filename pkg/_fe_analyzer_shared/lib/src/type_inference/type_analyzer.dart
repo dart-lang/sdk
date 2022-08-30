@@ -168,7 +168,10 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     VariableBindings<Node, Variable, Type> bindings =
         new VariableBindings(this);
     patternDispatchResult.match(initializerType, bindings,
-        isFinal: isFinal, isLate: isLate, initializer: initializer);
+        isFinal: isFinal,
+        isLate: isLate,
+        initializer: initializer,
+        irrefutableContext: node);
   }
 
   /// Analyzes an integer literal, given the type context [context].
@@ -207,8 +210,8 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
           new VariableBindings(this);
       Node? pattern = caseInfo.pattern;
       if (pattern != null) {
-        dispatchPattern(pattern)
-            .match(expressionType, bindings, isFinal: false, isLate: false);
+        dispatchPattern(pattern).match(expressionType, bindings,
+            isFinal: false, isLate: false, irrefutableContext: null);
         Expression? when = caseInfo.when;
         bool hasWhen = when != null;
         if (hasWhen) {
@@ -283,8 +286,8 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
           bindings.startAlternative(caseInfo.node);
           Node? pattern = caseInfo.pattern;
           if (pattern != null) {
-            dispatchPattern(pattern)
-                .match(expressionType, bindings, isFinal: false, isLate: false);
+            dispatchPattern(pattern).match(expressionType, bindings,
+                isFinal: false, isLate: false, irrefutableContext: null);
             Expression? when = caseInfo.when;
             bool hasWhen = when != null;
             if (hasWhen) {
@@ -386,13 +389,14 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   void handleCaseHead({required bool hasWhen});
 
   /// See [analyzeConstOrLiteralPattern].
-  void handleConstOrLiteralPattern();
+  void handleConstOrLiteralPattern({required Type matchedType});
 
   /// See [analyzeSwitchStatement] and [analyzeSwitchExpression].
   void handleDefault();
 
   /// See [analyzeVariablePattern].
-  void handleVariablePattern(Node node, Type? type);
+  void handleVariablePattern(Node node,
+      {required Type matchedType, Type? staticType});
 
   /// Queries whether the switch statement or expression represented by [node]
   /// was exhaustive.  See [analyzeSwitchStatement] and
@@ -416,7 +420,9 @@ abstract class TypeAnalyzerErrors<Node extends Object, Variable extends Object,
   /// impossible if the user's code is free from static errors, but which might
   /// arise as a result of error recovery.  To verify this invariant, the client
   /// should double check (preferably using an assertion) that at least one
-  /// error has already been reported.
+  /// error is reported.
+  ///
+  /// Note that the error might be reported after this method is called.
   void assertInErrorRecovery();
 
   /// Called if a single variable is bound using two different types within the
@@ -472,6 +478,12 @@ abstract class TypeAnalyzerErrors<Node extends Object, Variable extends Object,
   ///
   /// [pattern] is the AST node of the illegal pattern.
   void patternDoesNotAllowLate(Node pattern);
+
+  /// Called if a refutable pattern is illegally used in an irrefutable context.
+  ///
+  /// [pattern] is the AST node of the refutable pattern, and [context] is the
+  /// containing AST node that established an irrefutable context.
+  void refutablePatternInIrrefutableContext(Node pattern, Node context);
 }
 
 /// Specialization of [PatternDispatchResult] returned by
@@ -500,9 +512,16 @@ class _ConstOrLiteralPatternDispatchResult<Node extends Object,
 
   @override
   void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
-      {required bool isFinal, required bool isLate, Expression? initializer}) {
+      {required bool isFinal,
+      required bool isLate,
+      Expression? initializer,
+      required Node? irrefutableContext}) {
+    if (irrefutableContext != null) {
+      _typeAnalyzer.errors
+          .refutablePatternInIrrefutableContext(node, irrefutableContext);
+    }
     _typeAnalyzer.analyzeExpression(_expression, matchedType);
-    _typeAnalyzer.handleConstOrLiteralPattern();
+    _typeAnalyzer.handleConstOrLiteralPattern(matchedType: matchedType);
   }
 }
 
@@ -535,20 +554,29 @@ class _VariablePatternDispatchResult<Node extends Object,
 
   @override
   void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
-      {required bool isFinal, required bool isLate, Expression? initializer}) {
-    Type inferredType = _declaredType ??
+      {required bool isFinal,
+      required bool isLate,
+      Expression? initializer,
+      required Node? irrefutableContext}) {
+    Type staticType = _declaredType ??
         _typeAnalyzer.variableTypeFromInitializerType(matchedType);
+    if (irrefutableContext != null &&
+        !_typeAnalyzer.typeOperations.isAssignableTo(matchedType, staticType)) {
+      _typeAnalyzer.errors
+          .refutablePatternInIrrefutableContext(node, irrefutableContext);
+    }
     bool isImplicitlyTyped = _declaredType == null;
     bool added = bindings.add(node, _variable,
-        inferredType: inferredType, isImplicitlyTyped: isImplicitlyTyped);
+        staticType: staticType, isImplicitlyTyped: isImplicitlyTyped);
     if (added) {
       _typeAnalyzer.flow?.declare(_variable, false);
-      _typeAnalyzer.setVariableType(_variable, inferredType);
+      _typeAnalyzer.setVariableType(_variable, staticType);
       _typeAnalyzer.flow?.initialize(_variable, matchedType, initializer,
           isFinal: isFinal,
           isLate: isLate,
           isImplicitlyTyped: isImplicitlyTyped);
     }
-    _typeAnalyzer.handleVariablePattern(node, added ? inferredType : null);
+    _typeAnalyzer.handleVariablePattern(node,
+        matchedType: matchedType, staticType: added ? staticType : null);
   }
 }
