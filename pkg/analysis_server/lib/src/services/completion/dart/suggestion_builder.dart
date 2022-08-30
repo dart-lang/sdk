@@ -937,6 +937,36 @@ class SuggestionBuilder {
     );
   }
 
+  void suggestRecordField({
+    required RecordTypeField field,
+    required String name,
+  }) {
+    final type = field.type;
+    final featureComputer = request.featureComputer;
+    final contextType =
+        featureComputer.contextTypeFeature(request.contextType, type);
+    final relevance = _computeRelevance(
+      contextType: contextType,
+    );
+
+    final returnType = field.type.getDisplayString(
+      withNullability: _isNonNullableByDefault,
+    );
+
+    _addSuggestion(
+      CompletionSuggestion(
+        CompletionSuggestionKind.IDENTIFIER,
+        relevance,
+        name,
+        name.length,
+        0,
+        false,
+        false,
+        returnType: returnType,
+      ),
+    );
+  }
+
   /// Add a suggestion for a static field declared within a class or extension.
   /// If the field is synthetic, add the corresponding getter instead.
   ///
