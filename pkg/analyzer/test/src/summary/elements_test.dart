@@ -40,6 +40,104 @@ class ElementsKeepLinkingTest extends ElementsTest {
 }
 
 abstract class ElementsTest extends ElementsBaseTest {
+  test_annotationArgument_recordLiteral() async {
+    var library = await buildLibrary('''
+@A((2, a: 3))
+class C {}
+class A {
+  const A(o);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @20
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: A @1
+              staticElement: self::@class::A
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @2
+              arguments
+                RecordLiteral
+                  leftParenthesis: ( @3
+                  fields
+                    IntegerLiteral
+                      literal: 2 @4
+                      staticType: int
+                    NamedExpression
+                      name: Label
+                        label: SimpleIdentifier
+                          token: a @7
+                          staticElement: <null>
+                          staticType: null
+                        colon: : @8
+                      expression: IntegerLiteral
+                        literal: 3 @10
+                        staticType: int
+                  rightParenthesis: ) @11
+                  staticType: (int, {int a})
+              rightParenthesis: ) @12
+            element: self::@class::A::@constructor::•
+        constructors
+          synthetic @-1
+      class A @31
+        constructors
+          const @43
+            parameters
+              requiredPositional o @45
+                type: dynamic
+''');
+  }
+
+  test_annotationArgument_recordLiteral_withConst() async {
+    var library = await buildLibrary('''
+@A(const ('',))
+class C {}
+class A {
+  const A(o);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @22
+        metadata
+          Annotation
+            atSign: @ @0
+            name: SimpleIdentifier
+              token: A @1
+              staticElement: self::@class::A
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @2
+              arguments
+                RecordLiteral
+                  constKeyword: const @3
+                  leftParenthesis: ( @9
+                  fields
+                    SimpleStringLiteral
+                      literal: '' @10
+                  rightParenthesis: ) @13
+                  staticType: (String)
+              rightParenthesis: ) @14
+            element: self::@class::A::@constructor::•
+        constructors
+          synthetic @-1
+      class A @33
+        constructors
+          const @45
+            parameters
+              requiredPositional o @47
+                type: dynamic
+''');
+  }
+
   test_augmentation_augmentationImports_augmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -14043,6 +14141,99 @@ library
 ''');
   }
 
+  void test_const_recordLiteral() async {
+    var library = await buildLibrary('''
+const a = 0;
+const b = (a, a: a);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static const b @19
+        type: (int, {int a})
+        constantInitializer
+          RecordLiteral
+            leftParenthesis: ( @23
+            fields
+              SimpleIdentifier
+                token: a @24
+                staticElement: self::@getter::a
+                staticType: int
+              NamedExpression
+                name: Label
+                  label: SimpleIdentifier
+                    token: a @27
+                    staticElement: <null>
+                    staticType: null
+                  colon: : @28
+                expression: SimpleIdentifier
+                  token: a @30
+                  staticElement: self::@getter::a
+                  staticType: int
+            rightParenthesis: ) @31
+            staticType: (int, {int a})
+    accessors
+      synthetic static get a @-1
+        returnType: int
+      synthetic static get b @-1
+        returnType: (int, {int a})
+''');
+  }
+
+  void test_const_recordLiteral_explicitConst() async {
+    var library = await buildLibrary('''
+const a = 0;
+const b = const (a, a: a);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @10
+            staticType: int
+      static const b @19
+        type: (int, {int a})
+        constantInitializer
+          RecordLiteral
+            constKeyword: const @23
+            leftParenthesis: ( @29
+            fields
+              SimpleIdentifier
+                token: a @30
+                staticElement: self::@getter::a
+                staticType: int
+              NamedExpression
+                name: Label
+                  label: SimpleIdentifier
+                    token: a @33
+                    staticElement: <null>
+                    staticType: null
+                  colon: : @34
+                expression: SimpleIdentifier
+                  token: a @36
+                  staticElement: self::@getter::a
+                  staticType: int
+            rightParenthesis: ) @37
+            staticType: (int, {int a})
+    accessors
+      synthetic static get a @-1
+        returnType: int
+      synthetic static get b @-1
+        returnType: (int, {int a})
+''');
+  }
+
   test_const_reference_staticField() async {
     var library = await buildLibrary(r'''
 class C {
@@ -17397,6 +17588,49 @@ library
 ''');
   }
 
+  test_defaultValue_recordLiteral_named_const() async {
+    var library = await buildLibrary('''
+void f({({int f1, bool f2}) x = const (f1: 1, f2: true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @28
+            type: ({int f1, bool f2})
+            constantInitializer
+              RecordLiteral
+                constKeyword: const @32
+                leftParenthesis: ( @38
+                fields
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f1 @39
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @41
+                    expression: IntegerLiteral
+                      literal: 1 @43
+                      staticType: int
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f2 @46
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @48
+                    expression: BooleanLiteral
+                      literal: true @50
+                      staticType: bool
+                rightParenthesis: ) @54
+                staticType: ({int f1, bool f2})
+        returnType: void
+''');
+  }
+
   test_defaultValue_recordLiteral_positional() async {
     var library = await buildLibrary('''
 void f({(int, bool) x = (1, true)}) {}
@@ -17420,6 +17654,35 @@ library
                     literal: true @28
                     staticType: bool
                 rightParenthesis: ) @32
+                staticType: (int, bool)
+        returnType: void
+''');
+  }
+
+  void test_defaultValue_recordLiteral_positional_const() async {
+    var library = await buildLibrary('''
+void f({(int, bool) x = const (1, true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @20
+            type: (int, bool)
+            constantInitializer
+              RecordLiteral
+                constKeyword: const @24
+                leftParenthesis: ( @30
+                fields
+                  IntegerLiteral
+                    literal: 1 @31
+                    staticType: int
+                  BooleanLiteral
+                    literal: true @34
+                    staticType: bool
+                rightParenthesis: ) @38
                 staticType: (int, bool)
         returnType: void
 ''');
