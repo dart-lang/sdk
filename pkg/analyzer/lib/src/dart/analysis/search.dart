@@ -831,89 +831,71 @@ class _ContainingElementFinder extends GeneralizingElementVisitor<void> {
   }
 }
 
-class _FindDeclarations {
-  final AnalysisDriver driver;
+class _FindCompilationUnitDeclarations {
+  final CompilationUnitElement unit;
+  final String filePath;
+  final LineInfo lineInfo;
   final WorkspaceSymbols result;
   final int? maxResults;
   final RegExp? regExp;
-  final String? onlyForFile;
+  final void Function(Declaration) collect;
 
-  _FindDeclarations(this.driver, this.result, this.regExp, this.maxResults,
-      {this.onlyForFile});
+  _FindCompilationUnitDeclarations(
+    this.unit,
+    this.filePath,
+    this.result,
+    this.maxResults,
+    this.regExp,
+    this.collect,
+  ) : lineInfo = unit.lineInfo;
 
-  /// Add matching declarations to the [result].
-  Future<void> compute(CancellationToken? cancellationToken) async {
+  void compute(CancellationToken? cancellationToken) {
     if (result.hasMoreDeclarationsThan(maxResults)) {
       return;
     }
 
-    await driver.discoverAvailableFiles();
-
-    if (cancellationToken != null &&
-        cancellationToken.isCancellationRequested) {
-      result.cancelled = true;
-      return;
-    }
-
-    var knownFiles = driver.fsState.knownFiles.toList();
-    var filesProcessed = 0;
-    try {
-      for (var file in knownFiles) {
-        var elementResult = await driver.getLibraryByUri(file.uriStr);
-        if (elementResult is LibraryElementResult) {
-          _addUnits(file, elementResult.element.units);
-        }
-
-        // Periodically yield and check cancellation token.
-        if (cancellationToken != null && (filesProcessed++) % 20 == 0) {
-          await null; // allow cancellation requests to be processed.
-          if (cancellationToken.isCancellationRequested) {
-            result.cancelled = true;
-            return;
-          }
-        }
-      }
-    } on _MaxNumberOfDeclarationsError {
-      return;
-    }
+    _addAccessors(unit.accessors);
+    _addClasses(unit.classes);
+    _addClasses(unit.enums2);
+    _addClasses(unit.mixins2);
+    _addExtensions(unit.extensions);
+    _addFunctions(unit.functions);
+    _addTypeAliases(unit.typeAliases);
+    _addVariables(unit.topLevelVariables);
   }
 
-  void _addAccessors(FileState file, List<PropertyAccessorElement> elements) {
+  void _addAccessors(List<PropertyAccessorElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(file, element, element.displayName);
+        _addDeclaration(element, element.displayName);
       }
     }
   }
 
-  void _addClasses(FileState file, List<InterfaceElement> elements) {
+  void _addClasses(List<InterfaceElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(file, element, element.name);
-      _addAccessors(file, element.accessors);
-      _addConstructors(file, element.constructors);
-      _addFields(file, element.fields);
-      _addMethods(file, element.methods);
+      _addDeclaration(element, element.name);
+      _addAccessors(element.accessors);
+      _addConstructors(element.constructors);
+      _addFields(element.fields);
+      _addMethods(element.methods);
     }
   }
 
-  void _addConstructors(FileState file, List<ConstructorElement> elements) {
+  void _addConstructors(List<ConstructorElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(file, element, element.name);
+        _addDeclaration(element, element.name);
       }
     }
   }
 
-  void _addDeclaration(FileState file, Element element, String name) {
+  void _addDeclaration(Element element, String name) {
     if (result.hasMoreDeclarationsThan(maxResults)) {
       throw const _MaxNumberOfDeclarationsError();
-    }
-
-    if (onlyForFile != null && file.path != onlyForFile) {
-      return;
     }
 
     if (regExp != null && !regExp!.hasMatch(name)) {
@@ -948,12 +930,12 @@ class _FindDeclarations {
 
     element as ElementImpl; // to access codeOffset/codeLength
     var locationOffset = element.nameOffset;
-    var locationStart = file.lineInfo.getLocation(locationOffset);
+    var locationStart = lineInfo.getLocation(locationOffset);
 
-    result.declarations.add(
+    collect(
       Declaration(
-        result._getPathIndex(file.path),
-        file.lineInfo,
+        result._getPathIndex(filePath),
+        lineInfo,
         name,
         kind,
         locationOffset,
@@ -968,69 +950,119 @@ class _FindDeclarations {
     );
   }
 
-  void _addExtensions(FileState file, List<ExtensionElement> elements) {
+  void _addExtensions(List<ExtensionElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       var name = element.name;
       if (name != null) {
-        _addDeclaration(file, element, name);
+        _addDeclaration(element, name);
       }
-      _addAccessors(file, element.accessors);
-      _addFields(file, element.fields);
-      _addMethods(file, element.methods);
+      _addAccessors(element.accessors);
+      _addFields(element.fields);
+      _addMethods(element.methods);
     }
   }
 
-  void _addFields(FileState file, List<FieldElement> elements) {
+  void _addFields(List<FieldElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(file, element, element.name);
+        _addDeclaration(element, element.name);
       }
     }
   }
 
-  void _addFunctions(FileState file, List<FunctionElement> elements) {
+  void _addFunctions(List<FunctionElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(file, element, element.name);
+      _addDeclaration(element, element.name);
     }
   }
 
-  void _addMethods(FileState file, List<MethodElement> elements) {
+  void _addMethods(List<MethodElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(file, element, element.name);
+      _addDeclaration(element, element.name);
     }
   }
 
-  void _addTypeAliases(FileState file, List<TypeAliasElement> elements) {
+  void _addTypeAliases(List<TypeAliasElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(file, element, element.name);
+      _addDeclaration(element, element.name);
     }
   }
 
-  void _addUnits(FileState file, List<CompilationUnitElement> elements) {
-    for (var i = 0; i < elements.length; i++) {
-      var element = elements[i];
-      _addAccessors(file, element.accessors);
-      _addClasses(file, element.classes);
-      _addClasses(file, element.enums2);
-      _addClasses(file, element.mixins2);
-      _addExtensions(file, element.extensions);
-      _addFunctions(file, element.functions);
-      _addTypeAliases(file, element.typeAliases);
-      _addVariables(file, element.topLevelVariables);
-    }
-  }
-
-  void _addVariables(FileState file, List<TopLevelVariableElement> elements) {
+  void _addVariables(List<TopLevelVariableElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(file, element, element.name);
+        _addDeclaration(element, element.name);
       }
+    }
+  }
+}
+
+class _FindDeclarations {
+  final AnalysisDriver driver;
+  final WorkspaceSymbols result;
+  final int? maxResults;
+  final RegExp? regExp;
+  final String? onlyForFile;
+
+  _FindDeclarations(this.driver, this.result, this.regExp, this.maxResults,
+      {this.onlyForFile});
+
+  /// Add matching declarations to the [result].
+  Future<void> compute(CancellationToken? cancellationToken) async {
+    if (result.hasMoreDeclarationsThan(maxResults)) {
+      return;
+    }
+
+    await driver.discoverAvailableFiles();
+
+    if (cancellationToken != null &&
+        cancellationToken.isCancellationRequested) {
+      result.cancelled = true;
+      return;
+    }
+
+    var knownFiles = driver.fsState.knownFiles.toList();
+    var filesProcessed = 0;
+    try {
+      for (var file in knownFiles) {
+        var elementResult = await driver.getLibraryByUri(file.uriStr);
+        if (elementResult is LibraryElementResult) {
+          var units = elementResult.element.units;
+          for (var i = 0; i < units.length; i++) {
+            var unit = units[i];
+            var filePath = unit.source.fullName;
+            if (onlyForFile != null && filePath != onlyForFile) {
+              continue;
+            }
+            var finder = _FindCompilationUnitDeclarations(
+              unit,
+              filePath,
+              result,
+              maxResults,
+              regExp,
+              result.declarations.add,
+            );
+            finder.compute(cancellationToken);
+          }
+        }
+
+        // Periodically yield and check cancellation token.
+        if (cancellationToken != null && (filesProcessed++) % 20 == 0) {
+          await null; // allow cancellation requests to be processed.
+          if (cancellationToken.isCancellationRequested) {
+            result.cancelled = true;
+            return;
+          }
+        }
+      }
+    } on _MaxNumberOfDeclarationsError {
+      return;
     }
   }
 }

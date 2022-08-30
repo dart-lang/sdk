@@ -188,6 +188,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_null_a
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_unnamed_constructor_first.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
@@ -447,6 +448,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.cascade_invocations: [
       ConvertToCascade.new,
+    ],
+    LintNames.combinators_ordering: [
+      SortCombinators.new,
     ],
     LintNames.curly_braces_in_flow_control_structures: [
       UseCurlyBraces.new,
@@ -716,7 +720,7 @@ class FixProcessor extends BaseProcessor {
   /// correction producers used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintMultiProducerMap].
   static const Map<ErrorCode, List<MultiProducerGenerator>>
-      nonLintMultiProducerMap = {
+  nonLintMultiProducerMap = {
     CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS: [
       AddExtensionOverride.new,
     ],
@@ -1000,6 +1004,9 @@ class FixProcessor extends BaseProcessor {
       AddRequiredKeyword.new,
       MakeVariableNullable.new,
     ],
+    CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL: [
+      MakeVariableNullable.new,
+    ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION: [
       AddRequiredKeyword.new,
     ],
@@ -1020,7 +1027,7 @@ class FixProcessor extends BaseProcessor {
       CreateConstructor.new,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
-        [
+    [
       CreateMissingOverrides.new,
       CreateNoSuchMethod.new,
       MakeClassAbstract.new,
@@ -1445,9 +1452,9 @@ class FixProcessor extends BaseProcessor {
 
   FixProcessor(this.fixContext)
       : super(
-          resolvedResult: fixContext.resolveResult,
-          workspace: fixContext.workspace,
-        );
+    resolvedResult: fixContext.resolveResult,
+    workspace: fixContext.workspace,
+  );
 
   Future<List<Fix>> compute() async {
     await _addFromProducers();

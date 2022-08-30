@@ -5090,21 +5090,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (typeSystem.isPotentiallyNonNullable(type)) {
               final parameterName = _parameterName(parameter);
               final errorTarget = parameterName ?? parameter;
+
+              List<Object>? arguments;
+              ErrorCode errorCode;
               if (parameterElement.hasRequired) {
-                errorReporter.reportErrorForOffset(
-                  CompileTimeErrorCode
-                      .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
-                  errorTarget.offset,
-                  errorTarget.length,
-                );
+                errorCode = CompileTimeErrorCode
+                    .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION;
               } else {
-                errorReporter.reportErrorForOffset(
-                  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
-                  errorTarget.offset,
-                  errorTarget.length,
-                  [parameterName?.lexeme ?? '?'],
-                );
+                errorCode = parameterElement.isPositional
+                    ? CompileTimeErrorCode
+                        .MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL
+                    : CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER;
+                arguments = [parameterName?.lexeme ?? '?'];
               }
+              errorReporter.reportErrorForOffset(
+                  errorCode, errorTarget.offset, errorTarget.length, arguments);
             }
           }
         }

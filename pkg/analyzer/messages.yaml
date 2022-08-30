@@ -3365,8 +3365,8 @@ CompileTimeErrorCode:
     problemMessage: The field name '{0}' is already used in this record.
     correctionMessage: Try renaming the field.
     comment: |-
-       Parameters:
-       0: the duplicated name
+      Parameters:
+      0: the duplicated name
   DUPLICATE_FIELD_FORMAL_PARAMETER:
     problemMessage: "The field '{0}' can't be initialized by multiple parameters in the same constructor."
     correctionMessage: Try removing one of the parameters, or using different fields.
@@ -8302,6 +8302,14 @@ CompileTimeErrorCode:
       void f(int x) {}
       void g({required int x}) {}
       ```
+  MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
+    sharedName: MISSING_DEFAULT_VALUE_FOR_PARAMETER
+    problemMessage: "The parameter '{0}' can't have a value of 'null' because of its type, but the implicit default value is 'null'."
+    correctionMessage: "Try adding an explicit non-'null' default value."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the parameter
   MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
     sharedName: MISSING_DEFAULT_VALUE_FOR_PARAMETER
     problemMessage: "With null safety, use the 'required' keyword, not the '@required' annotation."

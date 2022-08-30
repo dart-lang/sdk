@@ -115,4 +115,17 @@ void f(String? s) {
 }
 ''');
   }
+
+  Future<void> test_nullLiteral() async {
+    await resolveTestCode('''
+void f(String? s) {
+  print(s == null ? null : s);
+}
+''');
+    await assertHasFix('''
+void f(String? s) {
+  print(s);
+}
+''');
+  }
 }

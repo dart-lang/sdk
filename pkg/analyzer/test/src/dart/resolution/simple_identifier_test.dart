@@ -78,6 +78,44 @@ int Function() foo(A? a) {
     assertType(identifier, 'A?');
   }
 
+  test_inExtension_onFunctionType_call() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(double) {
+  void f() {
+    call;
+  }
+}
+''');
+
+    final node = findNode.simple('call;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: call
+  staticElement: <null>
+  staticType: int Function(double)
+''');
+  }
+
+  test_inExtension_onFunctionType_call_inference() async {
+    await assertNoErrorsInCode('''
+extension E on int Function<T>(T) {
+  int Function(double) f() {
+    return call;
+  }
+}
+''');
+
+    final node = findNode.simple('call;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: call
+  staticElement: <null>
+  staticType: int Function(double)
+  tearOffTypeArgumentTypes
+    double
+''');
+  }
+
   test_inExtension_onRecordType_named() async {
     await assertNoErrorsInCode('''
 extension E on ({int foo}) {

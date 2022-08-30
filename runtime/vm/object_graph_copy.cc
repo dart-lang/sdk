@@ -396,9 +396,12 @@ class ForwardMapBase {
 
     // Move the handle itself to the new object.
     fpeer->handle()->EnsureFreedExternal(thread_->isolate_group());
-    tpeer->set_handle(FinalizablePersistentHandle::New(
-        thread_->isolate_group(), to, tpeer, FreeTransferablePeer, length,
-        /*auto_delete=*/true));
+    FinalizablePersistentHandle* finalizable_ref =
+        FinalizablePersistentHandle::New(thread_->isolate_group(), to, tpeer,
+                                         FreeTransferablePeer, length,
+                                         /*auto_delete=*/true);
+    ASSERT(finalizable_ref != nullptr);
+    tpeer->set_handle(finalizable_ref);
     fpeer->ClearData();
   }
 

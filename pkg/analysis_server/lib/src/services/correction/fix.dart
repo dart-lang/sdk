@@ -1575,6 +1575,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Move child properties to ends of arguments everywhere in file',
   );
+  static const SORT_COMBINATORS = FixKind(
+    'dart.fix.sort.combinators',
+    DartFixKindPriority.DEFAULT,
+    'Sort combinators',
+  );
+  static const SORT_COMBINATORS_MULTI = FixKind(
+    'dart.fix.sort.combinators.multi',
+    DartFixKindPriority.IN_FILE,
+    'Sort combinators everywhere in file',
+  );
   static const SORT_CONSTRUCTOR_FIRST = FixKind(
     'dart.fix.sort.sortConstructorFirst',
     DartFixKindPriority.DEFAULT,

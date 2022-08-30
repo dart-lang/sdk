@@ -766,6 +766,23 @@ RecordLiteral
 ''');
   }
 
+  void test_recordLiteral_positional_one_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+final x = (0,);
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordLiteral('(0');
+    assertParsedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    IntegerLiteral
+      literal: 0
+  rightParenthesis: )
+''');
+  }
+
   void test_recordLiteral_positional_trailingComma() {
     var parseResult = parseStringWithErrors(r'''
 final x = (0, 1,);
@@ -935,6 +952,47 @@ RecordTypeAnnotation
       type: NamedType
         name: SimpleIdentifier
           token: bool
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordTypeAnnotation_positional_one() {
+    var parseResult = parseStringWithErrors(r'''
+void f((int) r) {}
+''');
+    parseResult.assertErrors([
+      error(
+          ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA, 11, 1),
+    ]);
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+  rightParenthesis: )
+''');
+  }
+
+  void test_recordTypeAnnotation_positional_one_trailingComma() {
+    var parseResult = parseStringWithErrors(r'''
+void f((int, ) r) {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.recordTypeAnnotation('(int');
+    assertParsedNodeText(node, r'''
+RecordTypeAnnotation
+  leftParenthesis: (
+  positionalFields
+    RecordTypeAnnotationPositionalField
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
   rightParenthesis: )
 ''');
   }

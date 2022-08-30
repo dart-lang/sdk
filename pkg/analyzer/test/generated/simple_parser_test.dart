@@ -125,8 +125,8 @@ class C {
 ''', errors: [
       expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 18, 5),
       expectedError(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 24, 5),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 24, 5),
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 29, 1),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 29, 1),
       expectedError(ParserErrorCode.RECORD_LITERAL_EMPTY, 30, 1),
     ]);
   }

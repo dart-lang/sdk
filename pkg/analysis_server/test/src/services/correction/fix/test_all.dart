@@ -226,6 +226,7 @@ import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
+import 'sort_combinators_test.dart' as sort_combinators_test;
 import 'sort_constructor_first_test.dart' as sort_constructor_first_test;
 import 'sort_unnamed_constructor_first_test.dart'
     as sort_unnamed_constructor_first_test;
@@ -440,6 +441,7 @@ void main() {
     replace_with_var.main();
     sort_properties_last.main();
     sort_constructor_first_test.main();
+    sort_combinators_test.main();
     sort_unnamed_constructor_first_test.main();
     update_sdk_constraints.main();
     use_const.main();
