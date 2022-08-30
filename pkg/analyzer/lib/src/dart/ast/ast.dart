@@ -9653,7 +9653,7 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 
   /// Initialize a newly created record literal.
   RecordLiteralImpl(
-      {this.constKeyword,
+      {required this.constKeyword,
       required this.leftParenthesis,
       required List<Expression> fields,
       required this.rightParenthesis}) {

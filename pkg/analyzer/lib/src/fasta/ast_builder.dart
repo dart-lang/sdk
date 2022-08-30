@@ -2427,6 +2427,7 @@ class AstBuilder extends StackListener {
     }
 
     push(RecordLiteralImpl(
+      constKeyword: constKeyword,
       leftParenthesis: token,
       fields: expressions,
       rightParenthesis: token.endGroup!,
