@@ -13,6 +13,13 @@ class A {
   void h({String valWithDefault = 'default', bool? val}) {}
 }
 
+enum TestEnum {
+  a(test: false); // LINT
+
+  const TestEnum({this.test = false});
+
+  final bool test;
+}
 
 f(void g([bool? b])) {
   // Function Expression Invocation.
