@@ -720,7 +720,7 @@ class FixProcessor extends BaseProcessor {
   /// correction producers used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintMultiProducerMap].
   static const Map<ErrorCode, List<MultiProducerGenerator>>
-      nonLintMultiProducerMap = {
+  nonLintMultiProducerMap = {
     CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS: [
       AddExtensionOverride.new,
     ],
@@ -1004,6 +1004,9 @@ class FixProcessor extends BaseProcessor {
       AddRequiredKeyword.new,
       MakeVariableNullable.new,
     ],
+    CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL: [
+      MakeVariableNullable.new,
+    ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION: [
       AddRequiredKeyword.new,
     ],
@@ -1024,7 +1027,7 @@ class FixProcessor extends BaseProcessor {
       CreateConstructor.new,
     ],
     CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
-        [
+    [
       CreateMissingOverrides.new,
       CreateNoSuchMethod.new,
       MakeClassAbstract.new,
@@ -1449,9 +1452,9 @@ class FixProcessor extends BaseProcessor {
 
   FixProcessor(this.fixContext)
       : super(
-          resolvedResult: fixContext.resolveResult,
-          workspace: fixContext.workspace,
-        );
+    resolvedResult: fixContext.resolveResult,
+    workspace: fixContext.workspace,
+  );
 
   Future<List<Fix>> compute() async {
     await _addFromProducers();

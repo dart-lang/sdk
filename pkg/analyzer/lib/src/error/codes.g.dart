@@ -2675,6 +2675,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the parameter
+  static const CompileTimeErrorCode
+      MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL = CompileTimeErrorCode(
+    'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+    "The parameter '{0}' can't have a value of 'null' because of its type, but "
+        "the implicit default value is 'null'.",
+    correctionMessage: "Try adding an explicit non-'null' default value.",
+    hasPublishedDocs: true,
+    uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL',
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode
       MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION =

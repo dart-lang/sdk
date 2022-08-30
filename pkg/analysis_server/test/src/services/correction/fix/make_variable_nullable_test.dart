@@ -169,6 +169,15 @@ void f() {
 ''');
   }
 
+  Future<void> test_positional() async {
+    await resolveTestCode('''
+void f([String s]) {}
+''');
+    await assertHasFix('''
+void f([String? s]) {}
+''');
+  }
+
   Future<void> test_simpleFormalParameter() async {
     await resolveTestCode('''
 void f({String s}) {}

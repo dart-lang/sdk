@@ -679,6 +679,8 @@ CompileTimeErrorCode.MISSING_DART_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER:
   status: hasFix
+CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
+  status: hasFix
 CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
   status: hasFix
 CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
