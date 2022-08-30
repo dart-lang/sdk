@@ -230,6 +230,12 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead) {
       var readLookup = LexicalLookup.resolveGetter(scopeLookupResult) ??
           _resolver.thisLookupGetter(node);
+      final callFunctionType = readLookup?.callFunctionType;
+      if (callFunctionType != null) {
+        return PropertyElementResolverResult(
+          functionTypeCallType: callFunctionType,
+        );
+      }
       readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {

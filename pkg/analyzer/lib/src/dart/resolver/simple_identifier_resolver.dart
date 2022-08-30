@@ -23,6 +23,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
   final InvocationInferenceHelper _inferenceHelper;
 
+  var _currentAlreadyResolved = false;
+
   SimpleIdentifierResolver(this._resolver)
       : _inferenceHelper = _resolver.inferenceHelper;
 
@@ -54,7 +56,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     _reportDeprecatedExportUse(node);
 
-    _resolve1(node);
+    _resolve1(node, contextType: contextType);
     _resolve2(node, contextType: contextType);
   }
 
@@ -130,7 +132,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
     }
   }
 
-  void _resolve1(SimpleIdentifierImpl node) {
+  void _resolve1(SimpleIdentifierImpl node, {required DartType? contextType}) {
+    _currentAlreadyResolved = false;
+
     //
     // Synthetic identifiers have been already reported during parsing.
     //
@@ -180,6 +184,16 @@ class SimpleIdentifierResolver with ScopeHelpers {
       hasWrite: hasWrite,
     );
 
+    final callFunctionType = result.functionTypeCallType;
+    if (callFunctionType != null) {
+      final staticType = _resolver.inferenceHelper
+          .inferTearOff(node, node, callFunctionType, contextType: contextType);
+      _inferenceHelper.recordStaticType(node, staticType,
+          contextType: contextType);
+      _currentAlreadyResolved = true;
+      return;
+    }
+
     var element = hasRead ? result.readElement : result.writeElement;
 
     var enclosingClass = _resolver.enclosingClass;
@@ -217,6 +231,10 @@ class SimpleIdentifierResolver with ScopeHelpers {
   }
 
   void _resolve2(SimpleIdentifierImpl node, {required DartType? contextType}) {
+    if (_currentAlreadyResolved) {
+      return;
+    }
+
     var element = node.staticElement;
 
     if (element is ExtensionElement) {
