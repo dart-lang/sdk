@@ -106,6 +106,10 @@ class _AddInvocation extends CorrectionProducer {
           } else {
             builder.write(', ');
           }
+
+          if (parameter.isNamed) {
+            builder.write('${parameter.name}: ');
+          }
           // default value
           builder.addSimpleLinkedEdit(
               parameter.name, getDefaultValueCode(parameter.type));

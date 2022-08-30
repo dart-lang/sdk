@@ -123,10 +123,6 @@ class B extends A {
 ''');
   }
 
-  @FailingTest(
-    reason: 'Generates positional arguments instead of named',
-    issue: 'https://github.com/dart-lang/sdk/issues/49514',
-  )
   Future<void> test_unnamed_requiredNamed() async {
     await resolveTestCode('''
 class A {
