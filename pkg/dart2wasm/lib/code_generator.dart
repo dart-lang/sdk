@@ -911,27 +911,29 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     _branchIf(node.condition, block, negated: true);
     node.body.accept(this);
 
-    // If the loop variable is captured then we have to create a new context for
-    // each iteration of the loop. We must also ensure the local pointing to the
-    // [oldContext] now points to [newContext].
-    if (node.variables.any((v) => closures.captures.containsKey(v))) {
-      w.Local oldContext = context!.currentLocal;
+    if (context != null && !context.isEmpty) {
+      // Create a new context for each iteration of the loop.
+      w.Local oldContext = context.currentLocal;
       allocateContext(node);
       w.Local newContext = context.currentLocal;
+
+      // Copy the values of captured loop variables to the new context.
       for (VariableDeclaration variable in node.variables) {
         Capture? capture = closures.captures[variable];
         if (capture != null) {
+          assert(capture.context == context);
           b.local_get(newContext);
           b.local_get(oldContext);
           b.struct_get(context.struct, capture.fieldIndex);
           b.struct_set(context.struct, capture.fieldIndex);
         }
       }
+
+      // Update the context local to point to the new context.
       b.local_get(newContext);
       b.local_set(oldContext);
-    } else {
-      allocateContext(node);
     }
+
     for (Expression update in node.updates) {
       wrap(update, voidMarker);
     }
