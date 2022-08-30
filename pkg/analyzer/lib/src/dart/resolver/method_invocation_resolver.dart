@@ -175,13 +175,6 @@ class MethodInvocationResolver with ScopeHelpers {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
-    if (_typeSystem.isFunctionBounded(receiverType)) {
-      _resolveReceiverFunctionBounded(
-          node, receiver, receiverType, nameNode, name, whyNotPromotedList,
-          contextType: contextType);
-      return;
-    }
-
     if (receiver is TypeLiteralImpl &&
         receiver.type.typeArguments != null &&
         receiver.type.type is FunctionType) {
@@ -487,36 +480,6 @@ class MethodInvocationResolver with ScopeHelpers {
         .resolveInvocation(rawType: rawType);
   }
 
-  void _resolveReceiverFunctionBounded(
-      MethodInvocationImpl node,
-      Expression receiver,
-      DartType receiverType,
-      SimpleIdentifierImpl nameNode,
-      String name,
-      List<WhyNotPromotedGetter> whyNotPromotedList,
-      {required DartType? contextType}) {
-    if (name == FunctionElement.CALL_METHOD_NAME) {
-      _setResolution(node, receiverType, whyNotPromotedList,
-          contextType: contextType);
-      // TODO(scheglov) Replace this with using FunctionType directly.
-      // Here was erase resolution that _setResolution() sets.
-      nameNode.staticElement = null;
-      nameNode.staticType = _dynamicType;
-      return;
-    }
-
-    _resolveReceiverType(
-      node: node,
-      receiver: receiver,
-      receiverType: receiverType,
-      nameNode: nameNode,
-      name: name,
-      receiverErrorNode: nameNode,
-      whyNotPromotedList: whyNotPromotedList,
-      contextType: contextType,
-    );
-  }
-
   void _resolveReceiverNever(MethodInvocationImpl node, Expression receiver,
       DartType receiverType, List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
@@ -789,6 +752,18 @@ class MethodInvocationResolver with ScopeHelpers {
       propertyErrorEntity: nameNode,
       nameErrorEntity: nameNode,
     );
+
+    final callFunctionType = result.callFunctionType;
+    if (callFunctionType != null) {
+      assert(name == FunctionElement.CALL_METHOD_NAME);
+      _setResolution(node, callFunctionType, whyNotPromotedList,
+          contextType: contextType);
+      // TODO(scheglov) Replace this with using FunctionType directly.
+      // Here was erase resolution that _setResolution() sets.
+      nameNode.staticElement = null;
+      nameNode.staticType = _dynamicType;
+      return;
+    }
 
     var target = result.getter;
     if (target != null) {

@@ -186,7 +186,13 @@ class TypePropertyResolver {
 
       if (receiverTypeResolved is FunctionType &&
           _name == FunctionElement.CALL_METHOD_NAME) {
-        return _toResult();
+        return ResolutionResult(
+          getter: null,
+          needsGetterError: false,
+          setter: null,
+          needsSetterError: false,
+          callFunctionType: receiverTypeResolved,
+        );
       }
 
       if (receiverTypeResolved is NeverType) {
