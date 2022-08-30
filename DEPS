@@ -125,7 +125,7 @@ vars = {
   "linter_rev": "304042aaa933a02d2581ab9598dd2ddaebdbc803", # dev
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
   "logging_rev": "d10e24844c2e01d3f6d2b5a1a2bb8717359c6a87",
-  "markdown_rev": "32a94505ded3863b82310b86344a003a19c00341",
+  "markdown_rev": "e3f4bd28c9e61b522f75f291d4d6cfcfeccd83ee", # b/236358256
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "eacb003c0af376863d3a298ad035a589bd9fcbd8",
   "mime_rev": "0a75a41445eb642674a0a271eecde78cb025ee60",

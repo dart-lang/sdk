@@ -432,7 +432,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void endRecordLiteral(Token token, int count) {
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
     debugEvent("RecordLiteral");
   }
 

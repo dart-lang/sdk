@@ -56,9 +56,9 @@ parser/error_recovery/keyword_named_class_methods:47:7: 'const' can't be used as
   int const(int x) {
       ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:49:17: Expected an identifier, but got '('.
+parser/error_recovery/keyword_named_class_methods:49:21: Record literal with one field requires a trailing comma.
     return const(x-1) + 1;
-                ^
+                    ^
 
 parser/error_recovery/keyword_named_class_methods:52:7: 'continue' can't be used as an identifier because it's a keyword.
   int continue(int x) {
@@ -272,7 +272,7 @@ parser/error_recovery/keyword_named_class_methods:184:16: Expected ')' before th
     return is(x-1) + 1;
                ^
 
-parser/error_recovery/keyword_named_class_methods:184:18: Record type fields list cannot contain only one element without a named field.
+parser/error_recovery/keyword_named_class_methods:184:18: Record type with one entry requires a trailing comma.
     return is(x-1) + 1;
                  ^
 
@@ -1076,14 +1076,8 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                beginConstExpression(const)
-                  handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., Try inserting an identifier before '('., {lexeme: (}], (, ()
-                  handleIdentifier(, constructorReference)
-                  beginConstructorReference()
-                    handleNoTypeArguments(()
-                    handleNoConstructorReferenceContinuationAfterTypeArguments(()
-                  endConstructorReference(, null, (, ConstructorReferenceContext.Const)
-                  beginArguments(()
+                beginConstLiteral(()
+                  beginParenthesizedExpressionOrRecordLiteral(()
                     handleIdentifier(x, expression)
                     handleNoTypeArguments(-)
                     handleNoArguments(-)
@@ -1091,8 +1085,9 @@ beginCompilationUnit(class)
                     beginBinaryExpression(-)
                       handleLiteralInt(1)
                     endBinaryExpression(-)
-                  endArguments(1, (, ))
-                endConstExpression(const)
+                    handleRecoverableError(RecordLiteralOnePositionalFieldNoTrailingComma, ), ))
+                  endRecordLiteral((, 1, const)
+                endConstLiteral(+)
                 beginBinaryExpression(+)
                   handleLiteralInt(1)
                 endBinaryExpression(+)
@@ -2778,7 +2773,7 @@ beginCompilationUnit(class)
                       handleNoName(-)
                     endRecordTypeEntry()
                     handleRecoverableError(Message[ExpectedButGot, Expected ')' before this., null, {string: )}], -, -)
-                    handleRecoverableError(OnlyOneRecordTypeFieldsList, ), ))
+                    handleRecoverableError(RecordTypeOnePositionalFieldNoTrailingComma, ), ))
                   endRecordType((, null, 1, false)
                 endIsOperatorType(is)
                 handleIsOperator(is, null)

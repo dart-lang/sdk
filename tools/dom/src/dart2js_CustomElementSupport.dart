@@ -66,7 +66,8 @@ void _checkExtendsNativeClassOrTemplate(
   }
 }
 
-Function _registerCustomElement(context, document, String tag, [Map? options]) {
+Function _registerCustomElement(context, Document document, String tag,
+    [Map? options]) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //

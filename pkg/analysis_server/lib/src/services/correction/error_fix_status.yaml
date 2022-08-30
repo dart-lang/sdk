@@ -24,9 +24,9 @@
 #   issue created for it.
 #
 # Stats:
-# - 739 "needsEvaluation"
-# -  45 "needsFix"
-# - 284 "hasFix"
+# - 736 "needsEvaluation"
+# -  48 "needsFix"
+# - 285 "hasFix"
 # -  47 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -361,10 +361,13 @@ CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
 CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
-  status: needsEvaluation
-CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
   status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
+  status: needsFix
   since: 2.17
+  notes: Use AddConst.new
 CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
   status: noFix
   since: 2.17
@@ -782,7 +785,8 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
-  status: needsEvaluation
+  status: needsFix
+  notes: Use MakeFinal.new
 CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
@@ -2020,7 +2024,8 @@ ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE:
 ParserErrorCode.ABSTRACT_CLASS_MEMBER:
   status: hasFix
 ParserErrorCode.ABSTRACT_ENUM:
-  status: needsEvaluation
+  status: needsFix
+  notes: Remove abstract keyword
 ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
   status: needsEvaluation
 ParserErrorCode.ABSTRACT_LATE_FIELD:
@@ -2107,6 +2112,8 @@ ParserErrorCode.EMPTY_ENUM_BODY:
   notes: |-
     We can't guess at the names or number of the enum constants that should be
     added.
+ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
+  status: needsEvaluation
 ParserErrorCode.ENUM_IN_CLASS:
   status: needsEvaluation
 ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
@@ -2380,6 +2387,12 @@ ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
 ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:
   status: needsEvaluation
 ParserErrorCode.PREFIX_AFTER_COMBINATOR:
+  status: needsEvaluation
+ParserErrorCode.RECORD_LITERAL_EMPTY:
+  status: needsEvaluation
+ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+  status: needsEvaluation
+ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: needsEvaluation
 ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
   status: needsEvaluation

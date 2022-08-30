@@ -7432,6 +7432,84 @@ MethodInvocation
     }
   }
 
+  test_noReceiver_call_extension_on_FunctionType() async {
+    await assertNoErrorsInCode(r'''
+extension E on int Function() {
+  void f() {
+    call();
+  }
+}
+''');
+
+    final node = findNode.methodInvocation('call()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int* Function()*
+  staticType: int*
+''');
+    }
+  }
+
+  test_noReceiver_call_extension_on_FunctionType_bounded() async {
+    await assertNoErrorsInCode(r'''
+extension E<T extends int Function()> on T {
+  void f() {
+    call();
+  }
+}
+''');
+
+    final node = findNode.methodInvocation('call()');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int Function()
+  staticType: int
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: int* Function()*
+  staticType: int*
+''');
+    }
+  }
+
   test_noReceiver_getter_superClass() async {
     await assertNoErrorsInCode(r'''
 class A {

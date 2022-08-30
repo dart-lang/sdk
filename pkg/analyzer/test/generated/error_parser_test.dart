@@ -1446,7 +1446,7 @@ class Wrong<T> {
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
     ]);
   }
 

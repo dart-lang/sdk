@@ -237,12 +237,21 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   List<Uri> summaryInputs =
       (parsedArgs['input-summary'] as List<String>).map(toUri).toList();
 
+  fe.InitializedCompilerState state;
+  bool usingIncrementalCompiler = false;
+  bool recordUsedInputs = parsedArgs["used-inputs"] != null;
+  var environmentDefines = _parseEnvironmentDefines(parsedArgs['define']);
+  var verbose = parsedArgs['verbose'] as bool;
+  var verbosity = fe.Verbosity.parseArgument(parsedArgs['verbosity']);
+  Uri? sdkSummaryUri = toUriNullable(parsedArgs['dart-sdk-summary']);
+
   Map<Uri, Uri> redirectsToFrom = {};
   for (String redirect in parsedArgs['redirect']) {
     List<String> split = redirect.split("|");
     if (split.length != 2) throw "Invalid redirect input: '$redirect'";
     redirectsToFrom[toUri(split[1])] = toUri(split[0]);
   }
+
   if (redirectsToFrom.isNotEmpty) {
     // If redirecting from a->b and we were asked to compile b, we want
     // the output to look like we compiled a.
@@ -260,15 +269,15 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     // actually return data from b. If asked to read b throw.
     fe.InitializedCompilerState helper = fe.initializeCompiler(
         null,
-        toUri(parsedArgs['dart-sdk-summary']),
-        toUri(parsedArgs['libraries-file']),
-        toUri(parsedArgs['packages-file']),
+        sdkSummaryUri,
+        toUriNullable(parsedArgs['libraries-file']),
+        toUriNullable(parsedArgs['packages-file']),
         [...summaryInputs, ...linkedInputs],
         target,
         fileSystem,
         parsedArgs['enable-experiment'] as List<String>,
-        {},
-        verbose: false,
+        environmentDefines,
+        verbose: verbose,
         nnbdMode: nnbdMode);
     var uriTranslator = await helper.processedOpts.getUriTranslator();
     _FakeFileSystem ffs = fileSystem = new _FakeFileSystem(fileSystem);
@@ -278,14 +287,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
           uriTranslator.translate(entry.key, false) ?? entry.key);
     }
   }
-
-  fe.InitializedCompilerState state;
-  bool usingIncrementalCompiler = false;
-  bool recordUsedInputs = parsedArgs["used-inputs"] != null;
-  var environmentDefines = _parseEnvironmentDefines(parsedArgs['define']);
-  var verbose = parsedArgs['verbose'] as bool;
-  var verbosity = fe.Verbosity.parseArgument(parsedArgs['verbosity']);
-  Uri? sdkSummaryUri = toUriNullable(parsedArgs['dart-sdk-summary']);
 
   if (parsedArgs['use-incremental-compiler']) {
     usingIncrementalCompiler = true;

@@ -1793,7 +1793,7 @@ class Listener implements UnescapeErrorListener {
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {}
 
   /// Ends a record literal with [count] entries.
-  void endRecordLiteral(Token token, int count) {
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
     logEvent("RecordLiteral");
   }
 

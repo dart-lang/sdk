@@ -1394,6 +1394,7 @@ class Parser {
     /// parameterCount counting the presence of named fields as 1.
     int parameterCount = 0;
     bool hasNamedFields = false;
+    bool sawComma = false;
     while (true) {
       Token next = token.next!;
       if (optional(')', next)) {
@@ -1436,15 +1437,17 @@ class Parser {
           }
         }
         break;
+      } else {
+        sawComma = true;
       }
       token = next;
     }
     assert(optional(')', token));
 
-    if (parameterCount == 0) {
-      reportRecoverableError(token, codes.messageEmptyRecordTypeFieldsList);
-    } else if (parameterCount == 1 && !hasNamedFields) {
-      reportRecoverableError(token, codes.messageOnlyOneRecordTypeFieldsList);
+    if (parameterCount == 1 && !hasNamedFields && !sawComma) {
+      // Single non-named element without trailing comma.
+      reportRecoverableError(
+          token, codes.messageRecordTypeOnePositionalFieldNoTrailingComma);
     }
 
     Token? questionMark = token.next!;
@@ -6054,7 +6057,7 @@ class Parser {
     }
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseParenthesizedExpressionOrRecordLiteral(token);
+    token = parseParenthesizedExpressionOrRecordLiteral(token, null);
     mayParseFunctionExpressions = old;
     return token;
   }
@@ -6072,7 +6075,11 @@ class Parser {
     return token;
   }
 
-  Token parseParenthesizedExpressionOrRecordLiteral(Token token) {
+  /// Parse either a parenthesized expression or a record literal.
+  /// If [constKeywordForRecord] is non-null it is forced to be a record
+  /// literal and an error will be issued if there is no trailing comma.
+  Token parseParenthesizedExpressionOrRecordLiteral(
+      Token token, Token? constKeywordForRecord) {
     Token begin = token.next!;
     assert(optional('(', begin));
     listener.beginParenthesizedExpressionOrRecordLiteral(begin);
@@ -6082,12 +6089,11 @@ class Parser {
 
     token = begin;
     int count = 0;
-    bool wasRecord = false;
+    bool wasRecord = constKeywordForRecord != null;
+    bool wasValidRecord = false;
     while (true) {
       Token next = token.next!;
-      if (count > 0 && optional(')', next)) {
-        // TODO(jensj): Possibly bail out even if count is 0 and give some
-        // specific error.
+      if ((count > 0 || wasRecord) && optional(')', next)) {
         break;
       }
       Token? colon = null;
@@ -6099,6 +6105,7 @@ class Parser {
           IdentifierContext.namedRecordFieldReference,
         ).next!;
         colon = token;
+        wasValidRecord = true;
       }
       token = parseExpression(token);
       next = token.next!;
@@ -6110,6 +6117,7 @@ class Parser {
       } else {
         // It is a comma, i.e. it's a record.
         wasRecord = true;
+        wasValidRecord = true;
       }
       token = next;
     }
@@ -6119,7 +6127,13 @@ class Parser {
     assert(wasRecord || count <= 1);
 
     if (wasRecord) {
-      listener.endRecordLiteral(begin, count);
+      if (count == 0) {
+        reportRecoverableError(token, codes.messageRecordLiteralEmpty);
+      } else if (count == 1 && !wasValidRecord) {
+        reportRecoverableError(
+            token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
+      }
+      listener.endRecordLiteral(begin, count, constKeywordForRecord);
     } else {
       listener.endParenthesizedExpression(begin);
     }
@@ -6605,6 +6619,13 @@ class Parser {
       listener.beginConstLiteral(next);
       listener.handleNoTypeArguments(next);
       token = parseLiteralListSuffix(token, constKeyword);
+      listener.endConstLiteral(token.next!);
+      return token;
+    }
+    if (identical(value, '(')) {
+      // Const record literal.
+      listener.beginConstLiteral(next);
+      token = parseParenthesizedExpressionOrRecordLiteral(token, constKeyword);
       listener.endConstLiteral(token.next!);
       return token;
     }

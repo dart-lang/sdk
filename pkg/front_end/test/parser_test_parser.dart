@@ -1610,10 +1610,14 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseParenthesizedExpressionOrRecordLiteral(Token token) {
-    doPrint('parseParenthesizedExpressionOrRecordLiteral(' '$token)');
+  Token parseParenthesizedExpressionOrRecordLiteral(
+      Token token, Token? constKeywordForRecord) {
+    doPrint('parseParenthesizedExpressionOrRecordLiteral('
+        '$token, '
+        '$constKeywordForRecord)');
     indent++;
-    var result = super.parseParenthesizedExpressionOrRecordLiteral(token);
+    var result = super.parseParenthesizedExpressionOrRecordLiteral(
+        token, constKeywordForRecord);
     indent--;
     return result;
   }

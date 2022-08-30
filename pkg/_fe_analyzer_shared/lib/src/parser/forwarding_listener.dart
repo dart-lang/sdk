@@ -1726,8 +1726,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endRecordLiteral(Token token, int count) {
-    listener?.endRecordLiteral(token, count);
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
+    listener?.endRecordLiteral(token, count, constKeyword);
   }
 
   @override

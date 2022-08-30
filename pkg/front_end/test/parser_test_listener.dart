@@ -2588,10 +2588,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endRecordLiteral(Token token, int count) {
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
     indent--;
     seen(token);
-    doPrint('endRecordLiteral(' '$token, ' '$count)');
+    seen(constKeyword);
+    doPrint('endRecordLiteral(' '$token, ' '$count, ' '$constKeyword)');
   }
 
   @override

@@ -3963,7 +3963,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endRecordLiteral(Token token, int count) {
+  void endRecordLiteral(Token token, int count, Token? constKeyword) {
     debugEvent("RecordLiteral");
     assert(checkState(
         token,

@@ -785,7 +785,6 @@ RecordLiteral
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49826')
   void test_recordTypeAnnotation_empty() {
     var parseResult = parseStringWithErrors(r'''
 () f() {}

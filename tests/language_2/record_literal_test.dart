@@ -41,4 +41,23 @@ main() {
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] This requires the experimental 'records' language feature to be enabled.
   print(record5);
+
+  // 1 record entry with trailing comma.
+  var record6 = (42, );
+  //            ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  print(record6);
+
+  // Const records.
+  var record7 = const (42, );
+  //                  ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  print(record7);
+  var record8 = const (42, foo: "bar");
+  //                  ^
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+  // [cfe] This requires the experimental 'records' language feature to be enabled.
+  print(record8);
 }

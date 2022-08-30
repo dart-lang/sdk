@@ -323,34 +323,48 @@ EmptyNamedParameterList:
       foo();
     }
 
-EmptyRecordTypeFieldsList:
-  problemMessage: "Record type fields list cannot be empty."
-  correctionMessage: "Try adding a record type field to the list."
-  analyzerCode: "MISSING_IDENTIFIER"
+RecordLiteralOnePositionalFieldNoTrailingComma:
+  problemMessage: "Record literal with one field requires a trailing comma."
+  correctionMessage: "Try adding a trailing comma."
+  analyzerCode: ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
+  index: 127
   experiments: records
   script: >
     main() {
-      (/*missing*/) record = ((1, 2,) as dynamic);
+      var record = const (1);
+    }
+
+RecordLiteralEmpty:
+  problemMessage: "Record literal can't be empty."
+  correctionMessage: "Try adding elements or use 'Record.empty()' instead."
+  analyzerCode: ParserErrorCode.RECORD_LITERAL_EMPTY
+  index: 128
+  experiments: records
+  script: >
+    main() {
+      var record = const ();
     }
 
 EmptyRecordTypeNamedFieldsList:
-  problemMessage: "Record type named fields list cannot be empty."
+  problemMessage: "Record type named fields list can't be empty."
   correctionMessage: "Try adding a record type named field to the list."
-  analyzerCode: "MISSING_IDENTIFIER"
+  analyzerCode: ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST
+  index: 129
   experiments: records
   script: >
     main() {
       (int, int, {/*missing*/}) record = (1, 2,);
     }
 
-OnlyOneRecordTypeFieldsList:
-  problemMessage: "Record type fields list cannot contain only one element without a named field."
-  correctionMessage: "Try adding another record type field to the list or add a named field."
-  analyzerCode: "MISSING_IDENTIFIER"
+RecordTypeOnePositionalFieldNoTrailingComma:
+  problemMessage: "Record type with one entry requires a trailing comma."
+  correctionMessage: "Try adding a trailing comma."
+  analyzerCode: ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
+  index: 130
   experiments: records
   script: >
     main() {
-      (int /*missing*/) record = ((1, 2,) as dynamic);
+      (int /* missing trailing comma */) record = const (1, );
     }
 
 DuplicatedRecordTypeFieldName:
