@@ -43,11 +43,32 @@
   `kExtensionErrorMin` in [`ServiceExtensionResponse`][] have been removed. They
   have been replaced by `invalidParams`, `extensionError`, `extensionErrorMax`,
   and `extensionErrorMin`.
+- Deprecated `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`ServiceExtensionResponse`]: https://api.dart.dev/stable/2.17.6/dart-developer/ServiceExtensionResponse-class.html#constants
 
-- Deprecated `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
+
+#### `dart:html`
+
+- Add constructor and `slice` to `SharedArrayBuffer`.
+- Deprecated `registerElement` and `registerElement2` in `Document` and
+  `HtmlDocument`. These APIs were based on the deprecated Web Components v0.5
+  specification and are not supported by browsers today. These APIs are expected
+  to be deleted in a future release. See the related breaking change
+  request [#49536](https://github.com/dart-lang/sdk/issues/49536).
+
+#### `dart:io`
+
+- **Breaking Change** [#49305](https://github.com/dart-lang/sdk/issues/49305):
+  Disallow negative or hexadecimal content-length headers.
+- **Breaking change** [#49647][]: `File.create` now takes new optional
+  `exclusive` `bool` parameter, and when it is `true` the operation
+  will fail if target file already exists.
+
+#### `dart:isolate`
+
+- Add `Isolate.run` to run a function in a new isolate.
 
 #### `dart:mirrors`
 
@@ -58,23 +79,6 @@
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
 [`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
-
-#### `dart:html`
-
-- Deprecated `registerElement` and `registerElement2` in `Document` and
-  `HtmlDocument`. These APIs were based on the deprecated Web Components v0.5
-  specification and are not supported by browsers today. These APIs are expected
-  to be deleted in a future release. See the related breaking change
-  request [#49536](https://github.com/dart-lang/sdk/issues/49536).
-
-### `dart:io`
- - **Breaking change** [#49647][]: `File.create` now takes new optional
-   `exclusive` `bool` parameter, and when it is `true` the operation
-   will fail if target file already exists.
-
-#### `dart:isolate`
-
-- Add `Isolate.run` to run a function in a new isolate.
 
 ### Tools
 
@@ -129,17 +133,6 @@ Updated the Linter to `1.27.0`, which includes changes that
 
 - **Breaking change** [49473](https://github.com/dart-lang/sdk/issues/49473):
   dart2js no longer supports HTTP URIs as inputs.
-
-### Core libraries
-
-#### `dart:io`
-
-- **Breaking Change** [#49305](https://github.com/dart-lang/sdk/issues/49305):
-  Disallow negative or hexadecimal content-length headers.
-
-#### `dart:html`
-
-- Add constructor and `slice` to `SharedArrayBuffer`.
 
 ## 2.18.0
 
@@ -212,9 +205,14 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 - The `Stream.fromIterable` stream can now be listened to more than once.
 
-### `dart:collection`
+#### `dart:collection`
 
 - Deprecates `BidirectionalIterator`.
+
+#### `dart:core`
+
+- Allow omitting the `unencodedPath` positional argument to `Uri.http` and
+  `Uri.https` to default to an empty path.
 
 #### `dart:html`
 
@@ -226,7 +224,6 @@ them, you must set the lower bound on the SDK constraint for your package to
 - **Breaking Change** [#49045](https://github.com/dart-lang/sdk/issues/49045):
   The `uri` property of `RedirectException` in `dart:io` has been changed to
   be nullable. Programs must be updated to handle the `null` case.
-
 - **Breaking Change** [#34218](https://github.com/dart-lang/sdk/issues/34218):
   Constants in `dart:io`'s networking APIs following the `SCREAMING_CAPS`
   convention have been removed (they were previously deprecated). Please use
@@ -279,11 +276,6 @@ them, you must set the lower bound on the SDK constraint for your package to
 #### `dart:js_util`
 
 - Added `dartify` and a number of minor helper functions.
-
-#### `dart:core`
-
-- Allow omitting the `unencodedPath` positional argument to `Uri.http` and
-  `Uri.https` to default to an empty path.
 
 ### Dart VM
 
@@ -635,7 +627,6 @@ them, you must set the lower bound on the SDK constraint for your package to
   is unchanged for now, but users who intend to use the native
   `Element.scrollIntoViewIfNeeded` should use the new `scrollIntoViewIfNeeded`
   definition instead.
-
 - Change `Performance.mark` and `Performance.measure` to accept their different
   overloads. `mark` can now accept a `markOptions` map, and `measure` can now
   accept a `startMark` and `endMark`, or a `measureOptions` map. Both methods
@@ -676,16 +667,13 @@ them, you must set the lower bound on the SDK constraint for your package to
   Constants in `dart:io` following the `SCREAMING_CAPS` convention have been
   removed (they were previously deprecated).  Please use the corresponding
   `lowerCamelCase` constants instead.
-
-- Add a optional `keyLog` parameter to `SecureSocket.connect` and
-  `SecureSocket.startConnect`.
-
-- Deprecate `SecureSocket.renegotiate` and `RawSecureSocket.renegotiate`,
-  which were no-ops.
-
 - **Breaking Change** [#48513](https://github.com/dart-lang/sdk/issues/48513):
   Add a new `allowLegacyUnsafeRenegotiation` poperty to `SecurityContext`,
   which allows TLS renegotiation for client secure sockets.
+- Add a optional `keyLog` parameter to `SecureSocket.connect` and
+  `SecureSocket.startConnect`.
+- Deprecate `SecureSocket.renegotiate` and `RawSecureSocket.renegotiate`,
+  which were no-ops.
 
 ### Tools
 
