@@ -185,7 +185,7 @@ String? _getParametersString(engine.Element element,
 
 String? _getTypeParametersString(engine.Element element) {
   List<engine.TypeParameterElement>? typeParameters;
-  if (element is engine.ClassElement) {
+  if (element is engine.InterfaceElement) {
     typeParameters = element.typeParameters;
   } else if (element is engine.TypeAliasElement) {
     typeParameters = element.typeParameters;
@@ -202,6 +202,9 @@ bool _isAbstract(engine.Element element) {
   }
   if (element is engine.MethodElement) {
     return element.isAbstract;
+  }
+  if (element is engine.MixinElement) {
+    return true;
   }
   if (element is engine.PropertyAccessorElement) {
     return element.isAbstract;

@@ -45,7 +45,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
-  ClassElementImpl? _enclosingClass;
+  InterfaceElement? _enclosingClass;
 
   /// A flag indicating whether a surrounding member is annotated as
   /// `@doNotStore`.
@@ -483,7 +483,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
             Element enclosingElement = element.enclosingElement3!;
-            if (enclosingElement is ClassElement) {
+            if (enclosingElement is InterfaceElement) {
               var overridden = _inheritanceManager
                   .getMember2(enclosingElement, name, forSuper: true);
               // Check for a setter.
@@ -656,15 +656,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     Name name = Name(_currentLibrary.source.uri, element.name);
 
     ExecutableElement? getConcreteOverriddenElement() =>
-        element is ClassMemberElement && enclosingElement is ClassElement
+        element is ClassMemberElement && enclosingElement is InterfaceElement
             ? _inheritanceManager.getMember2(enclosingElement, name,
                 forSuper: true)
             : null;
-    ExecutableElement? getOverriddenPropertyAccessor() =>
-        element is PropertyAccessorElement && enclosingElement is ClassElement
-            ? _inheritanceManager.getMember2(enclosingElement, name,
-                forSuper: true)
-            : null;
+    ExecutableElement? getOverriddenPropertyAccessor() => element
+                is PropertyAccessorElement &&
+            enclosingElement is InterfaceElement
+        ? _inheritanceManager.getMember2(enclosingElement, name, forSuper: true)
+        : null;
 
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element.hasDoNotStore) {
@@ -678,7 +678,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForUnnecessaryNoSuchMethod(node);
 
       var elementIsOverride = element is ClassMemberElement &&
-              enclosingElement is ClassElement
+              enclosingElement is InterfaceElement
           ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
           : false;
 
@@ -725,7 +725,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    var element = node.declaredElement2 as ClassElementImpl;
+    var element = node.declaredElement2 as MixinElementImpl;
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = _enclosingClass;
 
@@ -1058,11 +1058,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return nonFinalFields;
     }
 
-    var element = node.declaredElement2 as ClassElement;
-    if (isOrInheritsImmutable(element, HashSet<ClassElement>())) {
+    var element = node.declaredElement2 as InterfaceElement;
+    if (isOrInheritsImmutable(element, HashSet<InterfaceElement>())) {
       Iterable<String> nonFinalFields =
           definedOrInheritedNonFinalInstanceFields(
-              element, HashSet<ClassElement>());
+              element, HashSet<InterfaceElement>());
       if (nonFinalFields.isNotEmpty) {
         _errorReporter.reportErrorForToken(HintCode.MUST_BE_IMMUTABLE,
             node.name2, [nonFinalFields.join(', ')]);
@@ -1179,14 +1179,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // ClassElement, but [_checkForInvalidSealedSuperclass] should only be
     // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias]. The
     // `declaredElement` of these specific classes is a [ClassElement].
-    var element = node.declaredElement2 as ClassElement;
+    var element = node.declaredElement2 as InterfaceElement;
     // TODO(srawlins): Perhaps replace this with a getter on Element, like
     // `Element.hasOrInheritsSealed`?
     for (InterfaceType supertype in element.allSupertypes) {
       final superclass = supertype.element2;
       if (superclass.hasSealed) {
         if (!currentPackageContains(superclass)) {
-          if (element.superclassConstraints.contains(supertype)) {
+          if (element is MixinElement &&
+              element.superclassConstraints.contains(supertype)) {
             // This is a special violation of the sealed class contract,
             // requiring specific messaging.
             _errorReporter.reportErrorForNode(HintCode.MIXIN_ON_SEALED_CLASS,
@@ -1864,7 +1865,7 @@ class _InvalidAccessVerifier {
   final bool _inTemplateSource;
   late final bool _inTestDirectory;
 
-  ClassElement? _enclosingClass;
+  InterfaceElement? _enclosingClass;
 
   _InvalidAccessVerifier(
       this._errorReporter, this._library, this._workspacePackage)
@@ -1984,7 +1985,7 @@ class _InvalidAccessVerifier {
       SimpleIdentifier identifier, Element element) {
     bool hasProtected = _hasProtected(element);
     if (hasProtected) {
-      var definingClass = element.enclosingElement3 as ClassElement;
+      var definingClass = element.enclosingElement3 as InterfaceElement;
       if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
         return;
       }
@@ -2079,19 +2080,22 @@ class _InvalidAccessVerifier {
 
   bool _hasProtected(Element element) {
     if (element is PropertyAccessorElement &&
-        element.enclosingElement3 is ClassElement &&
+        element.enclosingElement3 is InterfaceElement &&
         (element.hasProtected || element.variable.hasProtected)) {
       return true;
     }
     if (element is MethodElement &&
-        element.enclosingElement3 is ClassElement &&
+        element.enclosingElement3 is InterfaceElement &&
         element.hasProtected) {
       return true;
     }
     return false;
   }
 
-  bool _hasTypeOrSuperType(ClassElement? element, ClassElement superElement) {
+  bool _hasTypeOrSuperType(
+    InterfaceElement? element,
+    InterfaceElement superElement,
+  ) {
     if (element == null) {
       return false;
     }

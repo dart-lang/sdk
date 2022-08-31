@@ -45,11 +45,11 @@ main() {
 
     assertElement(
       findNode.simple('i]; // 1'),
-      findNode.simple('i in [1, 2').staticElement,
+      findNode.declaredIdentifier('i in [1, 2').declaredElement2!,
     );
     assertElement(
       findNode.simple('i]; // 2'),
-      findNode.simple('i in [1.1').staticElement,
+      findNode.declaredIdentifier('i in [1.1').declaredElement2!,
     );
   }
 
@@ -95,11 +95,11 @@ main() {
 
     assertElement(
       findNode.simple('i]; // 1'),
-      findNode.simple('i = 1;').staticElement,
+      findNode.variableDeclaration('i = 1;').declaredElement2!,
     );
     assertElement(
       findNode.simple('i]; // 2'),
-      findNode.simple('i = 1.1;').staticElement,
+      findNode.variableDeclaration('i = 1.1;').declaredElement2!,
     );
   }
 }

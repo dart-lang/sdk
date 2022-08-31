@@ -264,7 +264,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       var enclosingElement = enclosingClass?.declaredElement2;
       if (enclosingElement != null) {
         var enclosingElement = field.enclosingElement3;
-        if (enclosingElement is ClassElement) {
+        if (enclosingElement is InterfaceElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(enclosingElement, enclosingElement);
         }
@@ -343,7 +343,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {
         var enclosingElement = element?.enclosingElement3;
-        if (enclosingElement is ClassElement) {
+        if (enclosingElement is InterfaceElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(
                   enclosingClass.declaredElement2!, enclosingElement);
@@ -428,9 +428,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
               !opType.includeConstructorSuggestions;
       if (!opType.isPrefixed &&
           includeConstructors &&
-          element is ClassElement &&
-          // TODO(scheglov) Remove when separated EnumElement from ClassElement
-          element is! EnumElement) {
+          element is ClassElement) {
         for (final constructor in element.constructors) {
           if (element.isAbstract && !constructor.isFactory) {
             continue;

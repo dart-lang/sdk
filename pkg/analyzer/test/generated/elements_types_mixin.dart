@@ -520,7 +520,7 @@ mixin ElementsTypesMixin {
     required DartType promotedBound,
   }) {
     return TypeParameterTypeImpl(
-      element: element,
+      element2: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
@@ -664,7 +664,7 @@ mixin ElementsTypesMixin {
     DartType? promotedBound,
   }) {
     return TypeParameterTypeImpl(
-      element: element,
+      element2: element,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );

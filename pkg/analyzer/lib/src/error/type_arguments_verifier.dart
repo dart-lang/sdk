@@ -37,7 +37,7 @@ class TypeArgumentsVerifier {
     List<TypeParameterElement> typeParameters;
     if (classElement is TypeAliasElement) {
       typeParameters = classElement.typeParameters;
-    } else if (classElement is ClassElement) {
+    } else if (classElement is InterfaceElement) {
       typeParameters = classElement.typeParameters;
     } else {
       return;

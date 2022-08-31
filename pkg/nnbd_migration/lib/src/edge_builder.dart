@@ -161,9 +161,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   FunctionExpression? _currentFunctionExpression;
 
-  /// The [ClassElement] or [ExtensionElement] of the current class or extension
-  /// being visited, or null.
-  Element? _currentClassOrExtension;
+  /// The [InterfaceElement] or [ExtensionElement] of the current interface
+  /// or extension being visited, or null.
+  Element? _currentInterfaceOrExtension;
 
   /// If an extension declaration is being visited, the decorated type of the
   /// type appearing in the `on` clause (this is the type of `this` inside the
@@ -674,7 +674,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node is ExtensionDeclaration ||
         node is MixinDeclaration);
     try {
-      _currentClassOrExtension = node.declaredElement2;
+      _currentInterfaceOrExtension = node.declaredElement2;
 
       List<ClassMember> members;
       if (node is ClassDeclaration) {
@@ -694,8 +694,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   field.initializer == null)
                 (field.declaredElement2 as FieldElement?)
       };
-      if (_currentClassOrExtension is ClassElement &&
-          (_currentClassOrExtension as ClassElement)
+      if (_currentInterfaceOrExtension is ClassElement &&
+          (_currentInterfaceOrExtension as ClassElement)
                   .unnamedConstructor
                   ?.isSynthetic ==
               true) {
@@ -705,7 +705,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _dispatchList(members);
       _fieldsNotInitializedAtDeclaration = null;
     } finally {
-      _currentClassOrExtension = null;
+      _currentInterfaceOrExtension = null;
     }
     return null;
   }
@@ -3459,7 +3459,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType? _thisOrSuper(Expression node) {
-    if (_currentClassOrExtension == null) {
+    if (_currentInterfaceOrExtension == null) {
       return null;
     }
 
@@ -3473,8 +3473,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var token = node.beginToken.lexeme;
     var target =
         NullabilityNodeTarget.text('$token expression').withCodeRef(node);
-    if (_currentClassOrExtension is ClassElement) {
-      final type = (_currentClassOrExtension as ClassElement).thisType;
+    if (_currentInterfaceOrExtension is InterfaceElement) {
+      final type = (_currentInterfaceOrExtension as InterfaceElement).thisType;
 
       // Instantiate the type, and any type arguments, with non-nullable types,
       // because the type of `this` is always `ClassName<Param, Param, ...>`
@@ -3488,7 +3488,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   t, makeNonNullableNode(target.typeArgument(index++))))
               .toList());
     } else {
-      assert(_currentClassOrExtension is ExtensionElement);
+      assert(_currentInterfaceOrExtension is ExtensionElement);
       assert(_currentExtendedType != null);
       return _currentExtendedType;
     }

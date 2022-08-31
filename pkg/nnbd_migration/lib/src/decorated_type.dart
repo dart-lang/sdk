@@ -173,7 +173,7 @@ class DecoratedType implements DecoratedTypeInfo {
   /// during comparison of generic function types.
   DecoratedType._forTypeParameterSubstitution(TypeParameterElement parameter)
       : type = TypeParameterTypeImpl(
-          element: parameter,
+          element2: parameter,
           nullabilitySuffix: NullabilitySuffix.star,
         ),
         node = null,

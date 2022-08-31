@@ -158,7 +158,7 @@ class DartUnitHighlightsComputer {
 
   bool _addIdentifierRegion_class(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
-    if (element is! ClassElement) {
+    if (element is! InterfaceElement) {
       return false;
     }
     // prepare type
@@ -662,9 +662,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.name2, HighlightRegionType.CLASS);
     super.visitClassDeclaration(node);
   }
 
@@ -724,6 +725,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+    );
+
     super.visitDeclaredIdentifier(node);
   }
 
@@ -761,6 +768,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     computer._addRegion_token(node.enumKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.name2, HighlightRegionType.ENUM);
     super.visitEnumDeclaration(node);
   }
 
@@ -788,6 +796,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     computer._addRegion_token(
         node.extensionKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.name2, HighlightRegionType.EXTENSION);
     computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
     super.visitExtensionDeclaration(node);
   }
@@ -799,13 +808,30 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.staticKeyword, HighlightRegionType.BUILT_IN);
+
+    for (final variable in node.fields.variables) {
+      computer._addRegion_token(
+        variable.name2,
+        node.isStatic
+            ? HighlightRegionType.STATIC_FIELD_DECLARATION
+            : HighlightRegionType.INSTANCE_FIELD_DECLARATION,
+      );
+    }
+
     super.visitFieldDeclaration(node);
   }
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     computer._addRegion_token(
-        node.requiredKeyword, HighlightRegionType.KEYWORD);
+      node.requiredKeyword,
+      HighlightRegionType.KEYWORD,
+    );
+
+    computer._addRegion_token(
+      node.thisKeyword,
+      HighlightRegionType.KEYWORD,
+    );
 
     var element = node.declaredElement;
     if (element is FieldFormalParameterElement) {
@@ -859,6 +885,19 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.propertyKeyword, HighlightRegionType.BUILT_IN);
+
+    final HighlightRegionType nameType;
+    if (node.isGetter) {
+      nameType = HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION;
+    } else if (node.isSetter) {
+      nameType = HighlightRegionType.TOP_LEVEL_SETTER_DECLARATION;
+    } else if (node.parent is CompilationUnit) {
+      nameType = HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION;
+    } else {
+      nameType = HighlightRegionType.LOCAL_FUNCTION_DECLARATION;
+    }
+    computer._addRegion_token(node.name2, nameType);
+
     super.visitFunctionDeclaration(node);
   }
 
@@ -866,6 +905,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     computer._addRegion_token(
         node.typedefKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.name2, HighlightRegionType.FUNCTION_TYPE_ALIAS);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -887,6 +928,15 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     computer._addRegion_token(
         node.typedefKeyword, HighlightRegionType.BUILT_IN);
+
+    final HighlightRegionType nameType;
+    if (node.functionType != null) {
+      nameType = HighlightRegionType.FUNCTION_TYPE_ALIAS;
+    } else {
+      nameType = HighlightRegionType.TYPE_ALIAS;
+    }
+    computer._addRegion_token(node.name2, nameType);
+
     super.visitGenericTypeAlias(node);
   }
 
@@ -1014,6 +1064,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         node.operatorKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.propertyKeyword, HighlightRegionType.BUILT_IN);
+
+    final HighlightRegionType nameType;
+    if (node.isGetter) {
+      nameType = node.isStatic
+          ? HighlightRegionType.STATIC_GETTER_DECLARATION
+          : HighlightRegionType.INSTANCE_GETTER_DECLARATION;
+    } else if (node.isSetter) {
+      nameType = node.isStatic
+          ? HighlightRegionType.STATIC_SETTER_DECLARATION
+          : HighlightRegionType.INSTANCE_SETTER_DECLARATION;
+    } else {
+      nameType = node.isStatic
+          ? HighlightRegionType.STATIC_METHOD_DECLARATION
+          : HighlightRegionType.INSTANCE_METHOD_DECLARATION;
+    }
+    computer._addRegion_token(node.name2, nameType);
+
     super.visitMethodDeclaration(node);
   }
 
@@ -1112,17 +1179,19 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
+
+    computer._addRegion_token(
+      node.name,
+      node.declaredElement!.type is DynamicType
+          ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
+          : HighlightRegionType.PARAMETER_DECLARATION,
+    );
+
     super.visitSimpleFormalParameter(node);
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    final parent = node.parent;
-    // ignore: deprecated_member_use
-    if (parent is ConstructorDeclaration && parent.name == node) {
-      return;
-    }
-
     computer._addIdentifierRegion(node);
     super.visitSimpleIdentifier(node);
   }
@@ -1202,6 +1271,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     computer._addRegion_token(
         node.externalKeyword, HighlightRegionType.BUILT_IN);
+
+    for (final variable in node.variables.variables) {
+      computer._addRegion_token(
+        variable.name2,
+        HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
+      );
+    }
+
     super.visitTopLevelVariableDeclaration(node);
   }
 
@@ -1215,10 +1292,31 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitTypeParameter(TypeParameter node) {
+    computer._addRegion_token(node.name2, HighlightRegionType.TYPE_PARAMETER);
+    super.visitTypeParameter(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     computer._addRegion_token(node.lateKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     super.visitVariableDeclarationList(node);
+  }
+
+  @override
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    for (final variable in node.variables.variables) {
+      final element = variable.declaredElement2 as LocalVariableElement;
+      computer._addRegion_token(
+        variable.name2,
+        element.type is DynamicType
+            ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
+            : HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
+      );
+    }
+
+    super.visitVariableDeclarationStatement(node);
   }
 
   @override

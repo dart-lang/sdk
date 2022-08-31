@@ -958,7 +958,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     var prefixElement = prefixNode.staticElement;
     // String.length
     if (prefixElement is! PrefixElement &&
-        prefixElement is! ClassElement &&
+        prefixElement is! InterfaceElement &&
         prefixElement is! ExtensionElement) {
       var prefixResult = prefixNode.accept(this);
       if (prefixResult != null &&
@@ -1360,7 +1360,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         );
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
       }
-    } else if (variableElement is ClassElement) {
+    } else if (variableElement is InterfaceElement) {
       var type = variableElement.instantiate(
         typeArguments: variableElement.typeParameters
             .map((t) => _typeProvider.dynamicType)

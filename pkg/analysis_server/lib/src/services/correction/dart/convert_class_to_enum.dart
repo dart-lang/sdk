@@ -51,9 +51,9 @@ class ConvertClassToEnum extends CorrectionProducer {
       // the class.
       return;
     }
-    var parent = node.parent;
-    if (parent is ClassDeclaration && parent.name2 == token) {
-      var description = _EnumDescription.fromClass(parent);
+    final declaration = node;
+    if (declaration is ClassDeclaration && declaration.name2 == token) {
+      var description = _EnumDescription.fromClass(declaration);
       if (description != null) {
         await builder.addDartFileEdit(file, (builder) {
           description.applyChanges(builder, utils);

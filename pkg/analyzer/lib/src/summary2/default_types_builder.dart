@@ -243,13 +243,13 @@ class DefaultTypesBuilder {
   ) {
     var paths = <List<_CycleElement>>[];
     if (startType is NamedTypeBuilder) {
-      var declaration = startType.element;
+      var declaration = startType.element2;
       if (startType.arguments.isEmpty) {
-        if (startType.element == end) {
+        if (startType.element2 == end) {
           paths.add([
             _CycleElement(startParameter, startType),
           ]);
-        } else if (visited.add(startType.element)) {
+        } else if (visited.add(startType.element2)) {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (var parameter in parameters) {
               var parameterNode = _linker.getLinkingNode(parameter);
@@ -273,12 +273,12 @@ class DefaultTypesBuilder {
             }
           }
 
-          if (declaration is ClassElement) {
+          if (declaration is InterfaceElement) {
             recurseParameters(declaration.typeParameters);
           } else if (declaration is TypeAliasElement) {
             recurseParameters(declaration.typeParameters);
           }
-          visited.remove(startType.element);
+          visited.remove(startType.element2);
         }
       } else {
         for (var argument in startType.arguments) {

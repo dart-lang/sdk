@@ -30,17 +30,16 @@ class AddCallSuper extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is! SimpleIdentifier) return;
-    var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
-    if (methodDeclaration == null) return;
+    final methodDeclaration = node;
+    if (methodDeclaration is! MethodDeclaration) return;
     var classElement = methodDeclaration
         .thisOrAncestorOfType<ClassDeclaration>()
         ?.declaredElement2;
     if (classElement == null) return;
 
-    var name = Name(classElement.library.source.uri, node.name);
-    var overridden = InheritanceManager3().getInherited2(classElement, name);
+    var name = methodDeclaration.name2.lexeme;
+    var nameObj = Name(classElement.library.source.uri, name);
+    var overridden = InheritanceManager3().getInherited2(classElement, nameObj);
     if (overridden == null) return;
     var overriddenParameters = overridden.parameters.map((p) => p.name);
 
@@ -58,7 +57,7 @@ class AddCallSuper extends CorrectionProducer {
             .join(', ') ??
         '';
 
-    _addition = '${node.name}($argumentList)';
+    _addition = '$name($argumentList)';
 
     if (body is BlockFunctionBody) {
       await _block(builder, body);

@@ -362,7 +362,7 @@ class TypesBuilder {
     );
   }
 
-  static InterfaceType _objectType(ClassElementImpl element) {
+  static InterfaceType _objectType(AbstractClassElementImpl element) {
     return element.library.typeProvider.objectType;
   }
 }
@@ -434,7 +434,7 @@ class _MixinInference {
     List<InterfaceType>? supertypeConstraints;
     InterfaceType Function(List<DartType> typeArguments)? instantiate;
     final mixinElement = mixinNode.name.staticElement;
-    if (mixinElement is ClassElement) {
+    if (mixinElement is InterfaceElement) {
       typeParameters = mixinElement.typeParameters;
       if (typeParameters.isNotEmpty) {
         supertypeConstraints = typeSystem

@@ -55,8 +55,11 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   Future<ClassElement?> getClass(String name) =>
       sessionHelper.getClass(flutter.widgetsUri, name);
 
+  Future<MixinElement?> getMixin(String name) =>
+      sessionHelper.getMixin(flutter.widgetsUri, name);
+
   DartType getType(
-    ClassElement classElement, [
+    InterfaceElement classElement, [
     NullabilitySuffix nullabilitySuffix = NullabilitySuffix.none,
   ]) =>
       classElement.instantiate(

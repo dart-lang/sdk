@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/dart/element/type.dart';
@@ -69,7 +70,18 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
           return success(_emptyResult);
         }
 
-        final type = node is Expression ? _getType(node) : null;
+        final SyntacticEntity originEntity;
+        DartType? type;
+        if (node is VariableDeclaration) {
+          originEntity = node.name2;
+          type = node.declaredElement2?.type;
+        } else if (node is Expression) {
+          originEntity = node;
+          type = _getType(node);
+        } else {
+          return success(_emptyResult);
+        }
+
         analyzer.Element? element;
         if (type is InterfaceType) {
           element = type.element2;
@@ -96,8 +108,8 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
 
         if (supportsLocationLink) {
           return success(TextDocumentTypeDefinitionResult.t2([
-            _toLocationLink(
-                result.lineInfo, targetLineInfo, node, element, location)
+            _toLocationLink(result.lineInfo, targetLineInfo, originEntity,
+                element, location)
           ]));
         } else {
           return success(TextDocumentTypeDefinitionResult.t1(
@@ -118,12 +130,12 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
 
   /// Creates an LSP [LocationLink] for the server [targetLocation].
   ///
-  /// Uses [originLineInfo] and [originNode] to compute `originSelectionRange`
+  /// Uses [originLineInfo] and [originEntity] to compute `originSelectionRange`
   /// and [targetLineInfo] and [targetElement] for code ranges.
   LocationLink _toLocationLink(
     LineInfo originLineInfo,
     LineInfo targetLineInfo,
-    AstNode originNode,
+    SyntacticEntity originEntity,
     analyzer.ElementImpl targetElement,
     plugin.Location targetLocation,
   ) {
@@ -138,7 +150,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
 
     return LocationLink(
       originSelectionRange:
-          toRange(originLineInfo, originNode.offset, originNode.length),
+          toRange(originLineInfo, originEntity.offset, originEntity.length),
       targetUri: Uri.file(targetLocation.file).toString(),
       targetRange: codeRange,
       targetSelectionRange: nameRange,
@@ -150,7 +162,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
   static DartType? _getType(Expression node) {
     if (node is SimpleIdentifier) {
       final element = node.staticElement;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         return element.thisType;
       } else if (element is VariableElement) {
         if (node.inDeclarationContext()) {

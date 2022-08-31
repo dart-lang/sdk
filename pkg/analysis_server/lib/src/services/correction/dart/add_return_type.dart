@@ -35,33 +35,26 @@ class AddReturnType extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Token? insertBeforeEntity;
     FunctionBody? body;
-    if (node is SimpleIdentifier) {
-      var executable = node.parent;
-      if (executable is MethodDeclaration && executable.name2 == token) {
-        if (executable.returnType != null) {
-          return;
-        }
-        if (executable.isSetter) {
-          return;
-        }
-        insertBeforeEntity = executable.propertyKeyword ?? executable.name2;
-        body = executable.body;
-      } else if (executable is FunctionDeclaration &&
-          executable.name2 == token) {
-        if (executable.returnType != null) {
-          return;
-        }
-        if (executable.isSetter) {
-          return;
-        }
-        insertBeforeEntity = executable.propertyKeyword ?? executable.name2;
-        body = executable.functionExpression.body;
-      } else {
+    final executable = node;
+    if (executable is MethodDeclaration && executable.name2 == token) {
+      if (executable.returnType != null) {
         return;
       }
-    }
-
-    if (insertBeforeEntity == null || body == null) {
+      if (executable.isSetter) {
+        return;
+      }
+      insertBeforeEntity = executable.propertyKeyword ?? executable.name2;
+      body = executable.body;
+    } else if (executable is FunctionDeclaration && executable.name2 == token) {
+      if (executable.returnType != null) {
+        return;
+      }
+      if (executable.isSetter) {
+        return;
+      }
+      insertBeforeEntity = executable.propertyKeyword ?? executable.name2;
+      body = executable.functionExpression.body;
+    } else {
       return;
     }
 

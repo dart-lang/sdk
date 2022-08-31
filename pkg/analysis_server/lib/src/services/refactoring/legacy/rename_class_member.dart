@@ -37,12 +37,12 @@ Future<RefactoringStatus> validateCreateMethod(
 /// A [Refactoring] for renaming class member [Element]s.
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSessionHelper sessionHelper;
-  final ClassElement classElement;
+  final InterfaceElement interfaceElement;
 
   late _RenameClassMemberValidator _validator;
 
   RenameClassMemberRefactoringImpl(RefactoringWorkspace workspace,
-      AnalysisSession session, this.classElement, Element element)
+      AnalysisSession session, this.interfaceElement, Element element)
       : sessionHelper = AnalysisSessionHelper(session),
         super(workspace, element);
 
@@ -60,7 +60,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     _validator = _RenameClassMemberValidator(
-        searchEngine, sessionHelper, classElement, element, newName);
+        searchEngine, sessionHelper, interfaceElement, element, newName);
     return _validator.validate();
   }
 
@@ -240,11 +240,39 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   _LocalElementsCollector(this.name);
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
-    if (element is LocalElement && element.name == name) {
-      elements.add(element);
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (node.name2.lexeme == name) {
+      final element = node.declaredElement2;
+      if (element is FunctionElement) {
+        elements.add(element);
+      }
     }
+
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    if (node.name?.lexeme == name) {
+      final element = node.declaredElement;
+      if (element != null) {
+        elements.add(element);
+      }
+    }
+
+    super.visitSimpleFormalParameter(node);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    if (node.name2.lexeme == name) {
+      final element = node.declaredElement2;
+      if (element is LocalVariableElement) {
+        elements.add(element);
+      }
+    }
+
+    super.visitVariableDeclaration(node);
   }
 }
 
@@ -265,10 +293,10 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   _RenameClassMemberValidator(
     SearchEngine searchEngine,
     AnalysisSessionHelper sessionHelper,
-    ClassElement elementClass,
+    InterfaceElement elementInterface,
     this.element,
     String name,
-  ) : super(searchEngine, sessionHelper, elementClass, element.kind, name);
+  ) : super(searchEngine, sessionHelper, elementInterface, element.kind, name);
 
   Future<RefactoringStatus> validate() async {
     _checkClassAlreadyDeclares();
@@ -278,7 +306,8 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     // check shadowing of class names
     for (var element in elements) {
       var enclosingElement = element.enclosingElement3;
-      if (enclosingElement is ClassElement && enclosingElement.name == name) {
+      if (enclosingElement is InterfaceElement &&
+          enclosingElement.name == name) {
         result.addError(
           'Renamed ${elementKind.displayName} has the same name as the '
           "declaring ${enclosingElement.kind.displayName} '$name'.",

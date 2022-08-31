@@ -423,7 +423,8 @@ void f() {
 ''');
     _createRefactoringForString('f');
     return _assertConditionsFatal(
-        'Cannot extract the name part of a declaration.');
+        'The selection does not cover a set of statements or an expression. '
+        'Extend selection to a valid range.');
   }
 
   Future<void> test_bad_namePartOfDeclaration_variable() async {
@@ -434,7 +435,7 @@ void f() {
 ''');
     _createRefactoringForString('vvv');
     return _assertConditionsFatal(
-        'Cannot extract the name part of a declaration.');
+        'Can only extract a single expression or a set of statements.');
   }
 
   Future<void> test_bad_namePartOfQualified() async {

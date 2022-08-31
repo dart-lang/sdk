@@ -254,7 +254,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
   bool _isClassRename(RenameRefactoring refactoring) =>
       refactoring is RenameUnitMemberRefactoringImpl &&
-      refactoring.element is ClassElement;
+      refactoring.element is InterfaceElement;
 
   /// Asks the user whether they would like to rename the file along with the
   /// class.

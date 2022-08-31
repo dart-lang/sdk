@@ -528,7 +528,7 @@ class _VariableInferenceNode extends _InferenceNode {
   void _resolveInitializer({required bool forDependencies}) {
     var enclosingElement = _element.enclosingElement3;
     var enclosingClassElement =
-        enclosingElement is ClassElement ? enclosingElement : null;
+        enclosingElement is InterfaceElement ? enclosingElement : null;
     var astResolver = AstResolver(_walker._linker, _unitElement, _scope,
         enclosingClassElement: enclosingClassElement);
     astResolver.resolveExpression(() => _node.initializer!,

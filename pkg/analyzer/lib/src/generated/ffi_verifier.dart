@@ -361,7 +361,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         // Receiver can only be Pointer if the class extends
         // NativeFieldWrapperClass1.
         if (ffiSignature.normalParameterTypes[0].isPointer) {
-          final cls = declarationElement.enclosingElement3 as ClassElement;
+          final cls = declarationElement.enclosingElement3 as InterfaceElement;
           if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
             _errorReporter.reportErrorForNode(
                 FfiCode
@@ -428,11 +428,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       final element = type.element2;
-      if (element is ClassElement) {
-        type = element.supertype;
-      } else {
-        break;
-      }
+      type = element.supertype;
     }
     return false;
   }
@@ -1013,7 +1009,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _validateSizeOfAnnotation(fieldType, annotations, arrayDimensions);
       } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element2;
-        if (clazz is ClassElement && clazz.isEmptyStruct) {
+        if (clazz.isEmptyStruct) {
           _errorReporter.reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [
             clazz.name,
             clazz.supertype!.getDisplayString(withNullability: false)

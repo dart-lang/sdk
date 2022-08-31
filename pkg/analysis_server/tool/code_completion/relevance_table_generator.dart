@@ -16,7 +16,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, Element, LibraryElement;
+    show Element, InterfaceElement, LibraryElement;
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -1348,7 +1348,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element == null) {
       return null;
     }
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
         element = parent.element!;
