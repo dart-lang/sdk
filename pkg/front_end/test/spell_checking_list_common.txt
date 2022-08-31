@@ -2247,7 +2247,6 @@ port
 portion
 position
 positional
-positionals
 positions
 positive
 positives

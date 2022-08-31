@@ -4599,21 +4599,6 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkConstantRecordNamedField(EquivalenceVisitor visitor,
-      ConstantRecordNamedField? node, Object? other) {
-    if (identical(node, other)) return true;
-    if (node is! ConstantRecordNamedField) return false;
-    if (other is! ConstantRecordNamedField) return false;
-    bool result = true;
-    if (!checkConstantRecordNamedField_name(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkConstantRecordNamedField_value(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    return result;
-  }
-
   bool checkRecordConstant(
       EquivalenceVisitor visitor, RecordConstant? node, Object? other) {
     if (identical(node, other)) return true;
@@ -7764,24 +7749,10 @@ class EquivalenceStrategy {
         node.positional, other.positional, visitor.checkNodes, 'positional');
   }
 
-  bool checkConstantRecordNamedField_name(EquivalenceVisitor visitor,
-      ConstantRecordNamedField node, ConstantRecordNamedField other) {
-    return visitor.checkValues(node.name, other.name, 'name');
-  }
-
-  bool checkConstantRecordNamedField_value(EquivalenceVisitor visitor,
-      ConstantRecordNamedField node, ConstantRecordNamedField other) {
-    return visitor.checkNodes(node.value, other.value, 'value');
-  }
-
   bool checkRecordConstant_named(
       EquivalenceVisitor visitor, RecordConstant node, RecordConstant other) {
-    return visitor.checkLists(node.named, other.named, (a, b, _) {
-      if (identical(a, b)) return true;
-      if (a is! ConstantRecordNamedField) return false;
-      if (b is! ConstantRecordNamedField) return false;
-      return checkConstantRecordNamedField(visitor, a, b);
-    }, 'named');
+    return visitor.checkMaps(node.named, other.named, visitor.matchValues,
+        visitor.checkValues, visitor.checkNodes, 'named');
   }
 
   bool checkRecordConstant_recordType(

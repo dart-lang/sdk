@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic a = const (1, 2);
+static const field dynamic b = const ({a: 1, b: 2});
+static const field dynamic c = const ({a: self::a, b: self::b});
+static const field dynamic d = const (self::c, const (1, 2));
+static field dynamic e;
+static field dynamic f;
+static field dynamic g;
+static field dynamic h;
+
+
+Extra constant evaluation status:
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:5:15 -> RecordConstant(const (1, 2))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:6:15 -> RecordConstant(const ({a: 1, b: 2}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:7:15 -> RecordConstant(const ({a: const (1, 2), b: const ({a: 1, b: 2})}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:8:15 -> RecordConstant(const (const ({a: const (1, 2), b: const ({a: 1, b: 2})}), const (1, 2)))
+Extra constant evaluation: evaluated: 4, effectively constant: 4

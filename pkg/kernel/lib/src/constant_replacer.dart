@@ -181,13 +181,11 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
         (positional ??= List.of(node.positional))[i] = entry;
       }
     }
-    List<ConstantRecordNamedField>? named;
-    for (int i = 0; i < node.named.length; i++) {
-      ConstantRecordNamedField namedField = node.named[i];
-      Constant? value = visitConstant(namedField.value);
+    Map<String, Constant>? named;
+    for (MapEntry<String, Constant> entry in node.named.entries) {
+      Constant? value = visitConstant(entry.value);
       if (value != null) {
-        (named ??= List.of(node.named))[i] =
-            ConstantRecordNamedField(namedField.name, value);
+        (named ??= Map.of(node.named))[entry.key] = value;
       }
     }
     if (recordType == null && positional == null && named == null) {

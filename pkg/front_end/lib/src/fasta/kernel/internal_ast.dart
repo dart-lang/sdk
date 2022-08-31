@@ -4948,9 +4948,11 @@ class InternalRecordLiteral extends InternalExpression {
   final List<NamedExpression> named;
   final Map<String, NamedExpression>? namedElements;
   final List<Object /*Expression|NamedExpression*/ > originalElementOrder;
+  final bool isConst;
 
   InternalRecordLiteral(this.positional, this.named, this.namedElements,
-      this.originalElementOrder);
+      this.originalElementOrder,
+      {required this.isConst});
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -4985,6 +4987,9 @@ class InternalRecordLiteral extends InternalExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
+    if (isConst) {
+      printer.write('const ');
+    }
     printer.write('(');
     String comma = '';
     for (Object element in originalElementOrder) {

@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic a = #C3;
+static const field dynamic b = #C4;
+static const field dynamic c = #C5;
+static const field dynamic d = #C6;
+static field dynamic e = #C3;
+static field dynamic f = #C4;
+static field dynamic g = #C5;
+static field dynamic h = #C6;
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = RecordConstant
+  #C4 = RecordConstant
+  #C5 = RecordConstant
+  #C6 = RecordConstant
+}

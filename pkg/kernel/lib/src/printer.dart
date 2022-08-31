@@ -471,10 +471,6 @@ class AstPrinter {
     node.toTextInternal(this);
   }
 
-  void writeConstantRecordNamedField(ConstantRecordNamedField node) {
-    node.toTextInternal(this);
-  }
-
   /// Returns the text written to this printer.
   String getText() => _sb.toString();
 }

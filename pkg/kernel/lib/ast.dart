@@ -13731,7 +13731,7 @@ class SetConstant extends Constant {
 
 class RecordConstant extends Constant {
   final List<Constant> positional;
-  final List<ConstantRecordNamedField> named;
+  final Map<String, Constant> named;
   final RecordType recordType;
 
   RecordConstant(this.positional, this.named, this.recordType);
@@ -13742,8 +13742,8 @@ class RecordConstant extends Constant {
     for (final Constant entry in positional) {
       entry.acceptReference(v);
     }
-    for (final ConstantRecordNamedField entry in named) {
-      entry.value.acceptReference(v);
+    for (final Constant entry in named.values) {
+      entry.acceptReference(v);
     }
   }
 
@@ -13764,22 +13764,22 @@ class RecordConstant extends Constant {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write("const (");
-    for (int i = 0; i < positional.length; i++) {
-      if (i > 0) {
-        printer.write(", ");
-      }
-      printer.writeConstant(positional[i]);
+    String comma = '';
+    for (Constant entry in positional) {
+      printer.write(comma);
+      printer.writeConstant(entry);
+      comma = ', ';
     }
     if (named.isNotEmpty) {
-      if (positional.isNotEmpty) {
-        printer.write(", ");
-      }
+      printer.write(comma);
+      comma = '';
       printer.write("{");
-      for (int i = 0; i < named.length; i++) {
-        if (i > 0) {
-          printer.write(", ");
-        }
-        printer.writeConstantRecordNamedField(named[i]);
+      for (MapEntry<String, Constant> entry in named.entries) {
+        printer.write(comma);
+        printer.write(entry.key);
+        printer.write(": ");
+        printer.writeConstant(entry.value);
+        comma = ', ';
       }
       printer.write("}");
     }
@@ -13791,7 +13791,7 @@ class RecordConstant extends Constant {
 
   @override
   late final int hashCode = _Hash.combineFinish(recordType.hashCode,
-      _Hash.combineListHash(named, _Hash.combineListHash(positional)));
+      _Hash.combineMapHashUnordered(named, _Hash.combineListHash(positional)));
 
   @override
   bool operator ==(Object other) =>
@@ -13799,44 +13799,10 @@ class RecordConstant extends Constant {
       (other is RecordConstant &&
           other.recordType == recordType &&
           listEquals(other.positional, positional) &&
-          listEquals(other.named, named));
+          mapEquals(other.named, named));
 
   @override
   DartType getType(StaticTypeContext context) => recordType;
-}
-
-class ConstantRecordNamedField {
-  final String name;
-  final Constant value;
-
-  ConstantRecordNamedField(this.name, this.value);
-
-  @override
-  String toString() => "ConstantRecordNamedField(${toStringInternal()})";
-
-  @override
-  int get hashCode => _Hash.hash2(name, value);
-
-  @override
-  bool operator ==(Object other) {
-    return other is ConstantRecordNamedField &&
-        other.name == name &&
-        other.value == value;
-  }
-
-  String toStringInternal() => toText(defaultAstTextStrategy);
-
-  String toText(AstTextStrategy strategy) {
-    AstPrinter printer = new AstPrinter(strategy);
-    printer.writeConstantRecordNamedField(this);
-    return printer.getText();
-  }
-
-  void toTextInternal(AstPrinter printer) {
-    printer.write(name);
-    printer.write(": ");
-    printer.writeConstant(value);
-  }
 }
 
 class InstanceConstant extends Constant {

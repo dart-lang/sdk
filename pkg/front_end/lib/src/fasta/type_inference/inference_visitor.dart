@@ -7418,8 +7418,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           named,
           type = new RecordType(
               positionalTypes, namedTypes, libraryBuilder.nonNullable),
-          // TODO(johnniwinther): Support const literals.
-          isConst: false)
+          isConst: node.isConst)
         ..fileOffset = node.fileOffset;
     }
     if (hoistedExpressions != null) {

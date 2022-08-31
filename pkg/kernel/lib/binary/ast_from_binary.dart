@@ -443,14 +443,15 @@ class BinaryBuilder {
   Constant _readRecordConstant() {
     List<Constant> positional = _readConstantReferenceList();
     final int namedLength = readUInt30();
-    final List<ConstantRecordNamedField> named =
-        new List<ConstantRecordNamedField>.generate(namedLength, (_) {
-      final String name = readString();
+    final List<MapEntry<String, Constant>> named =
+        new List<MapEntry<String, Constant>>.generate(namedLength, (_) {
+      final String name = readStringReference();
       final Constant value = readConstantReference();
-      return new ConstantRecordNamedField(name, value);
+      return new MapEntry<String, Constant>(name, value);
     }, growable: useGrowableLists);
     final RecordType recordType = readDartType() as RecordType;
-    return new RecordConstant(positional, named, recordType);
+    return new RecordConstant(
+        positional, new Map<String, Constant>.fromEntries(named), recordType);
   }
 
   Constant _readInstanceConstant() {
