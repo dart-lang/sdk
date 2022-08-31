@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
+import 'package:collection/collection.dart';
 
 /// A contributor that produces suggestions based on the instance members of a
 /// given type, whether declared by that type directly or inherited from a
@@ -89,6 +90,24 @@ class TypeMemberContributor extends DartCompletionContributor {
       var memberBuilder = _SuggestionBuilder(request, builder);
       memberBuilder.buildSuggestions(type,
           mixins: mixins, superclassConstraints: superclassConstraints);
+    } else if (type is RecordType) {
+      _suggestFromRecordType(type);
+    }
+  }
+
+  void _suggestFromRecordType(RecordType type) {
+    type.positionalFields.forEachIndexed((index, field) {
+      builder.suggestRecordField(
+        field: field,
+        name: '\$$index',
+      );
+    });
+
+    for (final field in type.namedFields) {
+      builder.suggestRecordField(
+        field: field,
+        name: field.name,
+      );
     }
   }
 }

@@ -311,9 +311,6 @@ Future<void> _reportWithClassFilter(
     final used = coverage.contains(name);
     final nameWithoutPrefix =
         name.substring(name.indexOf(':') + 1, name.length);
-    if (used) {
-      usedCode += info.size;
-    }
 
     final runtimeClassInfo = classFilterData[nameWithoutPrefix];
     if (runtimeClassInfo == null) {

@@ -269,6 +269,11 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isParameter;
   }
 
+  void get isRecordField {
+    kind.isIdentifier;
+    element.isNull;
+  }
+
   void get isSetter {
     kind.isIdentifier;
     element.isNotNull.kind.isSetter;
