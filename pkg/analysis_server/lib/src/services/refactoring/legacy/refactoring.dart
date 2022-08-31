@@ -316,6 +316,13 @@ abstract class MoveFileRefactoring implements Refactoring {
 abstract class Refactoring {
   set cancellationToken(CancellationToken token);
 
+  /// Sets whether potential edits (see [potentialEditIds]) should be computed.
+  ///
+  /// If it is known in advance that potential edits will not be used, setting
+  /// this flag will skip the work to locate the identifiers to include in
+  /// potential edits.
+  set includePotential(bool value);
+
   /// The ids of source edits that are not known to be valid.
   ///
   /// An edit is not known to be valid if there was insufficient type

@@ -38,6 +38,9 @@ abstract class RefactoringImpl implements Refactoring {
   @override
   final List<String> potentialEditIds = <String>[];
 
+  @override
+  bool includePotential = true;
+
   CancellationToken? cancellationToken;
 
   bool get isCancellationRequested =>

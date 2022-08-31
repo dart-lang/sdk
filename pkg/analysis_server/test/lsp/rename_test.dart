@@ -559,6 +559,42 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     expect(response.error!.message, contains('is defined in the SDK'));
   }
 
+  /// Unrelated dartdoc references should not be renamed.
+  ///
+  /// https://github.com/Dart-Code/Dart-Code/issues/4131
+  Future<void> test_rename_updatesCorrectDartdocReferences() {
+    const content = '''
+    class A {
+      int? origi^nalName;
+    }
+
+    class B {
+      int? originalName;
+    }
+
+    /// [A.originalName]
+    /// [B.originalName]
+    /// [C.originalName]
+    var a;
+    ''';
+    const expectedContent = '''
+    class A {
+      int? newName;
+    }
+
+    class B {
+      int? originalName;
+    }
+
+    /// [A.newName]
+    /// [B.originalName]
+    /// [C.originalName]
+    var a;
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
   Future<void> test_rename_usingLegacyChangeInterface() async {
     // This test initializes without support for DocumentChanges (versioning)
     // whereas the other tests all use DocumentChanges support (preferred).
