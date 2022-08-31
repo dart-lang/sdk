@@ -9,9 +9,6 @@
 * Removed deprecated `Declaration.declaredElement`.
 * Removed deprecated `Element.enclosingElement` and `enclosingElement2`.
 * Removed deprecated `ExportElement`, `ImportElement`.
-* `EnumElement` and `MixinElement` don't implement `ClassElement` anymore.
-  But all three implement `InterfaceElement`.
-* Removed deprecated `XyzDeclaration.name`.
 
 ## 4.7.0-dev
 * Add missing `addXyz` to `NodeLintRegistry`.
