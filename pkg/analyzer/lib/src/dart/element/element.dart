@@ -285,6 +285,36 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           (PropertyAccessorElement getter) => getter.isAccessibleIn2(library)));
 
   @override
+  PropertyAccessorElement? lookUpInheritedConcreteGetter(
+          String getterName, LibraryElement library) =>
+      _first(_implementationsOfGetter(getterName).where(
+          (PropertyAccessorElement getter) =>
+              !getter.isAbstract &&
+              !getter.isStatic &&
+              getter.isAccessibleIn2(library) &&
+              getter.enclosingElement3 != this));
+
+  @override
+  MethodElement? lookUpInheritedConcreteMethod(
+          String methodName, LibraryElement library) =>
+      _first(_implementationsOfMethod(methodName).where(
+          (MethodElement method) =>
+              !method.isAbstract &&
+              !method.isStatic &&
+              method.isAccessibleIn2(library) &&
+              method.enclosingElement3 != this));
+
+  @override
+  PropertyAccessorElement? lookUpInheritedConcreteSetter(
+          String setterName, LibraryElement library) =>
+      _first(_implementationsOfSetter(setterName).where(
+          (PropertyAccessorElement setter) =>
+              !setter.isAbstract &&
+              !setter.isStatic &&
+              setter.isAccessibleIn2(library) &&
+              setter.enclosingElement3 != this));
+
+  @override
   MethodElement? lookUpInheritedMethod(
           String methodName, LibraryElement library) =>
       _first(_implementationsOfMethod(methodName).where(
@@ -719,46 +749,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     builder.writeClassElement(this);
   }
 
-  @override
-  PropertyAccessorElement? lookUpInheritedConcreteGetter(
-          String getterName, LibraryElement library) =>
-      _first(_implementationsOfGetter(getterName).where(
-          (PropertyAccessorElement getter) =>
-              !getter.isAbstract &&
-              !getter.isStatic &&
-              getter.isAccessibleIn2(library) &&
-              getter.enclosingElement3 != this));
-
-  ExecutableElement? lookUpInheritedConcreteMember(
-      String name, LibraryElement library) {
-    if (name.endsWith('=')) {
-      return lookUpInheritedConcreteSetter(name, library);
-    } else {
-      return lookUpInheritedConcreteMethod(name, library) ??
-          lookUpInheritedConcreteGetter(name, library);
-    }
-  }
-
-  @override
-  MethodElement? lookUpInheritedConcreteMethod(
-          String methodName, LibraryElement library) =>
-      _first(_implementationsOfMethod(methodName).where(
-          (MethodElement method) =>
-              !method.isAbstract &&
-              !method.isStatic &&
-              method.isAccessibleIn2(library) &&
-              method.enclosingElement3 != this));
-
-  @override
-  PropertyAccessorElement? lookUpInheritedConcreteSetter(
-          String setterName, LibraryElement library) =>
-      _first(_implementationsOfSetter(setterName).where(
-          (PropertyAccessorElement setter) =>
-              !setter.isAbstract &&
-              !setter.isStatic &&
-              setter.isAccessibleIn2(library) &&
-              setter.enclosingElement3 != this));
-
   /// Compute a list of constructors for this class, which is a mixin
   /// application.  If specified, [visitedClasses] is a list of the other mixin
   /// application classes which have been visited on the way to reaching this
@@ -904,15 +894,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
 
       return implicitConstructor;
     }).toList(growable: false);
-  }
-
-  /// Return the first element from the given [iterable], or `null` if the
-  /// iterable is empty.
-  static E? _first<E>(Iterable<E> iterable) {
-    if (iterable.isEmpty) {
-      return null;
-    }
-    return iterable.first;
   }
 }
 
