@@ -202,14 +202,6 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-  # Compiled infrastructure scripts
-  Var("dart_root") + "/tools/bots/bin": {
-      "packages": [{
-          "package": "dart/ci/builder_scripts/${{platform}}",
-          "version": "latest",
-      }],
-      "dep_type": "cipd",
-  },
   Var("dart_root") + "/third_party/d8": {
       "packages": [{
           "package": "dart/d8",
