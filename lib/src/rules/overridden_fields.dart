@@ -87,10 +87,10 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
   return interfaces.where((i) => i != interface);
 }
 
-Iterable<InterfaceType> _findAllSupertypesInMixin(ClassElement classElement) {
+Iterable<InterfaceType> _findAllSupertypesInMixin(MixinElement mixinElement) {
   var supertypes = <InterfaceType>[];
   var accumulator = <InterfaceType>[];
-  for (var type in classElement.superclassConstraints) {
+  for (var type in mixinElement.superclassConstraints) {
     supertypes.add(type);
     supertypes.addAll(_findAllSupertypesAndMixins(type, accumulator));
   }
@@ -155,7 +155,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
     var enclosingElement = member.enclosingElement3;
-    if (enclosingElement is! ClassElement) {
+    if (enclosingElement is! InterfaceElement) {
       return null;
     }
     var classElement = enclosingElement;
