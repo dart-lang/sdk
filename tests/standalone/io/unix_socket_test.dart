@@ -744,8 +744,11 @@ Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
     return;
   }
   if (caller) {
-    final process = await Process.start(Platform.resolvedExecutable,
-        <String>[Platform.script.toFilePath(), '--start-stdio-message-test']);
+    final process = await Process.start(Platform.resolvedExecutable, <String>[
+      ...Platform.executableArguments,
+      Platform.script.toFilePath(),
+      '--start-stdio-message-test'
+    ]);
     String processStdout = "";
     String processStderr = "";
     process.stdout.transform(utf8.decoder).listen((line) {

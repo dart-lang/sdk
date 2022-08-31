@@ -100,23 +100,26 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     // update references
     processor.addReferenceEdits(_validator.references);
     // potential matches
-    var nameMatches = await searchEngine.searchMemberReferences(oldName);
-    var nameRefs = getSourceReferences(nameMatches);
-    for (var reference in nameRefs) {
-      // ignore references from SDK and pub cache
-      if (!workspace.containsElement(reference.element)) {
-        continue;
+    if (includePotential) {
+      var nameMatches = await searchEngine.searchMemberReferences(oldName);
+      var nameRefs = getSourceReferences(nameMatches);
+      for (var reference in nameRefs) {
+        // ignore references from SDK and pub cache
+        if (!workspace.containsElement(reference.element)) {
+          continue;
+        }
+        // check the element being renamed is accessible
+        if (!element.isAccessibleIn2(reference.libraryElement)) {
+          continue;
+        }
+        // add edit
+        reference.addEdit(change, newName, id: _newPotentialId());
       }
-      // check the element being renamed is accessible
-      if (!element.isAccessibleIn2(reference.libraryElement)) {
-        continue;
-      }
-      // add edit
-      reference.addEdit(change, newName, id: _newPotentialId());
     }
   }
 
   String _newPotentialId() {
+    assert(includePotential);
     var id = potentialEditIds.length.toString();
     potentialEditIds.add(id);
     return id;

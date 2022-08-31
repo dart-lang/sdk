@@ -593,11 +593,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   /// Send or enqueue a data event.
   void add(T value) {
     if (!_mayAddEvent) throw _badEventState();
-    if (hasListener) {
-      _sendData(value);
-    } else if (_isInitialState) {
-      _ensurePendingEvents().add(_DelayedData<T>(value));
-    }
+    _add(value);
   }
 
   /// Send or enqueue an error event.
@@ -611,11 +607,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     } else {
       stackTrace ??= AsyncError.defaultStackTrace(error);
     }
-    if (hasListener) {
-      _sendError(error, stackTrace);
-    } else if (_isInitialState) {
-      _ensurePendingEvents().add(_DelayedError(error, stackTrace));
-    }
+    _addError(error, stackTrace);
   }
 
   /// Closes this controller and sends a done event on the stream.
@@ -648,12 +640,12 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     }
   }
 
-  // EventSink interface. Used by the [addStream] events and other synchronous
-  // event forwardings (e.g., [Stream.fromFuture]).
+  // EventSink interface. Used by the [addStream] events.
 
+  // Add data event, used both by the [addStream] events and by [add].
   void _add(T value) {
     if (hasListener) {
-      _subscription._add(value);
+      _sendData(value);
     } else if (_isInitialState) {
       _ensurePendingEvents().add(_DelayedData<T>(value));
     }
@@ -661,7 +653,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
 
   void _addError(Object error, StackTrace stackTrace) {
     if (hasListener) {
-      _subscription._addError(error, stackTrace);
+      _sendError(error, stackTrace);
     } else if (_isInitialState) {
       _ensurePendingEvents().add(_DelayedError(error, stackTrace));
     }
