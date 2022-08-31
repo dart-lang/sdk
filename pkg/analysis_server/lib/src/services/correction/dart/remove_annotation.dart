@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -55,15 +54,12 @@ class RemoveAnnotation extends CorrectionProducer {
       await addFix(findAnnotation(node.parameter.metadata, 'required'));
     } else if (node is NormalFormalParameter) {
       await addFix(findAnnotation(node.metadata, 'required'));
-    } else if (node is DeclaredSimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is MethodDeclaration) {
-        await addFix(findAnnotation(parent.metadata, 'override'));
-      } else if (parent is VariableDeclaration) {
-        var fieldDeclaration = parent.thisOrAncestorOfType<FieldDeclaration>();
-        if (fieldDeclaration != null) {
-          await addFix(findAnnotation(fieldDeclaration.metadata, 'override'));
-        }
+    } else if (node is MethodDeclaration) {
+      await addFix(findAnnotation(node.metadata, 'override'));
+    } else if (node is VariableDeclaration) {
+      var fieldDeclaration = node.thisOrAncestorOfType<FieldDeclaration>();
+      if (fieldDeclaration != null) {
+        await addFix(findAnnotation(fieldDeclaration.metadata, 'override'));
       }
     }
   }

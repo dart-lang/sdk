@@ -41,6 +41,34 @@ class AnalysisSessionHelper {
     return resolvedLibrary?.getElementDeclaration(element);
   }
 
+  /// Return the [EnumElement] with the given [className] that is exported
+  /// from the library with the given [libraryUri], or `null` if the library
+  /// does not export a class with such name.
+  Future<EnumElement?> getEnum(String libraryUri, String className) async {
+    var libraryResult = await session.getLibraryByUri(libraryUri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element.exportNamespace.get(className);
+      if (element is EnumElement) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  /// Return the [MixinElement] with the given [name] that is exported
+  /// from the library with the given [libraryUri], or `null` if the library
+  /// does not export a class with such name.
+  Future<MixinElement?> getMixin(String libraryUri, String name) async {
+    var libraryResult = await session.getLibraryByUri(libraryUri);
+    if (libraryResult is LibraryElementResult) {
+      var element = libraryResult.element.exportNamespace.get(name);
+      if (element is MixinElement) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   /// Return the resolved unit that declares the given [element].
   Future<ResolvedUnitResult?> getResolvedUnitByElement(Element element) async {
     var libraryPath = element.library!.source.fullName;

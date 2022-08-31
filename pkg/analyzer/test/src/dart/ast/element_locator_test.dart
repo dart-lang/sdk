@@ -126,7 +126,7 @@ void main(@Class() parameter) {}
 
   test_locate_Identifier_className() async {
     await resolveTestCode('class A {}');
-    var node = findNode.simple('A');
+    var node = findNode.classDeclaration('A');
     var element = ElementLocator.locate(node);
     expect(element, isClassElement);
   }
@@ -137,7 +137,7 @@ class A {
   A.bar();
 }
 ''');
-    var node = findNode.simple('bar');
+    var node = findNode.constructor('bar');
     var element = ElementLocator.locate(node);
     expect(element, isConstructorElement);
   }
@@ -159,7 +159,7 @@ class A {
   var x;
 }
 ''');
-    var node = findNode.simple('x;');
+    var node = findNode.variableDeclaration('x;');
     var element = ElementLocator.locate(node);
     expect(element, isFieldElement);
   }

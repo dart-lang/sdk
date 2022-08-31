@@ -79,7 +79,7 @@ class CreateField extends CorrectionProducer {
     var staticModifier = false;
     InterfaceElement? targetClassElement;
     if (target != null) {
-      targetClassElement = getTargetClassElement(target);
+      targetClassElement = getTargetInterfaceElement(target);
       // maybe static
       if (target is Identifier) {
         var targetIdentifier = target;

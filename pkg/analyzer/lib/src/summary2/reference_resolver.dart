@@ -367,7 +367,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       node.type = DynamicTypeImpl.instance;
     } else if (element is TypeParameterElement) {
       node.type = TypeParameterTypeImpl(
-        element: element,
+        element2: element,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {

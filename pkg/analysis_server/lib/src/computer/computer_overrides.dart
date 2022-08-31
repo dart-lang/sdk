@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 /// Return the elements that the given [element] overrides.
 OverriddenElements findOverriddenElements(Element element) {
-  if (element.enclosingElement3 is ClassElement) {
+  if (element.enclosingElement3 is InterfaceElement) {
     return _OverriddenElementsFinder(element).find();
   }
   return OverriddenElements(element, <Element>[], <Element>[]);
@@ -102,7 +102,7 @@ class OverriddenElements {
 class _OverriddenElementsFinder {
   Element _seed;
   LibraryElement _library;
-  ClassElement _class;
+  InterfaceElement _class;
   String _name;
   List<ElementKind> _kinds;
 
@@ -111,7 +111,7 @@ class _OverriddenElementsFinder {
   final Set<InterfaceElement> _visited = {};
 
   factory _OverriddenElementsFinder(Element seed) {
-    var class_ = seed.enclosingElement3 as ClassElement;
+    var class_ = seed.enclosingElement3 as InterfaceElement;
     var library = class_.library;
     var name = seed.displayName;
     List<ElementKind> kinds;
@@ -164,9 +164,7 @@ class _OverriddenElementsFinder {
       _addInterfaceOverrides(interfaceType.element2, true);
     }
     // super
-    if (class_ is ClassElement) {
-      _addInterfaceOverrides(class_.supertype?.element2, checkType);
-    }
+    _addInterfaceOverrides(class_.supertype?.element2, checkType);
   }
 
   void _addSuperOverrides(InterfaceElement? class_,
@@ -185,9 +183,7 @@ class _OverriddenElementsFinder {
       }
     }
 
-    if (class_ is ClassElement) {
-      _addSuperOverrides(class_.supertype?.element2);
-    }
+    _addSuperOverrides(class_.supertype?.element2);
     for (var mixin_ in class_.mixins) {
       _addSuperOverrides(mixin_.element2);
     }

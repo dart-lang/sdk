@@ -2047,6 +2047,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     _tokenOrNull(node.requiredKeyword);
+    _tokenOrNull(node.name);
     super.visitSimpleFormalParameter(node);
   }
 

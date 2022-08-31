@@ -113,7 +113,7 @@ class AstRewriter {
         return node;
       }
       var element = nameScope.lookup(methodName.name).getter;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         return _toInstanceCreation_type(
           node: node,
           typeIdentifier: methodName,
@@ -139,7 +139,7 @@ class AstRewriter {
         // being used.
       }
       var element = nameScope.lookup(target.name).getter;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         // class C { C.named(); }
         // C.named()
         return _toInstanceCreation_type_constructor(
@@ -151,7 +151,7 @@ class AstRewriter {
       } else if (element is PrefixElement) {
         // Possible cases: p.C() or p.C<>()
         var prefixedElement = element.scope.lookup(methodName.name).getter;
-        if (prefixedElement is ClassElement) {
+        if (prefixedElement is InterfaceElement) {
           return _toInstanceCreation_prefix_type(
             node: node,
             prefixIdentifier: target,
@@ -195,7 +195,7 @@ class AstRewriter {
       if (prefixElement is PrefixElement) {
         var prefixedName = target.identifier.name;
         var element = prefixElement.scope.lookup(prefixedName).getter;
-        if (element is ClassElement) {
+        if (element is InterfaceElement) {
           return _instanceCreation_prefix_type_name(
             node: node,
             typeNameIdentifier: target,
@@ -248,7 +248,7 @@ class AstRewriter {
     }
     var prefix = node.prefix;
     var element = nameScope.lookup(prefix.name).getter;
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       // Example:
       //     class C { C.named(); }
       //     C.named
@@ -331,7 +331,7 @@ class AstRewriter {
       }
     }
 
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       // Example:
       //     class C<T> { C.named(); }
       //     C<int>.named

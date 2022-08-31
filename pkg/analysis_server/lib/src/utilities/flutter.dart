@@ -338,13 +338,13 @@ class Flutter {
   }
 
   /// Return `true` if the [element] is the Flutter class `Alignment`.
-  bool isExactAlignment(ClassElement element) {
+  bool isExactAlignment(InterfaceElement element) {
     return _isExactWidget(element, 'Alignment', _uriAlignment);
   }
 
   /// Return `true` if the [element] is the Flutter class
   /// `AlignmentDirectional`.
-  bool isExactAlignmentDirectional(ClassElement element) {
+  bool isExactAlignmentDirectional(InterfaceElement element) {
     return _isExactWidget(element, 'AlignmentDirectional', _uriAlignment);
   }
 
@@ -538,7 +538,7 @@ class Flutter {
   /// Return `true` if the given [element] has a supertype with the
   /// [requiredName] defined in the file with the [requiredUri].
   bool _hasSupertype(
-      ClassElement? element, Uri requiredUri, String requiredName) {
+      InterfaceElement? element, Uri requiredUri, String requiredName) {
     if (element == null) {
       return false;
     }

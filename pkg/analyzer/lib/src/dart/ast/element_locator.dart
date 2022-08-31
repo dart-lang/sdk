@@ -42,6 +42,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitClassTypeAlias(ClassTypeAlias node) {
+    return node.declaredElement2;
+  }
+
+  @override
   Element? visitCompilationUnit(CompilationUnit node) {
     return node.declaredElement;
   }
@@ -64,8 +69,23 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
+    return node.declaredElement2;
+  }
+
+  @override
+  Element? visitEnumDeclaration(EnumDeclaration node) {
+    return node.declaredElement2;
+  }
+
+  @override
   Element? visitExportDirective(ExportDirective node) {
     return node.element2;
+  }
+
+  @override
+  Element? visitExtensionDeclaration(ExtensionDeclaration node) {
+    return node.declaredElement2;
   }
 
   @override
@@ -106,7 +126,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
           return parent.declaredElement2;
         }
         var element = node.staticElement;
-        if (element is ClassElement) {
+        if (element is InterfaceElement) {
           return element.unnamedConstructor;
         }
       } else if (parent.name2 == node.endToken) {
@@ -154,6 +174,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitMethodInvocation(MethodInvocation node) {
     return node.methodName.staticElement;
+  }
+
+  @override
+  Element? visitMixinDeclaration(MixinDeclaration node) {
+    return node.declaredElement2;
   }
 
   @override

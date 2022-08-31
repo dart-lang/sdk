@@ -469,11 +469,8 @@ class FeatureComputer {
     } else if (!visited.add(subclass)) {
       return -1;
     }
-    var minDepth = 0;
-    if (subclass is ClassElement) {
-      minDepth = _inheritanceDistance(
-          subclass.supertype?.element2, superclass, visited);
-    }
+    var minDepth =
+        _inheritanceDistance(subclass.supertype?.element2, superclass, visited);
 
     void visitTypes(List<InterfaceType> types) {
       for (var type in types) {

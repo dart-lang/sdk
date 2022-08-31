@@ -136,14 +136,7 @@ mixin M {}
     expect(element.typeParameters, isEmpty);
 
     expect(element.supertype, isNull);
-    expect(element.isAbstract, isTrue);
-    // ignore: deprecated_member_use_from_same_package
-    expect(element.isEnum, isFalse);
-    // ignore: deprecated_member_use_from_same_package
-    expect(element.isMixin, isTrue);
-    expect(element.isMixinApplication, isFalse);
     expect(element.thisType.isDartCoreObject, isFalse);
-    expect(element.isDartCoreObject, isFalse);
 
     assertElementTypes(
       element.superclassConstraints,

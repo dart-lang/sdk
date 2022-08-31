@@ -60,7 +60,7 @@ class ConstructorReferenceResolver {
       // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
       // This is illegal.
-      if (enclosingElement is ClassElement) {
+      if (enclosingElement is InterfaceElement) {
         var method = enclosingElement.getMethod(name.name) ??
             enclosingElement.getGetter(name.name) ??
             enclosingElement.getSetter(name.name);

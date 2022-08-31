@@ -927,7 +927,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (flow != null) {
         var target = node.target;
         if (target is SimpleIdentifier &&
-            target.staticElement is ClassElement) {
+            target.staticElement is InterfaceElement) {
           // `?.` to access static methods is equivalent to `.`, so do nothing.
         } else {
           flow.nullAwareAccess_rightBegin(
@@ -1982,7 +1982,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var flow = flowAnalysis.flow;
       if (flow != null) {
         if (target is SimpleIdentifierImpl &&
-            target.staticElement is ClassElement) {
+            target.staticElement is InterfaceElement) {
           // `?.` to access static methods is equivalent to `.`, so do nothing.
         } else {
           flow.nullAwareAccess_rightBegin(
@@ -2711,7 +2711,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         _migratableAstInfoProvider.isPropertyAccessNullAware(function) &&
         _isNonNullableByDefault) {
       var target = function.target;
-      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
+      if (target is SimpleIdentifier &&
+          target.staticElement is InterfaceElement) {
         // `?.` to access static methods is equivalent to `.`, so do nothing.
       } else {
         flowAnalysis.flow!.nullAwareAccess_rightBegin(function,

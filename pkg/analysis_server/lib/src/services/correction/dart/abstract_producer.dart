@@ -85,13 +85,13 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
 
   /// Return the class element associated with the [target], or `null` if there
   /// is no such class element.
-  InterfaceElement? getTargetClassElement(Expression target) {
+  InterfaceElement? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
       return type.element2;
     } else if (target is Identifier) {
       var element = target.staticElement;
-      if (element is ClassElement) {
+      if (element is InterfaceElement) {
         return element;
       }
     }

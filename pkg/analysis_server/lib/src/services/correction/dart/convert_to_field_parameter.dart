@@ -88,18 +88,18 @@ class ConvertToFieldParameter extends CorrectionProducer {
 
   static _Context? _findParameter(AstNode node) {
     var parent = node.parent;
-    if (parent is SimpleFormalParameter) {
-      var identifier = parent.name;
+    if (node is SimpleFormalParameter) {
+      var identifier = node.name;
       if (identifier == null) return null;
 
-      var formalParameterList = parent.parent;
+      var formalParameterList = parent;
       if (formalParameterList is! FormalParameterList) return null;
 
       var constructor = formalParameterList.parent;
       if (constructor is! ConstructorDeclaration) return null;
 
       return _Context(
-        parameter: parent,
+        parameter: node,
         identifier: identifier,
         constructor: constructor,
       );

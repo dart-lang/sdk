@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
+import 'package:analyzer/dart/ast/token.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
@@ -202,6 +203,15 @@ Location newLocation_fromNode(engine.AstNode node) {
   var unit = node.thisOrAncestorOfType<engine.CompilationUnit>()!;
   var unitElement = unit.declaredElement!;
   var range = engine.SourceRange(node.offset, node.length);
+  return _locationForArgs(unitElement, range);
+}
+
+/// Create a Location based on an [engine.AstNode].
+Location newLocation_fromToken({
+  required engine.CompilationUnitElement unitElement,
+  required engine.Token token,
+}) {
+  var range = engine.SourceRange(token.offset, token.length);
   return _locationForArgs(unitElement, range);
 }
 
