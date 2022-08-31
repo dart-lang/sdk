@@ -9323,6 +9323,7 @@ class Mint : public Integer {
 
   int64_t value() const { return untag()->value_; }
   static intptr_t value_offset() { return OFFSET_OF(UntaggedMint, value_); }
+  static int64_t Value(MintPtr mint) { return mint->untag()->value_; }
 
   virtual bool IsZero() const { return value() == 0; }
   virtual bool IsNegative() const { return value() < 0; }
@@ -9363,6 +9364,7 @@ class Mint : public Integer {
 class Double : public Number {
  public:
   double value() const { return untag()->value_; }
+  static double Value(DoublePtr dbl) { return dbl->untag()->value_; }
 
   bool BitwiseEqualsToDouble(double value) const;
   virtual bool OperatorEquals(const Instance& other) const;
