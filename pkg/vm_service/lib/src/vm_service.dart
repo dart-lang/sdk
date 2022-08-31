@@ -503,8 +503,7 @@ abstract class VmServiceInterface {
   /// will be reset before collecting allocation information.
   ///
   /// If `gc` is provided and is set to true, a garbage collection will be
-  /// attempted before collecting allocation information. There is no guarantee
-  /// that a garbage collection will be actually be performed.
+  /// run before collecting allocation information.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
