@@ -18,8 +18,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 const List<String> intNames = ['i', 'j', 'index', 'length'];
 const List<String> listNames = ['list', 'items'];
@@ -878,7 +880,14 @@ parent3: ${node.parent?.parent?.parent}
 
   @override
   DartType? visitParenthesizedExpression(ParenthesizedExpression node) {
-    return _visitParent(node);
+    final type = _visitParent(node);
+
+    // `RecordType := (^)` without any fields.
+    if (type is RecordType) {
+      return type.positionalFields.firstOrNull?.type;
+    }
+
+    return type;
   }
 
   @override
@@ -899,6 +908,45 @@ parent3: ${node.parent?.parent?.parent}
   @override
   DartType? visitPropertyAccess(PropertyAccess node) {
     return _visitParent(node);
+  }
+
+  @override
+  DartType? visitRecordLiteral(RecordLiteral node) {
+    final type = node.parent?.accept(this);
+    if (type is! RecordType) {
+      return null;
+    }
+
+    var index = 0;
+
+    DartType? typeOfIndexPositionalField() {
+      if (index < type.positionalFields.length) {
+        return type.positionalFields[index].type;
+      }
+      return null;
+    }
+
+    for (final argument in node.fields) {
+      if (argument is NamedExpression) {
+        if (offset <= argument.offset) {
+          return typeOfIndexPositionalField();
+        }
+        if (argument.contains(offset)) {
+          if (offset >= argument.name.colon.end) {
+            final name = argument.name.label.name;
+            return type.namedField(name)?.type;
+          }
+          return null;
+        }
+      } else {
+        if (offset <= argument.end) {
+          return typeOfIndexPositionalField();
+        }
+        index++;
+      }
+    }
+
+    return typeOfIndexPositionalField();
   }
 
   @override
