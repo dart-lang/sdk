@@ -77,17 +77,17 @@ class AddTypeParameter extends Change<_Data> {
         return null;
       }
       return _TypeArgumentData(typeArguments, parent.argumentList.offset);
-    } else if (node is MethodDeclaration) {
+    } else if (parent is MethodDeclaration) {
       // invalid_override
       final extendedType = this.extendedType;
       if (extendedType != null && !extendedType.validate(context)) {
         return null;
       }
-      var typeParameters = node.typeParameters;
+      var typeParameters = parent.typeParameters;
       if (_isInvalidIndex(typeParameters?.typeParameters)) {
         return null;
       }
-      return _TypeParameterData(typeParameters, node.name2.end);
+      return _TypeParameterData(typeParameters, parent.name2.end);
     } else if (node is TypeArgumentList && parent is ExtensionOverride) {
       // wrong_number_of_type_arguments_extension
       if (!argumentValue.validate(context)) {

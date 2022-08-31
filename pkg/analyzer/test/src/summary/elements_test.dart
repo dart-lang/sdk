@@ -24397,6 +24397,14 @@ library
     addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
+    // TODO(scheglov) Remove when removing `imports`.
+    {
+      // ignore: deprecated_member_use_from_same_package
+      final prefixElement = library.imports[0].prefix!;
+      expect(prefixElement.nameOffset, 19);
+      expect(prefixElement.nameLength, 1);
+    }
+
     final prefixElement = library.libraryImports[0].prefix!.element;
     expect(prefixElement.nameOffset, 19);
 
@@ -25678,7 +25686,9 @@ library
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
     final streamElement = (p.type as InterfaceType).element2;
-    expect(streamElement.source, isNot(streamElement.library.source));
+    if (streamElement is ClassElement) {
+      expect(streamElement.source, isNot(streamElement.library.source));
+    }
   }
 
   test_inferredType_implicitCreation() async {

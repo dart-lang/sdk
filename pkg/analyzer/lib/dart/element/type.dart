@@ -33,6 +33,21 @@ abstract class DartType {
   /// Otherwise return `null`.
   InstantiatedTypeAliasElement? get alias;
 
+  /// Return the name of this type as it should appear when presented to users
+  /// in contexts such as error messages.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  @Deprecated('Use getDisplayString instead')
+  String get displayName;
+
+  /// Return the element representing the declaration of this type, or `null` if
+  /// the type has not, or cannot, be associated with an element. The former
+  /// case will occur if the element model is not yet complete; the latter case
+  /// will occur if this object represents an undefined type.
+  @Deprecated('Use element2 instead')
+  Element? get element;
+
   /// Return the element representing the declaration of this type, or `null`
   /// if the type is not associated with an element.
   Element? get element2;
@@ -195,6 +210,10 @@ abstract class DynamicType implements DartType {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionType implements DartType {
+  @Deprecated('Use element2 instead')
+  @override
+  Null get element;
+
   @override
   Null get element2;
 
@@ -274,6 +293,10 @@ abstract class InterfaceType implements ParameterizedType {
 
   /// Return a list containing all of the constructors declared in this type.
   List<ConstructorElement> get constructors;
+
+  @Deprecated('Use element2 instead')
+  @override
+  ClassElement get element;
 
   @override
   InterfaceElement get element2;
@@ -418,6 +441,10 @@ abstract class ParameterizedType implements DartType {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class RecordType implements DartType {
+  @Deprecated('Use element2 instead')
+  @override
+  Null get element;
+
   @override
   Null get element2;
 
@@ -467,6 +494,10 @@ abstract class TypeParameterType implements DartType {
   /// Always consult the bound if that could be relevant.
   ElementLocation get definition;
 
+  @Deprecated('Use element2 instead')
+  @override
+  TypeParameterElement get element;
+
   @override
   TypeParameterElement get element2;
 }
@@ -474,6 +505,10 @@ abstract class TypeParameterType implements DartType {
 /// The special type `void` is used to indicate that the value of an
 /// expression is meaningless, and intended to be discarded.
 abstract class VoidType implements DartType {
+  @Deprecated('Use element2 instead')
+  @override
+  Null get element;
+
   @override
   Null get element2;
 }

@@ -249,8 +249,8 @@ class Search {
     }
 
     ElementKind kind = element.kind;
-    if (element is ExtensionElement ||
-        element is InterfaceElement ||
+    if (element is ClassElement ||
+        element is ExtensionElement ||
         element is PropertyAccessorElement && element.isSetter ||
         element is TypeAliasElement) {
       return _searchReferences(element, searchedFiles);
@@ -910,7 +910,7 @@ class _FindCompilationUnitDeclarations {
       // skip
     } else if (enclosing is MixinElement) {
       mixinName = enclosing.name;
-    } else if (enclosing is InterfaceElement) {
+    } else if (enclosing is ClassElement) {
       className = enclosing.name;
     }
 

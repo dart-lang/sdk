@@ -143,7 +143,7 @@ class InheritanceManager3 {
     var result = <Name, ExecutableElement>{};
 
     var substitution = Substitution.fromInterfaceType(type);
-    var rawMap = getInheritedConcreteMap2(type.element2);
+    var rawMap = getInheritedConcreteMap2(type.element);
     for (var rawEntry in rawMap.entries) {
       result[rawEntry.key] = ExecutableMember.from2(
         rawEntry.value,
@@ -171,7 +171,7 @@ class InheritanceManager3 {
     var result = <Name, ExecutableElement>{};
 
     var substitution = Substitution.fromInterfaceType(type);
-    var rawMap = getInheritedMap2(type.element2);
+    var rawMap = getInheritedMap2(type.element);
     for (var rawEntry in rawMap.entries) {
       result[rawEntry.key] = ExecutableMember.from2(
         rawEntry.value,
@@ -293,7 +293,7 @@ class InheritanceManager3 {
   /// if no members would be overridden.
   @Deprecated('Use getOverridden2')
   List<ExecutableElement>? getOverridden(InterfaceType type, Name name) {
-    return getOverridden2(type.element2, name);
+    return getOverridden2(type.element, name);
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
@@ -454,7 +454,14 @@ class InheritanceManager3 {
     var superImplemented = <Map<Name, ExecutableElement>>[];
     var implemented = <Name, ExecutableElement>{};
 
-    final InterfaceType? superType = element.supertype;
+    final InterfaceType? superType;
+    if (element is ClassElement) {
+      superType = element.supertype;
+    } else if (element is EnumElement) {
+      superType = element.supertype;
+    } else {
+      throw UnimplementedError('(${element.runtimeType}) $element');
+    }
 
     Interface? superTypeInterface;
     if (superType != null) {
@@ -908,7 +915,7 @@ class InheritanceManager3 {
   static bool _isDeclaredInObject(ExecutableElement element) {
     var enclosing = element.enclosingElement3;
     // TODO(scheglov) `is! MixinElement` after the separation.
-    return enclosing is InterfaceElement &&
+    return enclosing is ClassElement &&
         enclosing.supertype == null &&
         enclosing is! MixinElement;
   }

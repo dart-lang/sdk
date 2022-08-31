@@ -33,7 +33,8 @@ class MakeVariableNotFinal extends CorrectionProducer {
       return;
     }
 
-    var declaration = NodeLocator(variable.nameOffset).searchWithin(unit);
+    var id = NodeLocator(variable.nameOffset).searchWithin(unit);
+    var declaration = id?.parent;
     var declarationList = declaration?.parent;
 
     if (declaration is VariableDeclaration &&

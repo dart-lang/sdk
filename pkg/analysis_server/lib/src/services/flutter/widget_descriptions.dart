@@ -520,13 +520,13 @@ class _WidgetDescriptionComputer {
   }
 
   protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement field) {
-    var interfaceElement = field.enclosingElement3 as InterfaceElement;
-    var libraryUriStr = '${interfaceElement.library.source.uri}';
+    var classElement = field.enclosingElement3 as ClassElement;
+    var libraryUriStr = '${classElement.library.source.uri}';
     var documentation = getFieldDocumentation(field);
 
     return protocol.FlutterWidgetPropertyValueEnumItem(
       libraryUriStr,
-      interfaceElement.name,
+      classElement.name,
       field.name,
       documentation: documentation,
     );
@@ -546,7 +546,7 @@ class _WidgetDescriptionComputer {
       if (element is PropertyAccessorElement && element.isGetter) {
         var field = element.variable;
         if (field is FieldElement && field.isStatic) {
-          var enclosingClass = field.enclosingElement3 as InterfaceElement;
+          var enclosingClass = field.enclosingElement3 as ClassElement;
           if (field.isEnumConstant ||
               _flutter.isExactAlignment(enclosingClass) ||
               _flutter.isExactAlignmentDirectional(enclosingClass)) {

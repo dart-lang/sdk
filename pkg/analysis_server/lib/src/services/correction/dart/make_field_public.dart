@@ -21,15 +21,18 @@ class MakeFieldPublic extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declaration = node;
-    if (declaration is! MethodDeclaration) {
+    var node = this.node;
+    if (node is! SimpleIdentifier) {
       return;
     }
-    var getterName = declaration.name2.lexeme;
+    var getterName = node.name;
     _fieldName = '_$getterName';
-    if (declaration.name2 == token && declaration.isGetter) {
+    var parent = node.parent;
+    if (parent is MethodDeclaration &&
+        parent.name2 == token &&
+        parent.isGetter) {
       NodeList<ClassMember> members;
-      var container = declaration.parent;
+      var container = parent.parent;
       if (container is ClassDeclaration) {
         members = container.members;
       } else if (container is MixinDeclaration) {
@@ -58,7 +61,7 @@ class MakeFieldPublic extends CorrectionProducer {
       }
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.token(field!.name2), getterName);
-        builder.removeMember(members, declaration);
+        builder.removeMember(members, parent);
         builder.removeMember(members, setter!);
       });
     }

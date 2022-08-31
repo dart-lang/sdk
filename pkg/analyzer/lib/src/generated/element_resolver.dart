@@ -302,7 +302,7 @@ class ElementResolver {
   void visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElement) {
+    if (enclosingClass is! ClassElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
@@ -336,7 +336,7 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
       covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElement) {
+    if (enclosingClass is! ClassElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
@@ -488,7 +488,7 @@ class ElementResolver {
   static InterfaceElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
       var element = expression.staticElement;
-      if (element is InterfaceElement) {
+      if (element is ClassElement) {
         return element;
       } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;

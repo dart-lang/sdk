@@ -19,7 +19,7 @@ class ClassHierarchy {
     return _getHierarchy(element).interfaces;
   }
 
-  void remove(InterfaceElement element) {
+  void remove(ClassElement element) {
     _map.remove(element);
   }
 
@@ -65,7 +65,9 @@ class ClassHierarchy {
       }
     }
 
-    append(element.supertype);
+    if (element is ClassElement) {
+      append(element.supertype);
+    }
     if (element is MixinElement) {
       for (var type in element.superclassConstraints) {
         append(type);

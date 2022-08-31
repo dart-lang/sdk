@@ -69,7 +69,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
         typeFormals: [typeFormal],
         parameters: const [],
         returnType: TypeParameterTypeImpl(
-          element2: typeFormal,
+          element: typeFormal,
           nullabilitySuffix: NullabilitySuffix.star,
         ),
         nullabilitySuffix: suffix,
@@ -98,7 +98,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
         typeFormals: [typeFormal],
         parameters: const [],
         returnType: TypeParameterTypeImpl(
-          element2: typeFormal,
+          element: typeFormal,
           nullabilitySuffix: NullabilitySuffix.star,
         ),
         nullabilitySuffix: suffix,
@@ -311,7 +311,7 @@ class _AlreadyMigratedCodeDecoratorTestBase {
 
     withElement.checkTypeParameter(
         withElement.decorate(TypeParameterTypeImpl(
-            element2: element, nullabilitySuffix: NullabilitySuffix.question)),
+            element: element, nullabilitySuffix: NullabilitySuffix.question)),
         withElement.checkExplicitlyNullable,
         element,
         'test type');
@@ -325,8 +325,8 @@ class _AlreadyMigratedCodeDecoratorTestBase {
     var withElement = withUnit.withElement(element);
 
     withElement.checkTypeParameter(
-        withElement.decorate(TypeParameterTypeImpl(
-            element2: element, nullabilitySuffix: suffix)),
+        withElement.decorate(
+            TypeParameterTypeImpl(element: element, nullabilitySuffix: suffix)),
         withElement.checkExplicitlyNonNullable,
         element,
         'test type');

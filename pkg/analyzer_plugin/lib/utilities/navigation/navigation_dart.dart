@@ -28,6 +28,14 @@ NavigationCollector computeDartNavigation(
   } else {
     var node = _getNodeForRange(unit, offset, length);
 
+    {
+      final parent = node?.parent;
+      // ignore: deprecated_member_use
+      if (parent is ConstructorDeclaration && parent.name == node) {
+        node = parent;
+      }
+    }
+
     if (node != null) {
       node = _getNavigationTargetNode(node);
     }
@@ -182,12 +190,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     node.leftOperand.accept(this);
     computer._addRegionForToken(node.operator, node.staticElement);
     node.rightOperand.accept(this);
-  }
-
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
-    super.visitClassDeclaration(node);
   }
 
   @override
@@ -374,12 +376,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
   void visitImportDirective(ImportDirective node) {
     var importElement = node.element2;
     if (importElement != null) {
@@ -400,12 +396,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegionForNode(node.name, node.element2);
-  }
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
-    super.visitMethodDeclaration(node);
   }
 
   @override
@@ -464,16 +454,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    final nameToken = node.name;
-    if (nameToken != null) {
-      computer._addRegionForToken(nameToken, node.declaredElement);
-    }
-
-    super.visitSimpleFormalParameter(node);
-  }
-
-  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     computer._addRegionForNode(node, element);
@@ -504,18 +484,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     node.type?.accept(this);
     node.typeParameters?.accept(this);
     node.parameters?.accept(this);
-  }
-
-  @override
-  void visitTypeParameter(TypeParameter node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
-    super.visitTypeParameter(node);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
-    super.visitVariableDeclaration(node);
   }
 
   @override

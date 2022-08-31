@@ -375,15 +375,10 @@ class AstBinaryReader {
     );
   }
 
-  Token _readDeclarationName2() {
-    var name = _reader.readStringReference();
-    return StringToken(TokenType.STRING, name, -1);
-  }
-
   DeclaredIdentifier _readDeclaredIdentifier() {
     var flags = _readByte();
     var type = _readOptionalNode() as TypeAnnotationImpl?;
-    var name = _readDeclarationName2();
+    var identifier = _readDeclarationName();
     var metadata = _readNodeList<Annotation>();
     return DeclaredIdentifierImpl(
       comment: null,
@@ -397,7 +392,7 @@ class AstBinaryReader {
         Tokens.var_(),
       ),
       type: type,
-      name: name,
+      identifier: identifier,
     );
   }
 

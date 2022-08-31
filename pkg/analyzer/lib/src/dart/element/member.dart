@@ -43,6 +43,14 @@ class ConstructorMember extends ExecutableMember
   @override
   String get displayName => declaration.displayName;
 
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  ClassElement get enclosingElement => declaration.enclosingElement2;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  ClassElement get enclosingElement2 => declaration.enclosingElement2;
+
   @override
   InterfaceElement get enclosingElement3 => declaration.enclosingElement3;
 
@@ -344,6 +352,14 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   String get displayName => declaration.displayName;
 
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement3;
+
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -434,6 +450,14 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   @override
   FunctionElement get declaration => super.declaration as FunctionElement;
 
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement3;
+
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -492,6 +516,14 @@ abstract class Member implements Element {
 
   @override
   String? get documentationComment => _declaration.documentationComment;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element? get enclosingElement => _declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element? get enclosingElement2 => _declaration.enclosingElement3;
 
   @override
   Element? get enclosingElement3 => _declaration.enclosingElement3;
@@ -627,6 +659,11 @@ abstract class Member implements Element {
   @override
   String getExtendedDisplayName(String? shortName) =>
       _declaration.getExtendedDisplayName(shortName);
+
+  @Deprecated('Use isAccessibleIn2() instead')
+  @override
+  bool isAccessibleIn(LibraryElement? library) =>
+      _declaration.isAccessibleIn(library);
 
   @override
   bool isAccessibleIn2(LibraryElement library) =>
@@ -778,6 +815,14 @@ class MethodMember extends ExecutableMember implements MethodElement {
   @override
   MethodElement get declaration => super.declaration as MethodElement;
 
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement3;
+
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;
 
@@ -861,6 +906,14 @@ class ParameterMember extends VariableMember
 
   @override
   String? get defaultValueCode => declaration.defaultValueCode;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element? get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element? get enclosingElement2 => declaration.enclosingElement3;
 
   @override
   Element? get enclosingElement3 => declaration.enclosingElement3;
@@ -1002,6 +1055,14 @@ class PropertyAccessorMember extends ExecutableMember
   @override
   PropertyAccessorElement get declaration =>
       super.declaration as PropertyAccessorElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement3;
 
   @override
   Element get enclosingElement3 => declaration.enclosingElement3;

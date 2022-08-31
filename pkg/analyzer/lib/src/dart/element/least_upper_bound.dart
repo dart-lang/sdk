@@ -71,6 +71,9 @@ class InstantiatedClass {
   /// the class 'Object'.
   InstantiatedClass? get superclass {
     final element = this.element;
+    if (element is! ClassElement) {
+      return null;
+    }
 
     var supertype = element.supertype;
     if (supertype == null) return null;

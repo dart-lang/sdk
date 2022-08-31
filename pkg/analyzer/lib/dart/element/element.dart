@@ -57,6 +57,14 @@ import 'package:pub_semver/pub_semver.dart';
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class AugmentationImportElement implements _ExistingElement {
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  LibraryOrAugmentationElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  LibraryOrAugmentationElement get enclosingElement2;
+
   @override
   LibraryOrAugmentationElement get enclosingElement3;
 
@@ -177,112 +185,12 @@ abstract class ClassAugmentationElement implements ClassOrAugmentationElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassElement
-    implements ClassOrAugmentationElement, InterfaceElement {
+    implements
+        ClassOrAugmentationElement,
+        InterfaceElement,
+        _TmpSharedClassElement {
   /// Returns the result of applying augmentations to this class.
   AugmentedClassElement get augmented;
-
-  /// Return `true` if this class or its superclass declares a non-final
-  /// instance field.
-  bool get hasNonFinalField;
-
-  /// Return `true` if this class is abstract. A class is abstract if it has an
-  /// explicit `abstract` modifier. Note, that this definition of
-  /// <i>abstract</i> is different from <i>has unimplemented members</i>.
-  bool get isAbstract;
-
-  /// Return `true` if this class represents the class 'Enum' defined in the
-  /// dart:core library.
-  bool get isDartCoreEnum;
-
-  /// Return `true` if this class represents the class 'Object' defined in the
-  /// dart:core library.
-  bool get isDartCoreObject;
-
-  /// Return `true` if this class is a mixin application.  A class is a mixin
-  /// application if it was declared using the syntax "class A = B with C;".
-  bool get isMixinApplication;
-
-  /// Return `true` if this class can validly be used as a mixin when defining
-  /// another class. For classes defined by a class declaration or a mixin
-  /// application, the behavior of this method is defined by the Dart Language
-  /// Specification in section 9:
-  /// <blockquote>
-  /// It is a compile-time error if a declared or derived mixin refers to super.
-  /// It is a compile-time error if a declared or derived mixin explicitly
-  /// declares a constructor. It is a compile-time error if a mixin is derived
-  /// from a class whose superclass is not Object.
-  /// </blockquote>
-  bool get isValidMixin;
-
-  /// Return a list containing all of the superclass constraints defined for
-  /// this class. The list will be empty if this class does not represent a
-  /// mixin declaration. If this class _does_ represent a mixin declaration but
-  /// the declaration does not have an `on` clause, then the list will contain
-  /// the type for the class `Object`.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  @Deprecated('This getter is implemented only for MixinElement')
-  List<InterfaceType> get superclassConstraints;
-
-  /// Return the element representing the getter that results from looking up
-  /// the given [getterName] in the superclass of this class with respect to the
-  /// given [library], ignoring abstract getters, or `null` if the look up
-  /// fails.  The behavior of this method is defined by the Dart Language
-  /// Specification in section 16.15.2:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is: If <i>C</i> declares an
-  /// instance getter (respectively setter) named <i>m</i> that is accessible to
-  /// <i>L</i>, then that getter (respectively setter) is the result of the
-  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
-  /// of the lookup is the result of looking up getter (respectively setter)
-  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
-  /// lookup has failed.
-  /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
-  PropertyAccessorElement? lookUpInheritedConcreteGetter(
-      String getterName, LibraryElement library);
-
-  /// Return the element representing the method that results from looking up
-  /// the given [methodName] in the superclass of this class with respect to the
-  /// given [library], ignoring abstract methods, or `null` if the look up
-  /// fails.  The behavior of this method is defined by the Dart Language
-  /// Specification in section 16.15.1:
-  /// <blockquote>
-  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
-  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
-  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
-  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
-  /// result of the lookup is the result of looking up method <i>m</i> in
-  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
-  /// failed.
-  /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
-  MethodElement? lookUpInheritedConcreteMethod(
-      String methodName, LibraryElement library);
-
-  /// Return the element representing the setter that results from looking up
-  /// the given [setterName] in the superclass of this class with respect to the
-  /// given [library], ignoring abstract setters, or `null` if the look up
-  /// fails.  The behavior of this method is defined by the Dart Language
-  /// Specification in section 16.15.2:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is:  If <i>C</i> declares an
-  /// instance getter (respectively setter) named <i>m</i> that is accessible to
-  /// <i>L</i>, then that getter (respectively setter) is the result of the
-  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
-  /// of the lookup is the result of looking up getter (respectively setter)
-  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
-  /// lookup has failed.
-  /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
-  PropertyAccessorElement? lookUpInheritedConcreteSetter(
-      String setterName, LibraryElement library);
 }
 
 /// An element that is contained within a [ClassElement].
@@ -291,6 +199,14 @@ abstract class ClassElement
 abstract class ClassMemberElement implements Element {
   // TODO(brianwilkerson) Either remove this class or rename it to something
   //  more correct.
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2;
 
   @override
   Element get enclosingElement3;
@@ -325,9 +241,22 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// unit.
   List<ClassElement> get classes;
 
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  LibraryElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  LibraryOrAugmentationElement get enclosingElement2;
+
   /// Return the library, or library augmentation that encloses this unit.
   @override
   LibraryOrAugmentationElement get enclosingElement3;
+
+  /// Return a list containing all of the enums contained in this compilation
+  /// unit.
+  @Deprecated('Use enums2 instead')
+  List<ClassElement> get enums;
 
   /// Return a list containing all of the enums contained in this compilation
   /// unit.
@@ -343,6 +272,11 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// Return the [LineInfo] for the [source].
   LineInfo get lineInfo;
+
+  /// Return a list containing all of the mixins contained in this compilation
+  /// unit.
+  @Deprecated('Use mixins2 instead')
+  List<ClassElement> get mixins;
 
   /// Return a list containing all of the mixins contained in this compilation
   /// unit.
@@ -367,7 +301,19 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// Return the enum defined in this compilation unit that has the given
   /// [name], or `null` if this compilation unit does not define an enum with
   /// the given name.
+  @Deprecated('Use getEnum2() instead')
+  ClassElement? getEnum(String name);
+
+  /// Return the enum defined in this compilation unit that has the given
+  /// [name], or `null` if this compilation unit does not define an enum with
+  /// the given name.
   EnumElement? getEnum2(String name);
+
+  /// Return the class defined in this compilation unit that has the given
+  /// [name], or `null` if this compilation unit does not define a class with
+  /// the given name.
+  @Deprecated('Use getClass() instead')
+  ClassElement? getType(String name);
 }
 
 /// An element representing a constructor augmentation.
@@ -399,6 +345,14 @@ abstract class ConstructorElement
 
   @override
   String get displayName;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  ClassElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  ClassElement get enclosingElement2;
 
   @override
   InterfaceElement get enclosingElement3;
@@ -542,6 +496,18 @@ abstract class Element implements AnalysisTarget {
   /// this element, or `null` if this element does not or cannot have
   /// documentation.
   String? get documentationComment;
+
+  /// Return the element that either physically or logically encloses this
+  /// element. This will be `null` if this element is a library because
+  /// libraries are the top-level elements in the model.
+  @Deprecated('Use enclosingElement3 instead')
+  Element? get enclosingElement;
+
+  /// Return the element that either physically or logically encloses this
+  /// element. This will be `null` if this element is a library because
+  /// libraries are the top-level elements in the model.
+  @Deprecated('Use enclosingElement3 instead')
+  Element? get enclosingElement2;
 
   /// Return the element that either physically or logically encloses this
   /// element. This will be `null` if this element is a library because
@@ -716,6 +682,16 @@ abstract class Element implements AnalysisTarget {
   /// the provided name will be used.
   // TODO(brianwilkerson) Make the parameter optional.
   String getExtendedDisplayName(String? shortName);
+
+  /// Return `true` if this element, assuming that it is within scope, is
+  /// accessible to code in the given [library]. This is defined by the Dart
+  /// Language Specification in section 3.2:
+  /// <blockquote>
+  /// A declaration <i>m</i> is accessible to library <i>L</i> if <i>m</i> is
+  /// declared in <i>L</i> or if <i>m</i> is public.
+  /// </blockquote>
+  @Deprecated('Use isAccessibleIn2() instead')
+  bool isAccessibleIn(LibraryElement? library);
 
   /// Return `true` if this element, assuming that it is within scope, is
   /// accessible to code in the given [library]. This is defined by the Dart
@@ -1043,6 +1019,9 @@ abstract class ElementVisitor<R> {
 
   R? visitEnumElement(EnumElement element);
 
+  @Deprecated('Override visitLibraryExportElement() instead')
+  R? visitExportElement(ExportElement element);
+
   R? visitExtensionElement(ExtensionElement element);
 
   R? visitFieldElement(FieldElement element);
@@ -1052,6 +1031,9 @@ abstract class ElementVisitor<R> {
   R? visitFunctionElement(FunctionElement element);
 
   R? visitGenericFunctionTypeElement(GenericFunctionTypeElement element);
+
+  @Deprecated('Override visitLibraryImportElement() instead')
+  R? visitImportElement(ImportElement element);
 
   R? visitLabelElement(LabelElement element);
 
@@ -1106,7 +1088,10 @@ abstract class EnumAugmentationElement implements EnumOrAugmentationElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumElement
-    implements EnumOrAugmentationElement, InterfaceElement {
+    implements
+        EnumOrAugmentationElement,
+        InterfaceElement,
+        _TmpSharedClassElement {
   /// Returns the result of applying augmentations to this element.
   AugmentedEnumElement get augmented;
 }
@@ -1133,6 +1118,14 @@ abstract class ExecutableElement implements FunctionTypedElement {
 
   @override
   String get displayName;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2;
 
   @override
   Element get enclosingElement3;
@@ -1176,6 +1169,20 @@ abstract class ExecutableElement implements FunctionTypedElement {
   String get name;
 }
 
+/// An export directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LibraryExportElement instead')
+abstract class ExportElement implements UriReferencedElement {
+  /// Return a list containing the combinators that were specified as part of
+  /// the export directive in the order in which they were specified.
+  List<NamespaceCombinator> get combinators;
+
+  /// Return the library that is exported from this library by this export
+  /// directive, or `null` if the URI has invalid syntax or cannot be resolved.
+  LibraryElement? get exportedLibrary;
+}
+
 /// An element that represents an extension.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1183,6 +1190,14 @@ abstract class ExtensionElement implements TypeParameterizedElement {
   /// Return a list containing all of the accessors (getters and setters)
   /// declared in this extension.
   List<PropertyAccessorElement> get accessors;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  CompilationUnitElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  CompilationUnitElement get enclosingElement2;
 
   @override
   CompilationUnitElement get enclosingElement3;
@@ -1332,6 +1347,30 @@ abstract class HideElementCombinator implements NamespaceCombinator {
   /// Return a list containing the names that are not to be made visible in the
   /// importing library even if they are defined in the imported library.
   List<String> get hiddenNames;
+}
+
+/// A single import directive within a library.
+///
+/// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use LibraryImportElement instead')
+abstract class ImportElement implements UriReferencedElement {
+  /// Return a list containing the combinators that were specified as part of
+  /// the import directive in the order in which they were specified.
+  List<NamespaceCombinator> get combinators;
+
+  /// Return the library that is imported into this library by this import
+  /// directive, or `null` if the URI has invalid syntax or cannot be resolved.
+  LibraryElement? get importedLibrary;
+
+  /// Return `true` if this import is for a deferred library.
+  bool get isDeferred;
+
+  /// The [Namespace] that this directive contributes to the containing library.
+  Namespace get namespace;
+
+  /// Return the prefix that was specified as part of the import directive, or
+  /// `null` if there was no prefix specified.
+  PrefixElement? get prefix;
 }
 
 /// Usage of a [PrefixElement] in an `import` directive.
@@ -1522,6 +1561,14 @@ abstract class InterfaceOrAugmentationElement
   /// class, as is the case when this element represents an enum or a mixin.
   List<ConstructorElement> get constructors;
 
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  CompilationUnitElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  CompilationUnitElement get enclosingElement2;
+
   @override
   CompilationUnitElement get enclosingElement3;
 
@@ -1563,6 +1610,14 @@ abstract class InterfaceOrAugmentationElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LabelElement implements Element {
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  ExecutableElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  ExecutableElement get enclosingElement2;
+
   @override
   ExecutableElement get enclosingElement3;
 
@@ -1629,6 +1684,12 @@ abstract class LibraryElement
   @override
   String get name;
 
+  /// Return a list containing all of the compilation units that are included in
+  /// this library using a `part` directive. This does not include the defining
+  /// compilation unit that contains the `part` directives.
+  @Deprecated('Use parts2 instead')
+  List<CompilationUnitElement> get parts;
+
   /// Returns the list of `part` directives of this library.
   List<PartElement> get parts2;
 
@@ -1648,6 +1709,16 @@ abstract class LibraryElement
   /// Return the class defined in this library that has the given [name], or
   /// `null` if this library does not define a class with the given name.
   ClassElement? getClass(String name);
+
+  /// Return a list containing all of the imports that share the given [prefix],
+  /// or an empty array if there are no such imports.
+  @Deprecated('Use PrefixElement.imports instead')
+  List<ImportElement> getImportsWithPrefix(PrefixElement prefix);
+
+  /// Return the class defined in this library that has the given [name], or
+  /// `null` if this library does not define a class with the given name.
+  @Deprecated('Use getClass() instead')
+  ClassElement? getType(String className);
 
   /// If a legacy library, return the legacy view on the [element].
   /// Otherwise, return the original element.
@@ -1735,12 +1806,20 @@ abstract class LibraryOrAugmentationElement implements Element {
   /// Return the compilation unit that defines this library.
   CompilationUnitElement get definingCompilationUnit;
 
+  /// Return a list containing all of the exports defined in this library.
+  @Deprecated('Use libraryExports instead')
+  List<ExportElement> get exports;
+
   /// The set of features available to this library.
   ///
   /// Determined by the combination of the language version for the enclosing
   /// package, enabled experiments, and the presence of a `// @dart` language
   /// version override comment at the top of the file.
   FeatureSet get featureSet;
+
+  /// Return a list containing all of the imports defined in this library.
+  @Deprecated('Use libraryImports instead')
+  List<ImportElement> get imports;
 
   bool get isNonNullableByDefault;
 
@@ -1836,7 +1915,10 @@ abstract class MixinAugmentationElement implements MixinOrAugmentationElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinElement
-    implements MixinOrAugmentationElement, InterfaceElement {
+    implements
+        MixinOrAugmentationElement,
+        InterfaceElement,
+        _TmpSharedClassElement {
   /// Returns the result of applying augmentations to this element.
   AugmentedMixinElement get augmented;
 
@@ -1849,6 +1931,7 @@ abstract class MixinElement
   /// safe to assume that the inheritance structure of a class does not contain
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
+  @override
   List<InterfaceType> get superclassConstraints;
 }
 
@@ -1918,6 +2001,18 @@ abstract class ParameterElement
   /// optional.  Named parameters that are annotated with the `required` syntax
   /// are considered required.
   bool get isNamed;
+
+  /// Return `true` if this parameter is a required parameter. Required
+  /// parameters are always positional, unless the experiment 'non-nullable' is
+  /// enabled, in which case named parameters can also be required.
+  ///
+  /// Note: regardless of the state of the 'non-nullable' experiment, the
+  /// presence or absence of the `@required` annotation does not change the
+  /// meaning of this getter. The parameter `{@required int x}` will return
+  /// `false` and the parameter `{@required required int x}` will return
+  /// `true`
+  @Deprecated('Use isRequired instead')
+  bool get isNotOptional;
 
   /// Return `true` if this parameter is an optional parameter. Optional
   /// parameters can either be positional or named.  Named parameters that are
@@ -2000,9 +2095,21 @@ abstract class PartElement implements _ExistingElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement implements _ExistingElement {
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  LibraryElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  LibraryOrAugmentationElement get enclosingElement2;
+
   /// Return the library, or library augmentation that encloses this element.
   @override
   LibraryOrAugmentationElement get enclosingElement3;
+
+  /// Return the imports that share this prefix.
+  @Deprecated('Use imports2 instead')
+  List<ImportElement> get imports;
 
   /// Return the imports that share this prefix.
   List<LibraryImportElement> get imports2;
@@ -2072,6 +2179,14 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 
   @override
   PropertyAccessorElement get declaration;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2;
 
   @override
   Element get enclosingElement3;
@@ -2191,6 +2306,14 @@ abstract class TypeAliasElement
   /// this type might be just anything. If the feature is disabled, return
   /// a [FunctionType].
   DartType get aliasedType;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  CompilationUnitElement get enclosingElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  CompilationUnitElement get enclosingElement2;
 
   @override
   CompilationUnitElement get enclosingElement3;
@@ -2350,4 +2473,128 @@ abstract class _ExistingElement implements Element {
 
   @override
   Source get source;
+}
+
+/// Properties that existed in [ClassElement], so we should keep them for
+/// backward compatibility for now. But we want them to be either moved, or
+/// removed.
+abstract class _TmpSharedClassElement {
+  /// Return `true` if this class or its superclass declares a non-final
+  /// instance field.
+  bool get hasNonFinalField;
+
+  /// Return `true` if this class declares a static member.
+  @Deprecated('Not useful for clients')
+  bool get hasStaticMember;
+
+  /// Return `true` if this class is abstract. A class is abstract if it has an
+  /// explicit `abstract` modifier or if it is implicitly abstract, such as a
+  /// class defined by a mixin declaration. Note, that this definition of
+  /// <i>abstract</i> is different from <i>has unimplemented members</i>.
+  /// TODO(scheglov) Deprecate and replace it.
+  bool get isAbstract;
+
+  /// Return `true` if this class represents the class 'Enum' defined in the
+  /// dart:core library.
+  bool get isDartCoreEnum;
+
+  /// Return `true` if this class represents the class 'Object' defined in the
+  /// dart:core library.
+  bool get isDartCoreObject;
+
+  /// Return `true` if this class is defined by an enum declaration.
+  @Deprecated('Use `is EnumElement` instead')
+  bool get isEnum;
+
+  /// Return `true` if this class is defined by a mixin declaration.
+  @Deprecated('Use `is MixinElement` instead')
+  bool get isMixin;
+
+  /// Return `true` if this class is a mixin application.  A class is a mixin
+  /// application if it was declared using the syntax "class A = B with C;".
+  bool get isMixinApplication;
+
+  /// Return `true` if this class can validly be used as a mixin when defining
+  /// another class. For classes defined by a mixin declaration, the result is
+  /// always `true`. For classes defined by a class declaration or a mixin
+  /// application, the behavior of this method is defined by the Dart Language
+  /// Specification in section 9:
+  /// <blockquote>
+  /// It is a compile-time error if a declared or derived mixin refers to super.
+  /// It is a compile-time error if a declared or derived mixin explicitly
+  /// declares a constructor. It is a compile-time error if a mixin is derived
+  /// from a class whose superclass is not Object.
+  /// </blockquote>
+  /// TODO(scheglov) Deprecate and remove it.
+  bool get isValidMixin;
+
+  /// Return a list containing all of the superclass constraints defined for
+  /// this class. The list will be empty if this class does not represent a
+  /// mixin declaration. If this class _does_ represent a mixin declaration but
+  /// the declaration does not have an `on` clause, then the list will contain
+  /// the type for the class `Object`.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
+  /// TODO(scheglov) Deprecate and remove it.
+  List<InterfaceType> get superclassConstraints;
+
+  /// Return the element representing the getter that results from looking up
+  /// the given [getterName] in the superclass of this class with respect to the
+  /// given [library], ignoring abstract getters, or `null` if the look up
+  /// fails.  The behavior of this method is defined by the Dart Language
+  /// Specification in section 16.15.2:
+  /// <blockquote>
+  /// The result of looking up getter (respectively setter) <i>m</i> in class
+  /// <i>C</i> with respect to library <i>L</i> is: If <i>C</i> declares an
+  /// instance getter (respectively setter) named <i>m</i> that is accessible to
+  /// <i>L</i>, then that getter (respectively setter) is the result of the
+  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
+  /// of the lookup is the result of looking up getter (respectively setter)
+  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
+  /// lookup has failed.
+  /// </blockquote>
+  /// TODO(scheglov) Deprecate and remove it.
+  PropertyAccessorElement? lookUpInheritedConcreteGetter(
+      String getterName, LibraryElement library);
+
+  /// Return the element representing the method that results from looking up
+  /// the given [methodName] in the superclass of this class with respect to the
+  /// given [library], ignoring abstract methods, or `null` if the look up
+  /// fails.  The behavior of this method is defined by the Dart Language
+  /// Specification in section 16.15.1:
+  /// <blockquote>
+  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
+  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
+  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
+  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
+  /// result of the lookup is the result of looking up method <i>m</i> in
+  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
+  /// failed.
+  /// </blockquote>
+  /// TODO(scheglov) Deprecate and remove it.
+  MethodElement? lookUpInheritedConcreteMethod(
+      String methodName, LibraryElement library);
+
+  /// Return the element representing the setter that results from looking up
+  /// the given [setterName] in the superclass of this class with respect to the
+  /// given [library], ignoring abstract setters, or `null` if the look up
+  /// fails.  The behavior of this method is defined by the Dart Language
+  /// Specification in section 16.15.2:
+  /// <blockquote>
+  /// The result of looking up getter (respectively setter) <i>m</i> in class
+  /// <i>C</i> with respect to library <i>L</i> is:  If <i>C</i> declares an
+  /// instance getter (respectively setter) named <i>m</i> that is accessible to
+  /// <i>L</i>, then that getter (respectively setter) is the result of the
+  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
+  /// of the lookup is the result of looking up getter (respectively setter)
+  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
+  /// lookup has failed.
+  /// </blockquote>
+  /// TODO(scheglov) Deprecate and remove it.
+  PropertyAccessorElement? lookUpInheritedConcreteSetter(
+      String setterName, LibraryElement library);
 }

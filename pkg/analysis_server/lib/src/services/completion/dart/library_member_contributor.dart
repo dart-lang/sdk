@@ -52,7 +52,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
                 }
               }
             } else {
-              if (element is InterfaceElement ||
+              if (element is ClassElement ||
                   element is ExtensionElement ||
                   element is TypeAliasElement) {
                 builder.suggestElement(element,

@@ -349,7 +349,7 @@ class Variables {
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
-        element2: type.element2,
+        element: type.element2,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {

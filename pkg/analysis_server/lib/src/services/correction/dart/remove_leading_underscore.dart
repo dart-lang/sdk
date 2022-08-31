@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -27,35 +26,21 @@ class RemoveLeadingUnderscore extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
-    final Token? nameToken;
-    final Element? element;
-    if (node is SimpleIdentifier) {
-      nameToken = node.token;
-      element = node.staticElement;
-    } else if (node is FormalParameter) {
-      nameToken = node.name;
-      element = node.declaredElement;
-    } else if (node is VariableDeclaration) {
-      nameToken = node.name2;
-      element = node.declaredElement2;
-    } else {
+    var identifier = node;
+    if (identifier is! SimpleIdentifier) {
       return;
     }
 
-    if (nameToken == null || element == null) {
+    var name = identifier.name;
+    if (name.length < 2) {
       return;
     }
 
-    final oldName = nameToken.lexeme;
-    if (oldName.length < 2) {
-      return;
-    }
-
-    var newName = oldName.substring(1);
+    var newName = name.substring(1);
 
     // Find references to the identifier.
     List<SimpleIdentifier>? references;
+    var element = identifier.staticElement;
     if (element is LocalVariableElement) {
       var root = node.thisOrAncestorOfType<Block>();
       if (root != null) {
@@ -83,13 +68,10 @@ class RemoveLeadingUnderscore extends CorrectionProducer {
     }
 
     // Compute the change.
-    final sourceRanges = {
-      range.token(nameToken),
-      ...references.map(range.node),
-    };
+    var references_final = references;
     await builder.addDartFileEdit(file, (builder) {
-      for (var sourceRange in sourceRanges) {
-        builder.addSimpleReplacement(sourceRange, newName);
+      for (var reference in references_final) {
+        builder.addSimpleReplacement(range.node(reference), newName);
       }
     });
   }

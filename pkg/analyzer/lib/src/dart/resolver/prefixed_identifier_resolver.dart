@@ -75,7 +75,7 @@ class PrefixedIdentifierResolver {
         result.readElementRecovery != null) {
       // Since the element came from error recovery logic, its type isn't
       // trustworthy; leave it as `dynamic`.
-    } else if (element is InterfaceElement) {
+    } else if (element is ClassElement) {
       if (_isExpressionIdentifier(node)) {
         var type = _typeProvider.typeType;
         node.staticType = type;

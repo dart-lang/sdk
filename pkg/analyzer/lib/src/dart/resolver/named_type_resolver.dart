@@ -36,7 +36,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// If not `null`, the element of the [ClassDeclaration], or the
   /// [ClassTypeAlias] being resolved.
-  InterfaceElement? enclosingClass;
+  ClassElement? enclosingClass;
 
   /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
   /// or [ImplementsClause].
@@ -93,8 +93,7 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      if (prefixElement is InterfaceElement ||
-          prefixElement is TypeAliasElement) {
+      if (prefixElement is ClassElement || prefixElement is TypeAliasElement) {
         _rewriteToConstructorName(node, typeIdentifier);
         return;
       }
@@ -165,7 +164,7 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// We are resolving the [NamedType] in a redirecting constructor of the
   /// [enclosingClass].
-  InterfaceType _inferRedirectedConstructor(InterfaceElement element) {
+  InterfaceType _inferRedirectedConstructor(ClassElement element) {
     if (element == enclosingClass) {
       return element.thisType;
     } else {
@@ -193,7 +192,7 @@ class NamedTypeResolver with ScopeHelpers {
 
     var argumentList = node.typeArguments;
     if (argumentList != null) {
-      if (element is InterfaceElement) {
+      if (element is ClassElement) {
         var typeArguments = _buildTypeArguments(
           node,
           argumentList,
@@ -244,7 +243,8 @@ class NamedTypeResolver with ScopeHelpers {
         }
       }
 
-      if (identical(node, redirectedConstructor_namedType)) {
+      if (element is ClassElement &&
+          identical(node, redirectedConstructor_namedType)) {
         return _inferRedirectedConstructor(element);
       }
 

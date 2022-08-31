@@ -305,7 +305,7 @@ class FunctionReferenceResolver {
   /// Resolves [node] as a [TypeLiteral] referencing an interface type directly
   /// (not through a type alias).
   void _resolveDirectTypeLiteral(
-      FunctionReferenceImpl node, Identifier name, InterfaceElement element) {
+      FunctionReferenceImpl node, Identifier name, ClassElement element) {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
       node.typeArguments!, name.name, element.typeParameters,
@@ -594,14 +594,14 @@ class FunctionReferenceResolver {
     // Classes and type aliases are checked first so as to include a
     // PropertyAccess parent check, which does not need to be done for
     // functions.
-    if (element is InterfaceElement || element is TypeAliasElement) {
+    if (element is ClassElement || element is TypeAliasElement) {
       // A type-instantiated constructor tearoff like `prefix.C<int>.name` is
       // initially represented as a [PropertyAccess] with a
       // [FunctionReference] 'target'.
       if (node.parent is PropertyAccess) {
         _resolveConstructorReference(node);
         return;
-      } else if (element is InterfaceElement) {
+      } else if (element is ClassElement) {
         node.function.accept(_resolver);
         _resolveDirectTypeLiteral(node, prefix, element);
         return;
@@ -706,7 +706,7 @@ class FunctionReferenceResolver {
     // Classes and type aliases are checked first so as to include a
     // PropertyAccess parent check, which does not need to be done for
     // functions.
-    if (element is InterfaceElement || element is TypeAliasElement) {
+    if (element is ClassElement || element is TypeAliasElement) {
       // A type-instantiated constructor tearoff like `C<int>.name` or
       // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
       // with a [FunctionReference] target.
@@ -719,7 +719,7 @@ class FunctionReferenceResolver {
           _resolveConstructorReference(node);
         }
         return;
-      } else if (element is InterfaceElement) {
+      } else if (element is ClassElement) {
         function.staticElement = element;
         _resolveDirectTypeLiteral(node, function, element);
         return;
@@ -839,7 +839,7 @@ class FunctionReferenceResolver {
   }) {
     if (receiver is Identifier) {
       var receiverElement = receiver.staticElement;
-      if (receiverElement is InterfaceElement) {
+      if (receiverElement is ClassElement) {
         var element = _resolveStaticElement(receiverElement, name);
         name.staticElement = element;
         return element?.referenceType;

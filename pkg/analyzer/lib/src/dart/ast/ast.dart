@@ -19,8 +19,9 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart' show LineInfo;
+import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:meta/meta.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
@@ -914,6 +915,12 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
     _becomeParentOf(_uri);
   }
 
+  @Deprecated('Use element2 instead')
+  @override
+  AugmentationImportElement? get element {
+    throw StateError('Use element2 instead');
+  }
+
   @override
   AugmentationImportElement? get element2 {
     return super.element2 as AugmentationImportElement?;
@@ -924,6 +931,16 @@ class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
+
+  @Deprecated('Use specific xyzToken instead')
+  @override
+  Token get keyword => importKeyword;
+
+  @Deprecated('Use element2.uri instead')
+  @override
+  LibraryAugmentationElement? get uriElement {
+    return element2?.importedAugmentation;
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -1485,6 +1502,12 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   @override
   Token get endToken => _body.endToken;
 
+  @Deprecated('Use exceptionParameter2 instead')
+  @override
+  SimpleIdentifierImpl? get exceptionParameter {
+    return _exceptionParameter?.nameNode;
+  }
+
   @override
   CatchClauseParameterImpl? get exceptionParameter2 {
     return _exceptionParameter;
@@ -1500,6 +1523,12 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   set exceptionType(TypeAnnotation? exceptionType) {
     _exceptionType = _becomeParentOf(exceptionType as TypeAnnotationImpl?);
+  }
+
+  @Deprecated('Use stackTraceParameter2 instead')
+  @override
+  SimpleIdentifierImpl? get stackTraceParameter {
+    return _stackTraceParameter?.nameNode;
   }
 
   @override
@@ -1538,15 +1567,17 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
 class CatchClauseParameterImpl extends AstNodeImpl
     implements CatchClauseParameter {
-  @override
-  final Token name;
+  /// TODO(scheglov) Eventually replace with [Token].
+  final SimpleIdentifierImpl nameNode;
 
   @override
   LocalVariableElement? declaredElement;
 
   CatchClauseParameterImpl({
-    required this.name,
-  });
+    required this.nameNode,
+  }) {
+    _becomeParentOf(nameNode);
+  }
 
   @override
   Token get beginToken => name;
@@ -1555,12 +1586,17 @@ class CatchClauseParameterImpl extends AstNodeImpl
   Token get endToken => name;
 
   @override
+  Token get name => nameNode.token;
+
+  @override
   E? accept<E>(AstVisitor<E> visitor) {
     return visitor.visitCatchClauseParameter(this);
   }
 
   @override
-  void visitChildren(AstVisitor visitor) {}
+  void visitChildren(AstVisitor visitor) {
+    nameNode.accept(visitor);
+  }
 }
 
 /// Helper class to allow iteration of child entities of an AST node.
@@ -1648,7 +1684,8 @@ class ChildEntity {
 ///        ([ExtendsClause] [WithClause]?)?
 ///        [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
-class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
+// ignore: deprecated_member_use_from_same_package
+class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
     implements ClassDeclaration {
   /// The 'abstract' keyword, or `null` if the keyword was absent.
   @override
@@ -1668,17 +1705,9 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// any other class.
   ExtendsClauseImpl? _extendsClause;
 
-  /// The type parameters for the class or mixin,
-  /// or `null` if the declaration does not have any type parameters.
-  TypeParameterListImpl? _typeParameters;
-
   /// The with clause for the class, or `null` if the class does not have a with
   /// clause.
   WithClauseImpl? _withClause;
-
-  /// The implements clause for the class or mixin,
-  /// or `null` if the declaration does not implement any interfaces.
-  ImplementsClauseImpl? _implementsClause;
 
   /// The native clause for the class, or `null` if the class does not have a
   /// native clause.
@@ -1686,17 +1715,6 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ClassElement? declaredElement2;
-
-  /// The left curly bracket.
-  @override
-  Token leftBracket;
-
-  /// The members defined by the class or mixin.
-  final NodeListImpl<ClassMember> _members = NodeListImpl._();
-
-  /// The right curly bracket.
-  @override
-  Token rightBracket;
 
   /// Initialize a newly created class declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the class does not have the
@@ -1714,26 +1732,22 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.augmentKeyword,
     required this.classKeyword,
     required super.name,
-    required TypeParameterListImpl? typeParameters,
+    required super.typeParameters,
     required ExtendsClauseImpl? extendsClause,
     required WithClauseImpl? withClause,
-    required ImplementsClauseImpl? implementsClause,
-    required this.leftBracket,
-    required List<ClassMember> members,
-    required this.rightBracket,
-  })  : _typeParameters = typeParameters,
-        _extendsClause = extendsClause,
-        _withClause = withClause,
-        _implementsClause = implementsClause {
-    _becomeParentOf(_typeParameters);
+    required super.implementsClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  })  : _extendsClause = extendsClause,
+        _withClause = withClause {
     _becomeParentOf(_extendsClause);
     _becomeParentOf(_withClause);
-    _becomeParentOf(_implementsClause);
-    _members._initialize(this, members);
   }
 
+  @Deprecated('Use declaredElement2 instead')
   @override
-  Token get endToken => rightBracket;
+  ClassElement? get declaredElement => declaredElement2;
 
   @override
   ExtendsClauseImpl? get extendsClause => _extendsClause;
@@ -1747,29 +1761,15 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     return abstractKeyword ?? macroKeyword ?? augmentKeyword ?? classKeyword;
   }
 
+  @Deprecated('Use abstractKeyword instead')
   @override
-  ImplementsClauseImpl? get implementsClause => _implementsClause;
-
-  set implementsClause(ImplementsClause? implementsClause) {
-    _implementsClause =
-        _becomeParentOf(implementsClause as ImplementsClauseImpl?);
-  }
-
-  @override
-  NodeListImpl<ClassMember> get members => _members;
+  bool get isAbstract => abstractKeyword != null;
 
   @override
   NativeClauseImpl? get nativeClause => _nativeClause;
 
   set nativeClause(NativeClause? nativeClause) {
     _nativeClause = _becomeParentOf(nativeClause as NativeClauseImpl?);
-  }
-
-  @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
-
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
   }
 
   @override
@@ -1798,9 +1798,31 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
 
+  @Deprecated('Filter members instead')
+  @override
+  ConstructorDeclaration? getConstructor(String? name) {
+    int length = _members.length;
+    for (int i = 0; i < length; i++) {
+      ClassMember classMember = _members[i];
+      if (classMember is ConstructorDeclaration) {
+        ConstructorDeclaration constructor = classMember;
+        SimpleIdentifier? constructorName = constructor.name;
+        if (name == null && constructorName == null) {
+          return constructor;
+        }
+        if (constructorName != null && constructorName.name == name) {
+          return constructor;
+        }
+      }
+    }
+    return null;
+  }
+
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _extendsClause?.accept(visitor);
     _withClause?.accept(visitor);
@@ -1819,6 +1841,104 @@ abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
     required super.comment,
     required super.metadata,
   });
+}
+
+@Deprecated('Use ClassDeclaration or MixinDeclaration directly')
+abstract class ClassOrMixinDeclarationImpl
+    extends NamedCompilationUnitMemberImpl implements ClassOrMixinDeclaration {
+  /// The type parameters for the class or mixin,
+  /// or `null` if the declaration does not have any type parameters.
+  TypeParameterListImpl? _typeParameters;
+
+  /// The implements clause for the class or mixin,
+  /// or `null` if the declaration does not implement any interfaces.
+  ImplementsClauseImpl? _implementsClause;
+
+  /// The left curly bracket.
+  @override
+  Token leftBracket;
+
+  /// The members defined by the class or mixin.
+  final NodeListImpl<ClassMember> _members = NodeListImpl._();
+
+  /// The right curly bracket.
+  @override
+  Token rightBracket;
+
+  ClassOrMixinDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required ImplementsClauseImpl? implementsClause,
+    required this.leftBracket,
+    required List<ClassMember> members,
+    required this.rightBracket,
+  })  : _typeParameters = typeParameters,
+        _implementsClause = implementsClause {
+    _becomeParentOf(_typeParameters);
+    _becomeParentOf(_implementsClause);
+    _members._initialize(this, members);
+  }
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  ImplementsClauseImpl? get implementsClause => _implementsClause;
+
+  set implementsClause(ImplementsClause? implementsClause) {
+    _implementsClause =
+        _becomeParentOf(implementsClause as ImplementsClauseImpl?);
+  }
+
+  @override
+  NodeListImpl<ClassMember> get members => _members;
+
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  set typeParameters(TypeParameterList? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  }
+
+  @Deprecated('Filter members instead')
+  @override
+  VariableDeclaration? getField(String name) {
+    int memberLength = _members.length;
+    for (int i = 0; i < memberLength; i++) {
+      ClassMember classMember = _members[i];
+      if (classMember is FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = classMember;
+        NodeList<VariableDeclaration> fields =
+            fieldDeclaration.fields.variables;
+        int fieldLength = fields.length;
+        for (int i = 0; i < fieldLength; i++) {
+          VariableDeclaration field = fields[i];
+          if (name == field.name.name) {
+            return field;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @Deprecated('Filter members instead')
+  @override
+  MethodDeclaration? getMethod(String name) {
+    int length = _members.length;
+    for (int i = 0; i < length; i++) {
+      ClassMember classMember = _members[i];
+      if (classMember is MethodDeclaration) {
+        MethodDeclaration method = classMember;
+        if (name == method.name2.lexeme) {
+          return method;
+        }
+      }
+    }
+    return null;
+  }
 }
 
 /// A class type alias.
@@ -1894,6 +2014,10 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     _becomeParentOf(_implementsClause);
   }
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement => declaredElement2;
+
   @override
   Token get firstTokenAfterCommentAndMetadata {
     return abstractKeyword ?? macroKeyword ?? augmentKeyword ?? typedefKeyword;
@@ -1907,12 +2031,20 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
         _becomeParentOf(implementsClause as ImplementsClauseImpl?);
   }
 
+  @Deprecated('Use abstractKeyword instead')
+  @override
+  bool get isAbstract => abstractKeyword != null;
+
   @override
   NamedTypeImpl get superclass => _superclass;
 
   set superclass(NamedType superclass) {
     _superclass = _becomeParentOf(superclass as NamedTypeImpl);
   }
+
+  @Deprecated('Use superclass instead')
+  @override
+  NamedTypeImpl get superclass2 => _superclass;
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -1948,6 +2080,8 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _superclass.accept(visitor);
     _withClause.accept(visitor);
@@ -2119,6 +2253,15 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
 
   set expression(CommentReferableExpression expression) {
     _expression = _becomeParentOf(expression as CommentReferableExpressionImpl);
+  }
+
+  @override
+  @Deprecated('Use expression instead')
+  IdentifierImpl get identifier => _expression as IdentifierImpl;
+
+  @Deprecated('Use expression= instead')
+  set identifier(Identifier identifier) {
+    _expression = _becomeParentOf(identifier as CommentReferableExpressionImpl);
   }
 
   @override
@@ -2518,6 +2661,12 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
     _uri = _becomeParentOf(uri as StringLiteralImpl);
   }
 
+  @Deprecated('Use resolvedUri instead')
+  @override
+  Source? get uriSource {
+    return resolvedUri?.ifTypeOrNull<DirectiveUriWithSource>()?.source;
+  }
+
   @override
   StringLiteralImpl? get value => _value;
 
@@ -2683,6 +2832,10 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     _body = _becomeParentOf(functionBody as FunctionBodyImpl);
   }
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ConstructorElement? get declaredElement => declaredElement2;
+
   @override
   Token get endToken {
     return _body.endToken;
@@ -2697,6 +2850,13 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @override
   NodeListImpl<ConstructorInitializer> get initializers => _initializers;
+
+  @Deprecated('Use name2 instead')
+  @override
+  SimpleIdentifierImpl? get name {
+    _name?.staticElement = declaredElement;
+    return _name;
+  }
 
   set name(SimpleIdentifier? name) {
     _name = _becomeParentOf(name as SimpleIdentifierImpl);
@@ -2749,6 +2909,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _returnType.accept(visitor);
+    _name?.accept(visitor);
     _parameters.accept(visitor);
     _initializers.accept(visitor);
     _redirectedConstructor?.accept(visitor);
@@ -2908,6 +3069,10 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   set type(NamedType type) {
     _type = _becomeParentOf(type as NamedTypeImpl);
   }
+
+  @Deprecated('Use type instead')
+  @override
+  NamedTypeImpl get type2 => _type;
 
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -3102,8 +3267,8 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   /// does not have a declared type.
   TypeAnnotationImpl? _type;
 
-  @override
-  Token name;
+  /// The name of the variable being declared.
+  SimpleIdentifierImpl _identifier;
 
   @override
   LocalVariableElement? declaredElement2;
@@ -3117,17 +3282,34 @@ class DeclaredIdentifierImpl extends DeclarationImpl
     required super.metadata,
     required this.keyword,
     required TypeAnnotationImpl? type,
-    required this.name,
-  }) : _type = type {
+    required SimpleIdentifierImpl identifier,
+  })  : _type = type,
+        _identifier = identifier {
     _becomeParentOf(_type);
+    _becomeParentOf(_identifier);
   }
 
+  @Deprecated('Use declaredElement2 instead')
   @override
-  Token get endToken => name;
+  LocalVariableElement? get declaredElement => declaredElement2;
+
+  @override
+  Token get endToken => _identifier.endToken;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return keyword ?? _type?.beginToken ?? name;
+    return keyword ?? _type?.beginToken ?? _identifier.beginToken;
+  }
+
+  @Deprecated('Use name2 instead')
+  @override
+  SimpleIdentifierImpl get identifier {
+    _identifier.staticElement = declaredElement;
+    return _identifier;
+  }
+
+  set identifier(SimpleIdentifier identifier) {
+    _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
 
   @override
@@ -3135,6 +3317,9 @@ class DeclaredIdentifierImpl extends DeclarationImpl
 
   @override
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
+
+  @override
+  Token get name => _identifier.token;
 
   @override
   TypeAnnotationImpl? get type => _type;
@@ -3156,6 +3341,8 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _type?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    identifier.accept(visitor);
   }
 }
 
@@ -3239,6 +3426,10 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
     return _parameter.endToken;
   }
 
+  @Deprecated('Use name instead')
+  @override
+  SimpleIdentifierImpl? get identifier => _parameter.identifier;
+
   @override
   bool get isConst => _parameter.isConst;
 
@@ -3302,6 +3493,10 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
     required super.comment,
     required super.metadata,
   });
+
+  @Deprecated('Use element2 instead')
+  @override
+  Element? get element => _element;
 
   /// Set the element associated with this directive to be the given [element].
   set element(Element? element) {
@@ -3610,7 +3805,7 @@ class EnumConstantArgumentsImpl extends AstNodeImpl
 class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
   /// The name of the constant.
-  final Token _name;
+  SimpleIdentifierImpl _name;
 
   @override
   FieldElement? declaredElement2;
@@ -3627,20 +3822,36 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   EnumConstantDeclarationImpl({
     required super.comment,
     required super.metadata,
-    required Token name,
+    required SimpleIdentifierImpl name,
     required this.arguments,
   }) : _name = name {
+    _becomeParentOf(_name);
     _becomeParentOf(arguments);
   }
 
+  @Deprecated('Use declaredElement2 instead')
   @override
-  Token get endToken => arguments?.endToken ?? _name;
+  FieldElement? get declaredElement => declaredElement2;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => _name;
+  Token get endToken => (arguments ?? _name).endToken;
 
   @override
-  Token get name2 => _name;
+  Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
+
+  @Deprecated('Use name2 instead')
+  @override
+  SimpleIdentifierImpl get name {
+    _name.staticElement = declaredElement;
+    return _name;
+  }
+
+  set name(SimpleIdentifier name) {
+    _name = _becomeParentOf(name as SimpleIdentifierImpl);
+  }
+
+  @override
+  Token get name2 => _name.token;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -3654,6 +3865,8 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     arguments?.accept(visitor);
   }
 }
@@ -3732,6 +3945,10 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   NodeListImpl<EnumConstantDeclaration> get constants => _constants;
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement => declaredElement2 as ClassElement?;
+
   @override
   Token get endToken => rightBracket;
 
@@ -3783,6 +4000,8 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _withClause?.accept(visitor);
     _implementsClause?.accept(visitor);
@@ -3823,6 +4042,16 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
     required super.semicolon,
   });
 
+  @Deprecated('Use element2 instead')
+  @override
+  ExportElement? get element {
+    final element2 = this.element2;
+    if (element2 is LibraryExportElementImpl) {
+      return ExportElementImpl(element2);
+    }
+    return null;
+  }
+
   @override
   LibraryExportElementImpl? get element2 {
     return super.element2 as LibraryExportElementImpl?;
@@ -3830,6 +4059,16 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
+
+  @Deprecated('Use specific xyzToken instead')
+  @override
+  Token get keyword => exportKeyword;
+
+  @Deprecated('Use element2.uri instead')
+  @override
+  LibraryElement? get uriElement {
+    return element2?.exportedLibrary;
+  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -4142,6 +4381,10 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
     _superclass = _becomeParentOf(name as NamedTypeImpl);
   }
 
+  @Deprecated('Use superclass instead')
+  @override
+  NamedTypeImpl get superclass2 => _superclass;
+
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('extendsKeyword', extendsKeyword)
@@ -4230,6 +4473,10 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     _members._initialize(this, members);
   }
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ExtensionElement? get declaredElement => declaredElement2;
+
   @override
   Token get endToken => rightBracket;
 
@@ -4252,6 +4499,13 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   NodeListImpl<ClassMember> get members => _members;
+
+  @Deprecated('Use name2 instead')
+  @override
+  SimpleIdentifierImpl? get name {
+    _name?.staticElement = declaredElement;
+    return _name;
+  }
 
   set name(SimpleIdentifier? identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl?);
@@ -4292,6 +4546,8 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name?.accept(visitor);
     _typeParameters?.accept(visitor);
     _extendedType.accept(visitor);
     _members.accept(visitor);
@@ -4444,6 +4700,9 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   }
 
   @override
+  Element? get declaredElement => null;
+
+  @override
   Element? get declaredElement2 => null;
 
   @override
@@ -4567,6 +4826,10 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
     return question ?? _parameters?.endToken ?? name;
   }
 
+  @Deprecated('Use name instead')
+  @override
+  SimpleIdentifierImpl get identifier => super.identifier!;
+
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
 
@@ -4617,6 +4880,8 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _type?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    identifier.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
   }
@@ -4820,6 +5085,10 @@ abstract class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
   ParameterElement? declaredElement;
+
+  @Deprecated('Use name instead')
+  @override
+  SimpleIdentifierImpl? get identifier;
 
   /// TODO(scheglov) I was not able to update 'nnbd_migration' any better.
   SimpleIdentifier? get identifierForMigration {
@@ -5291,6 +5560,10 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     _becomeParentOf(_functionExpression);
   }
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ExecutableElement? get declaredElement => declaredElement2;
+
   @override
   Token get endToken => _functionExpression.endToken;
 
@@ -5340,6 +5613,8 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _returnType?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _functionExpression.accept(visitor);
   }
 }
@@ -5652,6 +5927,10 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
     _becomeParentOf(_parameters);
   }
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  TypeAliasElement? get declaredElement => declaredElement2;
+
   @override
   FormalParameterListImpl get parameters => _parameters;
 
@@ -5689,6 +5968,8 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _returnType?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters.accept(visitor);
   }
@@ -5754,6 +6035,10 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   @override
   Token get endToken => question ?? _parameters.endToken;
 
+  @Deprecated('Use name instead')
+  @override
+  SimpleIdentifierImpl get identifier => super.identifier!;
+
   @override
   bool get isConst => false;
 
@@ -5801,6 +6086,8 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _returnType?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    identifier.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters.accept(visitor);
   }
@@ -5959,6 +6246,10 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     _becomeParentOf(_type);
   }
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  Element? get declaredElement => declaredElement2;
+
   /// The type of function being defined by the alias.
   ///
   /// If the non-function type aliases feature is enabled, a type alias may have
@@ -6006,6 +6297,8 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _type.accept(visitor);
   }
@@ -6308,6 +6601,10 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   @override
   NodeListImpl<NamedType> get interfaces => _interfaces;
 
+  @Deprecated('Use interfaces instead')
+  @override
+  NodeListImpl<NamedType> get interfaces2 => _interfaces;
+
   @override
   // TODO(paulberry): add commas.
   ChildEntities get _childEntities => ChildEntities()
@@ -6438,17 +6735,37 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
     _becomeParentOf(_prefix);
   }
 
+  @Deprecated('Use element2 instead')
+  @override
+  ImportElement? get element {
+    final element2 = this.element2;
+    if (element2 is LibraryImportElementImpl) {
+      return ImportElementImpl(element2);
+    }
+    return null;
+  }
+
   @override
   LibraryImportElement? get element2 => super.element2 as LibraryImportElement?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
 
+  @Deprecated('Use specific xyzToken instead')
+  @override
+  Token get keyword => importKeyword;
+
   @override
   SimpleIdentifierImpl? get prefix => _prefix;
 
   set prefix(SimpleIdentifier? identifier) {
     _prefix = _becomeParentOf(identifier as SimpleIdentifierImpl?);
+  }
+
+  @Deprecated('Use element2.uri instead')
+  @override
+  LibraryElement? get uriElement {
+    return element2?.importedLibrary;
   }
 
   @override
@@ -7297,6 +7614,18 @@ class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
 
+  @Deprecated('Use specific xyzToken instead')
+  @override
+  Token get keyword => libraryKeyword;
+
+  @Deprecated('Use element2.uri instead')
+  @override
+  LibraryElement? get uriElement {
+    // TODO(scheglov) Implement it.
+    throw UnimplementedError();
+    // return element?.importedLibrary;
+  }
+
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('libraryKeyword', libraryKeyword)
@@ -7344,6 +7673,10 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
 
   @override
   Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
+
+  @Deprecated('Use specific xyzToken instead')
+  @override
+  Token get keyword => libraryKeyword;
 
   @override
   LibraryIdentifierImpl get name => _name;
@@ -7695,6 +8028,10 @@ class MethodDeclarationImpl extends ClassMemberImpl
     _body = _becomeParentOf(functionBody as FunctionBodyImpl);
   }
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ExecutableElement? get declaredElement => declaredElement2;
+
   @override
   Token get endToken => _body.endToken;
 
@@ -7724,6 +8061,13 @@ class MethodDeclarationImpl extends ClassMemberImpl
 
   @override
   bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
+
+  @Deprecated('Use name2 instead')
+  @override
+  SimpleIdentifierImpl get name {
+    _name.staticElement = declaredElement;
+    return _name;
+  }
 
   set name(SimpleIdentifier identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
@@ -7771,6 +8115,8 @@ class MethodDeclarationImpl extends ClassMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _returnType?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
     _body.accept(visitor);
@@ -7937,7 +8283,8 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 ///    mixinDeclaration ::=
 ///        metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
 ///        [RequiresClause]? [ImplementsClause]? '{' [ClassMember]* '}'
-class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
+// ignore: deprecated_member_use_from_same_package
+class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
     implements MixinDeclaration {
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
   Token? augmentKeyword;
@@ -7945,31 +8292,12 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   Token mixinKeyword;
 
-  /// The type parameters for the class or mixin,
-  /// or `null` if the declaration does not have any type parameters.
-  TypeParameterListImpl? _typeParameters;
-
   /// The on clause for the mixin, or `null` if the mixin does not have any
   /// super-class constraints.
   OnClauseImpl? _onClause;
 
-  /// The implements clause for the class or mixin,
-  /// or `null` if the declaration does not implement any interfaces.
-  ImplementsClauseImpl? _implementsClause;
-
   @override
   MixinElement? declaredElement2;
-
-  /// The left curly bracket.
-  @override
-  Token leftBracket;
-
-  /// The members defined by the class or mixin.
-  final NodeListImpl<ClassMember> _members = NodeListImpl._();
-
-  /// The right curly bracket.
-  @override
-  Token rightBracket;
 
   /// Initialize a newly created mixin declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the mixin does not have the
@@ -7984,23 +8312,19 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.augmentKeyword,
     required this.mixinKeyword,
     required super.name,
-    required TypeParameterListImpl? typeParameters,
+    required super.typeParameters,
     required OnClauseImpl? onClause,
-    required ImplementsClauseImpl? implementsClause,
-    required this.leftBracket,
-    required List<ClassMember> members,
-    required this.rightBracket,
-  })  : _typeParameters = typeParameters,
-        _onClause = onClause,
-        _implementsClause = implementsClause {
-    _becomeParentOf(_typeParameters);
+    required super.implementsClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  }) : _onClause = onClause {
     _becomeParentOf(_onClause);
-    _becomeParentOf(_implementsClause);
-    _members._initialize(this, members);
   }
 
+  @Deprecated('Use declaredElement2 instead')
   @override
-  Token get endToken => rightBracket;
+  ClassElement? get declaredElement => declaredElement2 as ClassElement?;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -8009,11 +8333,6 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   ImplementsClauseImpl? get implementsClause => _implementsClause;
-
-  set implementsClause(ImplementsClause? implementsClause) {
-    _implementsClause =
-        _becomeParentOf(implementsClause as ImplementsClauseImpl?);
-  }
 
   @override
   NodeListImpl<ClassMember> get members => _members;
@@ -8027,10 +8346,6 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
-
-  set typeParameters(TypeParameterList? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
-  }
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -8049,6 +8364,8 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _typeParameters?.accept(visitor);
     _onClause?.accept(visitor);
     _implementsClause?.accept(visitor);
@@ -8071,6 +8388,13 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     required SimpleIdentifierImpl name,
   }) : _name = name {
     _becomeParentOf(_name);
+  }
+
+  @Deprecated('Use name2 instead')
+  @override
+  SimpleIdentifierImpl get name {
+    _name.staticElement = declaredElement;
+    return _name;
   }
 
   set name(SimpleIdentifier identifier) {
@@ -8244,6 +8568,14 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token semicolon;
 
+  @Deprecated('Use element2.uri instead')
+  @override
+  String? selectedUriContent;
+
+  @Deprecated('Use element2.uri instead')
+  @override
+  Source? selectedSource;
+
   /// Initialize a newly created namespace directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute. The list of [combinators] can be `null` if there
@@ -8268,6 +8600,10 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 
   @override
   Token get endToken => semicolon;
+
+  @Deprecated('Use element2.uri instead')
+  @override
+  LibraryElement? get uriElement;
 }
 
 /// The "native" clause in an class declaration.
@@ -8531,6 +8867,13 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     _comment = _becomeParentOf(comment as CommentImpl?);
   }
 
+  @Deprecated('Use name2 instead')
+  @override
+  SimpleIdentifierImpl? get identifier {
+    _identifier?.staticElement = declaredElement;
+    return _identifier;
+  }
+
   set identifier(SimpleIdentifier? identifier) {
     _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl?);
   }
@@ -8689,6 +9032,10 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   @override
   NodeListImpl<NamedType> get superclassConstraints => _superclassConstraints;
 
+  @Deprecated('Use superclassConstraints instead')
+  @override
+  NodeListImpl<NamedType> get superclassConstraints2 => _superclassConstraints;
+
   @override
   // TODO(paulberry): add commas.
   ChildEntities get _childEntities => ChildEntities()
@@ -8810,6 +9157,20 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   @override
   Token get firstTokenAfterCommentAndMetadata => partKeyword;
 
+  @Deprecated('Use specific xyzToken instead')
+  @override
+  Token get keyword => partKeyword;
+
+  @Deprecated('Use element2.uri instead')
+  @override
+  CompilationUnitElement? get uriElement {
+    final partElementUri = element2?.uri;
+    if (partElementUri is DirectiveUriWithUnit) {
+      return partElementUri.unit;
+    }
+    return null;
+  }
+
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('partKeyword', partKeyword)
@@ -8867,6 +9228,10 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 
   @override
   Token get firstTokenAfterCommentAndMetadata => partKeyword;
+
+  @Deprecated('Use specific xyzToken instead')
+  @override
+  Token get keyword => partKeyword;
 
   @override
   LibraryIdentifierImpl? get libraryName => _libraryName;
@@ -10000,6 +10365,8 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _type?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    identifier?.accept(visitor);
   }
 }
 
@@ -10152,12 +10519,27 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
         return false;
       }
     }
+    if (parent is CatchClauseParameterImpl && parent.nameNode == this) {
+      return false;
+    }
     if (parent is ConstructorFieldInitializer &&
         identical(parent.fieldName, target)) {
       return false;
     }
     if (parent is ForEachPartsWithIdentifier) {
       if (identical(parent.identifier, target)) {
+        return false;
+      }
+    }
+    if (parent is FieldFormalParameter) {
+      // ignore: deprecated_member_use_from_same_package
+      if (identical(parent.identifier, target)) {
+        return false;
+      }
+    }
+    if (parent is VariableDeclaration) {
+      // ignore: deprecated_member_use_from_same_package
+      if (identical(parent.name, target)) {
         return false;
       }
     }
@@ -10784,6 +11166,10 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
     return question ?? _parameters?.endToken ?? name;
   }
 
+  @Deprecated('Use name instead')
+  @override
+  SimpleIdentifierImpl get identifier => super.identifier!;
+
   @override
   bool get isConst => keyword?.keyword == Keyword.CONST;
 
@@ -10835,6 +11221,8 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _type?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    identifier.accept(visitor);
     _typeParameters?.accept(visitor);
     _parameters?.accept(visitor);
   }
@@ -11207,6 +11595,9 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
+  Element? get declaredElement => null;
+
+  @override
   Element? get declaredElement2 => null;
 
   @override
@@ -11566,6 +11957,10 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
     _bound = _becomeParentOf(type as TypeAnnotationImpl?);
   }
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  TypeParameterElement? get declaredElement => declaredElement2;
+
   @override
   Token get endToken {
     if (_bound == null) {
@@ -11576,6 +11971,10 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @override
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
+
+  @Deprecated('Use name2 instead')
+  @override
+  SimpleIdentifierImpl get name => _name;
 
   set name(SimpleIdentifier identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
@@ -11596,6 +11995,8 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _bound?.accept(visitor);
   }
 }
@@ -11657,6 +12058,14 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   /// The URI referenced by this directive.
   StringLiteralImpl _uri;
 
+  @Deprecated('Use element2.uri instead')
+  @override
+  String? uriContent;
+
+  @Deprecated('Use element2.uri instead')
+  @override
+  Source? uriSource;
+
   /// Initialize a newly create URI-based directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
   /// corresponding attribute.
@@ -11673,6 +12082,11 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 
   set uri(StringLiteral uri) {
     _uri = _becomeParentOf(uri as StringLiteralImpl);
+  }
+
+  @Deprecated('Use element2.uri instead')
+  UriValidationCode? validate() {
+    return validateUri(this is ImportDirective, uri, uriContent);
   }
 
   @override
@@ -11770,6 +12184,10 @@ class VariableDeclarationImpl extends DeclarationImpl
     _becomeParentOf(_initializer);
   }
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  VariableElement? get declaredElement => declaredElement2;
+
   /// This overridden implementation of [documentationComment] looks in the
   /// grandparent node for Dartdoc comments if no documentation is specifically
   /// available on the node.
@@ -11821,6 +12239,13 @@ class VariableDeclarationImpl extends DeclarationImpl
     return parent is VariableDeclarationList && parent.isLate;
   }
 
+  @Deprecated('Use name2 instead')
+  @override
+  SimpleIdentifierImpl get name {
+    _name.staticElement = declaredElement;
+    return _name;
+  }
+
   set name(SimpleIdentifier identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
@@ -11840,6 +12265,8 @@ class VariableDeclarationImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    name.accept(visitor);
     _initializer?.accept(visitor);
   }
 }
@@ -12078,6 +12505,10 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
 
   @override
   NodeListImpl<NamedType> get mixinTypes => _mixinTypes;
+
+  @Deprecated('Use mixinTypes instead')
+  @override
+  NodeListImpl<NamedType> get mixinTypes2 => _mixinTypes;
 
   @override
   // TODO(paulberry): add commas.

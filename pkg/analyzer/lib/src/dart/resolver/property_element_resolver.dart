@@ -376,7 +376,7 @@ class PropertyElementResolver with ScopeHelpers {
     //
     if (target is Identifier) {
       var targetElement = target.staticElement;
-      if (targetElement is InterfaceElement) {
+      if (targetElement is ClassElement) {
         return _resolveTargetInterfaceElement(
           typeReference: targetElement,
           isCascaded: isCascaded,

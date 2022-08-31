@@ -40,9 +40,9 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
   /// the [SimpleIdentifier] at the given [search] pattern.
   void createRenameRefactoringAtString(String search) {
-    var identifier = findNode.any(search);
+    var identifier = findNode.simple(search);
     var element = ElementLocator.locate(identifier);
-    if (identifier is SimpleIdentifier && element is PrefixElement) {
+    if (element is PrefixElement) {
       element = getImportElement(identifier);
     }
     createRenameRefactoringForElement(element);

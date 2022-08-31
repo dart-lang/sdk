@@ -60,15 +60,6 @@ class ElementWalker {
         _typedefs = element.typeAliases,
         _variables = element.topLevelVariables.where(_isNotSynthetic).toList();
 
-  /// Creates an [ElementWalker] which walks the child elements of a enum
-  /// element.
-  ElementWalker.forEnum(EnumElement this.element)
-      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _constructors = element.constructors.where(_isNotSynthetic).toList(),
-        _functions = element.methods,
-        _typeParameters = element.typeParameters,
-        _variables = element.fields.where(_isNotSynthetic).toList();
-
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
   ElementWalker.forExecutable(ExecutableElement this.element)
@@ -94,15 +85,6 @@ class ElementWalker {
   /// element defined using a generic function type.
   ElementWalker.forGenericTypeAlias(TypeAliasElement this.element)
       : _typeParameters = element.typeParameters;
-
-  /// Creates an [ElementWalker] which walks the child elements of a mixin
-  /// element.
-  ElementWalker.forMixin(MixinElement this.element)
-      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _constructors = element.constructors.where(_isNotSynthetic).toList(),
-        _functions = element.methods,
-        _typeParameters = element.typeParameters,
-        _variables = element.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a parameter
   /// element.
@@ -183,7 +165,7 @@ class ElementWalker {
 
   /// Returns the next non-synthetic child of [element] which is a mixin; throws
   /// an [IndexError] if there are no more.
-  MixinElementImpl getMixin() => _mixins![_mixinIndex++] as MixinElementImpl;
+  ClassElementImpl getMixin() => _mixins![_mixinIndex++] as ClassElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a parameter;
   /// throws an [IndexError] if there are no more.

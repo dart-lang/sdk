@@ -63,9 +63,9 @@ class VarianceBuilder {
         return Variance.unrelated;
       }
     } else if (type is NamedTypeBuilder) {
-      var element = type.element2;
+      var element = type.element;
       var arguments = type.arguments;
-      if (element is InterfaceElement) {
+      if (element is ClassElement) {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
           var parameters = element.typeParameters;

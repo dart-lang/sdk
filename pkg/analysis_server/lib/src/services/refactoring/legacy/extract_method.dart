@@ -19,7 +19,6 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -34,16 +33,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
 
-bool isLocalElement(Element? element) {
-  return element is LocalVariableElement ||
-      element is ParameterElement ||
-      element is FunctionElement &&
-          element.enclosingElement3 is! CompilationUnitElement;
-}
-
 Element? _getLocalElement(SimpleIdentifier node) {
   var element = node.writeOrReadElement;
-  if (isLocalElement(element)) {
+  if (element is LocalVariableElement ||
+      element is ParameterElement ||
+      element is FunctionElement &&
+          element.enclosingElement3 is! CompilationUnitElement) {
     return element;
   }
   return null;
@@ -1053,35 +1048,16 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
   _GetSourcePatternVisitor(this.partRange, this.pattern, this.replaceEdits);
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    node.expression.accept(this);
-  }
-
-  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addPatterns(
-      nameToken: node.token,
-      element: node.staticElement,
-    );
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _addPatterns(
-      nameToken: node.name2,
-      element: node.declaredElement2,
-    );
-
-    super.visitVariableDeclaration(node);
-  }
-
-  void _addPatterns({
-    required Token nameToken,
-    required Element? element,
-  }) {
-    var nameRange = range.token(nameToken);
-    if (partRange.covers(nameRange)) {
-      if (element != null && isLocalElement(element)) {
+    var nodeRange = range.node(node);
+    if (partRange.covers(nodeRange)) {
+      var element = _getLocalElement(node);
+      if (element != null) {
+        // name of a named expression
+        if (isNamedExpressionName(node)) {
+          return;
+        }
+        // continue
         var originalName = element.displayName;
         var patternName = pattern.originalToPatternNames[originalName];
         if (patternName == null) {
@@ -1090,8 +1066,8 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
           patternName = '__refVar${pattern.originalToPatternNames.length}';
           pattern.originalToPatternNames[originalName] = patternName;
         }
-        replaceEdits.add(SourceEdit(nameRange.offset - partRange.offset,
-            nameRange.length, patternName));
+        replaceEdits.add(SourceEdit(nodeRange.offset - partRange.offset,
+            nodeRange.length, patternName));
       }
     }
   }
@@ -1315,34 +1291,6 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
         ref._unqualifiedNames.add(name);
       }
     }
-  }
-
-  @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    var nodeRange = range.node(node);
-    if (ref.selectionRange.covers(nodeRange)) {
-      final element = node.declaredElement2!;
-
-      // remember, if assigned and used after selection
-      if (ref._isUsedAfterSelection(element)) {
-        if (!assignedUsedVariables.contains(element)) {
-          assignedUsedVariables.add(element);
-        }
-      }
-
-      // remember information for conflicts checking
-      if (element is LocalElement) {
-        // declared local elements
-        var range = ref._visibleRangeMap[element];
-        if (range != null) {
-          final name = node.name2.lexeme;
-          var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
-          ranges.add(range);
-        }
-      }
-    }
-
-    return super.visitVariableDeclaration(node);
   }
 }
 

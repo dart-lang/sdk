@@ -22,7 +22,7 @@ class FlutterStatefulWidgetWithAnimationController
   @override
   late ClassElement? classKey;
   late ClassElement? classAnimationController;
-  late MixinElement? classSingleTickerProviderStateMixin;
+  late ClassElement? classSingleTickerProviderStateMixin;
 
   FlutterStatefulWidgetWithAnimationController(super.request);
 
@@ -132,7 +132,7 @@ class FlutterStatefulWidgetWithAnimationController
         (classAnimationController = await getClass('AnimationController')) ==
             null ||
         (classSingleTickerProviderStateMixin =
-                await getMixin('SingleTickerProviderStateMixin')) ==
+                await getClass('SingleTickerProviderStateMixin')) ==
             null) {
       return false;
     }

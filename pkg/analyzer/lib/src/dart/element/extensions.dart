@@ -69,7 +69,7 @@ extension ElementExtension on Element {
     }
 
     var ancestor = enclosingElement3;
-    if (ancestor is InterfaceElement) {
+    if (ancestor is ClassElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
@@ -95,7 +95,7 @@ extension ElementExtension on Element {
   bool get isInstanceMember {
     var this_ = this;
     var enclosing = this_.enclosingElement3;
-    if (enclosing is InterfaceElement) {
+    if (enclosing is ClassElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
     }

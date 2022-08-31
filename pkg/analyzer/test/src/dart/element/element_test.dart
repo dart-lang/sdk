@@ -112,6 +112,62 @@ class ClassElementImplTest extends AbstractTypeSystemTest {
     expect(classB.hasNonFinalField, isTrue);
   }
 
+  @deprecated
+  void test_hasStaticMember_false_empty() {
+    var classA = class_(name: 'A');
+    // no members
+    expect(classA.hasStaticMember, isFalse);
+  }
+
+  @deprecated
+  void test_hasStaticMember_false_instanceMethod() {
+    var classA = class_(name: 'A');
+    MethodElement method = ElementFactory.methodElement("foo", intNone);
+    classA.methods = <MethodElement>[method];
+    expect(classA.hasStaticMember, isFalse);
+  }
+
+  @deprecated
+  void test_hasStaticMember_instanceGetter() {
+    var classA = class_(name: 'A');
+    PropertyAccessorElement getter =
+        ElementFactory.getterElement("foo", false, intNone);
+    classA.accessors = <PropertyAccessorElement>[getter];
+    expect(classA.hasStaticMember, isFalse);
+  }
+
+  @deprecated
+  void test_hasStaticMember_true_getter() {
+    var classA = class_(name: 'A');
+    PropertyAccessorElementImpl getter =
+        ElementFactory.getterElement("foo", false, intNone);
+    classA.accessors = <PropertyAccessorElement>[getter];
+    // "foo" is static
+    getter.isStatic = true;
+    expect(classA.hasStaticMember, isTrue);
+  }
+
+  @deprecated
+  void test_hasStaticMember_true_method() {
+    var classA = class_(name: 'A');
+    MethodElementImpl method = ElementFactory.methodElement("foo", intNone);
+    classA.methods = <MethodElement>[method];
+    // "foo" is static
+    method.isStatic = true;
+    expect(classA.hasStaticMember, isTrue);
+  }
+
+  @deprecated
+  void test_hasStaticMember_true_setter() {
+    var classA = class_(name: 'A');
+    PropertyAccessorElementImpl setter =
+        ElementFactory.setterElement("foo", false, intNone);
+    classA.accessors = <PropertyAccessorElement>[setter];
+    // "foo" is static
+    setter.isStatic = true;
+    expect(classA.hasStaticMember, isTrue);
+  }
+
   void test_lookUpConcreteMethod_declared() {
     // class A {
     //   m() {}

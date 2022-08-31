@@ -391,6 +391,9 @@ class MockCompilationUnitElement implements CompilationUnitElement {
   const MockCompilationUnitElement();
 
   @override
+  get enclosingElement => const MockLibraryElement();
+
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
@@ -398,6 +401,9 @@ class MockCompilationUnitElement implements CompilationUnitElement {
 
 class MockLibraryElement implements LibraryElement {
   const MockLibraryElement();
+
+  @override
+  get enclosingElement => null;
 
   @override
   noSuchMethod(Invocation invocation) {

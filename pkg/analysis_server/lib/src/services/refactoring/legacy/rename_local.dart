@@ -13,7 +13,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_c
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
@@ -126,19 +125,17 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   );
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _checkDeclaration(
-      declaredElement: node.declaredElement2!,
-      nameToken: node.name2,
-    );
-
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var nodeElement = node.staticElement;
     if (nodeElement != null && nodeElement.name == newName) {
+      // Duplicate declaration.
+      if (node.inDeclarationContext() && _isVisibleWithTarget(nodeElement)) {
+        conflictingLocals.add(nodeElement);
+        var nodeKind = nodeElement.kind.displayName;
+        var message = "Duplicate $nodeKind '$newName'.";
+        result.addError(message, newLocation_fromElement(nodeElement));
+        return;
+      }
       if (conflictingLocals.contains(nodeElement)) {
         return;
       }
@@ -156,32 +153,6 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
         var message = 'Usage of $nodeKind "$nodeName" declared in '
             '"$nameElementSourceName" will be shadowed by renamed $refKind.';
         result.addError(message, newLocation_fromNode(node));
-      }
-    }
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _checkDeclaration(
-      declaredElement: node.declaredElement2!,
-      nameToken: node.name2,
-    );
-
-    super.visitVariableDeclaration(node);
-  }
-
-  void _checkDeclaration({
-    required Element? declaredElement,
-    required Token nameToken,
-  }) {
-    if (declaredElement != null && nameToken.lexeme == newName) {
-      // Duplicate declaration.
-      if (_isVisibleWithTarget(declaredElement)) {
-        conflictingLocals.add(declaredElement);
-        var nodeKind = declaredElement.kind.displayName;
-        var message = "Duplicate $nodeKind '$newName'.";
-        result.addError(message, newLocation_fromElement(declaredElement));
-        return;
       }
     }
   }

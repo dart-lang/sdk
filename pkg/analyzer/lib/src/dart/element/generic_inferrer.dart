@@ -116,7 +116,7 @@ class GenericInferrer {
   /// is a subtype of the [parameterType].
   void constrainArgument(
       DartType argumentType, DartType parameterType, String parameterName,
-      {InterfaceElement? genericClass}) {
+      {ClassElement? genericClass}) {
     var origin = _TypeConstraintFromArgument(
       argumentType,
       parameterType,
@@ -130,7 +130,7 @@ class GenericInferrer {
   /// Applies all the argument constraints implied by [parameters] and
   /// [argumentTypes].
   void constrainArguments(
-      {InterfaceElement? genericClass,
+      {ClassElement? genericClass,
       required List<ParameterElement> parameters,
       required List<DartType> argumentTypes}) {
     for (int i = 0; i < argumentTypes.length; i++) {
@@ -729,7 +729,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
   final DartType argumentType;
   final DartType parameterType;
   final String parameterName;
-  final InterfaceElement? genericClass;
+  final ClassElement? genericClass;
 
   _TypeConstraintFromArgument(
       this.argumentType, this.parameterType, this.parameterName,

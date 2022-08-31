@@ -212,39 +212,11 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   _LocalElementsCollector(this.name);
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.name2.lexeme == name) {
-      final element = node.declaredElement2;
-      if (element is FunctionElement) {
-        elements.add(element);
-      }
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.staticElement;
+    if (element is LocalElement && element.name == name) {
+      elements.add(element);
     }
-
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    if (node.name?.lexeme == name) {
-      final element = node.declaredElement;
-      if (element != null) {
-        elements.add(element);
-      }
-    }
-
-    super.visitSimpleFormalParameter(node);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.name2.lexeme == name) {
-      final element = node.declaredElement2;
-      if (element is LocalVariableElement) {
-        elements.add(element);
-      }
-    }
-
-    super.visitVariableDeclaration(node);
   }
 }
 

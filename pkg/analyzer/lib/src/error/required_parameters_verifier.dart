@@ -259,7 +259,7 @@ extension _InstantiatedAnnotation on Annotation {
   }
 
   static SimpleIdentifier? _ifClassElement(SimpleIdentifier? node) {
-    return node?.staticElement is InterfaceElement ? node : null;
+    return node?.staticElement is ClassElement ? node : null;
   }
 
   static SimpleIdentifier? _ifConstructorElement(SimpleIdentifier? node) {

@@ -1466,12 +1466,6 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
     }
   }
 
-  @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    names.add(node.name2.lexeme);
-    return super.visitVariableDeclaration(node);
-  }
-
   static bool _isPrefixed(SimpleIdentifier node) {
     var parent = node.parent;
     return parent is ConstructorName && parent.name == node ||
@@ -1547,13 +1541,13 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
   final elements = <LocalElement>[];
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    final element = node.declaredElement2;
-    if (element is LocalVariableElement) {
-      elements.add(element);
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      var element = node.staticElement;
+      if (element is LocalElement) {
+        elements.add(element);
+      }
     }
-
-    super.visitVariableDeclaration(node);
   }
 }
 

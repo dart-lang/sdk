@@ -45,7 +45,7 @@ class ChangeToStaticAccess extends CorrectionProducer {
     final target_final = target;
     var declaringElement = invokedElement.enclosingElement3;
 
-    if (declaringElement is InterfaceElement) {
+    if (declaringElement is ClassElement) {
       _className = declaringElement.name;
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.node(target_final), (builder) {

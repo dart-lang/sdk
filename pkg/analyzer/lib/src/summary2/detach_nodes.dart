@@ -46,14 +46,6 @@ class _Visitor extends GeneralizingElementVisitor<void> {
   }
 
   @override
-  void visitMixinElement(MixinElement element) {
-    if (element is MixinElementImpl) {
-      element.mixinInferenceCallback = null;
-    }
-    super.visitMixinElement(element);
-  }
-
-  @override
   void visitParameterElement(ParameterElement element) {
     _detachConstVariable(element);
     super.visitParameterElement(element);

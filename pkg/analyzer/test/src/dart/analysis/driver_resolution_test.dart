@@ -41,6 +41,11 @@ class AnalysisDriverResolutionTest extends PubPackageResolutionTest
     assertType(element.type, expected);
   }
 
+  void assertDeclaredVariableTypeObject(SimpleIdentifier node) {
+    var element = node.staticElement as VariableElement;
+    expect(element.type, typeProvider.objectType);
+  }
+
   /// Test that [argumentList] has exactly two type items `int` and `double`.
   void assertTypeArguments(
       TypeArgumentList argumentList, List<InterfaceType> expectedTypes) {
@@ -1723,6 +1728,10 @@ main() {
     expect(namedType.typeArguments!.arguments[0].type, typeProvider.intType);
 
     VariableDeclaration vNode = statement.variables.variables[0];
+
+    // ignore: deprecated_member_use_from_same_package
+    expect(vNode.name.staticType, isNull);
+    // ignore: deprecated_member_use_from_same_package
     expect(vNode.declaredElement2!.type, isDynamicType);
   }
 
@@ -1970,12 +1979,13 @@ main() {
 }
 ''');
     await resolveTestFile();
+    assertTypeNull(findNode.simple('f;'));
     var fType = findElement.localVar('f').type as FunctionType;
     var fTypeTypeParameter = fType.typeFormals[0];
     var fTypeParameter = fType.normalParameterTypes[0] as TypeParameterType;
     expect(fTypeParameter.element2, same(fTypeTypeParameter));
-    var tRef = findNode.typeParameter('T>');
-    var functionTypeNode = tRef.parent!.parent as GenericFunctionType;
+    var tRef = findNode.simple('T>');
+    var functionTypeNode = tRef.parent!.parent!.parent as GenericFunctionType;
     var functionType = functionTypeNode.type as FunctionType;
     assertElement(tRef, functionType.typeFormals[0]);
   }
@@ -2569,14 +2579,8 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    assertType(
-      findNode.catchClauseParameter('x,').declaredElement!.type,
-      'Object',
-    );
-    assertType(
-      findNode.catchClauseParameter('y,').declaredElement!.type,
-      'StackTrace',
-    );
+    assertDeclaredVariableTypeObject(findNode.simple('x,'));
+    assertDeclaredVariableType(findNode.simple('y,'), 'StackTrace');
   }
 
   test_invalid_catch_parameters_empty() async {
@@ -2598,14 +2602,8 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    assertType(
-      findNode.catchClauseParameter('e,').declaredElement!.type,
-      'Object',
-    );
-    assertType(
-      findNode.catchClauseParameter('s}').declaredElement!.type,
-      'StackTrace',
-    );
+    assertDeclaredVariableTypeObject(findNode.simple('e,'));
+    assertDeclaredVariableType(findNode.simple('s})'), 'StackTrace');
   }
 
   test_invalid_catch_parameters_optional_stack() async {
@@ -2617,14 +2615,8 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    assertType(
-      findNode.catchClauseParameter('e,').declaredElement!.type,
-      'Object',
-    );
-    assertType(
-      findNode.catchClauseParameter('s]').declaredElement!.type,
-      'StackTrace',
-    );
+    assertDeclaredVariableTypeObject(findNode.simple('e,'));
+    assertDeclaredVariableType(findNode.simple('s])'), 'StackTrace');
   }
 
   test_invalid_const_as() async {
@@ -3970,6 +3962,11 @@ void main() {
     expect(fElement, isNotNull);
     assertType(fElement.type, fTypeString);
 
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticType, isNull);
+
     var fReturnTypeNode = fNode.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));
     expect(fReturnTypeNode.type, doubleType);
@@ -4050,13 +4047,26 @@ void main() {
 
       TypeParameter tNode = fTypeParameters[0];
       expect(tNode.declaredElement2, same(tElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(tNode.name.staticElement, same(tElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(tNode.name.staticType, typeProvider.typeType);
 
       TypeParameter uNode = fTypeParameters[1];
       expect(uNode.declaredElement2, same(uElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(uNode.name.staticElement, same(uElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(uNode.name.staticType, typeProvider.typeType);
     }
 
     expect(fElement, isNotNull);
     assertType(fElement.type, 'T Function<T,U>(T, U)');
+
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticType, fElement.type);
 
     var fReturnTypeNode = fNode.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(tElement));
@@ -4187,6 +4197,11 @@ void main() {
     expect(fElement, isNotNull);
     assertType(fElement.type, fTypeString);
 
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticType, isNull);
+
     var fReturnTypeNode = fNode.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));
     expect(fReturnTypeNode.type, doubleType);
@@ -4249,6 +4264,11 @@ void main() {
     expect(fElement, isNotNull);
     assertType(fElement.type, 'Null Function()');
 
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticType, isNull);
+
     expect(fExpression.declaredElement, same(fElement));
   }
 
@@ -4272,6 +4292,11 @@ void main() {
     var fElement = fNode.declaredElement2 as FunctionElement;
     expect(fElement, isNotNull);
     assertType(fElement.type, fTypeString);
+
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
+    expect(fNode.name.staticType, isNull);
 
     var fReturnTypeNode = fNode.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));
@@ -4333,7 +4358,8 @@ void f() {
 }
 ''');
     await resolveTestFile();
-    var callbackElement = findElement.parameter('callback');
+    var callbackIdentifier = findNode.simple('callback<');
+    var callbackElement = callbackIdentifier.staticElement as ParameterElement;
     assertType(callbackElement.type, 'C Function<T extends E>(D)');
     var cReference = findNode.simple('C callback');
     var cElement = findElement.class_('C');
@@ -4752,6 +4778,11 @@ void main() {
     var main = result.unit.declarations[0] as FunctionDeclaration;
     expect(main.declaredElement2, isNotNull);
 
+    // ignore: deprecated_member_use_from_same_package
+    expect(main.name.staticElement, isNotNull);
+    // ignore: deprecated_member_use_from_same_package
+    expect(main.name.staticType, isNull);
+
     var body = main.functionExpression.body as BlockFunctionBody;
     NodeList<Statement> statements = body.block.statements;
 
@@ -4760,6 +4791,8 @@ void main() {
     {
       var statement = statements[0] as VariableDeclarationStatement;
       VariableDeclaration vNode = statement.variables.variables[0];
+      // ignore: deprecated_member_use_from_same_package
+      expect(vNode.name.staticType, isNull);
       expect(vNode.initializer!.staticType, intType);
 
       vElement = vNode.declaredElement2!;
@@ -4905,6 +4938,11 @@ void main() {
     LocalVariableElement vElement = vNode.declaredElement2!;
     expect(vElement.type, typeProvider.intType);
 
+    // ignore: deprecated_member_use_from_same_package
+    expect(vNode.identifier.staticElement, vElement);
+    // ignore: deprecated_member_use_from_same_package
+    expect(vNode.identifier.staticType, isNull);
+
     var statement = forBlock.statements[0] as ExpressionStatement;
     var identifier = statement.expression as SimpleIdentifier;
     expect(identifier.staticElement, vElement);
@@ -4938,6 +4976,11 @@ void main() {
     var vTypeIdentifier = vNamedType.name as SimpleIdentifier;
     expect(vTypeIdentifier.staticElement, typeProvider.numType.element2);
     expect(vTypeIdentifier.staticType, isNull);
+
+    // ignore: deprecated_member_use_from_same_package
+    expect(vNode.identifier.staticElement, vElement);
+    // ignore: deprecated_member_use_from_same_package
+    expect(vNode.identifier.staticType, isNull);
 
     var statement = forBlock.statements[0] as ExpressionStatement;
     var identifier = statement.expression as SimpleIdentifier;
@@ -5102,6 +5145,11 @@ void g(C c) {
 
     expect(methodElement, isNotNull);
     assertType(methodElement.type, fTypeString);
+
+    // ignore: deprecated_member_use_from_same_package
+    expect(methodDeclaration.name.staticElement, same(methodElement));
+    // ignore: deprecated_member_use_from_same_package
+    expect(methodDeclaration.name.staticType, isNull);
 
     var fReturnTypeNode = methodDeclaration.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));
@@ -6515,6 +6563,11 @@ void main() {
     var main = result.unit.declarations[0] as FunctionDeclaration;
     expect(main.declaredElement2, isNotNull);
 
+    // ignore: deprecated_member_use_from_same_package
+    expect(main.name.staticElement, isNotNull);
+    // ignore: deprecated_member_use_from_same_package
+    expect(main.name.staticType, isNull);
+
     var body = main.functionExpression.body as BlockFunctionBody;
     NodeList<Statement> statements = body.block.statements;
 
@@ -6865,6 +6918,12 @@ class D extends A<bool> with B<int> implements C<double> {}
     ClassElement cElement = cNode.declaredElement2!;
 
     var dNode = result.unit.declarations[3] as ClassDeclaration;
+    Element dElement = dNode.declaredElement2!;
+
+    // ignore: deprecated_member_use_from_same_package
+    SimpleIdentifier dName = dNode.name;
+    expect(dName.staticElement, same(dElement));
+    expect(dName.staticType, isNull);
 
     {
       var expectedType = aElement.instantiate(
@@ -6929,6 +6988,12 @@ class D = A<bool> with B<int> implements C<double>;
     ClassElement cElement = cNode.declaredElement2!;
 
     var dNode = result.unit.declarations[3] as ClassTypeAlias;
+    Element dElement = dNode.declaredElement2!;
+
+    // ignore: deprecated_member_use_from_same_package
+    SimpleIdentifier dName = dNode.name;
+    expect(dName.staticElement, same(dElement));
+    expect(dName.staticType, isNull);
 
     {
       var expectedType = aElement.instantiate(
@@ -6985,16 +7050,31 @@ enum MyEnum {
     var enumNode = result.unit.declarations[0] as EnumDeclaration;
     final enumElement = enumNode.declaredElement2!;
 
+    // ignore: deprecated_member_use_from_same_package
+    SimpleIdentifier dName = enumNode.name;
+    expect(dName.staticElement, same(enumElement));
+    expect(dName.staticType, isNull);
+
     {
       var aElement = enumElement.getField('A');
       var aNode = enumNode.constants[0];
       expect(aNode.declaredElement2, same(aElement));
+
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticType, isNull);
     }
 
     {
       var bElement = enumElement.getField('B');
       var bNode = enumNode.constants[1];
       expect(bNode.declaredElement2, same(bElement));
+
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticType, isNull);
     }
   }
 
@@ -7018,6 +7098,12 @@ class C {
     var cNode = result.unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement2!;
 
+    // The class name identifier.
+    // ignore: deprecated_member_use_from_same_package
+    expect(cNode.name.staticElement, same(cElement));
+    // ignore: deprecated_member_use_from_same_package
+    expect(cNode.name.staticType, isNull);
+
     // unnamed constructor
     {
       var node = cNode.members[0] as ConstructorDeclaration;
@@ -7035,6 +7121,11 @@ class C {
       assertType(node.declaredElement2!.type, 'C Function(int)');
       expect(node.returnType.staticElement, same(cElement));
       expect(node.returnType.staticType, isNull);
+
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name!.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name!.staticType, isNull);
     }
 
     // publicMethod()
@@ -7049,6 +7140,12 @@ class C {
       expect(returnType.type, intType);
       expect(returnTypeName.staticElement, intElement);
       expect(returnTypeName.staticType, isNull);
+
+      // method name
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticType, isNull);
 
       // method parameter
       {
@@ -7074,6 +7171,12 @@ class C {
       expect(returnType.type, intType);
       expect(returnTypeName.staticElement, intElement);
       expect(returnTypeName.staticType, isNull);
+
+      // getter name
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticType, isNull);
     }
 
     // publicSetter()
@@ -7088,6 +7191,12 @@ class C {
       expect(returnType.type, VoidTypeImpl.instance);
       expect(returnTypeName.staticElement, isNull);
       expect(returnTypeName.staticType, isNull);
+
+      // setter name
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticType, isNull);
 
       // setter parameter
       {
@@ -7127,6 +7236,12 @@ void set topSetter(double p) {}
       expect(returnTypeName.staticElement, intElement);
       expect(returnTypeName.staticType, isNull);
 
+      // function name
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticType, isNull);
+
       // function parameter
       {
         var pNode = node.functionExpression.parameters!.parameters[0]
@@ -7152,6 +7267,12 @@ void set topSetter(double p) {}
       expect(returnType.type, intType);
       expect(returnTypeName.staticElement, intElement);
       expect(returnTypeName.staticType, isNull);
+
+      // getter name
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticType, isNull);
     }
 
     // topSetter()
@@ -7166,6 +7287,12 @@ void set topSetter(double p) {}
       expect(returnType.type, VoidTypeImpl.instance);
       expect(returnTypeName.staticElement, isNull);
       expect(returnTypeName.staticType, isNull);
+
+      // setter name
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticType, isNull);
 
       // setter parameter
       {
@@ -7205,6 +7332,10 @@ class C<T> {
       VariableDeclaration aNode = aDeclaration.fields.variables[0];
       expect(aNode.declaredElement2, same(aElement));
       expect(aElement.type, typeProvider.intType);
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticType, isNull);
 
       var aValue = aNode.initializer as Expression;
       expect(aValue.staticType, typeProvider.intType);
@@ -7222,6 +7353,10 @@ class C<T> {
       VariableDeclaration bNode = bDeclaration.fields.variables[0];
       expect(bNode.declaredElement2, same(bElement));
       expect(bElement.type, typeParameterTypeNone(tElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticType, isNull);
     }
   }
 
@@ -7248,6 +7383,11 @@ class C {
       expect(aNode.declaredElement2, same(aElement));
       expect(aElement.type, typeProvider.intType);
 
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticType, isNull);
+
       Expression aValue = aNode.initializer!;
       expect(aValue.staticType, typeProvider.intType);
     }
@@ -7258,6 +7398,11 @@ class C {
       VariableDeclaration bNode = fieldDeclaration.fields.variables[1];
       expect(bNode.declaredElement2, same(bElement));
       expect(bElement.type, typeProvider.doubleType);
+
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticType, isNull);
 
       Expression aValue = bNode.initializer!;
       expect(aValue.staticType, typeProvider.doubleType);
@@ -7281,6 +7426,10 @@ double b = 2.3;
       var aElement = aNode.declaredElement2 as TopLevelVariableElement;
       expect(aElement, same(unitElement.topLevelVariables[0]));
       expect(aElement.type, typeProvider.intType);
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticType, isNull);
 
       Expression aValue = aNode.initializer!;
       expect(aValue.staticType, typeProvider.intType);
@@ -7296,6 +7445,11 @@ double b = 2.3;
 
       var namedType = bDeclaration.variables.type as NamedType;
       _assertNamedTypeSimple(namedType, typeProvider.doubleType);
+
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticType, isNull);
 
       Expression aValue = bNode.initializer!;
       expect(aValue.staticType, typeProvider.doubleType);
@@ -7322,6 +7476,11 @@ var a = 1, b = 2.3;
       expect(aElement, same(unitElement.topLevelVariables[0]));
       expect(aElement.type, typeProvider.intType);
 
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(aNode.name.staticType, isNull);
+
       Expression aValue = aNode.initializer!;
       expect(aValue.staticType, typeProvider.intType);
     }
@@ -7331,6 +7490,11 @@ var a = 1, b = 2.3;
       var bElement = bNode.declaredElement2 as TopLevelVariableElement;
       expect(bElement, same(unitElement.topLevelVariables[1]));
       expect(bElement.type, typeProvider.doubleType);
+
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(bNode.name.staticType, isNull);
 
       Expression aValue = bNode.initializer!;
       expect(aValue.staticType, typeProvider.doubleType);
@@ -7354,6 +7518,11 @@ void main() {
 
     expect(fElement, isNotNull);
     assertType(fElement.type, fTypeString);
+
+    // ignore: deprecated_member_use_from_same_package
+    expect(fDeclaration.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
+    expect(fDeclaration.name.staticType, isNull);
 
     var fReturnTypeNode = fDeclaration.returnType as NamedType;
     expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));

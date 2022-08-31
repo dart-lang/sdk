@@ -1563,6 +1563,15 @@ class A {
     _assertSource("covariant A this.a", expected);
   }
 
+  void test_visitForEachPartsWithDeclaration() {
+    _assertSource(
+        'var e in l',
+        astFactory.forEachPartsWithDeclaration(
+            loopVariable: AstTestFactory.declaredIdentifier3('e'),
+            inKeyword: Tokens.in_(),
+            iterable: AstTestFactory.identifier3('l')));
+  }
+
   void test_visitForEachPartsWithIdentifier() {
     _assertSource(
         'e in l',

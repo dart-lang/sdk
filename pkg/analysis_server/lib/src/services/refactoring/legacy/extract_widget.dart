@@ -610,7 +610,7 @@ class _Parameter {
 }
 
 class _ParametersCollector extends RecursiveAstVisitor<void> {
-  final InterfaceElement? enclosingClass;
+  final ClassElement? enclosingClass;
   final SourceRange expressionRange;
 
   final RefactoringStatus status = RefactoringStatus();

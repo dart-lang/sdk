@@ -52,14 +52,12 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     // prepare variable
-    Element? element;
     var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
-    if (offsetNode is SimpleIdentifier) {
-      element = offsetNode.staticElement;
-    } else if (offsetNode is VariableDeclaration) {
-      element = offsetNode.declaredElement2;
+    if (offsetNode is! SimpleIdentifier) {
+      return _noLocalVariableStatus();
     }
 
+    var element = offsetNode.staticElement;
     if (element is! LocalVariableElement) {
       return _noLocalVariableStatus();
     }
@@ -173,14 +171,12 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   /// Checks if [offset] is a variable that can be inlined.
   RefactoringStatus _checkOffset() {
-    Element? element;
     var offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
-    if (offsetNode is SimpleIdentifier) {
-      element = offsetNode.staticElement;
-    } else if (offsetNode is VariableDeclaration) {
-      element = offsetNode.declaredElement2;
+    if (offsetNode is! SimpleIdentifier) {
+      return _noLocalVariableStatus();
     }
 
+    var element = offsetNode.staticElement;
     if (element is! LocalVariableElement) {
       return _noLocalVariableStatus();
     }

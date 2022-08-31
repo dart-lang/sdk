@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -38,24 +37,16 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final node = this.node;
-    final parent = node.parent;
-    final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
-    if (node is VariableDeclaration) {
-      await _compute(classDeclaration, node.declaredElement2, builder);
-    } else if (node is SimpleIdentifier &&
-        parent is ConstructorFieldInitializer) {
-      await _compute(classDeclaration, node.staticElement, builder);
+    var node = this.node;
+    if (node is SimpleIdentifier) {
+      await _compute(node, builder);
     } else if (node is CompilationUnitMember) {
       await _computeAbstractClassMember(builder);
     }
   }
 
-  Future<void> _compute(
-    ClassDeclaration? classDeclaration,
-    Element? fieldElement,
-    ChangeBuilder builder,
-  ) async {
+  Future<void> _compute(SimpleIdentifier node, ChangeBuilder builder) async {
+    var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null) return;
 
     for (var member in classDeclaration.members) {
@@ -68,7 +59,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
           continue;
         }
         for (var variable in variables) {
-          if (variable.declaredElement2 == fieldElement) {
+          if (variable.declaredElement2 == node.staticElement) {
             var abstractKeyword = member.abstractKeyword;
             if (abstractKeyword != null) {
               await builder.addDartFileEdit(file, (builder) {

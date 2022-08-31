@@ -243,7 +243,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     }
 
     DartType staticType = DynamicTypeImpl.instance;
-    if (element is InterfaceElement) {
+    if (element is ClassElement) {
       if (_isExpressionIdentifier(node)) {
         node.staticType = _typeProvider.typeType;
       }

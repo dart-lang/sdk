@@ -32,6 +32,9 @@ class DiagnosticMessageImpl implements DiagnosticMessage {
       : _message = message;
 
   @override
+  String get message => messageText(includeUrl: true);
+
+  @override
   String messageText({required bool includeUrl}) {
     if (includeUrl && url != null) {
       var result = StringBuffer(_message);

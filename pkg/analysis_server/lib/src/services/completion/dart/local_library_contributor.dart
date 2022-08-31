@@ -46,7 +46,27 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 
   @override
   void visitClassElement(ClassElement element) {
-    _visitInterfaceElement(element);
+    if (opType.includeTypeNameSuggestions) {
+      builder.suggestInterface(element, prefix: prefix);
+    }
+    if (opType.includeConstructorSuggestions) {
+      _addConstructorSuggestions(element);
+    } else if (opType.includeAnnotationSuggestions) {
+      _addConstructorSuggestions(element, onlyConst: true);
+    }
+    if (opType.includeReturnValueSuggestions) {
+      final typeSystem = request.libraryElement.typeSystem;
+      final contextType = request.contextType;
+      if (contextType is InterfaceType) {
+        // TODO(scheglov) This looks not ideal - we should suggest getters.
+        for (final field in element.fields) {
+          if (field.isStatic &&
+              typeSystem.isSubtypeOf(field.type, contextType)) {
+            builder.suggestStaticField(field, prefix: prefix);
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -57,11 +77,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   @override
   void visitElement(Element element) {
     // ignored
-  }
-
-  @override
-  visitEnumElement(EnumElement element) {
-    _visitInterfaceElement(element);
   }
 
   @override
@@ -100,16 +115,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   }
 
   @override
-  visitMixinElement(MixinElement element) {
-    _visitInterfaceElement(element);
-  }
-
-  @override
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions && element.variable.isConst)) {
       var parent = element.enclosingElement3;
-      if (parent is InterfaceElement || parent is ExtensionElement) {
+      if (parent is ClassElement || parent is ExtensionElement) {
         builder.suggestAccessor(element, inheritanceDistance: 0.0);
       } else {
         builder.suggestTopLevelPropertyAccessor(element, prefix: prefix);
@@ -153,32 +163,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
         continue;
       }
       builder.suggestConstructor(constructor, kind: kind, prefix: prefix);
-    }
-  }
-
-  void _visitInterfaceElement(InterfaceElement element) {
-    if (opType.includeTypeNameSuggestions) {
-      builder.suggestInterface(element, prefix: prefix);
-    }
-    if (element is ClassElement) {
-      if (opType.includeConstructorSuggestions) {
-        _addConstructorSuggestions(element);
-      } else if (opType.includeAnnotationSuggestions) {
-        _addConstructorSuggestions(element, onlyConst: true);
-      }
-    }
-    if (opType.includeReturnValueSuggestions) {
-      final typeSystem = request.libraryElement.typeSystem;
-      final contextType = request.contextType;
-      if (contextType is InterfaceType) {
-        // TODO(scheglov) This looks not ideal - we should suggest getters.
-        for (final field in element.fields) {
-          if (field.isStatic &&
-              typeSystem.isSubtypeOf(field.type, contextType)) {
-            builder.suggestStaticField(field, prefix: prefix);
-          }
-        }
-      }
     }
   }
 }

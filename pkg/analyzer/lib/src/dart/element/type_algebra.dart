@@ -31,7 +31,7 @@ FreshTypeParameters getFreshTypeParameters(
   var map = <TypeParameterElement, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = TypeParameterTypeImpl(
-      element2: freshParameters[i],
+      element: freshParameters[i],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -320,7 +320,7 @@ class _NullSubstitution extends MapSubstitution {
   @override
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return TypeParameterTypeImpl(
-      element2: parameter,
+      element: parameter,
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }
@@ -537,7 +537,7 @@ abstract class _TypeSubstitutor
     return NamedTypeBuilder(
       type.linker,
       type.typeSystem,
-      type.element2,
+      type.element,
       arguments,
       type.nullabilitySuffix,
     );
