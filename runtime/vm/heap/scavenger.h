@@ -335,20 +335,10 @@ class Scavenger {
   void PrintToJSONObject(JSONObject* object) const;
 #endif  // !PRODUCT
 
-  // Tracks an external allocation by incrementing the new space's total
-  // external size tracker. Returns false without incrementing the tracker if
-  // this allocation will make it exceed kMaxAddrSpaceInWords.
-  bool AllocatedExternal(intptr_t size) {
+  void AllocatedExternal(intptr_t size) {
     ASSERT(size >= 0);
-    intptr_t next_external_size_in_words =
-        (external_size_ >> kWordSizeLog2) + (size >> kWordSizeLog2);
-    if (next_external_size_in_words < 0 ||
-        next_external_size_in_words > kMaxAddrSpaceInWords) {
-      return false;
-    }
     external_size_ += size;
     ASSERT(external_size_ >= 0);
-    return true;
   }
   void FreedExternal(intptr_t size) {
     ASSERT(size >= 0);

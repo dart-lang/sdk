@@ -23788,13 +23788,10 @@ static FinalizablePersistentHandle* AddFinalizer(const Object& referent,
                                                  void* peer,
                                                  Dart_HandleFinalizer callback,
                                                  intptr_t external_size) {
-  ASSERT(callback != nullptr);
-  FinalizablePersistentHandle* finalizable_ref =
-      FinalizablePersistentHandle::New(IsolateGroup::Current(), referent, peer,
-                                       callback, external_size,
-                                       /*auto_delete=*/true);
-  ASSERT(finalizable_ref != nullptr);
-  return finalizable_ref;
+  ASSERT(callback != NULL);
+  return FinalizablePersistentHandle::New(IsolateGroup::Current(), referent,
+                                          peer, callback, external_size,
+                                          /*auto_delete=*/true);
 }
 
 StringPtr String::Transform(int32_t (*mapping)(int32_t ch),
@@ -25645,12 +25642,10 @@ TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
   }
   // Set up finalizer so it frees allocated memory if handle is
   // garbage-collected.
-  FinalizablePersistentHandle* finalizable_ref =
+  peer->set_handle(
       FinalizablePersistentHandle::New(thread->isolate_group(), result, peer,
                                        &TransferableTypedDataFinalizer, length,
-                                       /*auto_delete=*/true);
-  ASSERT(finalizable_ref != nullptr);
-  peer->set_handle(finalizable_ref);
+                                       /*auto_delete=*/true));
 
   return result.ptr();
 }

@@ -438,19 +438,10 @@ class PageSpace {
     allocated_black_in_words_.fetch_add(size >> kWordSizeLog2);
   }
 
-  // Tracks an external allocation by incrementing the old space's total
-  // external size tracker. Returns false without incrementing the tracker if
-  // this allocation will make it exceed kMaxAddrSpaceInWords.
-  bool AllocatedExternal(intptr_t size) {
+  void AllocatedExternal(intptr_t size) {
     ASSERT(size >= 0);
     intptr_t size_in_words = size >> kWordSizeLog2;
-    intptr_t next_external_in_words = usage_.external_in_words + size_in_words;
-    if (next_external_in_words < 0 ||
-        next_external_in_words > kMaxAddrSpaceInWords) {
-      return false;
-    }
-    usage_.external_in_words = next_external_in_words;
-    return true;
+    usage_.external_in_words += size_in_words;
   }
   void FreedExternal(intptr_t size) {
     ASSERT(size >= 0);

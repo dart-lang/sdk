@@ -78,10 +78,8 @@ class Heap {
     return 0;
   }
 
-  // Tracks an external allocation. Returns false without tracking the
-  // allocation if it will make the total external size exceed
-  // kMaxAddrSpaceInWords.
-  bool AllocatedExternal(intptr_t size, Space space);
+  // Track external data.
+  void AllocatedExternal(intptr_t size, Space space);
   void FreedExternal(intptr_t size, Space space);
   // Move external size from new to old space. Does not by itself trigger GC.
   void PromotedExternal(intptr_t size);

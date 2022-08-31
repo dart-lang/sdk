@@ -274,10 +274,8 @@ DEFINE_FFI_NATIVE_ENTRY(FinalizerEntry_SetExternalSize,
   }
   // The next call cannot be in safepoint.
   if (external_size_diff > 0) {
-    if (!thread->isolate_group()->heap()->AllocatedExternal(external_size_diff,
-                                                            space)) {
-      Exceptions::ThrowOOM();
-    }
+    thread->isolate_group()->heap()->AllocatedExternal(external_size_diff,
+                                                       space);
   } else {
     thread->isolate_group()->heap()->FreedExternal(-external_size_diff, space);
   }

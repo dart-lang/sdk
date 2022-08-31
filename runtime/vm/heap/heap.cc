@@ -107,7 +107,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
     }
     // All GC tasks finished without allocating successfully. Collect both
     // generations.
-    CollectMostGarbage(GCReason::kOldSpace, /*compact=*/false);
+    CollectMostGarbage(GCReason::kOldSpace, /*compact=*/ false);
     addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
       return addr;
@@ -124,7 +124,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
       return addr;
     }
     // Before throwing an out-of-memory error try a synchronous GC.
-    CollectAllGarbage(GCReason::kOldSpace, /*compact=*/true);
+    CollectAllGarbage(GCReason::kOldSpace, /*compact=*/ true);
     WaitForSweeperTasks(thread);
   }
   uword addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
@@ -146,16 +146,12 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
   return 0;
 }
 
-bool Heap::AllocatedExternal(intptr_t size, Space space) {
+void Heap::AllocatedExternal(intptr_t size, Space space) {
   if (space == kNew) {
-    if (!new_space_.AllocatedExternal(size)) {
-      return false;
-    }
+    new_space_.AllocatedExternal(size);
   } else {
     ASSERT(space == kOld);
-    if (!old_space_.AllocatedExternal(size)) {
-      return false;
-    }
+    old_space_.AllocatedExternal(size);
   }
 
   Thread* thread = Thread::Current();
@@ -164,7 +160,6 @@ bool Heap::AllocatedExternal(intptr_t size, Space space) {
   } else {
     // Check delayed until Dart_TypedDataRelease/~ForceGrowthScope.
   }
-  return true;
 }
 
 void Heap::FreedExternal(intptr_t size, Space space) {
