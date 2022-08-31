@@ -231,7 +231,7 @@ class KLibraryData {
   /// Convert this [KLibraryData] to the corresponding [JLibraryData].
   // TODO(johnniwinther): Why isn't [imports] ensured to be non-null here?
   JLibraryData convert() {
-    return JLibraryData(library, imports);
+    return JLibraryData(library, imports ?? const {});
   }
 }
 
