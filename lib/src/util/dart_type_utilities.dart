@@ -241,6 +241,13 @@ class DartTypeUtilities {
           DartType? type, String interface, String library) =>
       type.implementsInterface(interface, library);
 
+  // todo(pq): remove and replace w/ an extension (pending internal migration)
+  @Deprecated('Slated for removal')
+  static bool isClass(DartType? type, String? className, String? library) =>
+      type is InterfaceType &&
+      type.element2.name == className &&
+      type.element2.library.name == library;
+
   @Deprecated('Replace with `expression.isNullLiteral`')
   static bool isNullLiteral(Expression? expression) => expression.isNullLiteral;
 
