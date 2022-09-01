@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta_meta.dart';
 
 extension ElementAnnotationExtensions on ElementAnnotation {
@@ -106,6 +107,16 @@ extension ElementExtension on Element {
 extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
     return this is ConstructorElement && enclosingElement3 is EnumElementImpl;
+  }
+}
+
+extension ExecutableElementExtensionQuestion on ExecutableElement? {
+  DartType? get firstParameterType {
+    final self = this;
+    if (self is MethodElement) {
+      return self.parameters.firstOrNull?.type;
+    }
+    return null;
   }
 }
 

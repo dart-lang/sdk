@@ -1,4 +1,4 @@
-## 4.7.0-dev
+## 4.7.0
 * Add missing `addXyz` to `NodeLintRegistry`.
 * Add `lookUpInheritedConcreteX()` to `InterfaceElement`.
 

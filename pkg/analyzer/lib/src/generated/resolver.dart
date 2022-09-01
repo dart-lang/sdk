@@ -787,7 +787,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
       checkIndexExpressionIndex(
         node.index,
-        readElement: result.readElement as ExecutableElement?,
+        readElement: hasRead ? result.readElement as ExecutableElement? : null,
         writeElement: result.writeElement as ExecutableElement?,
         whyNotPromoted: whyNotPromoted,
       );
