@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   Element? getOverriddenMember(Element member) {
-    var classElement = member.thisOrAncestorOfType<ClassElement>();
+    var classElement = member.thisOrAncestorOfType<InterfaceElement>();
     if (classElement == null) {
       return null;
     }

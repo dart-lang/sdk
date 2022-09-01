@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     var parentElement = parentNode.declaredElement2;
     // Note: there are no override semantics with extension methods.
-    if (parentElement is! ClassElement) {
+    if (parentElement is! InterfaceElement) {
       return;
     }
 

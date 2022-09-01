@@ -45,4 +45,23 @@ extension E on Object {
       lint('public_member_api_docs', 31, 1),
     ]);
   }
+
+  test_mixin_method() async {
+    await assertDiagnostics(r'''
+/// A mixin M.
+mixin M {
+  String m() => '';
+}''', [
+      lint('public_member_api_docs', 34, 1),
+    ]);
+  }
+
+  test_mixin_overridingMethod_OK() async {
+    await assertNoDiagnostics(r'''
+/// A mixin M.
+mixin M {
+  @override
+  String toString() => '';
+}''');
+  }
 }

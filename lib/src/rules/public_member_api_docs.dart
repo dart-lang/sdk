@@ -161,8 +161,8 @@ class _Visitor extends SimpleAstVisitor {
       return null;
     }
 
-    var classElement = member.thisOrAncestorOfType<ClassElement>();
-    if (classElement == null) {
+    var interfaceElement = member.thisOrAncestorOfType<InterfaceElement>();
+    if (interfaceElement == null) {
       return null;
     }
     var name = member.name;
@@ -170,9 +170,9 @@ class _Visitor extends SimpleAstVisitor {
       return null;
     }
 
-    var libraryUri = classElement.library.source.uri;
+    var libraryUri = interfaceElement.library.source.uri;
     return context.inheritanceManager.getInherited(
-      classElement.thisType,
+      interfaceElement.thisType,
       Name(libraryUri, name),
     );
   }

@@ -11,35 +11,59 @@ import 'package:collection/collection.dart';
 
 import 'util/dart_type_utilities.dart';
 
-extension ElementExtension on Element {
-  Element get canonicalElement {
-    var self = this;
-    if (self is PropertyAccessorElement) {
-      var variable = self.variable;
-      if (variable is FieldMember) {
-        // A field element defined in a parameterized type where the values of
-        // the type parameters are known.
-        //
-        // This concept should be invisible when comparing FieldElements, but a
-        // bug in the analyzer causes FieldElements to not evaluate as
-        // equivalent to equivalent FieldMembers. See
-        // https://github.com/dart-lang/sdk/issues/35343.
-        return variable.declaration;
-      } else {
-        return variable;
-      }
-    } else {
-      return self;
-    }
-  }
-}
-
 class EnumLikeClassDescription {
   final Map<DartObject, Set<FieldElement>> _enumConstants;
   EnumLikeClassDescription(this._enumConstants);
 
   /// Returns a fresh map of the class's enum-like constant values.
   Map<DartObject, Set<FieldElement>> get enumConstants => {..._enumConstants};
+}
+
+extension AstNodeExtension on AstNode {
+  Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
+
+  /// Builds the list resulting from traversing the node in DFS and does not
+  /// include the node itself.
+  ///
+  /// It excludes the nodes for which the [excludeCriteria] returns true. If
+  /// [excludeCriteria] is not provided, all nodes are included.
+  Iterable<AstNode> traverseNodesInDFS({AstNodePredicate? excludeCriteria}) {
+    var nodes = <AstNode>{};
+    var nodesToVisit = List.of(childNodes);
+    if (excludeCriteria == null) {
+      while (nodesToVisit.isNotEmpty) {
+        var node = nodesToVisit.removeAt(0);
+        nodes.add(node);
+        nodesToVisit.insertAll(0, node.childNodes);
+      }
+    } else {
+      while (nodesToVisit.isNotEmpty) {
+        var node = nodesToVisit.removeAt(0);
+        if (excludeCriteria(node)) continue;
+        nodes.add(node);
+        nodesToVisit.insertAll(0, node.childNodes);
+      }
+    }
+
+    return nodes;
+  }
+}
+
+extension BlockExtension on Block {
+  /// Returns the last statement of this block, or `null` if this is empty.
+  ///
+  /// If the last immediate statement of this block is a [Block], recurses into
+  /// it to find the last statement.
+  Statement? get lastStatement {
+    if (statements.isEmpty) {
+      return null;
+    }
+    var lastStatement = statements.last;
+    if (lastStatement is Block) {
+      return lastStatement.lastStatement;
+    }
+    return lastStatement;
+  }
 }
 
 extension ClassElementExtension on ClassElement {
@@ -120,12 +144,17 @@ extension ClassElementExtension on ClassElement {
     return false;
   }
 
+  bool get isEnumLikeClass => asEnumLikeClass != null;
+
   /// Returns whether this class is exactly [otherName] declared in
   /// [otherLibrary].
   bool isClass(String otherName, String otherLibrary) =>
       name == otherName && library.name == otherLibrary;
+}
 
-  bool get isEnumLikeClass => asEnumLikeClass != null;
+extension ClassMemberListExtension on List<ClassMember> {
+  MethodDeclaration? getMethod(String name) => whereType<MethodDeclaration>()
+      .firstWhereOrNull((node) => node.name2.lexeme == name);
 }
 
 extension ConstructorElementExtension on ConstructorElement {
@@ -139,80 +168,6 @@ extension ConstructorElementExtension on ConstructorElement {
       library.name == uri &&
       enclosingElement3.name == className &&
       name == constructorName;
-}
-
-extension InterfaceElementExtension on InterfaceElement {
-  /// Returns whether this element is exactly [otherName] declared in
-  /// [otherLibrary].
-  bool isClass(String otherName, String otherLibrary) =>
-      name == otherName && library.name == otherLibrary;
-}
-
-extension NullableAstNodeExtension on AstNode? {
-  Element? get canonicalElement {
-    var self = this;
-    if (self is Expression) {
-      var node = self.unParenthesized;
-      if (node is Identifier) {
-        return node.staticElement?.canonicalElement;
-      } else if (node is PropertyAccess) {
-        return node.propertyName.staticElement?.canonicalElement;
-      }
-    }
-    return null;
-  }
-}
-
-extension AstNodeExtension on AstNode {
-  /// Builds the list resulting from traversing the node in DFS and does not
-  /// include the node itself.
-  ///
-  /// It excludes the nodes for which the [excludeCriteria] returns true. If
-  /// [excludeCriteria] is not provided, all nodes are included.
-  Iterable<AstNode> traverseNodesInDFS({AstNodePredicate? excludeCriteria}) {
-    var nodes = <AstNode>{};
-    var nodesToVisit = List.of(childNodes);
-    if (excludeCriteria == null) {
-      while (nodesToVisit.isNotEmpty) {
-        var node = nodesToVisit.removeAt(0);
-        nodes.add(node);
-        nodesToVisit.insertAll(0, node.childNodes);
-      }
-    } else {
-      while (nodesToVisit.isNotEmpty) {
-        var node = nodesToVisit.removeAt(0);
-        if (excludeCriteria(node)) continue;
-        nodes.add(node);
-        nodesToVisit.insertAll(0, node.childNodes);
-      }
-    }
-
-    return nodes;
-  }
-
-  Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
-}
-
-extension BlockExtension on Block {
-  /// Returns the last statement of this block, or `null` if this is empty.
-  ///
-  /// If the last immediate statement of this block is a [Block], recurses into
-  /// it to find the last statement.
-  Statement? get lastStatement {
-    if (statements.isEmpty) {
-      return null;
-    }
-    var lastStatement = statements.last;
-    if (lastStatement is Block) {
-      return lastStatement.lastStatement;
-    }
-    return lastStatement;
-  }
-}
-
-extension ClassMemberListExtension on List<ClassMember> {
-  MethodDeclaration? getMethod(String name) => whereType<MethodDeclaration>()
-      .firstWhereOrNull((node) => node.name2.lexeme == name);
 }
 
 extension DartTypeExtension on DartType? {
@@ -269,8 +224,38 @@ extension DartTypeExtension on DartType? {
           _extendsClass(type.superclass, seenElements, className, library));
 }
 
+extension ElementExtension on Element {
+  Element get canonicalElement {
+    var self = this;
+    if (self is PropertyAccessorElement) {
+      var variable = self.variable;
+      if (variable is FieldMember) {
+        // A field element defined in a parameterized type where the values of
+        // the type parameters are known.
+        //
+        // This concept should be invisible when comparing FieldElements, but a
+        // bug in the analyzer causes FieldElements to not evaluate as
+        // equivalent to equivalent FieldMembers. See
+        // https://github.com/dart-lang/sdk/issues/35343.
+        return variable.declaration;
+      } else {
+        return variable;
+      }
+    } else {
+      return self;
+    }
+  }
+}
+
 extension ExpressionExtension on Expression? {
   bool get isNullLiteral => this?.unParenthesized is NullLiteral;
+}
+
+extension InterfaceElementExtension on InterfaceElement {
+  /// Returns whether this element is exactly [otherName] declared in
+  /// [otherLibrary].
+  bool isClass(String otherName, String otherLibrary) =>
+      name == otherName && library.name == otherLibrary;
 }
 
 extension InterfaceTypeExtension on InterfaceType {
@@ -336,7 +321,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
       return null;
     }
     var parent = declaredElement.enclosingElement3;
-    if (parent is ClassElement) {
+    if (parent is InterfaceElement) {
       return parent.lookUpGetter(name2.lexeme, declaredElement.library);
     }
     if (parent is ExtensionElement) {
@@ -351,7 +336,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
       return null;
     }
     var parent = declaredElement.enclosingElement3;
-    if (parent is ClassElement) {
+    if (parent is InterfaceElement) {
       return parent.lookUpInheritedConcreteGetter(
           name2.lexeme, declaredElement.library);
     }
@@ -363,7 +348,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     var declaredElement = declaredElement2;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
-      if (parent is ClassElement) {
+      if (parent is InterfaceElement) {
         return parent.lookUpInheritedConcreteMethod(
             name2.lexeme, declaredElement.library);
       }
@@ -376,7 +361,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
     var declaredElement = declaredElement2;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
-      if (parent is ClassElement) {
+      if (parent is InterfaceElement) {
         return parent.lookUpInheritedConcreteSetter(
             name2.lexeme, declaredElement.library);
       }
@@ -389,9 +374,24 @@ extension MethodDeclarationExtension on MethodDeclaration {
     var declaredElement = declaredElement2;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
-      if (parent is ClassElement) {
+      if (parent is InterfaceElement) {
         return parent.lookUpInheritedMethod(
             name2.lexeme, declaredElement.library);
+      }
+    }
+    return null;
+  }
+}
+
+extension NullableAstNodeExtension on AstNode? {
+  Element? get canonicalElement {
+    var self = this;
+    if (self is Expression) {
+      var node = self.unParenthesized;
+      if (node is Identifier) {
+        return node.staticElement?.canonicalElement;
+      } else if (node is PropertyAccess) {
+        return node.propertyName.staticElement?.canonicalElement;
       }
     }
     return null;

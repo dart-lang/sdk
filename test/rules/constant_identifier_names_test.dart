@@ -29,7 +29,6 @@ const R = (x: 1);
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3630')
   test_recordTypeDeclarations_ok() async {
     await assertNoDiagnostics(r'''
 const r = (x: 1);
