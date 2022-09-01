@@ -25,7 +25,7 @@ enum A {
   Type get runtimeType => super.runtimeType;
 }
 ''', [
-      lint('unnecessary_overrides', 41, 11),
+      lint(41, 11),
     ]);
   }
 
@@ -37,7 +37,7 @@ enum A {
   String toString() => super.toString();
 }
 ''', [
-      lint('unnecessary_overrides', 39, 8),
+      lint(39, 8),
     ]);
   }
 }

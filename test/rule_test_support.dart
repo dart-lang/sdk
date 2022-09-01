@@ -27,10 +27,6 @@ ExpectedError error(ErrorCode code, int offset, int length,
         {Pattern? messageContains}) =>
     ExpectedError(code, offset, length, messageContains: messageContains);
 
-ExpectedLint lint(String lintName, int offset, int length,
-        {Pattern? messageContains}) =>
-    ExpectedLint(lintName, offset, length, messageContains: messageContains);
-
 typedef DiagnosticMatcher = bool Function(AnalysisError error);
 
 class AnalysisOptionsFileConfig {
@@ -118,6 +114,9 @@ class ExpectedLint extends ExpectedDiagnostic {
 abstract class LintRuleTest extends PubPackageResolutionTest {
   String? get lintRule;
 
+  ExpectedLint lint(int offset, int length, {Pattern? messageContains}) =>
+      ExpectedLint(lintRule!, offset, length, messageContains: messageContains);
+
   @override
   List<String> get _lintRules => [if (lintRule != null) lintRule!];
 
@@ -197,17 +196,18 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
       buffer.writeln('To accept the current state, expect:');
       for (var actual in errors) {
         late String diagnosticKind;
-        late Object description;
+        Object? description;
         if (actual.errorCode is LintCode) {
           diagnosticKind = 'lint';
-          description = "'${actual.errorCode.name}'";
         } else {
           diagnosticKind = 'error';
           description = actual.errorCode;
         }
         buffer.write('  $diagnosticKind(');
-        buffer.write(description);
-        buffer.write(', ');
+        if (description != null) {
+          buffer.write(description);
+          buffer.write(', ');
+        }
         buffer.write(actual.offset);
         buffer.write(', ');
         buffer.write(actual.length);

@@ -30,10 +30,8 @@ import ''
 ''',
       [
         error(HintCode.UNUSED_IMPORT, 7, 2),
-        lint('conditional_uri_does_not_exist', 35, 16,
-            messageContains: 'dart:missing_1'),
-        lint('conditional_uri_does_not_exist', 120, 16,
-            messageContains: 'dart:missing_2'),
+        lint(35, 16, messageContains: 'dart:missing_1'),
+        lint(120, 16, messageContains: 'dart:missing_2'),
       ],
     );
   }
@@ -50,10 +48,8 @@ import ''
 ''',
       [
         error(HintCode.UNUSED_IMPORT, 7, 2),
-        lint('conditional_uri_does_not_exist', 35, 16,
-            messageContains: 'missing_1.dart'),
-        lint('conditional_uri_does_not_exist', 121, 16,
-            messageContains: 'missing_2.dart'),
+        lint(35, 16, messageContains: 'missing_1.dart'),
+        lint(121, 16, messageContains: 'missing_2.dart'),
       ],
     );
   }
@@ -68,10 +64,8 @@ import ''
 ''',
       [
         error(HintCode.UNUSED_IMPORT, 7, 2),
-        lint('conditional_uri_does_not_exist', 35, 29,
-            messageContains: 'missing_1.dart'),
-        lint('conditional_uri_does_not_exist', 142, 28,
-            messageContains: 'missing_2.dart'),
+        lint(35, 29, messageContains: 'missing_1.dart'),
+        lint(142, 28, messageContains: 'missing_2.dart'),
       ],
     );
   }

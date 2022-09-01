@@ -27,7 +27,7 @@ class NonConstantIdentifierNamesRecordsTest extends LintRuleTest {
 var a = (x: 1);
 var b = (X: 1);
 ''', [
-      lint('non_constant_identifier_names', 25, 1),
+      lint(25, 1),
     ]);
   }
 
@@ -37,7 +37,7 @@ var b = (X: 1);
 var A = (x: 1);
 const B = (x: 1);
 ''', [
-      lint('non_constant_identifier_names', 5, 1),
+      lint(5, 1),
     ]);
   }
 

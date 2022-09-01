@@ -28,9 +28,9 @@ enum E {
   _O get ooo => o;
 }
 ''', [
-      lint('library_private_types_in_public_api', 40, 2),
-      lint('library_private_types_in_public_api', 63, 2),
-      lint('library_private_types_in_public_api', 75, 2),
+      lint(40, 2),
+      lint(63, 2),
+      lint(75, 2),
     ]);
   }
 }
@@ -51,7 +51,7 @@ class C {
   Object get x => _x;
 }
 ''', [
-      lint('library_private_types_in_public_api', 41, 2),
+      lint(41, 2),
     ]);
   }
 
@@ -65,7 +65,7 @@ class B extends _A {
   B(super.o);
 }
 ''', [
-      lint('library_private_types_in_public_api', 83, 1),
+      lint(83, 1),
     ]);
   }
 
@@ -81,7 +81,7 @@ class B extends A {
   B(_O super.o);
 }
 ''', [
-      lint('library_private_types_in_public_api', 89, 2),
+      lint(89, 2),
     ]);
   }
 }

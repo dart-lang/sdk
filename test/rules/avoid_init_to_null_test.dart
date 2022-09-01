@@ -25,7 +25,7 @@ class A {
   A({this.a = null});
 }
 ''', [
-      lint('avoid_init_to_null', 28, 13),
+      lint(28, 13),
     ]);
   }
 
@@ -39,8 +39,8 @@ class B extends A {
   B({super.a = null});
 }
 ''', [
-      lint('avoid_init_to_null', 28, 13),
-      lint('avoid_init_to_null', 72, 14),
+      lint(28, 13),
+      lint(72, 14),
     ]);
   }
 
@@ -111,7 +111,7 @@ int i = null;
     await assertDiagnostics(r'''
 int? ii = null;
 ''', [
-      lint('avoid_init_to_null', 5, 9),
+      lint(5, 9),
     ]);
   }
 }

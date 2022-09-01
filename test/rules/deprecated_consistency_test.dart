@@ -28,7 +28,7 @@ class B extends A {
   B({super.a});
 }
 ''', [
-      lint('deprecated_consistency', 20, 1),
+      lint(20, 1),
     ]);
   }
 }

@@ -39,7 +39,7 @@ part '$testFileName';
 part of lib;
 ''',
       [
-        lint('use_string_in_part_of_directives', 0, 12),
+        lint(0, 12),
       ],
     );
   }

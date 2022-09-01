@@ -29,7 +29,7 @@ class B extends A {
   B({String? super.a});
 }
 ''', [
-      lint('type_init_formals', 66, 7),
+      lint(66, 7),
     ]);
   }
 }

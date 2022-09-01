@@ -43,7 +43,7 @@ bool b = '11'.indexOf('2', 1) == -1;
     await assertDiagnostics(r'''
 bool b = '11'.indexOf('2', 0) == -1;
 ''', [
-      lint('prefer_contains', 9, 26),
+      lint(9, 26),
     ]);
   }
 
@@ -51,7 +51,7 @@ bool b = '11'.indexOf('2', 0) == -1;
     await assertDiagnostics(r'''
 bool le3 = ([].indexOf(1) as int) > -1;
 ''', [
-      lint('prefer_contains', 11, 27),
+      lint(11, 27),
       error(HintCode.UNNECESSARY_CAST, 12, 20),
     ]);
   }

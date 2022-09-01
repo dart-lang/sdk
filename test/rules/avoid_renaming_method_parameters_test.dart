@@ -28,7 +28,7 @@ enum A with C {
   int f(int x) => x;
 }
 ''', [
-      lint('avoid_renaming_method_parameters', 82, 1),
+      lint(82, 1),
     ]);
   }
 }

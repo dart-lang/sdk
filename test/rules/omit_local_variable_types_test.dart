@@ -28,7 +28,7 @@ String f() {
   return h;
 }
 ''', [
-      lint('omit_local_variable_types', 42, 26),
+      lint(42, 26),
     ]);
   }
 
@@ -54,7 +54,7 @@ String f() {
   return h;
 }
 ''', [
-      lint('omit_local_variable_types', 42, 26),
+      lint(42, 26),
     ]);
   }
 }

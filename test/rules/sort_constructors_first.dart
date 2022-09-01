@@ -35,7 +35,7 @@ enum A {
   const A();
 }
 ''', [
-      lint('sort_constructors_first', 42, 1),
+      lint(42, 1),
     ]);
   }
 }

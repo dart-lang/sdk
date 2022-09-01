@@ -32,7 +32,7 @@ class C extends A {
   C(super.a) : assert(a != null);
 }
 ''', [
-      lint('tighten_type_of_initializing_formals', 107, 7),
+      lint(107, 7),
     ]);
   }
 }

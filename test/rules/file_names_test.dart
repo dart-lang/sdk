@@ -25,7 +25,7 @@ class FileNamesInvalidTest extends LintRuleTest {
     await assertDiagnostics(r'''
 class A { }
 ''', [
-      lint('file_names', 0, 0),
+      lint(0, 0),
     ]);
   }
 }

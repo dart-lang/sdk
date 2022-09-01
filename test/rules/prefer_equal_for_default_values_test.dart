@@ -28,7 +28,7 @@ class B extends A {
   B({super.a : ''});
 }
 ''', [
-      lint('prefer_equal_for_default_values', 74, 1),
+      lint(74, 1),
     ]);
   }
 }

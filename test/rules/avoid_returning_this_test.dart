@@ -24,7 +24,7 @@ enum A {
   A aa() => this;
 }
 ''', [
-      lint('avoid_returning_this', 22, 2),
+      lint(22, 2),
     ]);
   }
 }

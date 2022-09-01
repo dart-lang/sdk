@@ -26,7 +26,7 @@ void f() {
   foo(0, c: true, 1);
 }
 ''', [
-      lint('avoid_redundant_argument_values', 67, 4),
+      lint(67, 4),
     ]);
   }
 }
@@ -47,7 +47,7 @@ enum TestEnum {
   final bool test;
 }
 ''', [
-      lint(lintRule, 26, 5),
+      lint(26, 5),
     ]);
   }
 

@@ -115,20 +115,20 @@ class GC34 extends GC33 {
 }
 ''', [
       error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 120, 1),
-      lint('overridden_fields', 127, 5),
-      lint('overridden_fields', 202, 9),
+      lint(127, 5),
+      lint(202, 9),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 281, 4),
-      lint('overridden_fields', 351, 5),
-      lint('overridden_fields', 426, 9),
+      lint(351, 5),
+      lint(426, 9),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 480, 4),
-      lint('overridden_fields', 508, 9),
-      lint('overridden_fields', 550, 5),
-      lint('overridden_fields', 625, 9),
+      lint(508, 9),
+      lint(550, 5),
+      lint(625, 9),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 759, 4),
-      lint('overridden_fields', 787, 9),
-      lint('overridden_fields', 829, 4),
-      lint('overridden_fields', 891, 1),
-      lint('overridden_fields', 920, 4),
+      lint(787, 9),
+      lint(829, 4),
+      lint(891, 1),
+      lint(920, 4),
     ]);
   }
 }

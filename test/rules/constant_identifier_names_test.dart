@@ -25,7 +25,7 @@ class ConstantIdentifierNamesRecordsTest extends LintRuleTest {
     await assertDiagnostics(r'''
 const R = (x: 1);
 ''', [
-      lint('constant_identifier_names', 6, 1),
+      lint(6, 1),
     ]);
   }
 

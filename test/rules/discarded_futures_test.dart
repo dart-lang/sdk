@@ -41,7 +41,7 @@ class A {
 
 Future<int> g() async => 0;
 ''', [
-      lint('discarded_futures', 22, 1),
+      lint(22, 1),
     ]);
   }
 
@@ -55,7 +55,7 @@ class A {
 
 Future<int> g() async => 0;
 ''', [
-      lint('discarded_futures', 29, 1),
+      lint(29, 1),
     ]);
   }
 
@@ -69,8 +69,8 @@ void recreateDir(String path) {
 Future<void> deleteDir(String path) async {}
 Future<void> createDir(String path) async {}
 ''', [
-      lint('discarded_futures', 34, 9),
-      lint('discarded_futures', 53, 9),
+      lint(34, 9),
+      lint(53, 9),
     ]);
   }
 
@@ -84,7 +84,7 @@ void f() {
 
 Future<void> createDir(String path) async {}
 ''', [
-      lint('discarded_futures', 22, 9),
+      lint(22, 9),
     ]);
   }
 
@@ -111,7 +111,7 @@ int h(Function f) => 0;
 
 Future<int> g() async => 0;
 ''', [
-      lint('discarded_futures', 29, 1),
+      lint(29, 1),
     ]);
   }
 
@@ -162,8 +162,8 @@ class Dir{
   Future<void> createDir(String path) async {}
 }
 ''', [
-      lint('discarded_futures', 49, 9),
-      lint('discarded_futures', 70, 9),
+      lint(49, 9),
+      lint(70, 9),
     ]);
   }
 
@@ -175,7 +175,7 @@ var a = () {
 
 Future<int> g() async => 0;
 ''', [
-      lint('discarded_futures', 15, 1),
+      lint(15, 1),
     ]);
   }
 
@@ -185,7 +185,7 @@ var a = () => g();
 
 Future<int> g() async => 0;
 ''', [
-      lint('discarded_futures', 14, 1),
+      lint(14, 1),
     ]);
   }
 
@@ -219,7 +219,7 @@ void ff(String command) {
 
 Future<int> g() async => 0;
 ''', [
-      lint('discarded_futures', 93, 1),
+      lint(93, 1),
     ]);
   }
 }

@@ -25,7 +25,7 @@ enum E<T> {
   void fn<T>() {}
 }
 ''', [
-      lint('avoid_shadowing_type_parameters', 33, 1),
+      lint(33, 1),
     ]);
   }
 }

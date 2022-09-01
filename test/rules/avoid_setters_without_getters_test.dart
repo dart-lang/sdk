@@ -24,7 +24,7 @@ enum A {
   set x(int x) {}
 }
 ''', [
-      lint('avoid_setters_without_getters', 24, 1),
+      lint(24, 1),
     ]);
   }
 }

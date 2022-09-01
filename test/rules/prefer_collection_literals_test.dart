@@ -23,7 +23,7 @@ class PreferCollectionLiteralsPreNNBDTest extends LintRuleTest {
 // @dart=2.9    
 var list = List(); 
 ''', [
-      lint('prefer_collection_literals', 28, 6),
+      lint(28, 6),
     ]);
   }
 
@@ -32,7 +32,7 @@ var list = List();
 // @dart=2.9    
 var list = [[], List()];
 ''', [
-      lint('prefer_collection_literals', 33, 6),
+      lint(33, 6),
     ]);
   }
 
@@ -76,7 +76,7 @@ void c() {
   a(some: LinkedHashSet<Foo>());
 }
 ''', [
-      lint('prefer_collection_literals', 103, 20),
+      lint(103, 20),
     ]);
   }
 
@@ -106,7 +106,7 @@ void c() {
   b(LinkedHashSet<Foo>());
 }
 ''', [
-      lint('prefer_collection_literals', 86, 20),
+      lint(86, 20),
     ]);
   }
 

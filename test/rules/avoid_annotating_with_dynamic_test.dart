@@ -24,7 +24,7 @@ class A {
   A(dynamic this.a);
 }
 ''', [
-      lint('avoid_annotating_with_dynamic', 23, 14),
+      lint(23, 14),
     ]);
   }
 
@@ -39,8 +39,8 @@ class B extends A {
   B(dynamic super.a, dynamic super.b);
 }
 ''', [
-      lint('avoid_annotating_with_dynamic', 75, 15),
-      lint('avoid_annotating_with_dynamic', 92, 15),
+      lint(75, 15),
+      lint(92, 15),
     ]);
   }
 }

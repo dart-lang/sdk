@@ -32,7 +32,7 @@ f() => <int>[2, 4, 6].firstWhere((e) => e.isEven, orElse: () => null);
 
 f() => List.generate(3, null);
 ''', [
-      lint('null_closures', 38, 4),
+      lint(38, 4),
     ]);
   }
 
@@ -42,7 +42,7 @@ f() => List.generate(3, null);
 
 f() => <int>[2, 4, 6].where(null);
 ''', [
-      lint('null_closures', 42, 4),
+      lint(42, 4),
     ]);
   }
 
@@ -56,7 +56,7 @@ f() {
   return map;
 }
 ''', [
-      lint('null_closures', 67, 4),
+      lint(67, 4),
     ]);
   }
 }

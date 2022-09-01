@@ -26,7 +26,7 @@ class A {
   const A._(this.value);
 }
 ''', [
-      lint('use_enums', 6, 1),
+      lint(6, 1),
     ]);
   }
 
@@ -38,7 +38,7 @@ class A extends Object {
   const A._();
 }
 ''', [
-      lint('use_enums', 6, 1),
+      lint(6, 1),
     ]);
   }
 
@@ -49,7 +49,7 @@ class A {
   const A._();
 }
 ''', [
-      lint('use_enums', 6, 1),
+      lint(6, 1),
     ]);
   }
 
@@ -321,7 +321,7 @@ class _E {
 
 _E e = _E.withValue(0);
 ''', [
-      lint('use_enums', 6, 2),
+      lint(6, 2),
       error(HintCode.UNUSED_FIELD, 57, 1),
     ]);
   }
@@ -338,7 +338,7 @@ class A {
   const A._();
 }
 ''', [
-      lint('use_enums', 21, 1),
+      lint(21, 1),
     ]);
   }
 
@@ -353,7 +353,7 @@ class _A {
       error(HintCode.UNUSED_ELEMENT, 6, 2),
       error(HintCode.UNUSED_FIELD, 29, 1),
       error(HintCode.UNUSED_FIELD, 57, 1),
-      lint('use_enums', 6, 2),
+      lint(6, 2),
     ]);
   }
 
@@ -365,7 +365,7 @@ class A {
   const A._();
 }
 ''', [
-      lint('use_enums', 6, 1),
+      lint(6, 1),
     ]);
   }
 
@@ -378,7 +378,7 @@ class A with M {
   const A._();
 }
 ''', [
-      lint('use_enums', 22, 1),
+      lint(22, 1),
     ]);
   }
 }

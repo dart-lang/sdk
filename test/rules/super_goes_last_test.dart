@@ -33,7 +33,7 @@ class C extends A {
 ''', [
       error(HintCode.UNUSED_FIELD, 61, 2),
       error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 84, 5),
-      lint('super_goes_last', 84, 8),
+      lint(84, 8),
     ]);
   }
 }

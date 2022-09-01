@@ -31,7 +31,7 @@ const r = (a: 1);
     await assertDiagnostics(r'''
 const r = const (a: 1);
 ''', [
-      lint('unnecessary_const', 11, 4),
+      lint(11, 4),
     ]);
   }
 }

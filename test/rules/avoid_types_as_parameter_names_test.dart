@@ -27,7 +27,7 @@ class B extends A {
   B(super.String);
 }
 ''', [
-      lint('avoid_types_as_parameter_names', 67, 6),
+      lint(67, 6),
     ]);
   }
 }

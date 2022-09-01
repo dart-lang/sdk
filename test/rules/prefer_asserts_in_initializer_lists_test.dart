@@ -31,7 +31,7 @@ class B extends A {
   }
 }
 ''', [
-      lint('prefer_asserts_in_initializer_lists', 80, 6),
+      lint(80, 6),
     ]);
   }
 }
