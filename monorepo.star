@@ -15,6 +15,12 @@ dart.ci_sandbox_builder(
     execution_timeout = 60 * time.minute,
     notifies = None,
     priority = priority.high,
+    properties = {
+        "$fuchsia/goma": {"server": "goma.chromium.org"},
+        "config_name": "host_linux",
+        "environment": "unused",
+        "goma_jobs": "200",
+    },
     triggered_by = ["dart-gitiles-trigger-monorepo"],
     schedule = "triggered",
 )
