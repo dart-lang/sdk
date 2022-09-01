@@ -67,7 +67,11 @@ class PropertyElementResolver with ScopeHelpers {
         );
       }
 
-      return _toIndexResult(result);
+      return _toIndexResult(
+        result,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      );
     }
 
     var targetType = target.typeOrThrow;
@@ -127,7 +131,11 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    return _toIndexResult(result);
+    return _toIndexResult(
+      result,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
   }
 
   PropertyElementResolverResult resolvePrefixedIdentifier({
@@ -326,20 +334,6 @@ class PropertyElementResolver with ScopeHelpers {
         }
       }
     }
-  }
-
-  DartType? _computeIndexContextType({
-    required ExecutableElement? readElement,
-    required ExecutableElement? writeElement,
-  }) {
-    var method = writeElement ?? readElement;
-    var parameters = method is MethodElement ? method.parameters : null;
-
-    if (parameters != null && parameters.isNotEmpty) {
-      return parameters[0].type;
-    }
-
-    return null;
   }
 
   bool _isAccessible(ExecutableElement element) {
@@ -848,17 +842,22 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  PropertyElementResolverResult _toIndexResult(ResolutionResult result) {
+  PropertyElementResolverResult _toIndexResult(
+    ResolutionResult result, {
+    required bool hasRead,
+    required bool hasWrite,
+  }) {
     var readElement = result.getter;
     var writeElement = result.setter;
+
+    final contextType = hasRead
+        ? readElement.firstParameterType
+        : writeElement.firstParameterType;
 
     return PropertyElementResolverResult(
       readElementRequested: readElement,
       writeElementRequested: writeElement,
-      indexContextType: _computeIndexContextType(
-        readElement: readElement,
-        writeElement: writeElement,
-      ),
+      indexContextType: contextType,
     );
   }
 }

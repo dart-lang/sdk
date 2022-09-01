@@ -6586,7 +6586,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49106')
   Future<void> test_map_read_does_not_require_index_cast() async {
     var content = '''
 int f(Map<String, int> m, Object o) => m[o];
