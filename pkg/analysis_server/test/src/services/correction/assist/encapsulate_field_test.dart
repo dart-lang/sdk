@@ -51,8 +51,8 @@ class A {
 
   /// AAA
   /// BBB
-  set test(int test) {
-    _test = test;
+  set test(int value) {
+    _test = value;
   }
 }
 ''');
@@ -93,8 +93,8 @@ class A {
 
   int get test => _test;
 
-  set test(int test) {
-    _test = test;
+  set test(int value) {
+    _test = value;
   }
   A(this._test);
 }
@@ -116,8 +116,8 @@ mixin M {
 
   int get test => _test;
 
-  set test(int test) {
-    _test = test;
+  set test(int value) {
+    _test = value;
   }
 }
 ''');
@@ -133,6 +133,71 @@ void f(A a) {
 }
 ''');
     await assertNoAssistAt('bbb ');
+  }
+
+  Future<void> test_named() async {
+    await resolveTestCode('''
+class A {
+  int? field;
+  A({int? field}) : field = field;
+}
+''');
+    await assertHasAssistAt('field', '''
+class A {
+  int? _field;
+
+  int? get field => _field;
+
+  set field(int? value) {
+    _field = value;
+  }
+  A({int? field}) : _field = field;
+}
+''');
+  }
+
+  Future<void> test_named_formalParameter() async {
+    await resolveTestCode('''
+class A {
+  int? field;
+  A({this.field});
+}
+''');
+    await assertHasAssistAt('field', '''
+class A {
+  int? _field;
+
+  int? get field => _field;
+
+  set field(int? value) {
+    _field = value;
+  }
+  A({int? field}) : _field = field;
+}
+''');
+  }
+
+  Future<void> test_named_super_initializer() async {
+    await resolveTestCode('''
+class A {}
+class B extends A {
+  int? field;
+  B({this.field}) : super();
+}
+''');
+    await assertHasAssistAt('field', '''
+class A {}
+class B extends A {
+  int? _field;
+
+  int? get field => _field;
+
+  set field(int? value) {
+    _field = value;
+  }
+  B({int? field}) : _field = field, super();
+}
+''');
   }
 
   Future<void> test_notOnName() async {
@@ -159,8 +224,8 @@ class A {
 
   get test => _test;
 
-  set test(test) {
-    _test = test;
+  set test(value) {
+    _test = value;
   }
 }
 void f(A a) {
@@ -180,6 +245,27 @@ void f(A a) {
 }
 ''');
     await assertNoAssistAt('; // marker');
+  }
+
+  Future<void> test_positional() async {
+    await resolveTestCode('''
+class A {
+  int? field;
+  A([this.field]);
+}
+''');
+    await assertHasAssistAt('field', '''
+class A {
+  int? _field;
+
+  int? get field => _field;
+
+  set field(int? value) {
+    _field = value;
+  }
+  A([this._field]);
+}
+''');
   }
 
   Future<void> test_static() async {
