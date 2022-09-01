@@ -37,8 +37,7 @@ you could lint your package like this:
     
 and see any violations of the `annotate_overrides`, `hash_and_equals`, and `prefer_is_not_empty` rules in the console.
 To help you choose the rules you want to enable for your package, we have provided a [complete list of rules][lints]
-with lints recommended by the Dart team collected in [`package:lints`][package-dart-lints]. For the lints that are
-enforced internally at Google, see [`package:pedantic`][package-pedantic]. Lints recommended for Flutter apps, packages,
+with lints recommended by the Dart team collected in [`package:lints`][package-dart-lints]. Lints recommended for Flutter apps, packages,
 and plugins are documented in [`package:flutter_lints`][package-flutter-lints].
 
 If a specific lint warning should be ignored, it can be flagged with a comment.  For example, 
@@ -98,6 +97,5 @@ Please file feature requests and bugs in the [issue tracker][tracker].
 [options_file]: https://dart.dev/guides/language/analysis-options#the-analysis-options-file
 [package-dart-lints]: https://github.com/dart-lang/lints
 [package-flutter-lints]: https://github.com/flutter/packages/tree/main/packages/flutter_lints
-[package-pedantic]: https://github.com/dart-lang/pedantic/blob/master/lib/analysis_options.yaml
 [style_guide]:https://dart.dev/guides/language/effective-dart/style/
 [tracker]: https://github.com/dart-lang/linter/issues
