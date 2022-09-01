@@ -24,10 +24,10 @@ class AddKeyToConstructors extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     var parent = node.parent;
-    if (node is ClassDeclaration) {
+    if (node is SimpleIdentifier && parent is ClassDeclaration) {
       // The lint is on the name of the class when there are no constructors.
       var targetLocation =
-          utils.prepareNewConstructorLocation(resolvedResult.session, node);
+          utils.prepareNewConstructorLocation(resolvedResult.session, parent);
       if (targetLocation == null) {
         return;
       }
@@ -35,13 +35,13 @@ class AddKeyToConstructors extends CorrectionProducer {
       if (keyType == null) {
         return;
       }
-      var className = node.name2.lexeme;
-      var constructors = node.declaredElement2?.supertype?.constructors;
+      var className = node.name;
+      var constructors = parent.declaredElement2?.supertype?.constructors;
       if (constructors == null) {
         return;
       }
 
-      var canBeConst = _canBeConst(node, constructors);
+      var canBeConst = _canBeConst(parent, constructors);
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(targetLocation.offset, (builder) {
           builder.write(targetLocation.prefix);

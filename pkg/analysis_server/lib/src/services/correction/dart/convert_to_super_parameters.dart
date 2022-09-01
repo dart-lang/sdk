@@ -298,9 +298,6 @@ class ConvertToSuperParameters extends CorrectionProducer {
   /// the name of a constructor.
   ConstructorDeclaration? _findConstructor() {
     final node = this.node;
-    if (node is ConstructorDeclaration) {
-      return node;
-    }
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is ConstructorDeclaration) {

@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -24,7 +23,7 @@ class RenameMethodParameter extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final parameter = node;
+    final parameter = node.parent;
     if (parameter is! FormalParameter) return;
     var paramIdentifier = parameter.name;
     if (paramIdentifier == null) return;
@@ -36,7 +35,7 @@ class RenameMethodParameter extends CorrectionProducer {
 
     var classDeclaration = method.parent as Declaration;
     var classElement = classDeclaration.declaredElement2;
-    if (classElement is! InterfaceElement) return;
+    if (classElement is! ClassElement) return;
 
     var parentMethod = classElement.lookUpInheritedMethod(
         method.name2.lexeme, classElement.library);
@@ -58,8 +57,8 @@ class RenameMethodParameter extends CorrectionProducer {
         _newName = newName;
 
         await builder.addDartFileEdit(file, (builder) {
-          for (var token in collector.oldTokens) {
-            builder.addSimpleReplacement(range.token(token), newName);
+          for (var i in collector.oldIdentifiers) {
+            builder.addSimpleReplacement(range.node(i), newName);
           }
         });
       }
@@ -68,40 +67,23 @@ class RenameMethodParameter extends CorrectionProducer {
 }
 
 class _Collector extends RecursiveAstVisitor<void> {
-  bool error = false;
+  var error = false;
   final String newName;
   final ParameterElement target;
 
-  final oldTokens = <Token>[];
+  final oldIdentifiers = <SimpleIdentifier>[];
 
   _Collector(this.newName, this.target);
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _addNameToken(node.name, node.declaredElement);
-    super.visitSimpleFormalParameter(node);
-  }
-
-  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addNameToken(node.token, node.staticElement);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _addNameToken(node.name2, node.declaredElement2);
-    super.visitVariableDeclaration(node);
-  }
-
-  void _addNameToken(Token? nameToken, Element? element) {
     if (error) return;
 
-    if (nameToken != null) {
-      if (element == target) {
-        oldTokens.add(nameToken);
-      } else if (nameToken.lexeme == newName) {
-        error = true;
-      }
+    var nodeElement = node.staticElement;
+    if (nodeElement == target) {
+      oldIdentifiers.add(node);
+    } else if (node.name == newName) {
+      error = true;
     }
   }
 }

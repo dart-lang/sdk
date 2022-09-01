@@ -204,8 +204,8 @@ class DartCallHierarchyComputer {
     // `constructor`, because we need to locate them using an `offset`, which
     // implicit constructors do not have.
     // Here, we map them back to the synthetic constructor element.
-    final isImplicitConstructor = element is InterfaceElement &&
-        target.kind == CallHierarchyKind.constructor;
+    final isImplicitConstructor =
+        element is ClassElement && target.kind == CallHierarchyKind.constructor;
     if (isImplicitConstructor) {
       element = element.unnamedConstructor;
     }
@@ -311,9 +311,7 @@ class DartCallHierarchyComputer {
   /// Finds a target node for call hierarchy navigation at [offset].
   AstNode? _findTargetNode(int offset) {
     var node = NodeLocator(offset).searchWithin(_result.unit);
-    if (node is FormalParameterList) {
-      node = node.parent;
-    } else if (node is SimpleIdentifier &&
+    if (node is SimpleIdentifier &&
         node.parent != null &&
         node.parent is! VariableDeclaration &&
         node.parent is! AssignmentExpression) {

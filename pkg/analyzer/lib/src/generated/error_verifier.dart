@@ -132,7 +132,7 @@ class EnclosingExecutableContext {
     if (enclosing == null) {
       return false;
     }
-    if (enclosing is InterfaceElement || enclosing is ExtensionElement) {
+    if (enclosing is ClassElement || enclosing is ExtensionElement) {
       if (element is ExecutableElement) {
         return element.isStatic;
       }
@@ -1652,7 +1652,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     } else if (element is MethodElement) {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, expression);
-    } else if (element is InterfaceElement ||
+    } else if (element is ClassElement ||
         element is DynamicElementImpl ||
         element is TypeParameterElement) {
       errorReporter.reportErrorForNode(
@@ -2166,7 +2166,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     // check if there is non-final field
     final classElement = constructorElement.enclosingElement3;
-    if (classElement is! ClassElement || !classElement.hasNonFinalField) {
+    if (classElement is ClassElement && !classElement.hasNonFinalField) {
       return;
     }
     errorReporter.reportErrorForName(
@@ -2953,7 +2953,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // OK, target is a type
           return;
         }
-        if (enclosingElement is! InterfaceElement) {
+        if (enclosingElement is! ClassElement) {
           // OK, top-level element
           return;
         }
@@ -3062,7 +3062,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     // not a class member
     Element enclosingElement = element.enclosingElement3;
-    if (enclosingElement is! InterfaceElement &&
+    if (enclosingElement is! ClassElement &&
         enclosingElement is! ExtensionElement) {
       return;
     }
@@ -3443,7 +3443,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// implementations of all the super-invoked members of the [mixinElement].
   bool _checkForMixinSuperInvokedMembers(int mixinIndex, NamedType mixinName,
       InterfaceElement mixinElement, InterfaceType mixinType) {
-    var mixinElementImpl = mixinElement as MixinElementImpl;
+    var mixinElementImpl = mixinElement as ClassElementImpl;
     if (mixinElementImpl.superInvokedNames.isEmpty) {
       return false;
     }
@@ -4354,7 +4354,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
       var element = identifier.staticElement;
       if (element is TypeParameterElement &&
-          element.enclosingElement3 is InterfaceElement) {
+          element.enclosingElement3 is ClassElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).
@@ -4548,7 +4548,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     } else if (targetType == null) {
       if (target is Identifier) {
         final targetElement = target.staticElement;
-        if (targetElement is InterfaceElement ||
+        if (targetElement is ClassElement ||
             targetElement is ExtensionElement ||
             targetElement is TypeAliasElement) {
           errorReporter.reportErrorForOffset(
@@ -4600,7 +4600,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (identical(enclosingElement, _enclosingClass)) {
       return;
     }
-    if (enclosingElement is! InterfaceElement) {
+    if (enclosingElement is! ClassElement) {
       return;
     }
     if (element is ExecutableElement && !element.isStatic) {

@@ -24,6 +24,8 @@ import '../../util/feature_sets.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ClassDeclarationTest);
+    defineReflectiveTests(ClassTypeAliasTest);
     defineReflectiveTests(ConstructorDeclarationTest);
     defineReflectiveTests(FieldFormalParameterTest);
     defineReflectiveTests(FormalParameterIsExplicitlyTypedTest);
@@ -41,6 +43,118 @@ main() {
     defineReflectiveTests(StringInterpolationTest);
     defineReflectiveTests(VariableDeclarationTest);
   });
+}
+
+@reflectiveTest
+class ClassDeclarationTest extends ParserTestCase {
+  @Deprecated('Filter members instead')
+  void test_getConstructor() {
+    List<ConstructorInitializer> initializers = <ConstructorInitializer>[];
+    ConstructorDeclaration defaultConstructor =
+        AstTestFactory.constructorDeclaration(
+            AstTestFactory.identifier3("Test"),
+            null,
+            AstTestFactory.formalParameterList(),
+            initializers);
+    ConstructorDeclaration aConstructor = AstTestFactory.constructorDeclaration(
+        AstTestFactory.identifier3("Test"),
+        "a",
+        AstTestFactory.formalParameterList(),
+        initializers);
+    ConstructorDeclaration bConstructor = AstTestFactory.constructorDeclaration(
+        AstTestFactory.identifier3("Test"),
+        "b",
+        AstTestFactory.formalParameterList(),
+        initializers);
+    ClassDeclaration clazz = AstTestFactory.classDeclaration(
+        null, "Test", null, null, null, null,
+        members: [defaultConstructor, aConstructor, bConstructor]);
+    expect(clazz.getConstructor(null), same(defaultConstructor));
+    expect(clazz.getConstructor("a"), same(aConstructor));
+    expect(clazz.getConstructor("b"), same(bConstructor));
+    expect(clazz.getConstructor("noSuchConstructor"), isNull);
+  }
+
+  @Deprecated('Filter members instead')
+  void test_getField() {
+    VariableDeclaration aVar = AstTestFactory.variableDeclaration("a");
+    VariableDeclaration bVar = AstTestFactory.variableDeclaration("b");
+    VariableDeclaration cVar = AstTestFactory.variableDeclaration("c");
+    ClassDeclaration clazz = AstTestFactory.classDeclaration(
+        null, "Test", null, null, null, null,
+        members: [
+          AstTestFactory.fieldDeclaration2(false, null, [aVar]),
+          AstTestFactory.fieldDeclaration2(false, null, [bVar, cVar])
+        ]);
+    expect(clazz.getField("a"), same(aVar));
+    expect(clazz.getField("b"), same(bVar));
+    expect(clazz.getField("c"), same(cVar));
+    expect(clazz.getField("noSuchField"), isNull);
+  }
+
+  @Deprecated('Filter members instead')
+  void test_getMethod() {
+    MethodDeclaration aMethod = AstTestFactory.methodDeclaration(
+        null,
+        null,
+        null,
+        null,
+        AstTestFactory.identifier3("a"),
+        AstTestFactory.formalParameterList());
+    MethodDeclaration bMethod = AstTestFactory.methodDeclaration(
+        null,
+        null,
+        null,
+        null,
+        AstTestFactory.identifier3("b"),
+        AstTestFactory.formalParameterList());
+    ClassDeclaration clazz = AstTestFactory.classDeclaration(
+        null, "Test", null, null, null, null,
+        members: [aMethod, bMethod]);
+    expect(clazz.getMethod("a"), same(aMethod));
+    expect(clazz.getMethod("b"), same(bMethod));
+    expect(clazz.getMethod("noSuchMethod"), isNull);
+  }
+
+  @Deprecated('Use abstractKeyword instead')
+  void test_isAbstract() {
+    expect(
+        AstTestFactory.classDeclaration(null, "A", null, null, null, null)
+            .isAbstract,
+        isFalse);
+    expect(
+        AstTestFactory.classDeclaration(
+                Keyword.ABSTRACT, "B", null, null, null, null)
+            .isAbstract,
+        isTrue);
+  }
+}
+
+@reflectiveTest
+class ClassTypeAliasTest extends ParserTestCase {
+  @Deprecated('Use abstractKeyword instead')
+  void test_isAbstract() {
+    expect(
+        AstTestFactory.classTypeAlias(
+                "A",
+                null,
+                null,
+                AstTestFactory.namedType4('B'),
+                AstTestFactory.withClause([AstTestFactory.namedType4('M')]),
+                null)
+            .isAbstract,
+        isFalse);
+    expect(
+        AstTestFactory.classTypeAlias(
+                "B",
+                null,
+                Keyword.ABSTRACT,
+                AstTestFactory.namedType4('A'),
+                AstTestFactory.withClause([AstTestFactory.namedType4('M')]),
+                null)
+            .isAbstract,
+        isTrue);
+  }
 }
 
 @reflectiveTest
@@ -1384,6 +1498,14 @@ class A {
 }
 ''');
     SimpleIdentifier identifier = initializer.fieldName;
+    expect(identifier.inGetterContext(), isFalse);
+  }
+
+  @deprecated
+  void test_inGetterContext_fieldFormalParameter() {
+    FieldFormalParameter parameter =
+        AstTestFactory.fieldFormalParameter2('test');
+    SimpleIdentifier identifier = parameter.identifier;
     expect(identifier.inGetterContext(), isFalse);
   }
 

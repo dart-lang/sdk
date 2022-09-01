@@ -435,7 +435,7 @@ class SuggestionBuilder {
   /// will be used as the kind for the suggestion.
   void suggestElement(Element element,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
-    if (element is InterfaceElement) {
+    if (element is ClassElement) {
       suggestInterface(element);
     } else if (element is ConstructorElement) {
       suggestConstructor(element, kind: kind);
@@ -1328,7 +1328,7 @@ class SuggestionBuilder {
     var enclosingElement = element.enclosingElement3;
 
     String? declaringType;
-    if (enclosingElement is InterfaceElement) {
+    if (enclosingElement is ClassElement) {
       declaringType = enclosingElement.displayName;
     }
 
@@ -1385,7 +1385,7 @@ class SuggestionBuilder {
   /// we either fail with assertion, or return `null`.
   String? _enclosingClassOrExtensionName(Element element) {
     var enclosing = element.enclosingElement3;
-    if (enclosing is InterfaceElement) {
+    if (enclosing is ClassElement) {
       return enclosing.name;
     } else if (enclosing is ExtensionElement) {
       return enclosing.name;

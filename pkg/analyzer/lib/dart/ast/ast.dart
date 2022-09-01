@@ -38,7 +38,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/source.dart' show LineInfo;
+import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:meta/meta.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
@@ -643,6 +643,10 @@ abstract class AugmentationImportDirective implements UriBasedDirective {
   /// The token representing the 'augment' keyword.
   Token get augmentKeyword;
 
+  @Deprecated('Use element2 instead')
+  @override
+  AugmentationImportElement? get element;
+
   @override
   AugmentationImportElement? get element2;
 
@@ -813,6 +817,11 @@ abstract class CatchClause implements AstNode {
 
   /// Return the parameter whose value will be the exception that was thrown, or
   /// `null` if there is no 'catch' keyword.
+  @Deprecated('Use exceptionParameter2 instead')
+  SimpleIdentifier? get exceptionParameter;
+
+  /// Return the parameter whose value will be the exception that was thrown, or
+  /// `null` if there is no 'catch' keyword.
   CatchClauseParameter? get exceptionParameter2;
 
   /// Return the type of exceptions caught by this catch clause, or `null` if
@@ -828,6 +837,11 @@ abstract class CatchClause implements AstNode {
 
   /// Return the right parenthesis, or `null` if there is no 'catch' keyword.
   Token? get rightParenthesis;
+
+  /// Return the parameter whose value will be the stack trace associated with
+  /// the exception, or `null` if there is no stack trace parameter.
+  @Deprecated('Use stackTraceParameter2 instead')
+  SimpleIdentifier? get stackTraceParameter;
 
   /// Return the parameter whose value will be the stack trace associated with
   /// the exception, or `null` if there is no stack trace parameter.
@@ -871,7 +885,18 @@ abstract class ClassAugmentationDeclaration
 ///        '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
+//
+// TODO(scheglov) Add `ClassOrAugmentationElement get declaredElement`,
+// when [ClassOrMixinDeclaration] is gone.
+abstract class ClassDeclaration
+    implements
+        ClassOrAugmentationDeclaration,
+        // ignore: deprecated_member_use_from_same_package
+        ClassOrMixinDeclaration {
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement;
+
   @override
   ClassElement? get declaredElement2;
 
@@ -879,6 +904,10 @@ abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
   /// class/mixin does not implement any interfaces.
   @override
   ImplementsClause? get implementsClause;
+
+  /// Return `true` if this class is declared to be an abstract class.
+  @Deprecated('Use abstractKeyword instead')
+  bool get isAbstract;
 
   /// Returns the left curly bracket.
   @override
@@ -900,6 +929,14 @@ abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
   /// class/mixin does not have any type parameters.
   @override
   TypeParameterList? get typeParameters;
+
+  /// Return the constructor declared in the class with the given [name], or
+  /// `null` if there is no such constructor.
+  ///
+  /// If the [name] is `null` then the default constructor will be searched
+  /// for.
+  @Deprecated('Filter members instead')
+  ConstructorDeclaration? getConstructor(String? name);
 }
 
 /// A node that declares a name within the scope of a class declarations.
@@ -956,6 +993,48 @@ abstract class ClassOrAugmentationDeclaration
   WithClause? get withClause;
 }
 
+/// The declaration of a class or mixin.
+///
+/// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ClassDeclaration or MixinDeclaration directly')
+abstract class ClassOrMixinDeclaration implements NamedCompilationUnitMember {
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
+  @override
+  ClassElement? get declaredElement;
+
+  /// Returns the implements clause for the class/mixin, or `null` if the
+  /// class/mixin does not implement any interfaces.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
+  ImplementsClause? get implementsClause;
+
+  /// Returns the left curly bracket.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
+  Token get leftBracket;
+
+  /// Returns the members defined by the class/mixin.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
+  NodeList<ClassMember> get members;
+
+  /// Returns the right curly bracket.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
+  Token get rightBracket;
+
+  /// Returns the type parameters for the class/mixin, or `null` if the
+  /// class/mixin does not have any type parameters.
+  @Deprecated('Use ClassDeclaration or MixinDeclaration directly')
+  TypeParameterList? get typeParameters;
+
+  /// Returns the field declared in the class/mixin with the given [name], or
+  /// `null` if there is no such field.
+  @Deprecated('Filter members instead')
+  VariableDeclaration? getField(String name);
+
+  /// Returns the method declared in the class/mixin with the given [name], or
+  /// `null` if there is no such method.
+  @Deprecated('Filter members instead')
+  MethodDeclaration? getMethod(String name);
+}
+
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
@@ -970,6 +1049,10 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// defining an abstract class.
   Token? get abstractKeyword;
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement;
+
   @override
   ClassElement? get declaredElement2;
 
@@ -980,8 +1063,16 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// implements clause.
   ImplementsClause? get implementsClause;
 
+  /// Return `true` if this class is declared to be an abstract class.
+  @Deprecated('Use abstractKeyword instead')
+  bool get isAbstract;
+
   /// Return the name of the superclass of the class being declared.
   NamedType get superclass;
+
+  /// Return the name of the superclass of the class being declared.
+  @Deprecated('Use superclass instead')
+  NamedType get superclass2;
 
   /// Return the type parameters for the class, or `null` if the class does not
   /// have any type parameters.
@@ -1075,6 +1166,10 @@ abstract class CommentReferableExpression implements Expression {}
 abstract class CommentReference implements AstNode {
   /// The comment-referable expression being referenced.
   CommentReferableExpression get expression;
+
+  /// Return the identifier being referenced.
+  @Deprecated('Use expression instead')
+  Identifier get identifier;
 
   /// Return the token representing the 'new' keyword, or `null` if there was no
   /// 'new' keyword.
@@ -1276,6 +1371,10 @@ abstract class Configuration implements AstNode {
   /// is true.
   StringLiteral get uri;
 
+  /// Return the source to which the [uri] was resolved.
+  @Deprecated('Use resolvedUri and check for DirectiveUriWithSource instead')
+  Source? get uriSource;
+
   /// Return the value to which the value of the declared variable will be
   /// compared, or `null` if the condition does not include an equality test.
   StringLiteral? get value;
@@ -1310,6 +1409,10 @@ abstract class ConstructorDeclaration implements ClassMember {
   /// not a const constructor.
   Token? get constKeyword;
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ConstructorElement? get declaredElement;
+
   @override
   ConstructorElement? get declaredElement2;
 
@@ -1322,6 +1425,11 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Return the initializers associated with the constructor.
   NodeList<ConstructorInitializer> get initializers;
+
+  /// Return the name of the constructor, or `null` if the constructor being
+  /// declared is unnamed.
+  @Deprecated('Use name2 instead')
+  SimpleIdentifier? get name;
 
   /// Return the name of the constructor, or `null` if the constructor being
   /// declared is unnamed.
@@ -1404,6 +1512,10 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
 
   /// Return the name of the type defining the constructor.
   NamedType get type;
+
+  /// Return the name of the type defining the constructor.
+  @Deprecated('Use type instead')
+  NamedType get type2;
 }
 
 /// An expression representing a reference to a constructor, e.g. the expression
@@ -1481,6 +1593,12 @@ abstract class Declaration implements AnnotatedNode {
   /// Return the element associated with this declaration, or `null` if either
   /// this node corresponds to a list of declarations or if the AST structure
   /// has not been resolved.
+  @Deprecated('Use declaredElement2 instead')
+  Element? get declaredElement;
+
+  /// Return the element associated with this declaration, or `null` if either
+  /// this node corresponds to a list of declarations or if the AST structure
+  /// has not been resolved.
   Element? get declaredElement2;
 }
 
@@ -1491,8 +1609,16 @@ abstract class Declaration implements AnnotatedNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DeclaredIdentifier implements Declaration {
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  LocalVariableElement? get declaredElement;
+
   @override
   LocalVariableElement? get declaredElement2;
+
+  /// Return the name of the variable being declared.
+  @Deprecated('Use name instead')
+  SimpleIdentifier get identifier;
 
   /// Return `true` if this variable was declared with the 'const' modifier.
   bool get isConst;
@@ -1551,8 +1677,19 @@ abstract class DefaultFormalParameter implements FormalParameter {
 /// Clients may not extend, implement or mix-in this class.
 abstract class Directive implements AnnotatedNode {
   /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved or if this directive could not be
+  /// resolved.
+  @Deprecated('Use element2 instead')
+  Element? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
   Element? get element2;
+
+  /// Return the token representing the keyword that introduces this directive
+  /// ('import', 'export', 'library' or 'part').
+  @Deprecated('Use specific xyzToken instead')
+  Token get keyword;
 }
 
 /// A do statement.
@@ -1673,6 +1810,10 @@ abstract class EnumConstantDeclaration implements Declaration {
   ConstructorElement? get constructorElement;
 
   /// Return the name of the constant.
+  @Deprecated('Use name2 instead')
+  SimpleIdentifier get name;
+
+  /// Return the name of the constant.
   Token get name2;
 }
 
@@ -1687,6 +1828,10 @@ abstract class EnumConstantDeclaration implements Declaration {
 abstract class EnumDeclaration implements NamedCompilationUnitMember {
   /// Return the enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
+
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement;
 
   @override
   EnumElement? get declaredElement2;
@@ -1726,6 +1871,10 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExportDirective implements NamespaceDirective {
+  @Deprecated('Use element2 instead')
+  @override
+  ExportElement? get element;
+
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
   @override
@@ -1842,6 +1991,10 @@ abstract class ExtendsClause implements AstNode {
 
   /// Return the name of the class that is being extended.
   NamedType get superclass;
+
+  /// Return the name of the class that is being extended.
+  @Deprecated('Use superclass instead')
+  NamedType get superclass2;
 }
 
 /// The declaration of an extension of a type.
@@ -1853,6 +2006,10 @@ abstract class ExtendsClause implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionDeclaration implements CompilationUnitMember {
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ExtensionElement? get declaredElement;
+
   @override
   ExtensionElement? get declaredElement2;
 
@@ -1871,6 +2028,11 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
 
   /// Return the members being added to the extended class.
   NodeList<ClassMember> get members;
+
+  /// Return the name of the extension, or `null` if the extension does not have
+  /// a name.
+  @Deprecated('Use name2 instead')
+  SimpleIdentifier? get name;
 
   /// Return the name of the extension, or `null` if the extension does not have
   /// a name.
@@ -1993,6 +2155,10 @@ abstract class FieldDeclaration implements ClassMember {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldFormalParameter implements NormalFormalParameter {
+  @Deprecated('Use name instead')
+  @override
+  SimpleIdentifier get identifier;
+
   /// Return the token representing either the 'final', 'const' or 'var'
   /// keyword, or `null` if no keyword was used.
   Token? get keyword;
@@ -2114,6 +2280,12 @@ abstract class FormalParameter implements AstNode {
   /// Return the element representing this parameter, or `null` if this
   /// parameter has not been resolved.
   ParameterElement? get declaredElement;
+
+  /// Return the name of the parameter being declared, or `null` if the
+  /// parameter doesn't have a name, such as when it's part of a generic
+  /// function type.
+  @Deprecated('Use name instead')
+  SimpleIdentifier? get identifier;
 
   /// Return `true` if this parameter was declared with the 'const' modifier.
   bool get isConst;
@@ -2380,6 +2552,10 @@ abstract class FunctionBody implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionDeclaration implements NamedCompilationUnitMember {
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ExecutableElement? get declaredElement;
+
   @override
   ExecutableElement? get declaredElement2;
 
@@ -2499,6 +2675,10 @@ abstract class FunctionReference
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAlias implements TypeAlias {
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  TypeAliasElement? get declaredElement;
+
   @override
   TypeAliasElement? get declaredElement2;
 
@@ -2522,6 +2702,10 @@ abstract class FunctionTypeAlias implements TypeAlias {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
+  @Deprecated('Use name instead')
+  @override
+  SimpleIdentifier get identifier;
+
   @override
   Token get name;
 
@@ -2739,6 +2923,10 @@ abstract class ImplementsClause implements AstNode {
 
   /// Return the list of the interfaces that are being implemented.
   NodeList<NamedType> get interfaces;
+
+  /// Return the list of the interfaces that are being implemented.
+  @Deprecated('Use interfaces instead')
+  NodeList<NamedType> get interfaces2;
 }
 
 /// An expression representing an implicit 'call' method reference.
@@ -2776,6 +2964,113 @@ abstract class ImplicitCallReference implements MethodReferenceExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ImportDirective implements NamespaceDirective {
+  @Deprecated('This kind of syntactic equality is rarely useful')
+  static Comparator<ImportDirective> COMPARATOR =
+      (ImportDirective import1, ImportDirective import2) {
+    //
+    // uri
+    //
+    StringLiteral uri1 = import1.uri;
+    StringLiteral uri2 = import2.uri;
+    String? uriStr1 = uri1.stringValue;
+    String? uriStr2 = uri2.stringValue;
+    if (uriStr1 != null || uriStr2 != null) {
+      if (uriStr1 == null) {
+        return -1;
+      } else if (uriStr2 == null) {
+        return 1;
+      } else {
+        int compare = uriStr1.compareTo(uriStr2);
+        if (compare != 0) {
+          return compare;
+        }
+      }
+    }
+    //
+    // as
+    //
+    SimpleIdentifier? prefix1 = import1.prefix;
+    SimpleIdentifier? prefix2 = import2.prefix;
+    String? prefixStr1 = prefix1?.name;
+    String? prefixStr2 = prefix2?.name;
+    if (prefixStr1 != null || prefixStr2 != null) {
+      if (prefixStr1 == null) {
+        return -1;
+      } else if (prefixStr2 == null) {
+        return 1;
+      } else {
+        int compare = prefixStr1.compareTo(prefixStr2);
+        if (compare != 0) {
+          return compare;
+        }
+      }
+    }
+    //
+    // hides and shows
+    //
+    NodeList<Combinator> combinators1 = import1.combinators;
+    List<String> allHides1 = <String>[];
+    List<String> allShows1 = <String>[];
+    int length1 = combinators1.length;
+    for (int i = 0; i < length1; i++) {
+      Combinator combinator = combinators1[i];
+      if (combinator is HideCombinator) {
+        NodeList<SimpleIdentifier> hides = combinator.hiddenNames;
+        int hideLength = hides.length;
+        for (int j = 0; j < hideLength; j++) {
+          SimpleIdentifier simpleIdentifier = hides[j];
+          allHides1.add(simpleIdentifier.name);
+        }
+      } else {
+        NodeList<SimpleIdentifier> shows =
+            (combinator as ShowCombinator).shownNames;
+        int showLength = shows.length;
+        for (int j = 0; j < showLength; j++) {
+          SimpleIdentifier simpleIdentifier = shows[j];
+          allShows1.add(simpleIdentifier.name);
+        }
+      }
+    }
+    NodeList<Combinator> combinators2 = import2.combinators;
+    List<String> allHides2 = <String>[];
+    List<String> allShows2 = <String>[];
+    int length2 = combinators2.length;
+    for (int i = 0; i < length2; i++) {
+      Combinator combinator = combinators2[i];
+      if (combinator is HideCombinator) {
+        NodeList<SimpleIdentifier> hides = combinator.hiddenNames;
+        int hideLength = hides.length;
+        for (int j = 0; j < hideLength; j++) {
+          SimpleIdentifier simpleIdentifier = hides[j];
+          allHides2.add(simpleIdentifier.name);
+        }
+      } else {
+        NodeList<SimpleIdentifier> shows =
+            (combinator as ShowCombinator).shownNames;
+        int showLength = shows.length;
+        for (int j = 0; j < showLength; j++) {
+          SimpleIdentifier simpleIdentifier = shows[j];
+          allShows2.add(simpleIdentifier.name);
+        }
+      }
+    }
+    // test lengths of combinator lists first
+    if (allHides1.length != allHides2.length) {
+      return allHides1.length - allHides2.length;
+    }
+    if (allShows1.length != allShows2.length) {
+      return allShows1.length - allShows2.length;
+    }
+    // next ensure that the lists are equivalent
+    if (!allHides1.toSet().containsAll(allHides2)) {
+      return -1;
+    }
+    if (!allShows1.toSet().containsAll(allShows2)) {
+      return -1;
+    }
+    return 0;
+  };
+
   /// Return the token representing the 'as' keyword, or `null` if the imported
   /// names are not prefixed.
   Token? get asKeyword;
@@ -2783,6 +3078,10 @@ abstract class ImportDirective implements NamespaceDirective {
   /// Return the token representing the 'deferred' keyword, or `null` if the
   /// imported URI is not deferred.
   Token? get deferredKeyword;
+
+  @Deprecated('Use element2 instead')
+  @override
+  ImportElement? get element;
 
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
@@ -3177,6 +3476,10 @@ abstract class MethodDeclaration implements ClassMember {
   /// Return the body of the method.
   FunctionBody get body;
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ExecutableElement? get declaredElement;
+
   @override
   ExecutableElement? get declaredElement2;
 
@@ -3202,6 +3505,10 @@ abstract class MethodDeclaration implements ClassMember {
   /// Return the token representing the 'abstract' or 'static' keyword, or
   /// `null` if neither modifier was specified.
   Token? get modifierKeyword;
+
+  /// Return the name of the method.
+  @Deprecated('Use name2 instead')
+  SimpleIdentifier get name;
 
   /// Return the name of the method.
   Token get name2;
@@ -3311,7 +3618,15 @@ abstract class MixinAugmentationDeclaration
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
+abstract class MixinDeclaration
+    implements
+        MixinOrAugmentationDeclaration,
+        // ignore: deprecated_member_use_from_same_package
+        ClassOrMixinDeclaration {
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  ClassElement? get declaredElement;
+
   @override
   MixinElement? get declaredElement2;
 
@@ -3378,6 +3693,10 @@ abstract class MixinOrAugmentationDeclaration
 /// Clients may not extend, implement or mix-in this class.
 abstract class NamedCompilationUnitMember implements CompilationUnitMember {
   /// Return the name of the member being declared.
+  @Deprecated('Use name2 instead')
+  SimpleIdentifier get name;
+
+  /// Return the name of the member being declared.
   Token get name2;
 }
 
@@ -3437,8 +3756,30 @@ abstract class NamespaceDirective implements UriBasedDirective {
   /// loaded at run-time.
   NodeList<Configuration> get configurations;
 
+  /// Return the source that was selected based on the declared variables.
+  ///
+  /// This will be the source from the first configuration whose condition is
+  /// true, or the `[uriSource]` if either there are no configurations or if
+  /// there are no configurations whose condition is true.
+  @Deprecated('Use element2.uri and check for DirectiveUriWithSource instead')
+  Source? get selectedSource;
+
+  /// Return the content of the URI that was selected based on the declared
+  /// variables.
+  ///
+  /// This will be the URI from the first configuration whose condition is
+  /// true, or the `[uriContent]` if either there are no configurations or if
+  /// there are no configurations whose condition is true.
+  @Deprecated(
+      'Use element2.uri and check for DirectiveUriWithRelativeUriString instead')
+  String? get selectedUriContent;
+
   /// Return the semicolon terminating the directive.
   Token get semicolon;
+
+  @Deprecated('Use element2.uri and check for DirectiveUriWithLibrary instead')
+  @override
+  LibraryElement? get uriElement;
 }
 
 /// The "native" clause in an class declaration.
@@ -3560,6 +3901,10 @@ abstract class OnClause implements AstNode {
 
   /// Return the list of the classes are superclass constraints for the mixin.
   NodeList<NamedType> get superclassConstraints;
+
+  /// Return the list of the classes are superclass constraints for the mixin.
+  @Deprecated('Use superclassConstraints instead')
+  NodeList<NamedType> get superclassConstraints2;
 }
 
 /// A parenthesized expression.
@@ -4261,6 +4606,10 @@ abstract class SuperExpression implements Expression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameter implements NormalFormalParameter {
+  @Deprecated('Use name instead')
+  @override
+  SimpleIdentifier get identifier;
+
   /// Return the token representing either the 'final', 'const' or 'var'
   /// keyword, or `null` if no keyword was used.
   Token? get keyword;
@@ -4562,12 +4911,20 @@ abstract class TypeParameter implements Declaration {
   /// explicit upper bound.
   TypeAnnotation? get bound;
 
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  TypeParameterElement? get declaredElement;
+
   @override
   TypeParameterElement? get declaredElement2;
 
   /// Return the token representing the 'extends' keyword, or `null` if there is
   /// no explicit upper bound.
   Token? get extendsKeyword;
+
+  /// Return the name of the type parameter.
+  @Deprecated('Use name2 instead')
+  SimpleIdentifier get name;
 
   /// Return the name of the type parameter.
   Token get name2;
@@ -4602,6 +4959,25 @@ abstract class TypeParameterList implements AstNode {
 abstract class UriBasedDirective implements Directive {
   /// Return the URI referenced by this directive.
   StringLiteral get uri;
+
+  /// Return the content of the [uri], or `null` if the AST structure has not
+  /// been resolved, or if the [uri] has a string interpolation.
+  @Deprecated(
+      'Use element2.uri and check for DirectiveUriWithRelativeUriString instead')
+  String? get uriContent;
+
+  /// Return the element associated with the [uri] of this directive, or `null`
+  /// if the AST structure has not been resolved or if the URI could not be
+  /// resolved.
+  ///
+  /// Examples of the latter case include a directive that contains an invalid
+  /// URL or a URL that does not exist.
+  @Deprecated('Use element2.uri and check for DirectiveUriWithLibrary instead')
+  Element? get uriElement;
+
+  /// Return the source to which the [uri] was resolved.
+  @Deprecated('Use element2.uri and check for DirectiveUriWithSource instead')
+  Source? get uriSource;
 }
 
 /// An identifier that has an initial value associated with it.
@@ -4618,6 +4994,10 @@ abstract class UriBasedDirective implements Directive {
 // Consider changing the class hierarchy so that [VariableDeclaration] does not
 // extend [Declaration].
 abstract class VariableDeclaration implements Declaration {
+  @Deprecated('Use declaredElement2 instead')
+  @override
+  VariableElement? get declaredElement;
+
   @override
   VariableElement? get declaredElement2;
 
@@ -4640,6 +5020,10 @@ abstract class VariableDeclaration implements Declaration {
 
   /// Return `true` if this variable was declared with the 'late' modifier.
   bool get isLate;
+
+  /// Return the name of the variable being declared.
+  @Deprecated('Use name2 instead')
+  SimpleIdentifier get name;
 
   /// Return the name of the variable being declared.
   Token get name2;
@@ -4738,6 +5122,10 @@ abstract class WhileStatement implements Statement {
 abstract class WithClause implements AstNode {
   /// Return the names of the mixins that were specified.
   NodeList<NamedType> get mixinTypes;
+
+  /// Return the names of the mixins that were specified.
+  @Deprecated('Use mixinTypes instead')
+  NodeList<NamedType> get mixinTypes2;
 
   /// Return the token representing the 'with' keyword.
   Token get withKeyword;

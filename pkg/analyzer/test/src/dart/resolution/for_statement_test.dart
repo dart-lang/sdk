@@ -65,7 +65,7 @@ void f(List<List<int>> x) {
 ''');
 
     assertElement(
-      findNode.simpleFormalParameter('x) {'),
+      findNode.simple('x) {'),
       findElement.parameter('x'),
     );
 

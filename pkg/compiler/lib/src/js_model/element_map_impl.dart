@@ -981,28 +981,28 @@ class JsKernelToElementMap
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureThisAndRawType(cls, data);
-    return data.thisType;
+    return data.thisType /*!*/;
   }
 
   InterfaceType _getJsInteropType(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureJsInteropType(cls, data);
-    return data.jsInteropType;
+    return data.jsInteropType /*!*/;
   }
 
   InterfaceType _getRawType(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureThisAndRawType(cls, data);
-    return data.rawType;
+    return data.rawType /*!*/;
   }
 
   InterfaceType _getClassInstantiationToBounds(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureClassInstantiationToBounds(cls, data);
-    return data.instantiationToBounds;
+    return data.instantiationToBounds /*!*/;
   }
 
   FunctionType _getFunctionType(IndexedFunction function) {
@@ -1113,7 +1113,7 @@ class JsKernelToElementMap
     if (supertype != null) {
       supertype = substByContext(supertype, type);
     }
-    return supertype;
+    return supertype /*!*/;
   }
 
   @override
@@ -1121,7 +1121,7 @@ class JsKernelToElementMap
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.orderedTypeSet;
+    return data.orderedTypeSet /*!*/;
   }
 
   @override
@@ -1129,7 +1129,7 @@ class JsKernelToElementMap
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.orderedTypeSet.maxDepth;
+    return data.orderedTypeSet /*!*/ .maxDepth;
   }
 
   @override
@@ -1764,7 +1764,7 @@ class JsKernelToElementMap
         JRecordField(variable.name, boxLocal, isConst: variable.isConst);
     members.register(
         boxedField,
-        ClosureFieldData(
+        closureMigrated.ClosureFieldData(
             ClosureMemberDefinition(computeSourceSpanFromTreeNode(variable),
                 MemberKind.closureField, variable),
             memberThisType));
@@ -1790,7 +1790,7 @@ class JsKernelToElementMap
       InterfaceType thisType =
           types.interfaceType(container, const <DartType>[]);
       InterfaceType supertype = commonElements.objectType;
-      JClassData containerData = RecordClassData(
+      JClassData containerData = closureMigrated.RecordClassData(
           RecordContainerDefinition(getMemberDefinition(member).location),
           thisType,
           supertype,
@@ -1858,11 +1858,12 @@ class JsKernelToElementMap
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
     InterfaceType thisType =
         types.interfaceType(classEntity, const <DartType>[]);
-    ClosureClassData closureData = ClosureClassData(
-        ClosureClassDefinition(location),
-        thisType,
-        supertype,
-        getOrderedTypeSet(supertype.element).extendClass(types, thisType));
+    closureMigrated.ClosureClassData closureData =
+        closureMigrated.ClosureClassData(
+            ClosureClassDefinition(location),
+            thisType,
+            supertype,
+            getOrderedTypeSet(supertype.element).extendClass(types, thisType));
     classes.register(classEntity, closureData, ClosureClassEnv(memberMap));
 
     Local closureEntity;
@@ -1911,7 +1912,7 @@ class JsKernelToElementMap
 
     members.register<IndexedFunction, FunctionData>(
         callMethod,
-        ClosureFunctionData(
+        closureMigrated.ClosureFunctionData(
             ClosureMemberDefinition(
                 location, MemberKind.closureCall, node.parent),
             memberThisType,
@@ -2047,7 +2048,7 @@ class JsKernelToElementMap
 
     members.register<IndexedField, JFieldData>(
         closureField,
-        ClosureFieldData(
+        closureMigrated.ClosureFieldData(
             ClosureMemberDefinition(computeSourceSpanFromTreeNode(sourceNode),
                 MemberKind.closureField, sourceNode),
             memberThisType));
@@ -2093,7 +2094,7 @@ class JsKernelToElementMap
 
     members.register<IndexedField, JFieldData>(
         closureField,
-        ClosureFieldData(
+        closureMigrated.ClosureFieldData(
             ClosureMemberDefinition(computeSourceSpanFromTreeNode(sourceNode),
                 MemberKind.closureField, sourceNode),
             memberThisType));

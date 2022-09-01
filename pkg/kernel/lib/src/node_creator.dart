@@ -1266,25 +1266,25 @@ class NodeCreator {
       case ConstantKind.RecordConstant:
         return _createOneOf(_pendingConstants, kind, index, [
           () => RecordConstant(
-              [], [], RecordType([], [], Nullability.nonNullable)),
+              [], {}, RecordType([], [], Nullability.nonNullable)),
           () => RecordConstant(
               [_createConstant(), _createConstant()],
-              [],
+              {},
               RecordType([_createDartType(), _createDartType()], [],
                   Nullability.nonNullable)),
           () => RecordConstant(
                   [],
-                  [
-                    ConstantRecordNamedField('a', _createConstant()),
-                    ConstantRecordNamedField('b', _createConstant())
-                  ],
+                  {
+                    'a': _createConstant(),
+                    'b': _createConstant(),
+                  },
                   RecordType([], [
                     NamedType('a', _createDartType()),
                     NamedType('b', _createDartType())
                   ], Nullability.nonNullable)),
           () => RecordConstant(
               [_createConstant()],
-              [ConstantRecordNamedField('a', _createConstant())],
+              {'a': _createConstant()},
               RecordType(
                   [_createDartType()],
                   [NamedType('a', _createDartType())],

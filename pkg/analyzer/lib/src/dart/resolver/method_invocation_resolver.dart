@@ -134,7 +134,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (receiver is IdentifierImpl) {
       var element = receiver.staticElement;
-      if (element is InterfaceElement) {
+      if (element is ClassElement) {
         _resolveReceiverTypeLiteral(
             node, element, nameNode, name, whyNotPromotedList,
             contextType: contextType);
@@ -986,10 +986,10 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is
   /// returned.
-  static InterfaceElement? getTypeReference(Expression expression) {
+  static ClassElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
       var staticElement = expression.staticElement;
-      if (staticElement is InterfaceElement) {
+      if (staticElement is ClassElement) {
         return staticElement;
       }
     }

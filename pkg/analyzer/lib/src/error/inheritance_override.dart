@@ -250,8 +250,7 @@ class _ClassVerifier {
       errorReporter: reporter,
     ).checkInterface(classElement, interface);
 
-    if (classElement is ClassElement && !classElement.isAbstract ||
-        classElement is EnumElement) {
+    if (!(classElement as ClassElement).isAbstract) {
       List<ExecutableElement>? inheritedAbstract;
 
       for (var name in interface.map.keys) {
@@ -414,8 +413,7 @@ class _ClassVerifier {
         typeElement.isDartCoreEnum &&
         library.featureSet.isEnabled(Feature.enhanced_enums)) {
       if (classElement is ClassElement && classElement.isAbstract ||
-          classElement is EnumElement ||
-          classElement is MixinElement) {
+          classElement is EnumElement) {
         return false;
       }
       reporter.reportErrorForNode(
@@ -646,10 +644,12 @@ class _ClassVerifier {
     path.add(element);
 
     // n-case
-    final supertype = element.supertype;
-    if (supertype != null &&
-        _checkForRecursiveInterfaceInheritance(supertype.element2, path)) {
-      return true;
+    if (element is ClassElement) {
+      var supertype = element.supertype;
+      if (supertype != null &&
+          _checkForRecursiveInterfaceInheritance(supertype.element2, path)) {
+        return true;
+      }
     }
 
     for (InterfaceType type in element.mixins) {
@@ -681,8 +681,7 @@ class _ClassVerifier {
       final classElement = this.classElement;
       if (classElement is ClassElementImpl &&
               !classElement.isDartCoreEnumImpl ||
-          classElement is EnumElementImpl ||
-          classElement is MixinElementImpl) {
+          classElement is EnumElementImpl) {
         if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
           reporter.reportErrorForToken(
             CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
@@ -711,8 +710,8 @@ class _ClassVerifier {
       ) {
         var member = concreteMap[Name(libraryUri, memberName)];
         if (member != null) {
-          var enclosingClass = member.enclosingElement3 as InterfaceElement;
-          if (enclosingClass is! ClassElement || filter(enclosingClass)) {
+          var enclosingClass = member.enclosingElement3;
+          if (enclosingClass is ClassElement && filter(enclosingClass)) {
             reporter.reportErrorForToken(
               CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
               classNameToken,
@@ -761,8 +760,10 @@ class _ClassVerifier {
   /// Return the error code that should be used when the given class [element]
   /// references itself directly.
   ErrorCode _getRecursiveErrorCode(InterfaceElement element) {
-    if (element.supertype?.element2 == classElement) {
-      return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
+    if (element is ClassElement) {
+      if (element.supertype?.element2 == classElement) {
+        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS;
+      }
     }
 
     if (element is MixinElement) {

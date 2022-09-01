@@ -98,7 +98,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is TypeAliasElement) {
       result.addStatus(validateTypeAliasName(newName));
     }
-    if (element is InterfaceElement) {
+    if (element is ClassElement) {
       result.addStatus(validateClassName(newName));
     }
     return result;
@@ -214,7 +214,7 @@ class _BaseUnitMemberValidator {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var member = declaration.element;
-      var declaringClass = member.enclosingElement3 as InterfaceElement;
+      var declaringClass = member.enclosingElement3 as ClassElement;
       var memberReferences = await searchEngine.searchReferences(member);
       for (var memberReference in memberReferences) {
         var refElement = memberReference.element;
@@ -223,7 +223,7 @@ class _BaseUnitMemberValidator {
           continue;
         }
         // cannot be shadowed if declared in the same class as reference
-        var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
+        var refClass = refElement.thisOrAncestorOfType<ClassElement>();
         if (refClass == declaringClass) {
           continue;
         }
@@ -301,7 +301,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
   void _validateWillBeShadowed() {
     for (var reference in references) {
       var refElement = reference.element;
-      var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
+      var refClass = refElement.thisOrAncestorOfType<ClassElement>();
       if (refClass != null) {
         visitChildren(refClass, (shadow) {
           if (hasDisplayName(shadow, name)) {

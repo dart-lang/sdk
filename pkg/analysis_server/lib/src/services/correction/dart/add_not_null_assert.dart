@@ -17,7 +17,12 @@ class AddNotNullAssert extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final formalParameter = node;
+    final identifier = node;
+    if (identifier is! SimpleIdentifier) {
+      return;
+    }
+
+    var formalParameter = identifier.parent;
     if (formalParameter is! FormalParameter) {
       return;
     }
@@ -43,8 +48,7 @@ class AddNotNullAssert extends CorrectionProducer {
           if (condition is BinaryExpression) {
             final leftOperand = condition.leftOperand;
             if (leftOperand is SimpleIdentifier) {
-              if (leftOperand.staticElement ==
-                      formalParameter.declaredElement &&
+              if (leftOperand.staticElement == identifier.staticElement &&
                   condition.operator.type == TokenType.BANG_EQ &&
                   condition.rightOperand is NullLiteral) {
                 return;
@@ -56,7 +60,7 @@ class AddNotNullAssert extends CorrectionProducer {
 
       final body_final = body;
       await builder.addDartFileEdit(file, (builder) {
-        final id = formalParameter.name!.lexeme;
+        final id = identifier.name;
         final prefix = utils.getNodePrefix(executable);
         final indent = utils.getIndent(1);
         // todo (pq): follow-ups:

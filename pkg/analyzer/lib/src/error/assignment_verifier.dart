@@ -56,8 +56,8 @@ class AssignmentVerifier {
       return;
     }
 
-    if (recovery is DynamicElementImpl ||
-        recovery is InterfaceElement ||
+    if (recovery is ClassElement ||
+        recovery is DynamicElementImpl ||
         recovery is TypeAliasElement ||
         recovery is TypeParameterElement) {
       _errorReporter.reportErrorForNode(

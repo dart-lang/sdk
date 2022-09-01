@@ -69,7 +69,7 @@ class CommentReferenceResolver {
     }
 
     if (!hasNewKeyword) {
-      if (prefixElement is InterfaceElement) {
+      if (prefixElement is ClassElement) {
         name.staticElement = _resolver.inheritance.getMember2(
               prefixElement,
               Name(prefixElement.library.source.uri, name.name),
@@ -85,7 +85,7 @@ class CommentReferenceResolver {
       } else {
         // TODO(brianwilkerson) Report this error.
       }
-    } else if (prefixElement is InterfaceElement) {
+    } else if (prefixElement is ClassElement) {
       var constructor = prefixElement.getNamedConstructor(name.name);
       if (constructor == null) {
         // TODO(brianwilkerson) Report this error.
@@ -126,7 +126,7 @@ class CommentReferenceResolver {
     name.staticElement = element;
 
     var propertyName = expression.propertyName;
-    if (element is InterfaceElement) {
+    if (element is ClassElement) {
       propertyName.staticElement = element.getMethod(propertyName.name) ??
           element.getGetter(propertyName.name) ??
           element.getSetter(propertyName.name) ??
@@ -191,7 +191,7 @@ class CommentReferenceResolver {
     }
     expression.staticElement = element;
     if (hasNewKeyword) {
-      if (element is InterfaceElement) {
+      if (element is ClassElement) {
         var constructor = element.unnamedConstructor;
         if (constructor == null) {
           // TODO(brianwilkerson) Report this error.

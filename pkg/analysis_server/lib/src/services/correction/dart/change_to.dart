@@ -113,7 +113,7 @@ class ChangeTo extends CorrectionProducer {
     if (name != null) {
       // Prepare for selecting the closest element.
       var finder = _ClosestElementFinder(
-          name, (Element element) => element is InterfaceElement);
+          name, (Element element) => element is ClassElement);
       // Check elements of this library.
       if (prefixName == null) {
         for (var unit in resolvedResult.libraryElement.units) {
@@ -141,17 +141,17 @@ class ChangeTo extends CorrectionProducer {
     if (target == null) {
       var clazz = this.node.thisOrAncestorOfType<ClassDeclaration>();
       if (clazz != null) {
-        var interfaceElement = clazz.declaredElement2!;
-        _updateFinderWithClassMembers(finder, interfaceElement);
+        var classElement = clazz.declaredElement2!;
+        _updateFinderWithClassMembers(finder, classElement);
       }
     } else if (target is ExtensionOverride) {
       _updateFinderWithExtensionMembers(finder, target.staticElement);
     } else if (targetIdentifierElement is ExtensionElement) {
       _updateFinderWithExtensionMembers(finder, targetIdentifierElement);
     } else {
-      var interfaceElement = getTargetInterfaceElement(target);
-      if (interfaceElement != null) {
-        _updateFinderWithClassMembers(finder, interfaceElement);
+      var classElement = getTargetClassElement(target);
+      if (classElement != null) {
+        _updateFinderWithClassMembers(finder, classElement);
       }
     }
     // if we have close enough element, suggest to use it
@@ -268,18 +268,17 @@ class ChangeTo extends CorrectionProducer {
   }
 
   Future<void> _proposeSuperFormalParameter(ChangeBuilder builder) async {
-    final superParameter = node;
-    if (superParameter is! SuperFormalParameter) return;
+    var parent = node.parent;
+    if (parent is! SuperFormalParameter) return;
 
     var constructorDeclaration =
-        superParameter.thisOrAncestorOfType<ConstructorDeclaration>();
+        parent.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDeclaration == null) return;
 
     var formalParameters = constructorDeclaration.parameters.parameters
         .whereType<DefaultFormalParameter>();
 
-    var finder =
-        _ClosestElementFinder(superParameter.name.lexeme, (Element e) => true);
+    var finder = _ClosestElementFinder(parent.name.lexeme, (Element e) => true);
 
     var superInvocation = constructorDeclaration.initializers.lastOrNull;
 
@@ -290,8 +289,7 @@ class ChangeTo extends CorrectionProducer {
       var list = _formalParameterSuggestions(staticElement, formalParameters);
       finder._updateList(list);
     } else {
-      var targetClassNode =
-          superParameter.thisOrAncestorOfType<ClassDeclaration>();
+      var targetClassNode = parent.thisOrAncestorOfType<ClassDeclaration>();
       if (targetClassNode == null) return;
 
       var targetClassElement = targetClassNode.declaredElement2!;
@@ -308,7 +306,7 @@ class ChangeTo extends CorrectionProducer {
     }
 
     // If we have a close enough element, suggest to use it.
-    await _suggest(builder, superParameter.name, finder._element?.name);
+    await _suggest(builder, node, finder._element?.name);
   }
 
   Future<void> _suggest(

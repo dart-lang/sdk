@@ -48,7 +48,7 @@ class CanRenameResponse {
       status = validateMethodName(name);
     } else if (element is TypeAliasElement) {
       status = validateTypeAliasName(name);
-    } else if (element is InterfaceElement) {
+    } else if (element is ClassElement) {
       status = validateClassName(name);
     } else if (element is ConstructorElement) {
       status = validateConstructorName(name);
@@ -297,12 +297,12 @@ class CheckNameResponse {
 
   Future<CiderReplaceMatch?> _replaceSyntheticConstructor() async {
     var element = canRename.refactoringElement.element;
-    var interfaceElement = element.enclosingElement3;
+    var classElement = element.enclosingElement3;
 
     var fileResolver = canRename._fileResolver;
-    var libraryPath = interfaceElement!.library!.source.fullName;
+    var libraryPath = classElement!.library!.source.fullName;
     var resolvedLibrary = await fileResolver.resolveLibrary2(path: libraryPath);
-    var result = resolvedLibrary.getElementDeclaration(interfaceElement);
+    var result = resolvedLibrary.getElementDeclaration(classElement);
     if (result == null) {
       return null;
     }
@@ -321,7 +321,7 @@ class CheckNameResponse {
         return null;
       }
 
-      var header = '${interfaceElement.name}.$newName();';
+      var header = '${classElement.name}.$newName();';
       return CiderReplaceMatch(libraryPath, [
         ReplaceInfo(location.prefix + header + location.suffix,
             resolvedUnit.lineInfo.getLocation(location.offset), 0)
@@ -333,7 +333,7 @@ class CheckNameResponse {
         return null;
       }
 
-      var header = 'const ${interfaceElement.name}.$newName();';
+      var header = 'const ${classElement.name}.$newName();';
       return CiderReplaceMatch(libraryPath, [
         ReplaceInfo(location.prefix + header + location.suffix,
             resolvedUnit.lineInfo.getLocation(location.offset), 0)
@@ -392,7 +392,7 @@ class CiderRenameComputer {
     if (element is LabelElement || element is LocalElement) {
       return true;
     }
-    if (enclosingElement is InterfaceElement ||
+    if (enclosingElement is ClassElement ||
         enclosingElement is ExtensionElement ||
         enclosingElement is CompilationUnitElement) {
       return true;

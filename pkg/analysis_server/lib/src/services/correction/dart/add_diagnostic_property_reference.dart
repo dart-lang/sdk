@@ -34,12 +34,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    final String name;
-    if (node is MethodDeclaration) {
-      name = node.name2.lexeme;
-    } else if (node is VariableDeclaration) {
-      name = node.name2.lexeme;
-    } else {
+    if (node is! SimpleIdentifier) {
       return;
     }
 
@@ -50,7 +45,9 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       return;
     }
 
-    var type = _getReturnType(node);
+    final parent = node.parent!;
+
+    var type = _getReturnType(parent);
     if (type == null) {
       return;
     }
@@ -102,8 +99,8 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         if (decl != null) {
           declType = decl.type;
           // getter
-        } else if (node is MethodDeclaration) {
-          declType = node.returnType;
+        } else if (parent is MethodDeclaration) {
+          declType = parent.returnType;
         }
 
         if (declType != null) {
@@ -115,7 +112,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
           }
         }
       }
-      builder.writeln("$constructorName('$name', $name));");
+      builder.writeln("$constructorName('${node.name}', ${node.name}));");
     }
 
     final debugFillProperties = classDeclaration.members

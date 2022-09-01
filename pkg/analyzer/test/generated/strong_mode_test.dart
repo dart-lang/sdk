@@ -2773,10 +2773,9 @@ FunctionDeclaration
     await assertNoErrorsInCode(r'''
 void g(T f<T>(T x)) {}
 ''');
-
-    final fType = findElement.parameter('f').type;
-    fType as FunctionType;
-    assertType(fType, 'T Function<T>(T)');
+    var type = expectFunctionType2('f', 'T Function<T>(T)');
+    FunctionType ft = type.instantiate([typeProvider.stringType]);
+    assertType(ft, 'String Function(String)');
   }
 
   test_genericFunction_static() async {

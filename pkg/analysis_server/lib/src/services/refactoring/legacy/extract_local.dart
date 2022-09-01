@@ -523,7 +523,9 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var parent = node.parent;
-    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    // ignore: deprecated_member_use
+    if (parent is VariableDeclaration && parent.name == node ||
+        parent is AssignmentExpression && parent.leftHandSide == node) {
       return;
     }
     super.visitSimpleIdentifier(node);

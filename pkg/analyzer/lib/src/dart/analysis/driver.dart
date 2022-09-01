@@ -588,6 +588,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return _discoverAvailableFilesTask!.completer.future;
   }
 
+  @Deprecated('Use dispose2() instead')
+  @override
+  void dispose() {
+    _scheduler.remove(this);
+    clearLibraryContext();
+  }
+
   @override
   Future<void> dispose2() async {
     final completer = Completer<void>();
@@ -636,6 +643,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
+  /// Return a [Future] that completes with the [ErrorsResult] for the Dart
+  /// file with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// This method does not use analysis priorities, and must not be used in
+  /// interactive analysis, such as Analysis Server or its plugins.
+  @Deprecated('Use getErrors() instead')
+  Future<SomeErrorsResult> getErrors2(String path) async {
+    return getErrors(path);
+  }
+
   /// Return a [Future] that completes with the list of added files that
   /// define a class member with the given [name].
   Future<List<String>> getFilesDefiningClassMemberName(String name) {
@@ -674,6 +693,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
     );
+  }
+
+  /// Return the [FileResult] for the Dart file with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  @Deprecated('Use getFileSync() instead')
+  SomeFileResult getFileSync2(String path) {
+    return getFileSync(path);
   }
 
   /// Return a [Future] that completes with the [AnalysisDriverUnitIndex] for
@@ -739,6 +766,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return LibraryElementResultImpl(element);
       },
     );
+  }
+
+  /// Return a [Future] that completes with [LibraryElementResult] for the given
+  /// [uri], which is either resynthesized from the provided external summary
+  /// store, or built for a file to which the given [uri] is resolved.
+  @Deprecated('Use getLibraryByUri() instead')
+  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) async {
+    return getLibraryByUri(uri);
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [path].
@@ -913,6 +948,29 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
+  /// Return a [Future] that completes with a [SomeResolvedUnitResult] for the
+  /// Dart file with the given [path].  If the file cannot be analyzed,
+  /// the [Future] completes with an [InvalidResult].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
+  ///
+  /// If the driver has the cached analysis result for the file, it is returned.
+  /// If [sendCachedToStream] is `true`, then the result is also reported into
+  /// the [results] stream, just as if it were freshly computed.
+  ///
+  /// Otherwise causes the analysis state to transition to "analyzing" (if it is
+  /// not in that state already), the driver will produce the analysis result for
+  /// it, which is consistent with the current file state (including new states
+  /// of the files previously reported using [changeFile]), prior to the next
+  /// time the analysis state transitions to "idle".
+  @Deprecated('Use getResult() instead')
+  Future<SomeResolvedUnitResult> getResult2(String path,
+      {bool sendCachedToStream = false}) {
+    return getResult(path);
+  }
+
   /// Return a [Future] that completes with the [SomeUnitElementResult]
   /// for the file with the given [path].
   Future<SomeUnitElementResult> getUnitElement(String path) {
@@ -934,6 +992,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
+  }
+
+  /// Return a [Future] that completes with a [ParsedUnitResult] for the file
+  /// with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
+  ///
+  /// The parsing is performed in the method itself, and the result is not
+  /// produced through the [results] stream (just because it is not a fully
+  /// resolved unit).
+  @Deprecated('Use parseFileSync() instead')
+  Future<SomeParsedUnitResult> parseFile2(String path) async {
+    return parseFileSync2(path);
   }
 
   /// Return a [ParsedUnitResult] for the file with the given [path].
@@ -965,6 +1038,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       unit: unit,
       errors: listener.errors,
     );
+  }
+
+  /// Return a [ParsedUnitResult] for the file with the given [path].
+  ///
+  /// The [path] must be absolute and normalized.
+  ///
+  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
+  ///
+  /// The parsing is performed in the method itself, and the result is not
+  /// produced through the [results] stream (just because it is not a fully
+  /// resolved unit).
+  @Deprecated('Use parseFile() instead')
+  SomeParsedUnitResult parseFileSync2(String path) {
+    return parseFileSync(path);
   }
 
   @override
@@ -1675,8 +1762,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     var fileContentMap = <String, String>{};
 
+    var fileContent = '';
     try {
       final file = _fsState.getFileForPath(path);
+      fileContent = file.content;
       final fileKind = file.kind;
       final libraryKind = fileKind.library;
       if (libraryKind != null) {
@@ -1702,6 +1791,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       ExceptionResult(
         filePath: path,
         fileContentMap: fileContentMap,
+        fileContent: fileContent,
         exception: caught,
         contextKey: contextKey,
       ),
@@ -1872,6 +1962,10 @@ abstract class AnalysisDriverGeneric {
   ///
   /// The results of analysis are eventually produced by the [results] stream.
   void addFile(String path);
+
+  /// Notify the driver that the client is going to stop using it.
+  @Deprecated('Use dispose2() instead')
+  void dispose();
 
   /// Notify the driver that the client is going to stop using it.
   Future<void> dispose2();
@@ -2257,6 +2351,10 @@ class ExceptionResult {
   /// The content of the library and its parts.
   final Map<String, String> fileContentMap;
 
+  /// The path of the file being analyzed when the [exception] happened.
+  @Deprecated('Use fileContentMap instead')
+  final String fileContent;
+
   /// The exception during analysis of the file with the [filePath].
   final CaughtException exception;
 
@@ -2269,6 +2367,7 @@ class ExceptionResult {
   ExceptionResult({
     required this.filePath,
     required this.fileContentMap,
+    required this.fileContent,
     required this.exception,
     required this.contextKey,
   });

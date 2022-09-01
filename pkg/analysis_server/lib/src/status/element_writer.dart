@@ -37,17 +37,16 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
 
     properties['metadata'] = element.metadata;
     properties['nameOffset'] = element.nameOffset;
-    if (element is InterfaceElement) {
+    if (element is ClassElement) {
+      properties['hasNonFinalField'] = element.hasNonFinalField;
       properties['interfaces'] = element.interfaces;
+      properties['isAbstract'] = element.isAbstract;
       properties['isEnum'] = element is EnumElement;
+      properties['isMixinApplication'] = element.isMixinApplication;
+      properties['isValidMixin'] = element.isValidMixin;
       properties['mixins'] = element.mixins;
+      properties['superclassConstraints'] = element.superclassConstraints;
       properties['supertype'] = element.supertype;
-      if (element is ClassElement) {
-        properties['hasNonFinalField'] = element.hasNonFinalField;
-        properties['isAbstract'] = element.isAbstract;
-        properties['isMixinApplication'] = element.isMixinApplication;
-        properties['isValidMixin'] = element.isValidMixin;
-      }
     }
     if (element is ClassMemberElement) {
       properties['isStatic'] = element.isStatic;

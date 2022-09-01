@@ -19,7 +19,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (node is! VariableDeclaration) {
+    if (node is! SimpleIdentifier || node.parent is! VariableDeclaration) {
       return;
     }
 

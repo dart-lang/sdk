@@ -414,10 +414,10 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
       sb.write(comma);
       sb.write('{');
       comma = '';
-      for (ConstantRecordNamedField namedField in node.named) {
+      for (MapEntry<String, Constant> entry in node.named.entries) {
         sb.write(comma);
-        sb.write('${namedField.name}:');
-        namedField.value.accept(this);
+        sb.write('${entry.key}:');
+        entry.value.accept(this);
         comma = ',';
       }
       sb.write('}');

@@ -238,6 +238,28 @@ class AstTestFactory {
         body: body as FunctionBodyImpl,
       );
 
+  static DeclaredIdentifierImpl declaredIdentifier(
+          Keyword keyword, String identifier) =>
+      declaredIdentifier2(keyword, null, identifier);
+
+  static DeclaredIdentifierImpl declaredIdentifier2(
+          Keyword? keyword, TypeAnnotation? type, String identifier) =>
+      DeclaredIdentifierImpl(
+        comment: null,
+        metadata: null,
+        keyword:
+            keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+        type: type as TypeAnnotationImpl?,
+        identifier: identifier3(identifier),
+      );
+
+  static DeclaredIdentifierImpl declaredIdentifier3(String identifier) =>
+      declaredIdentifier2(Keyword.VAR, null, identifier);
+
+  static DeclaredIdentifierImpl declaredIdentifier4(
+          TypeAnnotation type, String identifier) =>
+      declaredIdentifier2(null, type, identifier);
+
   static CommentImpl documentationComment(
       List<Token> tokens, List<CommentReference> references) {
     return astFactory.documentationComment(tokens, references);

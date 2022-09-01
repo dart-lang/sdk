@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -23,35 +22,34 @@ class Rename extends Change<_Data> {
   // the super-method and the class's super-class.
   // ignore: library_private_types_in_public_api
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
-    var nameToken = data.nameToken;
+    var nameNode = data.nameNode;
     if (fix.element.isConstructor) {
-      final node = data.node;
-      final parent = node.parent;
-      if (node is ConstructorName) {
-        if (nameToken != null && newName.isEmpty) {
+      var parent = nameNode?.parent;
+      if (parent is ConstructorName) {
+        if (nameNode != null && newName.isEmpty) {
           // The constructor was renamed from a named constructor to an unnamed
           // constructor.
-          builder.addDeletion(range.startEnd(node.period!, node));
-        } else if (nameToken == null && newName.isNotEmpty) {
+          builder.addDeletion(range.startEnd(parent.period!, parent));
+        } else if (nameNode == null && newName.isNotEmpty) {
           // The constructor was renamed from an unnamed constructor to a named
           // constructor.
-          builder.addSimpleInsertion(node.end, '.$newName');
-        } else if (nameToken != null) {
+          builder.addSimpleInsertion(parent.end, '.$newName');
+        } else if (nameNode != null) {
           // The constructor was renamed from a named constructor to another
           // named constructor.
-          builder.addSimpleReplacement(range.token(nameToken), newName);
+          builder.addSimpleReplacement(range.node(nameNode), newName);
         }
-      } else if (nameToken == null) {
+      } else if (nameNode == null) {
         return;
       } else if (parent is MethodInvocation) {
         if (newName.isEmpty) {
           // The constructor was renamed from a named constructor to an unnamed
           // constructor.
-          builder.addDeletion(range.startEnd(parent.operator!, nameToken));
+          builder.addDeletion(range.startEnd(parent.operator!, nameNode));
         } else {
           // The constructor was renamed from a named constructor to another
           // named constructor.
-          builder.addSimpleReplacement(range.token(nameToken), newName);
+          builder.addSimpleReplacement(range.node(nameNode), newName);
         }
       } else if (parent is NamedType && parent.parent is ConstructorName) {
         // The constructor was renamed from an unnamed constructor to a named
@@ -64,11 +62,11 @@ class Rename extends Change<_Data> {
       } else {
         // The constructor was renamed from a named constructor to another named
         // constructor.
-        builder.addSimpleReplacement(range.token(nameToken), newName);
+        builder.addSimpleReplacement(range.node(nameNode), newName);
       }
-    } else if (nameToken != null) {
+    } else if (nameNode != null) {
       // The name is a simple identifier.
-      builder.addSimpleReplacement(range.token(nameToken), newName);
+      builder.addSimpleReplacement(range.node(nameNode), newName);
     }
   }
 
@@ -78,9 +76,7 @@ class Rename extends Change<_Data> {
   // ignore: library_private_types_in_public_api
   _Data? validate(DataDrivenFix fix) {
     var node = fix.node;
-    if (node is MethodDeclaration) {
-      return _Data(node, node.name2);
-    } else if (node is SimpleIdentifier) {
+    if (node is SimpleIdentifier) {
       var parent = node.parent;
       var grandParent = parent?.parent;
       if (parent is Label && grandParent is NamedExpression) {
@@ -88,15 +84,15 @@ class Rename extends Change<_Data> {
         if (invocation is InstanceCreationExpression) {
           invocation.constructorName.name;
         } else if (invocation is MethodInvocation) {
-          return _Data(node, invocation.methodName.token);
+          return _Data(invocation.methodName);
         }
         return null;
       }
-      return _Data(node, node.token);
+      return _Data(node);
     } else if (node is ConstructorName) {
-      return _Data(node, node.name?.token);
+      return _Data(node.name);
     } else if (node is PrefixedIdentifier) {
-      return _Data(node.identifier, node.identifier.token);
+      return _Data(node.identifier);
     }
     return null;
   }
@@ -104,8 +100,7 @@ class Rename extends Change<_Data> {
 
 /// The data renaming a declaration.
 class _Data {
-  final AstNode node;
-  final Token? nameToken;
+  final SimpleIdentifier? nameNode;
 
-  _Data(this.node, this.nameToken);
+  _Data(this.nameNode);
 }

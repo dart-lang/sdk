@@ -319,6 +319,16 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest
     return functionType;
   }
 
+  /// Looks up the identifier with [name] and validates that its element type
+  /// stringifies to [type] and that its generics match the given stringified
+  /// output.
+  FunctionType expectFunctionType2(String name, String type) {
+    var identifier = findNode.simple(name);
+    var functionType = _getFunctionTypedElementType(identifier);
+    assertType(functionType, type);
+    return functionType;
+  }
+
   /// Looks up the identifier with [name] and validates its static [type].
   ///
   /// If [type] is a string, validates that the identifier's static type
@@ -336,7 +346,8 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest
   /// stringifies to that text. Otherwise, [type] is used directly a [Matcher]
   /// to match the type.
   void expectInitializerType(String name, type) {
-    final declaration = findNode.variableDeclaration(name);
+    SimpleIdentifier identifier = findNode.simple(name);
+    var declaration = identifier.thisOrAncestorOfType<VariableDeclaration>()!;
     var initializer = declaration.initializer!;
     _expectType(initializer.staticType, type);
   }

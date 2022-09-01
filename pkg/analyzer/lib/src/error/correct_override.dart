@@ -144,7 +144,7 @@ class CovariantParametersVerifier {
 
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
-    var classElement = _thisMember.enclosingElement3 as InterfaceElement;
+    var classElement = _thisMember.enclosingElement3 as ClassElement;
     var interfaces = classHierarchy.implementedInterfaces(classElement);
 
     var superMembers = <_SuperMember>[];

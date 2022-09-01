@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 class UnknownInferredType extends TypeImpl {
   static final UnknownInferredType instance = UnknownInferredType._();
 
-  UnknownInferredType._();
+  UnknownInferredType._() : super(null);
 
   @override
   Element? get element2 => null;

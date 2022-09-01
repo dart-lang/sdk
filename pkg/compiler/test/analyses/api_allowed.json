@@ -27,7 +27,6 @@
     "Dynamic invocation of 'toJson'.": 1
   },
   "org-dartlang-sdk:///lib/html/dart2js/html_dart2js.dart": {
-    "Dynamic invocation of 'call'.": 2,
     "Dynamic access of 'attributes'.": 1,
     "Dynamic invocation of '[]'.": 1,
     "Dynamic invocation of 'toLowerCase'.": 1,

@@ -147,7 +147,7 @@ class CreateMethod extends CorrectionProducer {
         staticModifier = inStaticContext;
       }
     } else {
-      var targetClassElement = getTargetInterfaceElement(target);
+      var targetClassElement = getTargetClassElement(target);
       if (targetClassElement == null) {
         return;
       }

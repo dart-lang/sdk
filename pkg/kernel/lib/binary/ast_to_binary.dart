@@ -300,9 +300,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeUInt30(constant.positional.length);
       constant.positional.forEach(writeConstantReference);
       writeUInt30(constant.named.length);
-      for (final ConstantRecordNamedField namedField in constant.named) {
-        writeStringReference(namedField.name);
-        writeConstantReference(namedField.value);
+      for (final MapEntry<String, Constant> entry in constant.named.entries) {
+        writeStringReference(entry.key);
+        writeConstantReference(entry.value);
       }
       writeDartType(constant.recordType);
     } else {

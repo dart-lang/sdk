@@ -204,7 +204,7 @@ class _ElementWriter {
 
     if (propertyEnclosing is CompilationUnitElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
-    } else if (propertyEnclosing is InterfaceElement) {
+    } else if (propertyEnclosing is ClassElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
     }
   }
@@ -318,7 +318,12 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
 
-      final supertype = e.supertype;
+      InterfaceType? supertype;
+      if (e is ClassElement) {
+        supertype = e.supertype;
+      } else if (e is EnumElement) {
+        supertype = e.supertype;
+      }
       if (supertype != null &&
           (supertype.element2.name != 'Object' || e.mixins.isNotEmpty)) {
         _writeType('supertype', supertype);
@@ -800,7 +805,7 @@ class _ElementWriter {
     var variableEnclosing = variable.enclosingElement3;
     if (variableEnclosing is CompilationUnitElement) {
       expect(variableEnclosing.topLevelVariables, contains(variable));
-    } else if (variableEnclosing is InterfaceElement) {
+    } else if (variableEnclosing is ClassElement) {
       expect(variableEnclosing.fields, contains(variable));
     }
 

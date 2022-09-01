@@ -426,10 +426,10 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       if (node.positional.isNotEmpty) result.add(", ");
       result.add("{");
       first = true;
-      for (ConstantRecordNamedField namedField in node.named) {
+      for (MapEntry<String, Constant> entry in node.named.entries) {
         if (!first) result.add(", ");
-        result.add("${namedField.name}: ");
-        namedField.value.accept(this);
+        result.add("${entry.key}: ");
+        entry.value.accept(this);
         first = false;
       }
       result.add("}");

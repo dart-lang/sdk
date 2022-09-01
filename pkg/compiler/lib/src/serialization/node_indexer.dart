@@ -360,8 +360,8 @@ class ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
       for (ir.Constant field in node.positional) {
         field.accept(this);
       }
-      for (ir.ConstantRecordNamedField namedField in node.named) {
-        namedField.value.accept(this);
+      for (ir.Constant field in node.named.values) {
+        field.accept(this);
       }
     }
   }

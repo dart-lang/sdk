@@ -26,15 +26,18 @@ class MakeFinal extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    final parent = node.parent;
+    var parent = node.parent;
+    var grandParent = parent?.parent;
 
-    if (node is DeclaredIdentifier && parent is ForEachPartsWithDeclaration) {
+    if (node is SimpleIdentifier &&
+        parent is DeclaredIdentifier &&
+        grandParent is ForEachPartsWithDeclaration) {
       await builder.addDartFileEdit(file, (builder) {
-        var keyword = node.keyword;
+        var keyword = parent.keyword;
         if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addSimpleReplacement(range.token(keyword), 'final');
         } else if (keyword == null) {
-          builder.addSimpleInsertion(node.offset, 'final ');
+          builder.addSimpleInsertion(parent.offset, 'final ');
         }
       });
       return;
@@ -70,15 +73,20 @@ class MakeFinal extends CorrectionProducer {
       return;
     }
 
-    if (node is SimpleFormalParameter) {
+    if (node is SimpleIdentifier && parent is SimpleFormalParameter) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleInsertion(node.name!.offset, 'final ');
+        builder.addSimpleInsertion(node.offset, 'final ');
       });
       return;
     }
 
     VariableDeclarationList list;
-    if (node is VariableDeclaration && parent is VariableDeclarationList) {
+    if (node is SimpleIdentifier &&
+        parent is VariableDeclaration &&
+        grandParent is VariableDeclarationList) {
+      list = grandParent;
+    } else if (node is VariableDeclaration &&
+        parent is VariableDeclarationList) {
       list = parent;
     } else if (node is VariableDeclarationList) {
       list = node;

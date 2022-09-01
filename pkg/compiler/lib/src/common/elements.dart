@@ -1472,7 +1472,7 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
   void forEachParameter(covariant FunctionEntity function,
-      void f(DartType type, String name, ConstantValue defaultValue));
+      void f(DartType type, String? name, ConstantValue? defaultValue));
 
   /// Calls [f] for each parameter - given as a [Local] - of [function].
   void forEachParameterAsLocal(GlobalLocalsMap globalLocalsMap,

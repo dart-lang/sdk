@@ -26,11 +26,15 @@ class NodeLocator2Test extends ParserTestCase {
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as NamedType).name;
+    // ignore: deprecated_member_use_from_same_package
+    SimpleIdentifier varName = variableList.variables[0].name;
     expect(NodeLocator2(0).searchWithin(unit), same(unit));
     expect(NodeLocator2(1).searchWithin(unit), same(typeName));
     expect(NodeLocator2(2).searchWithin(unit), same(typeName));
     expect(NodeLocator2(3).searchWithin(unit), same(typeName));
     expect(NodeLocator2(4).searchWithin(unit), same(variableList));
+    expect(NodeLocator2(5).searchWithin(unit), same(varName));
+    expect(NodeLocator2(6).searchWithin(unit), same(varName));
     expect(NodeLocator2(7).searchWithin(unit), same(declaration));
     expect(NodeLocator2(8).searchWithin(unit), same(unit));
     expect(NodeLocator2(9).searchWithin(unit), isNull);
@@ -44,11 +48,14 @@ class NodeLocator2Test extends ParserTestCase {
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as NamedType).name;
+    // ignore: deprecated_member_use_from_same_package
+    SimpleIdentifier varName = variableList.variables[0].name;
     expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
     expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));
     expect(NodeLocator2(1, 2).searchWithin(unit), same(typeName));
     expect(NodeLocator2(1, 3).searchWithin(unit), same(typeName));
     expect(NodeLocator2(1, 4).searchWithin(unit), same(variableList));
+    expect(NodeLocator2(5, 6).searchWithin(unit), same(varName));
     expect(NodeLocator2(5, 7).searchWithin(unit), same(declaration));
     expect(NodeLocator2(5, 8).searchWithin(unit), same(unit));
     expect(NodeLocator2(5, 100).searchWithin(unit), isNull);
