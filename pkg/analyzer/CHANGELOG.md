@@ -1,5 +1,6 @@
 ## 4.7.0-dev
 * Add missing `addXyz` to `NodeLintRegistry`.
+* Add `lookUpInheritedConcreteX()` to `InterfaceElement`.
 
 ## 4.6.0
 * Added `DartType.element2`, so that `InterfaceType.element2` overrides it.
