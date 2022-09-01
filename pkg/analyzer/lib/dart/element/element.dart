@@ -1492,6 +1492,62 @@ abstract class InterfaceElement
   PropertyAccessorElement? lookUpGetter(
       String getterName, LibraryElement library);
 
+  /// Return the element representing the getter that results from looking up
+  /// the given [getterName] in the superclass of this class with respect to the
+  /// given [library], ignoring abstract getters, or `null` if the look up
+  /// fails.  The behavior of this method is defined by the Dart Language
+  /// Specification in section 16.15.2:
+  /// <blockquote>
+  /// The result of looking up getter (respectively setter) <i>m</i> in class
+  /// <i>C</i> with respect to library <i>L</i> is: If <i>C</i> declares an
+  /// instance getter (respectively setter) named <i>m</i> that is accessible to
+  /// <i>L</i>, then that getter (respectively setter) is the result of the
+  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
+  /// of the lookup is the result of looking up getter (respectively setter)
+  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
+  /// lookup has failed.
+  /// </blockquote>
+  /// TODO(scheglov) Deprecate and remove it.
+  PropertyAccessorElement? lookUpInheritedConcreteGetter(
+      String getterName, LibraryElement library);
+
+  /// Return the element representing the method that results from looking up
+  /// the given [methodName] in the superclass of this class with respect to the
+  /// given [library], ignoring abstract methods, or `null` if the look up
+  /// fails.  The behavior of this method is defined by the Dart Language
+  /// Specification in section 16.15.1:
+  /// <blockquote>
+  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
+  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
+  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
+  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
+  /// result of the lookup is the result of looking up method <i>m</i> in
+  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
+  /// failed.
+  /// </blockquote>
+  /// TODO(scheglov) Deprecate and remove it.
+  MethodElement? lookUpInheritedConcreteMethod(
+      String methodName, LibraryElement library);
+
+  /// Return the element representing the setter that results from looking up
+  /// the given [setterName] in the superclass of this class with respect to the
+  /// given [library], ignoring abstract setters, or `null` if the look up
+  /// fails.  The behavior of this method is defined by the Dart Language
+  /// Specification in section 16.15.2:
+  /// <blockquote>
+  /// The result of looking up getter (respectively setter) <i>m</i> in class
+  /// <i>C</i> with respect to library <i>L</i> is:  If <i>C</i> declares an
+  /// instance getter (respectively setter) named <i>m</i> that is accessible to
+  /// <i>L</i>, then that getter (respectively setter) is the result of the
+  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
+  /// of the lookup is the result of looking up getter (respectively setter)
+  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
+  /// lookup has failed.
+  /// </blockquote>
+  /// TODO(scheglov) Deprecate and remove it.
+  PropertyAccessorElement? lookUpInheritedConcreteSetter(
+      String setterName, LibraryElement library);
+
   /// Return the element representing the method that results from looking up
   /// the given [methodName] in the superclass of this class with respect to the
   /// given [library], or `null` if the look up fails. The behavior of this
@@ -2541,60 +2597,4 @@ abstract class _TmpSharedClassElement {
   /// guard against infinite loops.
   /// TODO(scheglov) Deprecate and remove it.
   List<InterfaceType> get superclassConstraints;
-
-  /// Return the element representing the getter that results from looking up
-  /// the given [getterName] in the superclass of this class with respect to the
-  /// given [library], ignoring abstract getters, or `null` if the look up
-  /// fails.  The behavior of this method is defined by the Dart Language
-  /// Specification in section 16.15.2:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is: If <i>C</i> declares an
-  /// instance getter (respectively setter) named <i>m</i> that is accessible to
-  /// <i>L</i>, then that getter (respectively setter) is the result of the
-  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
-  /// of the lookup is the result of looking up getter (respectively setter)
-  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
-  /// lookup has failed.
-  /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
-  PropertyAccessorElement? lookUpInheritedConcreteGetter(
-      String getterName, LibraryElement library);
-
-  /// Return the element representing the method that results from looking up
-  /// the given [methodName] in the superclass of this class with respect to the
-  /// given [library], ignoring abstract methods, or `null` if the look up
-  /// fails.  The behavior of this method is defined by the Dart Language
-  /// Specification in section 16.15.1:
-  /// <blockquote>
-  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
-  /// library <i>L</i> is:  If <i>C</i> declares an instance method named
-  /// <i>m</i> that is accessible to <i>L</i>, then that method is the result of
-  /// the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the
-  /// result of the lookup is the result of looking up method <i>m</i> in
-  /// <i>S</i> with respect to <i>L</i>. Otherwise, we say that the lookup has
-  /// failed.
-  /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
-  MethodElement? lookUpInheritedConcreteMethod(
-      String methodName, LibraryElement library);
-
-  /// Return the element representing the setter that results from looking up
-  /// the given [setterName] in the superclass of this class with respect to the
-  /// given [library], ignoring abstract setters, or `null` if the look up
-  /// fails.  The behavior of this method is defined by the Dart Language
-  /// Specification in section 16.15.2:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is:  If <i>C</i> declares an
-  /// instance getter (respectively setter) named <i>m</i> that is accessible to
-  /// <i>L</i>, then that getter (respectively setter) is the result of the
-  /// lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result
-  /// of the lookup is the result of looking up getter (respectively setter)
-  /// <i>m</i> in <i>S</i> with respect to <i>L</i>. Otherwise, we say that the
-  /// lookup has failed.
-  /// </blockquote>
-  /// TODO(scheglov) Deprecate and remove it.
-  PropertyAccessorElement? lookUpInheritedConcreteSetter(
-      String setterName, LibraryElement library);
 }
