@@ -37,8 +37,9 @@ import 'elements.dart';
 import 'element_map_impl.dart';
 import 'js_to_frontend_map.dart';
 import 'js_world.dart';
+import 'js_world_builder_interfaces.dart' as interfaces;
 
-class JsClosedWorldBuilder {
+class JsClosedWorldBuilder implements interfaces.JsClosedWorldBuilder {
   final JsKernelToElementMap _elementMap;
   final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
       ClassHierarchyNodesMap();
@@ -315,6 +316,7 @@ class JsClosedWorldBuilder {
 
   /// Construct a closure class and set up the necessary class inference
   /// hierarchy.
+  @override
   JsClosureClassInfo buildClosureClass(
       MemberEntity member,
       ir.FunctionNode originalClosureFunctionNode,

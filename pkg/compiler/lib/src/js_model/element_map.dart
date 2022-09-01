@@ -32,6 +32,7 @@ export 'element_map_migrated.dart';
 /// global type inference and building the SSA graph for members.
 abstract class JsToElementMap implements interfaces.JsToElementMap {
   /// Access to the commonly used elements and types.
+  @override
   JCommonElements get commonElements;
 
   /// Access to the [DartTypes] object.
@@ -61,6 +62,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
 
   /// Returns the [Selector] corresponding to the invocation or getter/setter
   /// access of [node].
+  @override
   Selector getSelector(ir.Expression node);
 
   /// Returns the [MemberEntity] corresponding to the member [node].
@@ -68,10 +70,12 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   MemberEntity getMember(ir.Member node);
 
   /// Returns the [FunctionEntity] corresponding to the procedure [node].
+  @override
   FunctionEntity getMethod(ir.Procedure node);
 
   /// Returns the [ConstructorEntity] corresponding to the generative or factory
   /// constructor [node].
+  @override
   ConstructorEntity getConstructor(ir.Member node);
 
   /// Returns the [FieldEntity] corresponding to the field [node].
@@ -160,6 +164,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
 
   /// Make a record to ensure variables that are are declared in one scope and
   /// modified in another get their values updated correctly.
+  @override
   Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
       KernelScopeInfo info, MemberEntity member);
 

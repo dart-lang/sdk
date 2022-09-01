@@ -212,11 +212,11 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
 
 abstract class JsClosureClassInfo {
   JClass get closureClassEntity;
-  Local get thisLocal;
-  JFunction get callMethod;
-  void set callMethod(JFunction value);
-  JSignatureMethod get signatureMethod;
-  void set signatureMethod(JSignatureMethod value);
+  Local? get thisLocal;
+  JFunction? get callMethod;
+  void set callMethod(JFunction? value);
+  JSignatureMethod? get signatureMethod;
+  void set signatureMethod(JSignatureMethod? value);
 
   bool hasFieldForLocal(Local local);
 
