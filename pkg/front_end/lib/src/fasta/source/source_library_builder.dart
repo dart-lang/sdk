@@ -3753,7 +3753,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           count += computeDefaultTypesForVariables(declaration.typeVariables,
               inErrorRecovery: issues.isNotEmpty);
 
-          declaration.constructorScope.forEach((String name, Builder member) {
+          declaration.constructorScope
+              .filteredNameIterator(
+                  includeDuplicates: false, includeAugmentations: true)
+              .forEach((String name, Builder member) {
             List<FormalParameterBuilder>? formals;
             if (member is SourceFactoryBuilder) {
               assert(member.isFactory,

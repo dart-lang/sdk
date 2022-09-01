@@ -51,6 +51,7 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
@@ -1556,8 +1557,13 @@ severity: $severity
           if (macroClasses != null) {
             Map<String, List<String>>? constructorMap;
             for (ClassBuilder macroClass in macroClasses) {
-              List<String> constructors =
-                  macroClass.constructorScope.local.keys.toList();
+              List<String> constructors = [];
+              NameIterator<MemberBuilder> iterator = macroClass.constructorScope
+                  .filteredNameIterator(
+                      includeDuplicates: false, includeAugmentations: true);
+              while (iterator.moveNext()) {
+                constructors.add(iterator.name);
+              }
               if (constructors.isNotEmpty) {
                 // TODO(johnniwinther): If there is no constructor here, it
                 // means the macro had no _explicit_ constructors. Since macro
@@ -1892,7 +1898,10 @@ severity: $severity
 
   void _checkConstructorsForMixin(
       SourceClassBuilder cls, ClassBuilder builder) {
-    for (Builder constructor in builder.constructorScope.local.values) {
+    Iterator<MemberBuilder> iterator = builder.constructorScope
+        .filteredIterator(includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      MemberBuilder constructor = iterator.current;
       if (constructor.isConstructor && !constructor.isSynthetic) {
         cls.addProblem(
             templateIllegalMixinDueToConstructors
