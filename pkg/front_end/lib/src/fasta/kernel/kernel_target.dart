@@ -62,7 +62,7 @@ import '../messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 import '../problems.dart' show unhandled;
-import '../scope.dart' show AmbiguousBuilder;
+import '../scope.dart' show AmbiguousBuilder, NameIteratorExtension;
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
@@ -1322,7 +1322,10 @@ class KernelTarget extends TargetImplementation {
           patchConstructorNames.add(name);
         }
       });
-      builder.constructorScope.forEach((String name, Builder builder) {
+      builder.constructorScope
+          .filteredNameIterator(
+              includeDuplicates: false, includeAugmentations: true)
+          .forEach((String name, Builder builder) {
         if (builder is ConstructorBuilder) {
           patchConstructorNames.remove(name);
         }

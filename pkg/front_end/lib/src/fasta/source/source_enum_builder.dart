@@ -295,12 +295,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // The default constructor is added if no generative or unnamed factory
     // constructors are declared.
     bool needsSynthesizedDefaultConstructor = true;
-    if (constructorScope.local.isNotEmpty) {
-      for (MemberBuilder constructorBuilder in constructorScope.local.values) {
-        if (!constructorBuilder.isFactory || constructorBuilder.name == "") {
-          needsSynthesizedDefaultConstructor = false;
-          break;
-        }
+    Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
+        includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      MemberBuilder constructorBuilder = iterator.current;
+      if (!constructorBuilder.isFactory || constructorBuilder.name == "") {
+        needsSynthesizedDefaultConstructor = false;
+        break;
       }
     }
 
@@ -342,7 +343,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
           .registerInitializedField(valuesBuilder);
       constructors[""] = synthesizedDefaultConstructorBuilder;
     } else {
-      constructorScope.forEach((name, member) {
+      constructorScope
+          .filteredNameIterator(
+              includeDuplicates: false, includeAugmentations: true)
+          .forEach((name, member) {
         if (member is DeclaredSourceConstructorBuilder) {
           member.ensureGrowableFormals();
           member.formals!.insert(
@@ -496,7 +500,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             parent: scope.parent,
             debugName: "enum $name",
             isModifiable: false),
-        constructorScope..local.addAll(constructors),
+        constructorScope..addLocalMembers(constructors),
         cls,
         elementBuilders,
         enumConstantInfos,
@@ -522,15 +526,19 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     members.forEach(setParent);
-    constructorScope.local.forEach(setParent);
+    constructorScope
+        .filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: true)
+        .forEach(setParent);
     selfType.bind(libraryBuilder, enumBuilder);
 
-    if (constructorScope.local.isNotEmpty) {
-      for (MemberBuilder constructorBuilder in constructorScope.local.values) {
-        if (!constructorBuilder.isFactory && !constructorBuilder.isConst) {
-          libraryBuilder.addProblem(messageEnumNonConstConstructor,
-              constructorBuilder.charOffset, noLength, fileUri);
-        }
+    Iterator<MemberBuilder> constructorIterator = constructorScope
+        .filteredIterator(includeDuplicates: false, includeAugmentations: true);
+    while (constructorIterator.moveNext()) {
+      MemberBuilder constructorBuilder = constructorIterator.current;
+      if (!constructorBuilder.isFactory && !constructorBuilder.isConst) {
+        libraryBuilder.addProblem(messageEnumNonConstConstructor,
+            constructorBuilder.charOffset, noLength, fileUri);
       }
     }
 

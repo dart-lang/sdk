@@ -285,7 +285,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    constructorScope.forEach((String name, Builder constructor) {
+    constructorScope
+        .filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: true)
+        .forEach((String name, Builder constructor) {
       Builder? member = scope.lookupLocalMember(name, setter: false);
       if (member == null) return;
       if (!member.isStatic) return;

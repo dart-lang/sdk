@@ -1164,7 +1164,7 @@ class DietListener extends StackListenerImpl {
     if (libraryFeatures.constructorTearoffs.isEnabled) {
       suffix = suffix == "new" ? "" : suffix;
     }
-    declaration = currentClass!.constructorScope.local[suffix];
+    declaration = currentClass!.constructorScope.lookupLocalMember(suffix);
     declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, nameOrQualified);
     return declaration;

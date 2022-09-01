@@ -639,18 +639,14 @@ class Scope extends MutableScope {
 
 class ConstructorScope {
   /// Constructors declared in this scope.
-  final Map<String, MemberBuilder> local;
+  final Map<String, MemberBuilder> _local;
 
   final String className;
 
-  ConstructorScope(this.className, this.local);
-
-  void forEach(f(String name, MemberBuilder member)) {
-    local.forEach(f);
-  }
+  ConstructorScope(this.className, this._local);
 
   MemberBuilder? lookup(String name, int charOffset, Uri fileUri) {
-    MemberBuilder? builder = local[name];
+    MemberBuilder? builder = _local[name];
     if (builder == null) return null;
     if (builder.next != null) {
       return new AmbiguousMemberBuilder(
@@ -661,11 +657,15 @@ class ConstructorScope {
   }
 
   MemberBuilder? lookupLocalMember(String name) {
-    return local[name];
+    return _local[name];
   }
 
   void addLocalMember(String name, MemberBuilder builder) {
-    local[name] = builder;
+    _local[name] = builder;
+  }
+
+  void addLocalMembers(Map<String, MemberBuilder> map) {
+    _local.addAll(map);
   }
 
   /// Returns an iterator of all constructors mapped in this scope,
@@ -721,7 +721,7 @@ class ConstructorScope {
   }
 
   @override
-  String toString() => "ConstructorScope($className, ${local.keys})";
+  String toString() => "ConstructorScope($className, ${_local.keys})";
 }
 
 abstract class LazyScope extends Scope {
@@ -1063,7 +1063,7 @@ class ConstructorScopeIterator implements Iterator<MemberBuilder> {
   MemberBuilder? _current;
 
   ConstructorScopeIterator(ConstructorScope scope)
-      : local = scope.local.values.iterator;
+      : local = scope._local.values.iterator;
 
   @override
   bool moveNext() {
@@ -1097,7 +1097,7 @@ class ConstructorScopeNameIterator extends ConstructorScopeIterator
   String? _name;
 
   ConstructorScopeNameIterator(ConstructorScope scope)
-      : localNames = scope.local.keys.iterator,
+      : localNames = scope._local.keys.iterator,
         super(scope);
 
   @override
@@ -1422,7 +1422,8 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
 
   void _addAugmentationConstructorScope(
       SourceClassBuilder classBuilder, ConstructorScope constructorScope) {
-    constructorScope.forEach((String name, MemberBuilder newConstructor) {
+    constructorScope._local
+        .forEach((String name, MemberBuilder newConstructor) {
       MemberBuilder? existingConstructor =
           _originConstructorScope.lookupLocalMember(name);
       if (classBuilder.isAugmentation) {
@@ -1471,7 +1472,7 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         }
       }
     });
-    _originConstructorScope
+    _originConstructorScope._local
         .forEach((String name, MemberBuilder originConstructor) {
       _addConstructorToAugmentationScope(
           constructorScope, name, originConstructor);
