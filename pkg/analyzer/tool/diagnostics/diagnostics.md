@@ -349,7 +349,7 @@ class [!C!] extends AbiSpecificInteger {
 }
 {% endprettify %}
 
-The following code produces this diagnostic because the class `C` defineS
+The following code produces this diagnostic because the class `C` defines
 a field:
 
 {% prettify dart tag=pre+code %}
