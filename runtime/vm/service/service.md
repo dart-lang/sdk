@@ -731,9 +731,8 @@ given isolate.
 If _reset_ is provided and is set to true, the allocation accumulators will be reset
 before collecting allocation information.
 
-If _gc_ is provided and is set to true, a garbage collection will be attempted
-before collecting allocation information. There is no guarantee that a garbage
-collection will be actually be performed.
+If _gc_ is provided and is set to true, a garbage collection will be
+run before collecting allocation information.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
