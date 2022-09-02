@@ -50,8 +50,7 @@ class AvoidRedundantArgumentValues extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    // TODO(AlexV525): Replace with `addEnumConstantArguments` once https://github.com/dart-lang/sdk/issues/49821 is solved.
-    registry.addEnumDeclaration(this, visitor);
+    registry.addEnumConstantArguments(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addFunctionExpressionInvocation(this, visitor);
     registry.addMethodInvocation(this, visitor);
@@ -96,15 +95,9 @@ class _Visitor extends SimpleAstVisitor {
     }
   }
 
-  // TODO(AlexV525): Replace with `visitEnumConstantArguments` once https://github.com/dart-lang/sdk/issues/49821 is solved.
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
-    for (var constant in node.constants) {
-      var arguments = constant.arguments?.argumentList;
-      if (arguments != null) {
-        check(arguments);
-      }
-    }
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    check(node.argumentList);
   }
 
   @override
