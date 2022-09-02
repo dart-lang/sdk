@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
 import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -30,36 +30,46 @@ class FieldFormalParameterTest2 extends AbstractCompletionDriverTest
 }
 
 mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) => true,
+      withReturnType: true,
+    );
+  }
+
   Future<void> test_class_replacement_left() async {
     await _checkContainers(
-      declarations: 'var field = 0;',
+      declarations: 'var foo = 0;',
       constructorParameters: 'this.f^',
       validator: (response) {
-        check(response)
-          ..hasReplacement(left: 1)
-          ..suggestions.matchesInAnyOrder([
-            (suggestion) => suggestion
-              ..completion.isEqualTo('field')
-              ..isField
-              ..returnType.isEqualTo('int'),
-          ]);
+        assertResponseText(response, r'''
+replacement
+  left: 1
+suggestions
+  foo
+    kind: field
+    returnType: int
+''');
       },
     );
   }
 
   Future<void> test_class_replacement_right() async {
     await _checkContainers(
-      declarations: 'var field = 0;',
+      declarations: 'var foo = 0;',
       constructorParameters: 'this.^f',
       validator: (response) {
-        check(response)
-          ..hasReplacement(right: 1)
-          ..suggestions.matchesInAnyOrder([
-            (suggestion) => suggestion
-              ..completion.isEqualTo('field')
-              ..isField
-              ..returnType.isEqualTo('int'),
-          ]);
+        assertResponseText(response, r'''
+replacement
+  right: 1
+suggestions
+  foo
+    kind: field
+    returnType: int
+''');
       },
     );
   }
@@ -90,18 +100,15 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isField
-          ..returnType.isEqualTo('int'),
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isField
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: field
+    returnType: int
+  second
+    kind: field
+    returnType: double
+''');
   }
 
   Future<void> test_class_suggestions_onlyNotSpecified_optionalNamed() async {
@@ -109,14 +116,12 @@ class B extends A {
       declarations: 'final int x; final int y;',
       constructorParameters: '{this.x, this.^}',
       validator: (response) {
-        check(response)
-          ..hasEmptyReplacement()
-          ..suggestions.matchesInAnyOrder([
-            (suggestion) => suggestion
-              ..completion.isEqualTo('y')
-              ..isField
-              ..returnType.isEqualTo('int'),
-          ]);
+        assertResponseText(response, r'''
+suggestions
+  y
+    kind: field
+    returnType: int
+''');
       },
     );
   }
@@ -127,14 +132,12 @@ class B extends A {
       declarations: 'final int x; final int y;',
       constructorParameters: 'this.x, this.^',
       validator: (response) {
-        check(response)
-          ..hasEmptyReplacement()
-          ..suggestions.matchesInAnyOrder([
-            (suggestion) => suggestion
-              ..completion.isEqualTo('y')
-              ..isField
-              ..returnType.isEqualTo('int'),
-          ]);
+        assertResponseText(response, r'''
+suggestions
+  y
+    kind: field
+    returnType: int
+''');
       },
     );
   }
@@ -157,18 +160,15 @@ enum E {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isField
-          ..returnType.isEqualTo('int'),
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isField
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: field
+    returnType: int
+  second
+    kind: field
+    returnType: double
+''');
   }
 
   /// https://github.com/dart-lang/sdk/issues/39028
@@ -180,7 +180,9 @@ mixin M {
 }
 ''');
 
-    check(response).suggestions.isEmpty;
+    assertResponseText(response, r'''
+suggestions
+''');
   }
 
   Future<void> _checkContainers({

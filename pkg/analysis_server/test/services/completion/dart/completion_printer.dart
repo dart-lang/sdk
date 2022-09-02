@@ -27,11 +27,26 @@ class CompletionResponsePrinter {
 
   String _getSuggestionKindName(CompletionSuggestion suggestion) {
     final kind = suggestion.kind;
-    if (kind == CompletionSuggestionKind.IDENTIFIER) {
+    if (kind == CompletionSuggestionKind.KEYWORD) {
+      return 'keyword';
+    } else if (kind == CompletionSuggestionKind.IDENTIFIER) {
       final elementKind = suggestion.element?.kind;
-      if (elementKind == ElementKind.TOP_LEVEL_VARIABLE) {
+      if (elementKind == ElementKind.CLASS) {
+        return 'class';
+      } else if (elementKind == ElementKind.FIELD) {
+        return 'field';
+      } else if (elementKind == ElementKind.PARAMETER) {
+        return 'parameter';
+      } else if (elementKind == ElementKind.TOP_LEVEL_VARIABLE) {
         return 'topLevelVariable';
       }
+      throw UnimplementedError('elementKind: $elementKind');
+    } else if (kind == CompletionSuggestionKind.INVOCATION) {
+      final elementKind = suggestion.element?.kind;
+      if (elementKind == ElementKind.CONSTRUCTOR) {
+        return 'constructorInvocation';
+      }
+      throw UnimplementedError('elementKind: $elementKind');
     } else if (kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
       return 'namedArgument';
     }
@@ -82,6 +97,15 @@ class CompletionResponsePrinter {
     }
   }
 
+  void _writeReturnType(CompletionSuggestion suggestion) {
+    if (configuration.withReturnType) {
+      final returnType = suggestion.returnType;
+      if (returnType != null) {
+        _writelnWithIndent('returnType: $returnType');
+      }
+    }
+  }
+
   void _writeSelection(CompletionSuggestion suggestion) {
     if (configuration.withSelection) {
       final offset = suggestion.selectionOffset;
@@ -98,6 +122,7 @@ class CompletionResponsePrinter {
     _writeCompletion(suggestion);
     _withIndent(() {
       _writeSuggestionKind(suggestion);
+      _writeReturnType(suggestion);
       _writeSelection(suggestion);
     });
   }
@@ -143,6 +168,7 @@ class Configuration {
   Sorting sorting;
   bool withKind;
   bool withReplacement;
+  bool withReturnType;
   bool withSelection;
   bool Function(CompletionSuggestion suggestion) filter;
 
@@ -150,6 +176,7 @@ class Configuration {
     this.sorting = Sorting.relevanceThenCompletion,
     this.withKind = true,
     this.withReplacement = true,
+    this.withReturnType = false,
     this.withSelection = true,
     required this.filter,
   });
