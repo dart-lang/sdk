@@ -96,8 +96,11 @@
 
 #### Linter
 
-Updated the Linter to `1.27.0`, which includes changes that
+Updated the Linter to `1.28.0`, which includes changes that
 
+- update `avoid_redundant_argument_values` to work with enum declarations.
+- improve performance for `prefer_contains`.
+- add new lint: `unreachable_from_main`.
 - fix `avoid_redundant_argument_values` when referencing required
   parameters in legacy libraries.
 - improve performance for `use_late_for_private_fields_and_variables`.
