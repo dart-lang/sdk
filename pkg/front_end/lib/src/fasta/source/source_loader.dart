@@ -1448,10 +1448,11 @@ severity: $severity
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
+      Iterator<ClassBuilder> iterator =
+          libraryBuilder.localMembersIteratorOfType();
       while (iterator.moveNext()) {
-        Builder builder = iterator.current;
-        if (builder is ClassBuilder && builder.isMacro) {
+        ClassBuilder builder = iterator.current;
+        if (builder.isMacro) {
           Uri libraryUri = builder.libraryBuilder.importUri;
           if (!target.context.options.macroExecutor
               .libraryIsRegistered(libraryUri)) {

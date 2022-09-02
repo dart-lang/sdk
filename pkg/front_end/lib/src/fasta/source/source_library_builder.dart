@@ -1500,23 +1500,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
-      Builder declaration = iterator.current;
-      if (declaration is SourceClassBuilder) {
-        Class cls = declaration.cls;
-        if (cls != objectClass) {
-          cls.supertype ??= objectClass.asRawSupertype;
-          declaration.supertypeBuilder ??=
-              new NamedTypeBuilder.fromTypeDeclarationBuilder(
-                  objectClassBuilder, const NullabilityBuilder.omitted(),
-                  instanceTypeVariableAccess:
-                      InstanceTypeVariableAccessState.Unexpected);
-        }
-        if (declaration.isMixinApplication) {
-          cls.mixedInType =
-              declaration.mixedInTypeBuilder!.buildMixedInType(this);
-        }
+      SourceClassBuilder declaration = iterator.current;
+      Class cls = declaration.cls;
+      if (cls != objectClass) {
+        cls.supertype ??= objectClass.asRawSupertype;
+        declaration.supertypeBuilder ??=
+            new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                objectClassBuilder, const NullabilityBuilder.omitted(),
+                instanceTypeVariableAccess:
+                    InstanceTypeVariableAccessState.Unexpected);
+      }
+      if (declaration.isMixinApplication) {
+        cls.mixedInType =
+            declaration.mixedInTypeBuilder!.buildMixedInType(this);
       }
     }
   }
@@ -1529,10 +1527,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
-      Builder member = iterator.current;
-      if (member is SourceClassBuilder && !member.isPatch) {
+      SourceClassBuilder member = iterator.current;
+      if (!member.isPatch) {
         sourceClasses.add(member);
       }
     }
@@ -1550,12 +1548,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
-      Builder builder = iterator.current;
-      if (builder is SourceClassBuilder) {
-        count += builder.resolveConstructors(this);
-      }
+      SourceClassBuilder builder = iterator.current;
+      count += builder.resolveConstructors(this);
     }
     return count;
   }
@@ -4854,20 +4850,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<Builder> iterator = localMembersIterator;
+    Iterator<SourceTypeAliasBuilder> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
-      Builder? declaration = iterator.current;
-      while (declaration != null) {
-        if (declaration is SourceTypeAliasBuilder) {
-          declaration.buildTypedefTearOffs(this, (Procedure procedure) {
-            procedure.isStatic = true;
-            if (!declaration!.isPatch && !declaration.isDuplicate) {
-              library.addProcedure(procedure);
-            }
-          });
+      SourceTypeAliasBuilder declaration = iterator.current;
+      declaration.buildTypedefTearOffs(this, (Procedure procedure) {
+        procedure.isStatic = true;
+        if (!declaration.isPatch && !declaration.isDuplicate) {
+          library.addProcedure(procedure);
         }
-        declaration = declaration.next;
-      }
+      });
     }
   }
 }
