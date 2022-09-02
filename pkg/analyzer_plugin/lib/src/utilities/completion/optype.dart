@@ -1144,6 +1144,17 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    final entity = this.entity;
+    if (entity is NamedExpression && offset <= entity.name.colon.offset) {
+      // No values, only names.
+    } else {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     if (identical(entity, node.expression) ||
         (identical(entity, node.semicolon) && node.expression == null)) {

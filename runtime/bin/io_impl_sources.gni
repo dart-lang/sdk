@@ -85,6 +85,7 @@ io_impl_sources = [
   "socket_base_linux.h",
   "socket_base_macos.cc",
   "socket_base_macos.h",
+  "socket_base_posix.cc",
   "socket_base_win.cc",
   "socket_base_win.h",
   "socket_fuchsia.cc",

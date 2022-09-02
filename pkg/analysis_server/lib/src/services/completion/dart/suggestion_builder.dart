@@ -829,6 +829,45 @@ class SuggestionBuilder {
     _addSuggestion(suggestion);
   }
 
+  /// Add a suggestion to add a named argument corresponding to the [field].
+  /// If [appendColon] is `true` then a colon will be added after the name. If
+  /// [appendComma] is `true` then a comma will be included at the end of the
+  /// completion text.
+  void suggestNamedRecordField(RecordTypeNamedField field,
+      {required bool appendColon,
+      required bool appendComma,
+      int? replacementLength}) {
+    final name = field.name;
+    final type = field.type.getDisplayString(
+      withNullability: _isNonNullableByDefault,
+    );
+
+    var completion = name;
+    if (appendColon) {
+      completion += ': ';
+    }
+    final selectionOffset = completion.length;
+
+    if (appendComma) {
+      completion += ',';
+    }
+
+    _addSuggestion(
+      CompletionSuggestion(
+        CompletionSuggestionKind.NAMED_ARGUMENT,
+        Relevance.requiredNamedArgument,
+        completion,
+        selectionOffset,
+        0,
+        false,
+        false,
+        parameterName: name,
+        parameterType: type,
+        replacementLength: replacementLength,
+      ),
+    );
+  }
+
   /// Add a suggestion to replace the [targetId] with an override of the given
   /// [element]. If [invokeSuper] is `true`, then the override will contain an
   /// invocation of an overridden member.

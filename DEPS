@@ -109,7 +109,7 @@ vars = {
   "dart_style_rev": "49bc3ff32b5578b6e19f8fd376d668130941ee29", # manually rev'd
 
   "dartdoc_rev": "d732c8f4eda464a92e0d4e5808d89b5fd2ee34d7",
-  "devtools_rev": "d131d19091f6b89ac89486bd92440a25a523e8b0",
+  "devtools_rev": "40aae5e5ea2118e2b6dee8a8a20f166f7cec4270",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
   "fixnum_rev": "e0b17cc1f639c55a9c24947392c64b5a68992535",

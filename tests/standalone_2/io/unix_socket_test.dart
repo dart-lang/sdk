@@ -440,10 +440,11 @@ Future testHttpServer(String name) async {
 }
 
 Future testFileMessage(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
 
+  final firstMessageReceived = Completer<void>();
   final completer = Completer<bool>();
 
   final address =
@@ -477,6 +478,7 @@ Future testFileMessage(String tempDirPath) async {
         receivedFile.writeStringSync('Hello, server!\n');
         print("server has written to the $receivedFile file");
         socket.write('abc'.codeUnits);
+        firstMessageReceived.complete();
       } else if (e == RawSocketEvent.readClosed) {
         print('server socket got readClosed');
         socket.close();
@@ -489,13 +491,14 @@ Future testFileMessage(String tempDirPath) async {
   final randomAccessFile = file.openSync(mode: FileMode.write);
   // Send a message with sample file.
   final socket = await RawSocket.connect(address, 0);
-  socket.listen((e) {
+  socket.listen((e) async {
     if (e == RawSocketEvent.write) {
       randomAccessFile.writeStringSync('Hello, client!\n');
       socket.sendMessage(<SocketControlMessage>[
         SocketControlMessage.fromHandles(
             <ResourceHandle>[ResourceHandle.fromFile(randomAccessFile)])
       ], 'Hello'.codeUnits);
+      await firstMessageReceived.future;
       print('client sent a message');
       socket.sendMessage(<SocketControlMessage>[], 'EmptyMessage'.codeUnits);
       print('client sent a message without control data');
@@ -513,7 +516,7 @@ Future testFileMessage(String tempDirPath) async {
 }
 
 Future testTooLargeControlMessage(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final completer = Completer<bool>();
@@ -561,7 +564,7 @@ Future testTooLargeControlMessage(String tempDirPath) async {
 }
 
 Future testFileMessageWithShortRead(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
 
@@ -669,7 +672,7 @@ Future<RawServerSocket> createTestServer() async {
 }
 
 Future testSocketMessage(String uniqueName) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
 
@@ -736,7 +739,7 @@ Future testSocketMessage(String uniqueName) async {
 }
 
 Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
 
@@ -829,7 +832,7 @@ Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
 }
 
 Future testDeleteFile(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final address =
@@ -853,7 +856,7 @@ Future testDeleteFile(String tempDirPath) async {
 }
 
 Future testFileStat(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final name = '$tempDirPath/sock';
@@ -865,7 +868,7 @@ Future testFileStat(String tempDirPath) async {
 }
 
 Future testFileRename(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final name1 = '$tempDirPath/sock1';
@@ -883,7 +886,7 @@ Future testFileRename(String tempDirPath) async {
 }
 
 Future testFileCopy(String tempDirPath) async {
-  if (!Platform.isLinux && !Platform.isAndroid) {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   final name1 = '$tempDirPath/sock1';
@@ -969,7 +972,7 @@ void main(List<String> args) async {
     });
   }, (e, st) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
-      Expect.fail("Unexpected exception $e is thrown");
+      Expect.fail("Unexpected exception $e is thrown:\n$st");
     } else {
       Expect.isTrue(e is SocketException);
       Expect.isTrue(e.toString().contains('not available'));
