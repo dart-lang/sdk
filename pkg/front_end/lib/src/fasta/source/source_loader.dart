@@ -1359,14 +1359,14 @@ severity: $severity
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          exported.exportScope
+          NameIterator<Builder> iterator = exported.exportScope
               .filteredNameIterator(
-                  includeDuplicates: false, includeAugmentations: false)
-              .forEach((String name, Builder member) {
-            if (export.addToExportScope(name, member)) {
+                  includeDuplicates: false, includeAugmentations: false);
+          while (iterator.moveNext()) {
+            if (export.addToExportScope(iterator.name, iterator.current)) {
               wasChanged = true;
             }
-          });
+          }
         }
       }
     } while (wasChanged);
@@ -1392,19 +1392,19 @@ severity: $severity
     _builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
-      Iterator<Builder> iterator = library.localMembersIterator;
-      while (iterator.moveNext()) {
-        members.add(iterator.current);
+      Iterator<Builder> memberIterator = library.localMembersIterator;
+      while (memberIterator.moveNext()) {
+        members.add(memberIterator.current);
       }
       List<String> exports = <String>[];
-      library.exportScope
+      NameIterator<Builder> exportsIterator = library.exportScope
           .filteredNameIterator(
-              includeDuplicates: true, includeAugmentations: false)
-          .forEach((String name, Builder member) {
-        if (!members.contains(member)) {
-          exports.add(name);
+              includeDuplicates: true, includeAugmentations: false);
+      while (exportsIterator.moveNext()) {
+        if (!members.contains(exportsIterator.current)) {
+          exports.add(exportsIterator.name);
         }
-      });
+      }
       if (exports.isNotEmpty) {
         print("$uri exports $exports");
       }

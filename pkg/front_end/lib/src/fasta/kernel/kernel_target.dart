@@ -30,6 +30,7 @@ import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
@@ -62,7 +63,7 @@ import '../messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 import '../problems.dart' show unhandled;
-import '../scope.dart' show AmbiguousBuilder, NameIteratorExtension;
+import '../scope.dart' show AmbiguousBuilder;
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
@@ -1322,14 +1323,12 @@ class KernelTarget extends TargetImplementation {
           patchConstructorNames.add(name);
         }
       });
-      builder.constructorScope
-          .filteredNameIterator(
-              includeDuplicates: false, includeAugmentations: true)
-          .forEach((String name, Builder builder) {
-        if (builder is ConstructorBuilder) {
-          patchConstructorNames.remove(name);
-        }
-      });
+      NameIterator<ConstructorBuilder> iterator = builder.constructorScope
+          .filteredNameIterator<ConstructorBuilder>(
+              includeDuplicates: false, includeAugmentations: true);
+      while (iterator.moveNext()) {
+        patchConstructorNames.remove(iterator.name);
+      }
       Set<String> kernelConstructorNames =
           cls.constructors.map((c) => c.name.text).toSet().difference({""});
       return kernelConstructorNames.containsAll(patchConstructorNames);
