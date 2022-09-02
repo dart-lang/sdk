@@ -241,16 +241,17 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    scope
-        .filteredIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true)
-        .forEach((SourceMemberBuilder declaration) {
+    Iterator<SourceMemberBuilder> iterator =
+        scope.filteredIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      SourceMemberBuilder declaration = iterator.current;
       count +=
           declaration.buildBodyNodes((Member member, BuiltMemberKind kind) {
         _buildMember(declaration, member, kind,
             addMembersToLibrary: addMembersToLibrary);
       });
-    });
+    }
     return count;
   }
 
@@ -289,15 +290,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       }
     }
 
-    void build(SourceMemberBuilder member) {
-      member.buildOutlineExpressions(
+    Iterator<SourceMemberBuilder> iterator =
+        scope.filteredIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      iterator.current.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
-
-    scope
-        .filteredIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true)
-        .forEach(build);
   }
 }
 

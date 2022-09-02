@@ -343,10 +343,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
           .registerInitializedField(valuesBuilder);
       constructors[""] = synthesizedDefaultConstructorBuilder;
     } else {
-      constructorScope
-          .filteredNameIterator(
-              includeDuplicates: false, includeAugmentations: true)
-          .forEach((name, member) {
+      Iterator<MemberBuilder> iterator = constructorScope.filteredNameIterator(
+          includeDuplicates: false, includeAugmentations: true);
+      while (iterator.moveNext()) {
+        MemberBuilder member = iterator.current;
         if (member is DeclaredSourceConstructorBuilder) {
           member.ensureGrowableFormals();
           member.formals!.insert(
@@ -370,7 +370,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   libraryBuilder,
                   charOffset));
         }
-      });
+      }
     }
 
     if (scope.lookupLocalMember("toString", setter: false) == null) {

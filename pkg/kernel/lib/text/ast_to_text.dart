@@ -2896,6 +2896,26 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitRecordConstant(RecordConstant node) {
+    writeWord('const');
+    writeSpace();
+    writeSymbol('(');
+    writeList(node.positional, writeConstantReference);
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) writeComma();
+      writeSymbol('{');
+      writeList(node.named.entries, (MapEntry<String, Constant> entry) {
+        writeWord(entry.key);
+        writeSymbol(':');
+        writeConstantReference(entry.value);
+      });
+      writeSymbol('}');
+    }
+    writeSymbol(')');
+    endLine();
+  }
+
+  @override
   void visitInstantiationConstant(InstantiationConstant node) {
     writeIndentation();
     writeConstantReference(node);

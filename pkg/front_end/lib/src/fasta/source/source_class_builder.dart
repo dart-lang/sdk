@@ -285,13 +285,15 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    constructorScope
-        .filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: true)
-        .forEach((String name, Builder constructor) {
+    NameIterator<MemberBuilder> iterator =
+        constructorScope.filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      String name = iterator.name;
+      MemberBuilder constructor = iterator.current;
       Builder? member = scope.lookupLocalMember(name, setter: false);
-      if (member == null) return;
-      if (!member.isStatic) return;
+      if (member == null) continue;
+      if (!member.isStatic) continue;
       // TODO(ahe): Revisit these messages. It seems like the last two should
       // be `context` parameter to this message.
       addProblem(templateConflictsWithMember.withArguments(name),
@@ -308,7 +310,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             member.charOffset,
             noLength);
       }
-    });
+    }
 
     scope.forEachLocalSetter((String name, Builder setter) {
       Builder? constructor = constructorScope.lookupLocalMember(name);
@@ -1677,10 +1679,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     int count = constructorReferences!.length;
     if (count != 0) {
-      constructorScope
-          .filteredIterator(
-              parent: this, includeDuplicates: true, includeAugmentations: true)
-          .forEach((MemberBuilder declaration) {
+      Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
+          parent: this, includeDuplicates: true, includeAugmentations: true);
+      while (iterator.moveNext()) {
+        MemberBuilder declaration = iterator.current;
         if (declaration.parent?.origin != origin) {
           unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
               fileUri);
@@ -1795,7 +1797,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             }
           }
         }
-      });
+      }
     }
     return count;
   }

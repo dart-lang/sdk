@@ -1385,18 +1385,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       import.finalizeImports(this);
     }
     if (!explicitCoreImport) {
-      loader.coreLibrary.exportScope
+      NameIterator<Builder> iterator = loader.coreLibrary.exportScope
           .filteredNameIterator(
-              includeDuplicates: false, includeAugmentations: false)
-          .forEach((String name, Builder member) {
-        addToScope(name, member, -1, true);
-      });
+              includeDuplicates: false, includeAugmentations: false);
+      while (iterator.moveNext()) {
+        addToScope(iterator.name, iterator.current, -1, true);
+      }
     }
 
-    exportScope
-        .filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: false)
-        .forEach((String name, Builder member) {
+    NameIterator<Builder> iterator = exportScope.filteredNameIterator(
+        includeDuplicates: false, includeAugmentations: false);
+    while (iterator.moveNext()) {
+      String name = iterator.name;
+      Builder member = iterator.current;
       if (member.parent != this) {
         if (member is DynamicTypeDeclarationBuilder) {
           assert(name == 'dynamic',
@@ -1446,7 +1447,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         }
       }
-    });
+    }
   }
 
   @override
@@ -3753,10 +3754,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           count += computeDefaultTypesForVariables(declaration.typeVariables,
               inErrorRecovery: issues.isNotEmpty);
 
-          declaration.constructorScope
-              .filteredNameIterator(
-                  includeDuplicates: false, includeAugmentations: true)
-              .forEach((String name, Builder member) {
+          Iterator<MemberBuilder> iterator = declaration.constructorScope
+              .filteredIterator(
+                  includeDuplicates: false, includeAugmentations: true);
+          while (iterator.moveNext()) {
+            MemberBuilder member = iterator.current;
             List<FormalParameterBuilder>? formals;
             if (member is SourceFactoryBuilder) {
               assert(member.isFactory,
@@ -3780,7 +3782,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     formal.type);
               }
             }
-          });
+          }
         }
         declaration.forEach((String name, Builder member) {
           if (member is SourceProcedureBuilder) {
