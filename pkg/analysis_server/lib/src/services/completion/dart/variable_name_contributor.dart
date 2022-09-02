@@ -36,6 +36,11 @@ class VariableNameContributor extends DartCompletionContributor {
         if (expression is Identifier) {
           strName = _getStringName(expression);
         }
+      } else if (node is RecordTypeAnnotationField) {
+        final identifier = _typeAnnotationIdentifier(node.type);
+        if (identifier != null) {
+          strName = _getStringName(identifier);
+        }
       } else if (node is SimpleFormalParameter) {
         var identifier = _formalParameterTypeIdentifier2(node);
         if (identifier != null) {
