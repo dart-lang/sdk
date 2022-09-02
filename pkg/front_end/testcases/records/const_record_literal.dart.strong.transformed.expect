@@ -14,8 +14,8 @@ static field dynamic h = #C6;
 constants  {
   #C1 = 1
   #C2 = 2
-  #C3 = RecordConstant
-  #C4 = RecordConstant
-  #C5 = RecordConstant
-  #C6 = RecordConstant
+const (#C1, #C2)
+const ({a:#C1, b:#C2})
+const ({a:#C3, b:#C4})
+const (#C5, #C3)
 }
