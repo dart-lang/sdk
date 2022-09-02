@@ -8,10 +8,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
 
@@ -103,29 +101,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    // The following map contains for every declaration the set of the
-    // declarations it references.
-    var dependencies = {
-      for (var declaration in topDeclarations)
-        declaration: declaration
-            .traverseNodesInDFS()
-            .expand((e) => [
-                  if (e is SimpleIdentifier) e.staticElement,
-                  // with `id++` staticElement of `id` is null
-                  if (e is CompoundAssignmentExpression) ...[
-                    e.readElement,
-                    e.writeElement,
-                  ],
-                ])
-            .whereNotNull()
-            .map((e) => e.thisOrAncestorMatching((a) =>
-                a.enclosingElement3 == null ||
-                a.enclosingElement3 is CompilationUnitElement))
-            .map((e) => declarationByElement[e])
-            .whereNotNull()
-            .where((e) => e != declaration)
-            .toSet(),
-    };
+    // The set of the declarations which each top-level declaration references.
+    var dependencies = <Declaration, Set<Declaration>>{};
+    for (var declaration in topDeclarations) {
+      var visitor = _IdentifierVisitor(declarationByElement);
+      declaration.accept(visitor);
+      dependencies[declaration] = visitor.declarations;
+    }
 
     var usedMembers = entryPoints.toSet();
     // The following variable will be used to visit every reachable declaration
@@ -133,12 +115,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     // element is marked as used and we add its dependencies in the declaration
     // list to traverse. Once this list is empty `usedMembers` contains every
     // declarations reachable from an entry-point.
-    var toTraverse = Queue.of(usedMembers);
-    while (toTraverse.isNotEmpty) {
-      var declaration = toTraverse.removeLast();
+    var declarationsToCheck = Queue.of(usedMembers);
+    while (declarationsToCheck.isNotEmpty) {
+      var declaration = declarationsToCheck.removeLast();
       for (var dep in dependencies[declaration]!) {
         if (usedMembers.add(dep)) {
-          toTraverse.add(dep);
+          declarationsToCheck.add(dep);
         }
       }
     }
@@ -176,6 +158,65 @@ class _Visitor extends SimpleAstVisitor<void> {
     return name != null &&
         name.hasKnownValue &&
         name.toStringValue() == 'vm:entry-point';
+  }
+}
+
+/// A visitor which gathers the declarations of the identifiers it visits.
+class _IdentifierVisitor extends RecursiveAstVisitor {
+  Map<Element, Declaration> declarationMap;
+
+  Set<Declaration> declarations = {};
+
+  _IdentifierVisitor(this.declarationMap);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _visitCompoundAssignmentExpression(node);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    _visitCompoundAssignmentExpression(node);
+    super.visitPostfixExpression(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _visitCompoundAssignmentExpression(node);
+    super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var e = node.staticElement;
+    if (e != null) {
+      _addDeclaration(e);
+    }
+    super.visitSimpleIdentifier(node);
+  }
+
+  void _visitCompoundAssignmentExpression(CompoundAssignmentExpression node) {
+    var readElement = node.readElement;
+    if (readElement != null) {
+      _addDeclaration(readElement);
+    }
+    var writeElement = node.writeElement;
+    if (writeElement != null) {
+      _addDeclaration(writeElement);
+    }
+  }
+
+  /// Adds the declaration of the top-level element which contains [element] to
+  /// [declarations], if it is found in [declarationMap].
+  void _addDeclaration(Element element) {
+    var enclosingElement = element.thisOrAncestorMatching((a) =>
+        a.enclosingElement3 == null ||
+        a.enclosingElement3 is CompilationUnitElement);
+    var enclosingDeclaration = declarationMap[enclosingElement];
+    if (enclosingDeclaration != null) {
+      declarations.add(enclosingDeclaration);
+    }
   }
 }
 
