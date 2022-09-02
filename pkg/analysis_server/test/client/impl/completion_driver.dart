@@ -48,7 +48,7 @@ CompletionSuggestion _createCompletionSuggestionFromAvailableSuggestion(
     suggestionKind,
     suggestionSetRelevance + relevanceBoost,
     suggestion.label,
-    0,
+    suggestion.label.length,
     0,
     suggestion.element.isDeprecated,
     false,

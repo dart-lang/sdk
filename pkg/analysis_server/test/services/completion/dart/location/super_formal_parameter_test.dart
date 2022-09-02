@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -30,6 +29,16 @@ class SuperFormalParameterTest2 extends AbstractCompletionDriverTest
 }
 
 mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) => true,
+      withReturnType: true,
+    );
+  }
+
   Future<void> test_explicit_optionalNamed_hasArgument_named() async {
     var response = await getTestCodeSuggestions('''
 class A {
@@ -41,14 +50,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_explicit_optionalNamed_hasArgument_positional() async {
@@ -62,18 +69,15 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   /// It is an error, but the user already typed `super.`, so maybe do it.
@@ -88,14 +92,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+''');
   }
 
   Future<void> test_explicitNamed_noOther() async {
@@ -110,14 +112,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+''');
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_notSuper() async {
@@ -131,18 +131,15 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_notSuper2() async {
@@ -156,14 +153,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_super() async {
@@ -177,14 +172,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_super2() async {
@@ -198,14 +191,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+''');
   }
 
   Future<void> test_implicit_optionalNamed_hasPositional_notSuper() async {
@@ -219,18 +210,15 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_optionalNamed_hasPositional_super() async {
@@ -244,14 +232,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_optionalNamed_noOther() async {
@@ -265,18 +251,15 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-        (suggestion) => suggestion
-          ..completion.isEqualTo('third')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  second
+    kind: parameter
+    returnType: int
+  third
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_optionalPositional_hasPositional_notSuper() async {
@@ -290,14 +273,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+''');
   }
 
   Future<void> test_implicit_optionalPositional_hasPositional_super() async {
@@ -311,14 +292,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_optionalPositional_hasPositional_super2() async {
@@ -334,14 +313,12 @@ class B extends A {
 
     // It does not matter what is the name of the positional parameter.
     // Here `super.second` consumes `int first`.
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_optionalPositional_noOther() async {
@@ -355,14 +332,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+''');
   }
 
   Future<void> test_implicit_requiredPositional_hasPositional_notSuper() async {
@@ -376,14 +351,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+''');
   }
 
   Future<void> test_implicit_requiredPositional_hasPositional_super() async {
@@ -397,14 +370,12 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_requiredPositional_hasPositional_super2() async {
@@ -420,14 +391,12 @@ class B extends A {
 
     // It does not matter what is the name of the positional parameter.
     // Here `super.second` consumes `int first`.
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('second')
-          ..isParameter
-          ..returnType.isEqualTo('double'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  second
+    kind: parameter
+    returnType: double
+''');
   }
 
   Future<void> test_implicit_requiredPositional_noOther() async {
@@ -442,13 +411,11 @@ class B extends A {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo('first')
-          ..isParameter
-          ..returnType.isEqualTo('int'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  first
+    kind: parameter
+    returnType: int
+''');
   }
 }
