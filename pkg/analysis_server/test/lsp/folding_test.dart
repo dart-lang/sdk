@@ -87,15 +87,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    final ranges = rangesFromMarkers(content);
-    final expectedRegions = ranges
-        .map((range) => FoldingRange(
-              startLine: range.start.line,
-              startCharacter: range.start.character,
-              endLine: range.end.line,
-              endCharacter: range.end.character,
-            ))
-        .toList();
+    final expectedRegions = _expectedRangesFromMarkers(content);
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -233,15 +225,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    final ranges = rangesFromMarkers(content);
-    final expectedRegions = ranges
-        .map((range) => FoldingRange(
-              startLine: range.start.line,
-              startCharacter: range.start.character,
-              endLine: range.end.line,
-              endCharacter: range.end.character,
-            ))
-        .toList();
+    final expectedRegions = _expectedRangesFromMarkers(content);
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -256,6 +240,25 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     final regions = await getFoldingRegions(pubspecFileUri);
     expect(regions, isEmpty);
+  }
+
+  Future<void> test_recordLiteral() async {
+    final content = '''
+    void f() {
+      var r = ([[
+        2,
+        'string',
+      ]]);
+    }
+    ''';
+
+    final expectedRegions = _expectedRangesFromMarkers(content);
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, containsAll(expectedRegions));
   }
 
   Future<void> test_whileLoop() async {
@@ -278,8 +281,17 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     }
     ''';
 
-    final ranges = rangesFromMarkers(content);
-    final expectedRegions = ranges
+    final expectedRegions = _expectedRangesFromMarkers(content);
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, containsAll(expectedRegions));
+  }
+
+  List<FoldingRange> _expectedRangesFromMarkers(String content) {
+    return rangesFromMarkers(content)
         .map((range) => FoldingRange(
               startLine: range.start.line,
               startCharacter: range.start.character,
@@ -287,12 +299,6 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
               endCharacter: range.end.character,
             ))
         .toList();
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-
-    final regions = await getFoldingRegions(mainFileUri);
-    expect(regions, containsAll(expectedRegions));
   }
 
   FoldingRange _toFoldingRange(Range range, FoldingRangeKind? kind) {
