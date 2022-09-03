@@ -1075,6 +1075,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_RECORD);
+    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
+    super.visitRecordLiteral(node);
+  }
+
+  @override
   void visitRethrowExpression(RethrowExpression node) {
     computer._addRegion_token(node.rethrowKeyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});

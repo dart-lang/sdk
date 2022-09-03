@@ -31,7 +31,9 @@ class CompletionResponsePrinter {
       return 'keyword';
     } else if (kind == CompletionSuggestionKind.IDENTIFIER) {
       final elementKind = suggestion.element?.kind;
-      if (elementKind == ElementKind.CLASS) {
+      if (elementKind == null) {
+        return 'identifier';
+      } else if (elementKind == ElementKind.CLASS) {
         return 'class';
       } else if (elementKind == ElementKind.FIELD) {
         return 'field';

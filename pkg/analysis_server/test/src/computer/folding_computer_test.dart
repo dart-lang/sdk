@@ -406,6 +406,29 @@ main2() {/*1:INC*/
     _compareRegions(regions, content);
   }
 
+  Future<void> test_literal_record() async {
+    var content = '''
+// Content before
+
+void f() {/*1:INC*/
+  final r = (/*2:INC*/
+    "one",
+    2,
+    (/*3:INC*/
+    'nested',
+    3,
+    'field record',
+    /*3:INC:LITERAL*/),
+  /*2:INC:LITERAL*/);
+/*1:INC:FUNCTION_BODY*/}
+
+// Content after
+''';
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
   Future<void> test_mixin() async {
     var content = '''
 // Content before

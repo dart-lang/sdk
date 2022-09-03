@@ -497,6 +497,12 @@ class DartCompletionRequest {
       return '';
     }
 
+    if (entity is Token) {
+      if (entity.end == offset && entity.isKeywordOrIdentifier) {
+        return fromToken(entity);
+      }
+    }
+
     while (entity is AstNode) {
       if (entity is SimpleIdentifier) {
         return fromToken(entity.token);

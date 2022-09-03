@@ -13,6 +13,7 @@ import 'enum_test.dart' as enum_;
 import 'field_formal_parameter_test.dart' as field_formal_parameter;
 import 'named_expression_test.dart' as named_expression;
 import 'record_literal_test.dart' as record_literal;
+import 'record_type_annotation_test.dart' as record_type_annotation;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 
 /// Tests suggestions produced at specific locations.
@@ -27,6 +28,7 @@ void main() {
     field_formal_parameter.main();
     named_expression.main();
     record_literal.main();
+    record_type_annotation.main();
     super_formal_parameter.main();
   });
 }

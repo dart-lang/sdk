@@ -1255,6 +1255,12 @@ part of my.lib.name;
         "const <int, String>{1: 'a', 2: 'b', 3: 'c'}");
   }
 
+  Future<void> test_LITERAL_RECORD() async {
+    addTestFile('var r = (1, 2, c: 3);');
+    await prepareHighlights();
+    assertHasStringRegion(HighlightRegionType.LITERAL_RECORD, '(1, 2, c: 3)');
+  }
+
   Future<void> test_LITERAL_STRING() async {
     addTestFile('var V = "abc";');
     await prepareHighlights();

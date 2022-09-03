@@ -1145,6 +1145,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
+    optype.completionLocation = 'RecordLiteral_fields';
+
     final entity = this.entity;
     if (entity is NamedExpression && offset <= entity.name.colon.offset) {
       // No values, only names.
@@ -1152,6 +1154,48 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    optype.completionLocation = 'RecordTypeAnnotation_positionalFields';
+
+    final entity = this.entity;
+    if (entity is Token && entity == node.rightParenthesis) {
+      final previous = entity.previous;
+      if (previous != null) {
+        if (previous.type != TokenType.COMMA) {
+          optype.includeVarNameSuggestions = true;
+          return;
+        }
+      }
+    }
+
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    optype.completionLocation = 'RecordTypeAnnotationNamedField_name';
+    optype.includeVarNameSuggestions = true;
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+    RecordTypeAnnotationNamedFields node,
+  ) {
+    optype.completionLocation = 'RecordTypeAnnotationNamedFields_fields';
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    optype.completionLocation = 'RecordTypeAnnotationPositionalField_name';
+    optype.includeVarNameSuggestions = true;
   }
 
   @override
