@@ -1070,7 +1070,7 @@ void f(C c) {
 ''');
     var hover = await prepareHover('m((1');
     expect(hover.containingLibraryName, 'package:test/test.dart');
-    expect(hover.containingLibraryPath, '/home/test/lib/test.dart');
+    expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'C');
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'List<int> m(int i, (int, String) r)');
