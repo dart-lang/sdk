@@ -3739,6 +3739,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
+    void processSourceProcedureBuilder(SourceProcedureBuilder member) {
+      List<NonSimplicityIssue> issues =
+          getNonSimplicityIssuesForTypeVariables(member.typeVariables);
+      if (member.formals != null && member.formals!.isNotEmpty) {
+        for (FormalParameterBuilder formal in member.formals!) {
+          issues.addAll(getInboundReferenceIssuesInType(formal.type));
+          _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
+        }
+      }
+      if (member.returnType is! OmittedTypeBuilder) {
+        issues.addAll(getInboundReferenceIssuesInType(member.returnType));
+        _recursivelyReportGenericFunctionTypesAsBoundsForType(
+            member.returnType);
+      }
+      reportIssues(issues);
+      count += computeDefaultTypesForVariables(member.typeVariables,
+          inErrorRecovery: issues.isNotEmpty);
+    }
+
     for (Builder declaration
         in _libraryTypeParameterScopeBuilder.members!.values) {
       if (declaration is ClassBuilder) {
@@ -3782,23 +3801,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         declaration.forEach((String name, Builder member) {
           if (member is SourceProcedureBuilder) {
-            List<NonSimplicityIssue> issues =
-                getNonSimplicityIssuesForTypeVariables(member.typeVariables);
-            if (member.formals != null && member.formals!.isNotEmpty) {
-              for (FormalParameterBuilder formal in member.formals!) {
-                issues.addAll(getInboundReferenceIssuesInType(formal.type));
-                _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                    formal.type);
-              }
-            }
-            if (member.returnType is! OmittedTypeBuilder) {
-              issues.addAll(getInboundReferenceIssuesInType(member.returnType));
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                  member.returnType);
-            }
-            reportIssues(issues);
-            count += computeDefaultTypesForVariables(member.typeVariables,
-                inErrorRecovery: issues.isNotEmpty);
+            processSourceProcedureBuilder(member);
           } else {
             assert(member is SourceFieldBuilder,
                 "Unexpected class member $member (${member.runtimeType}).");
@@ -3849,23 +3852,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         declaration.forEach((String name, Builder member) {
           if (member is SourceProcedureBuilder) {
-            List<NonSimplicityIssue> issues =
-                getNonSimplicityIssuesForTypeVariables(member.typeVariables);
-            if (member.formals != null && member.formals!.isNotEmpty) {
-              for (FormalParameterBuilder formal in member.formals!) {
-                issues.addAll(getInboundReferenceIssuesInType(formal.type));
-                _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                    formal.type);
-              }
-            }
-            if (member.returnType is! OmittedTypeBuilder) {
-              issues.addAll(getInboundReferenceIssuesInType(member.returnType));
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                  member.returnType);
-            }
-            reportIssues(issues);
-            count += computeDefaultTypesForVariables(member.typeVariables,
-                inErrorRecovery: issues.isNotEmpty);
+            processSourceProcedureBuilder(member);
           } else if (member is SourceFieldBuilder) {
             if (member.type is! OmittedTypeBuilder) {
               _recursivelyReportGenericFunctionTypesAsBoundsForType(
