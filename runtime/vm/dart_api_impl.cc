@@ -1036,7 +1036,9 @@ static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
       FinalizablePersistentHandle::New(thread->isolate_group(), ref, peer,
                                        callback, external_allocation_size,
                                        /*auto_delete=*/false);
-  return finalizable_ref->ApiWeakPersistentHandle();
+  return finalizable_ref == nullptr
+             ? nullptr
+             : finalizable_ref->ApiWeakPersistentHandle();
 }
 
 static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
@@ -1070,7 +1072,8 @@ static Dart_FinalizableHandle AllocateFinalizableHandle(
       FinalizablePersistentHandle::New(thread->isolate_group(), ref, peer,
                                        callback, external_allocation_size,
                                        /*auto_delete=*/true);
-  return finalizable_ref->ApiFinalizableHandle();
+  return finalizable_ref == nullptr ? nullptr
+                                    : finalizable_ref->ApiFinalizableHandle();
 }
 
 static Dart_FinalizableHandle AllocateFinalizableHandle(
