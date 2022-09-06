@@ -1504,6 +1504,11 @@ class NodeLintRegistry {
     _forRecordLiterals.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addRecordTypeAnnotation(LintRule linter, AstVisitor visitor) {
+    _forRecordTypeAnnotation
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addRedirectingConstructorInvocation(
       LintRule linter, AstVisitor visitor) {
     _forRedirectingConstructorInvocation
