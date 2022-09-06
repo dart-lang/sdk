@@ -35,6 +35,8 @@ class Module with SerializerMixin {
 
   int functionNameCount = 0;
 
+  static const int memoryBlockSize = 0x10000;
+
   /// Create a new, initially empty, module.
   ///
   /// The [watchPoints] is a list of byte offsets within the final module of
@@ -170,7 +172,8 @@ class Module with SerializerMixin {
     initialContent ??= Uint8List(0);
     assert((memory != null) == (offset != null));
     assert(memory == null ||
-        offset! >= 0 && offset + initialContent.length <= memory.minSize);
+        offset! >= 0 &&
+            offset + initialContent.length <= memory.minSize * memoryBlockSize);
     final DataSegment data =
         DataSegment(dataSegments.length, initialContent, memory, offset);
     dataSegments.add(data);
