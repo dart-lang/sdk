@@ -21,6 +21,8 @@ main() {
 }
 
 @reflectiveTest
+// TODO(srawlins): Re-enable?
+// ignore: unreachable_from_main
 class ApplyCheckElementTextReplacements {
   test_applyReplacements() {
     applyCheckElementTextReplacements();

@@ -2118,6 +2118,8 @@ class StringInterpolationTest extends ParserTestCase {
 }
 
 @reflectiveTest
+// TODO(srawlins): Re-enable?
+// ignore: unreachable_from_main
 class SuperFormalParameterTest {
   void test_endToken_noParameters() {
     SuperFormalParameter parameter =
