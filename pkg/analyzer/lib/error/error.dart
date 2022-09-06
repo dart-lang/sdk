@@ -48,7 +48,6 @@ const List<ErrorCode> errorCodeValues = [
   AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
   AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED,
   AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED,
-  AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
   AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
   AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
   AnalysisOptionsWarningCode.INVALID_OPTION,

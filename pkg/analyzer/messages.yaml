@@ -71,13 +71,6 @@ AnalysisOptionsHintCode:
       An error code indicating that the enablePreviewDart2 setting is
       deprecated.
 AnalysisOptionsWarningCode:
-  ANALYSIS_OPTION_DEPRECATED:
-    problemMessage: "The option '{0}' is no longer supported."
-    comment: |-
-      An error code indicating that the given option is deprecated.
-
-      Parameters:
-      0: the name of the option
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"
     comment: |-
