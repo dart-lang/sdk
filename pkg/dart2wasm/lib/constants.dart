@@ -175,8 +175,8 @@ class Constants {
           ..add(oneByteStringsAsBytes))
         .toBytes();
 
-    w.Memory stringMemory =
-        m.addMemory(false, stringsAsBytes.length, stringsAsBytes.length);
+    double minSize = stringsAsBytes.length / w.Module.memoryBlockSize;
+    w.Memory stringMemory = m.addMemory(false, minSize.ceil(), minSize.ceil());
     m.addDataSegment(stringsAsBytes, stringMemory, 0);
     makeStringFunctionBody(translator.oneByteStringClass, oneByteStringFunction,
         (b) {

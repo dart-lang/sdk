@@ -1667,6 +1667,1054 @@ AssignmentExpression
 ''');
   }
 
+  /// Has record getter:    false
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_named_FFFF_compound() async {
+    await assertErrorsInCode(r'''
+void f(({int bar}) r) {
+  r.foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int bar})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_named_FFFF_simple() async {
+    await assertErrorsInCode(r'''
+void f(({int bar}) r) {
+  r.foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int bar})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_named_FFFT_compound() async {
+    await assertErrorsInCode(r'''
+extension E on ({int bar}) {
+  set foo(int _) {}
+}
+
+void f(({int bar}) r) {
+  r.foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 3),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int bar})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: self::@extension::E::@setter::foo
+  readType: dynamic
+  writeElement: self::@extension::E::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_named_FFFT_simple() async {
+    await assertNoErrorsInCode(r'''
+extension E on ({int bar}) {
+  set foo(int _) {}
+}
+
+void f(({int bar}) r) {
+  r.foo = 0;
+}
+''');
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int bar})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@extension::E::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_named_FTFF_compound() async {
+    await assertErrorsInCode(r'''
+extension E on ({int bar}) {
+  int get foo => 0;
+}
+
+void f(({int bar}) r) {
+  r.foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int bar})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: self::@extension::E::@getter::foo
+  readType: int
+  writeElement: self::@extension::E::@getter::foo
+  writeType: dynamic
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_named_FTFF_simple() async {
+    await assertErrorsInCode(r'''
+extension E on ({int bar}) {
+  int get foo => 0;
+}
+
+void f(({int bar}) r) {
+  r.foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int bar})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@getter::foo
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_named_FTFT_compound() async {
+    await assertNoErrorsInCode(r'''
+extension E on ({int bar}) {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f(({int bar}) r) {
+  r.foo += 0;
+}
+''');
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int bar})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: self::@extension::E::@getter::foo
+  readType: int
+  writeElement: self::@extension::E::@setter::foo
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_named_FTFT_simple() async {
+    await assertNoErrorsInCode(r'''
+extension E on ({int bar}) {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f(({int bar}) r) {
+  r.foo = 0;
+}
+''');
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({int bar})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@extension::E::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_named_TFFF_compound() async {
+    await assertErrorsInCode(r'''
+void f(({int foo, String bar}) r) {
+  r.foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({String bar, int foo})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: <null>
+  readType: int
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_named_TFFF_simple() async {
+    await assertErrorsInCode(r'''
+void f(({int foo, String bar}) r) {
+  r.foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({String bar, int foo})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_named_TFFT_compound() async {
+    await assertErrorsInCode(r'''
+extension E on ({int foo, String bar}) {
+  set foo(int _) {}
+}
+
+void f(({int foo, String bar}) r) {
+  r.foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({String bar, int foo})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: <null>
+  readType: int
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_named_TFFT_simple() async {
+    await assertErrorsInCode(r'''
+extension E on ({int foo, String bar}) {
+  set foo(int _) {}
+}
+
+void f(({int foo, String bar}) r) {
+  r.foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({String bar, int foo})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_named_TTFF_compound() async {
+    await assertErrorsInCode(r'''
+extension E on ({int foo, String bar}) {
+  int get foo => 0;
+}
+ 
+void f(({int foo, String bar}) r) {
+  r.foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 105, 3),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({String bar, int foo})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: <null>
+  readType: int
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_named_TTFF_simple() async {
+    await assertErrorsInCode(r'''
+extension E on ({int foo, String bar}) {
+  int get foo => 0;
+}
+ 
+void f(({int foo, String bar}) r) {
+  r.foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 105, 3),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({String bar, int foo})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_named_TTFT_compound() async {
+    await assertErrorsInCode(r'''
+extension E on ({int foo, String bar}) {
+  int get foo => 0;
+  set foo(int _) {}
+}
+ 
+void f(({int foo, String bar}) r) {
+  r.foo += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 125, 3),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({String bar, int foo})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: <null>
+  readType: int
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_named_TTFT_simple() async {
+    await assertErrorsInCode(r'''
+extension E on ({int foo, String bar}) {
+  int get foo => 0;
+  set foo(int _) {}
+}
+ 
+void f(({int foo, String bar}) r) {
+  r.foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 125, 3),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({String bar, int foo})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_positional_FFFF_compound() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$3 += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $3
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_positional_FFFF_simple() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$3 = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $3
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_positional_FTFF_compound() async {
+    await assertErrorsInCode(r'''
+extension E on (int, String) {
+  int get $2 => 0;
+}
+
+void f((int, String) r) {
+  r.$2 += 0;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $2
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: self::@extension::E::@getter::$2
+  readType: int
+  writeElement: self::@extension::E::@getter::$2
+  writeType: dynamic
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    false
+  /// Has extension getter: true
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_positional_FTFF_simple() async {
+    await assertErrorsInCode(r'''
+extension E on (int, String) {
+  int get $2 => 0;
+}
+
+void f((int, String) r) {
+  r.$2 = 0;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $2
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@getter::$2
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_positional_TFFF_compound() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$0 += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $0
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: <null>
+  readType: int
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: false
+  test_propertyAccess_recordTypeField_positional_TFFF_simple() async {
+    await assertErrorsInCode(r'''
+void f((int, String) r) {
+  r.$0 = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $0
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_positional_TFFT_compound() async {
+    await assertErrorsInCode(r'''
+extension E on (int, String) {
+  set $0(int _) {}
+}
+
+void f((int, String) r) {
+  r.$0 += 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
+    ]);
+
+    final node = findNode.assignment('+= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $0
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  readElement: <null>
+  readType: int
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  /// Has record getter:    true
+  /// Has extension getter: false
+  /// Has record setter:    false
+  /// Has extension setter: true
+  test_propertyAccess_recordTypeField_positional_TFFT_simple() async {
+    await assertErrorsInCode(r'''
+extension E on (int, String) {
+  set $0(int _) {}
+}
+
+void f((int, String) r) {
+  r.$0 = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2),
+    ]);
+
+    final node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (int, String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $0
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
   test_propertyAccess_super_compound() async {
     await assertNoErrorsInCode(r'''
 class A {

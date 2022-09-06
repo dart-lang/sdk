@@ -663,6 +663,24 @@ void f() {}
       ..isReferencedAt('A>()', false);
   }
 
+  test_isReferencedBy_ClassElement_inRecordTypeAnnotation_named() async {
+    await _indexTestUnit('''
+class A {}
+
+void f(({int foo, A bar}) r) {}
+''');
+    assertThat(findElement.class_('A')).isReferencedAt('A bar', false);
+  }
+
+  test_isReferencedBy_ClassElement_inRecordTypeAnnotation_positional() async {
+    await _indexTestUnit('''
+class A {}
+
+void f((int, A) r) {}
+''');
+    assertThat(findElement.class_('A')).isReferencedAt('A)', false);
+  }
+
   test_isReferencedBy_ClassElement_inTypeAlias() async {
     await _indexTestUnit('''
 class A<T> {}

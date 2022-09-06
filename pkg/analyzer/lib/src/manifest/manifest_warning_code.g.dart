@@ -52,6 +52,9 @@ class ManifestWarningCode extends ErrorCode {
 
   ///  A code indicating that a specified permission is not supported on Chrome
   ///  OS.
+  ///
+  ///  Parameters:
+  ///  0: the name of the feature tag
   static const ManifestWarningCode PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE =
       ManifestWarningCode(
     'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
@@ -74,6 +77,9 @@ class ManifestWarningCode extends ErrorCode {
   );
 
   ///  A code indicating that a specified feature is not supported on Chrome OS.
+  ///
+  ///  Parameters:
+  ///  0: the name of the feature
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_FEATURE =
       ManifestWarningCode(
     'UNSUPPORTED_CHROME_OS_FEATURE',
@@ -85,6 +91,9 @@ class ManifestWarningCode extends ErrorCode {
 
   ///  A code indicating that a specified hardware feature is not supported on
   ///  Chrome OS.
+  ///
+  ///  Parameters:
+  ///  0: the name of the feature
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_HARDWARE =
       ManifestWarningCode(
     'UNSUPPORTED_CHROME_OS_HARDWARE',

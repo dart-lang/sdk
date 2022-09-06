@@ -660,12 +660,7 @@ class StrongModeOptionValueValidator extends OptionsValidator {
             key = k.value?.toString();
             if (!AnalyzerOptions.strongModeOptions.contains(key)) {
               _builder.reportError(reporter, AnalyzerOptions.strongMode, k);
-            } else if (key == AnalyzerOptions.declarationCasts) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
-                  k.span,
-                  [AnalyzerOptions.declarationCasts]);
-            } else {
+            } else if (key != AnalyzerOptions.declarationCasts) {
               // If we have a valid key, go on and check the value.
               validKey = true;
             }

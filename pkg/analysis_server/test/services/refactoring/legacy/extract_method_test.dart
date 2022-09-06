@@ -1713,6 +1713,40 @@ int res(Foo<String, int> foo, String s) => foo(s);
 ''');
   }
 
+  Future<void> test_singleExpression_recordType_named() async {
+    await indexTestUnit('''
+void f() {
+  var r = (f1: 0, f2: true);
+}
+''');
+    _createRefactoringForString('(f1: 0, f2: true)');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+  var r = res();
+}
+
+({int f1, bool f2}) res() => (f1: 0, f2: true);
+''');
+  }
+
+  Future<void> test_singleExpression_recordType_positional() async {
+    await indexTestUnit('''
+void f() {
+  var r = (0, true);
+}
+''');
+    _createRefactoringForString('(0, true)');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+  var r = res();
+}
+
+(int, bool) res() => (0, true);
+''');
+  }
+
   Future<void> test_singleExpression_returnType_importLibrary() async {
     _addLibraryReturningAsync();
     await indexTestUnit('''
@@ -3055,6 +3089,29 @@ int f() {
 
 int res() {
   return 42;
+}
+''');
+  }
+
+  Future<void> test_statements_topFunction_parameters_recordType() async {
+    await indexTestUnit('''
+void f((int, String) r) {
+// start
+  print(r);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f((int, String) r) {
+// start
+  res(r);
+// end
+}
+
+void res((int, String) r) {
+  print(r);
 }
 ''');
   }

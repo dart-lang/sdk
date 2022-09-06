@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -21,35 +20,6 @@ main() {
     defineReflectiveTests(NodeReplacerTest);
     defineReflectiveTests(SourceRangeTest);
   });
-}
-
-class AstCloneComparator extends AstComparator {
-  final bool expectTokensCopied;
-
-  AstCloneComparator(this.expectTokensCopied);
-
-  @override
-  bool isEqualNodes(AstNode? first, AstNode? second) {
-    if (first != null && identical(first, second)) {
-      fail('Failed to copy node: $first (${first.offset})');
-    }
-    return super.isEqualNodes(first, second);
-  }
-
-  @override
-  bool isEqualTokens(Token? first, Token? second) {
-    if (expectTokensCopied && first != null && identical(first, second)) {
-      fail('Failed to copy token: ${first.lexeme} (${first.offset})');
-    }
-    var firstComment = first?.precedingComments;
-    if (firstComment != null) {
-      if (firstComment.parent != first) {
-        fail(
-            'Failed to link the comment "$firstComment" with the token "$first".');
-      }
-    }
-    return super.isEqualTokens(first, second);
-  }
 }
 
 @reflectiveTest

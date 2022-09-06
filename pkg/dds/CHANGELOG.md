@@ -1,3 +1,6 @@
+# 2.3.0-dev
+- Removed an unused parameter `resumeIfStarting` from `DartDebugAdapter.connectDebugger`
+
 # 2.2.6
 - Fixed an issue where debug adapters would not automatically close after terminating/disconnecting from the debugee.
 

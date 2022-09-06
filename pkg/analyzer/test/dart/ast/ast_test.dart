@@ -22,7 +22,7 @@ import '../../generated/parser_test_base.dart' show ParserTestCase;
 import '../../src/diagnostics/parser_diagnostics.dart';
 import '../../util/feature_sets.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassDeclarationTest);
     defineReflectiveTests(ClassTypeAliasTest);
@@ -2118,6 +2118,8 @@ class StringInterpolationTest extends ParserTestCase {
 }
 
 @reflectiveTest
+// TODO(srawlins): Re-enable?
+// ignore: unreachable_from_main
 class SuperFormalParameterTest {
   void test_endToken_noParameters() {
     SuperFormalParameter parameter =

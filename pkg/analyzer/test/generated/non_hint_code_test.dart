@@ -204,6 +204,8 @@ f(A a, B b) {
   }
 }
 
+// TODO(srawlins): Re-enable?
+// ignore: unreachable_from_main
 class PubSuggestionCodeTest extends PubPackageResolutionTest {
   // TODO(brianwilkerson) The tests in this class are not being run, and all but
   //  the first would fail. We should implement these checks and enable the

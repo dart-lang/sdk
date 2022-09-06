@@ -914,6 +914,13 @@ class CorrectionUtils {
       return 'Never';
     }
 
+    if (type is RecordType) {
+      return _getTypeCodeRecord(
+        librariesToImport: librariesToImport,
+        type: type,
+      );
+    }
+
     if (type is TypeParameterType) {
       var element = type.element2;
       if (_isTypeParameterVisible(element)) {
@@ -1302,6 +1309,51 @@ class CorrectionUtils {
 
     // done
     return sb.toString();
+  }
+
+  String _getTypeCodeRecord({
+    required Set<Source> librariesToImport,
+    required RecordType type,
+  }) {
+    final buffer = StringBuffer();
+
+    final positionalFields = type.positionalFields;
+    final namedFields = type.namedFields;
+    final fieldCount = positionalFields.length + namedFields.length;
+    buffer.write('(');
+
+    var index = 0;
+    for (final field in positionalFields) {
+      buffer.write(
+        getTypeSource(field.type, librariesToImport),
+      );
+      if (index++ < fieldCount - 1) {
+        buffer.write(', ');
+      }
+    }
+
+    if (namedFields.isNotEmpty) {
+      buffer.write('{');
+      for (final field in namedFields) {
+        buffer.write(
+          getTypeSource(field.type, librariesToImport),
+        );
+        buffer.write(' ');
+        buffer.write(field.name);
+        if (index++ < fieldCount - 1) {
+          buffer.write(', ');
+        }
+      }
+      buffer.write('}');
+    }
+
+    buffer.write(')');
+
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      buffer.write('?');
+    }
+
+    return buffer.toString();
   }
 
   /// @return the [InvertedCondition] for the given logical expression.

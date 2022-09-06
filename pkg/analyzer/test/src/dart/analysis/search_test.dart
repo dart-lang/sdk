@@ -614,6 +614,40 @@ main(MyEnum p) {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ClassElement_inRecordTypeAnnotation_named() async {
+    await resolveTestCode('''
+class A {}
+
+void f(({int foo, A bar}) r) {}
+''');
+    var element = findElement.class_('A');
+    var expected = [
+      _expectId(
+        findElement.parameter('r'),
+        SearchResultKind.REFERENCE,
+        'A bar',
+      ),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ClassElement_inRecordTypeAnnotation_positional() async {
+    await resolveTestCode('''
+class A {}
+
+void f((int, A) r) {}
+''');
+    var element = findElement.class_('A');
+    var expected = [
+      _expectId(
+        findElement.parameter('r'),
+        SearchResultKind.REFERENCE,
+        'A)',
+      ),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ClassElement_mixin() async {
     await resolveTestCode('''
 mixin A {}
@@ -2393,7 +2427,7 @@ class F {}
     }
   }
 
-  test_subtypes_class_discover() async {
+  test_subTypes_class_discover() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
 
@@ -2463,7 +2497,7 @@ class A {
     expect(b.members, ['method1']);
   }
 
-  test_subTypes_class_discover() async {
+  test_subTypes_class_discover2() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
     var cccPackageRootPath = '$packagesRootPath/ccc';

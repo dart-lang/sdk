@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
@@ -21,7 +19,7 @@ import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../world.dart';
+import '../world_interfaces.dart';
 import 'closure.dart';
 import 'element_map_interfaces.dart' as interfaces;
 import 'element_map_migrated.dart';
@@ -232,19 +230,17 @@ abstract class KernelToTypeInferenceMap {
 
 /// Returns the [ir.FunctionNode] that defines [member] or `null` if [member]
 /// is not a constructor, method or local function.
-ir.FunctionNode getFunctionNode(
+ir.FunctionNode? getFunctionNode(
     JsToElementMap elementMap, MemberEntity member) {
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   switch (definition.kind) {
     case MemberKind.regular:
-      ir.Member node = definition.node;
-      return node.function;
     case MemberKind.constructor:
     case MemberKind.constructorBody:
-      ir.Member node = definition.node;
+      ir.Member node = definition.node as ir.Member;
       return node.function;
     case MemberKind.closureCall:
-      ir.LocalFunction node = definition.node;
+      ir.LocalFunction node = definition.node as ir.LocalFunction;
       return node.function;
     default:
   }
@@ -255,13 +251,15 @@ ir.FunctionNode getFunctionNode(
 ///
 /// If [field] is an instance field with a null literal initializer `null` is
 /// returned, otherwise the initializer of the [ir.Field] is returned.
-ir.Node getFieldInitializer(JsToElementMap elementMap, FieldEntity field) {
+ir.Node? getFieldInitializer(JsToElementMap elementMap, FieldEntity field) {
   MemberDefinition definition = elementMap.getMemberDefinition(field);
-  ir.Field node = definition.node;
-  if (node.isInstanceMember &&
+  ir.Field node = definition.node as ir.Field;
+  ir.Expression? initializer = node.initializer;
+  if (initializer != null &&
+      node.isInstanceMember &&
       !node.isFinal &&
-      isNullLiteral(node.initializer)) {
+      isNullLiteral(initializer)) {
     return null;
   }
-  return node.initializer;
+  return initializer;
 }

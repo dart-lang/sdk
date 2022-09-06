@@ -519,6 +519,44 @@ class _NewPageState extends State<NewPage> {
 ''');
   }
 
+  Future<void>
+      test_createChange_ClassElement_inRecordTypeAnnotation_named() async {
+    await indexTestUnit('''
+class Test {}
+void f(({int foo, Test bar}) r) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test {}');
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class NewName {}
+void f(({int foo, NewName bar}) r) {}
+''');
+  }
+
+  Future<void>
+      test_createChange_ClassElement_inRecordTypeAnnotation_positional() async {
+    await indexTestUnit('''
+class Test {}
+void f((int, Test) r) {}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test {}');
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class NewName {}
+void f((int, NewName) r) {}
+''');
+  }
+
   Future<void> test_createChange_ClassElement_invocation() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit('''

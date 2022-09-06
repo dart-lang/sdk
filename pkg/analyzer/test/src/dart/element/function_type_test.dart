@@ -19,8 +19,6 @@ main() {
 
 DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 
-VoidTypeImpl get voidType => VoidTypeImpl.instance;
-
 @reflectiveTest
 class FunctionTypeTest extends AbstractTypeSystemTest {
   InterfaceType get intType => typeProvider.intType;
@@ -384,29 +382,5 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
         displayName: 'T Function<T>()',
         returnType: typeParameterTypeStar(t),
         typeFormals: [same(t)]);
-  }
-}
-
-class MockCompilationUnitElement implements CompilationUnitElement {
-  const MockCompilationUnitElement();
-
-  @override
-  get enclosingElement => const MockLibraryElement();
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
-  }
-}
-
-class MockLibraryElement implements LibraryElement {
-  const MockLibraryElement();
-
-  @override
-  get enclosingElement => null;
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
   }
 }

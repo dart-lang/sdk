@@ -92,8 +92,10 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           'addNames', unorderedEquals(['IterableExtension']));
 
   static final isRemoveNullAwareness =
-      TypeMatcher<NodeChangeForPropertyAccess>()
-          .having((c) => c.removeNullAwareness, 'removeNullAwareness', true);
+      TypeMatcher<NodeChangeForPropertyAccess>().having(
+          (c) => c.nullAwarenessRemoval != NullAwarenessRemovalType.none,
+          'removeNullAwareness',
+          true);
 
   static final isRemoveAs = TypeMatcher<NodeChangeForAsExpression>()
       .having((c) => c.removeAs, 'removeAs', true);
@@ -3281,7 +3283,10 @@ int/*!*/ f(C/*!*/ c) => c?.i;
     visitSubexpression(propertyAccess, 'int', changes: {
       propertyAccess: TypeMatcher<NodeChangeForPropertyAccess>()
           .havingNullCheckWithInfo(isNotNull)
-          .having((c) => c.removeNullAwareness, 'removeNullAwareness', true)
+          .having(
+              (c) => c.nullAwarenessRemoval != NullAwarenessRemovalType.none,
+              'removeNullAwareness',
+              true)
     });
   }
 

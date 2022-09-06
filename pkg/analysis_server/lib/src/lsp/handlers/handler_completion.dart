@@ -202,10 +202,11 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     if (serverResults.isError) return failure(serverResults);
     if (pluginResults.isError) return failure(pluginResults);
 
-    final untruncatedRankedItems = serverResults.result.rankedItems
+    final serverResult = serverResults.result;
+    final untruncatedRankedItems = serverResult.rankedItems
         .followedBy(pluginResults.result.items)
         .toList();
-    final unrankedItems = serverResults.result.unrankedItems;
+    final unrankedItems = serverResult.unrankedItems;
 
     // Truncate ranked items allowing for all unranked items.
     final maxRankedItems = math.max(maxResults - unrankedItems.length, 0);
@@ -213,7 +214,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         ? untruncatedRankedItems
         : _truncateResults(
             untruncatedRankedItems,
-            serverResults.result.targetPrefix,
+            serverResult.targetPrefix,
             maxRankedItems,
           );
 
@@ -227,11 +228,57 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     return success(CompletionList(
       // If any set of the results is incomplete, the whole batch must be
       // marked as such.
-      isIncomplete: serverResults.result.isIncomplete ||
+      isIncomplete: serverResult.isIncomplete ||
           pluginResults.result.isIncomplete ||
           truncatedRankedItems.length != untruncatedRankedItems.length,
       items: truncatedItems,
+      itemDefaults: serverResult.defaults,
     ));
+  }
+
+  /// Computes all supported defaults for completion items based on
+  /// [capabilities].
+  CompletionListItemDefaults? _computeCompletionDefaults(
+    LspClientCapabilities capabilities,
+    Range insertionRange,
+    Range replacementRange,
+  ) {
+    // None of the items we use are set.
+    if (!capabilities.completionDefaultEditRange &&
+        !capabilities.completionDefaultTextMode) {
+      return null;
+    }
+
+    return CompletionListItemDefaults(
+      insertTextMode:
+          capabilities.completionDefaultTextMode ? InsertTextMode.asIs : null,
+      editRange: _computeDefaultEditRange(
+          capabilities, insertionRange, replacementRange),
+    );
+  }
+
+  /// Computes the default completion edit range based on [capabilities] and
+  /// whether the insert/replacement ranges differ.
+  Either2<CompletionItemEditRange, Range>? _computeDefaultEditRange(
+    LspClientCapabilities capabilities,
+    Range insertionRange,
+    Range replacementRange,
+  ) {
+    if (!capabilities.completionDefaultEditRange) {
+      return null;
+    }
+
+    if (!capabilities.insertReplaceCompletionRanges ||
+        insertionRange == replacementRange) {
+      return Either2<CompletionItemEditRange, Range>.t2(replacementRange);
+    } else {
+      return Either2<CompletionItemEditRange, Range>.t1(
+        CompletionItemEditRange(
+          insert: insertionRange,
+          replace: replacementRange,
+        ),
+      );
+    }
   }
 
   /// The insert length is the shorter of the replacementLength or the
@@ -355,10 +402,12 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
             .toList();
       });
 
+      final replacementOffset = completionRequest.replacementOffset;
+      final replacementLength = completionRequest.replacementLength;
       final insertLength = _computeInsertLength(
         offset,
-        completionRequest.replacementOffset,
-        completionRequest.replacementLength,
+        replacementOffset,
+        replacementLength,
       );
 
       if (token.isCancellationRequested) {
@@ -371,6 +420,14 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       final completeFunctionCalls = _hasExistingArgList(target.entity)
           ? false
           : server.clientConfiguration.global.completeFunctionCalls;
+
+      // Compute defaults that will allow us to reduce payload size.
+      final defaultReplacementRange =
+          toRange(unit.lineInfo, replacementOffset, replacementLength);
+      final defaultInsertionRange =
+          toRange(unit.lineInfo, replacementOffset, insertLength);
+      final defaults = _computeCompletionDefaults(
+          capabilities, defaultInsertionRange, defaultReplacementRange);
 
       /// Helper to convert [CompletionSuggestions] to [CompletionItem].
       CompletionItem suggestionToCompletionItem(CompletionSuggestion item) {
@@ -387,9 +444,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         }
 
         // Convert to LSP ranges using the LineInfo.
-        var replacementRange = toRange(
+        final replacementRange = toRange(
             unit.lineInfo, itemReplacementOffset, itemReplacementLength);
-        var insertionRange =
+        final insertionRange =
             toRange(unit.lineInfo, itemReplacementOffset, itemInsertLength);
 
         // For not-imported items, we need to include the file+uri to be able
@@ -410,6 +467,10 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           capabilities,
           unit.lineInfo,
           item,
+          hasDefaultTextMode: defaults?.insertTextMode != null,
+          hasDefaultEditRange: defaults?.editRange != null &&
+              insertionRange == defaultInsertionRange &&
+              replacementRange == defaultReplacementRange,
           replacementRange: replacementRange,
           insertionRange: insertionRange,
           commitCharactersEnabled:
@@ -474,10 +535,12 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           rankedResults.length + unrankedResults.length;
 
       return success(_CompletionResults(
-          isIncomplete: isIncomplete,
-          targetPrefix: targetPrefix,
-          rankedItems: rankedResults,
-          unrankedItems: unrankedResults));
+        isIncomplete: isIncomplete,
+        targetPrefix: targetPrefix,
+        rankedItems: rankedResults,
+        unrankedItems: unrankedResults,
+        defaults: defaults,
+      ));
     } on AbortCompletion {
       return success(_CompletionResults.emptyIncomplete());
     } on InconsistentAnalysisException {
@@ -701,11 +764,17 @@ class _CompletionResults {
 
   final bool isIncomplete;
 
+  /// Item defaults for completion items.
+  ///
+  /// Defaults are only supported on Dart server items (not plugins).
+  final CompletionListItemDefaults? defaults;
+
   _CompletionResults({
     this.rankedItems = const [],
     this.unrankedItems = const [],
     required this.targetPrefix,
     required this.isIncomplete,
+    this.defaults,
   });
 
   _CompletionResults.empty() : this(targetPrefix: '', isIncomplete: false);

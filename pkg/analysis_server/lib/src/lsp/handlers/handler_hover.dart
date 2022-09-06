@@ -62,7 +62,9 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
         ..writeln('```');
     }
     if (staticType != null) {
-      content.writeln('Type: `$staticType`');
+      content
+        ..writeln('Type: `$staticType`')
+        ..writeln();
     }
 
     // Source library.

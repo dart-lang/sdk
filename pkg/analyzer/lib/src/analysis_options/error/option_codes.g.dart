@@ -109,13 +109,6 @@ class AnalysisOptionsHintCode extends ErrorCode {
 }
 
 class AnalysisOptionsWarningCode extends ErrorCode {
-  ///  An error code indicating that the given option is deprecated.
-  static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
-      AnalysisOptionsWarningCode(
-    'ANALYSIS_OPTION_DEPRECATED',
-    "The option '{0}' is no longer supported.",
-  );
-
   ///  An error code indicating a specified include file has a warning.
   ///
   ///  Parameters:
@@ -143,6 +136,10 @@ class AnalysisOptionsWarningCode extends ErrorCode {
 
   ///  An error code indicating that a plugin is being configured with an invalid
   ///  value for an option and a detail message is provided.
+  ///
+  ///  Parameters:
+  ///  0: the option name
+  ///  1: the detail message
   static const AnalysisOptionsWarningCode INVALID_OPTION =
       AnalysisOptionsWarningCode(
     'INVALID_OPTION',

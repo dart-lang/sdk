@@ -454,6 +454,14 @@ class PropertyElementResolver with ScopeHelpers {
       final name = propertyName.name;
       final field = targetType.fieldByName(name);
       if (field != null) {
+        if (hasWrite) {
+          AssignmentVerifier(_definingLibrary, errorReporter).verify(
+            node: propertyName,
+            requested: null,
+            recovery: null,
+            receiverType: targetType,
+          );
+        }
         return PropertyElementResolverResult(
           recordField: field,
         );

@@ -73,15 +73,6 @@ class CompletionResolveHandler
           return cancelled();
         }
 
-        final element = await _getElement(session, libraryUri, item);
-        if (element == null) {
-          return error(
-            ErrorCodes.InvalidParams,
-            'No such element: ${item.label} in $libraryUri',
-            item.label,
-          );
-        }
-
         if (token.isCancellationRequested) {
           return cancelled();
         }
@@ -115,15 +106,20 @@ class CompletionResolveHandler
               ]);
         }
 
-        final formats = clientCapabilities.completionDocumentationFormats;
-        final dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
-        final dartDocData =
-            DartUnitHoverComputer.computeDocumentation(dartDocInfo, element);
-        final dartDoc = dartDocData?.full;
-        // `dartDoc` can be both null or empty.
-        final documentation = dartDoc != null && dartDoc.isNotEmpty
-            ? asMarkupContentOrString(formats, dartDoc)
-            : null;
+        // Look up documentation if we can get an element for this item.
+        Either2<MarkupContent, String>? documentation;
+        final element = await _getElement(session, libraryUri, item);
+        if (element != null) {
+          final formats = clientCapabilities.completionDocumentationFormats;
+          final dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
+          final dartDocData =
+              DartUnitHoverComputer.computeDocumentation(dartDocInfo, element);
+          final dartDoc = dartDocData?.full;
+          // `dartDoc` can be both null or empty.
+          documentation = dartDoc != null && dartDoc.isNotEmpty
+              ? asMarkupContentOrString(formats, dartDoc)
+              : null;
+        }
 
         // If the only URI we have is a file:// URI, display it as relative to
         // the file we're importing into, rather than the full URI.
@@ -250,8 +246,9 @@ class CompletionResolveHandler
     }
 
     // TODO(dantup): This is not handling default constructors or enums
-    // correctly, so they will both show dart docs from the class/enum and not
-    // the constructor/enum member.
+    //  correctly, so they will both show dart docs from the class/enum and not
+    //  the constructor/enum member. Extension members are not found at all and
+    //  will provide no docs.
 
     final result = await session.getLibraryByUri(libraryUri.toString());
     return result is LibraryElementResult

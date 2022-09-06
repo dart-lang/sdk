@@ -29,8 +29,10 @@ import '../universe/member_usage.dart';
 import 'element_map.dart';
 import 'element_map_interfaces.dart' show memberIsIgnorable;
 
+import 'env_interfaces.dart' as interfaces;
+
 /// Environment for fast lookup of component libraries.
-class KProgramEnv {
+class KProgramEnv implements interfaces.KProgramEnv {
   final Set<ir.Component> _components = Set<ir.Component>();
 
   Map<Uri, KLibraryEnv> _libraryMap;
@@ -82,11 +84,13 @@ class KProgramEnv {
   }
 
   /// Convert this [KProgramEnv] to the corresponding [JProgramEnv].
+  @override
   JProgramEnv convert() => JProgramEnv(_components);
 }
 
 /// Environment for fast lookup of library classes and members.
-class KLibraryEnv {
+class KLibraryEnv implements interfaces.KLibraryEnv {
+  @override
   final ir.Library library;
 
   Map<String, KClassEnv> _classMap;
@@ -163,6 +167,7 @@ class KLibraryEnv {
 
   /// Convert this [KLibraryEnv] to a corresponding [JLibraryEnv] containing
   /// only the members in [liveMembers].
+  @override
   JLibraryEnv convert(IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage) {
     Map<String, ir.Member> memberMap;
@@ -193,7 +198,7 @@ class KLibraryEnv {
   }
 }
 
-class KLibraryData {
+class KLibraryData implements interfaces.KLibraryData {
   final ir.Library library;
   Iterable<ConstantValue> _metadata;
   // TODO(johnniwinther): Avoid direct access to [imports].
@@ -230,14 +235,16 @@ class KLibraryData {
 
   /// Convert this [KLibraryData] to the corresponding [JLibraryData].
   // TODO(johnniwinther): Why isn't [imports] ensured to be non-null here?
+  @override
   JLibraryData convert() {
     return JLibraryData(library, imports ?? const {});
   }
 }
 
 /// Member data for a class.
-abstract class KClassEnv {
+abstract class KClassEnv implements interfaces.KClassEnv {
   /// The [ir.Class] that defined the class, if any.
+  @override
   ir.Class get cls;
 
   /// Whether the class is an unnamed mixin application.
@@ -274,6 +281,7 @@ abstract class KClassEnv {
   ///
   /// [getJLibrary] returns the [LibraryEntity] in the J-model corresponding to
   /// a [ir.Library] node.
+  @override
   JClassEnv convert(
       IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
@@ -512,7 +520,7 @@ class KClassEnvImpl implements KClassEnv {
   }
 }
 
-abstract class KClassData {
+abstract class KClassData implements interfaces.KClassData {
   ir.Class get node;
 
   InterfaceType get thisType;
@@ -532,6 +540,7 @@ abstract class KClassData {
   List<Variance> getVariances();
 
   /// Convert this [KClassData] to the corresponding [JClassData].
+  @override
   JClassData convert();
 }
 
@@ -588,7 +597,8 @@ class KClassDataImpl implements KClassData {
   }
 }
 
-abstract class KMemberData {
+abstract class KMemberData implements interfaces.KMemberData {
+  @override
   ir.Member get node;
 
   StaticTypeCache staticTypes;
@@ -600,6 +610,7 @@ abstract class KMemberData {
   ClassTypeVariableAccess get classTypeVariableAccess;
 
   /// Convert this [KMemberData] to the corresponding [JMemberData].
+  @override
   JMemberData convert();
 }
 
@@ -798,7 +809,8 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   }
 }
 
-class KTypeVariableData {
+class KTypeVariableData implements interfaces.KTypeVariableData {
+  @override
   final ir.TypeParameter node;
   DartType _bound;
   DartType _defaultType;
@@ -816,6 +828,7 @@ class KTypeVariableData {
         elementMap.getDartType(node.defaultType ?? const ir.DynamicType());
   }
 
+  @override
   JTypeVariableData copy() {
     return JTypeVariableData(node);
   }

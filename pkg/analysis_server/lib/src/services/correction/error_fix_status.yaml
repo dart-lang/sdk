@@ -40,20 +40,13 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
     be able to provide a fix.
 AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED:
   status: needsFix
-  notes: |-
-    Provide a fix to remove the deprecated setting.
+  notes: Fixed.
 AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
   status: needsFix
-  notes: |-
-    Provide a fix to remove the deprecated setting.
+  notes: Fixed.
 AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED:
   status: needsFix
-  notes: |-
-    Provide a fix to remove the deprecated setting.
-AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
-  status: needsFix
-  notes: |-
-    Provide a fix to remove the deprecated setting.
+  notes: Fixed.
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
   notes: |-

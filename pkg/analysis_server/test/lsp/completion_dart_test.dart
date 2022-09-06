@@ -94,6 +94,13 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     );
   }
 
+  /// Expect [item] to use the default edit range, inserting the value [text].
+  void expectUsesDefaultEditRange(CompletionItem item, String text) {
+    expect(item.textEditText ?? item.label, text);
+    expect(item.insertText, isNull);
+    expect(item.textEdit, isNull);
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -1227,6 +1234,129 @@ void f() {
     expect(res.items.map((item) => item.label).contains('aaa'), isTrue);
   }
 
+  Future<void> test_itemDefaults_editRange() async {
+    final content = '''
+    void myFunction() {
+      [[myFunctio^]]
+    }
+    ''';
+
+    await initialize(
+      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
+        withCompletionListDefaults(
+          emptyTextDocumentClientCapabilities,
+          ['editRange'],
+        ),
+      ),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final list =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+    final item =
+        list.items.singleWhere((c) => c.label.startsWith('myFunction'));
+    final defaultEditRange = list.itemDefaults!.editRange!.map(
+      (insertReplace) => throw 'Expected Range, got CompletionItemEditRange',
+      (range) => range,
+    );
+
+    // Range covers the ranged marked with [[braces]] in `content`.
+    expect(defaultEditRange, rangeFromMarkers(content));
+
+    // Item should use the default range.
+    expectUsesDefaultEditRange(item, 'myFunction');
+  }
+
+  Future<void> test_itemDefaults_editRange_includesNonDefaultItem() async {
+    // In this code, we will get two completions with different edit ranges:
+    //
+    //   - 'b: ' will have a zero-width range because names don't replace args
+    //   -  'a' will replace 'b'
+    //
+    // Therefore we expect 'a' to use the default range (and not have its own)
+    // but 'b'` to have its own.
+    //
+    // Additionally, because the caret is before the identifier, we will have
+    // seperate default insert/replace ranges.
+    final content = '''
+void f(String a, {String? b}) {
+  f([[^b]]);
+}
+    ''';
+
+    await initialize(
+      textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
+        withCompletionListDefaults(
+          emptyTextDocumentClientCapabilities,
+          ['editRange'],
+        ),
+      ),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final list =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+    final itemA = list.items.singleWhere((c) => c.label == 'a');
+    final itemB = list.items.singleWhere((c) => c.label == 'b: ');
+
+    // Default replace range should span `b`.
+    final expectedRange = rangeFromMarkers(content);
+    final defaultEditRange = list.itemDefaults!.editRange!.map(
+      (insertReplace) => insertReplace,
+      (range) => throw 'Expected Range, got CompletionItemEditRange',
+    );
+    expect(defaultEditRange.replace, equals(expectedRange));
+
+    // Default insert range should be in front of `b`.
+    expect(
+      defaultEditRange.insert,
+      Range(start: expectedRange.start, end: expectedRange.start),
+    );
+
+    // And item A should use that default.
+    expectUsesDefaultEditRange(itemA, 'a');
+
+    // Item B should have its own range, which is a single range for both
+    // insert and replace that matches the insert range (in front of `b`) of
+    // the default.
+    final itemBTextEdit = toTextEdit(itemB.textEdit!);
+    expect(itemBTextEdit.range, defaultEditRange.insert);
+    expect(itemBTextEdit.newText, 'b: ');
+  }
+
+  Future<void> test_itemDefaults_textMode() async {
+    // We only normally set InsertTextMode on multiline completions (where it
+    // matters), so ensure there's a multiline completion in the results for
+    // testing.
+    final content = '''
+    import 'package:flutter/material.dart';
+
+    class _MyWidgetState extends State<MyWidget> {
+      @override
+      Widget build(BuildContext context) {
+        [[setSt^]]
+        return Container();
+      }
+    }
+    ''';
+
+    await initialize(
+      textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
+        withCompletionListDefaults(
+          emptyTextDocumentClientCapabilities,
+          ['insertTextMode'],
+        ),
+      ),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    final list =
+        await getCompletionList(mainFileUri, positionFromMarker(content));
+    final item = list.items.singleWhere((c) => c.label.startsWith('setState'));
+
+    // Default should be set.
+    expect(list.itemDefaults?.insertTextMode, InsertTextMode.asIs);
+    // Item should not.
+    expect(item.insertTextMode, isNull);
+  }
+
   /// Exact matches should always be included when completion lists are
   /// truncated, even if they ranked poorly.
   Future<void> test_maxCompletionItems_doesNotExcludeExactMatches() async {
@@ -2097,6 +2227,37 @@ void f() {
 
     final completionLabel = 'MyClass';
 
+    await _checkCompletionEdits(
+      mainFileUri,
+      content,
+      completionLabel,
+      expectedContent,
+    );
+  }
+
+  Future<void>
+      test_unimportedSymbols_importsPackageUri_extensionMember() async {
+    newFile(join(projectFolderPath, 'lib', 'my_extension.dart'), '''
+extension MyExtension on String {
+  void myExtensionMethod() {}
+}
+      ''');
+
+    final content = '''
+void f() {
+  ''.myExtensionMet^
+}
+    ''';
+
+    final expectedContent = '''
+import 'package:test/my_extension.dart';
+
+void f() {
+  ''.myExtensionMethod
+}
+    ''';
+
+    final completionLabel = 'myExtensionMethod()';
     await _checkCompletionEdits(
       mainFileUri,
       content,
