@@ -544,12 +544,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// The URI protocol will be changed to ws/wss but otherwise not normalised.
   /// The caller should handle any other normalisation (such as adding /ws to
   /// the end if required).
-  Future<void> connectDebugger(
-    Uri uri, {
-    // TODO(dantup): Remove this after parameter after updating the Flutter
-    //   DAP to not pass it.
-    bool? resumeIfStarting,
-  }) async {
+  Future<void> connectDebugger(Uri uri) async {
     // Start up a DDS instance for this VM.
     if (enableDds) {
       logger?.call('Starting a DDS instance for $uri');
