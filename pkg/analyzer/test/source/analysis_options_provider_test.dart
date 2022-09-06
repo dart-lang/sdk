@@ -12,8 +12,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
-import '../src/util/yaml_test.dart';
-
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisOptionsProviderTest);
@@ -93,6 +91,64 @@ analyzer:
       expect(options, isNotNull);
     });
   });
+}
+
+bool containsKey(Map<dynamic, YamlNode> map, dynamic key) =>
+    _getValue(map, key) != null;
+
+void expectEquals(YamlNode? actual, YamlNode? expected) {
+  if (expected is YamlScalar) {
+    actual!;
+    expect(actual, TypeMatcher<YamlScalar>());
+    expect(expected.value, actual.value);
+  } else if (expected is YamlList) {
+    if (actual is YamlList) {
+      expect(actual.length, expected.length);
+      List<YamlNode> expectedNodes = expected.nodes;
+      List<YamlNode> actualNodes = actual.nodes;
+      for (int i = 0; i < expectedNodes.length; i++) {
+        expectEquals(actualNodes[i], expectedNodes[i]);
+      }
+    } else {
+      fail('Expected a YamlList, found ${actual.runtimeType}');
+    }
+  } else if (expected is YamlMap) {
+    if (actual is YamlMap) {
+      expect(actual.length, expected.length);
+      Map<dynamic, YamlNode> expectedNodes = expected.nodes;
+      Map<dynamic, YamlNode> actualNodes = actual.nodes;
+      for (var expectedKey in expectedNodes.keys) {
+        if (!containsKey(actualNodes, expectedKey)) {
+          fail('Missing key $expectedKey');
+        }
+      }
+      for (var actualKey in actualNodes.keys) {
+        if (!containsKey(expectedNodes, actualKey)) {
+          fail('Extra key $actualKey');
+        }
+      }
+      for (var expectedKey in expectedNodes.keys) {
+        expectEquals(_getValue(actualNodes, expectedKey),
+            _getValue(expectedNodes, expectedKey));
+      }
+    } else {
+      fail('Expected a YamlMap, found ${actual.runtimeType}');
+    }
+  } else {
+    fail('Unknown type of node: ${expected.runtimeType}');
+  }
+}
+
+Object valueOf(Object object) => object is YamlNode ? object.value : object;
+
+YamlNode? _getValue(Map map, Object key) {
+  Object keyValue = valueOf(key);
+  for (var existingKey in map.keys) {
+    if (valueOf(existingKey) == keyValue) {
+      return map[existingKey];
+    }
+  }
+  return null;
 }
 
 @reflectiveTest
