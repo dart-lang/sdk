@@ -90,6 +90,7 @@ class KProgramEnv implements interfaces.KProgramEnv {
 
 /// Environment for fast lookup of library classes and members.
 class KLibraryEnv implements interfaces.KLibraryEnv {
+  @override
   final ir.Library library;
 
   Map<String, KClassEnv> _classMap;
@@ -166,6 +167,7 @@ class KLibraryEnv implements interfaces.KLibraryEnv {
 
   /// Convert this [KLibraryEnv] to a corresponding [JLibraryEnv] containing
   /// only the members in [liveMembers].
+  @override
   JLibraryEnv convert(IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage) {
     Map<String, ir.Member> memberMap;
@@ -233,6 +235,7 @@ class KLibraryData implements interfaces.KLibraryData {
 
   /// Convert this [KLibraryData] to the corresponding [JLibraryData].
   // TODO(johnniwinther): Why isn't [imports] ensured to be non-null here?
+  @override
   JLibraryData convert() {
     return JLibraryData(library, imports ?? const {});
   }
@@ -241,6 +244,7 @@ class KLibraryData implements interfaces.KLibraryData {
 /// Member data for a class.
 abstract class KClassEnv implements interfaces.KClassEnv {
   /// The [ir.Class] that defined the class, if any.
+  @override
   ir.Class get cls;
 
   /// Whether the class is an unnamed mixin application.
@@ -277,6 +281,7 @@ abstract class KClassEnv implements interfaces.KClassEnv {
   ///
   /// [getJLibrary] returns the [LibraryEntity] in the J-model corresponding to
   /// a [ir.Library] node.
+  @override
   JClassEnv convert(
       IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
@@ -535,6 +540,7 @@ abstract class KClassData implements interfaces.KClassData {
   List<Variance> getVariances();
 
   /// Convert this [KClassData] to the corresponding [JClassData].
+  @override
   JClassData convert();
 }
 
@@ -592,6 +598,7 @@ class KClassDataImpl implements KClassData {
 }
 
 abstract class KMemberData implements interfaces.KMemberData {
+  @override
   ir.Member get node;
 
   StaticTypeCache staticTypes;
@@ -603,6 +610,7 @@ abstract class KMemberData implements interfaces.KMemberData {
   ClassTypeVariableAccess get classTypeVariableAccess;
 
   /// Convert this [KMemberData] to the corresponding [JMemberData].
+  @override
   JMemberData convert();
 }
 
@@ -802,6 +810,7 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
 }
 
 class KTypeVariableData implements interfaces.KTypeVariableData {
+  @override
   final ir.TypeParameter node;
   DartType _bound;
   DartType _defaultType;
@@ -819,6 +828,7 @@ class KTypeVariableData implements interfaces.KTypeVariableData {
         elementMap.getDartType(node.defaultType ?? const ir.DynamicType());
   }
 
+  @override
   JTypeVariableData copy() {
     return JTypeVariableData(node);
   }

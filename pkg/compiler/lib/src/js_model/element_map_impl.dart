@@ -42,7 +42,7 @@ import '../js_model/class_type_variable_access.dart';
 import '../kernel/dart2js_target.dart' show allowedNativeTest;
 import '../kernel/element_map_interfaces.dart';
 import '../kernel/element_map_migrated.dart';
-import '../kernel/env.dart';
+import '../kernel/env_interfaces.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../options.dart';

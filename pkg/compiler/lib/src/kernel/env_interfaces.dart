@@ -2,20 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../js_model/env.dart' show JProgramEnv;
+import 'package:kernel/ast.dart' as ir;
+
+import '../elements/entities.dart';
+import '../ir/element_map.dart';
+import '../js_model/env.dart';
+import '../universe/member_usage.dart';
 
 // TODO(48820): Delete once migration is complete
-abstract class KLibraryData {}
+abstract class KLibraryData {
+  JLibraryData convert();
+}
 
-abstract class KLibraryEnv {}
+abstract class KLibraryEnv {
+  ir.Library get library;
+  JLibraryEnv convert(IrToElementMap kElementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage);
+}
 
-abstract class KClassData {}
+abstract class KClassData {
+  JClassData convert();
+}
 
-abstract class KClassEnv {}
+abstract class KClassEnv {
+  ir.Class get cls;
 
-abstract class KMemberData {}
+  JClassEnv convert(
+      IrToElementMap kElementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage,
+      LibraryEntity Function(ir.Library library) getJLibrary);
+}
 
-abstract class KTypeVariableData {}
+abstract class KMemberData {
+  ir.Member get node;
+  JMemberData convert();
+}
+
+abstract class KTypeVariableData {
+  ir.TypeParameter get node;
+  JTypeVariableData copy();
+}
 
 abstract class KProgramEnv {
   JProgramEnv convert();
