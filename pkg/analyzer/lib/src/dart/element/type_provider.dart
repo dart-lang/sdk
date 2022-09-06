@@ -31,6 +31,7 @@ const Set<String> _nonSubtypableDartCoreClassNames = {
   'int',
   'Null',
   'num',
+  'Record',
   'String',
 };
 
