@@ -20,18 +20,17 @@ class UnnecessaryConstTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_const';
 
-  test_recordExpression_ok() async {
-    await assertNoDiagnostics(r'''
-const r = (a: 1);
-''');
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3629')
-  test_recordExpression() async {
+  test_recordLiteral() async {
     await assertDiagnostics(r'''
 const r = const (a: 1);
 ''', [
-      lint(11, 4),
+      lint(10, 12),
     ]);
+  }
+
+  test_recordLiteral_ok() async {
+    await assertNoDiagnostics(r'''
+const r = (a: 1);
+''');
   }
 }
