@@ -2106,6 +2106,37 @@ void f() {
   }
 
   Future<void>
+      test_unimportedSymbols_importsPackageUri_extensionMember() async {
+    newFile(join(projectFolderPath, 'lib', 'my_extension.dart'), '''
+extension MyExtension on String {
+  void myExtensionMethod() {}
+}
+      ''');
+
+    final content = '''
+void f() {
+  ''.myExtensionMet^
+}
+    ''';
+
+    final expectedContent = '''
+import 'package:test/my_extension.dart';
+
+void f() {
+  ''.myExtensionMethod
+}
+    ''';
+
+    final completionLabel = 'myExtensionMethod()';
+    await _checkCompletionEdits(
+      mainFileUri,
+      content,
+      completionLabel,
+      expectedContent,
+    );
+  }
+
+  Future<void>
       test_unimportedSymbols_includesReexportedSymbolsForEachFile() async {
     newFile(
       join(projectFolderPath, 'source_file.dart'),
