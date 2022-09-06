@@ -872,6 +872,8 @@ lsp.CompletionItem toCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   server.CompletionSuggestion suggestion, {
+  bool hasDefaultEditRange = false,
+  bool hasDefaultTextMode = false,
   required Range replacementRange,
   required Range insertionRange,
   bool includeDocs = true,
@@ -984,23 +986,30 @@ lsp.CompletionItem toCompletionItem(
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
-    insertTextMode: supportsAsIsInsertMode && isMultilineCompletion
-        ? InsertTextMode.asIs
-        : null,
-    textEdit: supportsInsertReplace && insertionRange != replacementRange
-        ? Either2<InsertReplaceEdit, TextEdit>.t1(
-            InsertReplaceEdit(
-              insert: insertionRange,
-              replace: replacementRange,
-              newText: insertText,
-            ),
-          )
-        : Either2<InsertReplaceEdit, TextEdit>.t2(
-            TextEdit(
-              range: replacementRange,
-              newText: insertText,
-            ),
-          ),
+    insertTextMode:
+        !hasDefaultTextMode && supportsAsIsInsertMode && isMultilineCompletion
+            ? InsertTextMode.asIs
+            : null,
+    // When using defaults for edit range, don't use textEdit.
+    textEdit: hasDefaultEditRange
+        ? null
+        : supportsInsertReplace && insertionRange != replacementRange
+            ? Either2<InsertReplaceEdit, TextEdit>.t1(
+                InsertReplaceEdit(
+                  insert: insertionRange,
+                  replace: replacementRange,
+                  newText: insertText,
+                ),
+              )
+            : Either2<InsertReplaceEdit, TextEdit>.t2(
+                TextEdit(
+                  range: replacementRange,
+                  newText: insertText,
+                ),
+              ),
+    // When using defaults for edit range, use textEditText.
+    textEditText:
+        hasDefaultEditRange && insertText != label ? insertText : null,
   );
 }
 

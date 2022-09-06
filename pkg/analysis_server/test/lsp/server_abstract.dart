@@ -428,6 +428,19 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withCompletionListDefaults(
+    TextDocumentClientCapabilities source,
+    List<String> defaults,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionList': {
+          'itemDefaults': defaults,
+        }
+      }
+    });
+  }
+
   WorkspaceClientCapabilities withConfigurationSupport(
     WorkspaceClientCapabilities source,
   ) {

@@ -81,6 +81,8 @@ class LspClientCapabilities {
   final Set<SymbolKind> workspaceSymbolKinds;
   final Set<CompletionItemKind> completionItemKinds;
   final Set<InsertTextMode> completionInsertTextModes;
+  final bool completionDefaultEditRange;
+  final bool completionDefaultTextMode;
   final bool experimentalSnippetTextEdit;
   final bool codeActionCommandParameterSupport;
 
@@ -91,6 +93,8 @@ class LspClientCapabilities {
     final textDocument = raw.textDocument;
     final completion = textDocument?.completion;
     final completionItem = completion?.completionItem;
+    final completionList = completion?.completionList;
+    final completionDefaults = _listToSet(completionList?.itemDefaults);
     final codeAction = textDocument?.codeAction;
     final codeActionLiteral = codeAction?.codeActionLiteralSupport;
     final documentSymbol = textDocument?.documentSymbol;
@@ -116,6 +120,9 @@ class LspClientCapabilities {
         completion?.completionItemKind?.valueSet,
         defaults: defaultSupportedCompletionKinds);
     final completionSnippets = completionItem?.snippetSupport ?? false;
+    final completionDefaultEditRange = completionDefaults.contains('editRange');
+    final completionDefaultTextMode =
+        completionDefaults.contains('insertTextMode');
     final configuration = workspace?.configuration ?? false;
     final createResourceOperations =
         resourceOperations?.contains(ResourceOperationKind.Create) ?? false;
@@ -174,6 +181,8 @@ class LspClientCapabilities {
       workspaceSymbolKinds: workspaceSymbolKinds,
       completionItemKinds: completionItemKinds,
       completionInsertTextModes: completionInsertTextModes,
+      completionDefaultEditRange: completionDefaultEditRange,
+      completionDefaultTextMode: completionDefaultTextMode,
       experimentalSnippetTextEdit: experimentalSnippetTextEdit,
       codeActionCommandParameterSupport: codeActionCommandParameterSupport,
     );
@@ -206,6 +215,8 @@ class LspClientCapabilities {
     required this.workspaceSymbolKinds,
     required this.completionItemKinds,
     required this.completionInsertTextModes,
+    required this.completionDefaultEditRange,
+    required this.completionDefaultTextMode,
     required this.experimentalSnippetTextEdit,
     required this.codeActionCommandParameterSupport,
   });
