@@ -7274,6 +7274,158 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_null_aware_call_on_migrated_get() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D get g;
+}
+abstract class D {
+  int f2();
+}
+''';
+    // Since `.g` is a non-nullable getter in an already-migrated class, the
+    // `?.` can safely be replaced with `.`.  We can safely make this change
+    // even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C c) => c.g?.f2();
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C c) => c.g.f2();
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_call_on_migrated_get_null_shorting() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D get g;
+}
+abstract class D {
+  int f2();
+}
+''';
+    // Since `.g` is a non-nullable getter in an already-migrated class, the
+    // `?.` can safely be replaced with `.`.  We can safely make this change
+    // even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C/*?*/ c) => c?.g?.f2();
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C? c) => c?.g.f2();
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_call_on_migrated_method() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D f();
+}
+abstract class D {
+  int f2();
+}
+''';
+    // Since `.f()` is a method with a non-nullable return type in an
+    // already-migrated class, the `?.` can safely be replaced with `.`.  We can
+    // safely make this change even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C c) => c.f()?.f2();
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C c) => c.f().f2();
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_call_on_migrated_method_null_shorting() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D f();
+}
+abstract class D {
+  int f2();
+}
+''';
+    // Since `.f()` is a method with a non-nullable return type in an
+    // already-migrated class, the `?.` can safely be replaced with `.`.  We can
+    // safely make this change even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C/*?*/ c) => c?.f()?.f2();
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C? c) => c?.f().f2();
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_call_on_nullable_get() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D? get g;
+}
+abstract class D {
+  int f2();
+}
+''';
+    // Since `.g` is a nullable getter in an already-migrated class, we don't
+    // replace `?.` with `.`.
+    var content = '''
+import 'migrated.dart';
+f(C c) => c.g?.f2();
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C c) => c.g?.f2();
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput});
+  }
+
+  Future<void> test_null_aware_call_on_nullable_method() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D? f();
+}
+abstract class D {
+  int f2();
+}
+''';
+    // Since `.f()` is a method with a nullable return type in an
+    // already-migrated class, we don't replace `?.` with `.`.
+    var content = '''
+import 'migrated.dart';
+f(C c) => c.f()?.f2();
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C c) => c.f()?.f2();
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput});
+  }
+
   Future<void> test_null_aware_call_on_private_param_not_nullable() async {
     // The null-aware access on `i` is *not* considered a strong enough signal
     // that `i` is meant to be nullable, because the migration tool can see all
@@ -7317,6 +7469,62 @@ int f(int i) {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_call_on_unmigrated_get() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class D {
+  int f2();
+}
+''';
+    // Since `.g` is unmigrated, we don't replace `?.` with `.` in "warn on weak
+    // code" mode.
+    var content = '''
+import 'migrated.dart';
+abstract class C {
+  D get g;
+}
+f(C c) => c.g?.f2();
+''';
+    var expected = '''
+import 'migrated.dart';
+abstract class C {
+  D get g;
+}
+f(C c) => c.g?.f2();
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_call_on_unmigrated_method() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class D {
+  int f2();
+}
+''';
+    // Since `.f()` is unmigrated, we don't replace `?.` with `.` in "warn on
+    // weak code" mode.
+    var content = '''
+import 'migrated.dart';
+abstract class C {
+  D f();
+}
+f(C c) => c.f()?.f2();
+''';
+    var expected = '''
+import 'migrated.dart';
+abstract class C {
+  D f();
+}
+f(C c) => c.f()?.f2();
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
   }
 
   Future<void> test_null_aware_call_tearoff() async {
@@ -7369,6 +7577,110 @@ main() {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_get_on_migrated_get() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D get g;
+}
+abstract class D {
+  int get g2;
+}
+''';
+    // Since `.g` is a non-nullable getter in an already-migrated class, the
+    // `?.` can safely be replaced with `.`.  We can safely make this change
+    // even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C c) => c.g?.g2;
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C c) => c.g.g2;
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_get_on_migrated_get_null_shorting() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D get g;
+}
+abstract class D {
+  int get g2;
+}
+''';
+    // Since `.g` is a non-nullable getter in an already-migrated class, the
+    // `?.` can safely be replaced with `.`.  We can safely make this change
+    // even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C/*?*/ c) => c?.g?.g2;
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C? c) => c?.g.g2;
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_get_on_migrated_method() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D f();
+}
+abstract class D {
+  int get g2;
+}
+''';
+    // Since `.f()` is a method with a non-nullable return type in an
+    // already-migrated class, the `?.` can safely be replaced with `.`.  We can
+    // safely make this change even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C c) => c.f()?.g2;
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C c) => c.f().g2;
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_get_on_migrated_method_null_shorting() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D f();
+}
+abstract class D {
+  int get g2;
+}
+''';
+    // Since `.f()` is a method with a non-nullable return type in an
+    // already-migrated class, the `?.` can safely be replaced with `.`.  We can
+    // safely make this change even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C/*?*/ c) => c?.f()?.g2;
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C? c) => c?.f().g2;
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
   }
 
   Future<void> test_null_aware_get_on_private_param_not_nullable() async {
@@ -7500,6 +7812,110 @@ main() {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_aware_set_on_migrated_get() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D get g;
+}
+abstract class D {
+  set s(int i);
+}
+''';
+    // Since `.g` is a non-nullable getter in an already-migrated class, the
+    // `?.` can safely be replaced with `.`.  We can safely make this change
+    // even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C c) => c.g?.s = 0;
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C c) => c.g.s = 0;
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_set_on_migrated_get_null_shorting() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D get g;
+}
+abstract class D {
+  set s(int i);
+}
+''';
+    // Since `.g` is a non-nullable getter in an already-migrated class, the
+    // `?.` can safely be replaced with `.`.  We can safely make this change
+    // even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C/*?*/ c) => c?.g?.s = 0;
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C? c) => c?.g.s = 0;
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_set_on_migrated_method() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D f();
+}
+abstract class D {
+  set s(int i);
+}
+''';
+    // Since `.f()` is a method with a non-nullable return type in an
+    // already-migrated class, the `?.` can safely be replaced with `.`.  We can
+    // safely make this change even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C c) => c.f()?.s = 0;
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C c) => c.f().s = 0;
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
+  }
+
+  Future<void> test_null_aware_set_on_migrated_method_null_shorting() async {
+    var migratedInput = '''
+// @dart=2.12
+abstract class C {
+  D f();
+}
+abstract class D {
+  set s(int i);
+}
+''';
+    // Since `.f()` is a method with a non-nullable return type in an
+    // already-migrated class, the `?.` can safely be replaced with `.`.  We can
+    // safely make this change even if we are in "warn on weak code" mode.
+    var content = '''
+import 'migrated.dart';
+f(C/*?*/ c) => c?.f()?.s = 0;
+''';
+    var expected = '''
+import 'migrated.dart';
+f(C? c) => c?.f().s = 0;
+''';
+    await _checkSingleFileChanges(content, expected,
+        migratedInput: {'$projectPath/lib/migrated.dart': migratedInput},
+        warnOnWeakCode: true);
   }
 
   Future<void> test_null_aware_set_on_private_param_not_nullable() async {

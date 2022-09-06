@@ -266,6 +266,20 @@ class FixBuilder {
     }
   }
 
+  /// If [node] is a property access or method invocation, returns the element
+  /// it invokes.  Otherwise returns `null`.
+  Element? _findPropertyOrMethodElement(Expression node) {
+    if (node is PrefixedIdentifier) {
+      return node.identifier.staticElement;
+    } else if (node is PropertyAccess) {
+      return node.propertyName.staticElement;
+    } else if (node is MethodInvocation) {
+      return node.methodName.staticElement;
+    } else {
+      return null;
+    }
+  }
+
   /// Returns the [NodeChange] object accumulating changes for the given [node],
   /// creating it if necessary.
   NodeChange _getChange(AstNode node) =>
@@ -284,7 +298,18 @@ class FixBuilder {
       throw StateError('Unexpected expression type: ${node.runtimeType}');
     }
     if (!_typeSystem.isPotentiallyNullable(target!.staticType!)) {
-      (_getChange(node) as NodeChangeForNullAware).removeNullAwareness = true;
+      var element = _findPropertyOrMethodElement(target);
+      if (element != null) {
+        var library = element.library;
+        if (library!.isNonNullableByDefault &&
+            !_graph.isBeingMigrated(library.source)) {
+          (_getChange(node) as NodeChangeForNullAware).nullAwarenessRemoval =
+              NullAwarenessRemovalType.strong;
+          return false;
+        }
+      }
+      (_getChange(node) as NodeChangeForNullAware).nullAwarenessRemoval =
+          NullAwarenessRemovalType.weak;
       return false;
     }
     return true;
