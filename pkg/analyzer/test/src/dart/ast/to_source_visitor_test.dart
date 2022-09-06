@@ -2852,6 +2852,17 @@ $code f() {}
     );
   }
 
+  void test_visitRecordTypeAnnotation_positional_nullable() {
+    final code = '(int, bool)?';
+    var findNode = _parseStringToFindNode('''
+$code f() {}
+''');
+    _assertSource(
+      code,
+      findNode.recordTypeAnnotation(code),
+    );
+  }
+
   void test_visitRedirectingConstructorInvocation_named() {
     _assertSource(
         "this.c()", AstTestFactory.redirectingConstructorInvocation2("c"));
