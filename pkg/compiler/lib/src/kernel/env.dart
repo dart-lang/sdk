@@ -29,8 +29,10 @@ import '../universe/member_usage.dart';
 import 'element_map.dart';
 import 'element_map_interfaces.dart' show memberIsIgnorable;
 
+import 'env_interfaces.dart' as interfaces;
+
 /// Environment for fast lookup of component libraries.
-class KProgramEnv {
+class KProgramEnv implements interfaces.KProgramEnv {
   final Set<ir.Component> _components = Set<ir.Component>();
 
   Map<Uri, KLibraryEnv> _libraryMap;
@@ -82,11 +84,12 @@ class KProgramEnv {
   }
 
   /// Convert this [KProgramEnv] to the corresponding [JProgramEnv].
+  @override
   JProgramEnv convert() => JProgramEnv(_components);
 }
 
 /// Environment for fast lookup of library classes and members.
-class KLibraryEnv {
+class KLibraryEnv implements interfaces.KLibraryEnv {
   final ir.Library library;
 
   Map<String, KClassEnv> _classMap;
@@ -193,7 +196,7 @@ class KLibraryEnv {
   }
 }
 
-class KLibraryData {
+class KLibraryData implements interfaces.KLibraryData {
   final ir.Library library;
   Iterable<ConstantValue> _metadata;
   // TODO(johnniwinther): Avoid direct access to [imports].
@@ -236,7 +239,7 @@ class KLibraryData {
 }
 
 /// Member data for a class.
-abstract class KClassEnv {
+abstract class KClassEnv implements interfaces.KClassEnv {
   /// The [ir.Class] that defined the class, if any.
   ir.Class get cls;
 
@@ -512,7 +515,7 @@ class KClassEnvImpl implements KClassEnv {
   }
 }
 
-abstract class KClassData {
+abstract class KClassData implements interfaces.KClassData {
   ir.Class get node;
 
   InterfaceType get thisType;
@@ -588,7 +591,7 @@ class KClassDataImpl implements KClassData {
   }
 }
 
-abstract class KMemberData {
+abstract class KMemberData implements interfaces.KMemberData {
   ir.Member get node;
 
   StaticTypeCache staticTypes;
@@ -798,7 +801,7 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   }
 }
 
-class KTypeVariableData {
+class KTypeVariableData implements interfaces.KTypeVariableData {
   final ir.TypeParameter node;
   DartType _bound;
   DartType _defaultType;

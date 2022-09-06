@@ -40,7 +40,8 @@ import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
 import '../js_model/class_type_variable_access.dart';
 import '../kernel/dart2js_target.dart' show allowedNativeTest;
-import '../kernel/element_map.dart';
+import '../kernel/element_map_interfaces.dart';
+import '../kernel/element_map_migrated.dart';
 import '../kernel/env.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
@@ -135,7 +136,7 @@ class JsKernelToElementMap
   JsKernelToElementMap(
       this.reporter,
       this._environment,
-      KernelToElementMap _elementMap,
+      KernelToElementMapForJsModel _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
       AnnotationsData annotations)
       : this.options = _elementMap.options {

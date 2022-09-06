@@ -63,7 +63,8 @@ import 'element_map_interfaces.dart' as interfaces
         KernelToElementMapForImpactData,
         KernelToElementMapForKernelImpact,
         KernelToElementMapForNativeData,
-        KernelToElementMapForDeferredLoading;
+        KernelToElementMapForDeferredLoading,
+        KernelToElementMapForJsModel;
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
@@ -77,6 +78,7 @@ class KernelToElementMap
         interfaces.KernelToElementMapForNativeData,
         interfaces.KernelToElementMapForDeferredLoading,
         interfaces.KernelToElementMapForKernelImpact,
+        interfaces.KernelToElementMapForJsModel,
         IrToElementMap {
   @override
   final CompilerOptions options;
@@ -97,19 +99,25 @@ class KernelToElementMap
   /*late final*/ ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
+  @override
   KProgramEnv env = KProgramEnv();
 
+  @override
   final EntityDataEnvMap<IndexedLibrary, KLibraryData, KLibraryEnv> libraries =
       EntityDataEnvMap<IndexedLibrary, KLibraryData, KLibraryEnv>();
+  @override
   final EntityDataEnvMap<IndexedClass, KClassData, KClassEnv> classes =
       EntityDataEnvMap<IndexedClass, KClassData, KClassEnv>();
+  @override
   final EntityDataMap<IndexedMember, KMemberData> members =
       EntityDataMap<IndexedMember, KMemberData>();
+  @override
   final EntityDataMap<IndexedTypeVariable, KTypeVariableData> typeVariables =
       EntityDataMap<IndexedTypeVariable, KTypeVariableData>();
 
   /// Set to `true` before creating the J-World from the K-World to assert that
   /// no entities are created late.
+  @override
   bool envIsClosed = false;
 
   final Map<ir.Library, IndexedLibrary> libraryMap = {};
@@ -2227,23 +2235,4 @@ class KernelNativeMemberResolver {
   bool _isJsInteropMember(ir.Member node) {
     return _nativeBasicData.isJsInteropMember(_elementMap.getMember(node));
   }
-}
-
-DiagnosticMessage _createDiagnosticMessage(
-    DiagnosticReporter reporter, ir.LocatedMessage message) {
-  SourceSpan sourceSpan = SourceSpan(
-      message.uri, message.charOffset, message.charOffset + message.length);
-  return reporter.createMessage(
-      sourceSpan, MessageKind.GENERIC, {'text': message.problemMessage});
-}
-
-void reportLocatedMessage(DiagnosticReporter reporter,
-    ir.LocatedMessage message, List<ir.LocatedMessage> context) {
-  DiagnosticMessage diagnosticMessage =
-      _createDiagnosticMessage(reporter, message);
-  List<DiagnosticMessage> infos = [];
-  for (ir.LocatedMessage message in context) {
-    infos.add(_createDiagnosticMessage(reporter, message));
-  }
-  reporter.reportError(diagnosticMessage, infos);
 }

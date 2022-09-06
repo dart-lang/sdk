@@ -6,6 +6,7 @@
 
 // TODO(joshualitt): Merge the contents of element_map_impl.dart into this file.
 export 'element_map_impl.dart';
+export 'element_map_migrated.dart';
 
 /// Kinds of foreign functions.
 export 'element_map_interfaces.dart' show ForeignKind;
