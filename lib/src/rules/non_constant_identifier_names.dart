@@ -51,6 +51,7 @@ class NonConstantIdentifierNames extends LintRule {
     registry.addFormalParameterList(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
+    registry.addRecordLiteral(this, visitor);
     registry.addVariableDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);
   }
@@ -109,6 +110,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (!node.isOperator) {
       checkIdentifier(node.name2);
+    }
+  }
+
+  @override
+  void visitRecordLiteral(RecordLiteral node) {
+    for (var fieldExpression in node.fields) {
+      if (fieldExpression is NamedExpression) {
+        checkIdentifier(fieldExpression.name.label.token);
+      }
     }
   }
 
