@@ -1586,7 +1586,7 @@ set propB(int v) {}
     "kind": "FUNCTION",
     "name": "f",
     "location": {
-      "file": "/home/test/lib/test.dart",
+      "file": $testPathJson,
       "offset": 11,
       "length": 1,
       "startLine": 1,
@@ -1620,7 +1620,7 @@ set propB(int v) {}
     "kind": "TOP_LEVEL_VARIABLE",
     "name": "r",
     "location": {
-      "file": "/home/test/lib/test.dart",
+      "file": $testPathJson,
       "offset": 12,
       "length": 1,
       "startLine": 1,
