@@ -915,6 +915,9 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
     _visitNode(namedFields);
     sink.write(')');
+    if (node.question != null) {
+      sink.write('?');
+    }
   }
 
   @override

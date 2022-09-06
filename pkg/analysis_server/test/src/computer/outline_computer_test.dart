@@ -1572,6 +1572,73 @@ set propB(int v) {}
     }
   }
 
+  Future<void> test_topLevelFunction_recordTypes() async {
+    var unitOutline = await _computeOutline('''
+(int, int) f((String, String) r) => throw '';
+''');
+
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    assertJsonText(topOutlines[0], '''
+{
+  "element": {
+    "kind": "FUNCTION",
+    "name": "f",
+    "location": {
+      "file": "/home/test/lib/test.dart",
+      "offset": 11,
+      "length": 1,
+      "startLine": 1,
+      "startColumn": 12,
+      "endLine": 1,
+      "endColumn": 13
+    },
+    "flags": 8,
+    "parameters": "((String, String) r)",
+    "returnType": "(int, int)"
+  },
+  "offset": 0,
+  "length": 45,
+  "codeOffset": 0,
+  "codeLength": 45
+}
+''');
+  }
+
+  Future<void> test_topLevelVariable_recordTypes() async {
+    var unitOutline = await _computeOutline('''
+(int, int)? r = null;
+''');
+
+    var topOutlines = unitOutline.children!;
+    expect(topOutlines, hasLength(1));
+
+    assertJsonText(topOutlines[0], '''
+{
+  "element": {
+    "kind": "TOP_LEVEL_VARIABLE",
+    "name": "r",
+    "location": {
+      "file": "/home/test/lib/test.dart",
+      "offset": 12,
+      "length": 1,
+      "startLine": 1,
+      "startColumn": 13,
+      "endLine": 1,
+      "endColumn": 14
+    },
+    "flags": 0,
+    "returnType": "(int, int)?"
+  },
+  "offset": 0,
+  "length": 21,
+  "codeOffset": 12,
+  "codeLength": 8
+}
+''');
+  }
+
   void _expect(Outline outline,
       {ElementKind? kind,
       bool leaf = false,
