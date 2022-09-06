@@ -54,6 +54,9 @@ class ConvertDocumentationIntoLine extends CorrectionProducer {
           return;
         }
         line = line.substring(expectedPrefix.length).trim();
+        if (line.endsWith('*/')) {
+          line = line.substring(0, line.length - 2).trim();
+        }
         if (line.isNotEmpty) {
           newLines.add('/// $line');
           linePrefix = eol + prefix;
@@ -67,6 +70,9 @@ class ConvertDocumentationIntoLine extends CorrectionProducer {
           return;
         }
         line = line.substring(expectedPrefix.length);
+        if (line.endsWith('*/')) {
+          line = line.substring(0, line.length - 2).trimRight();
+        }
         if (line.isEmpty) {
           newLines.add('$linePrefix///');
         } else {
