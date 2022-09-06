@@ -793,8 +793,23 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
 
       return result;
-    } else if (node is PrefixedIdentifier) {
-      node.prefix.accept(this);
+    } else if (node is PrefixedIdentifierImpl) {
+      final prefix = node.prefix;
+      prefix.accept(this);
+
+      // TODO(scheglov) It would be nice to rewrite all such cases.
+      if (prefix.staticType is RecordType) {
+        final propertyAccess = PropertyAccessImpl(
+          prefix,
+          node.period,
+          node.identifier,
+        );
+        NodeReplacer.replace(node, propertyAccess);
+        return resolveForWrite(
+          node: propertyAccess,
+          hasRead: hasRead,
+        );
+      }
 
       return _propertyElementResolver.resolvePrefixedIdentifier(
         node: node,

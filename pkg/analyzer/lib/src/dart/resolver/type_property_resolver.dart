@@ -202,6 +202,11 @@ class TypePropertyResolver {
         return _toResult();
       }
 
+      if (receiverTypeResolved is RecordType) {
+        _needsGetterError = true;
+        _needsSetterError = true;
+      }
+
       _lookupExtension(receiverType);
       if (_hasGetterOrSetter) {
         return _toResult();
