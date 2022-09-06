@@ -49,6 +49,32 @@ class A {
 ''');
   }
 
+  Future<void> test_indentation_last() async {
+    await resolveTestCode('''
+/**
+ * AAAAAAA
+  */
+class A {}
+''');
+    await assertHasAssistAt('AAAAAAA', '''
+/// AAAAAAA
+class A {}
+''');
+  }
+
+  Future<void> test_indentation_middle() async {
+    await resolveTestCode('''
+/**
+  * AAAAAAA
+ */
+class A {}
+''');
+    await assertHasAssistAt('AAAAAAA', '''
+/// AAAAAAA
+class A {}
+''');
+  }
+
   Future<void> test_multiLine() async {
     await resolveTestCode('''
 class A {

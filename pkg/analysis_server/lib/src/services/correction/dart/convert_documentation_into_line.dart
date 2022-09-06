@@ -62,22 +62,18 @@ class ConvertDocumentationIntoLine extends CorrectionProducer {
           linePrefix = eol + prefix;
         }
       } else {
-        if (line.startsWith('$prefix */')) {
+        line = line.trimLeft();
+        if (line.startsWith('*/')) {
           break;
         }
-        var expectedPrefix = '$prefix *';
-        if (!line.startsWith(expectedPrefix)) {
+        if (!line.startsWith('*')) {
           return;
         }
-        line = line.substring(expectedPrefix.length);
+        line = line.substring(1);
         if (line.endsWith('*/')) {
           line = line.substring(0, line.length - 2).trimRight();
         }
-        if (line.isEmpty) {
-          newLines.add('$linePrefix///');
-        } else {
-          newLines.add('$linePrefix///$line');
-        }
+        newLines.add('$linePrefix///$line');
         linePrefix = eol + prefix;
       }
     }
