@@ -22,7 +22,7 @@ import '../../generated/parser_test_base.dart' show ParserTestCase;
 import '../../src/diagnostics/parser_diagnostics.dart';
 import '../../util/feature_sets.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassDeclarationTest);
     defineReflectiveTests(ClassTypeAliasTest);

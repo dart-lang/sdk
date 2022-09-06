@@ -52,7 +52,8 @@ class PubspecWarningCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the field
   static const PubspecWarningCode DEPENDENCIES_FIELD_NOT_MAP =
       PubspecWarningCode(
     'DEPENDENCIES_FIELD_NOT_MAP',
@@ -61,7 +62,8 @@ class PubspecWarningCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the field
   static const PubspecWarningCode DEPRECATED_FIELD = PubspecWarningCode(
     'DEPRECATED_FIELD',
     "The '{0}' field is no longer used and can be removed.",

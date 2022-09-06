@@ -27,6 +27,9 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Users should not assign values marked `@doNotStore`.
+  ///
+  ///  Parameters:
+  ///  0: the name of the field or variable
   static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
     'ASSIGNMENT_OF_DO_NOT_STORE',
     "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
@@ -297,9 +300,10 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  ///
   ///  https://github.com/dart-lang/sdk/issues/44063
+  ///
+  ///  Parameters:
+  ///  0: the name of the library
   static const HintCode IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE = HintCode(
     'IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE',
     "The library '{0}' is legacy, and shouldn't be imported into a null safe "
@@ -310,6 +314,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" is enabled, collection literal types must be
   ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the collection
   static const HintCode INFERENCE_FAILURE_ON_COLLECTION_LITERAL = HintCode(
     'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
     "The type argument(s) of '{0}' can't be inferred.",
@@ -318,6 +325,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" is enabled, types in function invocations must be
   ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the function
   static const HintCode INFERENCE_FAILURE_ON_FUNCTION_INVOCATION = HintCode(
     'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
     "The type argument(s) of the function '{0}' can't be inferred.",
@@ -329,6 +339,9 @@ class HintCode extends AnalyzerErrorCode {
   ///  specify a return type. See the strict-inference resource:
   ///
   ///  https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
+  ///
+  ///  Parameters:
+  ///  0: the name of the function or method
   static const HintCode INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE = HintCode(
     'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
     "The return type of '{0}' cannot be inferred.",
@@ -337,6 +350,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" is enabled, types in function invocations must be
   ///  inferred via the context type, or have type arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the type
   static const HintCode INFERENCE_FAILURE_ON_GENERIC_INVOCATION = HintCode(
     'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
     "The type argument(s) of the generic function type '{0}' can't be "
@@ -347,6 +363,9 @@ class HintCode extends AnalyzerErrorCode {
   ///  When "strict-inference" is enabled, types in instance creation
   ///  (constructor calls) must be inferred via the context type, or have type
   ///  arguments.
+  ///
+  ///  Parameters:
+  ///  0: the name of the constructor
   static const HintCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = HintCode(
     'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
     "The type argument(s) of the constructor '{0}' can't be inferred.",
@@ -355,6 +374,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" in enabled, uninitialized variables must be
   ///  declared with a specific type.
+  ///
+  ///  Parameters:
+  ///  0: the name of the variable
   static const HintCode INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE = HintCode(
     'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
     "The type of {0} can't be inferred without either a type or initializer.",
@@ -363,6 +385,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  When "strict-inference" in enabled, function parameters must be
   ///  declared with a specific type, or inherit a type.
+  ///
+  ///  Parameters:
+  ///  0: the name of the parameter
   static const HintCode INFERENCE_FAILURE_ON_UNTYPED_PARAMETER = HintCode(
     'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
     "The type of {0} can't be inferred; a type must be explicitly provided.",
@@ -389,6 +414,7 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the element
+  ///  1: ?
   static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY =
       HintCode(
     'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
@@ -459,6 +485,9 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
   );
 
+  ///  Parameters:
+  ///  0: the latest major version
+  ///  1: the latest minor version
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
     "The language version override can't specify a version greater than the "
@@ -775,6 +804,9 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Generate a hint for classes that inherit from classes annotated with
   ///  `@immutable` but that are not immutable.
+  ///
+  ///  Parameters:
+  ///  0: the name of the class
   static const HintCode MUST_BE_IMMUTABLE = HintCode(
     'MUST_BE_IMMUTABLE',
     "This class (or a class that this class inherits from) is marked as "
@@ -987,7 +1019,8 @@ class HintCode extends AnalyzerErrorCode {
     uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the class
   static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = HintCode(
     'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
     "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but "
@@ -1007,7 +1040,8 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  ///  Parameters:
+  ///  0: the name of the operator
   static const HintCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT = HintCode(
     'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
     "The use of the operator '{0}' for 'bool' operands in a constant context "
@@ -1112,6 +1146,9 @@ class HintCode extends AnalyzerErrorCode {
   ///
   ///  A "raw type" is a type name that does not use inference to fill in missing
   ///  type arguments; instead, each type argument is instantiated to its bound.
+  ///
+  ///  Parameters:
+  ///  0: the name of the generic type
   static const HintCode STRICT_RAW_TYPE = HintCode(
     'STRICT_RAW_TYPE',
     "The generic type '{0}' should have explicit type arguments but doesn't.",
