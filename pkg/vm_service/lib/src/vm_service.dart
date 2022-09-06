@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.60.0';
+const String vmServiceVersion = '3.61.0';
 
 /// @optional
 const String optional = 'optional';
@@ -5600,11 +5600,15 @@ class IsolateRef extends Response {
   /// internal use. If `false`, this isolate is likely running user code.
   bool? isSystemIsolate;
 
+  /// The id of the isolate group that this isolate belongs to.
+  String? isolateGroupId;
+
   IsolateRef({
     this.id,
     this.number,
     this.name,
     this.isSystemIsolate,
+    this.isolateGroupId,
   });
 
   IsolateRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -5612,6 +5616,7 @@ class IsolateRef extends Response {
     number = json['number'] ?? '';
     name = json['name'] ?? '';
     isSystemIsolate = json['isSystemIsolate'] ?? false;
+    isolateGroupId = json['isolateGroupId'] ?? '';
   }
 
   @override
@@ -5626,6 +5631,7 @@ class IsolateRef extends Response {
       'number': number,
       'name': name,
       'isSystemIsolate': isSystemIsolate,
+      'isolateGroupId': isolateGroupId,
     });
     return json;
   }
@@ -5635,7 +5641,8 @@ class IsolateRef extends Response {
   bool operator ==(Object other) => other is IsolateRef && id == other.id;
 
   String toString() => '[IsolateRef ' //
-      'id: ${id}, number: ${number}, name: ${name}, isSystemIsolate: ${isSystemIsolate}]';
+      'id: ${id}, number: ${number}, name: ${name}, isSystemIsolate: ${isSystemIsolate}, ' //
+      'isolateGroupId: ${isolateGroupId}]';
 }
 
 /// An `Isolate` object provides information about one isolate in the VM.
@@ -5655,6 +5662,9 @@ class Isolate extends Response implements IsolateRef {
   /// Specifies whether the isolate was spawned by the VM or embedder for
   /// internal use. If `false`, this isolate is likely running user code.
   bool? isSystemIsolate;
+
+  /// The id of the isolate group that this isolate belongs to.
+  String? isolateGroupId;
 
   /// The list of isolate flags provided to this isolate. See Dart_IsolateFlags
   /// in dart_api.h for the list of accepted isolate flags.
@@ -5709,6 +5719,7 @@ class Isolate extends Response implements IsolateRef {
     this.number,
     this.name,
     this.isSystemIsolate,
+    this.isolateGroupId,
     this.isolateFlags,
     this.startTime,
     this.runnable,
@@ -5728,6 +5739,7 @@ class Isolate extends Response implements IsolateRef {
     number = json['number'] ?? '';
     name = json['name'] ?? '';
     isSystemIsolate = json['isSystemIsolate'] ?? false;
+    isolateGroupId = json['isolateGroupId'] ?? '';
     isolateFlags = List<IsolateFlag>.from(
         createServiceObject(json['isolateFlags'], const ['IsolateFlag'])
                 as List? ??
@@ -5766,6 +5778,7 @@ class Isolate extends Response implements IsolateRef {
       'number': number,
       'name': name,
       'isSystemIsolate': isSystemIsolate,
+      'isolateGroupId': isolateGroupId,
       'isolateFlags': isolateFlags?.map((f) => f.toJson()).toList(),
       'startTime': startTime,
       'runnable': runnable,
