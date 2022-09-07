@@ -18,6 +18,7 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
+    defineReflectiveTests(SearchMultipleDriversTest);
   });
 }
 
@@ -60,6 +61,37 @@ class ExpectedResult {
     buffer.write(isQualified);
     buffer.write(")");
     return buffer.toString();
+  }
+}
+
+@reflectiveTest
+class SearchMultipleDriversTest extends PubPackageResolutionTest {
+  @override
+  List<String> get collectionIncludedPaths =>
+      [workspaceRootPath, otherPackageRootPath];
+
+  AnalysisDriver get driver => driverFor(testFile);
+
+  String get otherPackageRootPath => '$workspaceRootPath/other';
+
+  test_declarations_searchesFilesOnlyOnce() async {
+    // Create another driver to search in to ensure we don't get dupe results.
+    var otherFile = newFile(convertPath('$otherPackageRootPath/main.dart'), '');
+    var otherDriver = driverFor(otherFile);
+    var results = WorkspaceSymbols();
+
+    // Search both drivers.
+    await FindDeclarations(
+      [driver, otherDriver],
+      results,
+      null,
+      null,
+    ).compute();
+
+    // Ensure only one result for an SDK class, and that the file was tracked as searched.
+    var declarations = results.declarations;
+    expect(declarations.where((element) => element.name == 'Duration'),
+        hasLength(1));
   }
 }
 
@@ -152,8 +184,8 @@ class C {
 ''');
     var results = WorkspaceSymbols();
     var token = CancelableToken();
-    var searchFuture = driver.search
-        .declarations(results, null, null, cancellationToken: token);
+    var searchFuture =
+        FindDeclarations([driver], results, null, null).compute(token);
     token.cancel();
     await searchFuture;
     expect(results.cancelled, isTrue);
@@ -171,7 +203,7 @@ class C {
 }
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
     declarations.assertHas('C', DeclarationKind.CLASS,
         offset: 6, codeOffset: 0, codeLength: 91);
@@ -208,7 +240,7 @@ class C {
     await resolveTestCode('class T {}');
 
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     declarations.assertHas('T', DeclarationKind.CLASS);
@@ -225,7 +257,7 @@ enum E {
 ''');
 
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     declarations.assertHas('E', DeclarationKind.ENUM,
@@ -248,7 +280,7 @@ extension E on int {
 }
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
     declarations.assertHas('E', DeclarationKind.EXTENSION,
         offset: 10, codeOffset: 0, codeLength: 82);
@@ -269,7 +301,7 @@ class B {}
 class C {}
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, 2);
+    await FindDeclarations([driver], results, null, 2).compute();
     expect(results.declarations, hasLength(2));
   }
 
@@ -283,7 +315,7 @@ mixin M {
 }
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
     declarations.assertHas('M', DeclarationKind.MIXIN,
         offset: 6, codeOffset: 0, codeLength: 71);
@@ -302,7 +334,8 @@ mixin M {
     var b = newFile('$testPackageLibPath/b.dart', 'class B {}').path;
 
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null, onlyForFile: b);
+    await FindDeclarations([driver], results, null, null, onlyForFile: b)
+        .compute();
     var declarations = results.declarations;
 
     expect(results.files, [b]);
@@ -320,7 +353,7 @@ class C {
 void f(bool a, String b) {}
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     var declaration = declarations.assertHas('C', DeclarationKind.CLASS);
@@ -346,7 +379,7 @@ void f3(bool Function(int a, String b) c) {}
 void f4(bool Function(int, String) a) {}
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     var declaration = declarations.assertHas('f1', DeclarationKind.FUNCTION);
@@ -371,7 +404,7 @@ class A<T, T2> {
 }
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     var declaration =
@@ -395,7 +428,7 @@ class C {}
 class D {}
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, RegExp(r'[A-C]'), null);
+    await FindDeclarations([driver], results, RegExp(r'[A-C]'), null).compute();
     var declarations = results.declarations;
 
     declarations.assertHas('A', DeclarationKind.CLASS);
@@ -414,7 +447,7 @@ typedef void tf1();
 typedef tf2<T> = int Function<S>(T tp, S sp);
 ''');
     var results = WorkspaceSymbols();
-    await driver.search.declarations(results, null, null);
+    await FindDeclarations([driver], results, null, null).compute();
     var declarations = results.declarations;
 
     declarations.assertHas('g', DeclarationKind.GETTER,

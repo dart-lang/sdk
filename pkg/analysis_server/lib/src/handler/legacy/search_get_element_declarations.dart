@@ -78,11 +78,10 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
 
     var workspaceSymbols = search.WorkspaceSymbols();
     var analysisDrivers = server.driverMap.values.toList();
-    for (var analysisDriver in analysisDrivers) {
-      await analysisDriver.search.declarations(
-          workspaceSymbols, regExp, params.maxResults,
-          onlyForFile: params.file);
-    }
+    await search.FindDeclarations(
+            analysisDrivers, workspaceSymbols, regExp, params.maxResults,
+            onlyForFile: params.file)
+        .compute();
 
     var declarations = workspaceSymbols.declarations;
     var elementDeclarations = declarations.map((declaration) {
