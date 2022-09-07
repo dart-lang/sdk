@@ -17,7 +17,7 @@ main(List<String> args) {
   asyncTest(() async {
     ArgResults argResults = argParser.parse(args);
     Uri entryPoint = getEntryPoint(argResults) ??
-        Uri.base.resolve('samples-dev/swarm/swarm.dart');
+        Uri.base.resolve('pkg/compiler/test/codesize/swarm/swarm.dart');
     Uri librariesSpecificationUri = getLibrariesSpec(argResults);
     Uri packageConfig = getPackages(argResults);
     List<String> options = getOptions(argResults);

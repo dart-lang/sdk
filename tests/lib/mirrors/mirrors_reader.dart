@@ -29,7 +29,7 @@ class MirrorsReader extends MirrorsVisitor {
   List<ReadError> errors = <ReadError>[];
   List<Mirror> queue = <Mirror>[];
 
-  MirrorsReader({this.verbose: false, this.includeStackTrace: false});
+  MirrorsReader({this.verbose = false, this.includeStackTrace = false});
 
   void checkMirrorSystem(MirrorSystem mirrorSystem) {
     visitMirrorSystem(mirrorSystem);

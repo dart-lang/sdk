@@ -15,7 +15,7 @@ typedef void Callback([String msg
 ]);
 
 class NamedParametersAggregatedTests {
-  static int F31(int a, {int b: 20, int c: 30}) {
+  static int F31(int a, {int b = 20, int c = 30}) {
     return 100 * (100 * a + b) + c;
   }
 

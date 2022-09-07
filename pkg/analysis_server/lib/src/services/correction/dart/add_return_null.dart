@@ -25,25 +25,20 @@ class AddReturnNull extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     Block block;
 
-    var coveringNode = coveredNode;
-    if (coveringNode is Block) {
-      block = coveringNode;
-    } else if (coveringNode is SimpleIdentifier) {
-      var declaration = coveringNode.parent;
-      if (declaration is FunctionDeclaration) {
-        var body = declaration.functionExpression.body;
-        if (body is BlockFunctionBody) {
-          block = body.block;
-        } else {
-          return;
-        }
-      } else if (declaration is MethodDeclaration) {
-        var body = declaration.body;
-        if (body is BlockFunctionBody) {
-          block = body.block;
-        } else {
-          return;
-        }
+    final node = this.node;
+    if (node is Block) {
+      block = node;
+    } else if (node is FunctionDeclaration) {
+      var body = node.functionExpression.body;
+      if (body is BlockFunctionBody) {
+        block = body.block;
+      } else {
+        return;
+      }
+    } else if (node is MethodDeclaration) {
+      var body = node.body;
+      if (body is BlockFunctionBody) {
+        block = body.block;
       } else {
         return;
       }

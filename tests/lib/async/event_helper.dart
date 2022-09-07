@@ -154,7 +154,7 @@ class CaptureEvents extends Events {
   late StreamSubscription subscription;
   bool cancelOnError = false;
 
-  CaptureEvents(Stream stream, {bool cancelOnError: false}) {
+  CaptureEvents(Stream stream, {bool cancelOnError = false}) {
     this.cancelOnError = cancelOnError;
     subscription = stream.listen(add,
         onError: addError, onDone: close, cancelOnError: cancelOnError);

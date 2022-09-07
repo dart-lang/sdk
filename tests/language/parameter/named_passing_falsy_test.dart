@@ -11,14 +11,14 @@ class TestClass {
   TestClass();
 
   method([value = 100]) => value;
-  method2({value: 100}) => value;
+  method2({value = 100}) => value;
 
   static staticMethod([value = 200]) => value;
-  static staticMethod2({value: 200}) => value;
+  static staticMethod2({value = 200}) => value;
 }
 
 globalMethod([value = 300]) => value;
-globalMethod2({value: 300}) => value;
+globalMethod2({value = 300}) => value;
 
 const testValues = const [0, 0.0, '', false, null];
 

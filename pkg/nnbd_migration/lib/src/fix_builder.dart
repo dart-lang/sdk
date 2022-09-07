@@ -726,7 +726,7 @@ class MigrationResolutionHooksImpl
   }
 
   InterfaceType _getClassInterface(
-      ClassElement class_, InterfaceElement superclass) {
+      InterfaceElement class_, InterfaceElement superclass) {
     var decoratedSupertype = _fixBuilder._decoratedClassHierarchy!
         .getDecoratedSupertype(class_, superclass);
     var finalType = _fixBuilder._variables!.toFinalType(decoratedSupertype);

@@ -36,15 +36,15 @@ class AddAsync extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (isForMissingReturn) {
-      var parent = node.parent;
+      final node = this.node;
       FunctionBody? body;
       DartType? returnType;
-      if (parent is FunctionDeclaration) {
-        body = parent.functionExpression.body;
-        returnType = parent.declaredElement2!.returnType;
-      } else if (parent is MethodDeclaration) {
-        body = parent.body;
-        returnType = parent.declaredElement2!.returnType;
+      if (node is FunctionDeclaration) {
+        body = node.functionExpression.body;
+        returnType = node.declaredElement2!.returnType;
+      } else if (node is MethodDeclaration) {
+        body = node.body;
+        returnType = node.declaredElement2!.returnType;
       }
       if (body == null || returnType == null) {
         return;

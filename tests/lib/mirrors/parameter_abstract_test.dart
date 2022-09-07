@@ -12,7 +12,7 @@ const Y = 'Y';
 const Z = 'Z';
 
 abstract class C {
-  foo1({@X int x: 1, @Y int y: 2, @Z int z: 3});
+  foo1({@X int x = 1, @Y int y = 2, @Z int z = 3});
 }
 
 main() {

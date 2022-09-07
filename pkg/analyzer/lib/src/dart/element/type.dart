@@ -23,20 +23,11 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
   /// The unique instance of this class.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
+  @override
+  final DynamicElementImpl element2 = DynamicElementImpl();
+
   /// Prevent the creation of instances of this class.
-  DynamicTypeImpl._() : super(DynamicElementImpl());
-
-  @Deprecated('Use element2 instead')
-  @override
-  Element get element {
-    return super.element!;
-  }
-
-  @override
-  DynamicElementImpl get element2 {
-    // ignore: deprecated_member_use_from_same_package
-    return super.element as DynamicElementImpl;
-  }
+  DynamicTypeImpl._();
 
   @override
   int get hashCode => 1;
@@ -98,13 +89,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     required List<ParameterElement> parameters,
     required this.returnType,
     required this.nullabilitySuffix,
-    InstantiatedTypeAliasElement? alias,
-  })  : parameters = _sortNamedParameters(parameters),
-        super(null, alias: alias);
-
-  @Deprecated('Use element2 instead')
-  @override
-  Null get element => null;
+    super.alias,
+  }) : parameters = _sortNamedParameters(parameters);
 
   @override
   Null get element2 => null;
@@ -467,8 +453,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.element2,
     required this.typeArguments,
     required this.nullabilitySuffix,
-    InstantiatedTypeAliasElement? alias,
-  }) : super(element2 as ClassElement, alias: alias) {
+    super.alias,
+  }) {
     var typeParameters = element2.typeParameters;
     if (typeArguments.length != typeParameters.length) {
       throw ArgumentError(
@@ -514,10 +500,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return _constructors!;
   }
-
-  @Deprecated('Use element2 instead')
-  @override
-  ClassElement get element => super.element as ClassElement;
 
   @override
   int get hashCode {
@@ -641,7 +623,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
-  String get name => element.name;
+  String get name => element2.name;
 
   @override
   InterfaceType? get superclass {
@@ -931,11 +913,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   final NullabilitySuffix nullabilitySuffix;
 
   /// Prevent the creation of instances of this class.
-  NeverTypeImpl._(this.nullabilitySuffix) : super(NeverElementImpl.instance);
-
-  @Deprecated('Use element2 instead')
-  @override
-  NeverElementImpl get element => super.element as NeverElementImpl;
+  NeverTypeImpl._(this.nullabilitySuffix);
 
   @override
   int get hashCode => 0;
@@ -1010,13 +988,8 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
     required this.positionalFields,
     required List<RecordTypeNamedFieldImpl> namedFields,
     required this.nullabilitySuffix,
-    InstantiatedTypeAliasElement? alias,
-  })  : namedFields = _sortNamedFields(namedFields),
-        super(null, alias: alias);
-
-  @Deprecated('Use element2 instead')
-  @override
-  Null get element => null;
+    super.alias,
+  }) : namedFields = _sortNamedFields(namedFields);
 
   @override
   Null get element2 => null;
@@ -1153,25 +1126,8 @@ abstract class TypeImpl implements DartType {
   @override
   InstantiatedTypeAliasElement? alias;
 
-  /// The element representing the declaration of this type, or `null` if the
-  /// type has not, or cannot, be associated with an element.
-  final Element? _element;
-
-  /// Initialize a newly created type to be declared by the given [element2].
-  TypeImpl(this._element, {this.alias});
-
-  @deprecated
-  @override
-  String get displayName {
-    return getDisplayString(
-      withNullability: false,
-      skipAllDynamicArguments: true,
-    );
-  }
-
-  @Deprecated('Use element2 instead')
-  @override
-  Element? get element => _element;
+  /// Initialize a newly created type.
+  TypeImpl({this.alias});
 
   @override
   bool get isBottom => false;
@@ -1302,6 +1258,9 @@ abstract class TypeImpl implements DartType {
 /// A concrete implementation of a [TypeParameterType].
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
+  final TypeParameterElement element2;
+
+  @override
   final NullabilitySuffix nullabilitySuffix;
 
   /// An optional promoted bound on the type parameter.
@@ -1313,14 +1272,11 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   /// Initialize a newly created type parameter type to be declared by the given
   /// [element] and to have the given name.
   TypeParameterTypeImpl({
-    required TypeParameterElement element,
+    required this.element2,
     required this.nullabilitySuffix,
     this.promotedBound,
-    InstantiatedTypeAliasElement? alias,
-  }) : super(
-          element,
-          alias: alias,
-        );
+    super.alias,
+  });
 
   @override
   DartType get bound =>
@@ -1328,16 +1284,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @override
   ElementLocation get definition => element2.location!;
-
-  @Deprecated('Use element2 instead')
-  @override
-  TypeParameterElement get element => super.element as TypeParameterElement;
-
-  @override
-  TypeParameterElement get element2 {
-    // ignore: deprecated_member_use_from_same_package
-    return super.element as TypeParameterElement;
-  }
 
   @override
   int get hashCode => element2.hashCode;
@@ -1363,7 +1309,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @Deprecated('Check element, or use getDisplayString()')
   @override
-  String get name => element.name;
+  String get name => element2.name;
 
   @override
   bool operator ==(Object other) {
@@ -1417,7 +1363,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       return promotedBound.resolveToBound(objectType);
     }
 
-    var bound = element.bound;
+    var bound = element2.bound;
     if (bound == null) {
       return objectType;
     }
@@ -1441,7 +1387,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return TypeParameterTypeImpl(
-      element: element2,
+      element2: element2,
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
@@ -1454,11 +1400,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   static final VoidTypeImpl instance = VoidTypeImpl._();
 
   /// Prevent the creation of instances of this class.
-  VoidTypeImpl._() : super(null);
-
-  @Deprecated('Use element2 instead')
-  @override
-  Null get element => null;
+  VoidTypeImpl._();
 
   @override
   Null get element2 => null;

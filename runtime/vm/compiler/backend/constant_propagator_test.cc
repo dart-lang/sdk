@@ -117,16 +117,8 @@ static void ConstantPropagatorUnboxedOpTest(
   using compiler::BlockBuilder;
 
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
-  FlowGraphBuilderHelper H;
-
-  // Add a variable into the scope which would provide static type for the
-  // parameter.
-  LocalVariable* v0_var =
-      new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                        String::Handle(Symbols::New(thread, "v0")),
-                        AbstractType::ZoneHandle(Type::IntType()));
-  v0_var->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
-  H.flow_graph()->parsed_function().scope()->AddVariable(v0_var);
+  FlowGraphBuilderHelper H(/*num_parameters=*/1);
+  H.AddVariable("v0", AbstractType::ZoneHandle(Type::IntType()));
 
   // We are going to build the following graph:
   //

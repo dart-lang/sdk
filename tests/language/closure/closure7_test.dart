@@ -9,12 +9,12 @@ import "package:expect/expect.dart";
 class A {
   foo() => 499;
   fooo() => 4999; // Implicit closure class can be shared with foo.
-  bar(x, {y: 8, z: 10}) => "1 $x $y $z";
-  gee(x, {y: 9, z: 11}) => "2 $x $y $z"; // Must not be shared with "bar".
-  toto(x, {y: 8, z: 10}) => "3 $x $y $z"; // Could be shared with "bar".
+  bar(x, {y = 8, z = 10}) => "1 $x $y $z";
+  gee(x, {y = 9, z = 11}) => "2 $x $y $z"; // Must not be shared with "bar".
+  toto(x, {y = 8, z = 10}) => "3 $x $y $z"; // Could be shared with "bar".
 
-  fisk(x, {y: 8, zz: 10}) => "4 $x $y $zz";
-  titi(x, {y: 8, zz: 77}) => "5 $x $y $zz"; // Could be shared with "fisk",
+  fisk(x, {y = 8, zz = 10}) => "4 $x $y $zz";
+  titi(x, {y = 8, zz = 77}) => "5 $x $y $zz"; // Could be shared with "fisk",
   // because default-val is never used.
 }
 
@@ -23,11 +23,11 @@ class B {
   // of A.
   foo() => 4990;
   fooo() => 49990;
-  bar(x, {y: 8, z: 10}) => "1B $x $y $z";
-  gee(x, {y: 9, z: 11}) => "2B $x $y $z";
-  toto(x, {y: 8, z: 10}) => "3B $x $y $z";
-  fisk(x, {y: 8, zz: 10}) => "4B $x $y $zz";
-  titi(x, {y: 8, zz: 77}) => "5B $x $y $zz";
+  bar(x, {y = 8, z = 10}) => "1B $x $y $z";
+  gee(x, {y = 9, z = 11}) => "2B $x $y $z";
+  toto(x, {y = 8, z = 10}) => "3B $x $y $z";
+  fisk(x, {y = 8, zz = 10}) => "4B $x $y $zz";
+  titi(x, {y = 8, zz = 77}) => "5B $x $y $zz";
 }
 
 tearOffFoo(o) => o.foo;

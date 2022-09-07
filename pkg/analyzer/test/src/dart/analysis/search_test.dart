@@ -997,7 +997,7 @@ class A {
     var main = findElement.method('main');
     var fieldParameter = findElement.parameter('field');
     var expected = [
-      _expectIdQ(fieldParameter, SearchResultKind.WRITE, 'field}'),
+      _expectIdQ(fieldParameter, SearchResultKind.WRITE, 'field}', length: 5),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'field: 1'),
       _expectId(main, SearchResultKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, SearchResultKind.READ, 'field); // ref-q'),
@@ -1055,7 +1055,8 @@ void f(E e) {
       _expectIdQ(
           findElement.field('v'), SearchResultKind.REFERENCE, 'field: 0'),
       _expectIdQ(findElement.parameter('field'), SearchResultKind.WRITE,
-          'field}); // 1'),
+          'field}); // 1',
+          length: 5),
       _expectIdQ(
           findElement.topFunction('f'), SearchResultKind.READ, 'field; // 2'),
     ]);
@@ -1649,6 +1650,7 @@ class B extends A {
         findElement.unnamedConstructor('B').superFormalParameter('a'),
         SearchResultKind.REFERENCE,
         'a}); // ref',
+        length: 1,
       ),
     ];
     await _verifyReferences(element, expected);
@@ -1669,6 +1671,7 @@ class B extends A {
         findElement.unnamedConstructor('B').superFormalParameter('a'),
         SearchResultKind.REFERENCE,
         'a); // ref',
+        length: 1,
       ),
     ];
     await _verifyReferences(element, expected);

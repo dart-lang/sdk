@@ -47,7 +47,7 @@ void test(expected, testData, compression) {
   });
 }
 
-testUintLists({bool compression: false}) {
+testUintLists({bool compression = false}) {
   var fillData = new List.generate(256, (index) => index);
   var testData = [
     new Uint8List(256),
@@ -60,7 +60,7 @@ testUintLists({bool compression: false}) {
   test(fillData, testData, compression);
 }
 
-testIntLists({bool compression: false}) {
+testIntLists({bool compression = false}) {
   var fillData = new List.generate(128, (index) => index);
   var testData = [
     new Int8List(128),
@@ -72,7 +72,7 @@ testIntLists({bool compression: false}) {
   test(fillData, testData, compression);
 }
 
-void testOutOfRangeClient({bool compression: false}) {
+void testOutOfRangeClient({bool compression = false}) {
   createServer().then((server) {
     var messageCount = 0;
     var transformer = compression
@@ -134,7 +134,7 @@ void testOutOfRangeClient({bool compression: false}) {
   });
 }
 
-void testOutOfRangeServer({bool compression: false}) {
+void testOutOfRangeServer({bool compression = false}) {
   var futures = <Future>[];
   var testData = [];
   var data;

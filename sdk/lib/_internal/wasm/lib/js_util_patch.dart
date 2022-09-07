@@ -4,8 +4,10 @@
 
 library dart.js_util;
 
+import "dart:_js_annotations" as js;
 import "dart:_internal";
 import "dart:_js_helper";
+import "dart:async" show Completer, FutureOr;
 import "dart:collection";
 import "dart:typed_data";
 import "dart:wasm";
@@ -45,8 +47,8 @@ dynamic jsify(Object? object) {
       convertedObjects[o] = convertedMap;
       for (final key in o.keys) {
         JSValue convertedKey = convert(key) as JSValue;
-        setPropertyRaw(convertedMap.toAnyRef(), convertedKey.toAnyRef(),
-            (convert(o[key]) as JSValue).toAnyRef());
+        setPropertyRaw(convertedMap.toExternRef(), convertedKey.toExternRef(),
+            (convert(o[key]) as JSValue).toExternRef());
       }
       return convertedMap;
     } else if (o is Iterable) {
@@ -66,37 +68,36 @@ dynamic jsify(Object? object) {
 }
 
 @patch
-Object get globalThis => JSValue(globalThisRaw());
+Object get globalThis => JSValue(globalThisRaw()!);
 
 @patch
-T newObject<T>() => JSValue(newObjectRaw()) as T;
+T newObject<T>() => JSValue(newObjectRaw()!) as T;
 
-JSValue _newArray() => JSValue(newArrayRaw());
+JSValue _newArray() => JSValue(newArrayRaw()!);
 
 @patch
 bool hasProperty(Object o, String name) =>
-    hasPropertyRaw(jsifyRaw(o)!, name.toJS().toAnyRef());
+    hasPropertyRaw(jsifyRaw(o)!, name.toJS().toExternRef());
 
 @patch
 T getProperty<T>(Object o, String name) =>
-    dartifyRaw(getPropertyRaw(jsifyRaw(o)!, name.toJS().toAnyRef())) as T;
+    dartifyRaw(getPropertyRaw(jsifyRaw(o)!, name.toJS().toExternRef())) as T;
 
 @patch
-T setProperty<T>(Object o, String name, T? value) => dartifyRaw(
-    setPropertyRaw(jsifyRaw(o)!, name.toJS().toAnyRef(), jsifyRaw(value))) as T;
+T setProperty<T>(Object o, String name, T? value) => dartifyRaw(setPropertyRaw(
+    jsifyRaw(o)!, name.toJS().toExternRef(), jsifyRaw(value))) as T;
 
 @patch
 T callMethod<T>(Object o, String method, List<Object?> args) =>
-    dartifyRaw(callMethodVarArgsRaw(
-        jsifyRaw(o)!, method.toJS().toAnyRef(), args.toJS().toAnyRef())) as T;
+    dartifyRaw(callMethodVarArgsRaw(jsifyRaw(o)!, method.toJS().toExternRef(),
+        args.toJS().toExternRef())) as T;
 
 @patch
 bool instanceof(Object? o, Object type) => throw 'unimplemented';
 
 @patch
-T callConstructor<T>(Object o, List<Object?> args) =>
-    dartifyRaw(callConstructorVarArgsRaw(jsifyRaw(o)!, args.toJS().toAnyRef()))!
-        as T;
+T callConstructor<T>(Object o, List<Object?> args) => dartifyRaw(
+    callConstructorVarArgsRaw(jsifyRaw(o)!, args.toJS().toExternRef()))! as T;
 
 @patch
 T add<T>(Object? first, Object? second) => throw 'unimplemented';
@@ -141,8 +142,32 @@ bool lessThan<T>(Object? first, Object? second) => throw 'unimplemented';
 @patch
 bool lessThanOrEqual<T>(Object? first, Object? second) => throw 'unimplemented';
 
+typedef _PromiseSuccessFunc = void Function(Object? value);
+typedef _PromiseFailureFunc = void Function(Object? error);
+
 @patch
-Future<T> promiseToFuture<T>(Object jsPromise) => throw 'unimplemented';
+Future<T> promiseToFuture<T>(Object jsPromise) {
+  Completer<T> completer = Completer<T>();
+
+  final success = js.allowInterop<_PromiseSuccessFunc>((r) {
+    return completer.complete(r as FutureOr<T>?);
+  });
+  final error = js.allowInterop<_PromiseFailureFunc>((e) {
+    // Note that `completeError` expects a non-nullable error regardless of
+    // whether null-safety is enabled, so a `NullRejectionException` is always
+    // provided if the error is `null` or `undefined`.
+    // TODO(joshualitt): At this point `undefined` has been replaced with `null`
+    // so we cannot tell them apart. In the future we should reify `undefined`
+    // in Dart.
+    if (e == null) {
+      return completer.completeError(NullRejectionException._(false));
+    }
+    return completer.completeError(e);
+  });
+
+  promiseThen(jsifyRaw(jsPromise)!, jsifyRaw(success)!, jsifyRaw(error)!);
+  return completer.future;
+}
 
 @patch
 Object? objectGetPrototypeOf(Object? object) => throw 'unimplemented';
@@ -166,7 +191,7 @@ Object? dartify(Object? object) {
       return o;
     }
 
-    WasmAnyRef ref = o.toAnyRef();
+    WasmExternRef ref = o.toExternRef();
     if (isJSBoolean(ref) ||
         isJSNumber(ref) ||
         isJSString(ref) ||
@@ -199,7 +224,7 @@ Object? dartify(Object? object) {
         Object? key = keys[i];
         if (key != null) {
           dartMap[key] = convert(
-              JSValue.box(getPropertyRaw(ref, (key as String).toAnyRef())));
+              JSValue.box(getPropertyRaw(ref, (key as String).toExternRef())));
         }
       }
       return dartMap;

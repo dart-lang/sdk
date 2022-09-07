@@ -102,7 +102,7 @@ class U80<T> {
   late List<T> Function<A>() Function() x21;
   late List<A> Function<A>(A x) Function() x22;
 
-  U80({this.tIsBool: false, this.tIsInt: false})
+  U80({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(int x0, [List<Function> x = const []]) => throw 'uncalled';

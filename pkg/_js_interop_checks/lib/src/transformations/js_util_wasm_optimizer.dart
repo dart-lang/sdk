@@ -51,13 +51,14 @@ class JsUtilWasmOptimizer extends Transformer {
   final Procedure _newObjectTarget;
   final Procedure _wrapDartFunctionTarget;
   final Procedure _allowInteropTarget;
-  final Class _wasmAnyRefClass;
+  final Class _wasmExternRefClass;
   final Class _objectClass;
   final Class _pragmaClass;
   final Field _pragmaName;
   final Field _pragmaOptions;
   final Member _globalThisMember;
   int _functionTrampolineN = 1;
+  late Library _library;
 
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
@@ -83,7 +84,8 @@ class JsUtilWasmOptimizer extends Transformer {
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'newObject'),
         _allowInteropTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
-        _wasmAnyRefClass = _coreTypes.index.getClass('dart:wasm', 'WasmAnyRef'),
+        _wasmExternRefClass =
+            _coreTypes.index.getClass('dart:wasm', 'WasmExternRef'),
         _objectClass = _coreTypes.objectClass,
         _pragmaClass = _coreTypes.pragmaClass,
         _pragmaName = _coreTypes.pragmaName,
@@ -93,6 +95,7 @@ class JsUtilWasmOptimizer extends Transformer {
 
   @override
   Library visitLibrary(Library lib) {
+    _library = lib;
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);
     _staticTypeContext.leaveLibrary(lib);
@@ -227,7 +230,6 @@ class JsUtilWasmOptimizer extends Transformer {
   /// matches.
   String _createFunctionTrampoline(Procedure node, FunctionType function) {
     int fileOffset = node.fileOffset;
-    Library library = node.enclosingLibrary;
 
     // Create arguments for each positional parameter in the function. These
     // arguments will be converted in JS to Dart objects. The generated wrapper
@@ -254,13 +256,14 @@ class JsUtilWasmOptimizer extends Transformer {
     // be exported from Wasm to JS so it can be called from JS. The argument
     // returned from the supplied callback will be converted with `jsifyRaw` to
     // a native JS value before being returned to JS.
-    DartType nullableWasmAnyRefType =
-        _wasmAnyRefClass.getThisType(_coreTypes, Nullability.nullable);
+    DartType nullableWasmExternRefType =
+        _wasmExternRefClass.getThisType(_coreTypes, Nullability.nullable);
+    final String libraryName = _library.name ?? 'Unnamed';
     final functionTrampolineName =
-        '|_functionTrampoline${_functionTrampolineN++}';
+        '|_functionTrampoline${_functionTrampolineN++}For$libraryName';
     final functionTrampolineImportName = '\$$functionTrampolineName';
     final functionTrampoline = Procedure(
-        Name(functionTrampolineName, library),
+        Name(functionTrampolineName, _library),
         ProcedureKind.Method,
         FunctionNode(
             ReturnStatement(StaticInvocation(
@@ -273,7 +276,7 @@ class JsUtilWasmOptimizer extends Transformer {
                       functionType: function),
                 ]))),
             positionalParameters: positionalParameters,
-            returnType: nullableWasmAnyRefType)
+            returnType: nullableWasmExternRefType)
           ..fileOffset = fileOffset,
         isStatic: true,
         fileUri: node.fileUri)
@@ -285,7 +288,7 @@ class JsUtilWasmOptimizer extends Transformer {
       _pragmaOptions.fieldReference:
           StringConstant(functionTrampolineImportName)
     })));
-    library.addProcedure(functionTrampoline);
+    _library.addProcedure(functionTrampoline);
     return functionTrampolineImportName;
   }
 

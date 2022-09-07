@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-
 part of swarmlib;
 
 /// The top-level collection of all sections for a user. */
@@ -47,7 +46,8 @@ class Sections extends IterableBase<Section> {
   }
 
   // This method is exposed for tests.
-  static void initializeFromData(String data, void Function(Sections sects) callback) {
+  static void initializeFromData(
+      String data, void Function(Sections sects) callback) {
     final decoder = Decoder(data);
     int nSections = decoder.readInt();
     final sections = <Section>[];
@@ -64,8 +64,7 @@ class Sections extends IterableBase<Section> {
       initializeFromData(CannedData.data['user.data'], callback);
     } else {
       // TODO(jmesserly): display an error if we fail here! Silent failure bad.
-      HttpRequest
-          .getString('data/user.data')
+      HttpRequest.getString('data/user.data')
           .then(EventBatch.wrap((responseText) {
         // TODO(jimhug): Nice response if get error back from server.
         // TODO(jimhug): Might be more efficient to parse request
@@ -188,8 +187,7 @@ class Article {
   }
 
   String get dataUri {
-    return SwarmUri
-        .encodeComponent(id)
+    return SwarmUri.encodeComponent(id)
         .replaceAll('%2F', '/')
         .replaceAll('%253A', '%3A');
   }
@@ -235,8 +233,8 @@ class Article {
     final author = decoder.readString();
     final dateInSeconds = decoder.readInt();
     final snippet = decoder.readString();
-    final date = DateTime.fromMillisecondsSinceEpoch(dateInSeconds * 1000,
-        isUtc: true);
+    final date =
+        DateTime.fromMillisecondsSinceEpoch(dateInSeconds * 1000, isUtc: true);
     return Article(
         source, id, date, title, author, srcUrl, hasThumbnail, snippet);
   }

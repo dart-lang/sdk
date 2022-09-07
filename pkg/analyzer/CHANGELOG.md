@@ -1,3 +1,15 @@
+## 5.0.0 (Not yet released - breaking changes)
+* Removed deprecated methods from AST.
+* Removed deprecated `DiagnosticMessage.message`.
+* Removed deprecated `LibraryElement.getImportsWithPrefix()`.
+* Removed deprecated `ParameterElement.isNotOptional`.
+* Removed deprecated `DartType.displayName`.
+* Removed deprecated methods from `AnalysisDriver`.
+* Removed deprecated `ClassOrMixinDeclaration`.
+* Removed deprecated `Declaration.declaredElement`.
+* Removed deprecated `Element.enclosingElement` and `enclosingElement2`.
+* Removed deprecated `ExportElement`, `ImportElement`.
+
 ## 4.7.0
 * Add missing `addXyz` to `NodeLintRegistry`.
 * Add `lookUpInheritedConcreteX()` to `InterfaceElement`.

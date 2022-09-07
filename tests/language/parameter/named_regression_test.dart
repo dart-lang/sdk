@@ -5,12 +5,12 @@
 // A regression test for dart2js bug 6015.
 
 class Fisk {
-  foo({b, a: true}) {
+  foo({b, a = true}) {
     if (b == null) return;
     throw 'broken';
   }
 
-  bar({a, b: true}) {
+  bar({a, b = true}) {
     if (a == null) return;
     throw 'broken';
   }

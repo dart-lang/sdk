@@ -31,7 +31,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
     if (expression is Identifier) {
       var elem = expression.staticElement;
-      if (elem is ClassElement) {
+      if (elem is InterfaceElement) {
         // Suggestions provided by StaticMemberContributor.
         return;
       }

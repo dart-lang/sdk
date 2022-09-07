@@ -2823,8 +2823,8 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
   virtual Representation representation() const { return representation_; }
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
-    ASSERT(index == 0);
-    return representation();
+    UNREACHABLE();
+    return kTagged;
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }

@@ -219,7 +219,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
    * If the queue is not empty, but no node exists that adheres to the
    * restrictions we return null.
    */
-  N? removeFirst({List<N> restrictions: const []}) {
+  N? removeFirst({List<N> restrictions = const []}) {
     if (isEmpty) throw "Trying to remove node from empty queue";
     var candidate = getRestricted(restrictions);
 

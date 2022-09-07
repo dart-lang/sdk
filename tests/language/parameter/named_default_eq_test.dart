@@ -14,15 +14,15 @@ typedef F1({x = 3, y});
 
 typedef functype({x, y, z});
 
-int topF({x = 3, y: 5, z}) => x * y * (z ?? 2);
+int topF({x = 3, y = 5, z}) => x * y * (z ?? 2);
 
 class A {
   int x;
   int y;
   int z;
-  A({this.x = 3, this.y: 5, z}) : z = z ?? 2;
-  A.redirect({int x = 3, int y: 5, int? z}) : this(x: x, y: y, z: z);
-  factory A.factory({int x = 3, int y: 5, int? z}) =>
+  A({this.x = 3, this.y = 5, z}) : z = z ?? 2;
+  A.redirect({int x = 3, int y = 5, int? z}) : this(x: x, y: y, z: z);
+  factory A.factory({int x = 3, int y = 5, int? z}) =>
       new A(x: x, y: y, z: z ?? 2);
   factory A.redirectFactory({int x, int y, int z}) = A;
 
@@ -36,8 +36,8 @@ class A {
 
   int get value => x * y * z;
 
-  static int staticF({x = 3, y: 5, z}) => x * y * (z ?? 2);
-  int instanceF({x = 3, y: 5, z}) => x * y * (z ?? 2);
+  static int staticF({x = 3, y = 5, z}) => x * y * (z ?? 2);
+  int instanceF({x = 3, y = 5, z}) => x * y * (z ?? 2);
 }
 
 main() {
@@ -46,8 +46,8 @@ main() {
 
   var a = new A();
 
-  int local({x = 3, y: 5, z}) => x * y * (z ?? 2);
-  var expr = ({x = 3, y: 5, z}) => x * y * (z ?? 2);
+  int local({x = 3, y = 5, z}) => x * y * (z ?? 2);
+  var expr = ({x = 3, y = 5, z}) => x * y * (z ?? 2);
   var tearOff = a.instanceF;
 
   test(function) {

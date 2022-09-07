@@ -3031,17 +3031,15 @@ class AstBuilder extends StackListener {
     var body = pop() as Block;
     var catchParameterList = popIfNotNull(catchKeyword) as FormalParameterList?;
     var type = popIfNotNull(onKeyword) as TypeAnnotation?;
-    SimpleIdentifier? exception;
-    SimpleIdentifier? stackTrace;
+    Token? exception;
+    Token? stackTrace;
     if (catchParameterList != null) {
       List<FormalParameter> catchParameters = catchParameterList.parameters;
       if (catchParameters.isNotEmpty) {
-        // ignore: deprecated_member_use_from_same_package
-        exception = catchParameters[0].identifier;
+        exception = catchParameters[0].name;
       }
       if (catchParameters.length > 1) {
-        // ignore: deprecated_member_use_from_same_package
-        stackTrace = catchParameters[1].identifier;
+        stackTrace = catchParameters[1].name;
       }
     }
     push(
@@ -3052,13 +3050,13 @@ class AstBuilder extends StackListener {
         leftParenthesis: catchParameterList?.leftParenthesis,
         exceptionParameter: exception != null
             ? CatchClauseParameterImpl(
-                nameNode: exception as SimpleIdentifierImpl,
+                name: exception,
               )
             : null,
         comma: comma,
         stackTraceParameter: stackTrace != null
             ? CatchClauseParameterImpl(
-                nameNode: stackTrace as SimpleIdentifierImpl,
+                name: stackTrace,
               )
             : null,
         rightParenthesis: catchParameterList?.rightParenthesis,
@@ -3305,8 +3303,7 @@ class AstBuilder extends StackListener {
       constant = EnumConstantDeclarationImpl(
         comment: constant.documentationComment,
         metadata: constant.metadata,
-        // ignore: deprecated_member_use_from_same_package
-        name: constant.name,
+        name: constant.name2,
         arguments: EnumConstantArgumentsImpl(
           typeArguments: typeArguments,
           constructorSelector: constructorSelector,
@@ -3516,8 +3513,7 @@ class AstBuilder extends StackListener {
           metadata: variableList.metadata,
           keyword: variableList.keyword,
           type: variableList.type as TypeAnnotationImpl?,
-          // ignore: deprecated_member_use_from_same_package
-          identifier: variableList.variables.first.name as SimpleIdentifierImpl,
+          name: variableList.variables.first.name2,
         ),
         inKeyword: inKeyword,
         iterable: iterator,
@@ -3620,7 +3616,7 @@ class AstBuilder extends StackListener {
         EnumConstantDeclarationImpl(
           comment: comment,
           metadata: metadata,
-          name: identifier,
+          name: token,
           arguments: null,
         ),
       );

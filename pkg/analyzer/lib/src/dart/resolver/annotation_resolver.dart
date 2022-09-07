@@ -62,7 +62,7 @@ class AnnotationResolver {
 
   void _classGetter(
     AnnotationImpl node,
-    ClassElement classElement,
+    InterfaceElement classElement,
     SimpleIdentifierImpl? getterName,
     List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
@@ -223,8 +223,8 @@ class AnnotationResolver {
     }
 
     // Class(args) or Class.CONST
-    if (element1 is ClassElement) {
-      if (argumentList != null) {
+    if (element1 is InterfaceElement) {
+      if (element1 is ClassElement && argumentList != null) {
         _classConstructorInvocation(
             node, element1, name2, argumentList, whyNotPromotedList);
       } else {
@@ -245,8 +245,8 @@ class AnnotationResolver {
         var element2 = element1.scope.lookup(name2.name).getter;
         name2.staticElement = element2;
         // prefix.Class(args) or prefix.Class.CONST
-        if (element2 is ClassElement) {
-          if (argumentList != null) {
+        if (element2 is InterfaceElement) {
+          if (element2 is ClassElement && argumentList != null) {
             _classConstructorInvocation(
                 node, element2, name3, argumentList, whyNotPromotedList);
           } else {

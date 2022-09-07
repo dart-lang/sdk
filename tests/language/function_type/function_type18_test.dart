@@ -123,7 +123,7 @@ class U18<T> {
   late Function<A>(A x) Function<B extends core.int>() x22;
   late void Function<A>(List<A> x) Function<B extends core.int>() x23;
 
-  U18({this.tIsBool: false, this.tIsInt: false})
+  U18({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(int x, [Function x0 = _voidFunction]) => throw 'uncalled';

@@ -57,12 +57,12 @@ class Box {
 
   @pragma('vm:never-inline')
   Box(
-      {int days: 0,
-      int hours: 0,
-      int minutes: 0,
-      int seconds: 0,
-      int milliseconds: 0,
-      int microseconds: 0})
+      {int days = 0,
+      int hours = 0,
+      int minutes = 0,
+      int seconds = 0,
+      int milliseconds = 0,
+      int microseconds = 0})
       : this._microseconds(1000 * 1000 * 60 * 60 * 24 * days +
             1000 * 1000 * 60 * 60 * hours +
             1000 * 1000 * 60 * minutes +

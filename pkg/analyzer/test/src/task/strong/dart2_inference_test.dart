@@ -204,9 +204,9 @@ void test(List<A> listA, List<B> listB) {
     await resolveTestCode(code);
     void assertTypes(
         String vSearch, String vType, String fSearch, String fType) {
-      var node = findNode.simple(vSearch);
+      var node = findNode.declaredIdentifier(vSearch);
 
-      var element = node.staticElement as LocalVariableElement;
+      var element = node.declaredElement2 as LocalVariableElement;
       assertType(element.type, vType);
 
       var invocation = findNode.methodInvocation(fSearch);
@@ -265,12 +265,12 @@ var x = [];
 var y = {};
 ''';
     await resolveTestCode(code);
-    var xNode = findNode.simple('x = ');
-    var xElement = xNode.staticElement as VariableElement;
+    var xNode = findNode.variableDeclaration('x = ');
+    var xElement = xNode.declaredElement2!;
     assertType(xElement.type, 'List<dynamic>');
 
-    var yNode = findNode.simple('y = ');
-    var yElement = yNode.staticElement as VariableElement;
+    var yNode = findNode.variableDeclaration('y = ');
+    var yElement = yNode.declaredElement2!;
     assertType(yElement.type, 'Map<dynamic, dynamic>');
   }
 
@@ -280,12 +280,12 @@ var x = [null];
 var y = {null: null};
 ''';
     await resolveTestCode(code);
-    var xNode = findNode.simple('x = ');
-    var xElement = xNode.staticElement as VariableElement;
+    var xNode = findNode.variableDeclaration('x = ');
+    var xElement = xNode.declaredElement2!;
     assertType(xElement.type, 'List<Null>');
 
-    var yNode = findNode.simple('y = ');
-    var yElement = yNode.staticElement as VariableElement;
+    var yNode = findNode.variableDeclaration('y = ');
+    var yElement = yNode.declaredElement2!;
     assertType(yElement.type, 'Map<Null, Null>');
   }
 
@@ -319,12 +319,12 @@ main() {
 }
 ''';
     await resolveTestCode(code);
-    var xNode = findNode.simple('x = ');
-    var xElement = xNode.staticElement as VariableElement;
+    var xNode = findNode.variableDeclaration('x = ');
+    var xElement = xNode.declaredElement2!;
     expect(xElement.type, VoidTypeImpl.instance);
 
-    var yNode = findNode.simple('y = ');
-    var yElement = yNode.staticElement as VariableElement;
+    var yNode = findNode.variableDeclaration('y = ');
+    var yElement = yNode.declaredElement2!;
     expect(yElement.type, VoidTypeImpl.instance);
   }
 
@@ -337,12 +337,12 @@ main() {
 }
 ''';
     await resolveTestCode(code);
-    var xNode = findNode.simple('x = ');
-    var xElement = xNode.staticElement as VariableElement;
+    var xNode = findNode.variableDeclaration('x = ');
+    var xElement = xNode.declaredElement2!;
     expect(xElement.type, VoidTypeImpl.instance);
 
-    var yNode = findNode.simple('y = ');
-    var yElement = yNode.staticElement as VariableElement;
+    var yNode = findNode.variableDeclaration('y = ');
+    var yElement = yNode.declaredElement2!;
     expect(yElement.type, VoidTypeImpl.instance);
   }
 

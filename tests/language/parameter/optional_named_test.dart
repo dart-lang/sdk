@@ -22,35 +22,35 @@ class OptionalNamedParametersTest {
     return a;
   }
 
-  static int F10({int b: 20}) {
+  static int F10({int b = 20}) {
     return b;
   }
 
-  int f21({int b: 20}) {
+  int f21({int b = 20}) {
     return b;
   }
 
-  static int F21(int a, {int b: 20}) {
+  static int F21(int a, {int b = 20}) {
     return 100 * a + b;
   }
 
-  int f32(int a, {int b: 20}) {
+  int f32(int a, {int b = 20}) {
     return 100 * a + b;
   }
 
-  static int F31(int a, {int b: 20, int c: 30}) {
+  static int F31(int a, {int b = 20, int c = 30}) {
     return 100 * (100 * a + b) + c;
   }
 
-  int f42(int a, {int b: 20, int c: 30}) {
+  int f42(int a, {int b = 20, int c = 30}) {
     return 100 * (100 * a + b) + c;
   }
 
-  static int F41(int a, {int b: 20, int? c, int d: 40}) {
+  static int F41(int a, {int b = 20, int? c, int d = 40}) {
     return 100 * (100 * (100 * a + b) + ((c != null) ? c : 0)) + d;
   }
 
-  int f52(int a, {int b: 20, int? c, int d: 40}) {
+  int f52(int a, {int b = 20, int? c, int d = 40}) {
     return 100 * (100 * (100 * a + b) + ((c != null) ? c : 0)) + d;
   }
 

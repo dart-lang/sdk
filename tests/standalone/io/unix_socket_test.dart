@@ -741,7 +741,7 @@ Future testSocketMessage(String uniqueName) async {
   });
 }
 
-Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
+Future testStdioMessage(String tempDirPath, {bool caller = false}) async {
   if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }

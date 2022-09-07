@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-
 part of touch;
 
 /// Common events related helpers.

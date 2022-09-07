@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,11 +16,11 @@ import 'package:collection/collection.dart';
 /// instance methods within a single compilation unit.
 class InstanceMemberInferrer {
   final InheritanceManager3 inheritance;
-  final Set<ClassElement> elementsBeingInferred = HashSet<ClassElement>();
+  final Set<InterfaceElement> elementsBeingInferred = {};
 
   late TypeSystemImpl typeSystem;
   late bool isNonNullableByDefault;
-  late ClassElement currentClassElement;
+  late InterfaceElement currentInterfaceElement;
 
   /// Initialize a newly create inferrer.
   InstanceMemberInferrer(this.inheritance);
@@ -112,7 +110,7 @@ class InstanceMemberInferrer {
 
     var getterName = Name(elementLibraryUri, elementName);
     var overriddenGetters = inheritance.getOverridden2(
-      currentClassElement,
+      currentInterfaceElement,
       getterName,
     );
     if (overriddenGetters != null) {
@@ -125,14 +123,14 @@ class InstanceMemberInferrer {
 
     var setterName = Name(elementLibraryUri, '$elementName=');
     var overriddenSetters = inheritance.getOverridden2(
-      currentClassElement,
+      currentInterfaceElement,
       setterName,
     );
     overriddenSetters ??= const [];
 
     DartType combinedGetterType() {
       var combinedGetter = inheritance.combineSignatures(
-        targetClass: currentClassElement,
+        targetClass: currentInterfaceElement,
         candidates: overriddenGetters!,
         doTopMerge: true,
         name: getterName,
@@ -146,7 +144,7 @@ class InstanceMemberInferrer {
 
     DartType combinedSetterType() {
       var combinedSetter = inheritance.combineSignatures(
-        targetClass: currentClassElement,
+        targetClass: currentInterfaceElement,
         candidates: overriddenSetters!,
         doTopMerge: true,
         name: setterName,
@@ -309,7 +307,7 @@ class InstanceMemberInferrer {
   /// Infer type information for all of the instance members in the given
   /// [classElement].
   void _inferClass(InterfaceElement classElement) {
-    if (classElement is ClassElementImpl) {
+    if (classElement is ClassOrMixinElementImpl) {
       if (classElement.hasBeenInferred) {
         return;
       }
@@ -329,11 +327,10 @@ class InstanceMemberInferrer {
         _inferType(classElement.supertype);
         classElement.mixins.forEach(_inferType);
         classElement.interfaces.forEach(_inferType);
-        classElement.superclassConstraints.forEach(_inferType);
         //
         // Then infer the types for the members.
         //
-        currentClassElement = classElement;
+        currentInterfaceElement = classElement;
         for (var field in classElement.fields) {
           _inferAccessorOrField(
             field: field as FieldElementImpl,
@@ -392,7 +389,7 @@ class InstanceMemberInferrer {
 
     var name = Name(element.library.source.uri, element.name);
     var overriddenElements = inheritance.getOverridden2(
-      currentClassElement,
+      currentInterfaceElement,
       name,
     );
     if (overriddenElements == null ||
@@ -406,7 +403,7 @@ class InstanceMemberInferrer {
     if (hasImplicitType) {
       var conflicts = <Conflict>[];
       var combinedSignature = inheritance.combineSignatures(
-        targetClass: currentClassElement,
+        targetClass: currentInterfaceElement,
         candidates: overriddenElements,
         doTopMerge: true,
         name: name,

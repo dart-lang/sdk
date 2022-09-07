@@ -20,7 +20,7 @@ const myConst2 =
   */ //                 //# reference2: continued
 
 void f1(
-    {a:
+    {a =
   const lib.Const() //# default_argument1: compile-time error
   /* //                  //# default_argument1: continued
         499
@@ -28,7 +28,7 @@ void f1(
     }) {}
 
 void f2(
-    {a:
+    {a =
   lib.constantInstance //# default_argument2: compile-time error
   /* //                        //# default_argument2: continued
         499

@@ -200,7 +200,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _define(element);
 
         exceptionNode.declaredElement = element;
-        exceptionNode.nameNode.staticElement = element;
 
         element.isFinal = true;
         if (exceptionTypeNode == null) {
@@ -208,10 +207,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           var type =
               _isNonNullableByDefault ? _typeProvider.objectType : _dynamicType;
           element.type = type;
-          exceptionNode.nameNode.staticType = type;
         } else {
           element.type = exceptionTypeNode.typeOrThrow;
-          exceptionNode.nameNode.staticType = exceptionTypeNode.type;
         }
 
         element.setCodeRange(
@@ -230,11 +227,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _define(element);
 
         stackTraceNode.declaredElement = element;
-        stackTraceNode.nameNode.staticElement = element;
 
         element.isFinal = true;
         element.type = _typeProvider.stackTraceType;
-        stackTraceNode.nameNode.staticType = _typeProvider.stackTraceType;
 
         element.setCodeRange(
           stackTraceNode.name.offset,
@@ -439,7 +434,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _setOrCreateMetadataElements(element, node.metadata);
 
-    _withElementWalker(ElementWalker.forClass(element), () {
+    _withElementWalker(ElementWalker.forEnum(element), () {
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
@@ -906,11 +901,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var element = _elementWalker!.getMixin();
-    node.declaredElement2 = element as MixinElementImpl;
+    node.declaredElement2 = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
-    _withElementWalker(ElementWalker.forClass(element), () {
+    _withElementWalker(ElementWalker.forMixin(element), () {
       _withNameScope(() {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
@@ -1265,8 +1260,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _setCodeRange(element, typeParameter);
       }
       typeParameter.declaredElement2 = element;
-      // ignore: deprecated_member_use_from_same_package
-      typeParameter.name.staticElement = element;
       _define(element);
       _setOrCreateMetadataElements(element, typeParameter.metadata);
     }

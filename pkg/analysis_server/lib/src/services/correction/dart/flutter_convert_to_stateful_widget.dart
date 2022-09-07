@@ -262,16 +262,20 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
   Set<FieldElement> fieldsAssignedInConstructors = {};
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.parent is FieldFormalParameter) {
-      var element = node.staticElement;
-      if (element is FieldFormalParameterElement) {
-        var field = element.field;
-        if (field != null) {
-          fieldsAssignedInConstructors.add(field);
-        }
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    final element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      var field = element.field;
+      if (field != null) {
+        fieldsAssignedInConstructors.add(field);
       }
     }
+
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is ConstructorFieldInitializer) {
       var element = node.staticElement;
       if (element is FieldElement) {

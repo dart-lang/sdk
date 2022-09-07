@@ -15,39 +15,39 @@ part of dart._js_helper;
 external String quoteStringForRegExp(String string);
 
 class JSNativeMatch extends JSArray {
-  JSNativeMatch(WasmAnyRef ref) : super(ref);
+  JSNativeMatch(WasmExternRef ref) : super(ref);
 
-  static JSNativeMatch? box(WasmAnyRef? ref) =>
+  static JSNativeMatch? box(WasmExternRef? ref) =>
       isDartNull(ref) ? null : JSNativeMatch(ref!);
 
   String get input => jsStringToDartString(
-      getPropertyRaw(this.toAnyRef(), 'input'.toAnyRef())!);
+      getPropertyRaw(this.toExternRef(), 'input'.toExternRef())!);
   int get index =>
-      toDartNumber(getPropertyRaw(this.toAnyRef(), 'index'.toAnyRef())!)
+      toDartNumber(getPropertyRaw(this.toExternRef(), 'index'.toExternRef())!)
           .floor();
   JSObject? get groups =>
-      JSObject.box(getPropertyRaw(this.toAnyRef(), 'groups'.toAnyRef()));
+      JSObject.box(getPropertyRaw(this.toExternRef(), 'groups'.toExternRef()));
 }
 
 class JSNativeRegExp extends JSValue {
-  JSNativeRegExp(WasmAnyRef ref) : super(ref);
+  JSNativeRegExp(WasmExternRef ref) : super(ref);
 
   JSNativeMatch? exec(String string) => JSNativeMatch.box(callMethodVarArgsRaw(
-      this.toAnyRef(), 'exec'.toAnyRef(), [string].toAnyRef()));
+      this.toExternRef(), 'exec'.toExternRef(), [string].toExternRef()));
   bool test(String string) => toDartBool(callMethodVarArgsRaw(
-      this.toAnyRef(), 'test'.toAnyRef(), [string].toAnyRef())!);
+      this.toExternRef(), 'test'.toExternRef(), [string].toExternRef())!);
   String get flags => jsStringToDartString(
-      getPropertyRaw(this.toAnyRef(), 'flags'.toAnyRef())!);
-  bool get multiline =>
-      toDartBool(getPropertyRaw(this.toAnyRef(), 'multiline'.toAnyRef())!);
-  bool get ignoreCase =>
-      toDartBool(getPropertyRaw(this.toAnyRef(), 'ignoreCase'.toAnyRef())!);
+      getPropertyRaw(this.toExternRef(), 'flags'.toExternRef())!);
+  bool get multiline => toDartBool(
+      getPropertyRaw(this.toExternRef(), 'multiline'.toExternRef())!);
+  bool get ignoreCase => toDartBool(
+      getPropertyRaw(this.toExternRef(), 'ignoreCase'.toExternRef())!);
   bool get unicode =>
-      toDartBool(getPropertyRaw(this.toAnyRef(), 'unicode'.toAnyRef())!);
+      toDartBool(getPropertyRaw(this.toExternRef(), 'unicode'.toExternRef())!);
   bool get dotAll =>
-      toDartBool(getPropertyRaw(this.toAnyRef(), 'dotAll'.toAnyRef())!);
+      toDartBool(getPropertyRaw(this.toExternRef(), 'dotAll'.toExternRef())!);
   set lastIndex(int start) => setPropertyRaw(
-      this.toAnyRef(), 'lastIndex'.toAnyRef(), intToJSNumber(start));
+      this.toExternRef(), 'lastIndex'.toExternRef(), intToJSNumber(start));
 }
 
 class JSSyntaxRegExp implements RegExp {
@@ -99,9 +99,9 @@ class JSSyntaxRegExp implements RegExp {
     String modifiers = '$m$i$u$s$g';
     // The call to create the regexp is wrapped in a try catch so we can
     // reformat the exception if need be.
-    WasmAnyRef result = safeCallConstructorVarArgsRaw(
-        getConstructorRaw('RegExp'), [source, modifiers].toAnyRef());
-    if (isJSRegExp(result)) return JSNativeRegExp(result);
+    WasmExternRef? result = safeCallConstructorVarArgsRaw(
+        getConstructorRaw('RegExp'), [source, modifiers].toExternRef());
+    if (isJSRegExp(result)) return JSNativeRegExp(result!);
     // The returned value is the stringified JavaScript exception. Turn it into
     // a Dart exception.
     String errorMessage = jsStringToDartString(result);
@@ -194,7 +194,7 @@ class _MatchImplementation implements RegExpMatch {
     if (groups != null) {
       JSValue? result = groups[name];
       if (result != null ||
-          hasPropertyRaw(groups.toAnyRef(), name.toAnyRef())) {
+          hasPropertyRaw(groups.toExternRef(), name.toExternRef())) {
         return result?.toString();
       }
     }

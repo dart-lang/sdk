@@ -23,10 +23,10 @@ class RemoveRequired extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parent = node.parent;
-    if (parent is! FormalParameter) return;
+    final node = this.node;
+    if (node is! FormalParameter) return;
 
-    var required = parent.requiredKeyword;
+    var required = node.requiredKeyword;
     if (required == null) return;
 
     await builder.addDartFileEdit(file, (builder) {

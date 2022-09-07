@@ -17,6 +17,7 @@
       "^pkg/compiler/test/.*/data_2/.*",
       "^pkg/compiler/test/.*/emission/.*",
       "^pkg/compiler/test/.*/model_data/.*",
+      "^pkg/compiler/test/codesize/swarm/.*",
       "^pkg/compiler/test/deferred_loading/libs/.*",
       "^pkg/compiler/test/sourcemaps/stacktrace/extension_method.dart"
     ]

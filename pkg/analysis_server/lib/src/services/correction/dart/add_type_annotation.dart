@@ -47,12 +47,9 @@ class AddTypeAnnotation extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final node = this.node;
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is SimpleFormalParameter) {
-        await _forSimpleFormalParameter(builder, node, parent);
-        return;
-      }
+    if (node is SimpleFormalParameter) {
+      await _forSimpleFormalParameter(builder, node.name!, node);
+      return;
     }
 
     for (var node in this.node.withParents) {
@@ -123,8 +120,8 @@ class AddTypeAnnotation extends CorrectionProducer {
         declaredIdentifier.name.offset, type);
   }
 
-  Future<void> _forSimpleFormalParameter(ChangeBuilder builder,
-      SimpleIdentifier name, SimpleFormalParameter parameter) async {
+  Future<void> _forSimpleFormalParameter(ChangeBuilder builder, Token name,
+      SimpleFormalParameter parameter) async {
     // Ensure that there isn't already a type annotation.
     if (parameter.type != null) {
       return;

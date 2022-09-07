@@ -342,7 +342,7 @@ class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
       return;
     }
 
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       if (node is ClassDeclaration) {
         if (_hasOffset2(node.name2)) {
           result = node;

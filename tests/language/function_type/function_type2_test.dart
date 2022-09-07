@@ -134,7 +134,7 @@ class U2<T> {
   late void Function<A>(core.List<core.int> x) Function<B extends core.int>()
       x23;
 
-  U2({this.tIsBool: false, this.tIsInt: false})
+  U2({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(int x0, [int x = -1]) => throw 'uncalled';

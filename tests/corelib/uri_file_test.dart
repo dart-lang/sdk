@@ -264,7 +264,7 @@ testFileUriIllegalDriveLetter() {
 }
 
 testAdditionalComponents() {
-  check(String s, {bool windowsOk: false}) {
+  check(String s, {bool windowsOk = false}) {
     Uri uri = Uri.parse(s);
     Expect.throwsUnsupportedError(() => uri.toFilePath(windows: false));
     if (windowsOk) {

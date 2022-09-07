@@ -37,7 +37,7 @@ void main() {
   }
 
   void execString(String pattern, String input, List<String?> expectedResult,
-      {bool unicode = true, bool caseSensitive: false}) {
+      {bool unicode = true, bool caseSensitive = false}) {
     execRE(RegExp(pattern, unicode: unicode, caseSensitive: caseSensitive),
         input, expectedResult);
   }
@@ -52,7 +52,7 @@ void main() {
 
   void execStringGroups(
       String pattern, String input, Map<String, String?> expectedResults,
-      {bool unicode = true, bool caseSensitive: false}) {
+      {bool unicode = true, bool caseSensitive = false}) {
     namedRE(RegExp(pattern, unicode: unicode, caseSensitive: caseSensitive),
         input, expectedResults);
   }
