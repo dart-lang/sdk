@@ -314,9 +314,12 @@ Remove debugging information from the output and save it separately to the speci
         extraOptions: args['extra-gen-snapshot-options'],
       );
       return 0;
-    } catch (e) {
+    } catch (e, st) {
       log.stderr('Error: AOT compilation failed');
       log.stderr(e.toString());
+      if (verbose) {
+        log.stderr(st.toString());
+      }
       return compileErrorExitCode;
     }
   }
