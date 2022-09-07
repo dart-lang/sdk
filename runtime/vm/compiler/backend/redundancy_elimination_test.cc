@@ -1473,7 +1473,9 @@ ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
 
   using compiler::BlockBuilder;
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
-  FlowGraphBuilderHelper H;
+  FlowGraphBuilderHelper H(/*num_parameters=*/2);
+  H.AddVariable("v0", AbstractType::ZoneHandle(Type::DynamicType()));
+  H.AddVariable("v1", AbstractType::ZoneHandle(Type::DynamicType()));
 
   auto b1 = H.flow_graph()->graph_entry()->normal_entry();
 
