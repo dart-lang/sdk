@@ -127,6 +127,15 @@ const simpleBreakpointProgram = '''
   }
 ''';
 
+/// A simple Dart script that has a blank line before its breakpoint, used to
+/// ensure breakpoints that resolve to the same place are handled correctly.
+const simpleBreakpointWithLeadingBlankLineProgram = '''
+  void main(List<String> args) async {
+
+    print('Hello!'); $breakpointMarker
+  }
+''';
+
 /// A simple Dart script that has a breakpoint and an exception used for
 /// testing whether breakpoints and exceptions are being paused on (for example
 /// during detach where they should not).
