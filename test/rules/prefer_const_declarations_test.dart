@@ -20,12 +20,11 @@ class PreferConstDeclarationsTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_const_declarations';
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3626')
   test_recordLiteral() async {
     await assertDiagnostics(r'''
-final tuple = ("first", 2, true);
+final tuple = const ("first", 2, true);
 ''', [
-      lint(14, 18),
+      lint(0, 38),
     ]);
   }
 
