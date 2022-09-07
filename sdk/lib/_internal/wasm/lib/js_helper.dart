@@ -24,6 +24,10 @@ class JSValue {
   static JSValue? box(WasmAnyRef? ref) =>
       isDartNull(ref) ? null : JSValue(ref!);
 
+  @override
+  bool operator ==(Object that) =>
+      that is JSValue && areEqualInJS(_ref, that._ref);
+
   WasmAnyRef toAnyRef() => _ref;
   String toString() => jsStringToDartString(_ref);
   List<Object?> toObjectList() => toDartList(_ref);
@@ -195,6 +199,9 @@ external bool isJSSimpleObject(WasmAnyRef? o);
 
 @pragma("wasm:import", "dart2wasm.isJSRegExp")
 external bool isJSRegExp(WasmAnyRef object);
+
+@pragma("wasm:import", "dart2wasm.areEqualInJS")
+external bool areEqualInJS(WasmAnyRef? l, WasmAnyRef? r);
 
 // The JS runtime will run helpful conversion routines between refs and bool /
 // double. In the longer term hopefully we can find a way to avoid the round

@@ -19,6 +19,48 @@ void createObjectTest() {
   Expect.equals('bar', getProperty(o, 'foo'));
 }
 
+void equalTest() {
+  // Different objects aren't equal.
+  {
+    Object o1 = newObject();
+    Object o2 = newObject();
+    Expect.notEquals(o1, o2);
+  }
+
+  {
+    eval(r'''
+      function JSClass() {}
+
+      globalThis.boolData = true;
+      globalThis.boolData2 = true;
+      globalThis.numData = 4;
+      globalThis.numData2 = 4;
+      globalThis.arrData = [1, 2, 3];
+      globalThis.strData = 'foo';
+      globalThis.strData2 = 'foo';
+      globalThis.funcData = function JSClass() {}
+      globalThis.JSClass = new globalThis.funcData();
+    ''');
+    Object gt = globalThis;
+    void test(String propertyName, bool testCanonicalization) {
+      Expect.equals(
+          getProperty(gt, propertyName), getProperty(gt, propertyName));
+      if (testCanonicalization) {
+        Expect.equals(
+            getProperty(gt, propertyName), getProperty(gt, propertyName + "2"));
+      }
+    }
+
+    test("boolData", true);
+    test("numData", true);
+    // TODO(joshualitt): Start returning arrays by reference.
+    //test("arrData", false);
+    test("strData", true);
+    test("funcData", false);
+    test("JSClass", false);
+  }
+}
+
 void _expectIterableEquals(Iterable<Object?> l, Iterable<Object?> r) {
   final lIt = l.iterator;
   final rIt = r.iterator;
@@ -212,6 +254,7 @@ void deepConversionsTest() {
 
 void main() {
   createObjectTest();
+  equalTest();
   evalAndConstructTest();
   dartObjectRoundTripTest();
   deepConversionsTest();

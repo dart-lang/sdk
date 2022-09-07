@@ -354,6 +354,9 @@ var dart2wasm = {
         }
         return stringToDartString(jsString);
     },
+    areEqualInJS: function(l, r) {
+        return l === r;
+    },
 };
 
 function instantiate(filename, imports) {
