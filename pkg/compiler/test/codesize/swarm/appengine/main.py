@@ -212,8 +212,9 @@ class MainHandler(webapp.RequestHandler):
         if html.compressed:
             # TODO(jimhug): This slightly sucks ;-)
             # Can we write directly to the response.out?
-            gz = gzip.GzipFile(
-                name, 'rb', fileobj=StringIO.StringIO(html.content))
+            gz = gzip.GzipFile(name,
+                               'rb',
+                               fileobj=StringIO.StringIO(html.content))
             self.response.out.write(gz.read())
             gz.close()
         else:
@@ -381,8 +382,8 @@ class DataHandler(webapp.RequestHandler):
         for article in db.get(articleKeys):
             article.ensureThumbnail()
             path = 'data/' + article.key().name() + '.html'
-            result.writestr(
-                path.encode('utf-8'), article.content.encode('utf-8'))
+            result.writestr(path.encode('utf-8'),
+                            article.content.encode('utf-8'))
             if article.thumbnail:
                 path = 'data/' + article.key().name() + '.jpg'
                 result.writestr(path.encode('utf-8'), article.thumbnail)
@@ -500,10 +501,9 @@ class UserLoginHandler(webapp.RequestHandler):
             sections[categoryId][1].append(feed.key())
 
             # Kick off a high priority feed update
-            taskqueue.add(
-                url='/update/feed',
-                queue_name=queue_name,
-                params={'id': feed.key().name()})
+            taskqueue.add(url='/update/feed',
+                          queue_name=queue_name,
+                          params={'id': feed.key().name()})
 
         sectionKeys = []
         for name, (title, feeds) in sections.items():
@@ -529,10 +529,9 @@ class AllFeedsCollector(webapp.RequestHandler):
     def get(self):
         queue_name = self.request.get('queue_name', 'background')
         for feed in Feed.all():
-            taskqueue.add(
-                url='/update/feed',
-                queue_name=queue_name,
-                params={'id': feed.key().name()})
+            taskqueue.add(url='/update/feed',
+                          queue_name=queue_name,
+                          params={'id': feed.key().name()})
 
 
 UPDATE_COUNT = 4  # The number of articles to request on periodic updates.
@@ -625,8 +624,8 @@ def collectArticle(feed, data):
     article = Article.get_or_insert(articleId)
     # TODO(jimhug): This aborts too early - at lease for one adafruit case.
     if article.date == data['published']:
-        logging.info(
-            'found existing, aborting: %r, %r' % (articleId, article.date))
+        logging.info('found existing, aborting: %r, %r' %
+                     (articleId, article.date))
         return False
 
     if data.has_key('content'):

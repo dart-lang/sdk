@@ -39,22 +39,19 @@ def convertOne(infile, options):
 def Flags():
     """ Consturcts a parser for extracting flags from the command line. """
     result = optparse.OptionParser()
-    result.add_option(
-        "-t",
-        "--target",
-        help="The target html to generate",
-        metavar="[js,dart]",
-        default='js,dart')
-    result.add_option(
-        "--verbose",
-        help="Print verbose output",
-        default=False,
-        action="store_true")
-    result.add_option(
-        "--dartc_extra_flags",
-        help="Additional flag text to pass to dartc",
-        default="",
-        action="store")
+    result.add_option("-t",
+                      "--target",
+                      help="The target html to generate",
+                      metavar="[js,dart]",
+                      default='js,dart')
+    result.add_option("--verbose",
+                      help="Print verbose output",
+                      default=False,
+                      action="store_true")
+    result.add_option("--dartc_extra_flags",
+                      help="Additional flag text to pass to dartc",
+                      default="",
+                      action="store")
     #result.set_usage("update.py input.html -o OUTDIR -t chromium,dartium")
     return result
 

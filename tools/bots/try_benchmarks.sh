@@ -150,7 +150,7 @@ for command; do
       out/ReleaseIA32/kernel-service.dart.snapshot \
       out/ReleaseIA32/run_vm_tests \
       sdk \
-      samples-dev/swarm \
+      pkg/compiler/test/codesize/swarm \
       third_party/pkg \
       .dart_tool/package_config.json \
       pkg \
@@ -297,7 +297,7 @@ EOF
       out/ReleaseX64/gen/utils/dartdevc/sound/ \
       out/ReleaseX64/ddc_outline_sound.dill \
       sdk \
-      samples-dev/swarm \
+      pkg/compiler/test/codesize/swarm \
       third_party/pkg \
       .dart_tool/package_config.json \
       pkg \

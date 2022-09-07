@@ -21,7 +21,7 @@ main(List<String> args) {
       '--libraries-spec=$sdkLibrariesSpecificationUri',
     ];
     await internalMain([
-          'samples-dev/swarm/swarm.dart',
+          'pkg/compiler/test/codesize/swarm/swarm.dart',
           Flags.writeClosedWorld,
           '--out=${dillUri}',
         ] +

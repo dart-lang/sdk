@@ -23,11 +23,10 @@ converter = CLIENT_TOOLS_PATH + '/htmlconverter.py'
 def convertImgs(infile):
     global options
     try:
-        htmlconverter.convertForOffline(
-            infile,
-            infile,
-            verbose=options.verbose,
-            encode_images=options.inline_images)
+        htmlconverter.convertForOffline(infile,
+                                        infile,
+                                        verbose=options.verbose,
+                                        encode_images=options.inline_images)
         print('Converted ' + infile)
     except BaseException as e:
         print('Caught error: %s' % e)
@@ -41,11 +40,10 @@ def Flags():
         help=("Encode img payloads as data:// URLs rather than local files."),
         default=False,
         action='store_true')
-    parser.add_option(
-        "--verbose",
-        help="Print verbose output",
-        default=False,
-        action="store_true")
+    parser.add_option("--verbose",
+                      help="Print verbose output",
+                      default=False,
+                      action="store_true")
     return parser
 
 
