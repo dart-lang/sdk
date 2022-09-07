@@ -14,12 +14,12 @@ class A {
   // [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR
   //                          ^
   // [cfe] Can't have a default value here because any default values of 'A' would be used instead.
-  factory A.h(int a, {int b: 0}) = A;
+  factory A.h(int a, {int b = 0}) = A;
   //                      ^
   // [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR
-  //                         ^
+  //                          ^
   // [cfe] Can't have a default value here because any default values of 'A' would be used instead.
-  //                               ^
+  //                                ^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_FUNCTION_TYPE
   // [cfe] The constructor function type 'A Function(int, [int])' isn't a subtype of 'A Function(int, {int b})'.
 

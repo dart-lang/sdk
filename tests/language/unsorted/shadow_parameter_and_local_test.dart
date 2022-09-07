@@ -55,17 +55,17 @@ class C {
     return a;
   }
 
-  mAsync({a: 0}) async {
+  mAsync({a = 0}) async {
     var a = 123;
     return a;
   }
 
-  mSyncStar({a: 0}) sync* {
+  mSyncStar({a = 0}) sync* {
     var a = 123;
     yield a;
   }
 
-  mAsyncStar({a: 0}) async* {
+  mAsyncStar({a = 0}) async* {
     var a = 123;
     yield a;
   }

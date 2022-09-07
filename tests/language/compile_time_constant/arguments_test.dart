@@ -4,7 +4,7 @@
 
 class A {
   const A(a);
-  const A.named({a: 42});
+  const A.named({a = 42});
   const A.optional([a]);
 }
 

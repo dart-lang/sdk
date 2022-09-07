@@ -101,7 +101,7 @@ class U24<T> {
   late A Function<A>(int x) Function() x22;
   late List<Function> Function(B x) Function<B extends core.int>() x23;
 
-  U24({this.tIsBool: false, this.tIsInt: false})
+  U24({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(int x0, [List<Function> x = const []]) => throw 'uncalled';

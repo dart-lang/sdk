@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 int lastRetryId = 0;
 
-Future retry(Future fun(), {int maxCount: 10}) async {
+Future retry(Future fun(), {int maxCount = 10}) async {
   final int id = lastRetryId++;
   for (int i = 0; i < maxCount; i++) {
     try {

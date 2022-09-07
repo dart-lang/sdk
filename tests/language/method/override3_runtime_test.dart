@@ -8,10 +8,10 @@
 import 'package:expect/expect.dart';
 
 class A {
-  foo(required1, {named1: 499}) => -(required1 + named1 * 3);
-  bar(required1, required2, {named1: 13, named2: 17}) =>
+  foo(required1, {named1 = 499}) => -(required1 + named1 * 3);
+  bar(required1, required2, {named1 = 13, named2 = 17}) =>
       -(required1 + required2 * 3 + named1 * 5 + named2 * 7);
-  gee({named1: 31}) => -named1;
+  gee({named1 = 31}) => -named1;
 }
 
 class B extends A {
@@ -19,27 +19,27 @@ class B extends A {
       required1
 
       ,
-      {named1: 499}
+      {named1 = 499}
 
       ) {
     return required1;
   }
 
   bar(required1, required2,
-      {named1: 13
+      {named1 = 13
 
       ,
-      named2: 17
+      named2 = 17
 
       }) {
     return required1 + required2 * 3 + named1 * 5;
   }
 
   gee(
-      {named2: 11
+      {named2 = 11
 
       ,
-      named1: 31
+      named1 = 31
 
       }) {
     return named2 * 99;

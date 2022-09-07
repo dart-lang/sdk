@@ -51,14 +51,14 @@ class HttpParserTest {
 
   void _testParseRequest(
       String request, String expectedMethod, String expectedUri,
-      {int expectedTransferLength: 0,
-      int expectedBytesReceived: 0,
-      Map<String, String>? expectedHeaders: null,
-      bool chunked: false,
-      bool upgrade: false,
-      int unparsedLength: 0,
-      bool connectionClose: false,
-      String expectedVersion: "1.1"}) {
+      {int expectedTransferLength = 0,
+      int expectedBytesReceived = 0,
+      Map<String, String>? expectedHeaders = null,
+      bool chunked = false,
+      bool upgrade = false,
+      int unparsedLength = 0,
+      bool connectionClose = false,
+      String expectedVersion = "1.1"}) {
     late StreamController<Uint8List> controller;
     void reset() {
       _HttpParser httpParser = new _HttpParser.requestParser();
@@ -143,14 +143,14 @@ class HttpParserTest {
 
   void _testParseRequestLean(
       String request, String expectedMethod, String expectedUri,
-      {int expectedTransferLength: 0,
-      int expectedBytesReceived: 0,
-      Map<String, String>? expectedHeaders: null,
-      bool chunked: false,
-      bool upgrade: false,
-      int unparsedLength: 0,
-      bool connectionClose: false,
-      String expectedVersion: "1.1"}) {
+      {int expectedTransferLength = 0,
+      int expectedBytesReceived = 0,
+      Map<String, String>? expectedHeaders = null,
+      bool chunked = false,
+      bool upgrade = false,
+      int unparsedLength = 0,
+      bool connectionClose = false,
+      String expectedVersion = "1.1"}) {
     _testParseRequest(request, expectedMethod, expectedUri,
         expectedTransferLength: expectedTransferLength,
         expectedBytesReceived: expectedBytesReceived,
@@ -218,16 +218,16 @@ class HttpParserTest {
 
   void _testParseResponse(
       String response, int expectedStatusCode, String expectedReasonPhrase,
-      {int expectedTransferLength: 0,
-      int expectedBytesReceived: 0,
-      Map<String, String>? expectedHeaders: null,
-      bool chunked: false,
-      bool close: false,
-      String? responseToMethod: null,
-      bool connectionClose: false,
-      bool upgrade: false,
-      int unparsedLength: 0,
-      String expectedVersion: "1.1"}) {
+      {int expectedTransferLength = 0,
+      int expectedBytesReceived = 0,
+      Map<String, String>? expectedHeaders = null,
+      bool chunked = false,
+      bool close = false,
+      String? responseToMethod = null,
+      bool connectionClose = false,
+      bool upgrade = false,
+      int unparsedLength = 0,
+      String expectedVersion = "1.1"}) {
     late StreamController<Uint8List> controller;
     bool upgraded;
 

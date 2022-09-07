@@ -102,7 +102,7 @@ class U77<T> {
   late List<T> Function<A>(List<T> x) Function(int x) x21;
   late List<A> Function<A>() Function(int x) x22;
 
-  U77({this.tIsBool: false, this.tIsInt: false})
+  U77({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(int y, {Function x = _voidFunction}) => throw 'uncalled';

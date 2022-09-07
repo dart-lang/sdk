@@ -127,7 +127,7 @@ class U22<T> {
   late Function<A>(List<A> x) Function<B extends core.int>() x22;
   late Function Function(B x) Function<B extends core.int>() x23;
 
-  U22({this.tIsBool: false, this.tIsInt: false})
+  U22({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   int m0(List<Function> x) => throw 'uncalled';

@@ -10,7 +10,7 @@ class A {
   final x;
 
   @pragma('dart2js:noInline')
-  A({this.x: "foo"}) {
+  A({this.x = "foo"}) {
     Expect.equals("foo", x.toString());
   }
 }

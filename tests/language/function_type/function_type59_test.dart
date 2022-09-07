@@ -138,7 +138,7 @@ class U59<T> {
       int x) x21;
   late List<A> Function<A>(int x) Function<B extends core.int>(int x) x22;
 
-  U59({this.tIsBool: false, this.tIsInt: false})
+  U59({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
   Function m0(int y, [int x = -1]) => throw 'uncalled';

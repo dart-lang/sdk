@@ -82,7 +82,7 @@ class Server {
 }
 
 Future<Server> setupServer(int proxyHops,
-    {List<String> directRequestPaths: const <String>[], secure: false}) {
+    {List<String> directRequestPaths = const <String>[], secure = false}) {
   Server server = new Server(proxyHops, directRequestPaths, secure);
   return server.start();
 }
@@ -104,7 +104,7 @@ class ProxyServer {
 
   var nonce = "12345678"; // No need for random nonce in test.
 
-  ProxyServer({this.ipV6: false});
+  ProxyServer({this.ipV6 = false});
 
   void useBasicAuthentication(String username, String password) {
     this.username = username;
@@ -122,7 +122,7 @@ class ProxyServer {
     });
   }
 
-  digestAuthenticationRequired(request, {stale: false}) {
+  digestAuthenticationRequired(request, {stale = false}) {
     request.fold(null, (x, y) {}).then((_) {
       var response = request.response;
       response.statusCode = HttpStatus.proxyAuthenticationRequired;
@@ -266,7 +266,7 @@ class ProxyServer {
   int get port => server.port;
 }
 
-Future<ProxyServer> setupProxyServer({ipV6: false}) {
+Future<ProxyServer> setupProxyServer({ipV6 = false}) {
   ProxyServer proxyServer = new ProxyServer(ipV6: ipV6);
   return proxyServer.start();
 }

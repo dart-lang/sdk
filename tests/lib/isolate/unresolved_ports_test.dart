@@ -53,7 +53,7 @@ ReceivePort initIsolate(SendPort starter) {
   return port;
 }
 
-baseTest({bool failForNegativeTest: false}) {
+baseTest({bool failForNegativeTest = false}) {
   // Message chain with unresolved ports
   ReceivePort port = new ReceivePort();
   asyncStart();
