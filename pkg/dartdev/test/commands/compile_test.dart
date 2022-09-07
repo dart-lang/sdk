@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:dart2native/macho.dart';
-import 'package:dart2native/macho_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -48,21 +47,14 @@ void defineCompileTests() {
           reason: 'File not found: $outFile');
 
       // Ensure the file contains the __CUSTOM segment.
-      final machOFile = MachOFile();
-      await machOFile.loadFromFile(File(outFile));
+      final machOFile = MachOFile.fromFile(File(outFile));
 
       // Throws an exception (and thus the test fails) if the segment doesn't
       // exist.
-      machOFile.commands.where((segment) {
-        if (segment.asType() is MachOSegmentCommand64) {
-          final segmentName = (segment as MachOSegmentCommand64).segname;
-          final segmentNameTrimmed = String.fromCharCodes(
-              segmentName.takeWhile((value) => value != 0));
-          return segmentNameTrimmed == '__CUSTOM';
-        } else {
-          return false;
-        }
-      }).first;
+      machOFile.commands
+          .where((segment) =>
+              segment is MachOSegmentCommand && segment.name == '__CUSTOM')
+          .first;
 
       // Ensure that the exe can be signed.
       final codeSigningProcess = await Process.start('codesign', [
