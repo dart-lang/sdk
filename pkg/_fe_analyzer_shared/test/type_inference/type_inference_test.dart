@@ -91,7 +91,7 @@ main() {
         h.run([
           switchExpr(expr('int'), [
             defaultExpr(body: intLiteral(0)),
-          ]).checkIr('switchExpr(expr(int), case(heads(default), 0))').stmt,
+          ]).checkIr('switchExpr(expr(int), case(default, 0))').stmt,
         ]);
       });
 
@@ -132,8 +132,8 @@ main() {
                 body: expr('String')),
           ])
               .checkIr('switchExpr(expr(int), '
-                  'case(heads(head(varPattern(i, matchedType: int, '
-                  'staticType: int), ==(i, expr(num)))), expr(String)))')
+                  'case(head(varPattern(i, matchedType: int, '
+                  'staticType: int), ==(i, expr(num))), expr(String)))')
               .stmt,
         ]);
       });
@@ -247,9 +247,10 @@ main() {
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
                   'case(heads(head(const(0, matchedType: int)), '
-                  'head(const(1, matchedType: int)), l), block(x, break())), '
+                  'head(const(1, matchedType: int)), l), '
+                  'block(stmt(x), break())), '
                   'case(heads(head(const(2, matchedType: int))), '
-                  'block(x, null, continue())))'),
+                  'block(stmt(x), stmt(null), continue())))'),
         ]);
       });
 
