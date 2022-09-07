@@ -44,6 +44,10 @@ void main(List<String> arguments) async {
     exit(1);
   }
 
+  if (configurations.isEmpty) {
+    return;
+  }
+
   // Run all of the configured tests.
   await testConfigurations(configurations);
 }
