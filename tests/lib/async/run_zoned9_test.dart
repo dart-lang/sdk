@@ -8,14 +8,14 @@ import 'package:async_helper/async_helper.dart';
 
 main() {
   asyncStart();
-  // Ensure that `runZoned`'s onError handles synchronous errors but delegates
-  // to the next runZoned when the handler returns false.
+  // Ensure that `runZonedGuarded`'s onError handles synchronous errors but
+  // delegates to the next runZoned when the handler returns false.
   bool sawInnerHandler = false;
   try {
     runZonedGuarded(() {
-      runZoned(() {
+      runZonedGuarded(() {
         throw 0;
-      }, onError: (e, s) {
+      }, (e, s) {
         Expect.equals(0, e);
         sawInnerHandler = true;
         throw e;
