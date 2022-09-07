@@ -49,6 +49,7 @@ import 'prefer_collection_literals_test.dart' as prefer_collection_literals;
 import 'prefer_const_constructors_in_immutables_test.dart'
     as prefer_const_constructors_in_immutables;
 import 'prefer_const_constructors_test.dart' as prefer_const_constructors;
+import 'prefer_const_declarations_test.dart' as prefer_const_declarations;
 import 'prefer_const_literals_to_create_immutables_test.dart'
     as prefer_const_literals_to_create_immutables;
 import 'prefer_contains_test.dart' as prefer_contains;
@@ -109,6 +110,7 @@ void main() {
   prefer_collection_literals.main();
   prefer_const_constructors.main();
   prefer_const_constructors_in_immutables.main();
+  prefer_const_declarations.main();
   prefer_const_literals_to_create_immutables.main();
   prefer_contains.main();
   prefer_equal_for_default_values.main();
