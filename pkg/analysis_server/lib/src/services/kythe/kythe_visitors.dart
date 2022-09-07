@@ -50,7 +50,7 @@ String? _getNodeKind(Element e) {
     return schema.VARIABLE_KIND;
   } else if (e is ExecutableElement) {
     return schema.FUNCTION_KIND;
-  } else if (e is ClassElement || e is TypeParameterElement) {
+  } else if (e is InterfaceElement || e is TypeParameterElement) {
     // TODO(jwren): this should be using absvar instead, see
     // https://kythe.io/docs/schema/#absvar
     return schema.RECORD_KIND;
@@ -169,7 +169,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
   late String _enclosingFilePath = '';
   Element? _enclosingElement;
-  ClassElement? _enclosingClassElement;
+  InterfaceElement? _enclosingClassElement;
   KytheVName? _enclosingVName;
   KytheVName? _enclosingFileVName;
   KytheVName? _enclosingClassVName;
@@ -1138,7 +1138,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       _enclosingElement = element;
       if (element is CompilationUnitElement) {
         _enclosingFileVName = _enclosingVName = _vNameFile();
-      } else if (element is ClassElement) {
+      } else if (element is InterfaceElement) {
         _enclosingClassElement = element;
         _enclosingClassVName = _enclosingVName =
             _vNameFromElement(_enclosingClassElement, schema.RECORD_KIND);

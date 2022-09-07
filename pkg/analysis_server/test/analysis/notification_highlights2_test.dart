@@ -451,6 +451,18 @@ AAA aaa;
     assertHasRegion(HighlightRegionType.CLASS, 'AAA aaa');
   }
 
+  Future<void> test_class_constructor_fieldFormalParameter() async {
+    addTestFile('''
+class A {
+  final int foo;
+  A(this.foo);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'this.');
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'foo);');
+  }
+
   Future<void> test_CLASS_notDynamic() async {
     addTestFile('''
 dynamic f() {}
@@ -712,7 +724,7 @@ void f(E e) {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.CLASS, 'int ');
     assertHasRegion(HighlightRegionType.INSTANCE_FIELD_DECLARATION, 'a = 0');
-    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a);');
+    assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'a);');
     assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, 'a;');
   }
 

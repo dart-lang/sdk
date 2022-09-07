@@ -326,7 +326,7 @@ class NormalizeHelper {
 
     // * else X & S
     return TypeParameterTypeImpl(
-      element: X.declaration,
+      element2: X.declaration,
       nullabilitySuffix: NullabilitySuffix.none,
       promotedBound: S,
     );

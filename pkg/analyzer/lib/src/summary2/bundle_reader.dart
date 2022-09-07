@@ -98,8 +98,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   /// as well access them through their [Reference]s. For a class declaration
   /// this means reading them, for a named mixin application this means
   /// computing constructors.
-  void readMembers(ClassElementImpl element) {
-    if (element.isMixinApplication) {
+  void readMembers(ClassOrMixinElementImpl element) {
+    if (element is ClassElementImpl && element.isMixinApplication) {
       element.constructors;
     } else {
       _readMembers?.call();
@@ -201,11 +201,15 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     ElementImpl element,
   ) {
     var enclosing = element.enclosingElement3;
-    if (enclosing is ClassElement) {
+    if (enclosing is InterfaceElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
       // Nothing.
+    } else if (enclosing is EnumElement) {
+      reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is ExtensionElement) {
+      reader._addTypeParameters(enclosing.typeParameters);
+    } else if (enclosing is MixinElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else {
       throw UnimplementedError('${enclosing.runtimeType}');
@@ -1735,7 +1739,7 @@ class ResolutionReader {
       var element = readElement() as TypeParameterElement;
       var nullability = _readNullability();
       var type = TypeParameterTypeImpl(
-        element: element,
+        element2: element,
         nullabilitySuffix: nullability,
       );
       return _readAliasElementArguments(type);
@@ -1838,7 +1842,7 @@ class ResolutionReader {
         );
       } else if (type is TypeParameterType) {
         return TypeParameterTypeImpl(
-          element: type.element2,
+          element2: type.element2,
           nullabilitySuffix: type.nullabilitySuffix,
           alias: InstantiatedTypeAliasElementImpl(
             element: aliasElement,

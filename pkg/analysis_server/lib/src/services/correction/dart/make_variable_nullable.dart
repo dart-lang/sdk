@@ -28,26 +28,24 @@ class MakeVariableNullable extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var node = coveredNode;
-    var parent = node?.parent;
+    final node = this.node;
     if (unit.featureSet.isEnabled(Feature.non_nullable)) {
-      if (node is SimpleIdentifier && parent is SimpleFormalParameter) {
-        await _forSimpleFormalParameter(builder, node, parent);
-      } else if (node is SimpleIdentifier &&
-          parent is FunctionTypedFormalParameter) {
-        await _forFunctionTypedFormalParameter(builder, node, parent);
-      } else if (node is SimpleIdentifier && parent is FieldFormalParameter) {
-        await _forFieldFormalParameter(builder, node, parent);
-      } else if (node is SimpleIdentifier && parent is SuperFormalParameter) {
-        await _forSuperFormalParameter(builder, node, parent);
-      } else if (node is Expression &&
-          parent is AssignmentExpression &&
-          parent.rightHandSide == node) {
-        await _forAssignment(builder, node, parent);
-      } else if (node is Expression &&
-          parent is VariableDeclaration &&
-          parent.initializer == node) {
-        await _forVariableDeclaration(builder, node, parent);
+      if (node is SimpleFormalParameter) {
+        await _forSimpleFormalParameter(builder, node);
+      } else if (node is FunctionTypedFormalParameter) {
+        await _forFunctionTypedFormalParameter(builder, node);
+      } else if (node is FieldFormalParameter) {
+        await _forFieldFormalParameter(builder, node);
+      } else if (node is SuperFormalParameter) {
+        await _forSuperFormalParameter(builder, node);
+      } else if (node is Expression) {
+        final parent = node.parent;
+        if (parent is AssignmentExpression && parent.rightHandSide == node) {
+          await _forAssignment(builder, node, parent);
+        } else if (parent is VariableDeclaration &&
+            parent.initializer == node) {
+          await _forVariableDeclaration(builder, node, parent);
+        }
       }
     }
   }
@@ -111,8 +109,8 @@ class MakeVariableNullable extends CorrectionProducer {
   }
 
   /// Makes [parameter] nullable if possible.
-  Future<void> _forFieldFormalParameter(ChangeBuilder builder,
-      SimpleIdentifier name, FieldFormalParameter parameter) async {
+  Future<void> _forFieldFormalParameter(
+      ChangeBuilder builder, FieldFormalParameter parameter) async {
     if (parameter.parameters != null) {
       // A function-typed field formal parameter.
       if (parameter.question != null) {
@@ -136,8 +134,8 @@ class MakeVariableNullable extends CorrectionProducer {
   }
 
   /// Makes [parameter] nullable if possible.
-  Future<void> _forFunctionTypedFormalParameter(ChangeBuilder builder,
-      SimpleIdentifier name, FunctionTypedFormalParameter parameter) async {
+  Future<void> _forFunctionTypedFormalParameter(
+      ChangeBuilder builder, FunctionTypedFormalParameter parameter) async {
     if (parameter.question != null) {
       return;
     }
@@ -148,8 +146,8 @@ class MakeVariableNullable extends CorrectionProducer {
     });
   }
 
-  Future<void> _forSimpleFormalParameter(ChangeBuilder builder,
-      SimpleIdentifier name, SimpleFormalParameter parameter) async {
+  Future<void> _forSimpleFormalParameter(
+      ChangeBuilder builder, SimpleFormalParameter parameter) async {
     var type = parameter.type;
     if (type == null || !_typeCanBeMadeNullable(type)) {
       return;
@@ -167,8 +165,8 @@ class MakeVariableNullable extends CorrectionProducer {
   }
 
   /// Makes [parameter] nullable if possible.
-  Future<void> _forSuperFormalParameter(ChangeBuilder builder,
-      SimpleIdentifier name, SuperFormalParameter parameter) async {
+  Future<void> _forSuperFormalParameter(
+      ChangeBuilder builder, SuperFormalParameter parameter) async {
     if (parameter.parameters != null) {
       // A function-typed field formal parameter.
       if (parameter.question != null) {

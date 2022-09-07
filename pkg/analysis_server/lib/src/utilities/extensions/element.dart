@@ -31,7 +31,7 @@ extension ElementExtension on Element {
       return true;
     }
     var ancestor = enclosingElement3;
-    if (ancestor is ClassElement) {
+    if (ancestor is InterfaceElement) {
       if (ancestor.hasDeprecated) {
         return true;
       }

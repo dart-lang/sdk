@@ -316,7 +316,7 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
-      ClassElement mixinElement) {
+      InterfaceElement mixinElement) {
     List<InterfaceType> candidates;
     if (mixinElement is MixinElement) {
       candidates = mixinElement.superclassConstraints;
@@ -327,7 +327,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       candidates = [supertype];
       candidates.addAll(mixinElement.mixins);
-      if (mixinElement.isMixinApplication) {
+      if (mixinElement is ClassElement && mixinElement.isMixinApplication) {
         candidates.removeLast();
       }
     }
@@ -1319,7 +1319,7 @@ class TypeSystemImpl implements TypeSystem {
       if (type.promotedBound != null) {
         var promotedBound = promoteToNonNull(type.promotedBound!);
         return TypeParameterTypeImpl(
-          element: element,
+          element2: element,
           nullabilitySuffix: NullabilitySuffix.none,
           promotedBound: promotedBound,
         );
@@ -1333,7 +1333,7 @@ class TypeSystemImpl implements TypeSystem {
         promotedBound = null;
       }
       return TypeParameterTypeImpl(
-        element: element,
+        element2: element,
         nullabilitySuffix: NullabilitySuffix.none,
         promotedBound: promotedBound,
       );
@@ -1428,7 +1428,7 @@ class TypeSystemImpl implements TypeSystem {
       freshTypeParameters.add(freshTypeParameter);
       freshTypeParameterTypes.add(
         TypeParameterTypeImpl(
-          element: freshTypeParameter,
+          element2: freshTypeParameter,
           nullabilitySuffix: NullabilitySuffix.none,
         ),
       );
@@ -1594,7 +1594,7 @@ class TypeSystemImpl implements TypeSystem {
       if (isSubtypeOf(to, from.bound)) {
         var declaration = from.element2.declaration;
         return TypeParameterTypeImpl(
-          element: declaration,
+          element2: declaration,
           nullabilitySuffix: _promotedTypeParameterTypeNullability(
             from.nullabilitySuffix,
             to.nullabilitySuffix,

@@ -23,6 +23,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -432,7 +433,7 @@ abstract class RenameRefactoring implements Refactoring {
     if (element is LocalElement) {
       return RenameLocalRefactoringImpl(workspace, session, element);
     }
-    if (enclosingElement is ClassElement) {
+    if (enclosingElement is InterfaceElement) {
       return RenameClassMemberRefactoringImpl(
           workspace, session, enclosingElement, element);
     }
@@ -447,8 +448,36 @@ abstract class RenameRefactoring implements Refactoring {
   /// the class when on the `new` keyword).
   static RenameRefactoringElement? getElementToRename(
       AstNode node, Element? element) {
-    var offset = node.offset;
-    var length = node.length;
+    // TODO(scheglov) This is bad code.
+    SyntacticEntity? nameNode;
+    if (node is ConstructorDeclaration) {
+      nameNode = node;
+    } else if (node is ConstructorSelector) {
+      nameNode = node;
+    } else if (node is FieldFormalParameter) {
+      nameNode = node.name;
+    } else if (node is ImportDirective) {
+      nameNode = node;
+    } else if (node is InstanceCreationExpression) {
+      nameNode = node;
+    } else if (node is LibraryDirective) {
+      nameNode = node;
+    } else if (node is MethodDeclaration) {
+      nameNode = node.name2;
+    } else if (node is NamedCompilationUnitMember) {
+      nameNode = node.name2;
+    } else if (node is SimpleFormalParameter) {
+      nameNode = node.name;
+    } else if (node is SimpleIdentifier) {
+      nameNode = node.token;
+    } else if (node is VariableDeclaration) {
+      nameNode = node.name2;
+    }
+    if (nameNode == null) {
+      return null;
+    }
+    var offset = nameNode.offset;
+    var length = nameNode.length;
 
     if (node is SimpleIdentifier && element is ParameterElement) {
       element = declaredParameterElement(node, element);

@@ -20,7 +20,7 @@ class TypeHierarchyComputer {
   final ElementKind _pivotKind;
   final String? _pivotName;
   late bool _pivotFieldFinal;
-  ClassElement? _pivotClass;
+  InterfaceElement? _pivotClass;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
   final List<InterfaceElement> _itemClassElements = [];
@@ -40,7 +40,7 @@ class TypeHierarchyComputer {
     if (_pivotElement is ExecutableElement) {
       element = _pivotElement.enclosingElement3;
     }
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       _pivotClass = element;
     }
   }
@@ -154,7 +154,7 @@ class TypeHierarchyComputer {
       _itemClassElements.add(classElement);
     }
     // superclass
-    if (classElement is ClassElement) {
+    {
       var superType = classElement.supertype;
       if (superType != null) {
         item.superclass = _createSuperItem(

@@ -15,10 +15,7 @@ class ConvertToNormalParameter extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var identifier = node;
-    if (identifier is! SimpleIdentifier) return;
-
-    var parameter = identifier.parent;
+    var parameter = node;
     if (parameter is! FieldFormalParameter) return;
 
     var parameterList = parameter.parent;
@@ -28,7 +25,7 @@ class ConvertToNormalParameter extends CorrectionProducer {
     if (constructor is! ConstructorDeclaration) return;
 
     var parameterElement = parameter.declaredElement!;
-    var name = identifier.name;
+    var name = parameter.name.lexeme;
     var type = parameterElement.type;
 
     await builder.addDartFileEdit(file, (builder) {

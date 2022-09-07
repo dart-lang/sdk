@@ -61,7 +61,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  Element? get element => null;
+  Element? get element2 => null;
 
   @override
   R accept<R>(TypeVisitor<R> visitor) {

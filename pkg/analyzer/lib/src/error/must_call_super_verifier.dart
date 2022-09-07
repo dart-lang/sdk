@@ -32,7 +32,11 @@ class MustCallSuperVerifier {
       return;
     }
 
-    var enclosingElement = element.enclosingElement3 as ClassElement;
+    var enclosingElement = element.enclosingElement3;
+    if (enclosingElement is! ClassElement) {
+      return;
+    }
+
     if (element is PropertyAccessorElement && element.isGetter) {
       var inheritedConcreteGetter = enclosingElement
           .lookUpInheritedConcreteGetter(element.name, element.library);
@@ -69,7 +73,7 @@ class MustCallSuperVerifier {
   ExecutableElement? _findOverriddenMemberWithMustCallSuper(
       ExecutableElement element) {
     //Element member = node.declaredElement;
-    if (element.enclosingElement3 is! ClassElement) {
+    if (element.enclosingElement3 is! InterfaceElement) {
       return null;
     }
     var classElement = element.enclosingElement3 as InterfaceElement;
@@ -81,9 +85,7 @@ class MustCallSuperVerifier {
 
     void addToQueue(InterfaceElement element) {
       superclasses.addAll(element.mixins.map((i) => i.element2));
-      if (element is ClassElement) {
-        superclasses.add(element.supertype?.element2);
-      }
+      superclasses.add(element.supertype?.element2);
       if (element is MixinElement) {
         superclasses
             .addAll(element.superclassConstraints.map((i) => i.element2));
@@ -116,7 +118,7 @@ class MustCallSuperVerifier {
 
   /// Returns whether [node] overrides a concrete method.
   bool _hasConcreteSuperMethod(ExecutableElement element) {
-    var classElement = element.enclosingElement3 as ClassElement;
+    var classElement = element.enclosingElement3 as InterfaceElement;
     String name = element.name;
 
     if (classElement.supertype.isConcrete(name)) {
@@ -127,7 +129,8 @@ class MustCallSuperVerifier {
       return true;
     }
 
-    if (classElement.superclassConstraints.any((c) => c.isConcrete(name))) {
+    if (classElement is MixinElement &&
+        classElement.superclassConstraints.any((c) => c.isConcrete(name))) {
       return true;
     }
 

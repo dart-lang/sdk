@@ -98,7 +98,8 @@ void f() {
     // check conditions
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract the name part of a declaration.');
+        expectedMessage:
+            'Expression must be selected to activate this refactoring.');
   }
 
   Future<void>
@@ -112,7 +113,8 @@ void f() {
     // check conditions
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract the name part of a declaration.');
+        expectedMessage:
+            'Expression must be selected to activate this refactoring.');
   }
 
   Future<void> test_checkInitialConditions_noExpression() async {

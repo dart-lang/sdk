@@ -24,7 +24,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
-        ClassElement,
         ClassMemberElement,
         CompilationUnitElement,
         Element,
@@ -33,6 +32,7 @@ import 'package:analyzer/dart/element/element.dart'
         ExtensionElement,
         FieldElement,
         FunctionElement,
+        InterfaceElement,
         LocalVariableElement,
         MixinElement,
         ParameterElement,
@@ -1702,14 +1702,14 @@ class CompletionResult {
     var element = _getElement(entity);
     if (element != null) {
       var parent = element.enclosingElement3;
-      if (parent is ClassElement || parent is ExtensionElement) {
+      if (parent is InterfaceElement || parent is ExtensionElement) {
         if (_isStatic(element)) {
           return CompletionGroup.staticMember;
         } else {
           return CompletionGroup.instanceMember;
         }
       } else if (parent is CompilationUnitElement &&
-          element is! ClassElement &&
+          element is! InterfaceElement &&
           element is! ExtensionElement) {
         return CompletionGroup.topLevelMember;
       }
@@ -1718,7 +1718,7 @@ class CompletionResult {
         return CompletionGroup.enumElement;
       } else if (element is MixinElement) {
         return CompletionGroup.mixinElement;
-      } else if (element is ClassElement) {
+      } else if (element is InterfaceElement) {
         if (entity is SimpleIdentifier &&
             entity.parent is NamedType &&
             entity.parent!.parent is ConstructorName &&

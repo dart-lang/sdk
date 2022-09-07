@@ -18,7 +18,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
-        ClassElement,
         Element,
         ExecutableElement,
         ExtensionElement,
@@ -969,9 +968,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     data.recordPercentage(
         'Methods with type parameters', node.typeParameters != null);
     var element = node.declaredElement2!;
-    if (!element.isStatic && element.enclosingElement3 is ClassElement) {
+    if (!element.isStatic && element.enclosingElement3 is InterfaceElement) {
       var overriddenMembers = inheritanceManager.getOverridden2(
-          element.enclosingElement3 as ClassElement,
+          element.enclosingElement3 as InterfaceElement,
           Name(element.librarySource.uri, element.name));
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the
@@ -1460,7 +1459,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element == null) {
       return null;
     }
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
         element = parent.element!;
@@ -1579,7 +1578,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       }
       // TODO(brianwilkerson) It might be interesting to also know whether the
       //  [element] was found in a class, interface, or mixin.
-      var memberClass = member.thisOrAncestorOfType<ClassElement>();
+      var memberClass = member.thisOrAncestorOfType<InterfaceElement>();
       if (memberClass != null) {
         /// Return the distance between the [targetClass] and the [memberClass]
         /// along the superclass chain. This includes all of the implicit
@@ -1598,11 +1597,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
               }
             }
             depth++;
-            if (currentClass is ClassElement) {
-              currentClass = currentClass.supertype?.element2;
-            } else {
-              currentClass = null;
-            }
+            currentClass = currentClass.supertype?.element2;
           }
           return -1;
         }
@@ -1614,11 +1609,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             depth += currentClass.mixins.length + 1;
-            if (currentClass is ClassElement) {
-              currentClass = currentClass.supertype?.element2;
-            } else {
-              break;
-            }
+            currentClass = currentClass.supertype?.element2;
           }
           return depth;
         }
@@ -1792,7 +1783,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var firstTokenType = identifier.staticType;
       if (firstTokenType == null) {
         var element = identifier.staticElement;
-        if (element is ClassElement) {
+        if (element is InterfaceElement) {
           // This is effectively treating a reference to a class name as having
           // the same type as an instance of the class, which isn't valid, but
           // on the other hand, the spec doesn't define the static type of a

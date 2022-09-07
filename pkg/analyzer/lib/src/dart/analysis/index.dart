@@ -93,7 +93,7 @@ class ElementNameComponents {
     }
 
     String? classMemberName;
-    if (element.enclosingElement3 is ClassElement ||
+    if (element.enclosingElement3 is InterfaceElement ||
         element.enclosingElement3 is ExtensionElement) {
       classMemberName = element.name;
       element = element.enclosingElement3!;
@@ -447,7 +447,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   _IndexContributor(this.assembler);
 
   void recordIsAncestorOf(InterfaceElement descendant) {
-    _recordIsAncestorOf(descendant, descendant, false, <ClassElement>[]);
+    _recordIsAncestorOf(descendant, descendant, false, <InterfaceElement>[]);
   }
 
   /// Record that the name [node] has a relation of the given [kind].
@@ -758,7 +758,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
     }
     // element invocation
-    IndexRelationKind kind = element is ClassElement
+    IndexRelationKind kind = element is InterfaceElement
         ? IndexRelationKind.IS_REFERENCED_BY
         : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
@@ -921,15 +921,15 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> supertypes = [];
     List<String> members = [];
 
-    String getClassElementId(ClassElement element) {
+    String getInterfaceElementId(InterfaceElement element) {
       return '${element.library.source.uri};'
           '${element.source.uri};${element.name}';
     }
 
     void addSupertype(NamedType? type) {
       var element = type?.name.staticElement;
-      if (element is ClassElement) {
-        String id = getClassElementId(element);
+      if (element is InterfaceElement) {
+        String id = getInterfaceElementId(element);
         supertypes.add(id);
       }
     }
@@ -1037,12 +1037,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
           ancestor, IndexRelationKind.IS_ANCESTOR_OF, offset, length, false);
     }
     {
-      if (ancestor is ClassElement) {
-        var superType = ancestor.supertype;
-        if (superType != null) {
-          _recordIsAncestorOf(
-              descendant, superType.element2, true, visitedElements);
-        }
+      var superType = ancestor.supertype;
+      if (superType != null) {
+        _recordIsAncestorOf(
+            descendant, superType.element2, true, visitedElements);
       }
     }
     for (InterfaceType mixinType in ancestor.mixins) {
