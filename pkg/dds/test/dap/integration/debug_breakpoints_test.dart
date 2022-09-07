@@ -71,6 +71,30 @@ void main(List<String> args) async {
       await client.setBreakpoints(testFile, []);
     });
 
+    test(
+        'does not fail updating breakpoints after a removal '
+        'if two breakpoints resolved to the same location', () async {
+      final client = dap.client;
+      final testFile =
+          dap.createTestFile(simpleBreakpointWithLeadingBlankLineProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final beforeBreakpointLine = breakpointLine - 1;
+
+      // Hit the breakpoint line first to ensure the function is compiled. This
+      // is required to ensure the VM gives us back the same breakpoint ID for
+      // the two locations.
+      await client.hitBreakpoint(testFile, breakpointLine);
+
+      // Add breakpoints to both lines.
+      await client.setBreakpoints(
+        testFile,
+        [breakpointLine, beforeBreakpointLine],
+      );
+
+      // Remove all breakpoints (which in reality, is just one).
+      await client.setBreakpoints(testFile, []);
+    });
+
     test('stops at a line breakpoint in the SDK set via local sources',
         () async {
       final client = dap.client;
