@@ -7224,9 +7224,9 @@ Patch release, resolves three issues:
   - `import` and `Isolate.spawnUri` now supports the
     [Data URI scheme](http://en.wikipedia.org/wiki/Data_URI_scheme) on the VM.
 
-## Tool Changes
+### Tool Changes
 
-### pub
+#### pub
 
 - Running `pub run foo` within a package now runs the `foo` executable defined
   by the `foo` package. The previous behavior ran `bin/foo`. This makes it easy
