@@ -58,6 +58,7 @@ class JsUtilWasmOptimizer extends Transformer {
   final Field _pragmaOptions;
   final Member _globalThisMember;
   int _functionTrampolineN = 1;
+  late Library _library;
 
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
@@ -93,6 +94,7 @@ class JsUtilWasmOptimizer extends Transformer {
 
   @override
   Library visitLibrary(Library lib) {
+    _library = lib;
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);
     _staticTypeContext.leaveLibrary(lib);
@@ -227,7 +229,6 @@ class JsUtilWasmOptimizer extends Transformer {
   /// matches.
   String _createFunctionTrampoline(Procedure node, FunctionType function) {
     int fileOffset = node.fileOffset;
-    Library library = node.enclosingLibrary;
 
     // Create arguments for each positional parameter in the function. These
     // arguments will be converted in JS to Dart objects. The generated wrapper
@@ -256,11 +257,12 @@ class JsUtilWasmOptimizer extends Transformer {
     // a native JS value before being returned to JS.
     DartType nullableWasmAnyRefType =
         _wasmAnyRefClass.getThisType(_coreTypes, Nullability.nullable);
+    final String libraryName = _library.name ?? 'Unnamed';
     final functionTrampolineName =
-        '|_functionTrampoline${_functionTrampolineN++}';
+        '|_functionTrampoline${_functionTrampolineN++}For$libraryName';
     final functionTrampolineImportName = '\$$functionTrampolineName';
     final functionTrampoline = Procedure(
-        Name(functionTrampolineName, library),
+        Name(functionTrampolineName, _library),
         ProcedureKind.Method,
         FunctionNode(
             ReturnStatement(StaticInvocation(
@@ -285,7 +287,7 @@ class JsUtilWasmOptimizer extends Transformer {
       _pragmaOptions.fieldReference:
           StringConstant(functionTrampolineImportName)
     })));
-    library.addProcedure(functionTrampoline);
+    _library.addProcedure(functionTrampoline);
     return functionTrampolineImportName;
   }
 

@@ -357,6 +357,9 @@ var dart2wasm = {
     areEqualInJS: function(l, r) {
         return l === r;
     },
+    promiseThen: function(promise, successFunc, failureFunc) {
+        promise.then(successFunc, failureFunc);
+    },
 };
 
 function instantiate(filename, imports) {

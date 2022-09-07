@@ -4,8 +4,10 @@
 
 library dart.js_util;
 
+import "dart:_js_annotations" as js;
 import "dart:_internal";
 import "dart:_js_helper";
+import "dart:async" show Completer, FutureOr;
 import "dart:collection";
 import "dart:typed_data";
 import "dart:wasm";
@@ -141,8 +143,32 @@ bool lessThan<T>(Object? first, Object? second) => throw 'unimplemented';
 @patch
 bool lessThanOrEqual<T>(Object? first, Object? second) => throw 'unimplemented';
 
+typedef _PromiseSuccessFunc = void Function(Object? value);
+typedef _PromiseFailureFunc = void Function(Object? error);
+
 @patch
-Future<T> promiseToFuture<T>(Object jsPromise) => throw 'unimplemented';
+Future<T> promiseToFuture<T>(Object jsPromise) {
+  Completer<T> completer = Completer<T>();
+
+  final success = js.allowInterop<_PromiseSuccessFunc>((r) {
+    return completer.complete(r as FutureOr<T>?);
+  });
+  final error = js.allowInterop<_PromiseFailureFunc>((e) {
+    // Note that `completeError` expects a non-nullable error regardless of
+    // whether null-safety is enabled, so a `NullRejectionException` is always
+    // provided if the error is `null` or `undefined`.
+    // TODO(joshualitt): At this point `undefined` has been replaced with `null`
+    // so we cannot tell them apart. In the future we should reify `undefined`
+    // in Dart.
+    if (e == null) {
+      return completer.completeError(NullRejectionException._(false));
+    }
+    return completer.completeError(e);
+  });
+
+  promiseThen(jsifyRaw(jsPromise)!, jsifyRaw(success)!, jsifyRaw(error)!);
+  return completer.future;
+}
 
 @patch
 Object? objectGetPrototypeOf(Object? object) => throw 'unimplemented';

@@ -307,6 +307,10 @@ external String stringify(WasmAnyRef? object);
 @pragma("wasm:import", "dart2wasm.objectKeys")
 external WasmAnyRef objectKeysRaw(WasmAnyRef? o);
 
+@pragma("wasm:import", "dart2wasm.promiseThen")
+external void promiseThen(
+    WasmAnyRef promise, WasmAnyRef successFunc, WasmAnyRef failureFunc);
+
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
 // calls. Our only solutions is to cache every function called with
