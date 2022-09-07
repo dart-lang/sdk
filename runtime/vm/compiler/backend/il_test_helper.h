@@ -261,9 +261,9 @@ class ILMatcher : public ValueObject {
 
 class FlowGraphBuilderHelper {
  public:
-  FlowGraphBuilderHelper()
+  explicit FlowGraphBuilderHelper(intptr_t num_parameters = 0)
       : state_(CompilerState::Current()),
-        flow_graph_(MakeDummyGraph(Thread::Current())) {
+        flow_graph_(MakeDummyGraph(Thread::Current(), num_parameters)) {
     flow_graph_.CreateCommonConstants();
   }
 
@@ -284,6 +284,19 @@ class FlowGraphBuilderHelper {
 
   ConstantInstr* DoubleConstant(double value) {
     return flow_graph_.GetConstant(Double::Handle(Double::NewCanonical(value)));
+  }
+
+  // Adds a variable into the scope which would provide static type for the
+  // parameter.
+  void AddVariable(const char* name,
+                   const AbstractType& static_type,
+                   CompileType* param_type = nullptr) {
+    LocalVariable* v =
+        new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                          String::Handle(Symbols::New(Thread::Current(), name)),
+                          static_type, param_type);
+    v->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+    flow_graph()->parsed_function().scope()->AddVariable(v);
   }
 
   enum class IncomingDefKind {
@@ -349,9 +362,10 @@ class FlowGraphBuilderHelper {
   FlowGraph* flow_graph() { return &flow_graph_; }
 
  private:
-  static FlowGraph& MakeDummyGraph(Thread* thread) {
+  static FlowGraph& MakeDummyGraph(Thread* thread, intptr_t num_parameters) {
     const FunctionType& signature =
         FunctionType::ZoneHandle(FunctionType::New());
+    signature.set_num_fixed_parameters(num_parameters);
     const Function& func = Function::ZoneHandle(Function::New(
         signature, String::Handle(Symbols::New(thread, "dummy")),
         UntaggedFunction::kRegularFunction,
