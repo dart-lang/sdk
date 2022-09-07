@@ -100,6 +100,53 @@ void main() {
         }
       }, timeout: const Timeout.factor(20));
 
+      test('does not reuse if browser was terminated (unresponsive ping)',
+          () async {
+        // Register the VM.
+        await testController.send(
+          'vm.register',
+          {'uri': testController.appFixture.serviceUri.toString()},
+        );
+
+        // Spawn a DevTools in a browser.
+        final event = await testController.serverStartedEvent.future;
+        final devToolsUri =
+            'http://${event['params']['host']}:${event['params']['port']}';
+        final launchUrl = '$devToolsUri/?page=logging'
+            '&uri=${Uri.encodeQueryComponent(testController.appFixture.serviceUri.toString())}';
+        final chrome = await Chrome.locate()!.start(url: launchUrl);
+        try {
+          {
+            final serverResponse = await testController.waitForClients(
+              requiredConnectionState: true,
+            );
+            expect(serverResponse['clients'], hasLength(1));
+          }
+
+          // Terminate the browser to prevent it responding to future pings.
+          chrome.kill();
+
+          // Send a request to the server to launch and ensure it did
+          // not reuse the existing connection. Launch it on a different page
+          // so we can easily tell once this one has connected.
+          final launchResponse = await testController.sendLaunchDevToolsRequest(
+            useVmService: useVmService,
+            reuseWindows: true,
+            page: 'memory',
+          );
+          expect(launchResponse['reused'], isFalse);
+
+          // Ensure there's now two connections.
+          final serverResponse = await testController.waitForClients(
+            requiredConnectionState: true,
+            requiredPage: 'memory',
+          );
+          expect(serverResponse['clients'], hasLength(2));
+        } finally {
+          chrome.kill();
+        }
+      }, timeout: const Timeout.factor(20));
+
       test('reuses DevTools instance if not connected to a VM', () async {
         // Register the VM.
         await testController.send(
