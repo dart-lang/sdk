@@ -3142,42 +3142,52 @@ class StoreOptimizer : public LivenessAnalysis {
           continue;
         }
 
+        if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
+          // Initialize live-out for exit blocks since it won't be computed
+          // otherwise during the fixed point iteration.
+          live_out->CopyFrom(all_places);
+        }
+
         // Handle side effects, deoptimization and function return.
-        if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
-            instr->MayThrow() || instr->IsReturn()) {
-          if (CompilerState::Current().is_aot()) {
-            // Ignoring instructions that can deoptimize, instructions that
-            // return from the function, instructions with side effects are
-            // considered as "loads from all places".
-            // If we are oustide of try-catch block, instructions that "may
-            // throw" only "load from escaping places".
-            // If we are inside of try-catch block, instructions that "may
-            // throw" also "load from all places".
-            if (instr->MayThrow() && block->try_index() == kInvalidTryIndex) {
-              live_in->AddAll(all_aliased_places);
-            } else {
-              // Similar optimization to the above could be implemented in JIT
-              // as long as deoptimization side-effects are taken into account.
-              // Conceptually variables in deoptimization environment for
-              // "MayThrow" instructions have to be also added to the
-              // [live_in] set as they can be considered as escaping (to
-              // unoptimized code). However those deoptimization environment
-              // variables include also non-escaping(not aliased) ones, so
-              // how to deal with that needs to be figured out.
+        if (CompilerState::Current().is_aot()) {
+          // Instructions that return from the function, instructions with
+          // side effects are considered as loads from all places.
+          if (instr->HasUnknownSideEffects() || instr->IsReturn() ||
+              instr->MayThrow()) {
+            if (instr->HasUnknownSideEffects() || instr->IsReturn()) {
+              // Instructions that may throw and has unknown side effects
+              // still load from all places.
               live_in->CopyFrom(all_places);
+            } else {
+              // If we are oustide of try-catch block, instructions that "may
+              // throw" only "load from escaping places".
+              // If we are inside of try-catch block, instructions that "may
+              // throw" also "load from all places".
+              if (block->try_index() == kInvalidTryIndex) {
+                live_in->AddAll(all_aliased_places);
+              } else {
+                live_in->CopyFrom(all_places);
+              }
             }
-          } else {
+            continue;
+          }
+        } else {  // jit
+          // Similar optimization to the above could be implemented in JIT
+          // as long as deoptimization side-effects are taken into account.
+          // Conceptually variables in deoptimization environment for
+          // "MayThrow" instructions have to be also added to the
+          // [live_in] set as they can be considered as escaping (to
+          // unoptimized code). However those deoptimization environment
+          // variables include also non-escaping(not aliased) ones, so
+          // how to deal with that needs to be figured out.
+          if (instr->HasUnknownSideEffects() || instr->CanDeoptimize() ||
+              instr->MayThrow() || instr->IsReturn()) {
             // Instructions that return from the function, instructions with
             // side effects and instructions that can deoptimize are considered
-            // as "loads from all places".
+            // as loads from all places.
             live_in->CopyFrom(all_places);
+            continue;
           }
-          if (instr->IsThrow() || instr->IsReThrow() || instr->IsReturn()) {
-            // Initialize live-out for exit blocks since it won't be computed
-            // otherwise during the fixed point iteration.
-            live_out->CopyFrom(all_places);
-          }
-          continue;
         }
 
         // Handle loads.
