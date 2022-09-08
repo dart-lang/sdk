@@ -628,8 +628,7 @@ class FragmentEmitter {
             : RuntimeTypesImpl(_closedWorld),
         _closedWorld.nativeData,
         _closedWorld.commonElements);
-    _rulesetEncoder =
-        RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
+    _rulesetEncoder = RulesetEncoder(_emitter, _recipeEncoder);
   }
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
@@ -1912,7 +1911,7 @@ class FragmentEmitter {
     Map<ClassTypeData, List<ClassTypeData>> nativeRedirections =
         _nativeEmitter.typeRedirections;
 
-    Ruleset ruleset = Ruleset.empty();
+    Ruleset ruleset = Ruleset.empty(_dartTypes);
     Map<ClassEntity, int> erasedTypes = {};
     Iterable<ClassTypeData> classTypeData =
         fragment.libraries.expand((Library library) => library.classTypeData);

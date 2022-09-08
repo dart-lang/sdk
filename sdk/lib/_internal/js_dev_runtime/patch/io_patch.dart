@@ -753,7 +753,7 @@ class _FileSystemWatcher {
 @patch
 class _IOService {
   @patch
-  static Future _dispatch(int request, List data) {
+  static Future<Object?> _dispatch(int request, List data) {
     throw UnsupportedError("_IOService._dispatch");
   }
 }

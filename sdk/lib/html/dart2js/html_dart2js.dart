@@ -37323,10 +37323,6 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   bool get isBroadcast => true;
 }
 
-// We would like this to just be EventListener<T> but that typdef cannot
-// use generics until dartbug/26276 is fixed.
-typedef _EventListener<T extends Event>(T event);
-
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
   EventTarget? _target;
@@ -37334,19 +37330,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   EventListener? _onData;
   final bool _useCapture;
 
-  // TODO(leafp): It would be better to write this as
-  // _onData = onData == null ? null :
-  //   onData is void Function(Event)
-  //     ? _wrapZone<Event>(onData)
-  //     : _wrapZone<Event>((e) => onData(e as T))
-  // In order to support existing tests which pass the wrong type of events but
-  // use a more general listener, without causing as much slowdown for things
-  // which are typed correctly.  But this currently runs afoul of restrictions
-  // on is checks for compatibility with the VM.
   _EventStreamSubscription(
       this._target, this._eventType, void onData(T event)?, this._useCapture)
       : _onData = onData == null
             ? null
+            // If removed, we would need an `is` check on a function type which
+            // is ultimately more expensive.
+            // ignore: avoid_dynamic_calls
             : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
     _tryResume();
   }
@@ -37371,6 +37361,9 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     _unlisten();
     _onData = handleData == null
         ? null
+        // If removed, we would need an `is` check on a function type which is
+        // ultimately more expensive.
+        // ignore: avoid_dynamic_calls
         : _wrapZone<Event>((e) => (handleData as dynamic)(e));
     _tryResume();
   }

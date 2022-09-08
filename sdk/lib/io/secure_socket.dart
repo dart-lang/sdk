@@ -1133,7 +1133,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
 
     var response =
-        await _IOService._dispatch(_IOService.sslProcessFilter, args);
+        (await _IOService._dispatch(_IOService.sslProcessFilter, args))
+            as List<Object?>;
     if (response.length == 2) {
       if (wasInHandshake) {
         // If we're in handshake, throw a handshake error.
@@ -1146,8 +1147,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
             new TlsException('${response[1]} error ${response[0]}'), null);
       }
     }
-    int start(int index) => response[2 * index];
-    int end(int index) => response[2 * index + 1];
+    int start(int index) => response[2 * index] as int;
+    int end(int index) => response[2 * index + 1] as int;
 
     _FilterStatus status = new _FilterStatus();
     // Compute writeEmpty as "write plaintext buffer and write encrypted
