@@ -52,13 +52,5 @@ int _traceClock = 0;
 int _getNextTaskId() => 0;
 
 @patch
-void _reportTaskEvent(int taskId, String phase, String category, String name,
-    String argumentsAsJson) {}
-
-@patch
-void _reportFlowEvent(
-    String category, String name, int type, int id, String argumentsAsJson) {}
-
-@patch
-void _reportInstantEvent(
-    String category, String name, String argumentsAsJson) {}
+void _reportTaskEvent(
+    int taskId, int type, String name, String argumentsAsJson) {}

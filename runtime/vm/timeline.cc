@@ -1680,77 +1680,44 @@ void TimelineEventBlock::Finish() {
 #endif
 }
 
-void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
-                                               TimelineEvent* event,
+void DartTimelineEventHelpers::ReportTaskEvent(TimelineEvent* event,
                                                int64_t id,
-                                               const char* phase,
-                                               const char* category,
+                                               intptr_t type,
                                                char* name,
                                                char* args) {
-  ASSERT(phase != NULL);
-  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e') ||
-         (phase[0] == 'B') || (phase[0] == 'E'));
-  ASSERT(phase[1] == '\0');
   const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
   const int64_t start_cpu = OS::GetCurrentThreadCPUMicrosForTimeline();
-  switch (phase[0]) {
-    case 'n':
+  switch (static_cast<TimelineEvent::EventType>(type)) {
+    case TimelineEvent::kAsyncInstant:
       event->AsyncInstant(name, id, start);
       break;
-    case 'b':
+    case TimelineEvent::kAsyncBegin:
       event->AsyncBegin(name, id, start);
       break;
-    case 'e':
+    case TimelineEvent::kAsyncEnd:
       event->AsyncEnd(name, id, start);
       break;
-    case 'B':
+    case TimelineEvent::kBegin:
       event->Begin(name, id, start, start_cpu);
       break;
-    case 'E':
+    case TimelineEvent::kEnd:
       event->End(name, id, start, start_cpu);
       break;
-    default:
-      UNREACHABLE();
-  }
-  event->set_owns_label(true);
-  event->CompleteWithPreSerializedArgs(args);
-}
-
-void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
-                                               TimelineEvent* event,
-                                               const char* category,
-                                               char* name,
-                                               int64_t type,
-                                               int64_t flow_id,
-                                               char* args) {
-  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
-  TimelineEvent::EventType event_type =
-      static_cast<TimelineEvent::EventType>(type);
-  switch (event_type) {
     case TimelineEvent::kFlowBegin:
-      event->FlowBegin(name, flow_id, start);
+      event->FlowBegin(name, id, start);
       break;
     case TimelineEvent::kFlowStep:
-      event->FlowStep(name, flow_id, start);
+      event->FlowStep(name, id, start);
       break;
     case TimelineEvent::kFlowEnd:
-      event->FlowEnd(name, flow_id, start);
+      event->FlowEnd(name, id, start);
+      break;
+    case TimelineEvent::kInstant:
+      event->Instant(name, start);
       break;
     default:
       UNREACHABLE();
-      break;
   }
-  event->set_owns_label(true);
-  event->CompleteWithPreSerializedArgs(args);
-}
-
-void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
-                                                  TimelineEvent* event,
-                                                  const char* category,
-                                                  char* name,
-                                                  char* args) {
-  const int64_t start = OS::GetCurrentMonotonicMicrosForTimeline();
-  event->Instant(name, start);
   event->set_owns_label(true);
   event->CompleteWithPreSerializedArgs(args);
 }
