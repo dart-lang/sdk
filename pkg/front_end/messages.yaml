@@ -5517,14 +5517,14 @@ UnexpectedModifierInNonNnbd:
     late int x;
 
 CompilingWithSoundNullSafety:
-  problemMessage: "Compiling with sound null safety"
+  problemMessage: "Compiling with sound null safety 💪"
   configuration: nnbd-strong,compile
   severity: INFO
   script: |
     main() {}
 
 CompilingWithoutSoundNullSafety:
-  problemMessage: "Compiling without sound null safety"
+  problemMessage: "Compiling without sound null safety ⚠️\nDart 3 will only support sound null safety, see https://dart.dev/null-safety"
   configuration: nnbd-weak,compile
   severity: INFO
   script: |

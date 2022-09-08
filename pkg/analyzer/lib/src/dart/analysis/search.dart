@@ -132,6 +132,38 @@ enum DeclarationKind {
   VARIABLE
 }
 
+/// Searches through files known to [drivers] for declarations.
+///
+/// If files are known to multiple drivers, they will be searched only within
+/// the context of the first.
+class FindDeclarations {
+  final List<AnalysisDriver> drivers;
+  final WorkspaceSymbols result;
+  final int? maxResults;
+  final RegExp? regExp;
+  final String? onlyForFile;
+
+  FindDeclarations(this.drivers, this.result, this.regExp, this.maxResults,
+      {this.onlyForFile});
+
+  Future<void> compute([CancellationToken? cancellationToken]) async {
+    var searchedFiles = SearchedFiles();
+    await Future.wait(drivers.map((driver) => driver.discoverAvailableFiles()));
+    // Add analyzed files first, so priority is given to drivers that analyze
+    // files over those that just reference them.
+    for (var driver in drivers) {
+      searchedFiles.ownAnalyzed(driver.search);
+    }
+    for (var driver in drivers) {
+      searchedFiles.ownKnown(driver.search);
+    }
+
+    await _FindDeclarations(searchedFiles, result, regExp, maxResults,
+            onlyForFile: onlyForFile)
+        .compute(cancellationToken);
+  }
+}
+
 /// Visitor that adds [SearchResult]s for references to the [importElement].
 class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
@@ -230,15 +262,6 @@ class Search {
       }
     }
     return elements;
-  }
-
-  /// Add matching declarations to the [result].
-  Future<void> declarations(
-      WorkspaceSymbols result, RegExp? regExp, int? maxResults,
-      {String? onlyForFile, CancellationToken? cancellationToken}) async {
-    await _FindDeclarations(_driver, result, regExp, maxResults,
-            onlyForFile: onlyForFile)
-        .compute(cancellationToken);
   }
 
   /// Returns references to the [element].
@@ -712,6 +735,14 @@ class SearchedFiles {
       }
     }
   }
+
+  void ownKnown(Search search) {
+    for (var path in search._driver.knownFiles) {
+      if (path.endsWith('.dart')) {
+        add(path, search);
+      }
+    }
+  }
 }
 
 /// A single search result.
@@ -1003,14 +1034,15 @@ class _FindCompilationUnitDeclarations {
   }
 }
 
+/// Searches through [files] for declarations.
 class _FindDeclarations {
-  final AnalysisDriver driver;
+  final SearchedFiles files;
   final WorkspaceSymbols result;
   final int? maxResults;
   final RegExp? regExp;
   final String? onlyForFile;
 
-  _FindDeclarations(this.driver, this.result, this.regExp, this.maxResults,
+  _FindDeclarations(this.files, this.result, this.regExp, this.maxResults,
       {this.onlyForFile});
 
   /// Add matching declarations to the [result].
@@ -1019,19 +1051,19 @@ class _FindDeclarations {
       return;
     }
 
-    await driver.discoverAvailableFiles();
-
     if (cancellationToken != null &&
         cancellationToken.isCancellationRequested) {
       result.cancelled = true;
       return;
     }
 
-    var knownFiles = driver.fsState.knownFiles.toList();
     var filesProcessed = 0;
     try {
-      for (var file in knownFiles) {
-        var elementResult = await driver.getLibraryByUri(file.uriStr);
+      for (var entry in files.uriOwners.entries) {
+        var uri = entry.key;
+        var search = entry.value;
+        var elementResult =
+            await search._driver.getLibraryByUri(uri.toString());
         if (elementResult is LibraryElementResult) {
           var units = elementResult.element.units;
           for (var i = 0; i < units.length; i++) {

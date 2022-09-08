@@ -13,7 +13,8 @@ import 'package:test/test.dart';
 
 import '../utils.dart';
 
-const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
+const String soundNullSafetyMessage =
+    'Info: Compiling with sound null safety 💪';
 const devToolsMessagePrefix =
     'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
 const dartVMServiceMessagePrefix =

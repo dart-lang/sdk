@@ -25,6 +25,7 @@ activated
 actively
 adequate
 adi
+adjusts
 advantage
 affecting
 affords
@@ -206,6 +207,7 @@ claims
 clamp
 clamped
 clarification
+clarify
 clashes
 class's
 clazz
@@ -246,6 +248,7 @@ compression
 comprise
 concat
 concatenate
+conceptual
 concerned
 conciser
 cond
@@ -254,6 +257,8 @@ config
 configs
 configured
 connectivity
+consecutive
+considerable
 consideration
 considering
 constness
@@ -377,6 +382,7 @@ disambiguating
 disambiguation
 disambiguator
 discovers
+discussion
 disjoint
 dispatched
 distribute
@@ -531,6 +537,7 @@ fortunately
 fourth
 framework
 freed
+freedom
 freely
 freshly
 frontend
@@ -624,6 +631,7 @@ idx
 iff
 il
 illegally
+illustrating
 imitate
 immutability
 impl
@@ -830,6 +838,7 @@ migrated
 migration
 mime
 min
+mini
 misuse
 mixers
 mk
@@ -1296,6 +1305,7 @@ src
 ssa
 st
 stability
+stacks
 stacktrace
 stacktraces
 stages

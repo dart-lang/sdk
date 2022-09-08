@@ -6144,6 +6144,9 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   }
 
   @override
+  IfCondition get condition2 => _condition;
+
+  @override
   CollectionElement? get elseElement => _elseElement;
 
   set elseElement(CollectionElement? element) {
@@ -6238,6 +6241,9 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   set condition(Expression condition) {
     _condition = _becomeParentOf(condition as ExpressionImpl);
   }
+
+  @override
+  IfCondition get condition2 => _condition;
 
   @override
   StatementImpl? get elseStatement => _elseStatement;

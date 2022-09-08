@@ -70,6 +70,8 @@ abstract class PatternDispatchResult<Node extends Object,
   /// If the match is happening in an irrefutable context, [irrefutableContext]
   /// should be the containing AST node that establishes the context as
   /// irrefutable.  Otherwise it should be `null`.
+  ///
+  /// Stack effect (see [TypeAnalyzer] for explanation): pushes (Pattern).
   void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
       {required bool isFinal,
       required bool isLate,
