@@ -506,9 +506,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         throw createError(response, "Failed host lookup: '$host'");
       }
       return [
-        for (var result in response.skip(1))
-          _InternetAddress(InternetAddressType._from(result[0]), result[1],
-              host, result[2], result[3])
+        for (List<Object?> result in (response as List).skip(1))
+          _InternetAddress(
+              InternetAddressType._from(result[0] as int),
+              result[1] as String,
+              host,
+              result[2] as Uint8List,
+              result[3] as int)
       ];
     });
   }
@@ -530,7 +534,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed reverse host lookup", addr);
       } else {
-        return (addr as _InternetAddress)._cloneWithNewHost(response);
+        return addr._cloneWithNewHost(response as String);
       }
     });
   }
@@ -544,16 +548,19 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed listing interfaces");
       } else {
-        var map = response.skip(1).fold(new Map<String, NetworkInterface>(),
-            (map, result) {
-          var type = InternetAddressType._from(result[0]);
-          var name = result[3];
-          var index = result[4];
-          var address = _InternetAddress(type, result[1], "", result[2]);
+        var map = (response as List)
+            .skip(1)
+            .fold(new Map<String, NetworkInterface>(), (map, result) {
+          List<Object?> resultList = result as List<Object?>;
+          var type = InternetAddressType._from(resultList[0] as int);
+          var name = resultList[3] as String;
+          var index = resultList[4] as int;
+          var address = _InternetAddress(
+              type, resultList[1] as String, "", resultList[2] as Uint8List);
           if (!includeLinkLocal && address.isLinkLocal) return map;
           if (!includeLoopback && address.isLoopback) return map;
           map.putIfAbsent(name, () => new _NetworkInterface(name, index));
-          map[name].addresses.add(address);
+          (map[name] as _NetworkInterface).addresses.add(address);
           return map;
         });
         return map.values.toList();
