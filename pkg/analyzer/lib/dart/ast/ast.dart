@@ -1321,18 +1321,6 @@ abstract class Configuration implements AstNode {
   StringLiteral? get value;
 }
 
-/// A constant pattern.
-///
-///    constantPattern ::=
-///        [Identifier]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class ConstantPattern implements DartPattern {
-  /// The expression referencing the constant being matched.
-  Expression get identifier;
-}
-
 /// A constructor declaration.
 ///
 ///    constructorDeclaration ::=
@@ -1890,6 +1878,30 @@ abstract class ExpressionFunctionBody implements FunctionBody {
 
   /// Return the semicolon terminating the statement.
   Token? get semicolon;
+}
+
+/// An expression being used as a pattern.
+///
+/// The only expressions that can be validly used as a pattern are
+/// - `bool` literals
+/// - `double` literals
+/// - `int` literals
+/// - `null` literals
+/// - `String` literals
+/// - references to constant variables.
+///
+/// This node is also used to recover from cases where a different kind of
+/// expression is used as a pattern, so clients need to handle the case where
+/// the expression is not one of the valid alternatives.
+///
+///    expressionPattern ::=
+///        [Expression]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ExpressionPattern implements DartPattern {
+  /// Return the expression being used as a pattern.
+  Expression get expression;
 }
 
 /// An expression used as a statement.
@@ -3308,22 +3320,6 @@ abstract class ListPattern implements DartPattern {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Literal implements Expression {}
-
-/// A literal expression used as a pattern.
-///
-///    literalPattern ::=
-///        [BooleanLiteral]
-///        [DoubleLiteral]
-///        [IntegerLiteral]
-///        [NullLiteral]
-///        [StringLiteral]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class LiteralPattern implements DartPattern {
-  /// Return the literal expression being used as a pattern.
-  Literal get expression;
-}
 
 /// A single key/value pair in a map literal.
 ///
