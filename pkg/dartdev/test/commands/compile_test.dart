@@ -16,7 +16,8 @@ void main() {
   group('compile -', defineCompileTests, timeout: longTimeout);
 }
 
-const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
+const String soundNullSafetyMessage =
+    'Info: Compiling with sound null safety 💪';
 const String unsoundNullSafetyMessage =
     'Info: Compiling without sound null safety';
 
