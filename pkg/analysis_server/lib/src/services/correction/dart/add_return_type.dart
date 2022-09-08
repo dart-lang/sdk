@@ -43,7 +43,9 @@ class AddReturnType extends CorrectionProducer {
       if (executable.isSetter) {
         return;
       }
-      insertBeforeEntity = executable.propertyKeyword ?? executable.name2;
+      insertBeforeEntity = executable.operatorKeyword ??
+          executable.propertyKeyword ??
+          executable.name2;
       body = executable.body;
     } else if (executable is FunctionDeclaration && executable.name2 == token) {
       if (executable.returnType != null) {
