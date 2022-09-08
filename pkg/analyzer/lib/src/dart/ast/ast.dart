@@ -1074,6 +1074,54 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   }
 }
 
+/// A binary (infix) pattern.
+///
+///    binaryPattern ::=
+///        [DartPattern] ('|' | '&') [DartPattern]
+@experimental
+class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
+  @override
+  final DartPatternImpl leftOperand;
+
+  @override
+  final Token operator;
+
+  @override
+  final DartPatternImpl rightOperand;
+
+  BinaryPatternImpl(
+      {required this.leftOperand,
+      required this.operator,
+      required this.rightOperand}) {
+    _becomeParentOf(leftOperand);
+    _becomeParentOf(rightOperand);
+  }
+
+  @override
+  Token get beginToken => leftOperand.beginToken;
+
+  @override
+  Token get endToken => rightOperand.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    leftOperand.accept(visitor);
+    rightOperand.accept(visitor);
+  }
+}
+
 /// A function body that consists of a block of statements.
 ///
 ///    blockFunctionBody ::=
@@ -1392,6 +1440,53 @@ class CascadeExpressionImpl extends ExpressionImpl
   @override
   bool _extendsNullShorting(Expression descendant) {
     return _cascadeSections.contains(descendant);
+  }
+}
+
+/// A cast pattern.
+///
+///    castPattern ::=
+///        identifier 'as' [TypeAnnotation]
+@experimental
+class CastPatternImpl extends DartPatternImpl implements CastPattern {
+  @override
+  final Token asToken;
+
+  @override
+  VariableElement? declaredElement;
+
+  @override
+  final Token name;
+
+  @override
+  final TypeAnnotationImpl type;
+
+  CastPatternImpl(
+      {required this.name, required this.asToken, required this.type}) {
+    _becomeParentOf(type);
+  }
+
+  @override
+  Token get beginToken => name;
+
+  @override
+  Token get endToken => type.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('name', name)
+    ..addToken('asToken', asToken)
+    ..addNode('type', type);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    type.accept(visitor);
   }
 }
 
@@ -3074,6 +3169,30 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   }
 }
 
+/// A pattern.
+///
+///    pattern ::=
+///        [BinaryPattern]
+///      | [ConstantPattern]
+///      | [CastPattern]
+///      | [ExtractorPattern]
+///      | [ListPattern]
+///      | [LiteralPattern]
+///      | [MapPattern]
+///      | [RecordPattern]
+///      | [RelationalPattern]
+///      | [UnaryPattern]
+///      | [VariablePattern]
+@experimental
+abstract class DartPatternImpl extends AstNodeImpl implements DartPattern {
+  DartPatternImpl();
+
+  @override
+  // TODO(brianwilkerson) Remove this and implement it in subclasses when we
+  //  have constants for pattern-related precedence values.
+  Precedence get precedence => throw UnimplementedError();
+}
+
 /// A node that represents the declaration of one or more names. Each declared
 /// name is visible within a name scope.
 abstract class DeclarationImpl extends AnnotatedNodeImpl
@@ -4057,6 +4176,50 @@ abstract class ExpressionImpl extends AstNodeImpl
   void resolveExpression(ResolverVisitor resolver, DartType? contextType);
 }
 
+/// An expression being used as a pattern.
+///
+/// The only expressions that can be validly used as a pattern are `bool`,
+/// `double`, `int`, `null`, and `String` literals and references to constant
+/// variables.
+///
+/// This node is also used to recover from cases where a different kind of
+/// expression is used as a pattern, so clients need to handle the case where
+/// the expression is not one of the valid alternatives.
+///
+///    expressionPattern ::=
+///        [Expression]
+@experimental
+class ExpressionPatternImpl extends DartPatternImpl
+    implements ExpressionPattern {
+  @override
+  final ExpressionImpl expression;
+
+  ExpressionPatternImpl({required this.expression}) {
+    _becomeParentOf(expression);
+  }
+
+  @override
+  Token get beginToken => expression.beginToken;
+
+  @override
+  Token get endToken => expression.endToken;
+
+  @override
+  ChildEntities get _childEntities =>
+      super._childEntities..addNode('expression', expression);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+  }
+}
+
 /// An expression used as a statement.
 ///
 ///    expressionStatement ::=
@@ -4392,6 +4555,68 @@ class ExtensionOverrideImpl extends ExpressionImpl
     _extensionName.accept(visitor);
     _typeArguments?.accept(visitor);
     _argumentList.accept(visitor);
+  }
+}
+
+/// An extractor pattern.
+///
+///    extractorPattern ::=
+///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
+@experimental
+class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
+  final NodeListImpl<RecordPatternField> _fields = NodeListImpl._();
+
+  @override
+  final Token leftParenthesis;
+
+  @override
+  final Token rightParenthesis;
+
+  @override
+  final TypeArgumentListImpl? typeArguments;
+
+  @override
+  final IdentifierImpl typeName;
+
+  ExtractorPatternImpl(
+      {required this.typeName,
+      required this.typeArguments,
+      required this.leftParenthesis,
+      required List<RecordPatternField> fields,
+      required this.rightParenthesis}) {
+    _becomeParentOf(typeName);
+    _becomeParentOf(typeArguments);
+    _fields._initialize(this, fields);
+  }
+
+  @override
+  Token get beginToken => typeName.beginToken;
+
+  @override
+  Token get endToken => rightParenthesis;
+
+  @override
+  NodeList<RecordPatternField> get fields => _fields;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('typeName', typeName)
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields', fields)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeName.accept(visitor);
+    typeArguments?.accept(visitor);
+    fields.accept(visitor);
   }
 }
 
@@ -4736,6 +4961,49 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   void visitChildren(AstVisitor visitor) {
     _identifier.accept(visitor);
     _iterable.accept(visitor);
+  }
+}
+
+/// A for-loop part with a pattern.
+///
+///    forEachPartsWithPattern ::=
+///        ( 'final' | 'var' ) [DartPattern] 'in' [Expression]
+@experimental
+class ForEachPartsWithPatternImpl extends ForEachPartsImpl
+    implements ForEachPartsWithPattern {
+  @override
+  final Token keyword;
+
+  @override
+  final DartPatternImpl pattern;
+
+  ForEachPartsWithPatternImpl(
+      {required this.keyword,
+      required this.pattern,
+      required Token inKeyword,
+      required ExpressionImpl iterable})
+      : super(inKeyword, iterable) {
+    _becomeParentOf(pattern);
+  }
+
+  @override
+  Token get beginToken => keyword;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
+    ..addNode('pattern', pattern);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
+    super.visitChildren(visitor);
   }
 }
 
@@ -5112,6 +5380,46 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _initialization?.accept(visitor);
+    super.visitChildren(visitor);
+  }
+}
+
+/// The parts of a for loop that control the iteration when there is a pattern
+/// declaration as part of the for loop.
+///
+///   forLoopParts ::=
+///       [PatternVariableDeclaration] ';' [Expression]? ';' expressionList?
+class ForPartsWithPatternImpl extends ForPartsImpl
+    implements ForPartsWithPattern {
+  @override
+  final PatternVariableDeclarationImpl variables;
+
+  ForPartsWithPatternImpl(
+      {required this.variables,
+      required Token leftSeparator,
+      required ExpressionImpl? condition,
+      required Token rightSeparator,
+      required List<Expression>? updaters})
+      : super(leftSeparator, condition, rightSeparator, updaters) {
+    _becomeParentOf(variables);
+  }
+
+  @override
+  Token get beginToken => variables.beginToken;
+
+  @override
+  ChildEntities get _childEntities =>
+      super._childEntities..addNode('variables', variables);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    variables.accept(visitor);
     super.visitChildren(visitor);
   }
 }
@@ -7510,6 +7818,61 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 }
 
+/// A list pattern.
+///
+///    listPattern ::=
+///        [TypeArgumentList]? '[' [DartPattern] (',' [DartPattern])* ','? ']'
+@experimental
+class ListPatternImpl extends DartPatternImpl implements ListPattern {
+  final NodeListImpl<DartPattern> _elements = NodeListImpl._();
+
+  @override
+  final Token leftBracket;
+
+  @override
+  final Token rightBracket;
+
+  @override
+  final TypeArgumentListImpl? typeArguments;
+
+  ListPatternImpl(
+      {required this.typeArguments,
+      required this.leftBracket,
+      required List<DartPattern> elements,
+      required this.rightBracket}) {
+    _becomeParentOf(typeArguments);
+    _elements._initialize(this, elements);
+  }
+
+  @override
+  Token get beginToken => typeArguments?.beginToken ?? leftBracket;
+
+  @override
+  NodeList<DartPattern> get elements => _elements;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('elements', elements)
+    ..addToken('rightBracket', rightBracket);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeArguments?.accept(visitor);
+    elements.accept(visitor);
+  }
+}
+
 /// A node that represents a literal expression.
 ///
 ///    literal ::=
@@ -7599,6 +7962,108 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   void visitChildren(AstVisitor visitor) {
     _key.accept(visitor);
     _value.accept(visitor);
+  }
+}
+
+/// An entry in a map pattern.
+///
+///    mapPatternEntry ::=
+///        [Expression] ':' [DartPattern]
+@experimental
+class MapPatternEntryImpl extends AstNodeImpl implements MapPatternEntry {
+  @override
+  final ExpressionImpl key;
+
+  @override
+  final Token separator;
+
+  @override
+  final DartPatternImpl value;
+
+  MapPatternEntryImpl(
+      {required this.key, required this.separator, required this.value}) {
+    _becomeParentOf(key);
+    _becomeParentOf(value);
+  }
+
+  @override
+  Token get beginToken => key.beginToken;
+
+  @override
+  Token get endToken => value.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('key', key)
+    ..addToken('separator', separator)
+    ..addNode('value', value);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    key.accept(visitor);
+    value.accept(visitor);
+  }
+}
+
+/// A map pattern.
+///
+///    mapPattern ::=
+///        [TypeArgumentList]? '{' [MapPatternEntry] (',' [MapPatternEntry])*
+///        ','? '}'
+@experimental
+class MapPatternImpl extends DartPatternImpl implements MapPattern {
+  final NodeListImpl<MapPatternEntry> _entries = NodeListImpl._();
+
+  @override
+  final Token leftBracket;
+
+  @override
+  final Token rightBracket;
+
+  @override
+  final TypeArgumentListImpl? typeArguments;
+
+  MapPatternImpl(
+      {required this.typeArguments,
+      required this.leftBracket,
+      required List<MapPatternEntry> entries,
+      required this.rightBracket}) {
+    _becomeParentOf(typeArguments);
+    _entries._initialize(this, entries);
+  }
+
+  @override
+  Token get beginToken => typeArguments?.beginToken ?? leftBracket;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  NodeList<MapPatternEntry> get entries => _entries;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('typeArguments', typeArguments)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('entries', entries)
+    ..addToken('rightBracket', rightBracket);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeArguments?.accept(visitor);
+    entries.accept(visitor);
   }
 }
 
@@ -8781,6 +9246,53 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 }
 
+/// A parenthesized pattern.
+///
+///    parenthesizedPattern ::=
+///        '(' [DartPattern] ')'
+@experimental
+class ParenthesizedPatternImpl extends DartPatternImpl
+    implements ParenthesizedPattern {
+  @override
+  final Token leftParenthesis;
+
+  @override
+  final DartPatternImpl pattern;
+
+  @override
+  final Token rightParenthesis;
+
+  ParenthesizedPatternImpl(
+      {required this.leftParenthesis,
+      required this.pattern,
+      required this.rightParenthesis}) {
+    _becomeParentOf(pattern);
+  }
+
+  @override
+  Token get beginToken => leftParenthesis;
+
+  @override
+  Token get endToken => rightParenthesis;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('pattern', pattern)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
+  }
+}
+
 /// A part directive.
 ///
 ///    partDirective ::=
@@ -8907,6 +9419,190 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   }
 }
 
+/// A pattern assignment.
+///
+///    patternAssignment ::=
+///        [DartPattern] '=' [Expression]
+///
+/// When used as the condition in an `if`, the pattern is always a
+/// [PatternVariable] whose type is not `null`.
+@experimental
+class PatternAssignmentImpl extends AstNodeImpl implements PatternAssignment {
+  @override
+  final Token equals;
+
+  @override
+  final ExpressionImpl expression;
+
+  @override
+  final DartPatternImpl pattern;
+
+  PatternAssignmentImpl(
+      {required this.pattern, required this.equals, required this.expression}) {
+    _becomeParentOf(pattern);
+    _becomeParentOf(expression);
+  }
+
+  @override
+  Token get beginToken => pattern.beginToken;
+
+  @override
+  Token get endToken => expression.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('pattern', pattern)
+    ..addToken('equals', equals)
+    ..addNode('expression', expression);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
+    expression.accept(visitor);
+  }
+}
+
+/// A pattern assignment used as a statement.
+///
+///    patternAssignmentStatement ::=
+///        [PatternAssignment] ';'
+class PatternAssignmentStatementImpl extends StatementImpl
+    implements PatternAssignmentStatement {
+  @override
+  final PatternAssignmentImpl assignment;
+
+  @override
+  final Token semicolon;
+
+  PatternAssignmentStatementImpl(
+      {required this.assignment, required this.semicolon}) {
+    _becomeParentOf(assignment);
+  }
+
+  @override
+  Token get beginToken => assignment.beginToken;
+
+  @override
+  Token get endToken => semicolon;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('assignment', assignment)
+    ..addToken('semicolon', semicolon);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    assignment.accept(visitor);
+  }
+}
+
+/// A pattern variable declaration.
+///
+///    patternDeclaration ::=
+///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
+@experimental
+class PatternVariableDeclarationImpl extends AstNodeImpl
+    implements PatternVariableDeclaration {
+  @override
+  final Token equals;
+
+  @override
+  final ExpressionImpl expression;
+
+  @override
+  final Token keyword;
+
+  @override
+  final DartPatternImpl pattern;
+
+  PatternVariableDeclarationImpl(
+      {required this.keyword,
+      required this.pattern,
+      required this.equals,
+      required this.expression}) {
+    _becomeParentOf(pattern);
+    _becomeParentOf(expression);
+  }
+
+  @override
+  Token get beginToken => keyword;
+
+  @override
+  Token get endToken => expression.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
+    ..addNode('pattern', pattern)
+    ..addToken('equals', equals)
+    ..addNode('expression', expression);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
+    expression.accept(visitor);
+  }
+}
+
+/// A pattern variable declaration statement.
+///
+///    patternDeclarationStatement ::=
+///        [PatternVariableDeclaration] ';'
+@experimental
+class PatternVariableDeclarationStatementImpl extends StatementImpl
+    implements PatternVariableDeclarationStatement {
+  @override
+  final PatternVariableDeclarationImpl declaration;
+
+  @override
+  final Token semicolon;
+
+  PatternVariableDeclarationStatementImpl(
+      {required this.declaration, required this.semicolon}) {
+    _becomeParentOf(declaration);
+  }
+
+  @override
+  Token get beginToken => declaration.beginToken;
+
+  @override
+  Token get endToken => semicolon;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('declaration', declaration)
+    ..addToken('semicolon', semicolon);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    declaration.accept(visitor);
+  }
+}
+
 /// A postfix unary expression.
 ///
 ///    postfixExpression ::=
@@ -8987,6 +9683,45 @@ class PostfixExpressionImpl extends ExpressionImpl
   @override
   bool _extendsNullShorting(Expression descendant) =>
       identical(descendant, operand);
+}
+
+/// A postfix (unary) pattern.
+///
+///    postfixPattern ::=
+///        [DartPattern] ('?' | '!')
+@experimental
+class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
+  @override
+  final DartPatternImpl operand;
+
+  @override
+  final Token operator;
+
+  PostfixPatternImpl({required this.operand, required this.operator}) {
+    _becomeParentOf(operand);
+  }
+
+  @override
+  Token get beginToken => operand.beginToken;
+
+  @override
+  Token get endToken => operator;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('operand', operand)
+    ..addToken('operator', operator);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    operand.accept(visitor);
+  }
 }
 
 /// An identifier that is prefixed or an access to an object property where the
@@ -9335,6 +10070,133 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   }
 }
 
+/// A field in a record pattern.
+///
+///    recordPatternField ::=
+///        [RecordPatternFieldName]? [DartPattern]
+@experimental
+class RecordPatternFieldImpl extends AstNodeImpl implements RecordPatternField {
+  @override
+  final RecordPatternFieldNameImpl? fieldName;
+
+  @override
+  final DartPatternImpl pattern;
+
+  RecordPatternFieldImpl({required this.fieldName, required this.pattern}) {
+    _becomeParentOf(fieldName);
+    _becomeParentOf(pattern);
+  }
+
+  @override
+  Token get beginToken => fieldName?.beginToken ?? pattern.beginToken;
+
+  @override
+  Token get endToken => pattern.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('fieldName', fieldName)
+    ..addNode('pattern', pattern);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    fieldName?.accept(visitor);
+    pattern.accept(visitor);
+  }
+}
+
+/// A field name in a record pattern field.
+///
+///    recordPatternField ::=
+///        [Token] ':'
+@experimental
+class RecordPatternFieldNameImpl extends AstNodeImpl
+    implements RecordPatternFieldName {
+  @override
+  final Token colon;
+
+  @override
+  final Token? name;
+
+  RecordPatternFieldNameImpl({required this.name, required this.colon});
+
+  @override
+  Token get beginToken => name ?? colon;
+
+  @override
+  Token get endToken => colon;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('name', name)
+    ..addToken('colon', colon);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    // There are no children to visit.
+  }
+}
+
+/// A record pattern.
+///
+///    recordPattern ::=
+///        '(' [RecordPatternField] (',' [RecordPatternField])* ')'
+@experimental
+class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
+  final NodeListImpl<RecordPatternField> _fields = NodeListImpl._();
+
+  @override
+  final Token leftParenthesis;
+
+  @override
+  final Token rightParenthesis;
+
+  RecordPatternImpl(
+      {required this.leftParenthesis,
+      required List<RecordPatternField> fields,
+      required this.rightParenthesis}) {
+    _fields._initialize(this, fields);
+  }
+
+  @override
+  Token get beginToken => leftParenthesis;
+
+  @override
+  Token get endToken => rightParenthesis;
+
+  @override
+  NodeList<RecordPatternField> get fields => _fields;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fields', fields)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    fields.accept(visitor);
+  }
+}
+
 abstract class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     implements RecordTypeAnnotationField {
   @override
@@ -9578,6 +10440,46 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
   void visitChildren(AstVisitor visitor) {
     _constructorName?.accept(visitor);
     _argumentList.accept(visitor);
+  }
+}
+
+/// A relational pattern.
+///
+///    relationalPattern ::=
+///        (equalityOperator | relationalOperator) [Expression]
+@experimental
+class RelationalPatternImpl extends DartPatternImpl
+    implements RelationalPattern {
+  @override
+  final ExpressionImpl operand;
+
+  @override
+  final Token operator;
+
+  RelationalPatternImpl({required this.operator, required this.operand}) {
+    _becomeParentOf(operand);
+  }
+
+  @override
+  Token get beginToken => operator;
+
+  @override
+  Token get endToken => operand.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('operator', operator)
+    ..addNode('operand', operand);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    operand.accept(visitor);
   }
 }
 
@@ -10914,6 +11816,236 @@ class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
   }
 }
 
+/// A case in a switch expression.
+///
+///    switchExpressionCase ::=
+///        'case' [DartPattern] [SwitchGuard]? '=>' [Expression]
+@experimental
+class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
+    implements SwitchExpressionCase {
+  @override
+  final SwitchGuardImpl? guard;
+
+  @override
+  final DartPatternImpl pattern;
+
+  SwitchExpressionCaseImpl(
+      {required super.keyword,
+      required this.pattern,
+      required this.guard,
+      required super.arrow,
+      required super.expression}) {
+    _becomeParentOf(guard);
+    _becomeParentOf(pattern);
+  }
+
+  @override
+  Token get beginToken => keyword;
+
+  @override
+  Token get endToken => expression.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
+    ..addNode('pattern', pattern)
+    ..addNode('guard', guard)
+    ..addToken('arrow', arrow)
+    ..addNode('expression', expression);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
+    guard?.accept(visitor);
+    expression.accept(visitor);
+  }
+}
+
+/// The default case in a switch statement.
+///
+///    switchDefault ::=
+///        'default' '=>' [Expression]
+@experimental
+class SwitchExpressionDefaultImpl extends SwitchExpressionMemberImpl
+    implements SwitchExpressionDefault {
+  SwitchExpressionDefaultImpl(
+      {required super.keyword,
+      required super.arrow,
+      required super.expression});
+
+  @override
+  Token get beginToken => keyword;
+
+  @override
+  Token get endToken => expression.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
+    ..addToken('arrow', arrow)
+    ..addNode('expression', expression);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+  }
+}
+
+/// A switch expression.
+///
+///    switchExpression ::=
+///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]*
+///        [SwitchExpressionDefault]? '}'
+@experimental
+class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
+  @override
+  final ExpressionImpl expression;
+
+  @override
+  final Token leftBracket;
+
+  @override
+  final Token leftParenthesis;
+
+  final NodeListImpl<SwitchExpressionMember> _members = NodeListImpl._();
+
+  @override
+  final Token rightBracket;
+
+  @override
+  final Token rightParenthesis;
+
+  @override
+  final Token switchKeyword;
+
+  SwitchExpressionImpl(
+      {required this.switchKeyword,
+      required this.leftParenthesis,
+      required this.expression,
+      required this.rightParenthesis,
+      required this.leftBracket,
+      required List<SwitchExpressionMember> members,
+      required this.rightBracket}) {
+    _becomeParentOf(expression);
+    _members._initialize(this, members);
+  }
+
+  @override
+  Token get beginToken => switchKeyword;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  NodeList<SwitchExpressionMember> get members => _members;
+
+  @override
+  Precedence get precedence => Precedence.primary;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('switchKeyword', switchKeyword)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNode('expression', expression)
+    ..addToken('rightParenthesis', rightParenthesis)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    // TODO: implement resolveExpression
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+    members.accept(visitor);
+  }
+}
+
+/// A member within a switch expression.
+///
+///    switchExpressionMember ::=
+///        [SwitchExpressionCase]
+///      | [SwitchExpressionDefault]
+@experimental
+abstract class SwitchExpressionMemberImpl extends AstNodeImpl
+    implements SwitchExpressionMember {
+  @override
+  final Token arrow;
+
+  @override
+  final ExpressionImpl expression;
+
+  @override
+  final Token keyword;
+
+  SwitchExpressionMemberImpl(
+      {required this.keyword, required this.arrow, required this.expression}) {
+    _becomeParentOf(expression);
+  }
+}
+
+/// A guard in a pattern-based `case` in a `switch` statement or `switch`
+/// expression.
+///
+///    switchCase ::=
+///        'when' [Expression]
+@experimental
+class SwitchGuardImpl extends AstNodeImpl implements SwitchGuard {
+  @override
+  final ExpressionImpl expression;
+
+  @override
+  final Token whenKeyword;
+
+  SwitchGuardImpl({required this.whenKeyword, required this.expression}) {
+    _becomeParentOf(expression);
+  }
+
+  @override
+  Token get beginToken => whenKeyword;
+
+  @override
+  Token get endToken => expression.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('whenKeyword', whenKeyword)
+    ..addNode('expression', expression);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+  }
+}
+
 /// An element within a switch statement.
 ///
 ///    switchMember ::=
@@ -10963,6 +12095,55 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 
   @override
   NodeListImpl<Statement> get statements => _statements;
+}
+
+/// A pattern-based case in a switch statement.
+///
+///    switchPatternCase ::=
+///        [Label]* 'case' [DartPattern] [SwitchGuard]? ':' [Statement]*
+@experimental
+class SwitchPatternCaseImpl extends SwitchMemberImpl
+    implements SwitchPatternCase {
+  @override
+  final SwitchGuardImpl? guard;
+
+  @override
+  final DartPatternImpl pattern;
+
+  SwitchPatternCaseImpl(
+      {required List<Label> labels,
+      required Token keyword,
+      required this.pattern,
+      required this.guard,
+      required Token colon,
+      required List<Statement> statements})
+      : super(labels, keyword, colon, statements) {
+    _becomeParentOf(pattern);
+    _becomeParentOf(guard);
+  }
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNodeList('labels', labels)
+    ..addToken('keyword', keyword)
+    ..addNode('pattern', pattern)
+    ..addNode('guard', guard)
+    ..addToken('colon', colon)
+    ..addNodeList('statements', statements);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    labels.accept(visitor);
+    pattern.accept(visitor);
+    guard?.accept(visitor);
+    statements.accept(visitor);
+  }
 }
 
 /// A switch statement.
@@ -11988,6 +13169,48 @@ class VariableDeclarationStatementImpl extends StatementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _variableList.accept(visitor);
+  }
+}
+
+/// A variable pattern.
+///
+///    variablePattern ::=
+///        [TypeAnnotation]? [Identifier]
+@experimental
+class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
+  @override
+  VariableElement? declaredElement;
+
+  @override
+  final Token name;
+
+  @override
+  final TypeAnnotationImpl? type;
+
+  VariablePatternImpl({required this.name, required this.type}) {
+    _becomeParentOf(type);
+  }
+
+  @override
+  Token get beginToken => type?.beginToken ?? name;
+
+  @override
+  Token get endToken => name;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('type', type)
+    ..addToken('name', name);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    type?.accept(visitor);
   }
 }
 
