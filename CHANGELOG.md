@@ -24,6 +24,9 @@
   Previously, these behaviors only took effect if `e` was a reference to a local
   variable.
 
+  Additionally, a type test of the form `v is Never` (where `v` is a local
+  variable) no longer promotes `v` to type `Never`.
+
 [#49635]: https://github.com/dart-lang/sdk/issues/49635
 
 ### Libraries
