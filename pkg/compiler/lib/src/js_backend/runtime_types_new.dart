@@ -460,14 +460,21 @@ class _RulesetEntry {
 }
 
 class Ruleset {
-  Map<ClassEntity, ClassEntity> _redirections;
-  Map<InterfaceType, _RulesetEntry> _entries;
+  final DartTypes _dartTypes;
+  final Map<ClassEntity, ClassEntity> _redirections = {};
+  final Map<InterfaceType, _RulesetEntry> _entries = {};
 
-  Ruleset(this._redirections, this._entries);
-  Ruleset.empty() : this({}, {});
+  Ruleset.empty(this._dartTypes);
+
+  CommonElements get _commonElements => _dartTypes.commonElements;
+  ClassEntity get _objectClass => _commonElements.objectClass;
 
   bool get isEmpty => _redirections.isEmpty && _entries.isEmpty;
   bool get isNotEmpty => _redirections.isNotEmpty || _entries.isNotEmpty;
+
+  bool _isObject(InterfaceType type) => identical(type.element, _objectClass);
+
+  bool _isSyntheticClosure(InterfaceType type) => type.element.isClosure;
 
   void addRedirection(ClassEntity redirectee, ClassEntity target) {
     assert(redirectee != target);
@@ -476,20 +483,21 @@ class Ruleset {
 
   void addEntry(InterfaceType targetType, Iterable<InterfaceType> supertypes,
       Map<TypeVariableType, DartType> typeVariables) {
+    if (_isObject(targetType) || _isSyntheticClosure(targetType)) return;
+    supertypes = supertypes.where((supertype) =>
+        !_isObject(supertype) &&
+        !identical(targetType.element, supertype.element));
+    if (supertypes.isEmpty && typeVariables.isEmpty) return;
     _RulesetEntry entry = _entries[targetType] ??= _RulesetEntry();
     entry.addAll(supertypes, typeVariables);
   }
 }
 
 class RulesetEncoder {
-  final DartTypes _dartTypes;
   final ModularEmitter _emitter;
   final RecipeEncoder _recipeEncoder;
 
-  RulesetEncoder(this._dartTypes, this._emitter, this._recipeEncoder);
-
-  CommonElements get _commonElements => _dartTypes.commonElements;
-  ClassEntity get _objectClass => _commonElements.objectClass;
+  RulesetEncoder(this._emitter, this._recipeEncoder);
 
   final _leftBrace = js.string('{');
   final _rightBrace = js.string('}');
@@ -499,32 +507,10 @@ class RulesetEncoder {
   final _comma = js.string(',');
   final _doubleQuote = js.string('"');
 
-  bool _isObject(InterfaceType type) => identical(type.element, _objectClass);
-
-  bool _isSyntheticClosure(InterfaceType type) => type.element.isClosure;
-
-  void _preprocessEntry(InterfaceType targetType, _RulesetEntry entry) {
-    entry._supertypes.removeWhere((InterfaceType supertype) =>
-        _isObject(supertype) ||
-        identical(targetType.element, supertype.element));
-  }
-
-  void _preprocessRuleset(Ruleset ruleset) {
-    ruleset._entries.removeWhere((InterfaceType targetType, _) =>
-        _isObject(targetType) || _isSyntheticClosure(targetType));
-    ruleset._entries.forEach(_preprocessEntry);
-    ruleset._entries.removeWhere((_, _RulesetEntry entry) => entry.isEmpty);
-  }
-
   // TODO(fishythefish): Common substring elimination.
 
   /// Produces a string readable by `JSON.parse()`.
-  jsAst.StringConcatenation encodeRuleset(Ruleset ruleset) {
-    _preprocessRuleset(ruleset);
-    return _encodeRuleset(ruleset);
-  }
-
-  jsAst.StringConcatenation _encodeRuleset(Ruleset ruleset) =>
+  jsAst.StringConcatenation encodeRuleset(Ruleset ruleset) =>
       js.concatenateStrings([
         _leftBrace,
         ...js.joinLiterals([
