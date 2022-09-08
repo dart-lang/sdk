@@ -6309,7 +6309,7 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   Token get beginToken => implementsKeyword;
 
   @override
-  Token get endToken => _interfaces.endToken!;
+  Token get endToken => _interfaces.endToken ?? implementsKeyword;
 
   @override
   NodeListImpl<NamedType> get interfaces => _interfaces;
@@ -8690,7 +8690,7 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
   Token get beginToken => onKeyword;
 
   @override
-  Token get endToken => _superclassConstraints.endToken!;
+  Token get endToken => _superclassConstraints.endToken ?? onKeyword;
 
   @override
   NodeListImpl<NamedType> get superclassConstraints => _superclassConstraints;
@@ -12080,7 +12080,7 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   Token get beginToken => withKeyword;
 
   @override
-  Token get endToken => _mixinTypes.endToken!;
+  Token get endToken => _mixinTypes.endToken ?? withKeyword;
 
   @override
   NodeListImpl<NamedType> get mixinTypes => _mixinTypes;
