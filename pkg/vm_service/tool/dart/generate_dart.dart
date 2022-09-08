@@ -1397,38 +1397,8 @@ class Type extends Member {
         } else {
           gen.write("${field.generatableName} = json['${field.name}']");
         }
-        if (field.defaultValue != null) {
-          gen.write(' ?? ${field.defaultValue}');
-        } else if (!field.optional) {
-          // If a default isn't provided and the field is required, generate a
-          // sane default initializer to avoid TypeErrors at runtime when
-          // running in a null-safe context.
-          dynamic defaultValue;
-          switch (field.type.name) {
-            case 'int':
-            case 'num':
-            case 'double':
-              defaultValue = -1;
-              break;
-            case 'bool':
-              defaultValue = false;
-              break;
-            case 'String':
-              defaultValue = "''";
-              break;
-            case 'ByteData':
-              defaultValue = "ByteData(0)";
-              break;
-            default:
-              {
-                if (field.type.isEnum) {
-                  // TODO(bkonyi): Figure out if there's a more correct way to
-                  // determine a default value for enums.
-                  defaultValue = "''";
-                }
-                break;
-              }
-          }
+        final defaultValue = field.defaultValue;
+        if (defaultValue != null) {
           gen.write(' ?? $defaultValue');
         }
         gen.writeln(';');
@@ -1674,8 +1644,9 @@ void _parseTokenPosTable() {
   void generateSerializedFieldAccess(TypeField field, DartGenerator gen) {
     if (field.type.isSimple || field.type.isEnum) {
       gen.write('${field.generatableName}');
-      if (field.defaultValue != null) {
-        gen.write(' ?? ${field.defaultValue}');
+      final defaultValue = field.defaultValue;
+      if (defaultValue != null) {
+        gen.write(' ?? $defaultValue');
       }
     } else if (name == 'Event' && field.name == 'extensionData') {
       // Special case `Event.extensionData`.
@@ -1785,7 +1756,7 @@ class TypeField extends Member {
   MemberType type = MemberType();
   String? name;
   bool optional = false;
-  String? defaultValue;
+  String? _defaultValue;
   bool overrides = false;
 
   TypeField(this.parent, this._docs);
@@ -1804,6 +1775,40 @@ class TypeField extends Member {
 
   String? get generatableName {
     return _nameRemap[name] != null ? _nameRemap[name] : name;
+  }
+
+  set defaultValue(String? value) {
+    _defaultValue = value;
+  }
+
+  String? get defaultValue {
+    if (_defaultValue != null) {
+      return _defaultValue;
+    }
+    if (optional) {
+      return null;
+    }
+    // If a default isn't provided and the field is required, generate a sane
+    // default initializer to avoid TypeErrors at runtime when running in a
+    // null-safe context.
+    switch (type.name) {
+      case 'int':
+      case 'num':
+      case 'double':
+        return '-1';
+      case 'bool':
+        return 'false';
+      case 'String':
+        return "''";
+      case 'ByteData':
+        return "ByteData(0)";
+    }
+    if (type.isEnum) {
+      // TODO(bkonyi): Figure out if there's a more correct way to determine a
+      // default value for enums.
+      return "''";
+    }
+    return null;
   }
 
   void generate(DartGenerator gen) {

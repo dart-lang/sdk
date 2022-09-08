@@ -27,19 +27,24 @@ void main() {
     defineReflectiveTests(ConstructorDeclarationTest);
     defineReflectiveTests(FieldFormalParameterTest);
     defineReflectiveTests(FormalParameterIsExplicitlyTypedTest);
+    defineReflectiveTests(HideClauseImplTest);
+    defineReflectiveTests(ImplementsClauseImplTest);
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(InterpolationStringTest);
     defineReflectiveTests(MethodDeclarationTest);
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(NormalFormalParameterTest);
+    defineReflectiveTests(OnClauseImplTest);
     defineReflectiveTests(PreviousTokenTest);
     defineReflectiveTests(PropertyAccessTest);
+    defineReflectiveTests(ShowClauseImplTest);
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(SpreadElementTest);
     defineReflectiveTests(StringInterpolationTest);
     defineReflectiveTests(VariableDeclarationTest);
+    defineReflectiveTests(WithClauseImplTest);
   });
 }
 
@@ -532,6 +537,29 @@ class C extends B {
     var constructor = class_.members[0] as ConstructorDeclaration;
     var parameter = constructor.parameters.parameters[0];
     expect(parameter.isExplicitlyTyped, expected);
+  }
+}
+
+@reflectiveTest
+class HideClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+import 'dart:core' hide int Function();
+''');
+    final node = parseResult.findNode.import('import');
+    expect(node.combinators[0].endToken, isNotNull);
+  }
+}
+
+@reflectiveTest
+class ImplementsClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+class A implements C Function() {}
+class C {}
+''');
+    final node = parseResult.findNode.classDeclaration('A');
+    expect(node.implementsClause!.endToken, isNotNull);
   }
 }
 
@@ -1234,6 +1262,18 @@ void f(int i) {}
 }
 
 @reflectiveTest
+class OnClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+mixin M on C Function() {}
+class C {}
+''');
+    final node = parseResult.findNode.mixinDeclaration('M');
+    expect(node.onClause!.endToken, isNotNull);
+  }
+}
+
+@reflectiveTest
 class PreviousTokenTest {
   static final String contents = '''
 class A {
@@ -1353,6 +1393,17 @@ void f() {
     final invocation = AstTestFactory.propertyAccess2(
         AstTestFactory.nullLiteral(), 'foo', TokenType.QUESTION_PERIOD);
     expect(invocation.isNullAware, isTrue);
+  }
+}
+
+@reflectiveTest
+class ShowClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+import 'dart:core' show int Function();
+''');
+    final node = parseResult.findNode.import('import');
+    expect(node.combinators[0].endToken, isNotNull);
   }
 }
 
@@ -2039,6 +2090,18 @@ int i = 0;
     var variables = result.unit.declarations[0] as TopLevelVariableDeclaration;
     var variable = variables.variables.variables[0];
     expect(variable.sortedCommentAndAnnotations, isEmpty);
+  }
+}
+
+@reflectiveTest
+class WithClauseImplTest extends ParserDiagnosticsTest {
+  void test_endToken_invalidClass() {
+    final parseResult = parseStringWithErrors('''
+class A with C Function() {}
+class C {}
+''');
+    final node = parseResult.findNode.classDeclaration('A');
+    expect(node.withClause!.endToken, isNotNull);
   }
 }
 
