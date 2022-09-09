@@ -678,11 +678,11 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
 
   if (dart_function.is_native()) {
     body += B->NativeFunctionBody(dart_function, first_parameter);
-  } else if (has_body) {
-    body += BuildStatement();
   } else if (dart_function.is_external()) {
     body +=
         ThrowNoSuchMethodError(dart_function, /*incompatible_arguments=*/false);
+  } else if (has_body) {
+    body += BuildStatement();
   }
 
   if (body.is_open()) {
