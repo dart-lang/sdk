@@ -313,6 +313,9 @@ external WasmExternRef? objectKeysRaw(WasmExternRef? o);
 external void promiseThen(WasmExternRef? promise, WasmExternRef? successFunc,
     WasmExternRef? failureFunc);
 
+@pragma("wasm:import", "dart2wasm.instanceofTrampoline")
+external bool instanceofRaw(WasmExternRef? object, WasmExternRef? type);
+
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
 // calls. Our only solutions is to cache every function called with

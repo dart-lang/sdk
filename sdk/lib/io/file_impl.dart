@@ -730,8 +730,8 @@ class _RandomAccessFile implements RandomAccessFile {
     ArgumentError.checkNotNull(bytes, "bytes");
     _checkAvailable();
     var result = _ops.read(bytes);
-    if (result is OSError) {
-      throw new FileSystemException("readSync failed", path, result);
+    if (result is! Uint8List) {
+      throw new FileSystemException("readSync failed", path, result as OSError);
     }
     _resourceInfo.addRead(result.length);
     return result;

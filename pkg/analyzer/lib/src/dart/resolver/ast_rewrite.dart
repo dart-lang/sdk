@@ -40,7 +40,7 @@ class AstRewriter {
   /// and 'name' of `b`). The [InstanceCreationExpression] is rewritten as a
   /// [MethodInvocation] if `a` resolves to a function.
   AstNode instanceCreationExpression(
-      Scope nameScope, InstanceCreationExpression node) {
+      Scope nameScope, InstanceCreationExpressionImpl node) {
     if (node.keyword != null) {
       // Either `new` or `const` has been specified.
       return node;
@@ -58,7 +58,7 @@ class AstRewriter {
         return _toMethodInvocationOfAliasedTypeLiteral(
             node: node, function: typeName, element: element);
       }
-    } else if (typeName is PrefixedIdentifier) {
+    } else if (typeName is PrefixedIdentifierImpl) {
       var prefixElement = nameScope.lookup(typeName.prefix.name).getter;
       if (prefixElement is PrefixElement) {
         var prefixedName = typeName.identifier.name;
@@ -546,7 +546,7 @@ class AstRewriter {
   }
 
   MethodInvocation _toMethodInvocationOfAliasedTypeLiteral({
-    required InstanceCreationExpression node,
+    required InstanceCreationExpressionImpl node,
     required Identifier function,
     required TypeAliasElement element,
   }) {
@@ -558,19 +558,19 @@ class AstRewriter {
     typeName.name.staticType = element.aliasedType;
     var typeLiteral = astFactory.typeLiteral(typeName: typeName);
     typeLiteral.staticType = _typeProvider.typeType;
-    var methodInvocation = astFactory.methodInvocation(
-      typeLiteral,
-      node.constructorName.period,
-      node.constructorName.name!,
-      null,
-      node.argumentList,
+    var methodInvocation = MethodInvocationImpl(
+      target: typeLiteral,
+      operator: node.constructorName.period,
+      methodName: node.constructorName.name!,
+      typeArguments: null,
+      argumentList: node.argumentList,
     );
     NodeReplacer.replace(node, methodInvocation);
     return methodInvocation;
   }
 
   AstNode _toMethodInvocationOfFunctionReference({
-    required InstanceCreationExpression node,
+    required InstanceCreationExpressionImpl node,
     required Identifier function,
   }) {
     var period = node.constructorName.period;
@@ -583,12 +583,12 @@ class AstRewriter {
       function: function,
       typeArguments: node.constructorName.type.typeArguments,
     );
-    var methodInvocation = astFactory.methodInvocation(
-      functionReference,
-      period,
-      constructorId,
-      null,
-      node.argumentList,
+    var methodInvocation = MethodInvocationImpl(
+      target: functionReference,
+      operator: period,
+      methodName: constructorId,
+      typeArguments: null,
+      argumentList: node.argumentList,
     );
     NodeReplacer.replace(node, methodInvocation);
     return methodInvocation;

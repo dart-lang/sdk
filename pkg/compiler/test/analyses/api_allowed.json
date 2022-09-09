@@ -41,12 +41,6 @@
   "org-dartlang-sdk:///lib/io/directory_impl.dart": {
     "Dynamic invocation of '[]'.": 7
   },
-  "org-dartlang-sdk:///lib/io/file_impl.dart": {
-    "Dynamic access of 'length'.": 1
-  },
-  "org-dartlang-sdk:///lib/io/file_system_entity.dart": {
-    "Dynamic invocation of '[]'.": 6
-  },
   "org-dartlang-sdk:///lib/io/io_resource_info.dart": {
     "Dynamic access of 'path'.": 1,
     "Dynamic access of 'dart.io::_path'.": 1,

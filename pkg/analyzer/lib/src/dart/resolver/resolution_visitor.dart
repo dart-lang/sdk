@@ -790,7 +790,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(
+    covariant InstanceCreationExpressionImpl node,
+  ) {
     var newNode = _astRewriter.instanceCreationExpression(_nameScope, node);
     if (newNode != node) {
       if (node.constructorName.type.typeArguments != null &&

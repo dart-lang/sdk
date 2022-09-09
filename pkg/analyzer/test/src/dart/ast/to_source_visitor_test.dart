@@ -152,6 +152,12 @@ var v = a * (b + c);
     );
   }
 
+  @failingTest
+  void test_visitBinaryPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitBlock_empty() {
     final code = '{}';
     final findNode = _parseStringToFindNode('''
@@ -270,6 +276,12 @@ void f() {
     _assertSource(code, findNode.cascade(code));
   }
 
+  @failingTest
+  void test_visitCastPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitCatchClause_catch_noStack() {
     final code = 'catch (e) {}';
     final findNode = _parseStringToFindNode('''
@@ -351,51 +363,37 @@ augment class A {}
   }
 
   void test_visitClassDeclaration_extends() {
-    _assertSource(
-        "class C extends A {}",
-        AstTestFactory.classDeclaration(
-            null,
-            "C",
-            null,
-            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
-            null,
-            null));
+    final code = 'class C extends A {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_extends_implements() {
-    _assertSource(
-        "class C extends A implements B {}",
-        AstTestFactory.classDeclaration(
-            null,
-            "C",
-            null,
-            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
-            null,
-            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
+    final code = 'class C extends A implements B {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_extends_with() {
-    _assertSource(
-        "class C extends A with M {}",
-        AstTestFactory.classDeclaration(
-            null,
-            "C",
-            null,
-            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
-            AstTestFactory.withClause([AstTestFactory.namedType4("M")]),
-            null));
+    final code = 'class C extends A with M {}';
+    final findNode = _parseStringToFindNode('''
+$code
+void f() {}
+''');
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_extends_with_implements() {
-    _assertSource(
-        "class C extends A with M implements B {}",
-        AstTestFactory.classDeclaration(
-            null,
-            "C",
-            null,
-            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
-            AstTestFactory.withClause([AstTestFactory.namedType4("M")]),
-            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
+    final code = 'class C extends A with M implements B {}';
+    final findNode = _parseStringToFindNode('''
+$code
+void f() {}
+''');
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_implements() {
@@ -435,51 +433,35 @@ macro class A {}
   }
 
   void test_visitClassDeclaration_parameters_extends() {
-    _assertSource(
-        "class C<E> extends A {}",
-        AstTestFactory.classDeclaration(
-            null,
-            "C",
-            AstTestFactory.typeParameterList(["E"]),
-            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
-            null,
-            null));
+    final code = 'class C<E> extends A {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_parameters_extends_implements() {
-    _assertSource(
-        "class C<E> extends A implements B {}",
-        AstTestFactory.classDeclaration(
-            null,
-            "C",
-            AstTestFactory.typeParameterList(["E"]),
-            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
-            null,
-            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
+    final code = 'class C<E> extends A implements B {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_parameters_extends_with() {
-    _assertSource(
-        "class C<E> extends A with M {}",
-        AstTestFactory.classDeclaration(
-            null,
-            "C",
-            AstTestFactory.typeParameterList(["E"]),
-            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
-            AstTestFactory.withClause([AstTestFactory.namedType4("M")]),
-            null));
+    final code = 'class C<E> extends A with M {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_parameters_extends_with_implements() {
-    _assertSource(
-        "class C<E> extends A with M implements B {}",
-        AstTestFactory.classDeclaration(
-            null,
-            "C",
-            AstTestFactory.typeParameterList(["E"]),
-            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
-            AstTestFactory.withClause([AstTestFactory.namedType4("M")]),
-            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
+    final code = 'class C<E> extends A with M implements B {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.classDeclaration(code));
   }
 
   void test_visitClassDeclaration_parameters_implements() {
@@ -1055,20 +1037,19 @@ enum E<T> with M1, M2 implements I1, I2 {one, two}
   }
 
   void test_visitExportDirective_combinator() {
-    _assertSource(
-        "export 'a.dart' show A;",
-        AstTestFactory.exportDirective2("a.dart", [
-          AstTestFactory.showCombinator([AstTestFactory.identifier3("A")])
-        ]));
+    final code = "export 'a.dart' show A;";
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.export(code));
   }
 
   void test_visitExportDirective_combinators() {
-    _assertSource(
-        "export 'a.dart' show A hide B;",
-        AstTestFactory.exportDirective2("a.dart", [
-          AstTestFactory.showCombinator([AstTestFactory.identifier3("A")]),
-          AstTestFactory.hideCombinator([AstTestFactory.identifier3("B")])
-        ]));
+    final code = "export 'a.dart' show A hide B;";
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.export(code));
   }
 
   void test_visitExportDirective_configurations() {
@@ -1122,14 +1103,28 @@ void f() $code
     _assertSource(code, findNode.expressionFunctionBody(code));
   }
 
+  @failingTest
+  void test_visitExpressionPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitExpressionStatement() {
-    _assertSource("a;",
-        AstTestFactory.expressionStatement(AstTestFactory.identifier3("a")));
+    final code = '1 + 2;';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.expressionStatement(code));
   }
 
   void test_visitExtendsClause() {
-    _assertSource("extends C",
-        AstTestFactory.extendsClause(AstTestFactory.namedType4("C")));
+    final code = 'extends A';
+    final findNode = _parseStringToFindNode('''
+class C $code {}
+''');
+    _assertSource(code, findNode.extendsClause(code));
   }
 
   void test_visitExtensionDeclaration_empty() {
@@ -1461,6 +1456,12 @@ void f() $code
             isExtensionTypeDeclaration: true));
   }
 
+  @failingTest
+  void test_visitExtractorPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitFieldDeclaration_abstract() {
     _assertSource(
         "abstract var a;",
@@ -1571,6 +1572,12 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.forEachPartsWithIdentifier(code));
+  }
+
+  @failingTest
+  void test_visitForEachPartsWithPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitForEachStatement_declared() {
@@ -1753,6 +1760,12 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.forPartsWithExpression(code));
+  }
+
+  @failingTest
+  void test_visitForPartsWithPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitForStatement() {
@@ -1958,18 +1971,23 @@ final f = $code;
   }
 
   void test_visitFunctionExpressionInvocation_minimal() {
-    _assertSource(
-        "f()",
-        AstTestFactory.functionExpressionInvocation(
-            AstTestFactory.identifier3("f")));
+    final code = '(a)()';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.functionExpressionInvocation(code));
   }
 
   void test_visitFunctionExpressionInvocation_typeArguments() {
-    _assertSource(
-        "f<A>()",
-        AstTestFactory.functionExpressionInvocation2(
-            AstTestFactory.identifier3("f"),
-            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('A')])));
+    final code = '(a)<int>()';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.functionExpressionInvocation(code));
   }
 
   void test_visitFunctionTypeAlias_generic() {
@@ -2120,7 +2138,7 @@ void f () {
   void test_visitIfStatement_withoutElse() {
     final code = 'if (c) {}';
     final findNode = _parseStringToFindNode('''
-void f () {
+void f() {
   $code
 }
 ''');
@@ -2140,20 +2158,19 @@ void f () {
   }
 
   void test_visitImportDirective_combinator() {
-    _assertSource(
-        "import 'a.dart' show A;",
-        AstTestFactory.importDirective3("a.dart", null, [
-          AstTestFactory.showCombinator([AstTestFactory.identifier3("A")])
-        ]));
+    final code = "import 'a.dart' show A;";
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.import(code));
   }
 
   void test_visitImportDirective_combinators() {
-    _assertSource(
-        "import 'a.dart' show A hide B;",
-        AstTestFactory.importDirective3("a.dart", null, [
-          AstTestFactory.showCombinator([AstTestFactory.identifier3("A")]),
-          AstTestFactory.hideCombinator([AstTestFactory.identifier3("B")])
-        ]));
+    final code = "import 'a.dart' show A hide B;";
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.import(code));
   }
 
   void test_visitImportDirective_configurations() {
@@ -2187,20 +2204,19 @@ import 'foo.dart'
   }
 
   void test_visitImportDirective_prefix_combinator() {
-    _assertSource(
-        "import 'a.dart' as p show A;",
-        AstTestFactory.importDirective3("a.dart", "p", [
-          AstTestFactory.showCombinator([AstTestFactory.identifier3("A")])
-        ]));
+    final code = "import 'a.dart' as p show A;";
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.import(code));
   }
 
   void test_visitImportDirective_prefix_combinators() {
-    _assertSource(
-        "import 'a.dart' as p show A hide B;",
-        AstTestFactory.importDirective3("a.dart", "p", [
-          AstTestFactory.showCombinator([AstTestFactory.identifier3("A")]),
-          AstTestFactory.hideCombinator([AstTestFactory.identifier3("B")])
-        ]));
+    final code = "import 'a.dart' as p show A hide B;";
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.import(code));
   }
 
   void test_visitImportDirective_withMetadata() {
@@ -2210,31 +2226,35 @@ import 'foo.dart'
   }
 
   void test_visitImportHideCombinator_multiple() {
-    _assertSource(
-        "hide a, b",
-        AstTestFactory.hideCombinator([
-          AstTestFactory.identifier3("a"),
-          AstTestFactory.identifier3("b")
-        ]));
+    final code = 'hide A, B';
+    final findNode = _parseStringToFindNode('''
+import 'a.dart' $code;
+''');
+    _assertSource(code, findNode.hideCombinator(code));
   }
 
   void test_visitImportHideCombinator_single() {
-    _assertSource("hide a",
-        AstTestFactory.hideCombinator([AstTestFactory.identifier3("a")]));
+    final code = 'hide A';
+    final findNode = _parseStringToFindNode('''
+import 'a.dart' $code;
+''');
+    _assertSource(code, findNode.hideCombinator(code));
   }
 
   void test_visitImportShowCombinator_multiple() {
-    _assertSource(
-        "show a, b",
-        AstTestFactory.showCombinator([
-          AstTestFactory.identifier3("a"),
-          AstTestFactory.identifier3("b")
-        ]));
+    final code = 'show A, B';
+    final findNode = _parseStringToFindNode('''
+import 'a.dart' $code;
+''');
+    _assertSource(code, findNode.showCombinator(code));
   }
 
   void test_visitImportShowCombinator_single() {
-    _assertSource("show a",
-        AstTestFactory.showCombinator([AstTestFactory.identifier3("a")]));
+    final code = 'show A';
+    final findNode = _parseStringToFindNode('''
+import 'a.dart' $code;
+''');
+    _assertSource(code, findNode.showCombinator(code));
   }
 
   void test_visitIndexExpression() {
@@ -2424,6 +2444,12 @@ final v = $code;
             Tokens.closeSquareBracket()));
   }
 
+  @failingTest
+  void test_visitListPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitMapLiteral_const() {
     _assertSource(
         "const {}", AstTestFactory.setOrMapLiteral(Keyword.CONST, null));
@@ -2446,6 +2472,18 @@ final v = $code;
   void test_visitMapLiteralEntry() {
     _assertSource("'a' : b",
         AstTestFactory.mapLiteralEntry("a", AstTestFactory.identifier3("b")));
+  }
+
+  @failingTest
+  void test_visitMapPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitMapPatternEntry() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitMethodDeclaration_external() {
@@ -2603,26 +2641,43 @@ class A {
   }
 
   void test_visitMethodInvocation_conditional() {
-    _assertSource(
-        "t?.m()",
-        AstTestFactory.methodInvocation(AstTestFactory.identifier3("t"), "m",
-            [], TokenType.QUESTION_PERIOD));
+    final code = 'a?.foo()';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.methodInvocation(code));
   }
 
   void test_visitMethodInvocation_noTarget() {
-    _assertSource("m()", AstTestFactory.methodInvocation2("m"));
+    final code = 'foo()';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.methodInvocation(code));
   }
 
   void test_visitMethodInvocation_target() {
-    _assertSource("t.m()",
-        AstTestFactory.methodInvocation(AstTestFactory.identifier3("t"), "m"));
+    final code = 'a.foo()';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.methodInvocation(code));
   }
 
   void test_visitMethodInvocation_typeArguments() {
-    _assertSource(
-        "m<A>()",
-        AstTestFactory.methodInvocation3(null, "m",
-            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('A')])));
+    final code = 'foo<int>()';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code;
+}
+''');
+    _assertSource(code, findNode.methodInvocation(code));
   }
 
   void test_visitNamedExpression() {
@@ -2657,6 +2712,12 @@ void f({$code}) {}
             AstTestFactory.identifier3("a")));
   }
 
+  @failingTest
+  void test_visitParenthesizedPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitPartDirective() {
     _assertSource("part 'a.dart';", AstTestFactory.partDirective2("a.dart"));
   }
@@ -2685,6 +2746,30 @@ void f({$code}) {}
     _assertSource(code, findNode.partOf(code));
   }
 
+  @failingTest
+  void test_visitPatternAssignment() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitPatternAssignmentStatement() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitPatternVariableDeclaration() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitPatternVariableDeclarationStatement() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitPositionalFormalParameter() {
     final code = 'var a = 0';
     final findNode = _parseStringToFindNode('''
@@ -2698,6 +2783,12 @@ void f([$code]) {}
         "a++",
         AstTestFactory.postfixExpression(
             AstTestFactory.identifier3("a"), TokenType.PLUS_PLUS));
+  }
+
+  @failingTest
+  void test_visitPostfixPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitPrefixedIdentifier() {
@@ -2766,6 +2857,24 @@ final x = $code;
     );
   }
 
+  @failingTest
+  void test_visitRecordPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitRecordPatternField() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitRecordPatternFieldName() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitRecordTypeAnnotation_mixed() {
     final code = '(int, bool, {int a, bool b})';
     var findNode = _parseStringToFindNode('''
@@ -2817,6 +2926,12 @@ $code f() {}
 
   void test_visitRedirectingConstructorInvocation_unnamed() {
     _assertSource("this()", AstTestFactory.redirectingConstructorInvocation());
+  }
+
+  @failingTest
+  void test_visitRelationalPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitRethrowExpression() {
@@ -3212,6 +3327,36 @@ void f() {
     _assertSource(code, findNode.switchDefault(code));
   }
 
+  @failingTest
+  void test_visitSwitchExpression() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitSwitchExpressionCase() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitSwitchExpressionDefault() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitSwitchGuard() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitSwitchPatternCase() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitSwitchStatement() {
     final code = 'switch (x) {case 0: foo(); default: bar();}';
     final findNode = _parseStringToFindNode('''
@@ -3441,6 +3586,12 @@ class A<$code> {}
             null,
             AstTestFactory.namedType4("C"),
             [AstTestFactory.variableDeclaration("c")]));
+  }
+
+  @failingTest
+  void test_visitVariablePattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitWhileStatement() {

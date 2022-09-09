@@ -279,8 +279,6 @@ class EventCounterRecorder : public TimelineEventCallbackRecorder {
 
   intptr_t CountFor(TimelineEvent::EventType type) { return counts_[type]; }
 
-  intptr_t Size() { return -1; }
-
  private:
   intptr_t counts_[TimelineEvent::kNumEventTypes];
 };
@@ -376,5 +374,95 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
 }
 
 #endif  // !PRODUCT
+
+#if defined(SUPPORT_TIMELINE)
+
+static Dart_Port expected_isolate;
+static Dart_IsolateGroupId expected_isolate_group;
+static bool saw_begin;
+static bool saw_end;
+
+static void TestTimelineRecorderCallback(Dart_TimelineRecorderEvent* event) {
+  EXPECT_EQ(DART_TIMELINE_RECORDER_CURRENT_VERSION, event->version);
+
+  if ((event->type == Dart_Timeline_Event_Begin) &&
+      (strcmp(event->label, "TestEvent") == 0)) {
+    saw_begin = true;
+    EXPECT_NE(0, event->timestamp0);
+    EXPECT_EQ(expected_isolate, event->isolate);
+    EXPECT_EQ(expected_isolate_group, event->isolate_group);
+    EXPECT_STREQ("Dart", event->stream);
+    EXPECT_EQ(1, event->argument_count);
+    EXPECT_STREQ("Dart Arguments", event->arguments[0].name);
+    EXPECT_STREQ("{\"key\":\"value\"}", event->arguments[0].value);
+  }
+
+  if ((event->type == Dart_Timeline_Event_End) &&
+      (strcmp(event->label, "TestEvent") == 0)) {
+    saw_end = true;
+    EXPECT_NE(0, event->timestamp0);
+    EXPECT_EQ(expected_isolate, event->isolate);
+    EXPECT_EQ(expected_isolate_group, event->isolate_group);
+    EXPECT_STREQ("Dart", event->stream);
+    EXPECT_EQ(1, event->argument_count);
+    EXPECT_STREQ("Dart Arguments", event->arguments[0].name);
+    EXPECT_STREQ("{\"key\":\"value\"}", event->arguments[0].value);
+  }
+}
+
+UNIT_TEST_CASE(DartAPI_SetTimelineRecorderCallback) {
+  int argc = TesterState::argc + 2;
+  const char** argv = new const char*[argc];
+  for (intptr_t i = 0; i < argc - 2; i++) {
+    argv[i] = TesterState::argv[i];
+  }
+  argv[argc - 2] = "--timeline_recorder=callback";
+  argv[argc - 1] = "--timeline_streams=Dart";
+
+  Dart_SetTimelineRecorderCallback(TestTimelineRecorderCallback);
+
+  EXPECT(Dart_SetVMFlags(argc, argv) == NULL);
+  Dart_InitializeParams params;
+  memset(&params, 0, sizeof(Dart_InitializeParams));
+  params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  params.vm_snapshot_data = TesterState::vm_snapshot_data;
+  params.create_group = TesterState::create_callback;
+  params.shutdown_isolate = TesterState::shutdown_callback;
+  params.cleanup_group = TesterState::group_cleanup_callback;
+  params.start_kernel_isolate = true;
+
+  EXPECT(Dart_Initialize(&params) == NULL);
+  {
+    TestIsolateScope scope;
+    const char* kScriptChars =
+        "import 'dart:developer';\n"
+        "main() {\n"
+        "  Timeline.startSync('TestEvent', arguments: {'key':'value'});\n"
+        "  Timeline.finishSync();\n"
+        "}\n";
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    EXPECT_VALID(lib);
+
+    expected_isolate = Dart_GetMainPortId();
+    EXPECT_NE(ILLEGAL_PORT, expected_isolate);
+    expected_isolate_group = Dart_CurrentIsolateGroupId();
+    EXPECT_NE(ILLEGAL_PORT, expected_isolate_group);
+    saw_begin = false;
+    saw_end = false;
+
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+
+    EXPECT(saw_begin);
+    EXPECT(saw_end);
+  }
+  EXPECT(Dart_Cleanup() == NULL);
+
+  Dart_SetTimelineRecorderCallback(NULL);
+
+  delete[] argv;
+}
+
+#endif  // defined(SUPPORT_TIMELINE)
 
 }  // namespace dart

@@ -6424,6 +6424,13 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
 #endif
 }
 
+DART_EXPORT void Dart_SetTimelineRecorderCallback(
+    Dart_TimelineRecorderCallback callback) {
+#if defined(SUPPORT_TIMELINE)
+  Timeline::set_callback(callback);
+#endif
+}
+
 DART_EXPORT void Dart_SetThreadName(const char* name) {
   OSThread* thread = OSThread::Current();
   if (thread == NULL) {

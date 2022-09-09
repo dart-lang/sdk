@@ -47,7 +47,7 @@ DEFINE_FLAG(charp,
             timeline_recorder,
             "ring",
             "Select the timeline recorder used. "
-            "Valid values: ring, endless, startup, and systrace.")
+            "Valid values: ring, endless, startup, systrace, file, callback.")
 
 // Implementation notes:
 //
@@ -142,6 +142,10 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
     return new TimelineEventFileRecorder(&flag[5]);
   }
 
+  if (strcmp("callback", flag) == 0) {
+    return new TimelineEventEmbedderCallbackRecorder();
+  }
+
   // Always fall back to the ring recorder.
   return new TimelineEventRingRecorder();
 }
@@ -206,6 +210,7 @@ void Timeline::Init() {
   stream_##name##_.set_enabled(HasStream(enabled_streams_, #name));
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
+  RecorderLock::Init();
 }
 
 void Timeline::Cleanup() {
@@ -399,6 +404,7 @@ void TimelineEventArguments::Free() {
 }
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
+Dart_TimelineRecorderCallback Timeline::callback_ = NULL;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
 bool Timeline::recorder_discards_clock_values_ = false;
 
@@ -1324,6 +1330,67 @@ TimelineEvent* TimelineEventCallbackRecorder::StartEvent() {
 void TimelineEventCallbackRecorder::CompleteEvent(TimelineEvent* event) {
   OnEvent(event);
   delete event;
+}
+
+void TimelineEventEmbedderCallbackRecorder::OnEvent(TimelineEvent* event) {
+  Dart_TimelineRecorderCallback callback = Timeline::callback();
+  if (callback == NULL) {
+    return;
+  }
+
+  Dart_TimelineRecorderEvent recorder_event;
+  recorder_event.version = DART_TIMELINE_RECORDER_CURRENT_VERSION;
+  switch (event->event_type()) {
+    case TimelineEvent::kBegin:
+      recorder_event.type = Dart_Timeline_Event_Begin;
+      break;
+    case TimelineEvent::kEnd:
+      recorder_event.type = Dart_Timeline_Event_End;
+      break;
+    case TimelineEvent::kInstant:
+      recorder_event.type = Dart_Timeline_Event_Instant;
+      break;
+    case TimelineEvent::kDuration:
+      recorder_event.type = Dart_Timeline_Event_Duration;
+      break;
+    case TimelineEvent::kAsyncBegin:
+      recorder_event.type = Dart_Timeline_Event_Async_Begin;
+      break;
+    case TimelineEvent::kAsyncEnd:
+      recorder_event.type = Dart_Timeline_Event_Async_End;
+      break;
+    case TimelineEvent::kAsyncInstant:
+      recorder_event.type = Dart_Timeline_Event_Async_Instant;
+      break;
+    case TimelineEvent::kCounter:
+      recorder_event.type = Dart_Timeline_Event_Counter;
+      break;
+    case TimelineEvent::kFlowBegin:
+      recorder_event.type = Dart_Timeline_Event_Flow_Begin;
+      break;
+    case TimelineEvent::kFlowStep:
+      recorder_event.type = Dart_Timeline_Event_Flow_Step;
+      break;
+    case TimelineEvent::kFlowEnd:
+      recorder_event.type = Dart_Timeline_Event_Flow_End;
+      break;
+    default:
+      // Type not expressible as Dart_Timeline_Event_Type: drop event.
+      return;
+  }
+  recorder_event.timestamp0 = event->timestamp0();
+  recorder_event.timestamp1_or_async_id = event->timestamp1();
+  recorder_event.isolate = event->isolate_id();
+  recorder_event.isolate_group = event->isolate_group_id();
+  recorder_event.label = event->label();
+  recorder_event.stream = event->stream()->name();
+  recorder_event.argument_count = event->GetNumArguments();
+  recorder_event.arguments =
+      reinterpret_cast<Dart_TimelineRecorderEvent_Argument*>(
+          event->arguments());
+
+  NoActiveIsolateScope no_active_isolate_scope;
+  callback(&recorder_event);
 }
 
 TimelineEventPlatformRecorder::TimelineEventPlatformRecorder() {}

@@ -371,6 +371,8 @@ abstract class AstVisitor<R> {
 
   R? visitBinaryExpression(BinaryExpression node);
 
+  R? visitBinaryPattern(BinaryPattern node);
+
   R? visitBlock(Block node);
 
   R? visitBlockFunctionBody(BlockFunctionBody node);
@@ -380,6 +382,8 @@ abstract class AstVisitor<R> {
   R? visitBreakStatement(BreakStatement node);
 
   R? visitCascadeExpression(CascadeExpression node);
+
+  R? visitCastPattern(CastPattern node);
 
   R? visitCatchClause(CatchClause node);
 
@@ -435,6 +439,8 @@ abstract class AstVisitor<R> {
 
   R? visitExpressionFunctionBody(ExpressionFunctionBody node);
 
+  R? visitExpressionPattern(ExpressionPattern node);
+
   R? visitExpressionStatement(ExpressionStatement node);
 
   R? visitExtendsClause(ExtendsClause node);
@@ -442,6 +448,8 @@ abstract class AstVisitor<R> {
   R? visitExtensionDeclaration(ExtensionDeclaration node);
 
   R? visitExtensionOverride(ExtensionOverride node);
+
+  R? visitExtractorPattern(ExtractorPattern node);
 
   R? visitFieldDeclaration(FieldDeclaration node);
 
@@ -451,6 +459,8 @@ abstract class AstVisitor<R> {
 
   R? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node);
 
+  R? visitForEachPartsWithPattern(ForEachPartsWithPattern node);
+
   R? visitForElement(ForElement node);
 
   R? visitFormalParameterList(FormalParameterList node);
@@ -458,6 +468,8 @@ abstract class AstVisitor<R> {
   R? visitForPartsWithDeclarations(ForPartsWithDeclarations node);
 
   R? visitForPartsWithExpression(ForPartsWithExpression node);
+
+  R? visitForPartsWithPattern(ForPartsWithPattern node);
 
   R? visitForStatement(ForStatement node);
 
@@ -517,7 +529,13 @@ abstract class AstVisitor<R> {
 
   R? visitListLiteral(ListLiteral node);
 
+  R? visitListPattern(ListPattern node);
+
   R? visitMapLiteralEntry(MapLiteralEntry node);
+
+  R? visitMapPattern(MapPattern node);
+
+  R? visitMapPatternEntry(MapPatternEntry node);
 
   R? visitMethodDeclaration(MethodDeclaration node);
 
@@ -539,11 +557,24 @@ abstract class AstVisitor<R> {
 
   R? visitParenthesizedExpression(ParenthesizedExpression node);
 
+  R? visitParenthesizedPattern(ParenthesizedPattern node);
+
   R? visitPartDirective(PartDirective node);
 
   R? visitPartOfDirective(PartOfDirective node);
 
+  R? visitPatternAssignment(PatternAssignment node);
+
+  R? visitPatternAssignmentStatement(PatternAssignmentStatement node);
+
+  R? visitPatternVariableDeclaration(PatternVariableDeclaration node);
+
+  R? visitPatternVariableDeclarationStatement(
+      PatternVariableDeclarationStatement node);
+
   R? visitPostfixExpression(PostfixExpression node);
+
+  R? visitPostfixPattern(PostfixPattern node);
 
   R? visitPrefixedIdentifier(PrefixedIdentifier node);
 
@@ -552,6 +583,12 @@ abstract class AstVisitor<R> {
   R? visitPropertyAccess(PropertyAccess node);
 
   R? visitRecordLiteral(RecordLiteral node);
+
+  R? visitRecordPattern(RecordPattern node);
+
+  R? visitRecordPatternField(RecordPatternField node);
+
+  R? visitRecordPatternFieldName(RecordPatternFieldName node);
 
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node);
 
@@ -564,6 +601,8 @@ abstract class AstVisitor<R> {
 
   R? visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node);
+
+  R? visitRelationalPattern(RelationalPattern node);
 
   R? visitRethrowExpression(RethrowExpression node);
 
@@ -599,6 +638,16 @@ abstract class AstVisitor<R> {
 
   R? visitSwitchDefault(SwitchDefault node);
 
+  R? visitSwitchExpression(SwitchExpression node);
+
+  R? visitSwitchExpressionCase(SwitchExpressionCase node);
+
+  R? visitSwitchExpressionDefault(SwitchExpressionDefault node);
+
+  R? visitSwitchGuard(SwitchGuard node);
+
+  R? visitSwitchPatternCase(SwitchPatternCase node);
+
   R? visitSwitchStatement(SwitchStatement node);
 
   R? visitSymbolLiteral(SymbolLiteral node);
@@ -624,6 +673,8 @@ abstract class AstVisitor<R> {
   R? visitVariableDeclarationList(VariableDeclarationList node);
 
   R? visitVariableDeclarationStatement(VariableDeclarationStatement node);
+
+  R? visitVariablePattern(VariablePattern node);
 
   R? visitWhileStatement(WhileStatement node);
 

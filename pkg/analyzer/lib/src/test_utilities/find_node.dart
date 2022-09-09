@@ -67,6 +67,10 @@ class FindNode {
     return _node(search, (n) => n is BinaryExpression);
   }
 
+  BinaryPattern binaryPattern(String search) {
+    return _node(search, (n) => n is BinaryPattern);
+  }
+
   Block block(String search) {
     return _node(search, (n) => n is Block);
   }
@@ -85,6 +89,10 @@ class FindNode {
 
   CascadeExpression cascade(String search) {
     return _node(search, (n) => n is CascadeExpression);
+  }
+
+  CastPattern castPattern(String search) {
+    return _node(search, (n) => n is CastPattern);
   }
 
   CatchClause catchClause(String search) {
@@ -191,6 +199,10 @@ class FindNode {
     return _node(search, (n) => n is ExpressionFunctionBody);
   }
 
+  ExpressionPattern expressionPattern(String search) {
+    return _node(search, (n) => n is ExpressionPattern);
+  }
+
   ExpressionStatement expressionStatement(String search) {
     return _node(search, (n) => n is ExpressionStatement);
   }
@@ -205,6 +217,10 @@ class FindNode {
 
   ExtensionOverride extensionOverride(String search) {
     return _node(search, (n) => n is ExtensionOverride);
+  }
+
+  ExtractorPattern extractorPattern(String search) {
+    return _node(search, (n) => n is ExtractorPattern);
   }
 
   FieldDeclaration fieldDeclaration(String search) {
@@ -223,6 +239,10 @@ class FindNode {
     return _node(search, (n) => n is ForEachPartsWithIdentifier);
   }
 
+  ForEachPartsWithPattern forEachPartsWithPattern(String search) {
+    return _node(search, (n) => n is ForEachPartsWithPattern);
+  }
+
   ForElement forElement(String search) {
     return _node(search, (n) => n is ForElement);
   }
@@ -237,6 +257,10 @@ class FindNode {
 
   ForPartsWithExpression forPartsWithExpression(String search) {
     return _node(search, (n) => n is ForPartsWithExpression);
+  }
+
+  ForPartsWithPattern forPartsWithPattern(String search) {
+    return _node(search, (n) => n is ForPartsWithPattern);
   }
 
   ForStatement forStatement(String search) {
@@ -351,8 +375,20 @@ class FindNode {
     return _node(search, (n) => n is ListLiteral);
   }
 
+  ListPattern listPattern(String search) {
+    return _node(search, (n) => n is ListPattern);
+  }
+
   MapLiteralEntry mapLiteralEntry(String search) {
     return _node(search, (n) => n is MapLiteralEntry);
+  }
+
+  MapPattern mapPattern(String search) {
+    return _node(search, (n) => n is MapPattern);
+  }
+
+  MapPatternEntry mapPatternEntry(String search) {
+    return _node(search, (n) => n is MapPatternEntry);
   }
 
   MethodDeclaration methodDeclaration(String search) {
@@ -408,6 +444,10 @@ class FindNode {
     return _node(search, (n) => n is ParenthesizedExpression);
   }
 
+  ParenthesizedPattern parenthesizedPattern(String search) {
+    return _node(search, (n) => n is ParenthesizedPattern);
+  }
+
   PartDirective part(String search) {
     return _node(search, (n) => n is PartDirective);
   }
@@ -416,8 +456,29 @@ class FindNode {
     return _node(search, (n) => n is PartOfDirective);
   }
 
+  PatternAssignment patternAssignment(String search) {
+    return _node(search, (n) => n is PatternAssignment);
+  }
+
+  PatternAssignmentStatement patternAssignmentStatement(String search) {
+    return _node(search, (n) => n is PatternAssignmentStatement);
+  }
+
+  PatternVariableDeclaration patternVariableDeclaration(String search) {
+    return _node(search, (n) => n is PatternVariableDeclaration);
+  }
+
+  PatternVariableDeclarationStatement patternVariableDeclarationStatement(
+      String search) {
+    return _node(search, (n) => n is PatternVariableDeclarationStatement);
+  }
+
   PostfixExpression postfix(String search) {
     return _node(search, (n) => n is PostfixExpression);
+  }
+
+  PostfixPattern postfixPattern(String search) {
+    return _node(search, (n) => n is PostfixPattern);
   }
 
   PrefixExpression prefix(String search) {
@@ -436,6 +497,18 @@ class FindNode {
     return _node(search, (n) => n is RecordLiteral);
   }
 
+  RecordPattern recordPattern(String search) {
+    return _node(search, (n) => n is RecordPattern);
+  }
+
+  RecordPatternField recordPatternField(String search) {
+    return _node(search, (n) => n is RecordPatternField);
+  }
+
+  RecordPatternFieldName recordPatternFieldName(String search) {
+    return _node(search, (n) => n is RecordPatternFieldName);
+  }
+
   RecordTypeAnnotation recordTypeAnnotation(String search) {
     return _node(search, (n) => n is RecordTypeAnnotation);
   }
@@ -443,6 +516,10 @@ class FindNode {
   RedirectingConstructorInvocation redirectingConstructorInvocation(
       String search) {
     return _node(search, (n) => n is RedirectingConstructorInvocation);
+  }
+
+  RelationalPattern relationalPattern(String search) {
+    return _node(search, (n) => n is RelationalPattern);
   }
 
   RethrowExpression rethrow_(String search) {
@@ -503,6 +580,26 @@ class FindNode {
 
   SwitchDefault switchDefault(String search) {
     return _node(search, (n) => n is SwitchDefault);
+  }
+
+  SwitchExpression switchExpression(String search) {
+    return _node(search, (n) => n is SwitchExpression);
+  }
+
+  SwitchExpressionCase switchExpressionCase(String search) {
+    return _node(search, (n) => n is SwitchExpressionCase);
+  }
+
+  SwitchExpressionDefault switchExpressionDefault(String search) {
+    return _node(search, (n) => n is SwitchExpressionDefault);
+  }
+
+  SwitchGuard switchGuard(String search) {
+    return _node(search, (n) => n is SwitchGuard);
+  }
+
+  SwitchPatternCase switchPatternCase(String search) {
+    return _node(search, (n) => n is SwitchPatternCase);
   }
 
   SwitchStatement switchStatement(String search) {
@@ -576,6 +673,10 @@ class FindNode {
 
   VariableDeclarationStatement variableDeclarationStatement(String search) {
     return _node(search, (n) => n is VariableDeclarationStatement);
+  }
+
+  VariablePattern variablePattern(String search) {
+    return _node(search, (n) => n is VariablePattern);
   }
 
   WhileStatement whileStatement(String search) {

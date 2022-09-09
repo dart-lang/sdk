@@ -25,12 +25,12 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
       ..next = expressionStatement.semicolon,
   );
 
-  return astFactory.expressionStatement(
-    CascadeExpressionImpl(
+  return ExpressionStatementImpl(
+    expression: CascadeExpressionImpl(
       target: newTarget,
       cascadeSections: cascadeExpression.cascadeSections,
     ),
-    expressionStatement.semicolon,
+    semicolon: expressionStatement.semicolon,
   );
 }
 
@@ -73,20 +73,20 @@ Expression insertCascadeTargetIntoExpression({
       index: expression.index,
       rightBracket: expression.rightBracket,
     );
-  } else if (expression is MethodInvocation) {
+  } else if (expression is MethodInvocationImpl) {
     var expressionTarget = expression.realTarget!;
-    return astFactory.methodInvocation(
-      insertCascadeTargetIntoExpression(
+    return MethodInvocationImpl(
+      target: insertCascadeTargetIntoExpression(
         expression: expressionTarget,
         cascadeTarget: cascadeTarget,
-      ),
+      ) as ExpressionImpl,
       // If we've reached the end, replace the `..` operator with `.`
-      expressionTarget == cascadeTarget
+      operator: expressionTarget == cascadeTarget
           ? _synthesizeToken(TokenType.PERIOD, expression.operator!)
           : expression.operator,
-      expression.methodName,
-      expression.typeArguments,
-      expression.argumentList,
+      methodName: expression.methodName,
+      typeArguments: expression.typeArguments,
+      argumentList: expression.argumentList,
     );
   } else if (expression is PropertyAccess) {
     var expressionTarget = expression.realTarget;

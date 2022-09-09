@@ -1110,10 +1110,7 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
     ..addNode('rightOperand', rightOperand);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1479,10 +1476,7 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
     ..addNode('type', type);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2070,7 +2064,9 @@ abstract class CombinatorImpl extends AstNodeImpl implements Combinator {
   Token keyword;
 
   /// Initialize a newly created combinator.
-  CombinatorImpl(this.keyword);
+  CombinatorImpl({
+    required this.keyword,
+  });
 
   @override
   Token get beginToken => keyword;
@@ -4209,10 +4205,7 @@ class ExpressionPatternImpl extends DartPatternImpl
       super._childEntities..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitExpressionPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4235,7 +4228,10 @@ class ExpressionStatementImpl extends StatementImpl
   Token? semicolon;
 
   /// Initialize a newly created expression statement.
-  ExpressionStatementImpl(this._expression, this.semicolon) {
+  ExpressionStatementImpl({
+    required ExpressionImpl expression,
+    required this.semicolon,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 
@@ -4288,7 +4284,10 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   NamedTypeImpl _superclass;
 
   /// Initialize a newly created extends clause.
-  ExtendsClauseImpl(this.extendsKeyword, this._superclass) {
+  ExtendsClauseImpl({
+    required this.extendsKeyword,
+    required NamedTypeImpl superclass,
+  }) : _superclass = superclass {
     _becomeParentOf(_superclass);
   }
 
@@ -4607,10 +4606,7 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtractorPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5002,10 +4998,8 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     ..addNode('pattern', pattern);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5430,10 +5424,7 @@ class ForPartsWithPatternImpl extends ForPartsImpl
       super._childEntities..addNode('variables', variables);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitForPartsWithPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5684,7 +5675,9 @@ class FunctionDeclarationStatementImpl extends StatementImpl
   FunctionDeclarationImpl _functionDeclaration;
 
   /// Initialize a newly created function declaration statement.
-  FunctionDeclarationStatementImpl(this._functionDeclaration) {
+  FunctionDeclarationStatementImpl({
+    required FunctionDeclarationImpl functionDeclaration,
+  }) : _functionDeclaration = functionDeclaration {
     _becomeParentOf(_functionDeclaration);
   }
 
@@ -5742,7 +5735,13 @@ class FunctionExpressionImpl extends ExpressionImpl
   ExecutableElement? declaredElement;
 
   /// Initialize a newly created function declaration.
-  FunctionExpressionImpl(this._typeParameters, this._parameters, this._body) {
+  FunctionExpressionImpl({
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl? parameters,
+    required FunctionBodyImpl body,
+  })  : _typeParameters = typeParameters,
+        _parameters = parameters,
+        _body = body {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
     _becomeParentOf(_body);
@@ -5829,9 +5828,11 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   ExecutableElement? staticElement;
 
   /// Initialize a newly created function expression invocation.
-  FunctionExpressionInvocationImpl(this._function,
-      TypeArgumentListImpl? typeArguments, ArgumentListImpl argumentList)
-      : super(typeArguments, argumentList) {
+  FunctionExpressionInvocationImpl({
+    required ExpressionImpl function,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _function = function {
     _becomeParentOf(_function);
   }
 
@@ -6394,7 +6395,10 @@ class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
   final NodeListImpl<SimpleIdentifier> _hiddenNames = NodeListImpl._();
 
   /// Initialize a newly created import show combinator.
-  HideCombinatorImpl(super.keyword, List<SimpleIdentifier> hiddenNames) {
+  HideCombinatorImpl({
+    required super.keyword,
+    required List<SimpleIdentifier> hiddenNames,
+  }) {
     _hiddenNames._initialize(this, hiddenNames);
   }
 
@@ -7413,7 +7417,11 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   DartType? staticInvokeType;
 
   /// Initialize a newly created invocation.
-  InvocationExpressionImpl(this._typeArguments, this._argumentList) {
+  InvocationExpressionImpl({
+    required TypeArgumentListImpl? typeArguments,
+    required ArgumentListImpl argumentList,
+  })  : _typeArguments = typeArguments,
+        _argumentList = argumentList {
     _becomeParentOf(_typeArguments);
     _becomeParentOf(_argumentList);
   }
@@ -7886,10 +7894,7 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
     ..addToken('rightBracket', rightBracket);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8024,10 +8029,7 @@ class MapPatternEntryImpl extends AstNodeImpl implements MapPatternEntry {
     ..addNode('value', value);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPatternEntry(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8080,10 +8082,7 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
     ..addToken('rightBracket', rightBracket);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8304,9 +8303,14 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 
   /// Initialize a newly created method invocation. The [target] and [operator]
   /// can be `null` if there is no target.
-  MethodInvocationImpl(this._target, this.operator, this._methodName,
-      TypeArgumentListImpl? typeArguments, ArgumentListImpl argumentList)
-      : super(typeArguments, argumentList) {
+  MethodInvocationImpl({
+    required ExpressionImpl? target,
+    required this.operator,
+    required SimpleIdentifierImpl methodName,
+    required super.typeArguments,
+    required super.argumentList,
+  })  : _target = target,
+        _methodName = methodName {
     _becomeParentOf(_target);
     _becomeParentOf(_methodName);
   }
@@ -9307,10 +9311,8 @@ class ParenthesizedPatternImpl extends DartPatternImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitParenthesizedPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9481,10 +9483,7 @@ class PatternAssignmentImpl extends AstNodeImpl implements PatternAssignment {
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9522,10 +9521,8 @@ class PatternAssignmentStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPatternAssignmentStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9575,10 +9572,8 @@ class PatternVariableDeclarationImpl extends AstNodeImpl
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPatternVariableDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9617,10 +9612,8 @@ class PatternVariableDeclarationStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPatternVariableDeclarationStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9738,10 +9731,7 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
     ..addToken('operator', operator);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10124,10 +10114,7 @@ class RecordPatternFieldImpl extends AstNodeImpl implements RecordPatternField {
     ..addNode('pattern', pattern);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPatternField(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10163,10 +10150,8 @@ class RecordPatternFieldNameImpl extends AstNodeImpl
     ..addToken('colon', colon);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRecordPatternFieldName(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10211,10 +10196,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10497,10 +10479,7 @@ class RelationalPatternImpl extends DartPatternImpl
     ..addNode('operand', operand);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10780,7 +10759,10 @@ class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   final NodeListImpl<SimpleIdentifier> _shownNames = NodeListImpl._();
 
   /// Initialize a newly created import show combinator.
-  ShowCombinatorImpl(super.keyword, List<SimpleIdentifier> shownNames) {
+  ShowCombinatorImpl({
+    required super.keyword,
+    required List<SimpleIdentifier> shownNames,
+  }) {
     _shownNames._initialize(this, shownNames);
   }
 
@@ -11879,10 +11861,8 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitSwitchExpressionCase(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11917,10 +11897,8 @@ class SwitchExpressionDefaultImpl extends SwitchExpressionMemberImpl
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitSwitchExpressionDefault(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11990,10 +11968,7 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
     ..addToken('rightBracket', rightBracket);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
@@ -12060,10 +12035,7 @@ class SwitchGuardImpl extends AstNodeImpl implements SwitchGuard {
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchGuard(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -12157,10 +12129,7 @@ class SwitchPatternCaseImpl extends SwitchMemberImpl
     ..addNodeList('statements', statements);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchPatternCase(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -13228,10 +13197,7 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
     ..addToken('name', name);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitVariablePattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {

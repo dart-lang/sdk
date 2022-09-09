@@ -89,4 +89,11 @@ class _WasmImmutableLinkedHashSet<E> extends _HashWasmImmutableBase
     throw new UnsupportedError(
         "Immutable sets can only be instantiated via constants");
   }
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+
+  static Set<R> _newEmpty<R>() => LinkedHashSet<R>._default();
+
+  // Returns a mutable set.
+  Set<E> toSet() => LinkedHashSet<E>._default()..addAll(this);
 }

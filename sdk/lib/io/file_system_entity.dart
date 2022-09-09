@@ -120,11 +120,11 @@ class FileStat {
       path = FileSystemEntity._trimTrailingPathSeparators(path);
     }
     var data = _statSync(_Namespace._namespace, path);
-    if (data is OSError) return FileStat._notFound;
-    return new FileStat._internal(
-        new DateTime.fromMillisecondsSinceEpoch(data[_changedTime]),
-        new DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime]),
-        new DateTime.fromMillisecondsSinceEpoch(data[_accessedTime]),
+    if (data is! Int64List) return FileStat._notFound;
+    return FileStat._internal(
+        DateTime.fromMillisecondsSinceEpoch(data[_changedTime]),
+        DateTime.fromMillisecondsSinceEpoch(data[_modifiedTime]),
+        DateTime.fromMillisecondsSinceEpoch(data[_accessedTime]),
         FileSystemEntityType._lookup(data[_type]),
         data[_mode],
         data[_size]);

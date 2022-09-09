@@ -360,6 +360,12 @@ var dart2wasm = {
     promiseThen: function(promise, successFunc, failureFunc) {
         promise.then(successFunc, failureFunc);
     },
+    performanceNow: function() {
+        return performance.now();
+    },
+    instanceofTrampoline: function(object, type) {
+        return object instanceof type;
+    },
 };
 
 function instantiate(filename, imports) {
