@@ -17,23 +17,57 @@ class StaticJSClass {
 extension StaticJSClassMethods on StaticJSClass {
   external String foo;
   external String sum(String a, String? b, String c);
+  external void doublifyNumbers();
+  external set nonNullableInt(int d);
+  external int get nonNullableInt;
+  external set nullableInt(int? d);
+  external int? get nullableInt;
+  external int nonNullableIntReturnMethod();
+  external int? nullableIntReturnMethod(bool returnNull);
 }
 
 void createClassTest() {
   eval(r'''
     globalThis.JSClass = function(foo) {
       this.foo = foo;
+      this.nonNullableInt = 6;
+      this.nonNullableIntReturnMethod = function() {
+        return 7;
+      }
+      this.nullableIntReturnMethod = function(returnNull) {
+        if (returnNull) {
+          return null;
+        } else {
+          return 8;
+        }
+      }
       this.sum = function(a, b, c) {
         if (b == null) b = ' ';
         return a + b + c;
       }
+      this.doublifyNumbers = function() {
+        this.nonNullableInt = 60.5;
+        this.nullableInt = 100.5;
+      }
     }
   ''');
   final foo = StaticJSClass.factory('foo');
-  Expect.equals(foo.foo, 'foo');
+  Expect.equals('foo', foo.foo);
   foo.foo = 'bar';
-  Expect.equals(foo.foo, 'bar');
+  Expect.equals('bar', foo.foo);
   Expect.equals('hello world!!', foo.sum('hello', null, 'world!!'));
+  Expect.equals(null, foo.nullableInt);
+  foo.nullableInt = 5;
+  Expect.equals(5, foo.nullableInt);
+  Expect.equals(6, foo.nonNullableInt);
+  foo.nonNullableInt = 16;
+  Expect.equals(16, foo.nonNullableInt);
+  Expect.equals(7, foo.nonNullableIntReturnMethod());
+  Expect.equals(8, foo.nullableIntReturnMethod(false));
+  Expect.equals(null, foo.nullableIntReturnMethod(true));
+  foo.doublifyNumbers();
+  Expect.equals(100, foo.nullableInt);
+  Expect.equals(60, foo.nonNullableInt);
 }
 
 @JS('JSClass.NestedJSClass')

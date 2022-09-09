@@ -51,6 +51,7 @@ class JsUtilWasmOptimizer extends Transformer {
   final Procedure _newObjectTarget;
   final Procedure _wrapDartFunctionTarget;
   final Procedure _allowInteropTarget;
+  final Procedure _numToInt;
   final Class _wasmExternRefClass;
   final Class _objectClass;
   final Class _pragmaClass;
@@ -86,6 +87,10 @@ class JsUtilWasmOptimizer extends Transformer {
             _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
         _wasmExternRefClass =
             _coreTypes.index.getClass('dart:wasm', 'WasmExternRef'),
+        _numToInt = _coreTypes.index
+            .getClass('dart:core', 'num')
+            .procedures
+            .firstWhere((p) => p.name.text == 'toInt'),
         _objectClass = _coreTypes.objectClass,
         _pragmaClass = _coreTypes.pragmaClass,
         _pragmaName = _coreTypes.pragmaName,
@@ -368,17 +373,59 @@ class JsUtilWasmOptimizer extends Transformer {
     return ReturnStatement(callConstructorInvocation);
   }
 
+  // Handles any necessary return type conversions. Today this is just for
+  // handling the case where a user wants us to coerce a JS number to an int
+  // instead of a double.
+  Expression _convertReturnType(DartType type, Expression expression) {
+    if (type == _coreTypes.intNullableRawType ||
+        type == _coreTypes.intNonNullableRawType) {
+      VariableDeclaration v =
+          VariableDeclaration('#var', initializer: expression);
+      return Let(
+          v,
+          ConditionalExpression(
+              StaticInvocation(
+                  _coreTypes.identicalProcedure,
+                  Arguments(
+                      [VariableGet(v), ConstantExpression(NullConstant())])),
+              ConstantExpression(NullConstant()),
+              InstanceInvocation(InstanceAccessKind.Instance, VariableGet(v),
+                  _numToInt.name, Arguments([]),
+                  interfaceTarget: _numToInt,
+                  functionType: _numToInt.function
+                      .computeFunctionType(Nullability.nonNullable)),
+              type));
+    } else {
+      return expression;
+    }
+  }
+
+  Expression _callAndConvertReturn(
+      DartType returnType, Expression generateCall(DartType type)) {
+    // Because we simply don't have enough information, we leave all JS numbers
+    // as doubles. However, in cases where we know the user expects an `int` we
+    // insert a cast.
+    DartType typeArgumentOverride = returnType == _coreTypes.intNullableRawType
+        ? _coreTypes.doubleNullableRawType
+        : returnType == _coreTypes.intNonNullableRawType
+            ? _coreTypes.doubleNonNullableRawType
+            : returnType;
+    return _convertReturnType(returnType, generateCall(typeArgumentOverride));
+  }
+
   /// Returns a new [Expression] for the given [node] external getter.
   ///
   /// The new [Expression] is equivalent to:
   /// `js_util.getProperty([object], [getterName])`.
   Expression _getProperty(Procedure node, Expression object, String getterName,
           {DartType? typeArgument}) =>
-      StaticInvocation(
-          _getPropertyTarget,
-          Arguments([object, StringLiteral(getterName)],
-              types: [typeArgument ?? node.function.returnType]))
-        ..fileOffset = node.fileOffset;
+      _callAndConvertReturn(
+          typeArgument ?? node.function.returnType,
+          (DartType typeArgumentOverride) => StaticInvocation(
+              _getPropertyTarget,
+              Arguments([object, StringLiteral(getterName)],
+                  types: [typeArgumentOverride]))
+            ..fileOffset = node.fileOffset);
 
   /// Returns a new function body for the given [node] external getter.
   ReturnStatement _getExternalGetterBody(
@@ -420,21 +467,23 @@ class JsUtilWasmOptimizer extends Transformer {
   /// The new function body is equivalent to:
   /// `js_util.callMethod([object], [methodName], [values])`.
   ReturnStatement _getExternalMethodBody(Procedure node, Expression object,
-      String methodName, List<VariableDeclaration> values) {
-    final callMethodInvocation = StaticInvocation(
-        _callMethodTarget,
-        Arguments([
-          object,
-          StringLiteral(methodName),
-          ListLiteral(
-              values.map<Expression>((value) => VariableGet(value)).toList(),
-              typeArgument: _nullableObjectType)
-        ], types: [
-          node.function.returnType
-        ]))
-      ..fileOffset = node.fileOffset;
-    return ReturnStatement(callMethodInvocation);
-  }
+          String methodName, List<VariableDeclaration> values) =>
+      ReturnStatement(_callAndConvertReturn(
+          node.function.returnType,
+          (DartType typeArgumentOverride) => StaticInvocation(
+              _callMethodTarget,
+              Arguments([
+                object,
+                StringLiteral(methodName),
+                ListLiteral(
+                    values
+                        .map<Expression>((value) => VariableGet(value))
+                        .toList(),
+                    typeArgument: _nullableObjectType)
+              ], types: [
+                typeArgumentOverride,
+              ]))
+            ..fileOffset = node.fileOffset));
 
   ReturnStatement _getExternalExtensionMethodBody(Procedure node) {
     final parameters = node.function.positionalParameters;
