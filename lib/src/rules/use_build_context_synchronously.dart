@@ -105,6 +105,9 @@ class _Visitor extends SimpleAstVisitor {
 
   bool accessesContext(ArgumentList argumentList) {
     for (var argument in argumentList.arguments) {
+      if (argument is NamedExpression) {
+        argument = argument.expression;
+      }
       if (argument is Identifier) {
         var element = argument.staticElement;
         if (element == null) {

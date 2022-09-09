@@ -72,6 +72,8 @@ import 'unawaited_futures_test.dart' as unawaited_futures;
 import 'unnecessary_const_test.dart' as unnecessary_const;
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
 import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
+import 'use_build_context_synchronously_test.dart'
+    as use_build_context_synchronously;
 import 'use_enums_test.dart' as use_enums;
 import 'use_is_even_rather_than_modulo_test.dart'
     as use_is_even_rather_than_modulo;
@@ -128,6 +130,7 @@ void main() {
   unnecessary_const.main();
   unnecessary_null_checks.main();
   unnecessary_overrides.main();
+  use_build_context_synchronously.main();
   use_enums.main();
   use_is_even_rather_than_modulo.main();
   use_super_parameters.main();

@@ -114,9 +114,6 @@ class ExpectedLint extends ExpectedDiagnostic {
 abstract class LintRuleTest extends PubPackageResolutionTest {
   String? get lintRule;
 
-  ExpectedLint lint(int offset, int length, {Pattern? messageContains}) =>
-      ExpectedLint(lintRule!, offset, length, messageContains: messageContains);
-
   @override
   List<String> get _lintRules => [if (lintRule != null) lintRule!];
 
@@ -220,10 +217,15 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
   /// Assert that there are no diagnostics in the given [code].
   Future<void> assertNoDiagnostics(String code) async =>
       assertDiagnostics(code, const []);
+
+  ExpectedLint lint(int offset, int length, {Pattern? messageContains}) =>
+      ExpectedLint(lintRule!, offset, length, messageContains: messageContains);
 }
 
 class PubPackageResolutionTest extends _ContextResolutionTest {
   final List<String> _lintRules = const [];
+
+  bool get addFlutterPackageDep => false;
 
   bool get addJsPackageDep => false;
 
@@ -303,6 +305,14 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       languageVersion: testPackageLanguageVersion,
     );
 
+    if (addFlutterPackageDep) {
+      var flutterPath = '/packages/flutter';
+      addFlutterPackageFiles(
+        getFolder(flutterPath),
+      );
+      configCopy.add(name: 'flutter', rootPath: flutterPath);
+    }
+
     if (addJsPackageDep) {
       var jsPath = '/packages/js';
       MockPackages.addJsPackageFiles(
@@ -321,6 +331,27 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
     writePackageConfig(path, configCopy);
+  }
+
+  /// Create a fake 'flutter' package that can be used by tests.
+  static void addFlutterPackageFiles(Folder rootFolder) {
+    var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.getChildAssumingFile('widgets.dart').writeAsStringSync(r'''
+export 'src/widgets/framework.dart';
+''');
+
+    libFolder
+        .getChildAssumingFolder('src')
+        .getChildAssumingFolder('widgets')
+        .getChildAssumingFile('framework.dart')
+        .writeAsStringSync(r'''   
+abstract class BuildContext {
+  Widget get widget;
+}
+
+class Widget {
+}
+''');
   }
 }
 
