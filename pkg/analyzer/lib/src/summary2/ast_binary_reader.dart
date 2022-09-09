@@ -507,9 +507,9 @@ class AstBinaryReader {
   }
 
   ForEachPartsWithDeclaration _readForEachPartsWithDeclaration() {
-    var loopVariable = readNode() as DeclaredIdentifier;
-    var iterable = readNode() as Expression;
-    return astFactory.forEachPartsWithDeclaration(
+    var loopVariable = readNode() as DeclaredIdentifierImpl;
+    var iterable = readNode() as ExpressionImpl;
+    return ForEachPartsWithDeclarationImpl(
       inKeyword: Tokens.in_(),
       iterable: iterable,
       loopVariable: loopVariable,
@@ -518,9 +518,9 @@ class AstBinaryReader {
 
   ForElement _readForElement() {
     var flags = _readByte();
-    var forLoopParts = readNode() as ForLoopParts;
-    var body = readNode() as CollectionElement;
-    return astFactory.forElement(
+    var forLoopParts = readNode() as ForLoopPartsImpl;
+    var body = readNode() as CollectionElementImpl;
+    return ForElementImpl(
       awaitKeyword: AstBinaryFlags.hasAwait(flags) ? Tokens.await_() : null,
       body: body,
       forKeyword: Tokens.for_(),
@@ -554,23 +554,23 @@ class AstBinaryReader {
   }
 
   ForPartsWithDeclarations _readForPartsWithDeclarations() {
-    var variables = readNode() as VariableDeclarationList;
-    var condition = _readOptionalNode() as Expression?;
+    var variables = readNode() as VariableDeclarationListImpl;
+    var condition = _readOptionalNode() as ExpressionImpl?;
     var updaters = _readNodeList<Expression>();
-    return astFactory.forPartsWithDeclarations(
+    return ForPartsWithDeclarationsImpl(
       condition: condition,
       leftSeparator: Tokens.semicolon(),
       rightSeparator: Tokens.semicolon(),
       updaters: updaters,
-      variables: variables,
+      variableList: variables,
     );
   }
 
   ForPartsWithExpression _readForPartsWithExpression() {
-    var initialization = _readOptionalNode() as Expression?;
-    var condition = _readOptionalNode() as Expression?;
+    var initialization = _readOptionalNode() as ExpressionImpl?;
+    var condition = _readOptionalNode() as ExpressionImpl?;
     var updaters = _readNodeList<Expression>();
-    return astFactory.forPartsWithExpression(
+    return ForPartsWithExpressionImpl(
       condition: condition,
       initialization: initialization,
       leftSeparator: Tokens.semicolon(),

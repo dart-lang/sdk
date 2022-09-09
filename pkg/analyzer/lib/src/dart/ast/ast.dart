@@ -4858,7 +4858,10 @@ abstract class ForEachPartsImpl extends ForLoopPartsImpl
   /// Initialize a newly created for-each statement whose loop control variable
   /// is declared internally (in the for-loop part). The [awaitKeyword] can be
   /// `null` if this is not an asynchronous for loop.
-  ForEachPartsImpl(this.inKeyword, this._iterable) {
+  ForEachPartsImpl({
+    required this.inKeyword,
+    required ExpressionImpl iterable,
+  }) : _iterable = iterable {
     _becomeParentOf(_iterable);
   }
 
@@ -4893,9 +4896,11 @@ class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 
   /// Initialize a newly created for-each statement whose loop control variable
   /// is declared internally (inside the for-loop part).
-  ForEachPartsWithDeclarationImpl(
-      this._loopVariable, Token inKeyword, ExpressionImpl iterator)
-      : super(inKeyword, iterator) {
+  ForEachPartsWithDeclarationImpl({
+    required DeclaredIdentifierImpl loopVariable,
+    required super.inKeyword,
+    required super.iterable,
+  }) : _loopVariable = loopVariable {
     _becomeParentOf(_loopVariable);
   }
 
@@ -4932,9 +4937,11 @@ class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 
   /// Initialize a newly created for-each statement whose loop control variable
   /// is declared externally (outside the for-loop part).
-  ForEachPartsWithIdentifierImpl(
-      this._identifier, Token inKeyword, ExpressionImpl iterator)
-      : super(inKeyword, iterator) {
+  ForEachPartsWithIdentifierImpl({
+    required SimpleIdentifierImpl identifier,
+    required super.inKeyword,
+    required super.iterable,
+  }) : _identifier = identifier {
     _becomeParentOf(_identifier);
   }
 
@@ -4977,12 +4984,12 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   @override
   final DartPatternImpl pattern;
 
-  ForEachPartsWithPatternImpl(
-      {required this.keyword,
-      required this.pattern,
-      required Token inKeyword,
-      required ExpressionImpl iterable})
-      : super(inKeyword, iterable) {
+  ForEachPartsWithPatternImpl({
+    required this.keyword,
+    required this.pattern,
+    required super.inKeyword,
+    required super.iterable,
+  }) {
     _becomeParentOf(pattern);
   }
 
@@ -5026,8 +5033,15 @@ class ForElementImpl extends CollectionElementImpl implements ForElement {
   CollectionElementImpl _body;
 
   /// Initialize a newly created for element.
-  ForElementImpl(this.awaitKeyword, this.forKeyword, this.leftParenthesis,
-      this._forLoopParts, this.rightParenthesis, this._body) {
+  ForElementImpl({
+    required this.awaitKeyword,
+    required this.forKeyword,
+    required this.leftParenthesis,
+    required ForLoopPartsImpl forLoopParts,
+    required this.rightParenthesis,
+    required CollectionElementImpl body,
+  })  : _forLoopParts = forLoopParts,
+        _body = body {
     _becomeParentOf(_forLoopParts);
     _becomeParentOf(_body);
   }
@@ -5255,8 +5269,12 @@ abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   /// [initialization] must be `null`. Either the [condition] and the list of
   /// [updaters] can be `null` if the loop does not have the corresponding
   /// attribute.
-  ForPartsImpl(this.leftSeparator, this._condition, this.rightSeparator,
-      List<Expression>? updaters) {
+  ForPartsImpl({
+    required this.leftSeparator,
+    required ExpressionImpl? condition,
+    required this.rightSeparator,
+    required List<Expression>? updaters,
+  }) : _condition = condition {
     _becomeParentOf(_condition);
     _updaters._initialize(this, updaters);
   }
@@ -5301,13 +5319,13 @@ class ForPartsWithDeclarationsImpl extends ForPartsImpl
   /// Initialize a newly created for statement. Both the [condition] and the
   /// list of [updaters] can be `null` if the loop does not have the
   /// corresponding attribute.
-  ForPartsWithDeclarationsImpl(
-      this._variableList,
-      Token leftSeparator,
-      ExpressionImpl? condition,
-      Token rightSeparator,
-      List<Expression>? updaters)
-      : super(leftSeparator, condition, rightSeparator, updaters) {
+  ForPartsWithDeclarationsImpl({
+    required VariableDeclarationListImpl variableList,
+    required super.leftSeparator,
+    required super.condition,
+    required super.rightSeparator,
+    required super.updaters,
+  }) : _variableList = variableList {
     _becomeParentOf(_variableList);
   }
 
@@ -5348,13 +5366,13 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   /// Initialize a newly created for statement. Both the [condition] and the
   /// list of [updaters] can be `null` if the loop does not have the
   /// corresponding attribute.
-  ForPartsWithExpressionImpl(
-      this._initialization,
-      Token leftSeparator,
-      ExpressionImpl? condition,
-      Token rightSeparator,
-      List<Expression>? updaters)
-      : super(leftSeparator, condition, rightSeparator, updaters) {
+  ForPartsWithExpressionImpl({
+    required ExpressionImpl? initialization,
+    required super.leftSeparator,
+    required super.condition,
+    required super.rightSeparator,
+    required super.updaters,
+  }) : _initialization = initialization {
     _becomeParentOf(_initialization);
   }
 
@@ -5394,13 +5412,13 @@ class ForPartsWithPatternImpl extends ForPartsImpl
   @override
   final PatternVariableDeclarationImpl variables;
 
-  ForPartsWithPatternImpl(
-      {required this.variables,
-      required Token leftSeparator,
-      required ExpressionImpl? condition,
-      required Token rightSeparator,
-      required List<Expression>? updaters})
-      : super(leftSeparator, condition, rightSeparator, updaters) {
+  ForPartsWithPatternImpl({
+    required this.variables,
+    required super.leftSeparator,
+    required super.condition,
+    required super.rightSeparator,
+    required super.updaters,
+  }) {
     _becomeParentOf(variables);
   }
 
@@ -5443,8 +5461,15 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   StatementImpl _body;
 
   /// Initialize a newly created for statement.
-  ForStatementImpl(this.awaitKeyword, this.forKeyword, this.leftParenthesis,
-      this._forLoopParts, this.rightParenthesis, this._body) {
+  ForStatementImpl({
+    required this.awaitKeyword,
+    required this.forKeyword,
+    required this.leftParenthesis,
+    required ForLoopPartsImpl forLoopParts,
+    required this.rightParenthesis,
+    required StatementImpl body,
+  })  : _forLoopParts = forLoopParts,
+        _body = body {
     _becomeParentOf(_forLoopParts);
     _becomeParentOf(_body);
   }
