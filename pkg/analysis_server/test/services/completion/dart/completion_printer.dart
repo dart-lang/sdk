@@ -25,6 +25,33 @@ class CompletionResponsePrinter {
     _writeSuggestions();
   }
 
+  String _escapeMultiLine(String text) {
+    return text.replaceAll('\n', r'\n');
+  }
+
+  String _getElementKindName(ElementKind kind) {
+    if (kind == ElementKind.CLASS) {
+      return 'class';
+    } else if (kind == ElementKind.CONSTRUCTOR) {
+      return 'constructor';
+    } else if (kind == ElementKind.ENUM) {
+      return 'enum';
+    } else if (kind == ElementKind.EXTENSION) {
+      return 'extension';
+    } else if (kind == ElementKind.FIELD) {
+      return 'field';
+    } else if (kind == ElementKind.FUNCTION) {
+      return 'function';
+    } else if (kind == ElementKind.PARAMETER) {
+      return 'parameter';
+    } else if (kind == ElementKind.TOP_LEVEL_VARIABLE) {
+      return 'topLevelVariable';
+    } else if (kind == ElementKind.TYPE_ALIAS) {
+      return 'typeAlias';
+    }
+    throw UnimplementedError('kind: $kind');
+  }
+
   String _getSuggestionKindName(CompletionSuggestion suggestion) {
     final kind = suggestion.kind;
     if (kind == CompletionSuggestionKind.KEYWORD) {
@@ -49,6 +76,8 @@ class CompletionResponsePrinter {
         return 'parameter';
       } else if (elementKind == ElementKind.TOP_LEVEL_VARIABLE) {
         return 'topLevelVariable';
+      } else if (elementKind == ElementKind.TYPE_ALIAS) {
+        return 'typeAlias';
       }
       throw UnimplementedError('elementKind: $elementKind');
     } else if (kind == CompletionSuggestionKind.INVOCATION) {
@@ -57,10 +86,14 @@ class CompletionResponsePrinter {
         return 'invocation';
       } else if (elementKind == ElementKind.CONSTRUCTOR) {
         return 'constructorInvocation';
+      } else if (elementKind == ElementKind.EXTENSION) {
+        return 'extensionInvocation';
       } else if (elementKind == ElementKind.FUNCTION) {
         return 'functionInvocation';
       }
       throw UnimplementedError('elementKind: $elementKind');
+    } else if (kind == CompletionSuggestionKind.IMPORT) {
+      return 'import';
     } else if (kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
       return 'namedArgument';
     } else if (kind == CompletionSuggestionKind.OVERRIDE) {
@@ -89,6 +122,36 @@ class CompletionResponsePrinter {
   void _writeDisplayText(CompletionSuggestion suggestion) {
     if (configuration.withDisplayText) {
       _writelnWithIndent('displayText: ${suggestion.displayText}');
+    }
+  }
+
+  void _writeDocumentation(CompletionSuggestion suggestion) {
+    if (configuration.withDocumentation) {
+      final docComplete = suggestion.docComplete;
+      if (docComplete != null) {
+        final text = _escapeMultiLine(docComplete);
+        _writelnWithIndent('docComplete: $text');
+      }
+
+      final docSummary = suggestion.docSummary;
+      if (docSummary != null) {
+        final text = _escapeMultiLine(docSummary);
+        _writelnWithIndent('docSummary: $text');
+      }
+    }
+  }
+
+  void _writeElement(CompletionSuggestion suggestion) {
+    if (configuration.withElement) {
+      final element = suggestion.element;
+      if (element != null) {
+        _writelnWithIndent('element');
+        _withIndent(() {
+          final kindStr = _getElementKindName(element.kind);
+          _writelnWithIndent('name: ${element.name}');
+          _writelnWithIndent('kind: $kindStr');
+        });
+      }
     }
   }
 
@@ -151,6 +214,8 @@ class CompletionResponsePrinter {
     _withIndent(() {
       _writeSuggestionKind(suggestion);
       _writeDisplayText(suggestion);
+      _writeDocumentation(suggestion);
+      _writeElement(suggestion);
       _writeRelevance(suggestion);
       _writeReturnType(suggestion);
       _writeSelection(suggestion);
@@ -197,6 +262,8 @@ class CompletionResponsePrinter {
 class Configuration {
   Sorting sorting;
   bool withDisplayText;
+  bool withDocumentation;
+  bool withElement;
   bool withKind;
   bool withRelevance;
   bool withReplacement;
@@ -207,6 +274,8 @@ class Configuration {
   Configuration({
     this.sorting = Sorting.relevanceThenCompletion,
     this.withDisplayText = false,
+    this.withDocumentation = false,
+    this.withElement = false,
     this.withKind = true,
     this.withReplacement = true,
     this.withRelevance = false,

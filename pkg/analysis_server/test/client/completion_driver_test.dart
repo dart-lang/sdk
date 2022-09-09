@@ -78,8 +78,9 @@ abstract class AbstractCompletionDriverTest
   /// using [printerConfiguration].
   void assertResponseText(
     CompletionResponseForTesting response,
-    String expected,
-  ) {
+    String expected, {
+    bool printIfFailed = true,
+  }) {
     final buffer = StringBuffer();
     printer.CompletionResponsePrinter(
       buffer: buffer,
@@ -89,7 +90,9 @@ abstract class AbstractCompletionDriverTest
     final actual = buffer.toString();
 
     if (actual != expected) {
-      print(actual);
+      if (printIfFailed) {
+        print(actual);
+      }
       TextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
