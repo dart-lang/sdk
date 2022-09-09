@@ -584,13 +584,13 @@ class AstBinaryReader {
   }
 
   FunctionExpressionInvocation _readFunctionExpressionInvocation() {
-    var function = readNode() as Expression;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
-    var arguments = readNode() as ArgumentList;
-    var node = astFactory.functionExpressionInvocation(
-      function,
-      typeArguments,
-      arguments,
+    var function = readNode() as ExpressionImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = readNode() as ArgumentListImpl;
+    var node = FunctionExpressionInvocationImpl(
+      function: function,
+      typeArguments: typeArguments,
+      argumentList: arguments,
     );
     _readInvocationExpression(node);
     return node;
@@ -842,10 +842,10 @@ class AstBinaryReader {
 
   MethodInvocation _readMethodInvocation() {
     var flags = _readByte();
-    var target = _readOptionalNode() as Expression?;
-    var methodName = readNode() as SimpleIdentifier;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
-    var arguments = readNode() as ArgumentList;
+    var target = _readOptionalNode() as ExpressionImpl?;
+    var methodName = readNode() as SimpleIdentifierImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = readNode() as ArgumentListImpl;
 
     Token? operator;
     if (AstBinaryFlags.hasQuestion(flags)) {
@@ -858,12 +858,12 @@ class AstBinaryReader {
       operator = Tokens.periodPeriod();
     }
 
-    var node = astFactory.methodInvocation(
-      target,
-      operator,
-      methodName,
-      typeArguments,
-      arguments,
+    var node = MethodInvocationImpl(
+      target: target,
+      operator: operator,
+      methodName: methodName,
+      typeArguments: typeArguments,
+      argumentList: arguments,
     );
     _readInvocationExpression(node);
     return node;

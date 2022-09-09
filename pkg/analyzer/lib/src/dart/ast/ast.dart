@@ -2064,7 +2064,9 @@ abstract class CombinatorImpl extends AstNodeImpl implements Combinator {
   Token keyword;
 
   /// Initialize a newly created combinator.
-  CombinatorImpl(this.keyword);
+  CombinatorImpl({
+    required this.keyword,
+  });
 
   @override
   Token get beginToken => keyword;
@@ -4226,7 +4228,10 @@ class ExpressionStatementImpl extends StatementImpl
   Token? semicolon;
 
   /// Initialize a newly created expression statement.
-  ExpressionStatementImpl(this._expression, this.semicolon) {
+  ExpressionStatementImpl({
+    required ExpressionImpl expression,
+    required this.semicolon,
+  }) : _expression = expression {
     _becomeParentOf(_expression);
   }
 
@@ -4279,7 +4284,10 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   NamedTypeImpl _superclass;
 
   /// Initialize a newly created extends clause.
-  ExtendsClauseImpl(this.extendsKeyword, this._superclass) {
+  ExtendsClauseImpl({
+    required this.extendsKeyword,
+    required NamedTypeImpl superclass,
+  }) : _superclass = superclass {
     _becomeParentOf(_superclass);
   }
 
@@ -5667,7 +5675,9 @@ class FunctionDeclarationStatementImpl extends StatementImpl
   FunctionDeclarationImpl _functionDeclaration;
 
   /// Initialize a newly created function declaration statement.
-  FunctionDeclarationStatementImpl(this._functionDeclaration) {
+  FunctionDeclarationStatementImpl({
+    required FunctionDeclarationImpl functionDeclaration,
+  }) : _functionDeclaration = functionDeclaration {
     _becomeParentOf(_functionDeclaration);
   }
 
@@ -5725,7 +5735,13 @@ class FunctionExpressionImpl extends ExpressionImpl
   ExecutableElement? declaredElement;
 
   /// Initialize a newly created function declaration.
-  FunctionExpressionImpl(this._typeParameters, this._parameters, this._body) {
+  FunctionExpressionImpl({
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl? parameters,
+    required FunctionBodyImpl body,
+  })  : _typeParameters = typeParameters,
+        _parameters = parameters,
+        _body = body {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
     _becomeParentOf(_body);
@@ -5812,9 +5828,11 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   ExecutableElement? staticElement;
 
   /// Initialize a newly created function expression invocation.
-  FunctionExpressionInvocationImpl(this._function,
-      TypeArgumentListImpl? typeArguments, ArgumentListImpl argumentList)
-      : super(typeArguments, argumentList) {
+  FunctionExpressionInvocationImpl({
+    required ExpressionImpl function,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _function = function {
     _becomeParentOf(_function);
   }
 
@@ -6377,7 +6395,10 @@ class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
   final NodeListImpl<SimpleIdentifier> _hiddenNames = NodeListImpl._();
 
   /// Initialize a newly created import show combinator.
-  HideCombinatorImpl(super.keyword, List<SimpleIdentifier> hiddenNames) {
+  HideCombinatorImpl({
+    required super.keyword,
+    required List<SimpleIdentifier> hiddenNames,
+  }) {
     _hiddenNames._initialize(this, hiddenNames);
   }
 
@@ -7396,7 +7417,11 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   DartType? staticInvokeType;
 
   /// Initialize a newly created invocation.
-  InvocationExpressionImpl(this._typeArguments, this._argumentList) {
+  InvocationExpressionImpl({
+    required TypeArgumentListImpl? typeArguments,
+    required ArgumentListImpl argumentList,
+  })  : _typeArguments = typeArguments,
+        _argumentList = argumentList {
     _becomeParentOf(_typeArguments);
     _becomeParentOf(_argumentList);
   }
@@ -8278,9 +8303,14 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 
   /// Initialize a newly created method invocation. The [target] and [operator]
   /// can be `null` if there is no target.
-  MethodInvocationImpl(this._target, this.operator, this._methodName,
-      TypeArgumentListImpl? typeArguments, ArgumentListImpl argumentList)
-      : super(typeArguments, argumentList) {
+  MethodInvocationImpl({
+    required ExpressionImpl? target,
+    required this.operator,
+    required SimpleIdentifierImpl methodName,
+    required super.typeArguments,
+    required super.argumentList,
+  })  : _target = target,
+        _methodName = methodName {
     _becomeParentOf(_target);
     _becomeParentOf(_methodName);
   }
@@ -10729,7 +10759,10 @@ class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   final NodeListImpl<SimpleIdentifier> _shownNames = NodeListImpl._();
 
   /// Initialize a newly created import show combinator.
-  ShowCombinatorImpl(super.keyword, List<SimpleIdentifier> shownNames) {
+  ShowCombinatorImpl({
+    required super.keyword,
+    required List<SimpleIdentifier> shownNames,
+  }) {
     _shownNames._initialize(this, shownNames);
   }
 

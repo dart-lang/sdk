@@ -981,18 +981,22 @@ void f() {
   }
 
   void test_isNullAware_regularInvocation() {
-    final invocation = AstTestFactory.methodInvocation3(
-        AstTestFactory.nullLiteral(), 'foo', null, [], TokenType.PERIOD);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a.foo();
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    final invocation = AstTestFactory.methodInvocation3(
-        AstTestFactory.nullLiteral(),
-        'foo',
-        null,
-        [],
-        TokenType.QUESTION_PERIOD);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a?.foo();
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -1498,18 +1502,24 @@ final x = List<String>.^foo();
   }
 
   void test_isQualified_inMethodInvocation_noTarget() {
-    MethodInvocation invocation = AstTestFactory.methodInvocation2(
-        "test", [AstTestFactory.identifier3("arg0")]);
-    SimpleIdentifier identifier = invocation.methodName;
+    final findNode = _parseStringToFindNode('''
+void f() {
+  foo(0);
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
+    final identifier = invocation.methodName;
     expect(identifier.isQualified, isFalse);
   }
 
   void test_isQualified_inMethodInvocation_withTarget() {
-    MethodInvocation invocation = AstTestFactory.methodInvocation(
-        AstTestFactory.identifier3("target"),
-        "test",
-        [AstTestFactory.identifier3("arg0")]);
-    SimpleIdentifier identifier = invocation.methodName;
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a.foo();
+}
+''');
+    final invocation = findNode.methodInvocation('foo');
+    final identifier = invocation.methodName;
     expect(identifier.isQualified, isTrue);
   }
 

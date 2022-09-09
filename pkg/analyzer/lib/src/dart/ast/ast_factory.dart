@@ -40,13 +40,6 @@ class AstFactoryImpl {
   CommentImpl endOfLineComment(List<Token> tokens) =>
       CommentImpl.createEndOfLineComment(tokens);
 
-  ExpressionStatementImpl expressionStatement(
-          Expression expression, Token? semicolon) =>
-      ExpressionStatementImpl(expression as ExpressionImpl, semicolon);
-
-  ExtendsClauseImpl extendsClause(Token extendsKeyword, NamedType superclass) =>
-      ExtendsClauseImpl(extendsKeyword, superclass as NamedTypeImpl);
-
   ExtensionOverrideImpl extensionOverride(
           {required Identifier extensionName,
           TypeArgumentList? typeArguments,
@@ -92,25 +85,6 @@ class AstFactoryImpl {
       FormalParameterListImpl(leftParenthesis, parameters, leftDelimiter,
           rightDelimiter, rightParenthesis);
 
-  FunctionDeclarationStatementImpl functionDeclarationStatement(
-          FunctionDeclaration functionDeclaration) =>
-      FunctionDeclarationStatementImpl(
-          functionDeclaration as FunctionDeclarationImpl);
-
-  FunctionExpressionImpl functionExpression(TypeParameterList? typeParameters,
-          FormalParameterList? parameters, FunctionBody body) =>
-      FunctionExpressionImpl(typeParameters as TypeParameterListImpl?,
-          parameters as FormalParameterListImpl?, body as FunctionBodyImpl);
-
-  FunctionExpressionInvocationImpl functionExpressionInvocation(
-          Expression function,
-          TypeArgumentList? typeArguments,
-          ArgumentList argumentList) =>
-      FunctionExpressionInvocationImpl(
-          function as ExpressionImpl,
-          typeArguments as TypeArgumentListImpl?,
-          argumentList as ArgumentListImpl);
-
   FunctionReferenceImpl functionReference(
           {required Expression function, TypeArgumentList? typeArguments}) =>
       FunctionReferenceImpl(function as ExpressionImpl,
@@ -154,10 +128,6 @@ class AstFactoryImpl {
           {required Token hideKeyword,
           required List<ShowHideClauseElement> elements}) =>
       HideClauseImpl(hideKeyword, elements);
-
-  HideCombinatorImpl hideCombinator(
-          Token keyword, List<SimpleIdentifier> hiddenNames) =>
-      HideCombinatorImpl(keyword, hiddenNames);
 
   IfElementImpl ifElement(
           {required Token ifKeyword,
@@ -288,19 +258,6 @@ class AstFactoryImpl {
       MapLiteralEntryImpl(
           key as ExpressionImpl, separator, value as ExpressionImpl);
 
-  MethodInvocationImpl methodInvocation(
-          Expression? target,
-          Token? operator,
-          SimpleIdentifier methodName,
-          TypeArgumentList? typeArguments,
-          ArgumentList argumentList) =>
-      MethodInvocationImpl(
-          target as ExpressionImpl?,
-          operator,
-          methodName as SimpleIdentifierImpl,
-          typeArguments as TypeArgumentListImpl?,
-          argumentList as ArgumentListImpl);
-
   NamedExpressionImpl namedExpression(Label name, Expression expression) =>
       NamedExpressionImpl(name as LabelImpl, expression as ExpressionImpl);
 
@@ -385,10 +342,6 @@ class AstFactoryImpl {
           {required Token showKeyword,
           required List<ShowHideClauseElement> elements}) =>
       ShowClauseImpl(showKeyword, elements);
-
-  ShowCombinatorImpl showCombinator(
-          Token keyword, List<SimpleIdentifier> shownNames) =>
-      ShowCombinatorImpl(keyword, shownNames);
 
   ShowHideElementImpl showHideElement(
           {required Token? modifier, required SimpleIdentifier name}) =>

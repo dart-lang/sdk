@@ -632,8 +632,8 @@ class AstBuilder extends StackListener {
   }
 
   void doInvocation(
-      TypeArgumentList? typeArguments, MethodInvocationImpl arguments) {
-    var receiver = pop() as Expression;
+      TypeArgumentListImpl? typeArguments, MethodInvocationImpl arguments) {
+    var receiver = pop() as ExpressionImpl;
     if (receiver is SimpleIdentifierImpl) {
       arguments.methodName = receiver;
       if (typeArguments != null) {
@@ -641,8 +641,13 @@ class AstBuilder extends StackListener {
       }
       push(arguments);
     } else {
-      push(ast.functionExpressionInvocation(
-          receiver, typeArguments, arguments.argumentList));
+      push(
+        FunctionExpressionInvocationImpl(
+          function: receiver,
+          typeArguments: typeArguments,
+          argumentList: arguments.argumentList,
+        ),
+      );
     }
   }
 
@@ -655,7 +660,7 @@ class AstBuilder extends StackListener {
     debugEvent("Arguments");
 
     var expressions = popTypedList2<Expression>(count);
-    ArgumentList arguments = ArgumentListImpl(
+    final arguments = ArgumentListImpl(
       leftParenthesis: leftParenthesis,
       arguments: expressions,
       rightParenthesis: rightParenthesis,
@@ -674,8 +679,15 @@ class AstBuilder extends StackListener {
       }
     }
 
-    push(ast.methodInvocation(
-        null, null, _tmpSimpleIdentifier(), null, arguments));
+    push(
+      MethodInvocationImpl(
+        target: null,
+        operator: null,
+        methodName: _tmpSimpleIdentifier(),
+        typeArguments: null,
+        argumentList: arguments,
+      ),
+    );
   }
 
   @override
@@ -703,10 +715,10 @@ class AstBuilder extends StackListener {
           arguments.add(message);
         }
         push(
-          ast.functionExpressionInvocation(
-            ast.simpleIdentifier(assertKeyword),
-            null,
-            ArgumentListImpl(
+          FunctionExpressionInvocationImpl(
+            function: ast.simpleIdentifier(assertKeyword),
+            typeArguments: null,
+            argumentList: ArgumentListImpl(
               leftParenthesis: leftParenthesis,
               arguments: arguments,
               rightParenthesis: leftParenthesis.endGroup!,
@@ -1821,10 +1833,16 @@ class AstBuilder extends StackListener {
     // as possible.
     debugEvent("FunctionExpression");
 
-    var body = pop() as FunctionBody;
-    var parameters = pop() as FormalParameterList?;
-    var typeParameters = pop() as TypeParameterList?;
-    push(ast.functionExpression(typeParameters, parameters, body));
+    var body = pop() as FunctionBodyImpl;
+    var parameters = pop() as FormalParameterListImpl?;
+    var typeParameters = pop() as TypeParameterListImpl?;
+    push(
+      FunctionExpressionImpl(
+        typeParameters: typeParameters,
+        parameters: parameters,
+        body: body,
+      ),
+    );
   }
 
   @override
@@ -1877,7 +1895,12 @@ class AstBuilder extends StackListener {
     debugEvent("Hide");
 
     var hiddenNames = pop() as List<SimpleIdentifier>;
-    push(ast.hideCombinator(hideKeyword, hiddenNames));
+    push(
+      HideCombinatorImpl(
+        keyword: hideKeyword,
+        hiddenNames: hiddenNames,
+      ),
+    );
   }
 
   @override
@@ -2151,19 +2174,22 @@ class AstBuilder extends StackListener {
   @override
   void endLocalFunctionDeclaration(Token token) {
     debugEvent("LocalFunctionDeclaration");
-    var body = pop() as FunctionBody;
+    var body = pop() as FunctionBodyImpl;
     if (isFullAst) {
       pop(); // constructor initializers
       pop(); // separator before constructor initializers
     }
-    var parameters = pop() as FormalParameterList;
+    var parameters = pop() as FormalParameterListImpl;
     checkFieldFormalParameters(parameters);
     var name = pop() as SimpleIdentifierImpl;
     var returnType = pop() as TypeAnnotationImpl?;
-    var typeParameters = pop() as TypeParameterList?;
+    var typeParameters = pop() as TypeParameterListImpl?;
     var metadata = pop(NullValue.Metadata) as List<Annotation>?;
-    final functionExpression =
-        ast.functionExpression(typeParameters, parameters, body);
+    final functionExpression = FunctionExpressionImpl(
+      typeParameters: typeParameters,
+      parameters: parameters,
+      body: body,
+    );
     var functionDeclaration = FunctionDeclarationImpl(
       comment: null,
       metadata: metadata,
@@ -2174,7 +2200,11 @@ class AstBuilder extends StackListener {
       name: name,
       functionExpression: functionExpression,
     );
-    push(ast.functionDeclarationStatement(functionDeclaration));
+    push(
+      FunctionDeclarationStatementImpl(
+        functionDeclaration: functionDeclaration,
+      ),
+    );
   }
 
   @override
@@ -2280,16 +2310,22 @@ class AstBuilder extends StackListener {
   @override
   void endNamedFunctionExpression(Token endToken) {
     debugEvent("NamedFunctionExpression");
-    var body = pop() as FunctionBody;
+    var body = pop() as FunctionBodyImpl;
     if (isFullAst) {
       pop(); // constructor initializers
       pop(); // separator before constructor initializers
     }
-    var parameters = pop() as FormalParameterList;
+    var parameters = pop() as FormalParameterListImpl;
     pop(); // name
     pop(); // returnType
-    var typeParameters = pop() as TypeParameterList?;
-    push(ast.functionExpression(typeParameters, parameters, body));
+    var typeParameters = pop() as TypeParameterListImpl?;
+    push(
+      FunctionExpressionImpl(
+        typeParameters: typeParameters,
+        parameters: parameters,
+        body: body,
+      ),
+    );
   }
 
   @override
@@ -2525,9 +2561,14 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("RethrowStatement");
 
-    RethrowExpression expression = ast.rethrowExpression(rethrowToken);
+    final expression = ast.rethrowExpression(rethrowToken);
     // TODO(scheglov) According to the specification, 'rethrow' is a statement.
-    push(ast.expressionStatement(expression, semicolon));
+    push(
+      ExpressionStatementImpl(
+        expression: expression,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -2547,7 +2588,12 @@ class AstBuilder extends StackListener {
     debugEvent("Show");
 
     var shownNames = pop() as List<SimpleIdentifier>;
-    push(ast.showCombinator(showKeyword, shownNames));
+    push(
+      ShowCombinatorImpl(
+        keyword: showKeyword,
+        shownNames: shownNames,
+      ),
+    );
   }
 
   @override
@@ -2714,9 +2760,9 @@ class AstBuilder extends StackListener {
         optional('set', getOrSet));
     debugEvent("TopLevelMethod");
 
-    var body = pop() as FunctionBody;
-    var parameters = pop() as FormalParameterList?;
-    var typeParameters = pop() as TypeParameterList?;
+    var body = pop() as FunctionBodyImpl;
+    var parameters = pop() as FormalParameterListImpl?;
+    var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var returnType = pop() as TypeAnnotationImpl?;
     var modifiers = pop() as _Modifiers?;
@@ -2733,8 +2779,11 @@ class AstBuilder extends StackListener {
         returnType: returnType,
         propertyKeyword: getOrSet,
         name: name,
-        functionExpression:
-            ast.functionExpression(typeParameters, parameters, body),
+        functionExpression: FunctionExpressionImpl(
+          typeParameters: typeParameters,
+          parameters: parameters,
+          body: body,
+        ),
       ),
     );
   }
@@ -3081,9 +3130,14 @@ class AstBuilder extends StackListener {
       pop();
       typeCount--;
     }
-    var supertype = pop() as TypeAnnotation?;
-    if (supertype is NamedType) {
-      push(ast.extendsClause(extendsKeyword!, supertype));
+    var supertype = pop() as TypeAnnotationImpl?;
+    if (supertype is NamedTypeImpl) {
+      push(
+        ExtendsClauseImpl(
+          extendsKeyword: extendsKeyword!,
+          superclass: supertype,
+        ),
+      );
     } else {
       // TODO(brianwilkerson) Produce a diagnostic indicating that the type
       //  annotation is either missing or an invalid kind. Also, consider
@@ -3433,15 +3487,15 @@ class AstBuilder extends StackListener {
   void handleExpressionStatement(Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
-    var expression = pop() as Expression;
+    var expression = pop() as ExpressionImpl;
     reportErrorIfSuper(expression);
-    if (expression is SimpleIdentifier &&
+    if (expression is SimpleIdentifierImpl &&
         expression.token.keyword?.isBuiltInOrPseudo == false) {
       // This error is also reported by the body builder.
       handleRecoverableError(
           messageExpectedStatement, expression.beginToken, expression.endToken);
     }
-    if (expression is AssignmentExpression) {
+    if (expression is AssignmentExpressionImpl) {
       if (!expression.leftHandSide.isAssignable) {
         // This error is also reported by the body builder.
         handleRecoverableError(
@@ -3450,7 +3504,12 @@ class AstBuilder extends StackListener {
             expression.leftHandSide.endToken);
       }
     }
-    push(ast.expressionStatement(expression, semicolon));
+    push(
+      ExpressionStatementImpl(
+        expression: expression,
+        semicolon: semicolon,
+      ),
+    );
   }
 
   @override
@@ -4743,7 +4802,7 @@ class AstBuilder extends StackListener {
     );
   }
 
-  SimpleIdentifier _tmpSimpleIdentifier() {
+  SimpleIdentifierImpl _tmpSimpleIdentifier() {
     return ast.simpleIdentifier(
       StringToken(TokenType.STRING, '__tmp', -1),
     );

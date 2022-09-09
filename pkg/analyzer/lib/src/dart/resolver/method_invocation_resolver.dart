@@ -901,10 +901,10 @@ class MethodInvocationResolver with ScopeHelpers {
       functionExpression.staticType = targetType;
     }
 
-    var invocation = astFactory.functionExpressionInvocation(
-      functionExpression,
-      node.typeArguments,
-      node.argumentList,
+    var invocation = FunctionExpressionInvocationImpl(
+      function: functionExpression,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
     );
     NodeReplacer.replace(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);

@@ -54,15 +54,6 @@ class AstTestFactory {
           rightBracket:
               TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
-  static MethodInvocationImpl cascadedMethodInvocation(String methodName,
-          [List<Expression> arguments = const []]) =>
-      astFactory.methodInvocation(
-          null,
-          TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
-          identifier3(methodName),
-          null,
-          argumentList(arguments));
-
   static PropertyAccessImpl cascadedPropertyAccess(String propertyName) =>
       astFactory.propertyAccess(
           null,
@@ -260,13 +251,6 @@ class AstTestFactory {
           [List<Combinator> combinators = const []]) =>
       exportDirective([], uri, combinators);
 
-  static ExpressionStatementImpl expressionStatement(Expression expression) =>
-      astFactory.expressionStatement(
-          expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static ExtendsClauseImpl extendsClause(NamedType type) => astFactory
-      .extendsClause(TokenFactory.tokenFromKeyword(Keyword.EXTENDS), type);
-
   static ExtensionDeclarationImpl extensionDeclaration(
           {required String name,
           required bool isExtensionTypeDeclaration,
@@ -365,36 +349,6 @@ class AstTestFactory {
         functionExpression: functionExpression as FunctionExpressionImpl,
       );
 
-  static FunctionDeclarationStatementImpl functionDeclarationStatement(
-          TypeAnnotation? type,
-          Keyword? keyword,
-          String name,
-          FunctionExpression functionExpression) =>
-      astFactory.functionDeclarationStatement(
-          functionDeclaration(type, keyword, name, functionExpression));
-
-  static FunctionExpressionImpl functionExpression2(
-          FormalParameterList parameters, FunctionBody body) =>
-      astFactory.functionExpression(null, parameters, body);
-
-  static FunctionExpressionImpl functionExpression3(
-          TypeParameterList typeParameters,
-          FormalParameterList parameters,
-          FunctionBody body) =>
-      astFactory.functionExpression(typeParameters, parameters, body);
-
-  static FunctionExpressionInvocationImpl functionExpressionInvocation(
-          Expression function,
-          [List<Expression> arguments = const []]) =>
-      functionExpressionInvocation2(function, null, arguments);
-
-  static FunctionExpressionInvocationImpl functionExpressionInvocation2(
-          Expression function,
-          [TypeArgumentList? typeArguments,
-          List<Expression> arguments = const []]) =>
-      astFactory.functionExpressionInvocation(
-          function, typeArguments, argumentList(arguments));
-
   static FunctionTypedFormalParameterImpl functionTypedFormalParameter(
           TypeAnnotation? returnType, String identifier,
           [List<FormalParameter> parameters = const []]) =>
@@ -428,15 +382,6 @@ class AstTestFactory {
       astFactory.hideClause(
           hideKeyword: TokenFactory.tokenFromString("hide"),
           elements: elements);
-
-  static HideCombinatorImpl hideCombinator(
-          List<SimpleIdentifier> identifiers) =>
-      astFactory.hideCombinator(
-          TokenFactory.tokenFromString("hide"), identifiers);
-
-  static HideCombinatorImpl hideCombinator2(List<String> identifiers) =>
-      astFactory.hideCombinator(
-          TokenFactory.tokenFromString("hide"), identifierList(identifiers));
 
   static PrefixedIdentifierImpl identifier(
           SimpleIdentifier prefix, SimpleIdentifier identifier) =>
@@ -762,32 +707,6 @@ class AstTestFactory {
         body: body as FunctionBodyImpl,
       );
 
-  static MethodInvocationImpl methodInvocation(
-          Expression? target, String methodName,
-          [List<Expression> arguments = const [],
-          TokenType operator = TokenType.PERIOD]) =>
-      astFactory.methodInvocation(
-          target,
-          target == null ? null : TokenFactory.tokenFromType(operator),
-          identifier3(methodName),
-          null,
-          argumentList(arguments));
-
-  static MethodInvocationImpl methodInvocation2(String methodName,
-          [List<Expression> arguments = const []]) =>
-      methodInvocation(null, methodName, arguments);
-
-  static MethodInvocationImpl methodInvocation3(Expression? target,
-          String methodName, TypeArgumentList? typeArguments,
-          [List<Expression> arguments = const [],
-          TokenType operator = TokenType.PERIOD]) =>
-      astFactory.methodInvocation(
-          target,
-          target == null ? null : TokenFactory.tokenFromType(operator),
-          identifier3(methodName),
-          typeArguments,
-          argumentList(arguments));
-
   static NamedExpressionImpl namedExpression(
           Label label, Expression expression) =>
       astFactory.namedExpression(label, expression);
@@ -944,15 +863,6 @@ class AstTestFactory {
       astFactory.showClause(
           showKeyword: TokenFactory.tokenFromString("show"),
           elements: elements);
-
-  static ShowCombinatorImpl showCombinator(
-          List<SimpleIdentifier> identifiers) =>
-      astFactory.showCombinator(
-          TokenFactory.tokenFromString("show"), identifiers);
-
-  static ShowCombinatorImpl showCombinator2(List<String> identifiers) =>
-      astFactory.showCombinator(
-          TokenFactory.tokenFromString("show"), identifierList(identifiers));
 
   static ShowHideElementImpl showHideElement(String name) =>
       astFactory.showHideElement(modifier: null, name: identifier3(name));
