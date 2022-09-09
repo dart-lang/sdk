@@ -152,6 +152,12 @@ var v = a * (b + c);
     );
   }
 
+  @failingTest
+  void test_visitBinaryPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitBlock_empty() {
     final code = '{}';
     final findNode = _parseStringToFindNode('''
@@ -268,6 +274,12 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.cascade(code));
+  }
+
+  @failingTest
+  void test_visitCastPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitCatchClause_catch_noStack() {
@@ -1122,6 +1134,12 @@ void f() $code
     _assertSource(code, findNode.expressionFunctionBody(code));
   }
 
+  @failingTest
+  void test_visitExpressionPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitExpressionStatement() {
     _assertSource("a;",
         AstTestFactory.expressionStatement(AstTestFactory.identifier3("a")));
@@ -1461,6 +1479,12 @@ void f() $code
             isExtensionTypeDeclaration: true));
   }
 
+  @failingTest
+  void test_visitExtractorPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitFieldDeclaration_abstract() {
     _assertSource(
         "abstract var a;",
@@ -1571,6 +1595,12 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.forEachPartsWithIdentifier(code));
+  }
+
+  @failingTest
+  void test_visitForEachPartsWithPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitForEachStatement_declared() {
@@ -1753,6 +1783,12 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.forPartsWithExpression(code));
+  }
+
+  @failingTest
+  void test_visitForPartsWithPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitForStatement() {
@@ -2424,6 +2460,12 @@ final v = $code;
             Tokens.closeSquareBracket()));
   }
 
+  @failingTest
+  void test_visitListPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitMapLiteral_const() {
     _assertSource(
         "const {}", AstTestFactory.setOrMapLiteral(Keyword.CONST, null));
@@ -2446,6 +2488,18 @@ final v = $code;
   void test_visitMapLiteralEntry() {
     _assertSource("'a' : b",
         AstTestFactory.mapLiteralEntry("a", AstTestFactory.identifier3("b")));
+  }
+
+  @failingTest
+  void test_visitMapPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitMapPatternEntry() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitMethodDeclaration_external() {
@@ -2657,6 +2711,12 @@ void f({$code}) {}
             AstTestFactory.identifier3("a")));
   }
 
+  @failingTest
+  void test_visitParenthesizedPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitPartDirective() {
     _assertSource("part 'a.dart';", AstTestFactory.partDirective2("a.dart"));
   }
@@ -2685,6 +2745,30 @@ void f({$code}) {}
     _assertSource(code, findNode.partOf(code));
   }
 
+  @failingTest
+  void test_visitPatternAssignment() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitPatternAssignmentStatement() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitPatternVariableDeclaration() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitPatternVariableDeclarationStatement() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitPositionalFormalParameter() {
     final code = 'var a = 0';
     final findNode = _parseStringToFindNode('''
@@ -2698,6 +2782,12 @@ void f([$code]) {}
         "a++",
         AstTestFactory.postfixExpression(
             AstTestFactory.identifier3("a"), TokenType.PLUS_PLUS));
+  }
+
+  @failingTest
+  void test_visitPostfixPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitPrefixedIdentifier() {
@@ -2766,6 +2856,24 @@ final x = $code;
     );
   }
 
+  @failingTest
+  void test_visitRecordPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitRecordPatternField() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitRecordPatternFieldName() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitRecordTypeAnnotation_mixed() {
     final code = '(int, bool, {int a, bool b})';
     var findNode = _parseStringToFindNode('''
@@ -2817,6 +2925,12 @@ $code f() {}
 
   void test_visitRedirectingConstructorInvocation_unnamed() {
     _assertSource("this()", AstTestFactory.redirectingConstructorInvocation());
+  }
+
+  @failingTest
+  void test_visitRelationalPattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitRethrowExpression() {
@@ -3212,6 +3326,36 @@ void f() {
     _assertSource(code, findNode.switchDefault(code));
   }
 
+  @failingTest
+  void test_visitSwitchExpression() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitSwitchExpressionCase() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitSwitchExpressionDefault() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitSwitchGuard() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
+  @failingTest
+  void test_visitSwitchPatternCase() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
+  }
+
   void test_visitSwitchStatement() {
     final code = 'switch (x) {case 0: foo(); default: bar();}';
     final findNode = _parseStringToFindNode('''
@@ -3441,6 +3585,12 @@ class A<$code> {}
             null,
             AstTestFactory.namedType4("C"),
             [AstTestFactory.variableDeclaration("c")]));
+  }
+
+  @failingTest
+  void test_visitVariablePattern() {
+    // TODO(brianwilkerson) Test this when the parser allows.
+    fail('Unable to parse patterns');
   }
 
   void test_visitWhileStatement() {

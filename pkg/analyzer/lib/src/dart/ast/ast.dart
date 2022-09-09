@@ -1110,10 +1110,7 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
     ..addNode('rightOperand', rightOperand);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -1479,10 +1476,7 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
     ..addNode('type', type);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4209,10 +4203,7 @@ class ExpressionPatternImpl extends DartPatternImpl
       super._childEntities..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitExpressionPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4607,10 +4598,7 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtractorPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5002,10 +4990,8 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     ..addNode('pattern', pattern);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitForEachPartsWithPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5430,10 +5416,7 @@ class ForPartsWithPatternImpl extends ForPartsImpl
       super._childEntities..addNode('variables', variables);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitForPartsWithPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7886,10 +7869,7 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
     ..addToken('rightBracket', rightBracket);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8024,10 +8004,7 @@ class MapPatternEntryImpl extends AstNodeImpl implements MapPatternEntry {
     ..addNode('value', value);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPatternEntry(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8080,10 +8057,7 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
     ..addToken('rightBracket', rightBracket);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9307,10 +9281,8 @@ class ParenthesizedPatternImpl extends DartPatternImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitParenthesizedPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9481,10 +9453,7 @@ class PatternAssignmentImpl extends AstNodeImpl implements PatternAssignment {
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9522,10 +9491,8 @@ class PatternAssignmentStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPatternAssignmentStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9575,10 +9542,8 @@ class PatternVariableDeclarationImpl extends AstNodeImpl
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPatternVariableDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9617,10 +9582,8 @@ class PatternVariableDeclarationStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPatternVariableDeclarationStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9738,10 +9701,7 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
     ..addToken('operator', operator);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10124,10 +10084,7 @@ class RecordPatternFieldImpl extends AstNodeImpl implements RecordPatternField {
     ..addNode('pattern', pattern);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPatternField(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10163,10 +10120,8 @@ class RecordPatternFieldNameImpl extends AstNodeImpl
     ..addToken('colon', colon);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRecordPatternFieldName(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10211,10 +10166,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10497,10 +10449,7 @@ class RelationalPatternImpl extends DartPatternImpl
     ..addNode('operand', operand);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11879,10 +11828,8 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitSwitchExpressionCase(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11917,10 +11864,8 @@ class SwitchExpressionDefaultImpl extends SwitchExpressionMemberImpl
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitSwitchExpressionDefault(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -11990,10 +11935,7 @@ class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
     ..addToken('rightBracket', rightBracket);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
@@ -12060,10 +12002,7 @@ class SwitchGuardImpl extends AstNodeImpl implements SwitchGuard {
     ..addNode('expression', expression);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchGuard(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -12157,10 +12096,7 @@ class SwitchPatternCaseImpl extends SwitchMemberImpl
     ..addNodeList('statements', statements);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchPatternCase(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -13228,10 +13164,7 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
     ..addToken('name', name);
 
   @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitVariablePattern(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
