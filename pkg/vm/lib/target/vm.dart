@@ -442,13 +442,13 @@ class VmTarget extends Target {
   @override
   Class concreteSetLiteralClass(CoreTypes coreTypes) {
     return _internalLinkedHashSet ??=
-        coreTypes.index.getClass('dart:collection', '_CompactLinkedHashSet');
+        coreTypes.index.getClass('dart:collection', '_InternalLinkedHashSet');
   }
 
   @override
   Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
     return _internalImmutableLinkedHashSet ??= coreTypes.index
-        .getClass('dart:collection', '_CompactImmutableLinkedHashSet');
+        .getClass('dart:collection', '_InternalImmutableLinkedHashSet');
   }
 
   @override

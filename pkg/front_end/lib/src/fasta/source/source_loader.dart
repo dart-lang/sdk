@@ -2805,8 +2805,8 @@ abstract class LinkedHashSet<E> implements Set<E> {
       bool Function(dynamic)? isValidKey}) => null;
 }
 
-class _CompactLinkedHashSet<E> {
-  _CompactLinkedHashSet();
+class _InternalLinkedHashSet<E> {
+  _InternalLinkedHashSet();
 }
 
 class _UnmodifiableSet {
