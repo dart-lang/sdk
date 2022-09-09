@@ -987,6 +987,13 @@ class _InternalImmutableLinkedHashSet<E> extends _HashVMImmutableBase
   factory _InternalImmutableLinkedHashSet._uninstantiable() {
     throw new UnsupportedError("ImmutableSet can only be allocated by the VM");
   }
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+
+  static Set<R> _newEmpty<R>() => _InternalLinkedHashSet<R>();
+
+  // Returns a mutable set.
+  Set<E> toSet() => _InternalLinkedHashSet<E>()..addAll(this);
 }
 
 mixin _ImmutableLinkedHashSetMixin<E>
@@ -1045,13 +1052,6 @@ mixin _ImmutableLinkedHashSetMixin<E>
     // Publish new index, uses store release semantics.
     _index = index;
   }
-
-  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
-
-  static Set<R> _newEmpty<R>() => _InternalLinkedHashSet<R>();
-
-  // Returns a mutable set.
-  Set<E> toSet() => _InternalLinkedHashSet<E>()..addAll(this);
 
   Iterator<E> get iterator =>
       _CompactIteratorImmutable<E>(this, _data, _usedData, -1, 1);
