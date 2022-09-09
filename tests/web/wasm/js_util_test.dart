@@ -62,6 +62,19 @@ void equalTest() {
   }
 }
 
+void instanceofTest() {
+  eval(r'''
+      globalThis.JSClass1 = function() {}
+      globalThis.JSClass2 = function() {}
+
+      globalThis.obj = new JSClass1();
+    ''');
+  Expect.isTrue(instanceof(
+      getProperty(globalThis, 'obj'), getProperty(globalThis, 'JSClass1')));
+  Expect.isFalse(instanceof(
+      getProperty(globalThis, 'obj'), getProperty(globalThis, 'JSClass2')));
+}
+
 void _expectIterableEquals(Iterable<Object?> l, Iterable<Object?> r) {
   final lIt = l.iterator;
   final rIt = r.iterator;
@@ -310,6 +323,7 @@ Future<void> promiseToFutureTest() async {
 void main() async {
   createObjectTest();
   equalTest();
+  instanceofTest();
   evalAndConstructTest();
   dartObjectRoundTripTest();
   deepConversionsTest();
