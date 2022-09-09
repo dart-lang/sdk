@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_utilities/check/check.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -23,9 +22,12 @@ void f() {
 }
 ''');
 
-    check(response).suggestions.excludesAll([
-      (suggestion) => suggestion.libraryUri.isNotNull.startsWith('dart:_'),
-    ]);
+    for (final suggestion in response.suggestions) {
+      final libraryUri = suggestion.libraryUri;
+      if (libraryUri != null && libraryUri.startsWith('dart:_')) {
+        fail('Private SDK library: $libraryUri');
+      }
+    }
   }
 }
 

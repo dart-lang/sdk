@@ -35,8 +35,16 @@ class CompletionResponsePrinter {
         return 'identifier';
       } else if (elementKind == ElementKind.CLASS) {
         return 'class';
+      } else if (elementKind == ElementKind.ENUM) {
+        return 'enum';
+      } else if (elementKind == ElementKind.ENUM_CONSTANT) {
+        return 'enumConstant';
       } else if (elementKind == ElementKind.FIELD) {
         return 'field';
+      } else if (elementKind == ElementKind.GETTER) {
+        return 'getter';
+      } else if (elementKind == ElementKind.LIBRARY) {
+        return 'library';
       } else if (elementKind == ElementKind.PARAMETER) {
         return 'parameter';
       } else if (elementKind == ElementKind.TOP_LEVEL_VARIABLE) {
@@ -49,6 +57,8 @@ class CompletionResponsePrinter {
         return 'invocation';
       } else if (elementKind == ElementKind.CONSTRUCTOR) {
         return 'constructorInvocation';
+      } else if (elementKind == ElementKind.FUNCTION) {
+        return 'functionInvocation';
       }
       throw UnimplementedError('elementKind: $elementKind');
     } else if (kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
