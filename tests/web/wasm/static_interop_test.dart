@@ -36,6 +36,27 @@ void createClassTest() {
   Expect.equals('hello world!!', foo.sum('hello', null, 'world!!'));
 }
 
+@JS('JSClass.NestedJSClass')
+@staticInterop
+class NestedJSClass {
+  external factory NestedJSClass.factory(String foo);
+}
+
+extension NestedJSClassMethods on NestedJSClass {
+  external String foo;
+}
+
+void createClassWithNestedJSNameTest() {
+  eval(r'''
+    globalThis.JSClass = {};
+    globalThis.JSClass.NestedJSClass = function(foo) {
+      this.foo = foo;
+    };
+  ''');
+  final foo = NestedJSClass.factory('foo');
+  Expect.equals(foo.foo, 'foo');
+}
+
 @JS('JSParent')
 @staticInterop
 class StaticJSParent {
@@ -162,6 +183,7 @@ void anonymousTest() {
 
 void main() {
   createClassTest();
+  createClassWithNestedJSNameTest();
   setInteropPropertyTest();
   setDartObjectPropertyTest();
   topLevelMethodsTest();

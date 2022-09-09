@@ -134,10 +134,9 @@ class JsUtilWasmOptimizer extends Transformer {
           if (hasAnonymousAnnotation(cls)) {
             transformedBody = _getExternalAnonymousConstructorBody(node);
           } else {
-            String jsName = getJSName(cls);
-            String constructorName = jsName == '' ? cls.name : jsName;
-            transformedBody =
-                _getExternalCallConstructorBody(node, constructorName);
+            _JSMemberSelector selector = _processJSName(cls, cls.name, node);
+            transformedBody = _getExternalCallConstructorBody(
+                node, selector.target, selector.member);
           }
         }
       } else if (node.isExtensionMember) {
@@ -156,23 +155,9 @@ class JsUtilWasmOptimizer extends Transformer {
           }
         }
       } else if (hasJSInteropAnnotation(node)) {
-        String selectorString = getJSName(node);
-        late Expression target;
-        late String name;
-        if (selectorString.isEmpty) {
-          target = _globalThis;
-          name = node.name.text;
-        } else {
-          List<String> selectors = selectorString.split('.');
-          if (selectors.length == 1) {
-            target = _globalThis;
-            name = selectors.single;
-          } else {
-            target = getObjectOffGlobalThis(
-                node, selectors.sublist(0, selectors.length - 1));
-            name = selectors.last;
-          }
-        }
+        _JSMemberSelector selector = _processJSName(node, node.name.text, node);
+        Expression target = selector.target;
+        String name = selector.member;
         if (node.isGetter) {
           transformedBody = _getExternalGetterBody(node, target, name);
         } else if (node.isSetter) {
@@ -193,6 +178,28 @@ class JsUtilWasmOptimizer extends Transformer {
     }
     _staticTypeContext.leaveMember(node);
     return node;
+  }
+
+  _JSMemberSelector _processJSName(
+      Annotatable a, String nameOnEmpty, Procedure node) {
+    String selectorString = getJSName(a);
+    Expression target;
+    String name;
+    if (selectorString.isEmpty) {
+      target = _globalThis;
+      name = nameOnEmpty;
+    } else {
+      List<String> selectors = selectorString.split('.');
+      if (selectors.length == 1) {
+        target = _globalThis;
+        name = selectors.single;
+      } else {
+        target = getObjectOffGlobalThis(
+            node, selectors.sublist(0, selectors.length - 1));
+        name = selectors.last;
+      }
+    }
+    return _JSMemberSelector(target, name);
   }
 
   /// Returns and initializes `_extensionMemberIndex` to an index of the member
@@ -343,12 +350,12 @@ class JsUtilWasmOptimizer extends Transformer {
   /// The new function body will call `js_util.callConstructor`
   /// for the given external method.
   ReturnStatement _getExternalCallConstructorBody(
-      Procedure node, String constructorName) {
+      Procedure node, Expression target, String constructorName) {
     var function = node.function;
     var callConstructorInvocation = StaticInvocation(
         _callConstructorTarget,
         Arguments([
-          _getProperty(node, _globalThis, constructorName),
+          _getProperty(node, target, constructorName),
           ListLiteral(
               function.positionalParameters
                   .map<Expression>((value) => VariableGet(value))
@@ -448,4 +455,11 @@ class JsUtilWasmOptimizer extends Transformer {
     }
     return _extensionMemberIndex![node.reference]!.name.text;
   }
+}
+
+class _JSMemberSelector {
+  final Expression target;
+  final String member;
+
+  _JSMemberSelector(this.target, this.member);
 }
