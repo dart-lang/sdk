@@ -280,20 +280,21 @@ class TimelineEventArguments {
 class TimelineEvent {
  public:
   // Keep in sync with StateBits below.
+  // Keep in sync with constants in sdk/lib/developer/timeline.dart.
   enum EventType {
-    kNone,
-    kBegin,
-    kEnd,
-    kDuration,
-    kInstant,
-    kAsyncBegin,
-    kAsyncInstant,
-    kAsyncEnd,
-    kCounter,
-    kFlowBegin,
-    kFlowStep,
-    kFlowEnd,
-    kMetadata,
+    kNone = 0,
+    kBegin = 1,
+    kEnd = 2,
+    kDuration = 3,
+    kInstant = 4,
+    kAsyncBegin = 5,
+    kAsyncInstant = 6,
+    kAsyncEnd = 7,
+    kCounter = 8,
+    kFlowBegin = 9,
+    kFlowStep = 10,
+    kFlowEnd = 11,
+    kMetadata = 12,
     kNumEventTypes,
   };
 
@@ -1067,27 +1068,11 @@ class TimelineEventFileRecorder : public TimelineEventPlatformRecorder {
 
 class DartTimelineEventHelpers : public AllStatic {
  public:
-  static void ReportTaskEvent(Thread* thread,
-                              TimelineEvent* event,
+  static void ReportTaskEvent(TimelineEvent* event,
                               int64_t id,
-                              const char* phase,
-                              const char* category,
+                              intptr_t type,
                               char* name,
                               char* args);
-
-  static void ReportFlowEvent(Thread* thread,
-                              TimelineEvent* event,
-                              const char* category,
-                              char* name,
-                              int64_t type,
-                              int64_t flow_id,
-                              char* args);
-
-  static void ReportInstantEvent(Thread* thread,
-                                 TimelineEvent* event,
-                                 const char* category,
-                                 char* name,
-                                 char* args);
 };
 
 }  // namespace dart

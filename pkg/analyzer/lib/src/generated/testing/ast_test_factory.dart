@@ -339,32 +339,6 @@ class AstTestFactory {
   static FieldFormalParameterImpl fieldFormalParameter2(String identifier) =>
       fieldFormalParameter(null, null, identifier);
 
-  static ForEachPartsWithDeclarationImpl forEachPartsWithDeclaration(
-          DeclaredIdentifier loopVariable, Expression iterable) =>
-      astFactory.forEachPartsWithDeclaration(
-          loopVariable: loopVariable,
-          inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
-          iterable: iterable);
-
-  static ForEachPartsWithIdentifierImpl forEachPartsWithIdentifier(
-          SimpleIdentifier identifier, Expression iterable) =>
-      astFactory.forEachPartsWithIdentifier(
-          identifier: identifier,
-          inKeyword: TokenFactory.tokenFromKeyword(Keyword.IN),
-          iterable: iterable);
-
-  static ForElementImpl forElement(
-          ForLoopParts forLoopParts, CollectionElement body,
-          {bool hasAwait = false}) =>
-      astFactory.forElement(
-          awaitKeyword:
-              hasAwait ? TokenFactory.tokenFromKeyword(Keyword.AWAIT) : null,
-          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
-          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          forLoopParts: forLoopParts,
-          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body: body);
-
   static FormalParameterListImpl formalParameterList(
           [List<FormalParameter> parameters = const []]) =>
       astFactory.formalParameterList(
@@ -373,37 +347,6 @@ class AstTestFactory {
           null,
           null,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
-
-  static ForPartsWithDeclarationsImpl forPartsWithDeclarations(
-          VariableDeclarationList variables,
-          Expression? condition,
-          List<Expression>? updaters) =>
-      astFactory.forPartsWithDeclarations(
-          variables: variables,
-          leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          condition: condition,
-          rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          updaters: updaters);
-
-  static ForPartsWithExpressionImpl forPartsWithExpression(
-          Expression? initialization,
-          Expression? condition,
-          List<Expression>? updaters) =>
-      astFactory.forPartsWithExpression(
-          initialization: initialization,
-          leftSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          condition: condition,
-          rightSeparator: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          updaters: updaters);
-
-  static ForStatementImpl forStatement(
-          ForLoopParts forLoopParts, Statement body) =>
-      astFactory.forStatement(
-          forKeyword: TokenFactory.tokenFromKeyword(Keyword.FOR),
-          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          forLoopParts: forLoopParts,
-          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          body: body);
 
   static FunctionDeclarationImpl functionDeclaration(
           TypeAnnotation? type,

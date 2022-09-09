@@ -35,8 +35,16 @@ class CompletionResponsePrinter {
         return 'identifier';
       } else if (elementKind == ElementKind.CLASS) {
         return 'class';
+      } else if (elementKind == ElementKind.ENUM) {
+        return 'enum';
+      } else if (elementKind == ElementKind.ENUM_CONSTANT) {
+        return 'enumConstant';
       } else if (elementKind == ElementKind.FIELD) {
         return 'field';
+      } else if (elementKind == ElementKind.GETTER) {
+        return 'getter';
+      } else if (elementKind == ElementKind.LIBRARY) {
+        return 'library';
       } else if (elementKind == ElementKind.PARAMETER) {
         return 'parameter';
       } else if (elementKind == ElementKind.TOP_LEVEL_VARIABLE) {
@@ -45,12 +53,18 @@ class CompletionResponsePrinter {
       throw UnimplementedError('elementKind: $elementKind');
     } else if (kind == CompletionSuggestionKind.INVOCATION) {
       final elementKind = suggestion.element?.kind;
-      if (elementKind == ElementKind.CONSTRUCTOR) {
+      if (elementKind == null) {
+        return 'invocation';
+      } else if (elementKind == ElementKind.CONSTRUCTOR) {
         return 'constructorInvocation';
+      } else if (elementKind == ElementKind.FUNCTION) {
+        return 'functionInvocation';
       }
       throw UnimplementedError('elementKind: $elementKind');
     } else if (kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
       return 'namedArgument';
+    } else if (kind == CompletionSuggestionKind.OVERRIDE) {
+      return 'override';
     }
     throw UnimplementedError('kind: $kind');
   }
@@ -72,9 +86,21 @@ class CompletionResponsePrinter {
     }
   }
 
+  void _writeDisplayText(CompletionSuggestion suggestion) {
+    if (configuration.withDisplayText) {
+      _writelnWithIndent('displayText: ${suggestion.displayText}');
+    }
+  }
+
   void _writelnWithIndent(String line) {
     buffer.write(_indent);
     buffer.writeln(line);
+  }
+
+  void _writeRelevance(CompletionSuggestion suggestion) {
+    if (configuration.withRelevance) {
+      _writelnWithIndent('relevance: ${suggestion.relevance}');
+    }
   }
 
   void _writeResponseReplacement() {
@@ -124,6 +150,8 @@ class CompletionResponsePrinter {
     _writeCompletion(suggestion);
     _withIndent(() {
       _writeSuggestionKind(suggestion);
+      _writeDisplayText(suggestion);
+      _writeRelevance(suggestion);
       _writeReturnType(suggestion);
       _writeSelection(suggestion);
     });
@@ -168,7 +196,9 @@ class CompletionResponsePrinter {
 
 class Configuration {
   Sorting sorting;
+  bool withDisplayText;
   bool withKind;
+  bool withRelevance;
   bool withReplacement;
   bool withReturnType;
   bool withSelection;
@@ -176,8 +206,10 @@ class Configuration {
 
   Configuration({
     this.sorting = Sorting.relevanceThenCompletion,
+    this.withDisplayText = false,
     this.withKind = true,
     this.withReplacement = true,
+    this.withRelevance = false,
     this.withReturnType = false,
     this.withSelection = true,
     required this.filter,

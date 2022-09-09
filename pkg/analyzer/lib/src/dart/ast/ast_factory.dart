@@ -83,35 +83,6 @@ class AstFactoryImpl {
           parameters as FormalParameterListImpl?,
           question);
 
-  ForEachPartsWithDeclarationImpl forEachPartsWithDeclaration(
-          {required DeclaredIdentifier loopVariable,
-          required Token inKeyword,
-          required Expression iterable}) =>
-      ForEachPartsWithDeclarationImpl(loopVariable as DeclaredIdentifierImpl,
-          inKeyword, iterable as ExpressionImpl);
-
-  ForEachPartsWithIdentifierImpl forEachPartsWithIdentifier(
-          {required SimpleIdentifier identifier,
-          required Token inKeyword,
-          required Expression iterable}) =>
-      ForEachPartsWithIdentifierImpl(identifier as SimpleIdentifierImpl,
-          inKeyword, iterable as ExpressionImpl);
-
-  ForElementImpl forElement(
-          {Token? awaitKeyword,
-          required Token forKeyword,
-          required Token leftParenthesis,
-          required ForLoopParts forLoopParts,
-          required Token rightParenthesis,
-          required CollectionElement body}) =>
-      ForElementImpl(
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          forLoopParts as ForLoopPartsImpl,
-          rightParenthesis,
-          body as CollectionElementImpl);
-
   FormalParameterListImpl formalParameterList(
           Token leftParenthesis,
           List<FormalParameter> parameters,
@@ -120,48 +91,6 @@ class AstFactoryImpl {
           Token rightParenthesis) =>
       FormalParameterListImpl(leftParenthesis, parameters, leftDelimiter,
           rightDelimiter, rightParenthesis);
-
-  ForPartsWithDeclarationsImpl forPartsWithDeclarations(
-          {required VariableDeclarationList variables,
-          required Token leftSeparator,
-          Expression? condition,
-          required Token rightSeparator,
-          List<Expression>? updaters}) =>
-      ForPartsWithDeclarationsImpl(
-          variables as VariableDeclarationListImpl,
-          leftSeparator,
-          condition as ExpressionImpl?,
-          rightSeparator,
-          updaters);
-
-  ForPartsWithExpressionImpl forPartsWithExpression(
-          {Expression? initialization,
-          required Token leftSeparator,
-          Expression? condition,
-          required Token rightSeparator,
-          List<Expression>? updaters}) =>
-      ForPartsWithExpressionImpl(
-          initialization as ExpressionImpl?,
-          leftSeparator,
-          condition as ExpressionImpl?,
-          rightSeparator,
-          updaters);
-
-  ForStatementImpl forStatement(
-      {Token? awaitKeyword,
-      required Token forKeyword,
-      required Token leftParenthesis,
-      required ForLoopParts forLoopParts,
-      required Token rightParenthesis,
-      required Statement body}) {
-    return ForStatementImpl(
-        awaitKeyword,
-        forKeyword,
-        leftParenthesis,
-        forLoopParts as ForLoopPartsImpl,
-        rightParenthesis,
-        body as StatementImpl);
-  }
 
   FunctionDeclarationStatementImpl functionDeclarationStatement(
           FunctionDeclaration functionDeclaration) =>

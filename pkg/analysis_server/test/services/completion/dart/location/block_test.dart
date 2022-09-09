@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -33,42 +32,45 @@ mixin BlockTestCases on AbstractCompletionDriverTest {
   static final spaces_8 = ' ' * 8;
 
   Future<void> test_flutter_setState_indent6_hasPrefix() async {
-    await _check_flutter_setState(
-      line: '${spaces_6}setSt^',
-      completion: '''
-setState(() {
+    await _check_flutter_setState(line: '${spaces_6}setSt^', expected: '''
+replacement
+  left: 5
+suggestions
+  setState(() {
 $spaces_8
-$spaces_6});''',
-      selectionOffset: 22,
-    );
+$spaces_6});
+    kind: invocation
+    selection: 22
+''');
   }
 
   Future<void> test_flutter_setState_indent_hasPrefix() async {
-    await _check_flutter_setState(
-      line: '${spaces_4}setSt^',
-      completion: '''
-setState(() {
+    await _check_flutter_setState(line: '${spaces_4}setSt^', expected: '''
+replacement
+  left: 5
+suggestions
+  setState(() {
 $spaces_6
-$spaces_4});''',
-      selectionOffset: 20,
-    );
+$spaces_4});
+    kind: invocation
+    selection: 20
+''');
   }
 
   Future<void> test_flutter_setState_indent_noPrefix() async {
-    await _check_flutter_setState(
-      line: '$spaces_4^',
-      completion: '''
-setState(() {
+    await _check_flutter_setState(line: '$spaces_4^', expected: '''
+suggestions
+  setState(() {
 $spaces_6
-$spaces_4});''',
-      selectionOffset: 20,
-    );
+$spaces_4});
+    kind: invocation
+    selection: 20
+''');
   }
 
   Future<void> _check_flutter_setState({
     required String line,
-    required String completion,
-    required int selectionOffset,
+    required String expected,
   }) async {
     writeTestPackageConfig(flutter: true);
 
@@ -90,18 +92,12 @@ $line
 }
 ''');
 
-    check(response).suggestions.includesAll([
-      (suggestion) => suggestion
-        ..completion.startsWith('setState')
-        ..completion.isEqualTo(completion)
-        ..hasSelection(offset: selectionOffset)
-        // It is an invocation, but we don't need any additional info for it.
-        // So, all parameter information is absent.
-        ..kind.isInvocation
-        ..parameterNames.isNull
-        ..parameterTypes.isNull
-        ..requiredParameterCount.isNull
-        ..hasNamedParameters.isNull,
-    ]);
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) {
+        return suggestion.completion.contains('setState(');
+      },
+    );
+
+    assertResponseText(response, expected);
   }
 }

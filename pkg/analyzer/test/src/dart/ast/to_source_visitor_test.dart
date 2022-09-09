@@ -1564,12 +1564,13 @@ class A {
   }
 
   void test_visitForEachPartsWithIdentifier() {
-    _assertSource(
-        'e in l',
-        astFactory.forEachPartsWithIdentifier(
-            identifier: AstTestFactory.identifier3('e'),
-            inKeyword: Tokens.in_(),
-            iterable: AstTestFactory.identifier3('l')));
+    final code = 'e in []';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  for ($code) {}
+}
+''');
+    _assertSource(code, findNode.forEachPartsWithIdentifier(code));
   }
 
   void test_visitForEachStatement_declared() {
@@ -1603,18 +1604,11 @@ void f() async {
   }
 
   void test_visitForElement() {
-    _assertSource(
-      'for (e in l) 0',
-      astFactory.forElement(
-          forKeyword: Tokens.for_(),
-          leftParenthesis: Tokens.openParenthesis(),
-          forLoopParts: astFactory.forEachPartsWithIdentifier(
-              identifier: AstTestFactory.identifier3('e'),
-              inKeyword: Tokens.in_(),
-              iterable: AstTestFactory.identifier3('l')),
-          rightParenthesis: Tokens.closeParenthesis(),
-          body: AstTestFactory.integer(0)),
-    );
+    final code = 'for (e in []) 0';
+    final findNode = _parseStringToFindNode('''
+final v = [ $code ];
+''');
+    _assertSource(code, findNode.forElement(code));
   }
 
   void test_visitFormalParameterList_empty() {
@@ -1742,42 +1736,33 @@ void f$code {}
   }
 
   void test_visitForPartsWithDeclarations() {
-    _assertSource(
-        'var v; b; u',
-        astFactory.forPartsWithDeclarations(
-            variables: AstTestFactory.variableDeclarationList2(
-                Keyword.VAR, [AstTestFactory.variableDeclaration('v')]),
-            leftSeparator: Tokens.semicolon(),
-            condition: AstTestFactory.identifier3('b'),
-            rightSeparator: Tokens.semicolon(),
-            updaters: [AstTestFactory.identifier3('u')]));
+    final code = 'var v = 0; v < 10; v++';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  for ($code) {}
+}
+''');
+    _assertSource(code, findNode.forPartsWithDeclarations(code));
   }
 
   void test_visitForPartsWithExpression() {
-    _assertSource(
-        'v; b; u',
-        astFactory.forPartsWithExpression(
-            initialization: AstTestFactory.identifier3('v'),
-            leftSeparator: Tokens.semicolon(),
-            condition: AstTestFactory.identifier3('b'),
-            rightSeparator: Tokens.semicolon(),
-            updaters: [AstTestFactory.identifier3('u')]));
+    final code = 'v = 0; v < 10; v++';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  for ($code) {}
+}
+''');
+    _assertSource(code, findNode.forPartsWithExpression(code));
   }
 
   void test_visitForStatement() {
-    _assertSource(
-      'for (e in l) s;',
-      astFactory.forStatement(
-          forKeyword: Tokens.for_(),
-          leftParenthesis: Tokens.openParenthesis(),
-          forLoopParts: astFactory.forEachPartsWithIdentifier(
-              identifier: AstTestFactory.identifier3('e'),
-              inKeyword: Tokens.in_(),
-              iterable: AstTestFactory.identifier3('l')),
-          rightParenthesis: Tokens.closeParenthesis(),
-          body: AstTestFactory.expressionStatement(
-              AstTestFactory.identifier3('s'))),
-    );
+    final code = 'for (var v in [0]) {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  $code
+}
+''');
+    _assertSource(code, findNode.forStatement(code));
   }
 
   void test_visitForStatement_c() {
@@ -2374,40 +2359,11 @@ library augment 'a.dart';
   }
 
   void test_visitListLiteral_complex() {
-    _assertSource(
-        '<int>[0, for (e in l) 0, if (b) 1, ...[0]]',
-        astFactory.listLiteral(
-            null,
-            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('int')]),
-            Tokens.openSquareBracket(),
-            [
-              AstTestFactory.integer(0),
-              astFactory.forElement(
-                  forKeyword: Tokens.for_(),
-                  leftParenthesis: Tokens.openParenthesis(),
-                  forLoopParts: astFactory.forEachPartsWithIdentifier(
-                      identifier: AstTestFactory.identifier3('e'),
-                      inKeyword: Tokens.in_(),
-                      iterable: AstTestFactory.identifier3('l')),
-                  rightParenthesis: Tokens.closeParenthesis(),
-                  body: AstTestFactory.integer(0)),
-              astFactory.ifElement(
-                  ifKeyword: Tokens.if_(),
-                  leftParenthesis: Tokens.openParenthesis(),
-                  condition: AstTestFactory.identifier3('b'),
-                  rightParenthesis: Tokens.closeParenthesis(),
-                  thenElement: AstTestFactory.integer(1)),
-              astFactory.spreadElement(
-                  spreadOperator: TokenFactory.tokenFromType(
-                      TokenType.PERIOD_PERIOD_PERIOD),
-                  expression: astFactory.listLiteral(
-                      null,
-                      null,
-                      Tokens.openSquareBracket(),
-                      [AstTestFactory.integer(0)],
-                      Tokens.closeSquareBracket()))
-            ],
-            Tokens.closeSquareBracket()));
+    final code = '<int>[0, for (e in []) 0, if (b) 1, ...[0]]';
+    final findNode = _parseStringToFindNode('''
+final v = $code;
+''');
+    _assertSource(code, findNode.listLiteral(code));
   }
 
   void test_visitListLiteral_const() {
@@ -2882,46 +2838,12 @@ $code f() {}
   }
 
   void test_visitSetOrMapLiteral_map_complex() {
-    _assertSource(
-      "<String, String>{'a' : 'b', for (c in d) 'e' : 'f', if (g) 'h' : 'i', ...{'j' : 'k'}}",
-      astFactory.setOrMapLiteral(
-        leftBracket: Tokens.openCurlyBracket(),
-        typeArguments: AstTestFactory.typeArgumentList([
-          AstTestFactory.namedType4('String'),
-          AstTestFactory.namedType4('String')
-        ]),
-        elements: [
-          AstTestFactory.mapLiteralEntry3('a', 'b'),
-          astFactory.forElement(
-              forKeyword: Tokens.for_(),
-              leftParenthesis: Tokens.openParenthesis(),
-              forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3('c'),
-                inKeyword: Tokens.in_(),
-                iterable: AstTestFactory.identifier3('d'),
-              ),
-              rightParenthesis: Tokens.closeParenthesis(),
-              body: AstTestFactory.mapLiteralEntry3('e', 'f')),
-          astFactory.ifElement(
-            ifKeyword: Tokens.if_(),
-            leftParenthesis: Tokens.openParenthesis(),
-            condition: AstTestFactory.identifier3('g'),
-            rightParenthesis: Tokens.closeParenthesis(),
-            thenElement: AstTestFactory.mapLiteralEntry3('h', 'i'),
-          ),
-          astFactory.spreadElement(
-            spreadOperator:
-                TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD),
-            expression: astFactory.setOrMapLiteral(
-              leftBracket: Tokens.openCurlyBracket(),
-              elements: [AstTestFactory.mapLiteralEntry3('j', 'k')],
-              rightBracket: Tokens.closeCurlyBracket(),
-            ),
-          )
-        ],
-        rightBracket: Tokens.closeCurlyBracket(),
-      ),
-    );
+    final code =
+        "<String, String>{'a' : 'b', for (c in d) 'e' : 'f', if (g) 'h' : 'i', ...{'j' : 'k'}}";
+    final findNode = _parseStringToFindNode('''
+final v = $code;
+''');
+    _assertSource(code, findNode.setOrMapLiteral(code));
   }
 
   void test_visitSetOrMapLiteral_map_withConst_withoutTypeArgs() {
@@ -2979,46 +2901,11 @@ $code f() {}
   }
 
   void test_visitSetOrMapLiteral_set_complex() {
-    _assertSource(
-      '<int>{0, for (e in l) 0, if (b) 1, ...[0]}',
-      astFactory.setOrMapLiteral(
-        typeArguments:
-            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('int')]),
-        leftBracket: Tokens.openCurlyBracket(),
-        elements: [
-          AstTestFactory.integer(0),
-          astFactory.forElement(
-              forKeyword: Tokens.for_(),
-              leftParenthesis: Tokens.openParenthesis(),
-              forLoopParts: astFactory.forEachPartsWithIdentifier(
-                identifier: AstTestFactory.identifier3('e'),
-                inKeyword: Tokens.in_(),
-                iterable: AstTestFactory.identifier3('l'),
-              ),
-              rightParenthesis: Tokens.closeParenthesis(),
-              body: AstTestFactory.integer(0)),
-          astFactory.ifElement(
-            ifKeyword: Tokens.if_(),
-            leftParenthesis: Tokens.openParenthesis(),
-            condition: AstTestFactory.identifier3('b'),
-            rightParenthesis: Tokens.closeParenthesis(),
-            thenElement: AstTestFactory.integer(1),
-          ),
-          astFactory.spreadElement(
-            spreadOperator:
-                TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD_PERIOD),
-            expression: astFactory.listLiteral(
-              null,
-              null,
-              Tokens.openSquareBracket(),
-              [AstTestFactory.integer(0)],
-              Tokens.closeSquareBracket(),
-            ),
-          )
-        ],
-        rightBracket: Tokens.closeCurlyBracket(),
-      ),
-    );
+    final code = '<int>{0, for (e in l) 0, if (b) 1, ...[0]}';
+    final findNode = _parseStringToFindNode('''
+final v = $code;
+''');
+    _assertSource(code, findNode.setOrMapLiteral(code));
   }
 
   void test_visitSetOrMapLiteral_set_withConst_withoutTypeArgs() {

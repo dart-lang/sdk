@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
+import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
@@ -30,6 +29,16 @@ class RecordTypeTest2 extends AbstractCompletionDriverTest
 }
 
 mixin RecordTypeTestCases on AbstractCompletionDriverTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    printerConfiguration = printer.Configuration(
+      filter: (suggestion) => true,
+      withReturnType: true,
+    );
+  }
+
   Future<void> test_mixin() async {
     var response = await getTestCodeSuggestions('''
 void f((int, {String foo02}) r) {
@@ -37,18 +46,15 @@ void f((int, {String foo02}) r) {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo(r'$0')
-          ..isRecordField
-          ..returnType.isEqualTo('int'),
-        (suggestion) => suggestion
-          ..completion.isEqualTo(r'foo02')
-          ..isRecordField
-          ..returnType.isEqualTo('String'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  $0
+    kind: identifier
+    returnType: int
+  foo02
+    kind: identifier
+    returnType: String
+''');
   }
 
   Future<void> test_named() async {
@@ -58,18 +64,15 @@ void f(({int foo01, String foo02}) r) {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo(r'foo01')
-          ..isRecordField
-          ..returnType.isEqualTo('int'),
-        (suggestion) => suggestion
-          ..completion.isEqualTo(r'foo02')
-          ..isRecordField
-          ..returnType.isEqualTo('String'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  foo01
+    kind: identifier
+    returnType: int
+  foo02
+    kind: identifier
+    returnType: String
+''');
   }
 
   Future<void> test_positional() async {
@@ -79,17 +82,14 @@ void f((int, String) r) {
 }
 ''');
 
-    check(response)
-      ..hasEmptyReplacement()
-      ..suggestions.matchesInAnyOrder([
-        (suggestion) => suggestion
-          ..completion.isEqualTo(r'$0')
-          ..isRecordField
-          ..returnType.isEqualTo('int'),
-        (suggestion) => suggestion
-          ..completion.isEqualTo(r'$1')
-          ..isRecordField
-          ..returnType.isEqualTo('String'),
-      ]);
+    assertResponseText(response, r'''
+suggestions
+  $0
+    kind: identifier
+    returnType: int
+  $1
+    kind: identifier
+    returnType: String
+''');
   }
 }

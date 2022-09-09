@@ -223,6 +223,10 @@ class FindNode {
     return _node(search, (n) => n is ForEachPartsWithIdentifier);
   }
 
+  ForElement forElement(String search) {
+    return _node(search, (n) => n is ForElement);
+  }
+
   FormalParameterList formalParameterList(String search) {
     return _node(search, (n) => n is FormalParameterList);
   }

@@ -1439,15 +1439,12 @@ class A {
   }
 
   void test_inGetterContext_forEachLoop() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("a");
-    Expression iterator = AstTestFactory.listLiteral();
-    Statement body = BlockImpl(
-      leftBracket: Tokens.openCurlyBracket(),
-      statements: [],
-      rightBracket: Tokens.closeCurlyBracket(),
-    );
-    AstTestFactory.forStatement(
-        AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
+    final parseResult = parseStringWithErrors('''
+void f() {
+  for (v in [0]) {}
+}
+''');
+    final identifier = parseResult.findNode.simple('v in');
     expect(identifier.inGetterContext(), isFalse);
   }
 
@@ -1483,15 +1480,12 @@ class A {
   }
 
   void test_inSetterContext_forEachLoop() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("a");
-    Expression iterator = AstTestFactory.listLiteral();
-    Statement body = BlockImpl(
-      leftBracket: Tokens.openCurlyBracket(),
-      statements: [],
-      rightBracket: Tokens.closeCurlyBracket(),
-    );
-    AstTestFactory.forStatement(
-        AstTestFactory.forEachPartsWithIdentifier(identifier, iterator), body);
+    final parseResult = parseStringWithErrors('''
+void f() {
+  for (v in [0]) {}
+}
+''');
+    final identifier = parseResult.findNode.simple('v in');
     expect(identifier.inSetterContext(), isTrue);
   }
 

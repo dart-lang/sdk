@@ -1145,7 +1145,27 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitRecordLiteral(RecordLiteral node) {
     computer._addRegion_node(node, HighlightRegionType.LITERAL_RECORD);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
-    super.visitRecordLiteral(node);
+
+    for (final field in node.fields) {
+      if (field is NamedExpression) {
+        computer._addRegion_token(
+          field.name.label.token,
+          HighlightRegionType.PARAMETER_REFERENCE,
+        );
+        field.expression.accept(this);
+      } else {
+        field.accept(this);
+      }
+    }
+  }
+
+  @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    for (final field in node.fields) {
+      computer._addRegion_token(field.name, HighlightRegionType.FIELD);
+    }
+
+    super.visitRecordTypeAnnotation(node);
   }
 
   @override
