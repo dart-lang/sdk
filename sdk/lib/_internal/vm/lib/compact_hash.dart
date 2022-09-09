@@ -18,20 +18,15 @@ void _rehashObjects(List objects) {
 
 // Common interface for [_HashFieldBase] and [_HashVMBase].
 abstract class _HashAbstractBase {
-  Uint32List get _index;
-  void set _index(Uint32List value);
+  abstract Uint32List _index;
 
-  int get _hashMask;
-  void set _hashMask(int value);
+  abstract int _hashMask;
 
-  List get _data;
-  void set _data(List value);
+  abstract List<Object?> _data;
 
-  int get _usedData;
-  void set _usedData(int value);
+  abstract int _usedData;
 
-  int get _deletedKeys;
-  void set _deletedKeys(int value);
+  abstract int _deletedKeys;
 }
 
 abstract class _HashAbstractImmutableBase extends _HashAbstractBase {
@@ -55,7 +50,7 @@ abstract class _HashFieldBase implements _HashAbstractBase {
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
   //
   // Can be either a mutable or immutable list.
-  List _data = _uninitializedData;
+  List<Object?> _data = _uninitializedData;
 
   // Length of _data that is used (i.e., keys + values for a map).
   int _usedData = 0;
@@ -95,11 +90,11 @@ abstract class _HashVMBase implements _HashAbstractBase {
   @pragma("vm:exact-result-type", "dart:core#_List")
   @pragma("vm:prefer-inline")
   @pragma("vm:external-name", "LinkedHashBase_getData")
-  external List get _data;
+  external List<Object?> get _data;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:external-name", "LinkedHashBase_setData")
-  external void set _data(List value);
+  external void set _data(List<Object?> value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -129,7 +124,7 @@ abstract class _HashVMImmutableBase extends _HashVMBase
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_ImmutableList")
   @pragma("vm:prefer-inline")
-  List get _data native "ImmutableLinkedHashBase_getData";
+  List<Object?> get _data native "ImmutableLinkedHashBase_getData";
 
   // The index is nullable rather than not nullable.
   @pragma("vm:recognized", "other")
@@ -195,16 +190,16 @@ mixin _HashBase on _HashAbstractBase {
   static int _nextProbe(int i, int sizeMask) => (i + 1) & sizeMask;
 
   // A self-loop is used to mark a deleted key or value.
-  static bool _isDeleted(List data, Object? keyOrValue) =>
+  static bool _isDeleted(List<Object?> data, Object? keyOrValue) =>
       identical(keyOrValue, data);
-  static void _setDeletedAt(List data, int d) {
+  static void _setDeletedAt(List<Object?> data, int d) {
     data[d] = data;
   }
 
   // Concurrent modification detection relies on this checksum monotonically
   // increasing between reallocations of _data.
   int get _checkSum => _usedData + _deletedKeys;
-  bool _isModifiedSince(List oldData, int oldCheckSum) =>
+  bool _isModifiedSince(List<Object?> oldData, int oldCheckSum) =>
       !identical(_data, oldData) || (_checkSum != oldCheckSum);
 
   int get length;
@@ -224,7 +219,7 @@ mixin _HashBase on _HashAbstractBase {
     assert(!identical(other._data, _uninitializedData));
     _index = Uint32List.fromList(other._index);
     _hashMask = other._hashMask;
-    _data = List.of(other._data, growable: false);
+    _data = List<Object?>.of(other._data, growable: false);
     _usedData = other._usedData;
     _deletedKeys = other._deletedKeys;
     return true;
@@ -232,24 +227,24 @@ mixin _HashBase on _HashAbstractBase {
 }
 
 abstract class _EqualsAndHashCode {
-  int _hashCode(e);
-  bool _equals(e1, e2);
+  int _hashCode(Object? e);
+  bool _equals(Object? e1, Object? e2);
 }
 
 mixin _OperatorEqualsAndHashCode implements _EqualsAndHashCode {
-  int _hashCode(e) => e.hashCode;
-  bool _equals(e1, e2) => e1 == e2;
+  int _hashCode(Object? e) => e.hashCode;
+  bool _equals(Object? e1, Object? e2) => e1 == e2;
 }
 
 mixin _IdenticalAndIdentityHashCode implements _EqualsAndHashCode {
-  int _hashCode(e) => identityHashCode(e);
-  bool _equals(e1, e2) => identical(e1, e2);
+  int _hashCode(Object? e) => identityHashCode(e);
+  bool _equals(Object? e1, Object? e2) => identical(e1, e2);
 }
 
 mixin _OperatorEqualsAndCanonicalHashCode implements _EqualsAndHashCode {
   static final int cidSymbol = ClassID.getID(#a);
 
-  int _hashCode(e) {
+  int _hashCode(Object? e) {
     final int cid = ClassID.getID(e);
     if (cid < ClassID.numPredefinedCids || cid == cidSymbol) {
       return e.hashCode;
@@ -257,15 +252,17 @@ mixin _OperatorEqualsAndCanonicalHashCode implements _EqualsAndHashCode {
     return identityHashCode(e);
   }
 
-  bool _equals(e1, e2) => e1 == e2;
+  bool _equals(Object? e1, Object? e2) => e1 == e2;
 }
 
-mixin _CustomEqualsAndHashCode implements _EqualsAndHashCode {
-  dynamic get _hasher;
-  dynamic get _equality;
+mixin _CustomEqualsAndHashCode<K> implements _EqualsAndHashCode {
+  int Function(K) get _hasher;
+  bool Function(K, K) get _equality;
 
-  int _hashCode(e) => _hasher(e);
-  bool _equals(e1, e2) => _equality(e1, e2);
+  // For backwards compatibility, we must allow any key here that is accepted
+  // dynamically by the [_hasher] and [_equality] functions.
+  int _hashCode(Object? e) => (_hasher as Function)(e);
+  bool _equals(Object? e1, Object? e2) => (_equality as Function)(e1, e2);
 }
 
 final _uninitializedIndex = new Uint32List(_HashBase._UNINITIALIZED_INDEX_SIZE);
@@ -344,7 +341,7 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
     assert(_hashMask == hashMask);
 
     for (int j = 0; j < _usedData; j += 2) {
-      final key = _data[j];
+      final key = _data[j] as K;
 
       final fullHash = _hashCode(key);
       final hashPattern = _HashBase._hashPattern(fullHash, hashMask, size);
@@ -366,9 +363,9 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
   }
 
   Iterable<K> get keys =>
-      new _CompactIterableImmutable<K>(this, _data, _usedData, -2, 2);
+      _CompactIterableImmutable<K>(this, _data, _usedData, -2, 2);
   Iterable<V> get values =>
-      new _CompactIterableImmutable<V>(this, _data, _usedData, -1, 2);
+      _CompactIterableImmutable<V>(this, _data, _usedData, -1, 2);
 }
 
 // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
@@ -410,7 +407,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
-  // Allocate new _index and _data, and optionally copy existing contents.
+  // Allocate _index and _data, and optionally copy existing contents.
   void _init(int size, int hashMask, List? oldData, int oldUsed) {
     if (size < _HashBase._INITIAL_INDEX_SIZE) {
       size = _HashBase._INITIAL_INDEX_SIZE;
@@ -446,7 +443,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     for (int i = 0; i < tmpUsed; i += 2) {
       final key = _data[i];
       if (!_HashBase._isDeleted(_data, key)) {
-        this[key] = _data[i + 1];
+        this[key as K] = _data[i + 1] as V;
       }
     }
   }
@@ -519,7 +516,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     final int d =
         _findValueOrInsertPoint(key, fullHash, hashPattern, size, _index);
     if (d > 0) {
-      return _data[d];
+      return _data[d] as V;
     }
     // 'ifAbsent' is allowed to modify the map.
     List oldData = _data;
@@ -550,7 +547,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
           if (_equals(key, _data[d])) {
             _index[i] = _HashBase._DELETED_PAIR;
             _HashBase._setDeletedAt(_data, d);
-            V value = _data[d + 1];
+            V value = _data[d + 1] as V;
             _HashBase._setDeletedAt(_data, d + 1);
             ++_deletedKeys;
             return value;
@@ -621,10 +618,8 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
-  Iterable<K> get keys =>
-      new _CompactIterable<K>(this, _data, _usedData, -2, 2);
-  Iterable<V> get values =>
-      new _CompactIterable<V>(this, _data, _usedData, -1, 2);
+  Iterable<K> get keys => _CompactIterable<K>(this, _data, _usedData, -2, 2);
+  Iterable<V> get values => _CompactIterable<V>(this, _data, _usedData, -1, 2);
 }
 
 class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
@@ -649,12 +644,12 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
     with
         MapMixin<K, V>,
         _HashBase,
-        _CustomEqualsAndHashCode,
+        _CustomEqualsAndHashCode<K>,
         _LinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
-  final dynamic _equality;
-  final dynamic _hasher;
-  final dynamic _validKey;
+  final bool Function(K, K) _equality;
+  final int Function(K) _hasher;
+  final bool Function(Object?) _validKey;
 
   bool containsKey(Object? o) => _validKey(o) ? super.containsKey(o) : false;
   V? operator [](Object? o) => _validKey(o) ? super[o] : null;
@@ -663,8 +658,9 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   @pragma("wasm:entry-point")
   void operator []=(K key, V value);
 
-  _CompactLinkedCustomHashMap(this._equality, this._hasher, validKey)
-      : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test;
+  _CompactLinkedCustomHashMap(
+      this._equality, this._hasher, bool Function(Object?)? validKey)
+      : _validKey = validKey ?? _TypeTest<K>().test;
 }
 
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
@@ -681,7 +677,7 @@ class _CompactIterable<E> extends Iterable<E> {
       this._table, this._data, this._len, this._offset, this._step);
 
   Iterator<E> get iterator =>
-      new _CompactIterator<E>(_table, _data, _len, _offset, _step);
+      _CompactIterator<E>(_table, _data, _len, _offset, _step);
 
   int get length => _table.length;
   bool get isEmpty => length == 0;
@@ -737,7 +733,7 @@ class _CompactIterableImmutable<E> extends Iterable<E> {
       this._table, this._data, this._len, this._offset, this._step);
 
   Iterator<E> get iterator =>
-      new _CompactIteratorImmutable<E>(_table, _data, _len, _offset, _step);
+      _CompactIteratorImmutable<E>(_table, _data, _len, _offset, _step);
 
   int get length => _table.length;
   bool get isEmpty => length == 0;
@@ -928,7 +924,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
   }
 
   Iterator<E> get iterator =>
-      new _CompactIterator<E>(this, _data, _usedData, -1, 1);
+      _CompactIterator<E>(this, _data, _usedData, -1, 1);
 
   // This method is called by [_rehashObjects] (see above).
   void _regenerateIndex() {
@@ -960,12 +956,12 @@ class _CompactLinkedHashSet<E> extends _HashVMBase
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
-  static Set<R> _newEmpty<R>() => new _CompactLinkedHashSet<R>();
+  static Set<R> _newEmpty<R>() => _CompactLinkedHashSet<R>();
 
   // Returns a set of the same type, although this
   // is not required by the spec. (For instance, always using an identity set
   // would be technically correct, albeit surprising.)
-  Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
+  Set<E> toSet() => _CompactLinkedHashSet<E>()..addAll(this);
 
   void addAll(Iterable<E> other) {
     if (other is _CompactLinkedHashSet) {
@@ -1052,13 +1048,13 @@ mixin _ImmutableLinkedHashSetMixin<E>
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
-  static Set<R> _newEmpty<R>() => new _CompactLinkedHashSet<R>();
+  static Set<R> _newEmpty<R>() => _CompactLinkedHashSet<R>();
 
   // Returns a mutable set.
-  Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
+  Set<E> toSet() => _CompactLinkedHashSet<E>()..addAll(this);
 
   Iterator<E> get iterator =>
-      new _CompactIteratorImmutable<E>(this, _data, _usedData, -1, 1);
+      _CompactIteratorImmutable<E>(this, _data, _usedData, -1, 1);
 }
 
 class _CompactLinkedIdentityHashSet<E> extends _HashFieldBase
@@ -1068,17 +1064,16 @@ class _CompactLinkedIdentityHashSet<E> extends _HashFieldBase
         _IdenticalAndIdentityHashCode,
         _LinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
-  Set<E> toSet() => new _CompactLinkedIdentityHashSet<E>()..addAll(this);
+  Set<E> toSet() => _CompactLinkedIdentityHashSet<E>()..addAll(this);
 
-  static Set<R> _newEmpty<R>() => new _CompactLinkedIdentityHashSet<R>();
+  static Set<R> _newEmpty<R>() => _CompactLinkedIdentityHashSet<R>();
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
   void addAll(Iterable<E> other) {
-    if (other is _CompactLinkedIdentityHashSet) {
-      final otherBase = other as _CompactLinkedIdentityHashSet;
+    if (other is _CompactLinkedIdentityHashSet<E>) {
       // If this set is empty we might be able to block-copy from [other].
-      if (isEmpty && _quickCopy(otherBase)) return;
+      if (isEmpty && _quickCopy(other)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
     }
     super.addAll(other);
@@ -1089,12 +1084,12 @@ class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
     with
         SetMixin<E>,
         _HashBase,
-        _CustomEqualsAndHashCode,
+        _CustomEqualsAndHashCode<E>,
         _LinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
-  final dynamic _equality;
-  final dynamic _hasher;
-  final dynamic _validKey;
+  final bool Function(E, E) _equality;
+  final int Function(E) _hasher;
+  final bool Function(Object?) _validKey;
 
   bool contains(Object? o) => _validKey(o) ? super.contains(o) : false;
   E? lookup(Object? o) => _validKey(o) ? super.lookup(o) : null;
@@ -1103,11 +1098,12 @@ class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
   @pragma("wasm:entry-point")
   bool add(E key);
 
-  _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
-      : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
+  _CompactLinkedCustomHashSet(
+      this._equality, this._hasher, bool Function(Object?)? validKey)
+      : _validKey = validKey ?? _TypeTest<E>().test;
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this);
   Set<E> toSet() =>
-      new _CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
+      _CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
         ..addAll(this);
 }
