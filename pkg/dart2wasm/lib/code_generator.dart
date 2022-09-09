@@ -333,6 +333,22 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       typeLocals[typeParameters[i]] = paramLocals[typeParameterOffset + i];
     }
 
+    // For all parameters whose Wasm type has been forced to `externref` due to
+    // this function being an export, internalize and cast the parameter to the
+    // canonical representation type for its Dart type.
+    locals.forEach((parameter, local) {
+      DartType parameterType = parameter.type;
+      if (local.type == w.RefType.extern(nullable: true) &&
+          !(parameterType is InterfaceType &&
+              parameterType.classNode == translator.wasmExternRefClass)) {
+        w.Local newLocal = addLocal(translateType(parameterType));
+        b.local_get(local);
+        translator.convertType(function, local.type, newLocal.type);
+        b.local_set(newLocal);
+        locals[parameter] = newLocal;
+      }
+    });
+
     closures.findCaptures(member);
 
     if (hasThis) {
@@ -1408,7 +1424,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitEqualsNull(EqualsNull node, w.ValueType expectedType) {
-    wrap(node.expression, const w.RefType.top(nullable: true));
+    wrap(node.expression, const w.RefType.any(nullable: true));
     b.ref_is_null();
     return w.NumType.i32;
   }

@@ -219,12 +219,14 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
     List<w.ValueType> typeParameters = List.filled(typeParamCount,
         translator.classInfo[translator.typeClass]!.nonNullableType);
 
-    // The JS embedder will not accept Wasm struct types as parameter or return
-    // types for functions called from JS. We need to use eqref instead.
+    // The only reference types allowed as parameters and returns on imported
+    // or exported functions for JS interop are `externref` and `funcref`.
     w.ValueType adjustExternalType(w.ValueType type) {
-      if (isImportOrExport &&
-          type.isSubtypeOf(translator.topInfo.nullableType)) {
-        return w.RefType.eq(nullable: type.nullable);
+      if (isImportOrExport && type is w.RefType) {
+        if (type.heapType.isSubtypeOf(w.HeapType.func)) {
+          return w.RefType.func(nullable: true);
+        }
+        return w.RefType.extern(nullable: true);
       }
       return type;
     }

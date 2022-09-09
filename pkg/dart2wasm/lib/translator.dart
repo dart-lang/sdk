@@ -739,8 +739,8 @@ class Translator {
       }
       if (to != voidMarker) {
         if (to is w.RefType && to.nullable) {
-          // This can happen when a void method has its return type overridden to
-          // return a value, in which case the selector signature will have a
+          // This can happen when a void method has its return type overridden
+          // to return a value, in which case the selector signature will have a
           // non-void return type to encompass all possible return values.
           b.ref_null(to.heapType);
         } else {
@@ -752,6 +752,17 @@ class Translator {
         return;
       }
     }
+
+    bool fromIsExtern = from.isSubtypeOf(w.RefType.extern(nullable: true));
+    bool toIsExtern = to.isSubtypeOf(w.RefType.extern(nullable: true));
+    if (fromIsExtern && !toIsExtern) {
+      b.extern_internalize();
+      from = w.RefType.any(nullable: from.nullable);
+    }
+    if (!fromIsExtern && toIsExtern) {
+      to = w.RefType.any(nullable: to.nullable);
+    }
+
     if (!from.isSubtypeOf(to)) {
       if (from is! w.RefType && to is w.RefType) {
         // Boxing
@@ -811,6 +822,10 @@ class Translator {
           b.end(); // nullLabel
         }
       }
+    }
+
+    if (!fromIsExtern && toIsExtern) {
+      b.extern_externalize();
     }
   }
 
