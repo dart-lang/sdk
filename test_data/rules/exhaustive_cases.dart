@@ -16,25 +16,40 @@ class E {
 
 void e(E e) {
   // Missing case.
-  switch(e) { // LINT
-    case E.e :
+  switch (e) { // LINT
+    case E.e:
       print('e');
       break;
-    case E.f :
+    case E.f:
       print('e');
   }
 }
 
 void ok(E e) {
   // All cases covered.
-  switch(e) { // OK
-    case E.e :
+  switch (e) { // OK
+    case E.e:
       print('e');
       break;
-    case E.f :
+    case E.f:
       print('e');
       break;
-    case E.g :
+    case E.g:
+      print('e');
+      break;
+  }
+}
+
+void okParenthesized(E e) {
+  // All cases covered.
+  switch (e) { // OK
+    case (E.e):
+      print('e');
+      break;
+    case ((E.f)):
+      print('e');
+      break;
+    case (E.g):
       print('e');
       break;
   }
@@ -42,17 +57,17 @@ void ok(E e) {
 
 void okDefault(E e) {
   // Missing cases w/ default is OK.
-  switch(e) { // OK
-    case E.e :
+  switch (e) { // OK
+    case E.e:
       print('e');
       break;
-    default :
+    default:
       print('default');
       break;
   }
 }
 
-// Not Enum-like
+// Not Enum-like.
 class Subclassed {
   const Subclassed._();
 
@@ -66,13 +81,13 @@ class Subclass extends Subclassed {
 }
 
 void s(Subclassed e) {
-  switch(e) { // OK
-    case Subclassed.e :
+  switch (e) { // OK
+    case Subclassed.e:
       print('e');
   }
 }
 
-// Not Enum-like
+// Not Enum-like.
 class TooFew {
   const TooFew._();
 
@@ -80,13 +95,13 @@ class TooFew {
 }
 
 void t(TooFew e) {
-  switch(e) { // OK
-    case TooFew.e :
+  switch (e) { // OK
+    case TooFew.e:
       print('e');
   }
 }
 
-// Not Enum-like
+// Not Enum-like.
 class PublicCons {
   const PublicCons();
   static const e = PublicCons();
@@ -94,20 +109,19 @@ class PublicCons {
 }
 
 void p(PublicCons e) {
-  switch(e) { // OK
-    case PublicCons.e :
+  switch (e) { // OK
+    case PublicCons.e:
       print('e');
   }
 }
 
-// Handled by analyzer
-enum ActualEnum {
-  e, f
-}
+// Handled by analyzer.
+enum ActualEnum { e, f }
+
 void ae(ActualEnum e) {
   // ignore: missing_enum_constant_in_switch
-  switch(e) { // OK
-    case ActualEnum.e :
+  switch (e) { // OK
+    case ActualEnum.e:
       print('e');
   }
 }
@@ -125,8 +139,7 @@ class DeprecatedFields {
 }
 
 void dep(DeprecatedFields e) {
-  switch (e) {
-    // OK
+  switch (e) { // OK
     case DeprecatedFields.newFoo:
       print('newFoo');
       break;
@@ -147,8 +160,7 @@ void dep(DeprecatedFields e) {
       break;
   }
 
-  switch (e) {
-    // OK
+  switch (e) { // OK
     case DeprecatedFields.oldFoo:
       print('oldFoo');
       break;

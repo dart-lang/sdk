@@ -118,7 +118,7 @@ class _Visitor extends SimpleAstVisitor {
       var enumConstants = enumDescription.enumConstants;
       for (var member in statement.members) {
         if (member is SwitchCase) {
-          var expression = member.expression;
+          var expression = member.expression.unParenthesized;
           if (expression is Identifier) {
             var element = expression.staticElement;
             if (element is PropertyAccessorElement) {
