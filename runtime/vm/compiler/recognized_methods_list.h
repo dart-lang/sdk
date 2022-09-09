@@ -241,8 +241,8 @@ namespace dart {
   V(_Int32x4, _withFlagW, Int32x4WithFlagW, 0xb333f958)                        \
   V(_HashVMBase, get:_index, LinkedHashBase_getIndex, 0x882671dc)              \
   V(_HashVMBase, set:_index, LinkedHashBase_setIndex, 0xa2be9418)              \
-  V(_HashVMBase, get:_data, LinkedHashBase_getData, 0x780e14ad)                \
-  V(_HashVMBase, set:_data, LinkedHashBase_setData, 0xb6a5c369)                \
+  V(_HashVMBase, get:_data, LinkedHashBase_getData, 0x2c8b5e83)                \
+  V(_HashVMBase, set:_data, LinkedHashBase_setData, 0x40f7efbf)                \
   V(_HashVMBase, get:_usedData, LinkedHashBase_getUsedData, 0x470893ed)        \
   V(_HashVMBase, set:_usedData, LinkedHashBase_setUsedData, 0xb3c887a9)        \
   V(_HashVMBase, get:_hashMask, LinkedHashBase_getHashMask, 0x4f0ec79c)        \
@@ -250,7 +250,7 @@ namespace dart {
   V(_HashVMBase, get:_deletedKeys, LinkedHashBase_getDeletedKeys, 0x510dc4a0)  \
   V(_HashVMBase, set:_deletedKeys, LinkedHashBase_setDeletedKeys, 0xbdcdb85c)  \
   V(_HashVMImmutableBase, get:_data, ImmutableLinkedHashBase_getData,          \
-    0x780e14ad)                                                                \
+    0x2c8b5e83)                                                                \
   V(_HashVMImmutableBase, get:_indexNullable,                                  \
     ImmutableLinkedHashBase_getIndex, 0xfd877bfb)                              \
   V(_HashVMImmutableBase, set:_index,                                          \
