@@ -1302,10 +1302,10 @@ class Class : public Object {
   }
 
   // Asserts that the class of the super type has been resolved.
-  // |original_classes| only has an effect when reloading. If true and we
-  // are reloading, it will prefer the original classes to the replacement
-  // classes.
-  ClassPtr SuperClass(bool original_classes = false) const;
+  // If |class_table| is provided it will be used to resolve class id to the
+  // actual class object, instead of using current class table on the isolate
+  // group.
+  ClassPtr SuperClass(ClassTable* class_table = nullptr) const;
 
   // Interfaces is an array of Types.
   ArrayPtr interfaces() const {
@@ -1491,10 +1491,9 @@ class Class : public Object {
 
   // Returns an array of all instance fields of this class and its superclasses
   // indexed by offset in words.
-  // |original_classes| only has an effect when reloading. If true and we
-  // are reloading, it will prefer the original classes to the replacement
-  // classes.
-  ArrayPtr OffsetToFieldMap(bool original_classes = false) const;
+  // If |class_table| is provided it will be used to resolve super classes by
+  // class id, instead of the current class_table stored in the isolate.
+  ArrayPtr OffsetToFieldMap(ClassTable* class_table = nullptr) const;
 
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
@@ -7765,7 +7764,7 @@ class Instance : public Object {
     StoreCompressedPointer(RawFieldAddrAtOffset(offset), value.ptr());
   }
 
-  static InstancePtr NewFromCidAndSize(SharedClassTable* shared_class_table,
+  static InstancePtr NewFromCidAndSize(ClassTable* class_table,
                                        classid_t cid,
                                        Heap::Space heap = Heap::kNew);
 

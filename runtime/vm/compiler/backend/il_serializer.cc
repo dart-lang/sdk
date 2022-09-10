@@ -1685,7 +1685,7 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
         const auto& cls =
             Class::Handle(Z, isolate_group()->class_table()->At(cid));
         const auto unboxed_fields_bitmap =
-            isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid);
+            isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid);
         const intptr_t next_field_offset = cls.host_next_field_offset();
         auto& obj = Object::Handle(Z);
         for (intptr_t offset = Instance::NextFieldOffset();
@@ -1939,7 +1939,7 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid)) {
         const auto& cls = Class::Handle(Z, GetClassById(cid));
         const auto unboxed_fields_bitmap =
-            isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid);
+            isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid);
         const intptr_t next_field_offset = cls.host_next_field_offset();
         auto& instance = Instance::ZoneHandle(Z, Instance::New(cls));
         for (intptr_t offset = Instance::NextFieldOffset();

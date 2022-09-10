@@ -69,11 +69,11 @@ void UntaggedObject::Validate(IsolateGroup* isolate_group) const {
     }
   }
   const intptr_t class_id = ClassIdTag::decode(tags);
-  if (!isolate_group->shared_class_table()->IsValidIndex(class_id)) {
+  if (!isolate_group->class_table()->IsValidIndex(class_id)) {
     FATAL1("Invalid class id encountered %" Pd "\n", class_id);
   }
   if (class_id == kNullCid &&
-      isolate_group->shared_class_table()->HasValidClassAt(class_id)) {
+      isolate_group->class_table()->HasValidClassAt(class_id)) {
     // Null class not yet initialized; skip.
     return;
   }
@@ -241,24 +241,15 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
       auto isolate_group = IsolateGroup::Current();
 #if defined(DEBUG)
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      auto reload_context = isolate_group->reload_context();
-      const bool use_saved_class_table =
-          reload_context != nullptr ? reload_context->UseSavedSizeTableForGC()
-                                    : false;
-#else
-      const bool use_saved_class_table = false;
-#endif
-
-      auto class_table = isolate_group->shared_class_table();
-      ASSERT(use_saved_class_table || class_table->SizeAt(class_id) > 0);
+      auto class_table = isolate_group->heap_walk_class_table();
+      ASSERT(class_table->SizeAt(class_id) > 0);
       if (!class_table->IsValidIndex(class_id) ||
-          (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {
+          !class_table->HasValidClassAt(class_id)) {
         FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
                class_id, this, static_cast<uint32_t>(tags));
       }
 #endif  // DEBUG
-      instance_size = isolate_group->GetClassSizeForHeapWalkAt(class_id);
+      instance_size = isolate_group->heap_walk_class_table()->SizeAt(class_id);
     }
   }
   ASSERT(instance_size != 0);
@@ -386,7 +377,8 @@ void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
   }
 
   // N.B.: Not using the heap size!
-  uword next_field_offset = isolate_group->GetClassForHeapWalkAt(class_id)
+  uword next_field_offset = visitor->class_table()
+                                ->At(class_id)
                                 ->untag()
                                 ->host_next_field_offset_in_words_
                             << kCompressedWordSizeLog2;
@@ -399,7 +391,7 @@ void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
   const auto unboxed_fields_bitmap =
-      visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+      visitor->class_table()->GetUnboxedFieldsMapAt(class_id);
 
   if (!unboxed_fields_bitmap.IsEmpty()) {
     intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
@@ -732,8 +724,7 @@ intptr_t UntaggedInstance::VisitInstancePointers(
   uword tags = raw_obj->untag()->tags_;
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
-    instance_size = visitor->isolate_group()->GetClassSizeForHeapWalkAt(
-        raw_obj->GetClassId());
+    instance_size = visitor->class_table()->SizeAt(raw_obj->GetClassId());
   }
 
   // Calculate the first and last raw object pointer fields.

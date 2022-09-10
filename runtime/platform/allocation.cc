@@ -8,6 +8,14 @@
 
 namespace dart {
 
+void* calloc(size_t n, size_t size) {
+  void* result = ::calloc(n, size);
+  if (result == nullptr) {
+    OUT_OF_MEMORY();
+  }
+  return result;
+}
+
 void* malloc(size_t size) {
   void* result = ::malloc(size);
   if (result == nullptr) {

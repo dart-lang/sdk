@@ -460,7 +460,7 @@ class MarkingWeakVisitor : public HandleVisitor {
  public:
   explicit MarkingWeakVisitor(Thread* thread)
       : HandleVisitor(thread),
-        class_table_(thread->isolate_group()->shared_class_table()) {}
+        class_table_(thread->isolate_group()->class_table()) {}
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
@@ -472,7 +472,7 @@ class MarkingWeakVisitor : public HandleVisitor {
   }
 
  private:
-  SharedClassTable* class_table_;
+  ClassTable* class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };

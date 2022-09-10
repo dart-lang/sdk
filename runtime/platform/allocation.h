@@ -10,6 +10,10 @@
 
 namespace dart {
 
+void* calloc(size_t n, size_t size);
+void* malloc(size_t size);
+void* realloc(void* ptr, size_t size);
+
 // Stack allocated objects subclass from this base class. Objects of this type
 // cannot be allocated on either the C or object heaps. Destructors for objects
 // of this type will not be run unless the stack is unwound through normal
@@ -41,19 +45,11 @@ class MallocAllocated {
   // check malloc/new/new[] are paired with free/delete/delete[] respectively.
 #if !defined(USING_ADDRESS_SANITIZER)
   void* operator new(size_t size) {
-    void* result = ::malloc(size);
-    if (result == nullptr) {
-      OUT_OF_MEMORY();
-    }
-    return result;
+    return dart::malloc(size);
   }
 
   void* operator new[](size_t size) {
-    void* result = ::malloc(size);
-    if (result == nullptr) {
-      OUT_OF_MEMORY();
-    }
-    return result;
+    return dart::malloc(size);
   }
 
   void operator delete(void* pointer) { ::free(pointer); }
@@ -61,9 +57,6 @@ class MallocAllocated {
   void operator delete[](void* pointer) { ::free(pointer); }
 #endif
 };
-
-void* malloc(size_t size);
-void* realloc(void* ptr, size_t size);
 
 }  // namespace dart
 

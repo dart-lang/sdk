@@ -2766,8 +2766,8 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     heap->old_space()->AllocateBlack(size);
   }
 #ifndef PRODUCT
-  auto class_table = thread->isolate_group()->shared_class_table();
-  if (class_table->TraceAllocationFor(cls_id)) {
+  auto class_table = thread->isolate_group()->class_table();
+  if (class_table->ShouldTraceAllocationFor(cls_id)) {
     uint32_t hash =
         HeapSnapshotWriter::GetHeapSnapshotIdentityHash(thread, raw_obj);
     Profiler::SampleAllocation(thread, cls_id, hash);
@@ -3085,7 +3085,8 @@ void Class::InitEmptyFields() {
   set_invocation_dispatcher_cache(Object::empty_array());
 }
 
-ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
+ArrayPtr Class::OffsetToFieldMap(
+    ClassTable* class_table /* = nullptr */) const {
   ASSERT(is_finalized());
   if (untag()->offset_in_words_to_field<std::memory_order_acquire>() ==
       Array::null()) {
@@ -3104,7 +3105,7 @@ ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
           array.SetAt(f.HostOffset() >> kCompressedWordSizeLog2, f);
         }
       }
-      cls = cls.SuperClass(original_classes);
+      cls = cls.SuperClass(class_table);
     }
     untag()->set_offset_in_words_to_field<std::memory_order_release>(
         array.ptr());
@@ -3492,24 +3493,23 @@ TypeArgumentsPtr Class::InstantiateToBounds(Thread* thread) const {
   return type_params.defaults();
 }
 
-ClassPtr Class::SuperClass(bool original_classes) const {
+ClassPtr Class::SuperClass(ClassTable* class_table /* = nullptr */) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
+  if (class_table == nullptr) {
+    class_table = thread->isolate_group()->class_table();
+  }
+
   if (super_type() == AbstractType::null()) {
     if (id() == kTypeArgumentsCid) {
       // Pretend TypeArguments objects are Dart instances.
-      return isolate_group->class_table()->At(kInstanceCid);
+      return class_table->At(kInstanceCid);
     }
     return Class::null();
   }
   const AbstractType& sup_type = AbstractType::Handle(zone, super_type());
   const intptr_t type_class_id = sup_type.type_class_id();
-  if (original_classes) {
-    return isolate_group->GetClassForHeapWalkAt(type_class_id);
-  } else {
-    return isolate_group->class_table()->At(type_class_id);
-  }
+  return class_table->At(type_class_id);
 }
 
 void Class::set_super_type(const AbstractType& value) const {
@@ -3561,7 +3561,7 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
 
     if (FLAG_precompiled_mode) {
       host_bitmap =
-          IsolateGroup::Current()->shared_class_table()->GetUnboxedFieldsMapAt(
+          IsolateGroup::Current()->class_table()->GetUnboxedFieldsMapAt(
               super.id());
     }
   }
@@ -4129,8 +4129,7 @@ void Class::Finalize() const {
         isolate_group->class_table()->UpdateClassSize(id(), ptr());
       }
       if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(id())) {
-        isolate_group->shared_class_table()->SetUnboxedFieldsMapAt(id(),
-                                                                   host_bitmap);
+        isolate_group->class_table()->SetUnboxedFieldsMapAt(id(), host_bitmap);
       }
     }
   }
@@ -4243,8 +4242,8 @@ void Class::set_dependent_code(const Array& array) const {
 
 bool Class::TraceAllocation(IsolateGroup* isolate_group) const {
 #ifndef PRODUCT
-  auto class_table = isolate_group->shared_class_table();
-  return class_table->TraceAllocationFor(id());
+  auto class_table = isolate_group->class_table();
+  return class_table->ShouldTraceAllocationFor(id());
 #else
   return false;
 #endif
@@ -4255,7 +4254,7 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   auto isolate_group = IsolateGroup::Current();
   const bool changed = trace_allocation != this->TraceAllocation(isolate_group);
   if (changed) {
-    auto class_table = isolate_group->shared_class_table();
+    auto class_table = isolate_group->class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }
@@ -19382,7 +19381,7 @@ uint32_t Instance::CanonicalizeHash() const {
     Instance& instance = Instance::Handle(zone);
 
     const auto unboxed_fields_bitmap =
-        thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
+        thread->isolate_group()->class_table()->GetUnboxedFieldsMapAt(
             GetClassId());
 
     for (intptr_t offset = Instance::NextFieldOffset();
@@ -19453,8 +19452,7 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
     const auto unboxed_fields_bitmap =
-        thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            class_id);
+        thread->isolate_group()->class_table()->GetUnboxedFieldsMapAt(class_id);
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kCompressedWordSize) {
       if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
@@ -19988,10 +19986,10 @@ InstancePtr Instance::NewAlreadyFinalized(const Class& cls, Heap::Space space) {
   return static_cast<InstancePtr>(raw);
 }
 
-InstancePtr Instance::NewFromCidAndSize(SharedClassTable* shared_class_table,
+InstancePtr Instance::NewFromCidAndSize(ClassTable* class_table,
                                         classid_t cid,
                                         Heap::Space heap) {
-  const intptr_t instance_size = shared_class_table->SizeAt(cid);
+  const intptr_t instance_size = class_table->SizeAt(cid);
   ASSERT(instance_size > 0);
   ObjectPtr raw = Object::Allocate(cid, instance_size, heap,
                                    Instance::ContainsCompressedPointers());

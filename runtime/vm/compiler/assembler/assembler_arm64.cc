@@ -1966,17 +1966,14 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      JumpDistance distance) {
   ASSERT(cid > 0);
 
-  const intptr_t shared_table_offset =
-      target::IsolateGroup::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
-
   LoadIsolateGroup(temp_reg);
-  ldr(temp_reg, Address(temp_reg, shared_table_offset));
-  ldr(temp_reg, Address(temp_reg, table_offset));
-  AddImmediate(temp_reg, class_offset);
-  ldr(temp_reg, Address(temp_reg, 0), kUnsignedByte);
+  ldr(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  ldr(temp_reg,
+      Address(temp_reg,
+              target::ClassTable::allocation_tracing_state_table_offset()));
+  LoadFromOffset(temp_reg, temp_reg,
+                 target::ClassTable::AllocationTracingStateSlotOffsetFor(cid),
+                 kUnsignedByte);
   cbnz(trace, temp_reg);
 }
 #endif  // !PRODUCT

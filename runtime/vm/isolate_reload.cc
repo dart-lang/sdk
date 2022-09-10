@@ -97,7 +97,7 @@ static bool HasNoTasks(Heap* heap) {
 
 InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     Zone* zone,
-    SharedClassTable* shared_class_table,
+    ClassTable* class_table,
     const Class& from,
     const Class& to) {
   auto mapping = new (zone) ZoneGrowableArray<intptr_t>();
@@ -115,8 +115,8 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
 
   // Add copying of the instance fields if matching by name.
   // Note: currently the type of the fields are ignored.
-  const Array& from_fields =
-      Array::Handle(from.OffsetToFieldMap(true /* original classes */));
+  const Array& from_fields = Array::Handle(
+      from.OffsetToFieldMap(IsolateGroup::Current()->heap_walk_class_table()));
   const Array& to_fields = Array::Handle(to.OffsetToFieldMap());
   Field& from_field = Field::Handle();
   Field& to_field = Field::Handle();
@@ -163,19 +163,19 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
   }
 
   ASSERT(from.id() == to.id());
-  return new (zone) InstanceMorpher(zone, to.id(), shared_class_table, mapping,
-                                    new_fields_offsets);
+  return new (zone)
+      InstanceMorpher(zone, to.id(), class_table, mapping, new_fields_offsets);
 }
 
 InstanceMorpher::InstanceMorpher(
     Zone* zone,
     classid_t cid,
-    SharedClassTable* shared_class_table,
+    ClassTable* class_table,
     ZoneGrowableArray<intptr_t>* mapping,
     ZoneGrowableArray<intptr_t>* new_fields_offsets)
     : zone_(zone),
       cid_(cid),
-      shared_class_table_(shared_class_table),
+      class_table_(class_table),
       mapping_(mapping),
       new_fields_offsets_(new_fields_offsets),
       before_(zone, 16) {}
@@ -212,7 +212,7 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
     // objects to old space.
     const bool is_canonical = before.IsCanonical();
     const Heap::Space space = is_canonical ? Heap::kOld : Heap::kNew;
-    after = Instance::NewFromCidAndSize(shared_class_table_, cid_, space);
+    after = Instance::NewFromCidAndSize(class_table_, cid_, space);
 
     // We preserve the canonical bit of the object, since this object is present
     // in the class's constants.
@@ -402,15 +402,14 @@ bool ProgramReloadContext::IsSameLibrary(const Library& a_lib,
 
 IsolateGroupReloadContext::IsolateGroupReloadContext(
     IsolateGroup* isolate_group,
-    SharedClassTable* shared_class_table,
+    ClassTable* class_table,
     JSONStream* js)
     : zone_(Thread::Current()->zone()),
       isolate_group_(isolate_group),
-      shared_class_table_(shared_class_table),
+      class_table_(class_table),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       reload_timestamp_(OS::GetCurrentTimeMillis()),
       js_(js),
-      saved_size_table_(nullptr),
       instance_morphers_(zone_, 0),
       reasons_to_cancel_reload_(zone_, 0),
       instance_morpher_by_cid_(zone_),
@@ -425,8 +424,6 @@ ProgramReloadContext::ProgramReloadContext(
     : zone_(Thread::Current()->zone()),
       group_reload_context_(group_reload_context),
       isolate_group_(isolate_group),
-      saved_class_table_(nullptr),
-      saved_tlc_class_table_(nullptr),
       old_classes_set_storage_(Array::null()),
       class_map_storage_(Array::null()),
       removed_class_set_storage_(Array::null()),
@@ -442,8 +439,7 @@ ProgramReloadContext::ProgramReloadContext(
 
 ProgramReloadContext::~ProgramReloadContext() {
   ASSERT(zone_ == Thread::Current()->zone());
-  ASSERT(saved_class_table_.load(std::memory_order_relaxed) == nullptr);
-  ASSERT(saved_tlc_class_table_.load(std::memory_order_relaxed) == nullptr);
+  ASSERT(IG->class_table() == IG->heap_walk_class_table());
 }
 
 void IsolateGroupReloadContext::ReportError(const Error& error) {
@@ -671,10 +667,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
   }
 
-  // Copy the size table for isolate group & class tables for each isolate.
+  // Clone the class table.
   {
     TIMELINE_SCOPE(CheckpointClasses);
-    CheckpointSharedClassTable();
     IG->program_reload_context()->CheckpointClasses();
   }
 
@@ -699,7 +694,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     const auto& error = Error::Cast(result);
     AddReasonForCancelling(new Aborted(Z, error));
 
-    DiscardSavedClassTable(/*is_rollback=*/true);
     IG->program_reload_context()->ReloadPhase4Rollback();
     CommonFinalizeTail(num_old_libs_);
   } else {
@@ -769,9 +763,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
             // We accepted the hot-reload and morphed instances. So now we can
             // commit to the changed class table and deleted the saved one.
-            DiscardSavedClassTable(/*is_rollback=*/false);
-            IG->program_reload_context()->DiscardSavedClassTable(
-                /*is_rollback=*/false);
+            IG->DropOriginalClassTable();
           }
           MorphInstancesPhase2Become(IG->become());
 
@@ -784,17 +776,31 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/ true);
         }
       }
+      if (FLAG_identity_reload) {
+        if (!discard_class_tables) {
+          TIR_Print("Identity reload failed! Some instances were morphed\n");
+        }
+        if (IG->heap_walk_class_table()->NumCids() !=
+            IG->class_table()->NumCids()) {
+          TIR_Print("Identity reload failed! B#C=%" Pd " A#C=%" Pd "\n",
+                    IG->heap_walk_class_table()->NumCids(),
+                    IG->class_table()->NumCids());
+        }
+        if (IG->heap_walk_class_table()->NumTopLevelCids() !=
+            IG->class_table()->NumTopLevelCids()) {
+          TIR_Print("Identity reload failed! B#TLC=%" Pd " A#TLC=%" Pd "\n",
+                    IG->heap_walk_class_table()->NumTopLevelCids(),
+                    IG->class_table()->NumTopLevelCids());
+        }
+      }
       if (discard_class_tables) {
-        DiscardSavedClassTable(/*is_rollback=*/false);
-        IG->program_reload_context()->DiscardSavedClassTable(
-            /*is_rollback=*/false);
+        IG->DropOriginalClassTable();
       }
       isolate_group_->program_reload_context()->ReloadPhase4CommitFinish();
       TIR_Print("---- DONE COMMIT\n");
       isolate_group_->set_last_reload_timestamp(reload_timestamp_);
     } else {
       TIR_Print("---- ROLLING BACK");
-      DiscardSavedClassTable(/*is_rollback=*/true);
       isolate_group_->program_reload_context()->ReloadPhase4Rollback();
     }
 
@@ -1066,7 +1072,7 @@ void ProgramReloadContext::ReloadPhase4CommitFinish() {
 }
 
 void ProgramReloadContext::ReloadPhase4Rollback() {
-  RollbackClasses();
+  IG->RestoreOriginalClassTable();
   RollbackLibraries();
 }
 
@@ -1209,64 +1215,33 @@ void ProgramReloadContext::DeoptimizeDependentCode() {
   // TODO(rmacnak): Also call LibraryPrefix::InvalidateDependentCode.
 }
 
-void IsolateGroupReloadContext::CheckpointSharedClassTable() {
-  // Copy the size table for isolate group.
-  intptr_t* saved_size_table = nullptr;
-  shared_class_table_->CopyBeforeHotReload(&saved_size_table, &saved_num_cids_);
-
-  Thread* thread = Thread::Current();
-  {
-    NoSafepointScope no_safepoint_scope(thread);
-
-    // The saved_size_table_ will now become source of truth for GC.
-    saved_size_table_.store(saved_size_table, std::memory_order_release);
-  }
-
-  // But the concurrent sweeper may still be reading from the old table.
-  thread->heap()->WaitForSweeperTasks(thread);
-
-  // Now we can clear the old table. This satisfies asserts during class
-  // registration and encourages fast failure if we use the wrong table
-  // for GC during reload, but isn't strictly needed for correctness.
-  shared_class_table_->ResetBeforeHotReload();
-}
-
 void ProgramReloadContext::CheckpointClasses() {
   TIR_Print("---- CHECKPOINTING CLASSES\n");
-  // Checkpoint classes before a reload. We need to copy the following:
-  // 1) The size of the class table.
-  // 2) The class table itself.
+  // Checkpoint classes before a reload.
+
+  // Before this operation class table which is used for heap scanning and
+  // the class table used for program loading are the same. After this step
+  // they will become different until reload is commited (or rolled back).
+  //
+  // Note that because GC is always reading from heap_walk_class_table and
+  // we are not changing that, there is no reason to wait for sweeping
+  // threads or marking to complete.
+  RELEASE_ASSERT(IG->class_table() == IG->heap_walk_class_table());
+
+  IG->CloneClassTableForReload();
+
+  // IG->class_table() is now the clone of heap_walk_class_table.
+  RELEASE_ASSERT(IG->class_table() != IG->heap_walk_class_table());
+
+  ClassTable* class_table = IG->class_table();
+
   // For efficiency, we build a set of classes before the reload. This set
   // is used to pair new classes with old classes.
-
-  // Copy the class table for isolate.
-  ClassTable* class_table = IG->class_table();
-  ClassPtr* saved_class_table = nullptr;
-  ClassPtr* saved_tlc_class_table = nullptr;
-  class_table->CopyBeforeHotReload(&saved_class_table, &saved_tlc_class_table,
-                                   &saved_num_cids_, &saved_num_tlc_cids_);
-
-  // Copy classes into saved_class_table_ first. Make sure there are no
-  // safepoints until saved_class_table_ is filled up and saved so class raw
-  // pointers in saved_class_table_ are properly visited by GC.
-  {
-    NoSafepointScope no_safepoint_scope(Thread::Current());
-
-    // The saved_class_table_ is now source of truth for GC.
-    saved_class_table_.store(saved_class_table, std::memory_order_release);
-    saved_tlc_class_table_.store(saved_tlc_class_table,
-                                 std::memory_order_release);
-
-    // We can therefore wipe out all of the old entries (if that table is used
-    // for GC during the hot-reload we have a bug).
-    class_table->ResetBeforeHotReload();
-  }
-
   // Add classes to the set. Set is stored in the Array, so adding an element
   // may allocate Dart object on the heap and trigger GC.
   Class& cls = Class::Handle();
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
-  for (intptr_t i = 0; i < saved_num_cids_; i++) {
+  for (intptr_t i = 0; i < class_table->NumCids(); i++) {
     if (class_table->IsValidIndex(i) && class_table->HasValidClassAt(i)) {
       if (i != kFreeListElement && i != kForwardingCorpse) {
         cls = class_table->At(i);
@@ -1275,7 +1250,7 @@ void ProgramReloadContext::CheckpointClasses() {
       }
     }
   }
-  for (intptr_t i = 0; i < saved_num_tlc_cids_; i++) {
+  for (intptr_t i = 0; i < class_table->NumTopLevelCids(); i++) {
     const intptr_t cid = ClassTable::CidFromTopLevelIndex(i);
     if (class_table->IsValidIndex(cid) && class_table->HasValidClassAt(cid)) {
       cls = class_table->At(cid);
@@ -1284,7 +1259,8 @@ void ProgramReloadContext::CheckpointClasses() {
     }
   }
   old_classes_set_storage_ = old_classes_set.Release().ptr();
-  TIR_Print("---- System had %" Pd " classes\n", saved_num_cids_);
+  TIR_Print("---- System had %" Pd " classes\n",
+            class_table->NumCids() + class_table->NumTopLevelCids());
 }
 
 Dart_FileModifiedCallback IsolateGroupReloadContext::file_modified_callback_ =
@@ -1429,14 +1405,6 @@ void ProgramReloadContext::CheckpointLibraries() {
   object_store()->set_root_library(Library::Handle());
 }
 
-void ProgramReloadContext::RollbackClasses() {
-  TIR_Print("---- ROLLING BACK CLASS TABLE\n");
-  ASSERT((saved_num_cids_ + saved_num_tlc_cids_) > 0);
-  ASSERT(saved_class_table_.load(std::memory_order_relaxed) != nullptr);
-  ASSERT(saved_tlc_class_table_.load(std::memory_order_relaxed) != nullptr);
-
-  DiscardSavedClassTable(/*is_rollback=*/true);
-}
 
 void ProgramReloadContext::RollbackLibraries() {
   TIR_Print("---- ROLLING BACK LIBRARY CHANGES\n");
@@ -1618,14 +1586,6 @@ void ProgramReloadContext::CommitAfterInstanceMorphing() {
 #endif
 
   if (FLAG_identity_reload) {
-    if (saved_num_cids_ != IG->class_table()->NumCids()) {
-      TIR_Print("Identity reload failed! B#C=%" Pd " A#C=%" Pd "\n",
-                saved_num_cids_, IG->class_table()->NumCids());
-    }
-    if (saved_num_tlc_cids_ != IG->class_table()->NumTopLevelCids()) {
-      TIR_Print("Identity reload failed! B#TLC=%" Pd " A#TLC=%" Pd "\n",
-                saved_num_tlc_cids_, IG->class_table()->NumTopLevelCids());
-    }
     const auto& saved_libs = GrowableObjectArray::Handle(saved_libraries_);
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(IG->object_store()->libraries());
@@ -1755,60 +1715,6 @@ void ProgramReloadContext::ValidateReload() {
   }
 }
 
-ClassPtr ProgramReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
-  ClassPtr* class_table = nullptr;
-  intptr_t index = -1;
-  if (ClassTable::IsTopLevelCid(cid)) {
-    class_table = saved_tlc_class_table_.load(std::memory_order_acquire);
-    index = ClassTable::IndexFromTopLevelCid(cid);
-    ASSERT(index < saved_num_tlc_cids_);
-  } else {
-    class_table = saved_class_table_.load(std::memory_order_acquire);
-    index = cid;
-    ASSERT(cid > 0 && cid < saved_num_cids_);
-  }
-  if (class_table != nullptr) {
-    return class_table[index];
-  }
-  return IG->class_table()->At(cid);
-}
-
-intptr_t IsolateGroupReloadContext::GetClassSizeForHeapWalkAt(classid_t cid) {
-  if (ClassTable::IsTopLevelCid(cid)) {
-    return 0;
-  }
-  intptr_t* size_table = saved_size_table_.load(std::memory_order_acquire);
-  if (size_table != nullptr) {
-    ASSERT(cid < saved_num_cids_);
-    return size_table[cid];
-  } else {
-    return shared_class_table_->SizeAt(cid);
-  }
-}
-
-void ProgramReloadContext::DiscardSavedClassTable(bool is_rollback) {
-  ClassPtr* local_saved_class_table =
-      saved_class_table_.load(std::memory_order_relaxed);
-  ClassPtr* local_saved_tlc_class_table =
-      saved_tlc_class_table_.load(std::memory_order_relaxed);
-  {
-    auto thread = Thread::Current();
-    SafepointWriteRwLocker sl(thread, thread->isolate_group()->program_lock());
-    IG->class_table()->ResetAfterHotReload(
-        local_saved_class_table, local_saved_tlc_class_table, saved_num_cids_,
-        saved_num_tlc_cids_, is_rollback);
-  }
-  saved_class_table_.store(nullptr, std::memory_order_release);
-  saved_tlc_class_table_.store(nullptr, std::memory_order_release);
-}
-
-void IsolateGroupReloadContext::DiscardSavedClassTable(bool is_rollback) {
-  intptr_t* local_saved_size_table = saved_size_table_;
-  shared_class_table_->ResetAfterHotReload(local_saved_size_table,
-                                           saved_num_cids_, is_rollback);
-  saved_size_table_.store(nullptr, std::memory_order_release);
-}
-
 void IsolateGroupReloadContext::VisitObjectPointers(
     ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
@@ -1816,20 +1722,6 @@ void IsolateGroupReloadContext::VisitObjectPointers(
 
 void ProgramReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
-
-  ClassPtr* saved_class_table =
-      saved_class_table_.load(std::memory_order_relaxed);
-  if (saved_class_table != NULL) {
-    auto class_table = reinterpret_cast<ObjectPtr*>(&(saved_class_table[0]));
-    visitor->VisitPointers(class_table, saved_num_cids_);
-  }
-  ClassPtr* saved_tlc_class_table =
-      saved_tlc_class_table_.load(std::memory_order_relaxed);
-  if (saved_tlc_class_table != NULL) {
-    auto class_table =
-        reinterpret_cast<ObjectPtr*>(&(saved_tlc_class_table[0]));
-    visitor->VisitPointers(class_table, saved_num_tlc_cids_);
-  }
 }
 
 ObjectStore* ProgramReloadContext::object_store() {

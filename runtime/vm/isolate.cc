@@ -329,10 +329,10 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
                            ObjectStore* object_store,
                            Dart_IsolateFlags api_flags)
-    : shared_class_table_(new SharedClassTable()),
-      class_table_(new ClassTable(shared_class_table_.get())),
-      cached_class_table_table_(class_table_->table()),
+    : class_table_(nullptr),
+      cached_class_table_table_(nullptr),
       object_store_(object_store),
+      class_table_allocator_(),
       embedder_data_(embedder_data),
       thread_pool_(),
       isolates_lock_(new SafepointRwLock()),
@@ -401,6 +401,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
     WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
     id_ = isolate_group_random_->NextUInt64();
   }
+  heap_walk_class_table_ = class_table_ =
+      new ClassTable(&class_table_allocator_);
+  cached_class_table_table_.store(class_table_->table());
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
@@ -422,6 +425,11 @@ IsolateGroup::~IsolateGroup() {
       delete[] obfuscation_map_[i];
     }
     delete[] obfuscation_map_;
+  }
+
+  class_table_allocator_.Free(class_table_);
+  if (heap_walk_class_table_ != class_table_) {
+    class_table_allocator_.Free(heap_walk_class_table_);
   }
 
 #if !defined(PRODUCT)
@@ -2040,9 +2048,9 @@ bool IsolateGroup::ReloadSources(JSONStream* js,
 
   ASSERT(!IsReloading());
 
-  auto shared_class_table = IsolateGroup::Current()->shared_class_table();
+  auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
-      new IsolateGroupReloadContext(this, shared_class_table, js));
+      new IsolateGroupReloadContext(this, class_table, js));
   group_reload_context_ = group_reload_context;
 
   SetHasAttemptedReload(true);
@@ -2069,9 +2077,9 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
 
   ASSERT(!IsReloading());
 
-  auto shared_class_table = IsolateGroup::Current()->shared_class_table();
+  auto class_table = IsolateGroup::Current()->class_table();
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context(
-      new IsolateGroupReloadContext(this, shared_class_table, js));
+      new IsolateGroupReloadContext(this, class_table, js));
   group_reload_context_ = group_reload_context;
 
   SetHasAttemptedReload(true);
@@ -2088,7 +2096,6 @@ bool IsolateGroup::ReloadKernel(JSONStream* js,
 }
 
 void IsolateGroup::DeleteReloadContext() {
-  // Another thread may be in the middle of GetClassForHeapWalkAt.
   GcSafepointOperationScope safepoint_scope(Thread::Current());
   group_reload_context_.reset();
 
@@ -2966,10 +2973,10 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
-  // if class table is shared, it's stored on isolate group
-  if (class_table() != nullptr) {
-    // Visit objects in the class table.
-    class_table()->VisitObjectPointers(visitor);
+  // Visit objects in the class table.
+  class_table()->VisitObjectPointers(visitor);
+  if (heap_walk_class_table() != class_table()) {
+    heap_walk_class_table()->VisitObjectPointers(visitor);
   }
   api_state()->VisitObjectPointersUnlocked(visitor);
   // Visit objects in the object store.
@@ -3053,34 +3060,6 @@ void IsolateGroup::DeferredMarkLiveTemporaries() {
 void IsolateGroup::RememberLiveTemporaries() {
   ForEachIsolate([&](Isolate* isolate) { isolate->RememberLiveTemporaries(); },
                  /*at_safepoint=*/true);
-}
-
-ClassPtr IsolateGroup::GetClassForHeapWalkAt(intptr_t cid) {
-  ClassPtr raw_class = nullptr;
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsReloading()) {
-    raw_class = program_reload_context()->GetClassForHeapWalkAt(cid);
-  } else {
-    raw_class = class_table()->At(cid);
-  }
-#else
-  raw_class = class_table()->At(cid);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(raw_class != nullptr);
-  ASSERT(remapping_cids() || raw_class->untag()->id_ == cid);
-  return raw_class;
-}
-
-intptr_t IsolateGroup::GetClassSizeForHeapWalkAt(intptr_t cid) {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsReloading()) {
-    return group_reload_context_->GetClassSizeForHeapWalkAt(cid);
-  } else {
-    return shared_class_table()->SizeAt(cid);
-  }
-#else
-  return shared_class_table()->SizeAt(cid);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 #if !defined(PRODUCT)
@@ -3867,5 +3846,27 @@ void Isolate::UnscheduleThread(Thread* thread,
     group()->DecreaseMutatorCount(this, is_nested_exit);
   }
 }
+
+#if !defined(PRODUCT)
+void IsolateGroup::CloneClassTableForReload() {
+  RELEASE_ASSERT(class_table_ == heap_walk_class_table_);
+  class_table_ = class_table_->Clone();
+  set_cached_class_table_table(nullptr);
+}
+
+void IsolateGroup::RestoreOriginalClassTable() {
+  RELEASE_ASSERT(class_table_ != heap_walk_class_table_);
+  class_table_allocator_.Free(class_table_);
+  class_table_ = heap_walk_class_table_;
+  set_cached_class_table_table(class_table_->table());
+}
+
+void IsolateGroup::DropOriginalClassTable() {
+  RELEASE_ASSERT(class_table_ != heap_walk_class_table_);
+  class_table_allocator_.Free(heap_walk_class_table_);
+  heap_walk_class_table_ = class_table_;
+  set_cached_class_table_table(class_table_->table());
+}
+#endif
 
 }  // namespace dart

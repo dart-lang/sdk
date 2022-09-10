@@ -824,7 +824,7 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
     const intptr_t next_field_offset = next_field_offset_;
 #if defined(DART_PRECOMPILED_RUNTIME)
     const auto unboxed_fields_bitmap =
-        s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+        s->isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid_);
 #endif
     for (intptr_t offset = Instance::NextFieldOffset();
          offset < next_field_offset; offset += kCompressedWordSize) {
@@ -858,7 +858,7 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
       const intptr_t next_field_offset = next_field_offset_;
 #if defined(DART_PRECOMPILED_RUNTIME)
       const auto unboxed_fields_bitmap =
-          s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+          s->isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid_);
 #endif
       for (intptr_t offset = Instance::NextFieldOffset();
            offset < next_field_offset; offset += kCompressedWordSize) {
@@ -907,8 +907,7 @@ class InstanceMessageDeserializationCluster
     const intptr_t next_field_offset = cls_.host_next_field_offset();
 #if defined(DART_PRECOMPILED_RUNTIME)
     const auto unboxed_fields_bitmap =
-        d->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            cls_.id());
+        d->isolate_group()->class_table()->GetUnboxedFieldsMapAt(cls_.id());
 #else
     const intptr_t type_argument_field_offset =
         cls_.host_type_arguments_field_offset();

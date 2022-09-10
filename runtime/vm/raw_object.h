@@ -418,7 +418,7 @@ class UntaggedObject {
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
-        visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+        visitor->class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
       intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
@@ -456,7 +456,7 @@ class UntaggedObject {
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
-        visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+        visitor->class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
       intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;

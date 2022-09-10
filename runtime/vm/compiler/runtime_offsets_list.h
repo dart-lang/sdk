@@ -46,7 +46,7 @@
 #define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF,                \
                             PAYLOAD_SIZEOF, RANGE, CONSTANT)                   \
   ARRAY(Array, element_offset)                                                 \
-  NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \
+  NOT_IN_PRODUCT(ARRAY(ClassTable, AllocationTracingStateSlotOffsetFor))       \
   ARRAY(Code, element_offset)                                                  \
   ARRAY(Context, variable_offset)                                              \
   ARRAY(ContextScope, element_offset)                                          \
@@ -103,7 +103,7 @@
   FIELD(Class, num_type_arguments_offset)                                      \
   FIELD(Class, super_type_offset)                                              \
   FIELD(Class, host_type_arguments_field_offset_in_words_offset)               \
-  NOT_IN_PRODUCT(FIELD(SharedClassTable, class_heap_stats_table_offset))       \
+  NOT_IN_PRODUCT(FIELD(ClassTable, allocation_tracing_state_table_offset))     \
   FIELD(Closure, context_offset)                                               \
   FIELD(Closure, delayed_type_arguments_offset)                                \
   FIELD(Closure, function_offset)                                              \
@@ -152,7 +152,7 @@
   NOT_IN_PRODUCT(FIELD(Isolate, has_resumption_breakpoints_offset))            \
   FIELD(Isolate, ic_miss_code_offset)                                          \
   FIELD(IsolateGroup, object_store_offset)                                     \
-  FIELD(IsolateGroup, shared_class_table_offset)                               \
+  FIELD(IsolateGroup, class_table_offset)                                      \
   FIELD(IsolateGroup, cached_class_table_table_offset)                         \
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \

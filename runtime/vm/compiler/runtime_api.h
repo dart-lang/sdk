@@ -1322,23 +1322,16 @@ class Isolate : public AllStatic {
 class IsolateGroup : public AllStatic {
  public:
   static word object_store_offset();
-  static word shared_class_table_offset();
+  static word class_table_offset();
   static word cached_class_table_table_offset();
-};
-
-class SharedClassTable : public AllStatic {
- public:
-  static word class_heap_stats_table_offset();
 };
 
 class ClassTable : public AllStatic {
  public:
 #if !defined(PRODUCT)
-  static word ClassOffsetFor(intptr_t cid);
-  static word SharedTableOffsetFor();
-  static word SizeOffsetFor(intptr_t cid, bool is_new);
+  static word allocation_tracing_state_table_offset();
+  static word AllocationTracingStateSlotOffsetFor(intptr_t cid);
 #endif  // !defined(PRODUCT)
-  static const word kSizeOfClassPairLog2;
 };
 
 class InstructionsSection : public AllStatic {

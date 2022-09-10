@@ -1164,7 +1164,7 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
   const int64_t start = OS::GetCurrentMonotonicMicros();
 
   // Perform various cleanup that relies on no tasks interfering.
-  isolate_group->shared_class_table()->FreeOldTables();
+  isolate_group->class_table_allocator()->FreePending();
   isolate_group->ForEachIsolate(
       [&](Isolate* isolate) { isolate->field_table()->FreeOldTables(); },
       /*at_safepoint=*/true);

@@ -1857,8 +1857,7 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
       return;
     }
 #if defined(DART_PRECOMPILED_RUNTIME)
-    const auto bitmap =
-        class_table_->shared_class_table()->GetUnboxedFieldsMapAt(cid);
+    const auto bitmap = class_table_->GetUnboxedFieldsMapAt(cid);
     CopyUserdefinedInstanceAOT(Instance::RawCast(from), Instance::RawCast(to),
                                bitmap);
 #else
@@ -1992,8 +1991,7 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
       return;
     }
 #if defined(DART_PRECOMPILED_RUNTIME)
-    const auto bitmap =
-        class_table_->shared_class_table()->GetUnboxedFieldsMapAt(cid);
+    const auto bitmap = class_table_->GetUnboxedFieldsMapAt(cid);
     CopyUserdefinedInstanceAOT(from, to, bitmap);
 #else
     CopyUserdefinedInstance(from, to);

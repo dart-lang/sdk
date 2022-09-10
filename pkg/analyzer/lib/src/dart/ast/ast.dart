@@ -4070,7 +4070,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 ///      | [ConditionalExpression] cascadeSection*
 ///      | [ThrowExpression]
 abstract class ExpressionImpl extends AstNodeImpl
-    implements CollectionElementImpl, Expression {
+    implements CollectionElementImpl, Expression, IfConditionImpl {
   /// The static type of this expression, or `null` if the AST structure has not
   /// been resolved.
   @override
@@ -6433,6 +6433,15 @@ abstract class IdentifierImpl extends CommentReferableExpressionImpl
   bool get isAssignable => true;
 }
 
+/// A condition in an `if` statement or `if` element.
+///
+///    ifCondition ::=
+///        [Expression]
+///      | [PatternVariableDeclaration]
+///      | [PatternAssignment]
+@experimental
+abstract class IfConditionImpl extends AstNodeImpl implements IfCondition {}
+
 class IfElementImpl extends CollectionElementImpl implements IfElement {
   @override
   Token ifKeyword;
@@ -6441,7 +6450,7 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   Token leftParenthesis;
 
   /// The condition used to determine which of the branches is executed next.
-  ExpressionImpl _condition;
+  IfConditionImpl _condition;
 
   @override
   Token rightParenthesis;
@@ -6474,10 +6483,10 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   Token get beginToken => ifKeyword;
 
   @override
-  ExpressionImpl get condition => _condition;
+  ExpressionImpl get condition => _condition as ExpressionImpl;
 
-  set condition(Expression condition) {
-    _condition = _becomeParentOf(condition as ExpressionImpl);
+  set condition(IfCondition condition) {
+    _condition = _becomeParentOf(condition as IfConditionImpl);
   }
 
   @override
@@ -6539,7 +6548,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   Token leftParenthesis;
 
   /// The condition used to determine which of the branches is executed next.
-  ExpressionImpl _condition;
+  IfConditionImpl _condition;
 
   @override
   Token rightParenthesis;
@@ -6573,10 +6582,10 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   Token get beginToken => ifKeyword;
 
   @override
-  ExpressionImpl get condition => _condition;
+  ExpressionImpl get condition => _condition as ExpressionImpl;
 
-  set condition(Expression condition) {
-    _condition = _becomeParentOf(condition as ExpressionImpl);
+  set condition(IfCondition condition) {
+    _condition = _becomeParentOf(condition as IfConditionImpl);
   }
 
   @override
@@ -9454,7 +9463,8 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 /// When used as the condition in an `if`, the pattern is always a
 /// [PatternVariable] whose type is not `null`.
 @experimental
-class PatternAssignmentImpl extends AstNodeImpl implements PatternAssignment {
+class PatternAssignmentImpl extends AstNodeImpl
+    implements IfConditionImpl, PatternAssignment {
   @override
   final Token equals;
 
@@ -9536,7 +9546,7 @@ class PatternAssignmentStatementImpl extends StatementImpl
 ///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
 @experimental
 class PatternVariableDeclarationImpl extends AstNodeImpl
-    implements PatternVariableDeclaration {
+    implements IfConditionImpl, PatternVariableDeclaration {
   @override
   final Token equals;
 
