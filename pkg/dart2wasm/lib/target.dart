@@ -94,7 +94,7 @@ class WasmTarget extends Target {
       Component component,
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
-      List<Library> interopDependentLibraries,
+      Set<Library> interopDependentLibraries,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
@@ -136,12 +136,12 @@ class WasmTarget extends Target {
       ReferenceFromIndex? referenceFromIndex,
       {void logger(String msg)?,
       ChangedStructureNotifier? changedStructureNotifier}) {
-    List<Library> transitiveImportingJSInterop = [
+    Set<Library> transitiveImportingJSInterop = {
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
           component, Uri.parse("package:js/js.dart")),
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
           component, Uri.parse("dart:_js_annotations"))
-    ];
+    };
     if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");
     } else {
