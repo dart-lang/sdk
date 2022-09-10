@@ -6,6 +6,11 @@
 
 import 'dart:async' show FutureOr;
 
+bool topLevelField = false;
+int get topLevelGetterSetterPair => 0;
+set topLevelGetterSetterPair(int i) => null;
+set topLevelSetterOnly(String s) => null;
+
 foo1(int a) {}
 foo2(int a, [int b = 1, String c = '']) {}
 foo3({int a = 0, required int b}) {}
@@ -17,3 +22,25 @@ foo6a<T extends FutureOr<S>, S extends U, U extends int?>(T a) {}
 foo6b<T extends FutureOr<S>, S extends U, U extends int>(T a) {}
 
 void Function(int) bar() => (int x) {};
+
+class A {
+  int get getterSetterPair => 0;
+  set getterSetterPair(int i) => null;
+  set setterOnly(String s) => null;
+  int field = 0;
+  static bool staticField = false;
+  static int get staticGetterSetterPair => 0;
+  static set staticGetterSetterPair(int i) => null;
+  static set staticSetterOnly(String s) => null;
+
+  void instanceMethod(String s) => print(s);
+  static void staticMethod(String s) => print(s);
+}
+
+class B extends A {
+  // Overrides the getters but not the setters.
+  @override
+  int get getterSetterPair => 999;
+  @override
+  int get field => 999;
+}

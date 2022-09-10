@@ -137,6 +137,9 @@ abstract class AbstractCompletionDriverTest
   Future<CompletionResponseForTesting> getTestCodeSuggestions(
     String content,
   ) async {
+    // Give the server time to create analysis contexts.
+    await pumpEventQueue(times: 1000);
+
     await addTestFile(content);
 
     return CompletionResponseForTesting(

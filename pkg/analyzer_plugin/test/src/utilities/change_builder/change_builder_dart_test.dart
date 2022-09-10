@@ -61,6 +61,22 @@ class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
   Future<void> test_writeType_Never_question() async {
     await _assertWriteType('Never?');
   }
+
+  Future<void> test_writeType_recordType_mixed() async {
+    await _assertWriteType('(int, {int y})');
+  }
+
+  Future<void> test_writeType_recordType_named() async {
+    await _assertWriteType('({int x, int y})');
+  }
+
+  Future<void> test_writeType_recordType_nullable() async {
+    await _assertWriteType('(int, {int y})?');
+  }
+
+  Future<void> test_writeType_recordType_positional() async {
+    await _assertWriteType('(int, int)');
+  }
 }
 
 @reflectiveTest
