@@ -674,7 +674,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var parent = expression.parent;
-    var genericFunctionInstantiation = astFactory.functionReference(
+    var genericFunctionInstantiation = FunctionReferenceImpl(
       function: expression,
       typeArguments: null,
     );

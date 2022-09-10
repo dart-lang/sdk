@@ -5892,8 +5892,11 @@ class FunctionReferenceImpl extends CommentReferableExpressionImpl
   @override
   List<DartType>? typeArgumentTypes;
 
-  FunctionReferenceImpl(this._function, {TypeArgumentListImpl? typeArguments})
-      : _typeArguments = typeArguments {
+  FunctionReferenceImpl({
+    required ExpressionImpl function,
+    required TypeArgumentListImpl? typeArguments,
+  })  : _function = function,
+        _typeArguments = typeArguments {
     _becomeParentOf(_function);
     _becomeParentOf(_typeArguments);
   }
@@ -6195,9 +6198,15 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
   GenericFunctionTypeElement? declaredElement;
 
   /// Initialize a newly created generic function type.
-  GenericFunctionTypeImpl(this._returnType, this.functionKeyword,
-      this._typeParameters, this._parameters,
-      {this.question}) {
+  GenericFunctionTypeImpl({
+    required TypeAnnotationImpl? returnType,
+    required this.functionKeyword,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl parameters,
+    required this.question,
+  })  : _returnType = returnType,
+        _typeParameters = typeParameters,
+        _parameters = parameters {
     _becomeParentOf(_returnType);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -6358,7 +6367,10 @@ class HideClauseImpl extends AstNodeImpl implements HideClause {
   final NodeListImpl<ShowHideClauseElement> _elements = NodeListImpl._();
 
   /// Initialize a newly created show clause.
-  HideClauseImpl(this.hideKeyword, List<ShowHideClauseElement> elements) {
+  HideClauseImpl({
+    required this.hideKeyword,
+    required List<ShowHideClauseElement> elements,
+  }) {
     _elements._initialize(this, elements);
   }
 
@@ -6647,7 +6659,10 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   final NodeListImpl<NamedType> _interfaces = NodeListImpl._();
 
   /// Initialize a newly created implements clause.
-  ImplementsClauseImpl(this.implementsKeyword, List<NamedType> interfaces) {
+  ImplementsClauseImpl({
+    required this.implementsKeyword,
+    required List<NamedType> interfaces,
+  }) {
     _interfaces._initialize(this, interfaces);
   }
 
@@ -7203,7 +7218,10 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   int? value = 0;
 
   /// Initialize a newly created integer literal.
-  IntegerLiteralImpl(this.literal, this.value);
+  IntegerLiteralImpl({
+    required this.literal,
+    required this.value,
+  });
 
   @override
   Token get beginToken => literal;
@@ -7374,7 +7392,10 @@ class InterpolationStringImpl extends InterpolationElementImpl
 
   /// Initialize a newly created string of characters that are part of a string
   /// interpolation.
-  InterpolationStringImpl(this.contents, this.value);
+  InterpolationStringImpl({
+    required this.contents,
+    required this.value,
+  });
 
   @override
   Token get beginToken => contents;
@@ -7591,7 +7612,10 @@ class LabelImpl extends AstNodeImpl implements Label {
   Token colon;
 
   /// Initialize a newly created label.
-  LabelImpl(this._label, this.colon) {
+  LabelImpl({
+    required SimpleIdentifierImpl label,
+    required this.colon,
+  }) : _label = label {
     _becomeParentOf(_label);
   }
 
@@ -7957,7 +7981,12 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   ExpressionImpl _value;
 
   /// Initialize a newly created map literal entry.
-  MapLiteralEntryImpl(this._key, this.separator, this._value) {
+  MapLiteralEntryImpl({
+    required ExpressionImpl key,
+    required this.separator,
+    required ExpressionImpl value,
+  })  : _key = key,
+        _value = value {
     _becomeParentOf(_key);
     _becomeParentOf(_value);
   }
@@ -8603,7 +8632,11 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   ExpressionImpl _expression;
 
   /// Initialize a newly created named expression..
-  NamedExpressionImpl(this._name, this._expression) {
+  NamedExpressionImpl({
+    required LabelImpl name,
+    required ExpressionImpl expression,
+  })  : _name = name,
+        _expression = expression {
     _becomeParentOf(_name);
     _becomeParentOf(_expression);
   }
@@ -8682,7 +8715,12 @@ class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   /// Initialize a newly created type name. The [typeArguments] can be `null` if
   /// there are no type arguments.
-  NamedTypeImpl(this._name, this._typeArguments, {this.question}) {
+  NamedTypeImpl({
+    required IdentifierImpl name,
+    required TypeArgumentListImpl? typeArguments,
+    required this.question,
+  })  : _name = name,
+        _typeArguments = typeArguments {
     _becomeParentOf(_name);
     _becomeParentOf(_typeArguments);
   }

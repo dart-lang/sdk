@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -2268,14 +2269,14 @@ class _InstanceCreationEvaluator {
           superArguments.insert(positionalIndex++, value);
         } else {
           superArguments.add(
-            astFactory.namedExpression(
-              astFactory.label(
-                astFactory.simpleIdentifier(
+            NamedExpressionImpl(
+              name: LabelImpl(
+                label: astFactory.simpleIdentifier(
                   StringToken(TokenType.STRING, parameter.name, -1),
                 )..staticElement = parameter,
-                StringToken(TokenType.COLON, ':', -1),
+                colon: StringToken(TokenType.COLON, ':', -1),
               ),
-              value,
+              expression: value,
             )..staticType = value.typeOrThrow,
           );
         }

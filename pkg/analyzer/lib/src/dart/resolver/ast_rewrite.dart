@@ -393,9 +393,10 @@ class AstRewriter {
           [typeNameIdentifier.toString(), constructorIdentifier.name]);
     }
 
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: typeNameIdentifier,
       typeArguments: typeArguments,
+      question: null,
     );
     var constructorName = ConstructorNameImpl(
       type: typeName,
@@ -420,7 +421,11 @@ class AstRewriter {
       return node;
     }
 
-    var typeName = astFactory.namedType(name: node.prefix);
+    var typeName = NamedTypeImpl(
+      name: node.prefix,
+      typeArguments: null,
+      question: null,
+    );
     var constructorName = ConstructorNameImpl(
       type: typeName,
       period: node.period,
@@ -453,9 +458,10 @@ class AstRewriter {
 
     var operator = node.operator;
 
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: receiver,
       typeArguments: typeArguments,
+      question: null,
     );
     var constructorName = ConstructorNameImpl(
       type: typeName,
@@ -474,13 +480,14 @@ class AstRewriter {
     required SimpleIdentifierImpl prefixIdentifier,
     required SimpleIdentifierImpl typeIdentifier,
   }) {
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: astFactory.prefixedIdentifier(
         prefixIdentifier,
         node.operator!,
         typeIdentifier,
       ),
       typeArguments: node.typeArguments,
+      question: null,
     );
     var constructorName = ConstructorNameImpl(
       type: typeName,
@@ -494,12 +501,13 @@ class AstRewriter {
   }
 
   InstanceCreationExpression _toInstanceCreation_type({
-    required MethodInvocation node,
-    required SimpleIdentifier typeIdentifier,
+    required MethodInvocationImpl node,
+    required SimpleIdentifierImpl typeIdentifier,
   }) {
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: typeIdentifier,
       typeArguments: node.typeArguments,
+      question: null,
     );
     var constructorName = ConstructorNameImpl(
       type: typeName,
@@ -531,7 +539,11 @@ class AstRewriter {
           typeArguments,
           [typeIdentifier.name, constructorIdentifier.name]);
     }
-    var typeName = astFactory.namedType(name: typeIdentifier);
+    var typeName = NamedTypeImpl(
+      name: typeIdentifier,
+      typeArguments: null,
+      question: null,
+    );
     var constructorName = ConstructorNameImpl(
       type: typeName,
       period: node.operator,
@@ -550,9 +562,10 @@ class AstRewriter {
     required Identifier function,
     required TypeAliasElement element,
   }) {
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: node.constructorName.type.name,
       typeArguments: node.constructorName.type.typeArguments,
+      question: null,
     );
     typeName.type = element.aliasedType;
     typeName.name.staticType = element.aliasedType;
@@ -571,7 +584,7 @@ class AstRewriter {
 
   AstNode _toMethodInvocationOfFunctionReference({
     required InstanceCreationExpressionImpl node,
-    required Identifier function,
+    required IdentifierImpl function,
   }) {
     var period = node.constructorName.period;
     var constructorId = node.constructorName.name;
@@ -579,7 +592,7 @@ class AstRewriter {
       return node;
     }
 
-    var functionReference = astFactory.functionReference(
+    var functionReference = FunctionReferenceImpl(
       function: function,
       typeArguments: node.constructorName.type.typeArguments,
     );
