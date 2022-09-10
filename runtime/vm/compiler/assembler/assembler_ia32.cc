@@ -2619,17 +2619,15 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   ASSERT(cid > 0);
   Address state_address(kNoRegister, 0);
 
-  const intptr_t shared_table_offset =
-      target::IsolateGroup::shared_class_table_offset();
-  const intptr_t table_offset =
-      target::SharedClassTable::class_heap_stats_table_offset();
-  const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
-
   ASSERT(temp_reg != kNoRegister);
   LoadIsolateGroup(temp_reg);
-  movl(temp_reg, Address(temp_reg, shared_table_offset));
-  movl(temp_reg, Address(temp_reg, table_offset));
-  cmpb(Address(temp_reg, class_offset), Immediate(0));
+  movl(temp_reg, Address(temp_reg, target::IsolateGroup::class_table_offset()));
+  movl(temp_reg,
+       Address(temp_reg,
+               target::ClassTable::allocation_tracing_state_table_offset()));
+  cmpb(Address(temp_reg,
+               target::ClassTable::AllocationTracingStateSlotOffsetFor(cid)),
+       Immediate(0));
   // We are tracing for this class, jump to the trace label which will use
   // the allocation stub.
   j(NOT_ZERO, trace, distance);

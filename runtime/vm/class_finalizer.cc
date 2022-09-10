@@ -1551,12 +1551,10 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
     // The [HeapIterationScope] also safepoints all threads.
     HeapIterationScope his(T);
 
-    IG->shared_class_table()->Remap(old_to_new_cid);
-    IG->set_remapping_cids(true);
-
     // Update the class table. Do it before rewriting cids in headers, as
     // the heap walkers load an object's size *after* calling the visitor.
     IG->class_table()->Remap(old_to_new_cid);
+    IG->set_remapping_cids(true);
 
     // Rewrite cids in headers and cids in Classes, Fields, Types and
     // TypeParameters.

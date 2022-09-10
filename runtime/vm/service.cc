@@ -3397,7 +3397,7 @@ static void MarkClasses(const Class& root,
                         bool include_implementors) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
-  SharedClassTable* table = thread->isolate()->group()->shared_class_table();
+  ClassTable* table = thread->isolate()->group()->class_table();
   GrowableArray<const Class*> worklist;
   table->SetCollectInstancesFor(root.id(), true);
   worklist.Add(&root);
@@ -3437,7 +3437,7 @@ static void MarkClasses(const Class& root,
 }
 
 static void UnmarkClasses() {
-  SharedClassTable* table = IsolateGroup::Current()->shared_class_table();
+  ClassTable* table = IsolateGroup::Current()->class_table();
   for (intptr_t i = 1; i < table->NumCids(); i++) {
     table->SetCollectInstancesFor(i, false);
   }
@@ -3447,7 +3447,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
   GetInstancesVisitor(ZoneGrowableHandlePtrArray<Object>* storage,
                       intptr_t limit)
-      : table_(IsolateGroup::Current()->shared_class_table()),
+      : table_(IsolateGroup::Current()->class_table()),
         storage_(storage),
         limit_(limit),
         count_(0) {}
@@ -3469,7 +3469,7 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
   intptr_t count() const { return count_; }
 
  private:
-  SharedClassTable* const table_;
+  ClassTable* const table_;
   ZoneGrowableHandlePtrArray<Object>* storage_;
   const intptr_t limit_;
   intptr_t count_;

@@ -688,8 +688,8 @@ void Class::CheckReload(const Class& replacement,
 
     // Consts can't lose fields.
     bool field_removed = false;
-    const Array& old_fields =
-        Array::Handle(OffsetToFieldMap(true /* original classes */));
+    const Array& old_fields = Array::Handle(
+        OffsetToFieldMap(IsolateGroup::Current()->heap_walk_class_table()));
     const Array& new_fields = Array::Handle(replacement.OffsetToFieldMap());
     if (new_fields.Length() < old_fields.Length()) {
       field_removed = true;
@@ -748,8 +748,12 @@ void Class::CheckReload(const Class& replacement,
 bool Class::RequiresInstanceMorphing(const Class& replacement) const {
   // Get the field maps for both classes. These field maps walk the class
   // hierarchy.
+  auto isolate_group = IsolateGroup::Current();
+
+  // heap_walk_class_table is the original class table before it was
+  // updated by reloading sources.
   const Array& fields =
-      Array::Handle(OffsetToFieldMap(true /* original classes */));
+      Array::Handle(OffsetToFieldMap(isolate_group->heap_walk_class_table()));
   const Array& replacement_fields =
       Array::Handle(replacement.OffsetToFieldMap());
 
@@ -788,8 +792,7 @@ bool Class::CanReloadFinalized(const Class& replacement,
   // Make sure the declaration types argument count matches for the two classes.
   // ex. class A<int,B> {} cannot be replace with class A<B> {}.
   auto group_context = context->group_reload_context();
-  auto shared_class_table =
-      group_context->isolate_group()->shared_class_table();
+  auto class_table = group_context->isolate_group()->class_table();
   if (NumTypeArguments() != replacement.NumTypeArguments()) {
     group_context->AddReasonForCancelling(
         new (context->zone())
@@ -802,7 +805,7 @@ bool Class::CanReloadFinalized(const Class& replacement,
     // We unconditionally create an instance morpher. As a side effect of
     // building the morpher, we will mark all new fields as late.
     auto instance_morpher = InstanceMorpher::CreateFromClassDescriptors(
-        context->zone(), shared_class_table, *this, replacement);
+        context->zone(), class_table, *this, replacement);
     group_context->EnsureHasInstanceMorpherFor(cid, instance_morpher);
   }
   return true;

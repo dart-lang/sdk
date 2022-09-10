@@ -1359,12 +1359,12 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryAOT();
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
-  // The register into which the allocation stats table is loaded with
-  // LoadAllocationStatsAddress should be passed to MaybeTraceAllocation and
-  // IncrementAllocationStats(WithSize) as stats_addr_reg to update the
-  // allocation stats. These are separate assembler macros so we can
-  // avoid a dependent load too nearby the load of the table address.
-  void LoadAllocationStatsAddress(Register dest, intptr_t cid);
+  // The register into which the allocation tracing state table is loaded with
+  // LoadAllocationTracingStateAddress should be passed to MaybeTraceAllocation.
+  //
+  // These are separate assembler macros so we can avoid a dependent load too
+  // nearby the load of the table address.
+  void LoadAllocationTracingStateAddress(Register dest, intptr_t cid);
 
   Address ElementAddressForIntIndex(bool is_load,
                                     bool is_external,

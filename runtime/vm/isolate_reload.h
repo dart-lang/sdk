@@ -56,15 +56,14 @@ class InstanceMorpher : public ZoneAllocated {
  public:
   // Creates a new [InstanceMorpher] based on the [from]/[to] class
   // descriptions.
-  static InstanceMorpher* CreateFromClassDescriptors(
-      Zone* zone,
-      SharedClassTable* shared_class_table,
-      const Class& from,
-      const Class& to);
+  static InstanceMorpher* CreateFromClassDescriptors(Zone* zone,
+                                                     ClassTable* class_table,
+                                                     const Class& from,
+                                                     const Class& to);
 
   InstanceMorpher(Zone* zone,
                   classid_t cid,
-                  SharedClassTable* shared_class_table,
+                  ClassTable* class_table,
                   ZoneGrowableArray<intptr_t>* mapping,
                   ZoneGrowableArray<intptr_t>* new_fields_offsets);
   virtual ~InstanceMorpher() {}
@@ -87,7 +86,7 @@ class InstanceMorpher : public ZoneAllocated {
  private:
   Zone* zone_;
   classid_t cid_;
-  SharedClassTable* shared_class_table_;
+  ClassTable* class_table_;
   ZoneGrowableArray<intptr_t>* mapping_;
   ZoneGrowableArray<intptr_t>* new_fields_offsets_;
 
@@ -130,7 +129,7 @@ class ClassReasonForCancelling : public ReasonForCancelling {
 class IsolateGroupReloadContext {
  public:
   IsolateGroupReloadContext(IsolateGroup* isolate,
-                            SharedClassTable* shared_class_table,
+                            ClassTable* class_table,
                             JSONStream* js);
   ~IsolateGroupReloadContext();
 
@@ -143,10 +142,6 @@ class IsolateGroupReloadContext {
 
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
-
-  bool UseSavedSizeTableForGC() const {
-    return saved_size_table_.load(std::memory_order_relaxed) != nullptr;
-  }
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
   bool reload_aborted() const { return HasReasonsForCancelling(); }
@@ -163,9 +158,6 @@ class IsolateGroupReloadContext {
   }
 
  private:
-  intptr_t GetClassSizeForHeapWalkAt(classid_t cid);
-  void DiscardSavedClassTable(bool is_rollback);
-
   // Tells whether there are reasons for cancelling the reload.
   bool HasReasonsForCancelling() const {
     return !reasons_to_cancel_reload_.is_empty();
@@ -209,8 +201,6 @@ class IsolateGroupReloadContext {
                            const char* packages_url);
   bool ScriptModifiedSince(const Script& script, int64_t since);
 
-  void CheckpointSharedClassTable();
-
   void MorphInstancesPhase1Allocate(ObjectLocator* locator, Become* become);
   void MorphInstancesPhase2Become(Become* become);
 
@@ -220,7 +210,7 @@ class IsolateGroupReloadContext {
   Zone* zone_;
 
   IsolateGroup* isolate_group_;
-  SharedClassTable* shared_class_table_;
+  ClassTable* class_table_;
 
   int64_t start_time_micros_ = -1;
   int64_t reload_timestamp_ = -1;
@@ -229,8 +219,6 @@ class IsolateGroupReloadContext {
   JSONStream* js_;
   intptr_t num_old_libs_ = -1;
 
-  intptr_t saved_num_cids_ = -1;
-  std::atomic<intptr_t*> saved_size_table_;
   intptr_t num_received_libs_ = -1;
   intptr_t bytes_received_libs_ = -1;
   intptr_t num_received_classes_ = -1;
@@ -283,8 +271,7 @@ class IsolateGroupReloadContext {
   friend class ObjectLocator;
   friend class ReasonForCancelling;
   friend class ProgramReloadContext;
-  friend class IsolateGroup;  // GetClassSizeForHeapWalkAt
-  friend class UntaggedObject;  // GetClassSizeForHeapWalkAt
+  friend class IsolateGroup;
 
   static Dart_FileModifiedCallback file_modified_callback_;
 };
@@ -308,10 +295,6 @@ class ProgramReloadContext {
 
  private:
   bool IsDirty(const Library& lib);
-
-  // Prefers old classes when we are in the middle of a reload.
-  ClassPtr GetClassForHeapWalkAt(intptr_t cid);
-  void DiscardSavedClassTable(bool is_rollback);
 
   void RegisterClass(const Class& new_cls);
 
@@ -338,7 +321,6 @@ class ProgramReloadContext {
 
   void CheckpointLibraries();
 
-  void RollbackClasses();
   void RollbackLibraries();
 
 #ifdef DEBUG
@@ -373,10 +355,6 @@ class ProgramReloadContext {
   Zone* zone_;
   std::shared_ptr<IsolateGroupReloadContext> group_reload_context_;
   IsolateGroup* isolate_group_;
-  intptr_t saved_num_cids_ = -1;
-  intptr_t saved_num_tlc_cids_ = -1;
-  std::atomic<ClassPtr*> saved_class_table_;
-  std::atomic<ClassPtr*> saved_tlc_class_table_;
   MallocGrowableArray<LibraryInfo> library_infos_;
 
   ClassPtr OldClassOrNull(const Class& replacement_or_new);

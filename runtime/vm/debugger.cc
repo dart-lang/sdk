@@ -1640,7 +1640,7 @@ void Debugger::DeoptimizeWorld() {
   // before deoptimizing the world.
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
-    const classid_t cid =
+    const intptr_t cid =
         i < num_classes ? i : ClassTable::CidFromTopLevelIndex(i - num_classes);
     if (class_table.HasValidClassAt(cid)) {
       cls = class_table.At(cid);
@@ -2536,7 +2536,7 @@ void Debugger::FindCompiledFunctions(
     const intptr_t num_classes = class_table.NumCids();
     const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
     for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
-      const classid_t cid =
+      const intptr_t cid =
           i < num_classes ? i
                           : ClassTable::CidFromTopLevelIndex(i - num_classes);
       if (class_table.HasValidClassAt(cid)) {
@@ -2659,7 +2659,7 @@ bool Debugger::FindBestFit(const Script& script,
     const intptr_t num_classes = class_table.NumCids();
     const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
     for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
-      const classid_t cid =
+      const intptr_t cid =
           i < num_classes ? i
                           : ClassTable::CidFromTopLevelIndex(i - num_classes);
       if (!class_table.HasValidClassAt(cid)) {

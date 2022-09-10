@@ -218,7 +218,7 @@ static UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(
     Serializer* s,
     intptr_t class_id) {
   const auto unboxed_fields_bitmap_host =
-      s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+      s->isolate_group()->class_table()->GetUnboxedFieldsMapAt(class_id);
 
   UnboxedFieldBitmap unboxed_fields_bitmap;
   if (unboxed_fields_bitmap_host.IsEmpty() ||
@@ -438,7 +438,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 
     ClassTable* table = d_->isolate_group()->class_table();
 #if defined(DART_PRECOMPILED_RUNTIME)
-    auto shared_class_table = d_->isolate_group()->shared_class_table();
+    auto class_table = d_->isolate_group()->class_table();
 #endif
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ClassPtr cls = static_cast<ClassPtr>(d.Ref(id));
@@ -481,7 +481,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 #if defined(DART_PRECOMPILED_RUNTIME)
       if (!ClassTable::IsTopLevelCid(class_id)) {
         const UnboxedFieldBitmap unboxed_fields_map(d.ReadUnsigned64());
-        shared_class_table->SetUnboxedFieldsMapAt(class_id, unboxed_fields_map);
+        class_table->SetUnboxedFieldsMapAt(class_id, unboxed_fields_map);
       }
 #endif
     }
@@ -3823,7 +3823,7 @@ class InstanceSerializationCluster : public SerializationCluster {
     const intptr_t next_field_offset = host_next_field_offset_in_words_
                                        << kCompressedWordSizeLog2;
     const auto unboxed_fields_bitmap =
-        s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+        s->isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid_);
     intptr_t offset = Instance::NextFieldOffset();
     while (offset < next_field_offset) {
       // Skips unboxed fields
@@ -3861,7 +3861,7 @@ class InstanceSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned64(CalculateTargetUnboxedFieldsBitmap(s, cid_).Value());
     const auto unboxed_fields_bitmap =
-        s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+        s->isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid_);
 
     for (intptr_t i = 0; i < count; i++) {
       InstancePtr instance = objects_[i];
