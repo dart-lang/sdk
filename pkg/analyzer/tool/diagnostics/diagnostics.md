@@ -4158,7 +4158,7 @@ class C {
 {% endprettify %}
 
 If there are multiple named constructors and all except one of them are
-unneeded, then remove the constructorsthat aren't needed:
+unneeded, then remove the constructors that aren't needed:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -12992,7 +12992,7 @@ class C {
 
 ### non_type_as_type_argument
 
-_The name '{0}' isn't a type so it can't be used as a type argument._
+_The name '{0}' isn't a type, so it can't be used as a type argument._
 
 #### Description
 
@@ -16452,7 +16452,7 @@ class B extends a.A {}
 
 ### subtype_of_disallowed_type
 
-_''{0}' can't be used as a superclass constraint._
+_'{0}' can't be used as a superclass constraint._
 
 _Classes and mixins can't implement '{0}'._
 
@@ -19407,9 +19407,9 @@ Not all references to an element will mark it as "used":
 - Assigning a value to a top-level variable (with a standard `=`
   assignment, or a null-aware `??=` assignment) does not count as using
   it.
-- Refering to an element in a doc comment reference does not count as
+- Referring to an element in a doc comment reference does not count as
   using it.
-- Refering to a class, mixin, or enum in the right side of an `is`
+- Referring to a class, mixin, or enum on the right side of an `is`
   expression does not count as using it.
 
 #### Example

@@ -3338,7 +3338,7 @@ CompileTimeErrorCode:
       ```
 
       If there are multiple named constructors and all except one of them are
-      unneeded, then remove the constructorsthat aren't needed:
+      unneeded, then remove the constructors that aren't needed:
 
       ```dart
       class C {
@@ -9952,7 +9952,7 @@ CompileTimeErrorCode:
       }
       ```
   NON_TYPE_AS_TYPE_ARGUMENT:
-    problemMessage: "The name '{0}' isn't a type so it can't be used as a type argument."
+    problemMessage: "The name '{0}' isn't a type, so it can't be used as a type argument."
     correctionMessage: "Try correcting the name to an existing type, or defining a type named '{0}'."
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
@@ -12909,7 +12909,7 @@ CompileTimeErrorCode:
       0: the name of the disallowed type
   MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
     sharedName: SUBTYPE_OF_DISALLOWED_TYPE
-    problemMessage: "''{0}' can't be used as a superclass constraint."
+    problemMessage: "'{0}' can't be used as a superclass constraint."
     correctionMessage: "Try specifying a different super-class constraint, or remove the 'on' clause."
     hasPublishedDocs: true
     comment: |-
@@ -21390,9 +21390,9 @@ HintCode:
       - Assigning a value to a top-level variable (with a standard `=`
         assignment, or a null-aware `??=` assignment) does not count as using
         it.
-      - Refering to an element in a doc comment reference does not count as
+      - Referring to an element in a doc comment reference does not count as
         using it.
-      - Refering to a class, mixin, or enum in the right side of an `is`
+      - Referring to a class, mixin, or enum on the right side of an `is`
         expression does not count as using it.
 
       #### Example

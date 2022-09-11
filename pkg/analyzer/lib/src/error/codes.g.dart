@@ -2859,7 +2859,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode
       MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS = CompileTimeErrorCode(
     'SUBTYPE_OF_DISALLOWED_TYPE',
-    "''{0}' can't be used as a superclass constraint.",
+    "'{0}' can't be used as a superclass constraint.",
     correctionMessage:
         "Try specifying a different super-class constraint, or remove the 'on' "
         "clause.",
@@ -3252,7 +3252,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_TYPE_AS_TYPE_ARGUMENT =
       CompileTimeErrorCode(
     'NON_TYPE_AS_TYPE_ARGUMENT',
-    "The name '{0}' isn't a type so it can't be used as a type argument.",
+    "The name '{0}' isn't a type, so it can't be used as a type argument.",
     correctionMessage:
         "Try correcting the name to an existing type, or defining a type named "
         "'{0}'.",
