@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -1002,7 +1001,7 @@ void f() {
 }
 
 @reflectiveTest
-class NodeListTest {
+class NodeListTest extends ParserDiagnosticsTest {
   void test_add() {
     AstNode parent = AstTestFactory.argumentList();
     AstNode firstNode = true_();
@@ -1194,25 +1193,6 @@ class NodeListTest {
     } on RangeError {
       // Expected
     }
-  }
-
-  void test_set() {
-    List<AstNode> nodes = <AstNode>[];
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    AstNode thirdNode = true_();
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    list.addAll(nodes);
-    expect(list, hasLength(3));
-    AstNode fourthNode = AstTestFactory.integer(0);
-    list[1] = fourthNode;
-    expect(list, hasLength(3));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(fourthNode));
-    expect(list[2], same(thirdNode));
   }
 
   void test_set_negative() {
@@ -1453,9 +1433,14 @@ void f() {
   }
 
   void test_inReferenceContext() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3("id");
-    AstTestFactory.namedExpression(
-        AstTestFactory.label(identifier), AstTestFactory.identifier3("_"));
+    final parseResult = parseStringWithErrors('''
+void f() {
+  foo(id: 0);
+}
+final v = f(0, 1, 2);
+class C {}
+''');
+    final identifier = parseResult.findNode.simple('id:');
     expect(identifier.inGetterContext(), isFalse);
     expect(identifier.inSetterContext(), isFalse);
   }
@@ -1918,134 +1903,151 @@ class SpreadElementTest extends ParserTestCase {
 }
 
 @reflectiveTest
-class StringInterpolationTest extends ParserTestCase {
+class StringInterpolationTest extends ParserDiagnosticsTest {
   void test_contentsOffsetEnd() {
-    var bb = AstTestFactory.interpolationExpression(
-        AstTestFactory.identifier3('bb'));
-    // 'a${bb}ccc'
     {
-      var ae = AstTestFactory.interpolationString("'a", "a");
-      var cToken = StringToken(TokenType.STRING, "ccc'", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 1);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r'''
+final v = 'a${bb}ccc';
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.contentsOffset, 11);
+      expect(node.contentsEnd, 20);
     }
-    // '''a${bb}ccc'''
+
     {
-      var ae = AstTestFactory.interpolationString("'''a", "a");
-      var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 3);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r"""
+final v = '''a${bb}ccc''';
+""");
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.contentsOffset, 13);
+      expect(node.contentsEnd, 22);
     }
-    // """a${bb}ccc"""
+
     {
-      var ae = AstTestFactory.interpolationString('"""a', "a");
-      var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 3);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r'''
+final v = """a${bb}ccc""";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.contentsOffset, 13);
+      expect(node.contentsEnd, 22);
     }
-    // r'a${bb}ccc'
+
     {
-      var ae = AstTestFactory.interpolationString("r'a", "a");
-      var cToken = StringToken(TokenType.STRING, "ccc'", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 2);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r'''
+final v = r'a${bb}ccc';
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral('ccc');
+      expect(node.contentsOffset, 12);
+      expect(node.contentsEnd, 21);
     }
-    // r'''a${bb}ccc'''
+
     {
-      var ae = AstTestFactory.interpolationString("r'''a", "a");
-      var cToken = StringToken(TokenType.STRING, "ccc'''", 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 4);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r"""
+final v = r'''a${bb}ccc''';
+""");
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral('ccc');
+      expect(node.contentsOffset, 14);
+      expect(node.contentsEnd, 23);
     }
-    // r"""a${bb}ccc"""
+
     {
-      var ae = AstTestFactory.interpolationString('r"""a', "a");
-      var cToken = StringToken(TokenType.STRING, 'ccc"""', 10);
-      var cElement = astFactory.interpolationString(cToken, 'ccc');
-      StringInterpolation node = AstTestFactory.string([ae, bb, cElement]);
-      expect(node.contentsOffset, 4);
-      expect(node.contentsEnd, 10 + 4 - 1);
+      final parseResult = parseStringWithErrors(r'''
+final v = r"""a${bb}ccc""";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.simpleStringLiteral('ccc');
+      expect(node.contentsOffset, 14);
+      expect(node.contentsEnd, 23);
     }
   }
 
   void test_isMultiline() {
-    var b = AstTestFactory.interpolationExpression(
-        AstTestFactory.identifier3('bb'));
-    // '
     {
-      var a = AstTestFactory.interpolationString("'a", "a");
-      var c = AstTestFactory.interpolationString("ccc'", "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r'''
+final v = 'a${bb}ccc';
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isFalse);
     }
-    // '''
+
     {
-      var a = AstTestFactory.interpolationString("'''a", "a");
-      var c = AstTestFactory.interpolationString("ccc'''", "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r'''
+final v = "a${bb}ccc";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.isMultiline, isFalse);
+    }
+
+    {
+      final parseResult = parseStringWithErrors(r"""
+final v = '''a${bb}ccc''';
+""");
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isTrue);
     }
-    // "
+
     {
-      var a = AstTestFactory.interpolationString('"a', "a");
-      var c = AstTestFactory.interpolationString('ccc"', "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
-      expect(node.isMultiline, isFalse);
-    }
-    // """
-    {
-      var a = AstTestFactory.interpolationString('"""a', "a");
-      var c = AstTestFactory.interpolationString('ccc"""', "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r'''
+final v = """a${bb}ccc""";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isMultiline, isTrue);
     }
   }
 
   void test_isRaw() {
-    var node = parseStringLiteral('"first \$x last"') as StringInterpolation;
+    final parseResult = parseStringWithErrors(r'''
+final v = 'a${bb}ccc';
+''');
+    parseResult.assertNoErrors();
+    final node = parseResult.findNode.stringInterpolation('ccc');
     expect(node.isRaw, isFalse);
   }
 
   void test_isSingleQuoted() {
-    var b = AstTestFactory.interpolationExpression(
-        AstTestFactory.identifier3('bb'));
-    // "
     {
-      var a = AstTestFactory.interpolationString('"a', "a");
-      var c = AstTestFactory.interpolationString('ccc"', "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
-      expect(node.isSingleQuoted, isFalse);
-    }
-    // """
-    {
-      var a = AstTestFactory.interpolationString('"""a', "a");
-      var c = AstTestFactory.interpolationString('ccc"""', "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
-      expect(node.isSingleQuoted, isFalse);
-    }
-    // '
-    {
-      var a = AstTestFactory.interpolationString("'a", "a");
-      var c = AstTestFactory.interpolationString("ccc'", "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r'''
+final v = 'a${bb}ccc';
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isTrue);
     }
-    // '''
+
     {
-      var a = AstTestFactory.interpolationString("'''a", "a");
-      var c = AstTestFactory.interpolationString("ccc'''", "ccc");
-      StringInterpolation node = AstTestFactory.string([a, b, c]);
+      final parseResult = parseStringWithErrors(r"""
+final v = '''a${bb}ccc''';
+""");
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
       expect(node.isSingleQuoted, isTrue);
+    }
+
+    {
+      final parseResult = parseStringWithErrors(r'''
+final v = "a${bb}ccc";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.isSingleQuoted, isFalse);
+    }
+
+    {
+      final parseResult = parseStringWithErrors(r'''
+final v = """a${bb}ccc""";
+''');
+      parseResult.assertNoErrors();
+      final node = parseResult.findNode.stringInterpolation('ccc');
+      expect(node.isSingleQuoted, isFalse);
     }
   }
 }

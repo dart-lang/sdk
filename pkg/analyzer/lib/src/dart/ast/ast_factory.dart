@@ -85,11 +85,6 @@ class AstFactoryImpl {
       FormalParameterListImpl(leftParenthesis, parameters, leftDelimiter,
           rightDelimiter, rightParenthesis);
 
-  FunctionReferenceImpl functionReference(
-          {required Expression function, TypeArgumentList? typeArguments}) =>
-      FunctionReferenceImpl(function as ExpressionImpl,
-          typeArguments: typeArguments as TypeArgumentListImpl?);
-
   FunctionTypedFormalParameterImpl functionTypedFormalParameter2(
           {Comment? comment,
           List<Annotation>? metadata,
@@ -110,24 +105,6 @@ class AstFactoryImpl {
           typeParameters as TypeParameterListImpl?,
           parameters as FormalParameterListImpl,
           question);
-
-  GenericFunctionTypeImpl genericFunctionType(
-          TypeAnnotation? returnType,
-          Token functionKeyword,
-          TypeParameterList? typeParameters,
-          FormalParameterList parameters,
-          {Token? question}) =>
-      GenericFunctionTypeImpl(
-          returnType as TypeAnnotationImpl?,
-          functionKeyword,
-          typeParameters as TypeParameterListImpl?,
-          parameters as FormalParameterListImpl,
-          question: question);
-
-  HideClauseImpl hideClause(
-          {required Token hideKeyword,
-          required List<ShowHideClauseElement> elements}) =>
-      HideClauseImpl(hideKeyword, elements);
 
   IfElementImpl ifElement(
           {required Token ifKeyword,
@@ -162,10 +139,6 @@ class AstFactoryImpl {
           thenStatement as StatementImpl,
           elseKeyword,
           elseStatement as StatementImpl?);
-
-  ImplementsClauseImpl implementsClause(
-          Token implementsKeyword, List<NamedType> interfaces) =>
-      ImplementsClauseImpl(implementsKeyword, interfaces);
 
   ImplicitCallReferenceImpl implicitCallReference({
     required Expression expression,
@@ -205,24 +178,15 @@ class AstFactoryImpl {
           argumentList as ArgumentListImpl,
           typeArguments: typeArguments as TypeArgumentListImpl?);
 
-  IntegerLiteralImpl integerLiteral(Token literal, int? value) =>
-      IntegerLiteralImpl(literal, value);
-
   InterpolationExpressionImpl interpolationExpression(
           Token leftBracket, Expression expression, Token? rightBracket) =>
       InterpolationExpressionImpl(
           leftBracket, expression as ExpressionImpl, rightBracket);
 
-  InterpolationStringImpl interpolationString(Token contents, String value) =>
-      InterpolationStringImpl(contents, value);
-
   IsExpressionImpl isExpression(Expression expression, Token isOperator,
           Token? notOperator, TypeAnnotation type) =>
       IsExpressionImpl(expression as ExpressionImpl, isOperator, notOperator,
           type as TypeAnnotationImpl);
-
-  LabelImpl label(SimpleIdentifier label, Token colon) =>
-      LabelImpl(label as SimpleIdentifierImpl, colon);
 
   LabeledStatementImpl labeledStatement(
           List<Label> labels, Statement statement) =>
@@ -252,23 +216,6 @@ class AstFactoryImpl {
         elements,
         rightBracket);
   }
-
-  MapLiteralEntryImpl mapLiteralEntry(
-          Expression key, Token separator, Expression value) =>
-      MapLiteralEntryImpl(
-          key as ExpressionImpl, separator, value as ExpressionImpl);
-
-  NamedExpressionImpl namedExpression(Label name, Expression expression) =>
-      NamedExpressionImpl(name as LabelImpl, expression as ExpressionImpl);
-
-  NamedTypeImpl namedType({
-    required Identifier name,
-    TypeArgumentList? typeArguments,
-    Token? question,
-  }) =>
-      NamedTypeImpl(
-          name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
-          question: question);
 
   NativeClauseImpl nativeClause(Token nativeKeyword, StringLiteral? name) =>
       NativeClauseImpl(nativeKeyword, name as StringLiteralImpl?);

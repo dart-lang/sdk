@@ -38,6 +38,7 @@ class FeatureSets {
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [
       EnableString.enhanced_enums,
+      EnableString.extension_types,
       EnableString.macros,
       EnableString.named_arguments_anywhere,
       EnableString.records,

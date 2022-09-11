@@ -221,7 +221,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var constants = node.constants;
     var valuesElements = <Expression>[];
     for (var i = 0; i < constants.length; ++i) {
-      var constant = constants[i];
+      var constant = constants[i] as EnumConstantDeclarationImpl;
       var name = constant.name2.lexeme;
       var field = ConstFieldElementImpl(name, constant.name2.offset)
         ..hasImplicitType = true
@@ -243,11 +243,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       var initializer = astFactory.instanceCreationExpression(
         null,
         ConstructorNameImpl(
-          type: astFactory.namedType(
+          type: NamedTypeImpl(
             name: astFactory.simpleIdentifier(
               StringToken(TokenType.STRING, element.name, -1),
             ),
             typeArguments: constant.arguments?.typeArguments,
+            question: null,
           ),
           period: constructorName != null ? Tokens.period() : null,
           name: constructorName != null
@@ -315,21 +316,24 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         equals: Tokens.eq(),
         initializer: initializer,
       );
-      valuesTypeNode = astFactory.namedType(
+      valuesTypeNode = NamedTypeImpl(
         name: astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, 'List', -1),
         ),
         typeArguments: astFactory.typeArgumentList(
           Tokens.lt(),
           [
-            astFactory.namedType(
+            NamedTypeImpl(
               name: astFactory.simpleIdentifier(
                 StringToken(TokenType.STRING, element.name, -1),
               )..staticElement = element,
+              typeArguments: null,
+              question: null,
             )
           ],
           Tokens.gt(),
         ),
+        question: null,
       );
       VariableDeclarationListImpl(
         comment: null,

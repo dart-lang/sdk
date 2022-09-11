@@ -184,9 +184,9 @@ class AstBinaryReader {
   }
 
   IntegerLiteral _createIntegerLiteral(String lexeme, int value) {
-    var node = astFactory.integerLiteral(
-      TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
-      value,
+    var node = IntegerLiteralImpl(
+      literal: TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
+      value: value,
     );
     _readExpressionResolution(node);
     return node;
@@ -597,10 +597,10 @@ class AstBinaryReader {
   }
 
   FunctionReference _readFunctionReference() {
-    var function = readNode() as Expression;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
+    var function = readNode() as ExpressionImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
 
-    var node = astFactory.functionReference(
+    var node = FunctionReferenceImpl(
       function: function,
       typeArguments: typeArguments,
     );
@@ -634,14 +634,14 @@ class AstBinaryReader {
   GenericFunctionType _readGenericFunctionType() {
     var flags = _readByte();
     // TODO(scheglov) add type parameters to locals
-    var typeParameters = _readOptionalNode() as TypeParameterList?;
-    var returnType = _readOptionalNode() as TypeAnnotation?;
-    var formalParameters = readNode() as FormalParameterList;
-    var node = astFactory.genericFunctionType(
-      returnType,
-      Tokens.function(),
-      typeParameters,
-      formalParameters,
+    var typeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var returnType = _readOptionalNode() as TypeAnnotationImpl?;
+    var formalParameters = readNode() as FormalParameterListImpl;
+    var node = GenericFunctionTypeImpl(
+      returnType: returnType,
+      functionKeyword: Tokens.function(),
+      typeParameters: typeParameters,
+      parameters: formalParameters,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
     );
     var type = _reader.readRequiredType() as FunctionType;
@@ -756,9 +756,9 @@ class AstBinaryReader {
 
   IntegerLiteral _readIntegerLiteralNull() {
     var lexeme = _readStringReference();
-    var node = astFactory.integerLiteral(
-      TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
-      null,
+    var node = IntegerLiteralImpl(
+      literal: TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
+      value: null,
     );
     _readExpressionResolution(node);
     return node;
@@ -792,9 +792,9 @@ class AstBinaryReader {
   InterpolationString _readInterpolationString() {
     var lexeme = _readStringReference();
     var value = _readStringReference();
-    return astFactory.interpolationString(
-      TokenFactory.tokenFromString(lexeme),
-      value,
+    return InterpolationStringImpl(
+      contents: TokenFactory.tokenFromString(lexeme),
+      value: value,
     );
   }
 
@@ -835,9 +835,13 @@ class AstBinaryReader {
   }
 
   MapLiteralEntry _readMapLiteralEntry() {
-    var key = readNode() as Expression;
-    var value = readNode() as Expression;
-    return astFactory.mapLiteralEntry(key, Tokens.colon(), value);
+    var key = readNode() as ExpressionImpl;
+    var value = readNode() as ExpressionImpl;
+    return MapLiteralEntryImpl(
+      key: key,
+      separator: Tokens.colon(),
+      value: value,
+    );
   }
 
   MethodInvocation _readMethodInvocation() {
@@ -895,24 +899,27 @@ class AstBinaryReader {
 
   NamedExpression _readNamedExpression() {
     var name = _readStringReference();
-    var nameNode = astFactory.label(
-      astFactory.simpleIdentifier(
+    var nameNode = LabelImpl(
+      label: astFactory.simpleIdentifier(
         StringToken(TokenType.STRING, name, -1),
       ),
-      Tokens.colon(),
+      colon: Tokens.colon(),
     );
-    var expression = readNode() as Expression;
-    var node = astFactory.namedExpression(nameNode, expression);
+    var expression = readNode() as ExpressionImpl;
+    var node = NamedExpressionImpl(
+      name: nameNode,
+      expression: expression,
+    );
     node.staticType = expression.staticType;
     return node;
   }
 
   NamedType _readNamedType() {
     var flags = _readByte();
-    var name = readNode() as Identifier;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
+    var name = readNode() as IdentifierImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
 
-    var node = astFactory.namedType(
+    var node = NamedTypeImpl(
       name: name,
       typeArguments: typeArguments,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,

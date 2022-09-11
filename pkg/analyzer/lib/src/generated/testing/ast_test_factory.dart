@@ -5,12 +5,9 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:meta/meta.dart';
 
@@ -357,14 +354,6 @@ class AstTestFactory {
           identifier: identifier3(identifier),
           parameters: formalParameterList(parameters));
 
-  static GenericFunctionTypeImpl genericFunctionType(TypeAnnotation returnType,
-          TypeParameterList typeParameters, FormalParameterList parameters,
-          {bool question = false}) =>
-      astFactory.genericFunctionType(returnType,
-          TokenFactory.tokenFromString("Function"), typeParameters, parameters,
-          question:
-              question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null);
-
   static GenericTypeAliasImpl genericTypeAlias(String name,
           TypeParameterList typeParameters, GenericFunctionType functionType) =>
       GenericTypeAliasImpl(
@@ -377,11 +366,6 @@ class AstTestFactory {
         type: functionType as GenericFunctionTypeImpl,
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
-
-  static HideClauseImpl hideClause(List<ShowHideClauseElement> elements) =>
-      astFactory.hideClause(
-          hideKeyword: TokenFactory.tokenFromString("hide"),
-          elements: elements);
 
   static PrefixedIdentifierImpl identifier(
           SimpleIdentifier prefix, SimpleIdentifier identifier) =>
@@ -439,10 +423,6 @@ class AstTestFactory {
               ? null
               : TokenFactory.tokenFromKeyword(Keyword.ELSE),
           elseStatement);
-
-  static ImplementsClauseImpl implementsClause(List<NamedType> types) =>
-      astFactory.implementsClause(
-          TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS), types);
 
   static ImportDirectiveImpl importDirective(List<Annotation> metadata,
           String uri, bool isDeferred, String? prefix,
@@ -511,10 +491,6 @@ class AstTestFactory {
           name,
           argumentList(arguments));
 
-  static IntegerLiteralImpl integer(int value) => astFactory.integerLiteral(
-      TokenFactory.tokenFromTypeAndString(TokenType.INT, value.toString()),
-      value);
-
   static InterpolationExpressionImpl interpolationExpression(
           Expression expression) =>
       astFactory.interpolationExpression(
@@ -529,11 +505,6 @@ class AstTestFactory {
           identifier3(identifier),
           null);
 
-  static InterpolationStringImpl interpolationString(
-          String contents, String value) =>
-      astFactory.interpolationString(
-          TokenFactory.tokenFromString(contents), value);
-
   static IsExpressionImpl isExpression(
           Expression expression, bool negated, TypeAnnotation type) =>
       astFactory.isExpression(
@@ -541,12 +512,6 @@ class AstTestFactory {
           TokenFactory.tokenFromKeyword(Keyword.IS),
           negated ? TokenFactory.tokenFromType(TokenType.BANG) : null,
           type);
-
-  static LabelImpl label(SimpleIdentifier label) =>
-      astFactory.label(label, TokenFactory.tokenFromType(TokenType.COLON));
-
-  static LabelImpl label2(String label) =>
-      AstTestFactory.label(identifier3(label));
 
   static LabeledStatementImpl labeledStatement(
           List<Label> labels, Statement statement) =>
@@ -589,19 +554,6 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
           elements,
           TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
-
-  static MapLiteralEntryImpl mapLiteralEntry(String key, Expression value) =>
-      astFactory.mapLiteralEntry(
-          string2(key), TokenFactory.tokenFromType(TokenType.COLON), value);
-
-  static MapLiteralEntryImpl mapLiteralEntry2(
-          Expression key, Expression value) =>
-      astFactory.mapLiteralEntry(
-          key, TokenFactory.tokenFromType(TokenType.COLON), value);
-
-  static MapLiteralEntryImpl mapLiteralEntry3(String key, String value) =>
-      astFactory.mapLiteralEntry(string2(key),
-          TokenFactory.tokenFromType(TokenType.COLON), string2(value));
 
   static MethodDeclarationImpl methodDeclaration(
           Keyword? modifier,
@@ -705,50 +657,6 @@ class AstTestFactory {
         typeParameters: null,
         parameters: parameters as FormalParameterListImpl?,
         body: body as FunctionBodyImpl,
-      );
-
-  static NamedExpressionImpl namedExpression(
-          Label label, Expression expression) =>
-      astFactory.namedExpression(label, expression);
-
-  static NamedExpressionImpl namedExpression2(
-          String label, Expression expression) =>
-      namedExpression(label2(label), expression);
-
-  /// Create a type name whose name has been resolved to the given [element] and
-  /// whose type has been resolved to the type of the given element.
-  ///
-  /// <b>Note:</b> This method does not correctly handle class elements that
-  /// have type parameters.
-  static NamedTypeImpl namedType(ClassElement element,
-      [List<TypeAnnotation>? arguments]) {
-    var name = identifier3(element.name);
-    name.staticElement = element;
-    var typeName = namedType3(name, arguments);
-    typeName.type = element.instantiate(
-      typeArguments: List.filled(
-        element.typeParameters.length,
-        DynamicTypeImpl.instance,
-      ),
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    return typeName;
-  }
-
-  static NamedTypeImpl namedType3(Identifier name,
-          [List<TypeAnnotation>? arguments]) =>
-      astFactory.namedType(
-        name: name,
-        typeArguments: typeArgumentList(arguments),
-      );
-
-  static NamedTypeImpl namedType4(String name,
-          [List<TypeAnnotation>? arguments, bool question = false]) =>
-      astFactory.namedType(
-        name: identifier3(name),
-        typeArguments: typeArgumentList(arguments),
-        question:
-            question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null,
       );
 
   static NativeClauseImpl nativeClause(String nativeCode) =>

@@ -347,6 +347,10 @@ class FindNode {
     return _node(search, (n) => n is InterpolationExpression);
   }
 
+  InterpolationString interpolationString(String search) {
+    return _node(search, (n) => n is InterpolationString);
+  }
+
   IsExpression isExpression(String search) {
     return _node(search, (n) => n is IsExpression);
   }
@@ -548,6 +552,14 @@ class FindNode {
 
   SimpleFormalParameter simpleParameter(String search) {
     return _node(search, (n) => n is SimpleFormalParameter);
+  }
+
+  SimpleStringLiteral simpleStringLiteral(String search) {
+    return _node(search, (n) => n is SimpleStringLiteral);
+  }
+
+  SpreadElement spreadElement(String search) {
+    return _node(search, (n) => n is SpreadElement);
   }
 
   Statement statement(String search) {

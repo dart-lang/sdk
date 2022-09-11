@@ -302,8 +302,10 @@ class AstBuilder extends StackListener {
       name: name,
       typeParameters: typeParameters,
       onKeyword: Tokens.on_(),
-      extendedType: ast.namedType(
+      extendedType: NamedTypeImpl(
         name: _tmpSimpleIdentifier(),
+        typeArguments: null,
+        question: null,
       ), // extendedType is set in [endExtensionDeclaration]
       showClause: null,
       hideClause: null,
@@ -1308,9 +1310,10 @@ class AstBuilder extends StackListener {
     var typeNameIdentifier = pop() as IdentifierImpl;
     push(
       ConstructorNameImpl(
-        type: ast.namedType(
+        type: NamedTypeImpl(
           name: typeNameIdentifier,
           typeArguments: typeArguments,
+          question: null,
         ),
         period: periodBeforeName,
         name: constructorName,
@@ -1858,12 +1861,18 @@ class AstBuilder extends StackListener {
       reportErrorIfNullableType(questionMark);
     }
 
-    var parameters = pop() as FormalParameterList;
-    var returnType = pop() as TypeAnnotation?;
-    var typeParameters = pop() as TypeParameterList?;
-    push(ast.genericFunctionType(
-        returnType, functionToken, typeParameters, parameters,
-        question: questionMark));
+    var parameters = pop() as FormalParameterListImpl;
+    var returnType = pop() as TypeAnnotationImpl?;
+    var typeParameters = pop() as TypeParameterListImpl?;
+    push(
+      GenericFunctionTypeImpl(
+        returnType: returnType,
+        functionKeyword: functionToken,
+        typeParameters: typeParameters,
+        parameters: parameters,
+        question: questionMark,
+      ),
+    );
   }
 
   @override
@@ -2137,13 +2146,21 @@ class AstBuilder extends StackListener {
       var last = parts.last as Token;
       Quote quote = analyzeQuote(first.lexeme);
       List<InterpolationElement> elements = <InterpolationElement>[];
-      elements.add(ast.interpolationString(
-          first, unescapeFirstStringPart(first.lexeme, quote, first, this)));
+      elements.add(
+        InterpolationStringImpl(
+          contents: first,
+          value: unescapeFirstStringPart(first.lexeme, quote, first, this),
+        ),
+      );
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
-          elements.add(ast.interpolationString(
-              part, unescape(part.lexeme, quote, part, this)));
+          elements.add(
+            InterpolationStringImpl(
+              contents: part,
+              value: unescape(part.lexeme, quote, part, this),
+            ),
+          );
         } else if (part is InterpolationExpression) {
           elements.add(part);
         } else {
@@ -2154,10 +2171,13 @@ class AstBuilder extends StackListener {
               uri);
         }
       }
-      elements.add(ast.interpolationString(
-          last,
-          unescapeLastStringPart(
-              last.lexeme, quote, last, last.isSynthetic, this)));
+      elements.add(
+        InterpolationStringImpl(
+          contents: last,
+          value: unescapeLastStringPart(
+              last.lexeme, quote, last, last.isSynthetic, this),
+        ),
+      );
       push(ast.stringInterpolation(elements));
     }
   }
@@ -2340,7 +2360,10 @@ class AstBuilder extends StackListener {
     ImplementsClauseImpl? implementsClause;
     if (implementsKeyword != null) {
       var interfaces = popTypeList();
-      implementsClause = ast.implementsClause(implementsKeyword, interfaces);
+      implementsClause = ImplementsClauseImpl(
+        implementsKeyword: implementsKeyword,
+        interfaces: interfaces,
+      );
     }
     var withClause = pop(NullValue.WithClause) as WithClauseImpl;
     var superclass = pop() as NamedTypeImpl;
@@ -3522,7 +3545,10 @@ class AstBuilder extends StackListener {
     HideClause? hideClause;
     if (hideKeyword != null) {
       var elements = popTypedList2<ShowHideClauseElement>(hideElementCount);
-      hideClause = ast.hideClause(hideKeyword: hideKeyword, elements: elements);
+      hideClause = HideClauseImpl(
+        hideKeyword: hideKeyword,
+        elements: elements,
+      );
     }
 
     ShowClause? showClause;
@@ -3705,7 +3731,12 @@ class AstBuilder extends StackListener {
       var types = popTypedList2<TypeAnnotation>(interfacesCount);
       // TODO(brianwilkerson) Report diagnostics for any type that's filtered out.
       var interfaces = types.whereType<NamedType>().toList();
-      push(ast.implementsClause(implementsKeyword, interfaces));
+      push(
+        ImplementsClauseImpl(
+          implementsKeyword: implementsKeyword,
+          interfaces: interfaces,
+        ),
+      );
     } else {
       push(NullValue.IdentifierList);
     }
@@ -3856,8 +3887,13 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(':', colon));
     debugEvent("Label");
 
-    var name = pop() as SimpleIdentifier;
-    push(ast.label(name, colon));
+    var name = pop() as SimpleIdentifierImpl;
+    push(
+      LabelImpl(
+        label: name,
+        colon: colon,
+      ),
+    );
   }
 
   @override
@@ -3893,7 +3929,12 @@ class AstBuilder extends StackListener {
         identical(token.kind, HEXADECIMAL_TOKEN));
     debugEvent("LiteralInt");
 
-    push(ast.integerLiteral(token, int.tryParse(token.lexeme)));
+    push(
+      IntegerLiteralImpl(
+        literal: token,
+        value: int.tryParse(token.lexeme),
+      ),
+    );
   }
 
   @override
@@ -3933,9 +3974,15 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("LiteralMapEntry");
 
-    var value = pop() as Expression;
-    var key = pop() as Expression;
-    push(ast.mapLiteralEntry(key, colon, value));
+    var value = pop() as ExpressionImpl;
+    var key = pop() as ExpressionImpl;
+    push(
+      MapLiteralEntryImpl(
+        key: key,
+        separator: colon,
+        value: value,
+      ),
+    );
   }
 
   @override
@@ -4017,7 +4064,7 @@ class AstBuilder extends StackListener {
           for (var elem in elements) {
             if (elem is MapLiteralEntry) {
               mapEntries.add(elem);
-            } else if (elem is Expression) {
+            } else if (elem is ExpressionImpl) {
               Token next = elem.endToken.next!;
               int offset = next.offset;
               handleRecoverableError(
@@ -4025,9 +4072,15 @@ class AstBuilder extends StackListener {
               handleRecoverableError(
                   templateExpectedIdentifier.withArguments(next), next, next);
               Token separator = SyntheticToken(TokenType.COLON, offset);
-              Expression value = ast.simpleIdentifier(
+              final value = ast.simpleIdentifier(
                   SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
-              mapEntries.add(ast.mapLiteralEntry(elem, separator, value));
+              mapEntries.add(
+                MapLiteralEntryImpl(
+                  key: elem,
+                  separator: separator,
+                  value: value,
+                ),
+              );
             }
           }
         }
@@ -4095,9 +4148,17 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("NamedArgument");
 
-    var expression = pop() as Expression;
-    var name = pop() as SimpleIdentifier;
-    push(ast.namedExpression(ast.label(name, colon), expression));
+    var expression = pop() as ExpressionImpl;
+    var name = pop() as SimpleIdentifierImpl;
+    push(
+      NamedExpressionImpl(
+        name: LabelImpl(
+          label: name,
+          colon: colon,
+        ),
+        expression: expression,
+      ),
+    );
   }
 
   @override
@@ -4451,10 +4512,10 @@ class AstBuilder extends StackListener {
       reportErrorIfNullableType(questionMark);
     }
 
-    var arguments = pop() as TypeArgumentList?;
-    var name = pop() as Identifier;
+    var arguments = pop() as TypeArgumentListImpl?;
+    var name = pop() as IdentifierImpl;
     push(
-      ast.namedType(
+      NamedTypeImpl(
         name: name,
         typeArguments: arguments,
         question: questionMark,
@@ -4464,8 +4525,8 @@ class AstBuilder extends StackListener {
 
   @override
   void handleTypeArgumentApplication(Token openAngleBracket) {
-    var typeArguments = pop() as TypeArgumentList;
-    var receiver = pop() as Expression;
+    var typeArguments = pop() as TypeArgumentListImpl;
+    var receiver = pop() as ExpressionImpl;
     if (!enableConstructorTearoffs) {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.constructor_tearoffs,
@@ -4473,8 +4534,12 @@ class AstBuilder extends StackListener {
         endToken: typeArguments.rightBracket,
       );
     }
-    push(ast.functionReference(
-        function: receiver, typeArguments: typeArguments));
+    push(
+      FunctionReferenceImpl(
+        function: receiver,
+        typeArguments: typeArguments,
+      ),
+    );
   }
 
   @override

@@ -304,8 +304,8 @@ class FunctionReferenceResolver {
 
   /// Resolves [node] as a [TypeLiteral] referencing an interface type directly
   /// (not through a type alias).
-  void _resolveDirectTypeLiteral(
-      FunctionReferenceImpl node, Identifier name, InterfaceElement element) {
+  void _resolveDirectTypeLiteral(FunctionReferenceImpl node,
+      IdentifierImpl name, InterfaceElement element) {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
       node.typeArguments!, name.name, element.typeParameters,
@@ -794,7 +794,7 @@ class FunctionReferenceResolver {
   void _resolveTypeAlias({
     required FunctionReferenceImpl node,
     required TypeAliasElement element,
-    required Identifier typeAlias,
+    required IdentifierImpl typeAlias,
   }) {
     var typeArguments = _checkTypeArguments(
       // `node.typeArguments`, coming from the parser, is never null.
@@ -811,15 +811,16 @@ class FunctionReferenceResolver {
   void _resolveTypeLiteral({
     required FunctionReferenceImpl node,
     required DartType instantiatedType,
-    required Identifier name,
+    required IdentifierImpl name,
   }) {
     // TODO(srawlins): set the static element of [typeName].
     // This involves a fair amount of resolution, as [name] may be a prefixed
     // identifier, etc. [TypeName]s should be resolved in [ResolutionVisitor],
     // and this could be done for nodes like this via [AstRewriter].
-    var typeName = astFactory.namedType(
+    var typeName = NamedTypeImpl(
       name: name,
       typeArguments: node.typeArguments,
+      question: null,
     );
     typeName.type = instantiatedType;
     typeName.name.staticType = instantiatedType;
