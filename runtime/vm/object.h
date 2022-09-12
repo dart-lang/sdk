@@ -10878,6 +10878,10 @@ class Record : public Instance {
                        const Array& field_names,
                        Heap::Space space = Heap::kNew);
 
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
+
  private:
   void set_num_fields(intptr_t num_fields) const;
   void set_field_names(const Array& field_names) const;

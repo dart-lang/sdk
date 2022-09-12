@@ -27591,4 +27591,62 @@ const char* Record::ToCString() const {
   return printer.buffer();
 }
 
+bool Record::CanonicalizeEquals(const Instance& other) const {
+  if (this->ptr() == other.ptr()) {
+    return true;
+  }
+
+  if (!other.IsRecord() || other.IsNull()) {
+    return false;
+  }
+
+  const Record& other_rec = Record::Cast(other);
+
+  const intptr_t num_fields = this->num_fields();
+  if (num_fields != other_rec.num_fields()) {
+    return false;
+  }
+
+  if (field_names() != other_rec.field_names()) {
+    return false;
+  }
+
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    if (this->FieldAt(i) != other_rec.FieldAt(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+uint32_t Record::CanonicalizeHash() const {
+  Thread* thread = Thread::Current();
+  uint32_t hash = thread->heap()->GetCanonicalHash(ptr());
+  if (hash != 0) {
+    return hash;
+  }
+  const intptr_t num_fields = this->num_fields();
+  hash = num_fields;
+  Instance& element = Instance::Handle(field_names());
+  hash = CombineHashes(hash, element.CanonicalizeHash());
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    element ^= FieldAt(i);
+    hash = CombineHashes(hash, element.CanonicalizeHash());
+  }
+  hash = FinalizeHash(hash, kHashBits);
+  thread->heap()->SetCanonicalHash(ptr(), hash);
+  return hash;
+}
+
+void Record::CanonicalizeFieldsLocked(Thread* thread) const {
+  Zone* zone = thread->zone();
+  Instance& obj = Instance::Handle(zone);
+  const intptr_t num_fields = this->num_fields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    obj ^= FieldAt(i);
+    obj = obj.CanonicalizeLocked(thread);
+    SetFieldAt(i, obj);
+  }
+}
+
 }  // namespace dart
