@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart';
 /// Information about optional parameters and their default values for a
 /// member or a set of members belonging to the same override group.
 class ParameterInfo {
-  final Member member;
+  final Member? member;
   int typeParamCount = 0;
   late final List<Constant?> positional;
   late final Map<String, Constant?> named;
@@ -34,13 +34,13 @@ class ParameterInfo {
   }
 
   ParameterInfo.fromMember(Reference target) : member = target.asMember {
-    FunctionNode? function = member.function;
+    FunctionNode? function = member!.function;
     if (target.isTearOffReference) {
       positional = [];
       named = {};
     } else if (function != null) {
       typeParamCount = (member is Constructor
-              ? member.enclosingClass!.typeParameters
+              ? member!.enclosingClass!.typeParameters
               : function.typeParameters)
           .length;
       positional = List.generate(function.positionalParameters.length, (i) {
@@ -57,6 +57,19 @@ class ParameterInfo {
       positional = [if (target.isSetter) null];
       named = {};
     }
+  }
+
+  ParameterInfo.fromLocalFunction(FunctionNode function) : member = null {
+    typeParamCount = function.typeParameters.length;
+    positional = List.generate(function.positionalParameters.length, (i) {
+      // A required parameter has no default value.
+      if (i < function.requiredParameterCount) return null;
+      return defaultValue(function.positionalParameters[i]);
+    });
+    named = {
+      for (VariableDeclaration param in function.namedParameters)
+        param.name!: defaultValue(param)
+    };
   }
 
   void merge(ParameterInfo other) {

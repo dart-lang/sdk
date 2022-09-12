@@ -2,12 +2,371 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+import 'dart:math' show min;
+
 import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/translator.dart';
 
 import 'package:kernel/ast.dart';
 
+import 'package:vm/metadata/procedure_attributes.dart';
+import 'package:vm/transformations/type_flow/utils.dart' show UnionFind;
+
 import 'package:wasm_builder/wasm_builder.dart' as w;
+
+/// Describes the implementation of a concrete closure, including its vtable
+/// contents.
+class ClosureImplementation {
+  /// The representation of the closure.
+  final ClosureRepresentation representation;
+
+  /// The functions pointed to by the function entries in the vtable.
+  final List<w.DefinedFunction> functions;
+
+  /// The constant global variable pointing to the vtable.
+  final w.Global vtable;
+
+  ClosureImplementation(this.representation, this.functions, this.vtable);
+}
+
+/// Describes the representation of closures for a particular function
+/// signature, including the layout of their vtable.
+///
+/// Each vtable layout will have an entry for each number of positional
+/// arguments from 0 up to the maximum number for the signature, followed by
+/// an entry for each (non-empty) combination of argument names that closures
+/// with this layout can be called with.
+class ClosureRepresentation {
+  /// The struct field index in the vtable struct at which the function
+  /// entries start.
+  final int vtableBaseIndex;
+
+  /// The Wasm struct type for the vtable.
+  final w.StructType vtableStruct;
+
+  /// The Wasm struct type for the closure object.
+  final w.StructType closureStruct;
+
+  final Map<NameCombination, int>? _indexOfCombination;
+
+  ClosureRepresentation(this.vtableBaseIndex, this.vtableStruct,
+      this.closureStruct, this._indexOfCombination);
+
+  /// The field index in the vtable struct for the function entry to use when
+  /// calling the closure with the given number of positional arguments and the
+  /// given set of named arguments.
+  int fieldIndexForSignature(int posArgCount, List<String> argNames) {
+    if (argNames.isEmpty) {
+      return vtableBaseIndex + posArgCount;
+    } else {
+      return vtableBaseIndex +
+          posArgCount +
+          _indexOfCombination![NameCombination(argNames)]!;
+    }
+  }
+
+  /// The combinations of parameter names for which there are entries in the
+  /// vtable of this closure, not including the empty combination, if
+  /// applicable.
+  Iterable<NameCombination> get nameCombinations =>
+      _indexOfCombination?.keys ?? const [];
+}
+
+/// A combination of argument names for a call of a closure. The names within a
+/// name combination are sorted alphabetically. Name combinations can be sorted
+/// lexicographically according to their lists of names, corresponding to the
+/// order in which entry points taking named arguments will appear in vtables.
+class NameCombination implements Comparable<NameCombination> {
+  List<String> names;
+
+  NameCombination(this.names);
+
+  @override
+  int compareTo(NameCombination other) {
+    int common = min(names.length, other.names.length);
+    for (int i = 0; i < common; i++) {
+      int comp = names[i].compareTo(other.names[i]);
+      if (comp != 0) return comp;
+    }
+    return names.length - other.names.length;
+  }
+
+  @override
+  String toString() => names.toString();
+}
+
+/// Visitor to collect all closures and closure calls in the program to
+/// compute the vtable layouts necessary to cover all signatures that occur.
+///
+/// For each combination of type parameter count and positional parameter count,
+/// the names of named parameters occurring together with that combination are
+/// partitioned into clusters such that any combination of names that occurs
+/// together is contained within a single cluster.
+///
+/// Each cluster gets a corresponding vtable layout with en extry point for each
+/// combination of names from the cluster that occurs in a call in the program.
+class ClosureLayouter extends RecursiveVisitor {
+  final Translator translator;
+  final Map<TreeNode, ProcedureAttributesMetadata> procedureAttributeMetadata;
+
+  List<List<ClosureRepresentationsForParameterCount>> representations = [];
+
+  Set<Constant> visitedConstants = Set.identity();
+
+  // Base struct for vtables.
+  // TODO(joshualitt): Add function type metadata here.
+  late final w.StructType vtableBaseStruct = m.addStructType("#VtableBase");
+
+  // Base struct for closures.
+  late final w.StructType closureBaseStruct = _makeClosureStruct("#ClosureBase",
+      vtableBaseStruct, translator.classInfo[translator.functionClass]!.struct);
+
+  w.StructType _makeClosureStruct(
+      String name, w.StructType vtableStruct, w.StructType superType) {
+    // A closure contains:
+    //  - A class ID (always the `_Function` class ID)
+    //  - An identity hash
+    //  - A context reference (used for `this` in tear-offs)
+    //  - A vtable reference
+    return m.addStructType("#ClosureBase",
+        fields: [
+          w.FieldType(w.NumType.i32),
+          w.FieldType(w.NumType.i32),
+          w.FieldType(w.RefType.data(nullable: false)),
+          w.FieldType(w.RefType.def(vtableStruct, nullable: false),
+              mutable: false)
+        ],
+        superType: superType);
+  }
+
+  w.Module get m => translator.m;
+  w.ValueType get topType => translator.topInfo.nullableType;
+  w.ValueType get typeType =>
+      translator.classInfo[translator.typeClass]!.nonNullableType;
+
+  ClosureLayouter(this.translator)
+      : procedureAttributeMetadata =
+            (translator.component.metadata["vm.procedure-attributes.metadata"]
+                    as ProcedureAttributesMetadataRepository)
+                .mapping;
+
+  void collect() {
+    translator.component.accept(this);
+    computeClusters();
+  }
+
+  void computeClusters() {
+    for (int typeCount = 0; typeCount < representations.length; typeCount++) {
+      final representationsForTypeCount = representations[typeCount];
+      for (int positionalCount = 0;
+          positionalCount < representationsForTypeCount.length;
+          positionalCount++) {
+        final representationsForCounts =
+            representationsForTypeCount[positionalCount];
+        representationsForCounts.computeClusters();
+      }
+    }
+  }
+
+  /// Get the representation for closures with a specific signature, described
+  /// by the number of type parameters, the maximum number of positional
+  /// parameters and the names of named parameters.
+  ClosureRepresentation? getClosureRepresentation(
+      int typeCount, int positionalCount, List<String> names) {
+    final representations =
+        _representationsForCounts(typeCount, positionalCount);
+    if (representations.withoutNamed == null) {
+      ClosureRepresentation parent = positionalCount == 0
+          ? ClosureRepresentation(vtableBaseStruct.fields.length,
+              vtableBaseStruct, closureBaseStruct, null)
+          : getClosureRepresentation(typeCount, positionalCount - 1, const [])!;
+      representations.withoutNamed = _createRepresentation(typeCount,
+          positionalCount, const [], parent, null, [positionalCount]);
+    }
+
+    if (names.isEmpty) return representations.withoutNamed!;
+
+    ClosureRepresentationCluster? cluster =
+        representations.clusterForNames(names);
+    if (cluster == null) return null;
+    return cluster.representation ??= _createRepresentation(
+        typeCount,
+        positionalCount,
+        names,
+        representations.withoutNamed!,
+        cluster.indexOfCombination,
+        cluster.indexOfCombination.keys
+            .map((c) => positionalCount + c.names.length));
+  }
+
+  ClosureRepresentation _createRepresentation(
+      int typeCount,
+      int positionalCount,
+      List<String> names,
+      ClosureRepresentation parent,
+      Map<NameCombination, int>? indexOfCombination,
+      Iterable<int> paramCounts) {
+    List<String> nameTags = ["$typeCount", "$positionalCount", ...names];
+    String vtableName = ["#Vtable", ...nameTags].join("-");
+    String closureName = ["#Closure", ...nameTags].join("-");
+    w.StructType vtableStruct = m.addStructType(vtableName,
+        fields: parent.vtableStruct.fields, superType: parent.vtableStruct);
+    for (int paramCount in paramCounts) {
+      w.FunctionType entry = m.addFunctionType([
+        w.RefType.data(nullable: false),
+        ...List.filled(typeCount, typeType),
+        ...List.filled(paramCount, topType)
+      ], [
+        topType
+      ]);
+      vtableStruct.fields.add(
+          w.FieldType(w.RefType.def(entry, nullable: false), mutable: false));
+    }
+    w.StructType closureStruct =
+        _makeClosureStruct(closureName, vtableStruct, parent.closureStruct);
+    return ClosureRepresentation(vtableBaseStruct.fields.length, vtableStruct,
+        closureStruct, indexOfCombination);
+  }
+
+  ClosureRepresentationsForParameterCount _representationsForCounts(
+      int typeCount, int positionalCount) {
+    while (representations.length <= typeCount) {
+      representations.add([]);
+    }
+    List<ClosureRepresentationsForParameterCount> positionals =
+        representations[typeCount];
+    while (positionals.length <= positionalCount) {
+      positionals.add(ClosureRepresentationsForParameterCount());
+    }
+    return positionals[positionalCount];
+  }
+
+  void _visitFunctionNode(FunctionNode functionNode) {
+    final representations = _representationsForCounts(
+        functionNode.typeParameters.length,
+        functionNode.positionalParameters.length);
+    representations.registerFunction(functionNode);
+  }
+
+  void _visitFunctionInvocation(Arguments arguments) {
+    final representations = _representationsForCounts(
+        arguments.types.length, arguments.positional.length);
+    representations.registerCall(arguments);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    _visitFunctionNode(node.function);
+    super.visitFunctionExpression(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    _visitFunctionNode(node.function);
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitProcedure(Procedure node) {
+    if (node.isInstanceMember) {
+      ProcedureAttributesMetadata metadata = procedureAttributeMetadata[node]!;
+      if (metadata.hasTearOffUses) {
+        _visitFunctionNode(node.function);
+      }
+    }
+    super.visitProcedure(node);
+  }
+
+  @override
+  void visitStaticTearOffConstantReference(StaticTearOffConstant constant) {
+    _visitFunctionNode(constant.function);
+  }
+
+  @override
+  void defaultConstantReference(Constant constant) {
+    if (visitedConstants.add(constant)) {
+      constant.visitChildren(this);
+    }
+  }
+
+  @override
+  void visitFunctionInvocation(FunctionInvocation node) {
+    _visitFunctionInvocation(node.arguments);
+    super.visitFunctionInvocation(node);
+  }
+
+  @override
+  void visitDynamicInvocation(DynamicInvocation node) {
+    if (node.name.text == "call") {
+      _visitFunctionInvocation(node.arguments);
+    }
+    super.visitDynamicInvocation(node);
+  }
+}
+
+class ClosureRepresentationsForParameterCount {
+  ClosureRepresentation? withoutNamed;
+  final Set<NameCombination> callCombinations = SplayTreeSet();
+  final Map<String, int> nameIds = SplayTreeMap();
+  final UnionFind nameUnions = UnionFind();
+  final Map<String, ClosureRepresentationCluster> clusterForName = {};
+
+  void registerFunction(FunctionNode functionNode) {
+    int? prevIndex = null;
+    for (VariableDeclaration named in functionNode.namedParameters) {
+      String name = named.name!;
+      int nameIndex = nameIds.putIfAbsent(name, () => nameUnions.add());
+      if (prevIndex != null) {
+        nameUnions.union(prevIndex, nameIndex);
+      }
+      prevIndex = nameIndex;
+    }
+  }
+
+  void registerCall(Arguments arguments) {
+    if (arguments.named.isNotEmpty) {
+      NameCombination combination =
+          NameCombination(arguments.named.map((a) => a.name).toList()..sort());
+      callCombinations.add(combination);
+    }
+  }
+
+  ClosureRepresentationCluster? clusterForNames(List<String> names) {
+    final cluster = clusterForName[names[0]];
+    for (int i = 1; i < names.length; i++) {
+      if (clusterForName[names[i]] != cluster) {
+        return null;
+      }
+    }
+    return cluster;
+  }
+
+  void computeClusters() {
+    Map<int, ClosureRepresentationCluster> clusterForId = {};
+    nameIds.forEach((name, id) {
+      int canonicalId = nameUnions.find(id);
+      final cluster = clusterForId.putIfAbsent(canonicalId, () {
+        return ClosureRepresentationCluster();
+      });
+      cluster.names.add(name);
+      clusterForName[name] = cluster;
+    });
+    for (NameCombination combination in callCombinations) {
+      final cluster = clusterForNames(combination.names);
+      if (cluster != null) {
+        cluster.indexOfCombination[combination] =
+            cluster.indexOfCombination.length;
+      }
+    }
+  }
+}
+
+class ClosureRepresentationCluster {
+  final List<String> names = [];
+  final Map<NameCombination, int> indexOfCombination = SplayTreeMap();
+  ClosureRepresentation? representation;
+}
 
 /// A local function or function expression.
 class Lambda {
@@ -105,7 +464,7 @@ class Closures {
   w.Module get m => translator.m;
 
   late final w.ValueType typeType =
-      translator.classInfo[translator.typeClass]!.nullableType;
+      translator.classInfo[translator.typeClass]!.nonNullableType;
 
   void findCaptures(Member member) {
     var find = CaptureFinder(this, member);
@@ -155,7 +514,7 @@ class Closures {
         }
         for (TypeParameter parameter in context.typeParameters) {
           int index = struct.fields.length;
-          struct.fields.add(w.FieldType(typeType));
+          struct.fields.add(w.FieldType(typeType.withNullability(true)));
           captures[parameter]!.fieldIndex = index;
         }
       }
@@ -260,18 +619,12 @@ class CaptureFinder extends RecursiveVisitor {
   }
 
   void _visitLambda(FunctionNode node) {
-    if (node.positionalParameters.length != node.requiredParameterCount ||
-        node.namedParameters.isNotEmpty) {
-      throw "Not supported: Optional parameters for "
-          "function expression or local function at ${node.location}";
-    }
-    if (node.typeParameters.isNotEmpty) {
-      throw "Not supported: Type parameters for "
-          "function expression or local function at ${node.location}";
-    }
     List<w.ValueType> inputs = [
       w.RefType.data(nullable: false),
+      ...List.filled(node.typeParameters.length, closures.typeType),
       for (VariableDeclaration param in node.positionalParameters)
+        translator.translateType(param.type),
+      for (VariableDeclaration param in node.namedParameters)
         translator.translateType(param.type)
     ];
     List<w.ValueType> outputs = [

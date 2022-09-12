@@ -38,7 +38,7 @@ class SelectorInfo {
 
   w.Module get m => translator.m;
 
-  String get name => paramInfo.member.name.text;
+  String get name => paramInfo.member!.name.text;
 
   bool get alive => callCount > 0 && targetCount > 1 || calledDynamically;
 

@@ -175,11 +175,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   void generateTearOffGetter(Procedure procedure) {
-    w.DefinedFunction closureFunction =
-        translator.getTearOffFunction(procedure);
-
-    int parameterCount = procedure.function.requiredParameterCount;
-    w.DefinedGlobal global = translator.makeFunctionRef(closureFunction);
+    ClosureImplementation closure = translator.getTearOffClosure(procedure);
+    w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.classInfo[translator.functionClass]!;
     translator.functions.allocateClass(info.classId);
@@ -187,8 +184,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     b.local_get(paramLocals[0]);
-    b.global_get(global);
-    b.struct_new(translator.closureStructType(parameterCount));
+    b.global_get(closure.vtable);
+    b.struct_new(struct);
     b.end();
   }
 
@@ -421,25 +418,30 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   /// Generate code for the body of a lambda.
   w.DefinedFunction generateLambda(Lambda lambda, Closures closures) {
-    if (lambda.functionNode.asyncMarker == AsyncMarker.Async &&
+    FunctionNode functionNode = lambda.functionNode;
+    if (functionNode.asyncMarker == AsyncMarker.Async &&
         lambda.function == function) {
       w.DefinedFunction inner =
           translator.functions.addAsyncInnerFunctionFor(function);
-      generateAsyncWrapper(lambda.functionNode, inner);
+      generateAsyncWrapper(functionNode, inner);
       return CodeGenerator(translator, inner, reference)
           .generateLambda(lambda, closures);
     }
 
     this.closures = closures;
 
-    final int implicitParams = 1;
-    List<VariableDeclaration> positional =
-        lambda.functionNode.positionalParameters;
-    for (int i = 0; i < positional.length; i++) {
-      locals[positional[i]] = paramLocals[implicitParams + i];
+    int paramIndex = 1;
+    for (TypeParameter typeParam in functionNode.typeParameters) {
+      typeLocals[typeParam] = paramLocals[paramIndex++];
+    }
+    for (VariableDeclaration param in functionNode.positionalParameters) {
+      locals[param] = paramLocals[paramIndex++];
+    }
+    for (VariableDeclaration param in functionNode.namedParameters) {
+      locals[param] = paramLocals[paramIndex++];
     }
 
-    Context? context = closures.contexts[lambda.functionNode]?.parent;
+    Context? context = closures.contexts[functionNode]?.parent;
     if (context != null) {
       b.local_get(paramLocals[0]);
       b.ref_cast(context.struct);
@@ -468,10 +470,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.local_set(thisLocal!);
       }
     }
-    allocateContext(lambda.functionNode);
+    allocateContext(functionNode);
     captureParameters();
 
-    visitStatement(lambda.functionNode.body!);
+    visitStatement(functionNode.body!);
     _implicitReturn();
     b.end();
 
@@ -1374,8 +1376,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       DynamicInvocation node, w.ValueType expectedType) {
     // Handle dynamic 'call' seperately.
     if (node.name.text == "call") {
-      return _functionCall(
-          node.arguments.positional.length, node.receiver, node.arguments);
+      return _functionCall(node.receiver, node.arguments);
     }
     return translator.dynamics.emitDynamicCall(this, node);
   }
@@ -1889,20 +1890,21 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   w.StructType _instantiateClosure(FunctionNode functionNode) {
-    int parameterCount = functionNode.requiredParameterCount;
     Lambda lambda = closures.lambdas[functionNode]!;
-    w.DefinedFunction wrapper = translator.getClosureWrapper(functionNode,
-        lambda.function, "closure wrapper at ${functionNode.location}");
-    w.DefinedGlobal global = translator.makeFunctionRef(wrapper);
+    ClosureImplementation closure = translator.getClosure(
+        functionNode,
+        lambda.function,
+        ParameterInfo.fromLocalFunction(functionNode),
+        "closure wrapper at ${functionNode.location}");
+    w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.classInfo[translator.functionClass]!;
     translator.functions.allocateClass(info.classId);
-    w.StructType struct = translator.closureStructType(parameterCount);
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     _pushContext(functionNode);
-    b.global_get(global);
+    b.global_get(closure.vtable);
     b.struct_new(struct);
 
     return struct;
@@ -1925,23 +1927,57 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         intrinsifier.generateFunctionCallIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
-    int parameterCount = node.functionType?.requiredParameterCount ??
-        node.arguments.positional.length;
-    return _functionCall(parameterCount, node.receiver, node.arguments);
+    return _functionCall(node.receiver, node.arguments);
   }
 
-  w.ValueType _functionCall(
-      int parameterCount, Expression receiver, Arguments arguments) {
-    w.StructType struct = translator.closureStructType(parameterCount);
+  w.ValueType _functionCall(Expression receiver, Arguments arguments) {
+    int typeCount = arguments.types.length;
+    int posArgCount = arguments.positional.length;
+    List<String> argNames = arguments.named.map((a) => a.name).toList()..sort();
+    ClosureRepresentation? representation = translator.closureLayouter
+        .getClosureRepresentation(typeCount, posArgCount, argNames);
+    if (representation == null) {
+      // This is a dynamic function call with a signature that matches no
+      // functions in the program.
+      b.unreachable();
+      return translator.topInfo.nullableType;
+    }
+
+    // Evaluate receiver
+    w.StructType struct = representation.closureStruct;
     w.Local temp = addLocal(w.RefType.def(struct, nullable: false));
     wrap(receiver, temp.type);
     b.local_tee(temp);
     b.struct_get(struct, FieldIndex.closureContext);
+
+    // Type arguments
+    for (DartType typeArg in arguments.types) {
+      types.makeType(this, typeArg);
+    }
+
+    // Positional arguments
     for (Expression arg in arguments.positional) {
       wrap(arg, translator.topInfo.nullableType);
     }
+
+    // Named arguments
+    final Map<String, w.Local> namedLocals = {};
+    for (final namedArg in arguments.named) {
+      final w.Local namedLocal = addLocal(translator.topInfo.nullableType);
+      namedLocals[namedArg.name] = namedLocal;
+      wrap(namedArg.value, namedLocal.type);
+      b.local_set(namedLocal);
+    }
+    for (String name in argNames) {
+      b.local_get(namedLocals[name]!);
+    }
+
+    // Call entry point in vtable
+    int vtableIndex =
+        representation.fieldIndexForSignature(posArgCount, argNames);
     b.local_get(temp);
-    b.struct_get(struct, FieldIndex.closureFunction);
+    b.struct_get(struct, FieldIndex.closureVtable);
+    b.struct_get(representation.vtableStruct, vtableIndex);
     b.call_ref();
     return translator.topInfo.nullableType;
   }
@@ -1951,11 +1987,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       LocalFunctionInvocation node, w.ValueType expectedType) {
     var decl = node.variable.parent as FunctionDeclaration;
     Lambda lambda = closures.lambdas[decl.function]!;
-    List<w.ValueType> inputs = lambda.function.type.inputs;
     _pushContext(decl.function);
-    for (int i = 0; i < node.arguments.positional.length; i++) {
-      wrap(node.arguments.positional[i], inputs[1 + i]);
-    }
+    Arguments arguments = node.arguments;
+    visitArgumentsLists(arguments.positional, lambda.function.type,
+        ParameterInfo.fromLocalFunction(decl.function), 1,
+        typeArguments: arguments.types, named: arguments.named);
     b.comment("Local call of ${decl.variable.name}");
     b.call(lambda.function);
     return translator.outputOrVoid(lambda.function.type.outputs);

@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dart2wasm/class_info.dart';
+import 'package:dart2wasm/closures.dart';
 import 'package:dart2wasm/translator.dart';
 import 'package:dart2wasm/types.dart';
 
@@ -682,10 +683,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   @override
   ConstantInfo? visitStaticTearOffConstant(StaticTearOffConstant constant) {
-    w.DefinedFunction closureFunction =
-        translator.getTearOffFunction(constant.targetReference.asProcedure);
-    int parameterCount = closureFunction.type.inputs.length - 1;
-    w.StructType struct = translator.closureStructType(parameterCount);
+    Procedure member = constant.targetReference.asProcedure;
+    ClosureImplementation closure = translator.getTearOffClosure(member);
+    w.StructType struct = closure.representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
     return createConstant(constant, type, (function, b) {
       ClassInfo info = translator.classInfo[translator.functionClass]!;
@@ -694,13 +694,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       b.global_get(translator.globals.dummyGlobal); // Dummy context
-      if (lazyConstants) {
-        w.DefinedGlobal global = translator.makeFunctionRef(closureFunction);
-        b.global_get(global);
-      } else {
-        b.ref_func(closureFunction);
-      }
-      b.struct_new(translator.closureStructType(parameterCount));
+      b.global_get(closure.vtable);
+      b.struct_new(struct);
     });
   }
 
