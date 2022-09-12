@@ -50,6 +50,7 @@ typedef enum {
   Dart_CObject_kArray,
   Dart_CObject_kTypedData,
   Dart_CObject_kExternalTypedData,
+  Dart_CObject_kUnmodifiableExternalTypedData,
   Dart_CObject_kSendPort,
   Dart_CObject_kCapability,
   Dart_CObject_kNativePointer,

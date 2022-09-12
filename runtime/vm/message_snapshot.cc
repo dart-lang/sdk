@@ -1930,6 +1930,11 @@ class NativePointerMessageDeserializationCluster
   const intptr_t cid_;
 };
 
+enum TypedDataViewFormat {
+  kTypedDataViewFromC,
+  kTypedDataViewFromDart,
+};
+
 class TypedDataViewMessageSerializationCluster
     : public MessageSerializationCluster {
  public:
@@ -1952,6 +1957,7 @@ class TypedDataViewMessageSerializationCluster
   void WriteNodes(MessageSerializer* s) {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
+    s->Write<TypedDataViewFormat>(kTypedDataViewFromDart);
     for (intptr_t i = 0; i < count; i++) {
       TypedDataView* view = objects_[i];
       s->AssignRef(view);
@@ -1968,6 +1974,31 @@ class TypedDataViewMessageSerializationCluster
     }
   }
 
+  void TraceApi(ApiMessageSerializer* s, Dart_CObject* object) {
+    ASSERT(object->type == Dart_CObject_kUnmodifiableExternalTypedData);
+    objects_.Add(reinterpret_cast<TypedDataView*>(object));
+  }
+
+  void WriteNodesApi(ApiMessageSerializer* s) {
+    intptr_t element_size = TypedDataView::ElementSizeInBytes(cid_);
+
+    intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    s->Write<TypedDataViewFormat>(kTypedDataViewFromC);
+    for (intptr_t i = 0; i < count; i++) {
+      Dart_CObject* data = reinterpret_cast<Dart_CObject*>(objects_[i]);
+      s->AssignRef(data);
+
+      intptr_t length = data->value.as_external_typed_data.length;
+      s->WriteUnsigned(length);
+
+      s->finalizable_data()->Put(length * element_size,
+                                 data->value.as_external_typed_data.data,
+                                 data->value.as_external_typed_data.peer,
+                                 data->value.as_external_typed_data.callback);
+    }
+  }
+
  private:
   GrowableArray<TypedDataView*> objects_;
 };
@@ -1981,12 +2012,39 @@ class TypedDataViewMessageDeserializationCluster
 
   void ReadNodes(MessageDeserializer* d) {
     const intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(TypedDataView::New(cid_));
+    format_ = d->Read<TypedDataViewFormat>();
+    if (format_ == kTypedDataViewFromC) {
+      intptr_t view_cid = cid_;
+      ASSERT(IsUnmodifiableTypedDataViewClassId(view_cid));
+      intptr_t backing_cid = cid_ - kTypedDataCidRemainderUnmodifiable +
+                             kTypedDataCidRemainderExternal;
+      ASSERT(IsExternalTypedDataClassId(backing_cid));
+      intptr_t element_size =
+          ExternalTypedData::ElementSizeInBytes(backing_cid);
+      ExternalTypedData& data = ExternalTypedData::Handle(d->zone());
+      TypedDataView& view = TypedDataView::Handle(d->zone());
+      for (intptr_t i = 0; i < count; i++) {
+        intptr_t length = d->ReadUnsigned();
+        FinalizableData finalizable_data = d->finalizable_data()->Take();
+        data = ExternalTypedData::New(
+            backing_cid, reinterpret_cast<uint8_t*>(finalizable_data.data),
+            length);
+        data.SetImmutable();  // Can pass by reference.
+        intptr_t external_size = length * element_size;
+        data.AddFinalizer(finalizable_data.peer, finalizable_data.callback,
+                          external_size);
+        view = TypedDataView::New(view_cid, data, 0, length);
+        d->AssignRef(data.ptr());
+      }
+    } else {
+      for (intptr_t i = 0; i < count; i++) {
+        d->AssignRef(TypedDataView::New(cid_));
+      }
     }
   }
 
   void ReadEdges(MessageDeserializer* d) {
+    if (format_ == kTypedDataViewFromC) return;
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       TypedDataViewPtr view = static_cast<TypedDataViewPtr>(d->Ref(id));
       view->untag()->set_length(static_cast<SmiPtr>(d->ReadRef()));
@@ -1997,6 +2055,7 @@ class TypedDataViewMessageDeserializationCluster
   }
 
   ObjectPtr PostLoad(MessageDeserializer* d) {
+    if (format_ == kTypedDataViewFromC) return nullptr;
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       TypedDataViewPtr view = static_cast<TypedDataViewPtr>(d->Ref(id));
       view->untag()->RecomputeDataField();
@@ -2012,13 +2071,75 @@ class TypedDataViewMessageDeserializationCluster
 
   void ReadNodesApi(ApiMessageDeserializer* d) {
     intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      Dart_CTypedDataView* view = d->zone()->Alloc<Dart_CTypedDataView>(1);
-      d->AssignRef(view);
+    format_ = d->Read<TypedDataViewFormat>();
+    if (format_ == kTypedDataViewFromC) {
+      Dart_TypedData_Type type;
+      switch (cid_) {
+        case kUnmodifiableTypedDataInt8ArrayViewCid:
+          type = Dart_TypedData_kInt8;
+          break;
+        case kUnmodifiableTypedDataUint8ArrayViewCid:
+          type = Dart_TypedData_kUint8;
+          break;
+        case kUnmodifiableTypedDataUint8ClampedArrayViewCid:
+          type = Dart_TypedData_kUint8Clamped;
+          break;
+        case kUnmodifiableTypedDataInt16ArrayViewCid:
+          type = Dart_TypedData_kInt16;
+          break;
+        case kUnmodifiableTypedDataUint16ArrayViewCid:
+          type = Dart_TypedData_kUint16;
+          break;
+        case kUnmodifiableTypedDataInt32ArrayViewCid:
+          type = Dart_TypedData_kInt32;
+          break;
+        case kUnmodifiableTypedDataUint32ArrayViewCid:
+          type = Dart_TypedData_kUint32;
+          break;
+        case kUnmodifiableTypedDataInt64ArrayViewCid:
+          type = Dart_TypedData_kInt64;
+          break;
+        case kUnmodifiableTypedDataUint64ArrayViewCid:
+          type = Dart_TypedData_kUint64;
+          break;
+        case kUnmodifiableTypedDataFloat32ArrayViewCid:
+          type = Dart_TypedData_kFloat32;
+          break;
+        case kUnmodifiableTypedDataFloat64ArrayViewCid:
+          type = Dart_TypedData_kFloat64;
+          break;
+        case kUnmodifiableTypedDataInt32x4ArrayViewCid:
+          type = Dart_TypedData_kInt32x4;
+          break;
+        case kUnmodifiableTypedDataFloat32x4ArrayViewCid:
+          type = Dart_TypedData_kFloat32x4;
+          break;
+        case kUnmodifiableTypedDataFloat64x2ArrayViewCid:
+          type = Dart_TypedData_kFloat64x2;
+          break;
+        default:
+          UNREACHABLE();
+      }
+
+      Dart_CObject* data =
+          d->Allocate(Dart_CObject_kUnmodifiableExternalTypedData);
+      intptr_t length = d->ReadUnsigned();
+      FinalizableData finalizable_data = d->finalizable_data()->Get();
+      data->value.as_typed_data.type = type;
+      data->value.as_typed_data.length = length;
+      data->value.as_typed_data.values =
+          reinterpret_cast<uint8_t*>(finalizable_data.data);
+      d->AssignRef(data);
+    } else {
+      for (intptr_t i = 0; i < count; i++) {
+        Dart_CTypedDataView* view = d->zone()->Alloc<Dart_CTypedDataView>(1);
+        d->AssignRef(view);
+      }
     }
   }
 
   void ReadEdgesApi(ApiMessageDeserializer* d) {
+    if (format_ == kTypedDataViewFromC) return;
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       Dart_CTypedDataView* view = static_cast<Dart_CTypedDataView*>(d->Ref(id));
       view->length = d->ReadRef();
@@ -2028,6 +2149,7 @@ class TypedDataViewMessageDeserializationCluster
   }
 
   void PostLoadApi(ApiMessageDeserializer* d) {
+    if (format_ == kTypedDataViewFromC) return;
     Dart_TypedData_Type type;
     switch (cid_) {
       case kTypedDataInt8ArrayViewCid:
@@ -2093,6 +2215,7 @@ class TypedDataViewMessageDeserializationCluster
 
  private:
   const intptr_t cid_;
+  TypedDataViewFormat format_;
 };
 
 class TransferableTypedDataMessageSerializationCluster
@@ -3423,6 +3546,62 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
       {
         intptr_t len = object->value.as_typed_data.length;
         if (len < 0 || len > ExternalTypedData::MaxElements(cid)) {
+          return Fail("invalid typeddata length");
+        }
+      }
+      break;
+    case Dart_CObject_kUnmodifiableExternalTypedData:
+      switch (object->value.as_external_typed_data.type) {
+        case Dart_TypedData_kInt8:
+          cid = kUnmodifiableTypedDataInt8ArrayViewCid;
+          break;
+        case Dart_TypedData_kUint8:
+          cid = kUnmodifiableTypedDataUint8ArrayViewCid;
+          break;
+        case Dart_TypedData_kUint8Clamped:
+          cid = kUnmodifiableTypedDataUint8ClampedArrayViewCid;
+          break;
+        case Dart_TypedData_kInt16:
+          cid = kUnmodifiableTypedDataInt16ArrayViewCid;
+          break;
+        case Dart_TypedData_kUint16:
+          cid = kUnmodifiableTypedDataUint16ArrayViewCid;
+          break;
+        case Dart_TypedData_kInt32:
+          cid = kUnmodifiableTypedDataInt32ArrayViewCid;
+          break;
+        case Dart_TypedData_kUint32:
+          cid = kUnmodifiableTypedDataUint32ArrayViewCid;
+          break;
+        case Dart_TypedData_kInt64:
+          cid = kUnmodifiableTypedDataInt64ArrayViewCid;
+          break;
+        case Dart_TypedData_kUint64:
+          cid = kUnmodifiableTypedDataUint64ArrayViewCid;
+          break;
+        case Dart_TypedData_kFloat32:
+          cid = kUnmodifiableTypedDataFloat32ArrayViewCid;
+          break;
+        case Dart_TypedData_kFloat64:
+          cid = kUnmodifiableTypedDataFloat64ArrayViewCid;
+          break;
+        case Dart_TypedData_kInt32x4:
+          cid = kUnmodifiableTypedDataInt32x4ArrayViewCid;
+          break;
+        case Dart_TypedData_kFloat32x4:
+          cid = kUnmodifiableTypedDataFloat32x4ArrayViewCid;
+          break;
+        case Dart_TypedData_kFloat64x2:
+          cid = kUnmodifiableTypedDataFloat64x2ArrayViewCid;
+          break;
+        default:
+          return Fail("invalid TypedData type");
+      }
+      {
+        intptr_t len = object->value.as_typed_data.length;
+        if (len < 0 || len > TypedData::MaxElements(
+                                 cid - kTypedDataCidRemainderUnmodifiable +
+                                 kTypedDataCidRemainderInternal)) {
           return Fail("invalid typeddata length");
         }
       }
