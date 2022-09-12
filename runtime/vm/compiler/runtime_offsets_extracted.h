@@ -49,6 +49,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -252,6 +254,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -712,6 +716,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
@@ -919,6 +925,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 16;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -1386,6 +1394,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -1589,6 +1599,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -2046,6 +2058,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
@@ -2253,6 +2267,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 16;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -2721,6 +2737,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 24;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -2925,6 +2943,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 12;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -3392,6 +3412,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 24;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -3596,6 +3618,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 12;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -4064,6 +4088,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -4267,6 +4293,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -4729,6 +4757,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
@@ -4936,6 +4966,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 16;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -5403,6 +5435,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -5601,6 +5635,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -6058,6 +6094,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
@@ -6260,6 +6298,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 16;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -6724,6 +6764,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -6922,6 +6964,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -7376,6 +7420,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
@@ -7578,6 +7624,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 16;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -8043,6 +8091,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 24;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -8242,6 +8292,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 12;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -8706,6 +8758,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 24;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -8905,6 +8959,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 12;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -9370,6 +9426,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
@@ -9568,6 +9626,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -10027,6 +10087,8 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
@@ -10229,6 +10291,8 @@ static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
+static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word Record_field_names_offset = 16;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -10699,6 +10763,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -10926,6 +10993,8 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -11439,6 +11508,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -11667,6 +11739,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -12186,6 +12261,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -12414,6 +12492,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -12931,6 +13012,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -13158,6 +13242,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    12;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -13674,6 +13761,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -13901,6 +13991,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    12;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -14418,6 +14511,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -14645,6 +14741,8 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -15160,6 +15258,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -15388,6 +15489,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -15904,6 +16008,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -16125,6 +16232,8 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -16635,6 +16744,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -16857,6 +16969,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -17373,6 +17488,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -17595,6 +17713,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -18109,6 +18230,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -18330,6 +18454,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    12;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -18843,6 +18970,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -19064,6 +19194,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    12;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -19578,6 +19711,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 20;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -19799,6 +19935,8 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 4;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -20311,6 +20449,9 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
+static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
 static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
@@ -20533,6 +20674,9 @@ static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word

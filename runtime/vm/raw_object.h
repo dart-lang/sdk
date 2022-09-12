@@ -3223,6 +3223,19 @@ class UntaggedFloat64x2 : public UntaggedInstance {
 };
 COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
 
+class UntaggedRecord : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Record);
+
+  int32_t num_fields_;
+  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names)
+  VISIT_FROM(field_names)
+  // Variable length data follows here.
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data)
+
+  friend void UpdateLengthField(intptr_t, ObjectPtr,
+                                ObjectPtr);  // num_fields_
+};
+
 // Define an aliases for intptr_t.
 #if defined(ARCH_IS_32_BIT)
 #define kIntPtrCid kTypedDataInt32ArrayCid

@@ -1642,6 +1642,11 @@ void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
 
+void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
+  // TODO(dartbug.com/49724)
+}
+
 void StackTrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);

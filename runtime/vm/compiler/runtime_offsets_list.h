@@ -53,6 +53,7 @@
   ARRAY(ExceptionHandlers, element_offset)                                     \
   ARRAY(ObjectPool, element_offset)                                            \
   ARRAY(OneByteString, element_offset)                                         \
+  ARRAY(Record, field_offset)                                                  \
   ARRAY(TypeArguments, type_at_offset)                                         \
   ARRAY(TwoByteString, element_offset)                                         \
   ARRAY_SIZEOF(Array, InstanceSize, element_offset)                            \
@@ -62,6 +63,7 @@
   ARRAY_SIZEOF(ExceptionHandlers, InstanceSize, element_offset)                \
   ARRAY_SIZEOF(ObjectPool, InstanceSize, element_offset)                       \
   ARRAY_SIZEOF(OneByteString, InstanceSize, element_offset)                    \
+  ARRAY_SIZEOF(Record, InstanceSize, field_offset)                             \
   ARRAY_SIZEOF(TypeArguments, InstanceSize, type_at_offset)                    \
   ARRAY_SIZEOF(TwoByteString, InstanceSize, element_offset)                    \
   CONSTANT(Array, kMaxElements)                                                \
@@ -190,6 +192,8 @@
   FIELD(OneByteString, data_offset)                                            \
   FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
+  FIELD(Record, num_fields_offset)                                             \
+  FIELD(Record, field_names_offset)                                            \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \
   FIELD(SingleTargetCache, target_offset)                                      \

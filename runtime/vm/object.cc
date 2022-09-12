@@ -1992,6 +1992,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
     pending_classes.Add(cls);
 
+    cls = Class::New<Record, RTN::Record>(isolate_group);
+    RegisterPrivateClass(cls, Symbols::_Record(), core_lib);
+    pending_classes.Add(cls);
+
     cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate_group);
     object_store->set_weak_property_class(cls);
     RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
@@ -2584,6 +2588,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<Closure, RTN::Closure>(isolate_group);
     object_store->set_closure_class(cls);
+
+    cls = Class::New<Record, RTN::Record>(isolate_group);
 
     cls = Class::NewStringClass(kOneByteStringCid, isolate_group);
     object_store->set_one_byte_string_class(cls);
@@ -19841,8 +19847,50 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     return sig.IsSubtypeOf(FunctionType::Cast(instantiated_other), Heap::kOld);
   }
   if (cls.IsRecordClass()) {
-    // TODO(dartbug.com/49719)
-    UNIMPLEMENTED();
+    if (other.IsDartRecordType() || other.IsObjectType()) {
+      return true;
+    }
+    AbstractType& instantiated_other = AbstractType::Handle(zone, other.ptr());
+    if (!other.IsInstantiated()) {
+      instantiated_other = other.InstantiateFrom(
+          other_instantiator_type_arguments, other_function_type_arguments,
+          kAllFree, Heap::kOld);
+      if (instantiated_other.IsTypeRef()) {
+        instantiated_other = TypeRef::Cast(instantiated_other).type();
+      }
+      if (instantiated_other.IsTopTypeForSubtyping() ||
+          instantiated_other.IsObjectType() ||
+          instantiated_other.IsDartRecordType()) {
+        return true;
+      }
+    }
+    if (RuntimeTypeIsSubtypeOfFutureOr(zone, instantiated_other)) {
+      return true;
+    }
+    if (!instantiated_other.IsRecordType()) {
+      return false;
+    }
+    const Record& record = Record::Cast(*this);
+    const RecordType& record_type = RecordType::Cast(instantiated_other);
+    const intptr_t num_fields = record.num_fields();
+    ASSERT(Array::Handle(record.field_names()).IsCanonical());
+    ASSERT(Array::Handle(record_type.field_names()).IsCanonical());
+    if ((num_fields != record_type.NumFields()) ||
+        (record.field_names() != record_type.field_names())) {
+      return false;
+    }
+    Instance& field_value = Instance::Handle(zone);
+    AbstractType& field_type = AbstractType::Handle(zone);
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      field_value ^= record.FieldAt(i);
+      field_type = record_type.FieldTypeAt(i);
+      if (!field_value.RuntimeTypeIsSubtypeOf(field_type,
+                                              Object::null_type_arguments(),
+                                              Object::null_type_arguments())) {
+        return false;
+      }
+    }
+    return true;
   }
   TypeArguments& type_arguments = TypeArguments::Handle(zone);
   if (cls.NumTypeArguments() > 0) {
@@ -20674,6 +20722,11 @@ bool AbstractType::IsDartFunctionType() const {
 
 bool AbstractType::IsDartClosureType() const {
   return (type_class_id() == kClosureCid);
+}
+
+bool AbstractType::IsDartRecordType() const {
+  // TODO(dartbug.com/49719): should check for Record, not _Record class.
+  return HasTypeClass() && type_class_id() == kRecordCid;
 }
 
 bool AbstractType::IsFfiPointerType() const {
@@ -27473,6 +27526,69 @@ AbstractTypePtr RecordType::InstantiateFrom(
 
   // Canonicalization is not part of instantiation.
   return rec.ptr();
+}
+
+intptr_t Record::NumNamedFields() const {
+  return Array::LengthOf(field_names());
+}
+
+intptr_t Record::NumPositionalFields() const {
+  return num_fields() - NumNamedFields();
+}
+
+void Record::set_num_fields(intptr_t num_fields) const {
+  ASSERT(num_fields >= 0);
+  StoreNonPointer(&untag()->num_fields_, num_fields);
+}
+
+void Record::set_field_names(const Array& field_names) const {
+  ASSERT(!field_names.IsNull());
+  ASSERT(field_names.IsCanonical());
+  untag()->set_field_names(field_names.ptr());
+}
+
+RecordPtr Record::New(intptr_t num_fields,
+                      const Array& field_names,
+                      Heap::Space space) {
+  ASSERT(num_fields >= 0);
+  Record& result = Record::Handle();
+  {
+    ObjectPtr raw =
+        Object::Allocate(Record::kClassId, Record::InstanceSize(num_fields),
+                         space, Record::ContainsCompressedPointers());
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.set_num_fields(num_fields);
+  }
+  result.set_field_names(field_names);
+  return result.ptr();
+}
+
+const char* Record::ToCString() const {
+  if (IsNull()) {
+    return "Record: null";
+  }
+  Zone* zone = Thread::Current()->zone();
+  ZoneTextBuffer printer(zone);
+  const intptr_t num_fields = this->num_fields();
+  const intptr_t num_positional_fields = NumPositionalFields();
+  const Array& field_names = Array::Handle(zone, this->field_names());
+  Object& obj = Object::Handle(zone);
+  printer.AddString("Record (");
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    if (i != 0) {
+      printer.AddString(", ");
+    }
+    if (i >= num_positional_fields) {
+      obj = field_names.At(i - num_positional_fields);
+      printer.AddString(obj.ToCString());
+      printer.AddString(": ");
+    }
+    obj = FieldAt(i);
+    printer.AddString(obj.ToCString());
+  }
+  printer.AddString(")");
+  return printer.buffer();
 }
 
 }  // namespace dart

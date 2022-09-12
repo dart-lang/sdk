@@ -1090,6 +1090,9 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ cmpq(RCX, Immediate(kClosureCid));
   __ j(EQUAL, normal_ir_body);  // Instance is a closure.
 
+  __ cmpq(RCX, Immediate(kRecordCid));
+  __ j(EQUAL, normal_ir_body);  // Instance is a record.
+
   __ cmpl(RCX, Immediate(kNumPredefinedCids));
   __ j(ABOVE, &use_declaration_type);
 
@@ -1165,6 +1168,10 @@ static void EquivalentClassIds(Assembler* assembler,
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ cmpq(cid1, Immediate(kClosureCid));
+  __ j(EQUAL, normal_ir_body);
+
+  // Check if left hand side is a record. Records are handled in the runtime.
+  __ cmpq(cid1, Immediate(kRecordCid));
   __ j(EQUAL, normal_ir_body);
 
   // Check whether class ids match. If class ids don't match types may still be

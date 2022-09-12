@@ -1446,9 +1446,7 @@ class Class : public Object {
 
   // Check if this class represents the 'Record' class.
   bool IsRecordClass() const {
-    // TODO(dartbug.com/49719)
-    // return id() == kRecordCid;
-    return false;
+    return id() == kRecordCid;
   }
 
   static bool IsInFullSnapshot(ClassPtr cls) {
@@ -8403,6 +8401,9 @@ class AbstractType : public Instance {
   // Check if this type represents the Dart '_Closure' type.
   bool IsDartClosureType() const;
 
+  // Check if this type represents the Dart 'Record' type.
+  bool IsDartRecordType() const;
+
   // Check if this type represents the 'Pointer' type from "dart:ffi".
   bool IsFfiPointerType() const;
 
@@ -9053,6 +9054,7 @@ class RecordType : public AbstractType {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RecordType, AbstractType);
   friend class Class;
+  friend class ClassFinalizer;
   friend class ClearTypeHashVisitor;
   friend class Record;
 };
@@ -10823,6 +10825,66 @@ class Float64x2 : public Instance {
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64x2, Instance);
   friend class Class;
+};
+
+class Record : public Instance {
+ public:
+  intptr_t num_fields() const { return NumFields(ptr()); }
+  static intptr_t NumFields(RecordPtr ptr) { return ptr->untag()->num_fields_; }
+  static intptr_t num_fields_offset() {
+    return OFFSET_OF(UntaggedRecord, num_fields_);
+  }
+
+  intptr_t NumNamedFields() const;
+  intptr_t NumPositionalFields() const;
+
+  ArrayPtr field_names() const { return untag()->field_names(); }
+  static intptr_t field_names_offset() {
+    return OFFSET_OF(UntaggedRecord, field_names_);
+  }
+
+  ObjectPtr FieldAt(intptr_t field_index) const {
+    return untag()->field(field_index);
+  }
+  void SetFieldAt(intptr_t field_index, const Object& value) const {
+    untag()->set_field(field_index, value.ptr());
+  }
+
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() { return sizeof(UntaggedRecord); }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
+
+  static intptr_t field_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data) +
+           kBytesPerElement * index;
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(UntaggedRecord) ==
+           OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t num_fields) {
+    return RoundedAllocationSize(sizeof(UntaggedRecord) +
+                                 (num_fields * kBytesPerElement));
+  }
+
+  static RecordPtr New(intptr_t num_fields,
+                       const Array& field_names,
+                       Heap::Space space = Heap::kNew);
+
+ private:
+  void set_num_fields(intptr_t num_fields) const;
+  void set_field_names(const Array& field_names) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Record, Instance);
+  friend class Class;
+  friend class Object;
 };
 
 class PointerBase : public Instance {

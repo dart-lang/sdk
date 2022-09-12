@@ -83,3 +83,12 @@ String _objectToString(Object? obj) => obj.toString();
 @pragma("vm:entry-point", "call")
 dynamic _objectNoSuchMethod(Object? obj, Invocation invocation) =>
     obj.noSuchMethod(invocation);
+
+// Base class for record instances.
+// TODO(49719): create a separate patch file for this class.
+@pragma("vm:entry-point")
+class _Record {
+  factory _Record._uninstantiable() {
+    throw "Unreachable";
+  }
+}

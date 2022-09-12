@@ -146,6 +146,11 @@ static bool HaveSameRuntimeTypeHelper(Zone* zone,
     return left_type.IsEquivalent(right_type, TypeEquality::kSyntactical);
   }
 
+  if (left_cid == kRecordCid) {
+    // TODO(dartbug.com/49719)
+    UNIMPLEMENTED();
+  }
+
   const Class& cls = Class::Handle(zone, left.clazz());
   if (!cls.IsGeneric()) {
     return true;

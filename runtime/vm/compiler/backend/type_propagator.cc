@@ -773,10 +773,8 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kSentinelCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
-    } else if (type_->IsRecordType()) {
-      // TODO(dartbug.com/49719)
-      // cid_ = kRecordCid;
-      UNIMPLEMENTED();
+    } else if (type_->IsRecordType() || type_->IsDartRecordType()) {
+      cid_ = kRecordCid;
     } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
       intptr_t implementation_cid = kIllegalCid;

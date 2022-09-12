@@ -4977,6 +4977,94 @@ class GrowableObjectArrayDeserializationCluster
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class RecordSerializationCluster : public SerializationCluster {
+ public:
+  explicit RecordSerializationCluster(bool is_canonical)
+      : SerializationCluster("Record", kRecordCid, kSizeVaries, is_canonical) {}
+  ~RecordSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    RecordPtr record = Record::RawCast(object);
+    objects_.Add(record);
+
+    s->Push(record->untag()->field_names());
+    const intptr_t num_fields = record->untag()->num_fields_;
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      s->Push(record->untag()->field(i));
+    }
+  }
+
+  void WriteAlloc(Serializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; ++i) {
+      RecordPtr record = objects_[i];
+      s->AssignRef(record);
+      AutoTraceObject(record);
+      const intptr_t num_fields = record->untag()->num_fields_;
+      s->WriteUnsigned(num_fields);
+      target_memory_size_ += compiler::target::Record::InstanceSize(num_fields);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; ++i) {
+      RecordPtr record = objects_[i];
+      AutoTraceObject(record);
+      const intptr_t num_fields = record->untag()->num_fields_;
+      s->WriteUnsigned(num_fields);
+      WriteField(record, field_names());
+      for (intptr_t j = 0; j < num_fields; ++j) {
+        s->WriteElementRef(record->untag()->field(j), j);
+      }
+    }
+  }
+
+ private:
+  GrowableArray<RecordPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class RecordDeserializationCluster
+    : public AbstractInstanceDeserializationCluster {
+ public:
+  explicit RecordDeserializationCluster(bool is_canonical)
+      : AbstractInstanceDeserializationCluster("Record", is_canonical) {}
+  ~RecordDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t num_fields = d->ReadUnsigned();
+      d->AssignRef(
+          old_space->AllocateSnapshot(Record::InstanceSize(num_fields)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_, bool primary) {
+    Deserializer::Local d(d_);
+
+    const bool stamp_canonical = primary && is_canonical();
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      RecordPtr record = static_cast<RecordPtr>(d.Ref(id));
+      const intptr_t num_fields = d.ReadUnsigned();
+      Deserializer::InitializeHeader(record, kRecordCid,
+                                     Record::InstanceSize(num_fields),
+                                     stamp_canonical);
+      record->untag()->num_fields_ = num_fields;
+      record->untag()->field_names_ = static_cast<ArrayPtr>(d.ReadRef());
+      for (intptr_t j = 0; j < num_fields; ++j) {
+        record->untag()->data()[j] = d.ReadRef();
+      }
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class TypedDataSerializationCluster : public SerializationCluster {
  public:
   explicit TypedDataSerializationCluster(intptr_t cid)
@@ -6998,6 +7086,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
       return new (Z) DoubleSerializationCluster(is_canonical);
     case kGrowableObjectArrayCid:
       return new (Z) GrowableObjectArraySerializationCluster();
+    case kRecordCid:
+      return new (Z) RecordSerializationCluster(is_canonical);
     case kStackTraceCid:
       return new (Z) StackTraceSerializationCluster();
     case kRegExpCid:
@@ -8147,6 +8237,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kGrowableObjectArrayCid:
       ASSERT(!is_canonical);
       return new (Z) GrowableObjectArrayDeserializationCluster();
+    case kRecordCid:
+      return new (Z) RecordDeserializationCluster(is_canonical);
     case kStackTraceCid:
       ASSERT(!is_canonical);
       return new (Z) StackTraceDeserializationCluster();

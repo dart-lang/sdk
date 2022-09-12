@@ -376,6 +376,7 @@ class ObjectPointerVisitor;
   V(_ParameterMirror, "_ParameterMirror")                                      \
   V(_Random, "_Random")                                                        \
   V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
+  V(_Record, "_Record")                                                        \
   V(_RecordType, "_RecordType")                                                \
   V(_RegExp, "_RegExp")                                                        \
   V(_SendPortImpl, "_SendPortImpl")                                            \

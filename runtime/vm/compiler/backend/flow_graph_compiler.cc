@@ -2805,6 +2805,12 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ BranchIf(EQUAL, is_instance_lbl);
     return true;
   }
+  if (type.IsDartRecordType()) {
+    // Check if instance is a record.
+    __ CompareImmediate(kScratchReg, kRecordCid);
+    __ BranchIf(EQUAL, is_instance_lbl);
+    return true;
+  }
 
   // Fast case for cid-range based checks.
   // Warning: This code destroys the contents of [kScratchReg], so this should
