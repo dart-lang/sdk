@@ -1649,6 +1649,10 @@ CompileType AllocateClosureInstr::ComputeType() const {
   return CompileType::FromCid(kClosureCid);
 }
 
+CompileType AllocateRecordInstr::ComputeType() const {
+  return CompileType::FromCid(kRecordCid);
+}
+
 CompileType LoadUntaggedInstr::ComputeType() const {
   return CompileType::Dynamic();
 }

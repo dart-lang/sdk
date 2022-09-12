@@ -823,10 +823,7 @@ void ScopeBuilder::VisitExpression() {
     }
     case kStringConcatenation: {
       helper_.ReadPosition();                           // read position.
-      intptr_t list_length = helper_.ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        VisitExpression();  // read ith expression.
-      }
+      VisitListOfExpressions();
       return;
     }
     case kIsExpression:
@@ -859,10 +856,7 @@ void ScopeBuilder::VisitExpression() {
     case kListLiteral: {
       helper_.ReadPosition();                           // read position.
       VisitDartType();                                  // read type.
-      intptr_t list_length = helper_.ReadListLength();  // read list length.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        VisitExpression();  // read ith expression.
-      }
+      VisitListOfExpressions();
       return;
     }
     case kSetLiteral: {
@@ -882,6 +876,12 @@ void ScopeBuilder::VisitExpression() {
       }
       return;
     }
+    case kRecordLiteral:
+      helper_.ReadPosition();         // read position.
+      VisitListOfExpressions();       // read positionals.
+      VisitListOfNamedExpressions();  // read named.
+      VisitDartType();                // read recordType.
+      return;
     case kFunctionExpression: {
       intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
       helper_.ReadPosition();                        // read position.
@@ -1085,10 +1085,7 @@ void ScopeBuilder::VisitStatement() {
       if (tag == kSomething) {
         VisitExpression();  // read rest of condition.
       }
-      list_length = helper_.ReadListLength();  // read number of updates.
-      for (intptr_t i = 0; i < list_length; ++i) {
-        VisitExpression();  // read ith update.
-      }
+      VisitListOfExpressions();  // read updates.
       VisitStatement();  // read body.
 
       ExitScope(position, helper_.reader_.max_position());
@@ -1259,6 +1256,21 @@ void ScopeBuilder::VisitStatement() {
   }
 }
 
+void ScopeBuilder::VisitListOfExpressions() {
+  const intptr_t list_length = helper_.ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    VisitExpression();
+  }
+}
+
+void ScopeBuilder::VisitListOfNamedExpressions() {
+  const intptr_t list_length = helper_.ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    helper_.SkipStringReference();  // read ith name index.
+    VisitExpression();              // read ith expression.
+  }
+}
+
 void ScopeBuilder::VisitArguments() {
   helper_.ReadUInt();  // read argument_count.
 
@@ -1268,18 +1280,8 @@ void ScopeBuilder::VisitArguments() {
     VisitDartType();  // read ith type.
   }
 
-  // Positional.
-  list_length = helper_.ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    VisitExpression();  // read ith positional.
-  }
-
-  // Named.
-  list_length = helper_.ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    helper_.SkipStringReference();  // read ith name index.
-    VisitExpression();              // read ith expression.
-  }
+  VisitListOfExpressions();       // Positional.
+  VisitListOfNamedExpressions();  // Named.
 }
 
 void ScopeBuilder::VisitVariableDeclaration() {

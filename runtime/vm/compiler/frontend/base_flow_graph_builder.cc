@@ -933,6 +933,15 @@ Fragment BaseFlowGraphBuilder::CreateArray() {
   return Fragment(array);
 }
 
+Fragment BaseFlowGraphBuilder::AllocateRecord(TokenPosition position,
+                                              intptr_t num_fields,
+                                              const Array& field_names) {
+  AllocateRecordInstr* allocate = new (Z) AllocateRecordInstr(
+      InstructionSource(position), num_fields, field_names, GetNextDeoptId());
+  Push(allocate);
+  return Fragment(allocate);
+}
+
 Fragment BaseFlowGraphBuilder::AllocateTypedData(TokenPosition position,
                                                  classid_t class_id) {
   Value* num_elements = Pop();

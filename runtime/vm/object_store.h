@@ -235,6 +235,7 @@ class ObjectPointerVisitor;
   RW(Code, allocate_growable_array_stub)                                       \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
+  RW(Code, allocate_record_stub)                                               \
   RW(Code, allocate_unhandled_exception_stub)                                  \
   RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
@@ -326,6 +327,7 @@ class ObjectPointerVisitor;
   DO(allocate_growable_array_stub, AllocateGrowableArray)                      \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
+  DO(allocate_record_stub, AllocateRecord)                                     \
   DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
   DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \

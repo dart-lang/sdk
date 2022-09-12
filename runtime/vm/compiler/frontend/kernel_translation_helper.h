@@ -1275,6 +1275,7 @@ class KernelReaderHelper {
   void SkipFunctionType(bool simple);
   void SkipStatementList();
   void SkipListOfExpressions();
+  void SkipListOfNamedExpressions();
   void SkipListOfDartTypes();
   void SkipListOfStrings();
   void SkipListOfVariableDeclarations();

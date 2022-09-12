@@ -248,6 +248,9 @@ class Slot : public ZoneAllocated {
     // Only used during allocation sinking and in MaterializeObjectInstr.
     kArrayElement,
 
+    // A slot corresponding to a record field at the given offset.
+    kRecordField,
+
     // A slot within a Context object that contains a value of a captured
     // local variable.
     kCapturedVariable,
@@ -256,9 +259,6 @@ class Slot : public ZoneAllocated {
     kDartField,
   };
   // clang-format on
-
-  static const char* KindToCString(Kind k);
-  static bool ParseKind(const char* str, Kind* k);
 
   // Returns a slot that represents length field for the given [array_cid].
   static const Slot& GetLengthFieldForArrayCid(intptr_t array_cid);
@@ -277,6 +277,12 @@ class Slot : public ZoneAllocated {
   // Returns a slot corresponding to an array element at [offset_in_bytes].
   static const Slot& GetArrayElementSlot(Thread* thread,
                                          intptr_t offset_in_bytes);
+
+  // Returns a slot corresponding to a record field at [offset_in_bytes].
+  // TODO(dartbug.com/49719): distinguish slots of records with different
+  // shapes.
+  static const Slot& GetRecordFieldSlot(Thread* thread,
+                                        intptr_t offset_in_bytes);
 
   // Returns a slot that represents the given captured local variable.
   static const Slot& GetContextVariableSlotFor(Thread* thread,
@@ -301,6 +307,9 @@ class Slot : public ZoneAllocated {
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
   bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
   bool IsArrayElement() const { return kind() == Kind::kArrayElement; }
+  bool IsRecordField() const {
+    return kind() == Kind::kRecordField;
+  }
   bool IsImmutableLengthSlot() const;
 
   const char* Name() const;

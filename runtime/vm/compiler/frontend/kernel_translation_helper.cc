@@ -2300,6 +2300,14 @@ void KernelReaderHelper::SkipListOfExpressions() {
   }
 }
 
+void KernelReaderHelper::SkipListOfNamedExpressions() {
+  const intptr_t list_length = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    SkipStringReference();  // read ith name index.
+    SkipExpression();       // read ith expression.
+  }
+}
+
 void KernelReaderHelper::SkipListOfDartTypes() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -2603,6 +2611,12 @@ void KernelReaderHelper::SkipExpression() {
       }
       return;
     }
+    case kRecordLiteral:
+      ReadPosition();                // read position.
+      SkipListOfExpressions();       // read positionals.
+      SkipListOfNamedExpressions();  // read named.
+      SkipDartType();                // read recordType.
+      return;
     case kFunctionExpression:
       ReadPosition();      // read position.
       SkipFunctionNode();  // read function node.
@@ -2829,14 +2843,8 @@ void KernelReaderHelper::SkipArguments() {
   ReadUInt();  // read argument count.
 
   SkipListOfDartTypes();    // read list of types.
-  SkipListOfExpressions();  // read positionals.
-
-  // List of named.
-  intptr_t list_length = ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    SkipStringReference();  // read ith name index.
-    SkipExpression();       // read ith expression.
-  }
+  SkipListOfExpressions();  // read positional.
+  SkipListOfNamedExpressions();  // read named.
 }
 
 void KernelReaderHelper::SkipVariableDeclaration() {

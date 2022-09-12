@@ -320,6 +320,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildThrow(TokenPosition* position);
   Fragment BuildListLiteral(TokenPosition* position);
   Fragment BuildMapLiteral(TokenPosition* position);
+  Fragment BuildRecordLiteral(TokenPosition* position);
   Fragment BuildFunctionExpression();
   Fragment BuildLet(TokenPosition* position);
   Fragment BuildBlockExpression();

@@ -457,6 +457,7 @@ struct InstrAttrs {
   M(CreateArray, _)                                                            \
   M(AllocateObject, _)                                                         \
   M(AllocateClosure, _)                                                        \
+  M(AllocateRecord, _)                                                         \
   M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
@@ -6990,6 +6991,46 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(AllocateUninitializedContextInstr);
+};
+
+// Allocates and null initializes a record object.
+class AllocateRecordInstr : public TemplateAllocation<0> {
+ public:
+  AllocateRecordInstr(const InstructionSource& source,
+                      intptr_t num_fields,
+                      const Array& field_names,
+                      intptr_t deopt_id)
+      : TemplateAllocation(source, deopt_id),
+        num_fields_(num_fields),
+        field_names_(field_names) {
+    ASSERT(field_names.IsNotTemporaryScopedHandle());
+    ASSERT(field_names.IsCanonical());
+  }
+
+  DECLARE_INSTRUCTION(AllocateRecord)
+  virtual CompileType ComputeType() const;
+
+  intptr_t num_fields() const { return num_fields_; }
+  const Array& field_names() const { return field_names_; }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool WillAllocateNewOrRemembered() const {
+    return Heap::IsAllocatableInNewSpace(
+        compiler::target::Record::InstanceSize(num_fields_));
+  }
+
+#define FIELD_LIST(F)                                                          \
+  F(const intptr_t, num_fields_)                                               \
+  F(const Array&, field_names_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateRecordInstr,
+                                          TemplateAllocation,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AllocateRecordInstr);
 };
 
 // This instruction captures the state of the object which had its allocation

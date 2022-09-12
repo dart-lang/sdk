@@ -46,61 +46,6 @@ class SlotCache : public ZoneAllocated {
   PointerSet<const Slot> fields_;
 };
 
-#define NATIVE_SLOT_NAME(C, F) Kind::k##C##_##F
-#define NATIVE_TO_STR(C, F) #C "_" #F
-
-const char* Slot::KindToCString(Kind k) {
-  switch (k) {
-#define NATIVE_CASE(C, __, F, ___, ____)                                       \
-  case NATIVE_SLOT_NAME(C, F):                                                 \
-    return NATIVE_TO_STR(C, F);
-    NATIVE_SLOTS_LIST(NATIVE_CASE)
-#undef NATIVE_CASE
-    case Kind::kTypeArguments:
-      return "TypeArguments";
-    case Kind::kArrayElement:
-      return "ArrayElement";
-    case Kind::kCapturedVariable:
-      return "CapturedVariable";
-    case Kind::kDartField:
-      return "DartField";
-    default:
-      UNREACHABLE();
-      return nullptr;
-  }
-}
-
-bool Slot::ParseKind(const char* str, Kind* out) {
-  ASSERT(str != nullptr && out != nullptr);
-#define NATIVE_CASE(C, __, F, ___, ____)                                       \
-  if (strcmp(str, NATIVE_TO_STR(C, F)) == 0) {                                 \
-    *out = NATIVE_SLOT_NAME(C, F);                                             \
-    return true;                                                               \
-  }
-  NATIVE_SLOTS_LIST(NATIVE_CASE)
-#undef NATIVE_CASE
-  if (strcmp(str, "TypeArguments") == 0) {
-    *out = Kind::kTypeArguments;
-    return true;
-  }
-  if (strcmp(str, "ArrayElement") == 0) {
-    *out = Kind::kArrayElement;
-    return true;
-  }
-  if (strcmp(str, "CapturedVariable") == 0) {
-    *out = Kind::kCapturedVariable;
-    return true;
-  }
-  if (strcmp(str, "DartField") == 0) {
-    *out = Kind::kDartField;
-    return true;
-  }
-  return false;
-}
-
-#undef NATIVE_TO_STR
-#undef NATIVE_SLOT_NAME
-
 static classid_t GetUnboxedNativeSlotCid(Representation rep) {
   // Currently we only support integer unboxed fields.
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
@@ -243,6 +188,7 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kFunctionType_named_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
+    case Slot::Kind::kRecordField:
     case Slot::Kind::kSuspendState_function_data:
     case Slot::Kind::kSuspendState_then_callback:
     case Slot::Kind::kSuspendState_error_callback:
@@ -342,6 +288,15 @@ const Slot& Slot::GetArrayElementSlot(Thread* thread,
       IsNullableBit::encode(true) |
           IsCompressedBit::encode(Array::ContainsCompressedPointers()),
       kDynamicCid, offset_in_bytes, ":array_element",
+      /*static_type=*/nullptr, kTagged);
+}
+
+const Slot& Slot::GetRecordFieldSlot(Thread* thread, intptr_t offset_in_bytes) {
+  return GetCanonicalSlot(
+      thread, Kind::kRecordField,
+      IsNullableBit::encode(true) |
+          IsCompressedBit::encode(Record::ContainsCompressedPointers()),
+      kDynamicCid, offset_in_bytes, ":record_field",
       /*static_type=*/nullptr, kTagged);
 }
 
@@ -567,6 +522,7 @@ bool Slot::Equals(const Slot& other) const {
     case Kind::kTypeArguments:
     case Kind::kTypeArgumentsIndex:
     case Kind::kArrayElement:
+    case Kind::kRecordField:
       return true;
 
     case Kind::kCapturedVariable:

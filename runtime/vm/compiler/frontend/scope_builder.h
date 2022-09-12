@@ -40,6 +40,8 @@ class ScopeBuilder {
   void VisitInitializer();
   void VisitExpression();
   void VisitStatement();
+  void VisitListOfExpressions();
+  void VisitListOfNamedExpressions();
   void VisitArguments();
   void VisitVariableDeclaration();
   void VisitVariableGet(intptr_t declaration_binary_offset);

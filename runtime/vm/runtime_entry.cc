@@ -709,6 +709,19 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   arguments.SetReturn(cloned_ctx);
 }
 
+// Allocate a new record instance.
+// Arg0: number of fields.
+// Arg1: field names.
+// Return value: newly allocated record.
+DEFINE_RUNTIME_ENTRY(AllocateRecord, 2) {
+  const Smi& num_fields = Smi::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& field_names = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const Record& record =
+      Record::Handle(zone, Record::New(num_fields.Value(), field_names,
+                                       SpaceForRuntimeAllocation()));
+  arguments.SetReturn(record);
+}
+
 // Allocate a SuspendState object.
 // Arg0: frame size.
 // Arg1: existing SuspendState object or function data.

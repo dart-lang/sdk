@@ -40,6 +40,7 @@ class KernelFingerprintHelper : public KernelReaderHelper {
   void CalculateVariableDeclarationFingerprint();
   void CalculateStatementListFingerprint();
   void CalculateListOfExpressionsFingerprint();
+  void CalculateListOfNamedExpressionsFingerprint();
   void CalculateListOfDartTypesFingerprint();
   void CalculateListOfVariableDeclarationsFingerprint();
   void CalculateStringReferenceFingerprint();
@@ -87,14 +88,8 @@ void KernelFingerprintHelper::CalculateArgumentsFingerprint() {
   BuildHash(ReadUInt());  // read argument count.
 
   CalculateListOfDartTypesFingerprint();    // read list of types.
-  CalculateListOfExpressionsFingerprint();  // read positionals.
-
-  // List of named.
-  intptr_t list_length = ReadListLength();  // read list length.
-  for (intptr_t i = 0; i < list_length; ++i) {
-    CalculateStringReferenceFingerprint();  // read ith name index.
-    CalculateExpressionFingerprint();       // read ith expression.
-  }
+  CalculateListOfExpressionsFingerprint();  // read positional.
+  CalculateListOfNamedExpressionsFingerprint();  // read named.
 }
 
 void KernelFingerprintHelper::CalculateVariableDeclarationFingerprint() {
@@ -125,6 +120,14 @@ void KernelFingerprintHelper::CalculateListOfExpressionsFingerprint() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
     CalculateExpressionFingerprint();  // read ith expression.
+  }
+}
+
+void KernelFingerprintHelper::CalculateListOfNamedExpressionsFingerprint() {
+  const intptr_t list_length = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    CalculateStringReferenceFingerprint();  // read ith name index.
+    CalculateExpressionFingerprint();       // read ith expression.
   }
 }
 
@@ -589,6 +592,12 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       }
       return;
     }
+    case kRecordLiteral:
+      ReadPosition();                                // read position.
+      CalculateListOfExpressionsFingerprint();       // read positionals.
+      CalculateListOfNamedExpressionsFingerprint();  // read named.
+      CalculateDartTypeFingerprint();                // read recordType.
+      return;
     case kFunctionExpression:
       ReadPosition();                      // read position.
       CalculateFunctionNodeFingerprint();  // read function node.

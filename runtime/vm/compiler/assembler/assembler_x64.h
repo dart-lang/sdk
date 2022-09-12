@@ -767,6 +767,12 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     addq(dest, src);
   }
+  void AddScaled(Register dest,
+                 Register src,
+                 ScaleFactor scale,
+                 int32_t value) {
+    leaq(dest, Address(src, scale, value));
+  }
   void AddImmediate(Register dest, Register src, int32_t value);
   void AddImmediate(const Address& address, const Immediate& imm);
   void SubImmediate(Register reg,

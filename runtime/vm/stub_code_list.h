@@ -56,6 +56,7 @@ namespace dart {
   V(AllocateObject)                                                            \
   V(AllocateObjectParameterized)                                               \
   V(AllocateObjectSlow)                                                        \
+  V(AllocateRecord)                                                            \
   V(AllocateUnhandledException)                                                \
   V(BoxDouble)                                                                 \
   V(CloneContext)                                                              \

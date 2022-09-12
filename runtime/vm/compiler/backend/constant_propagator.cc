@@ -938,6 +938,10 @@ void ConstantPropagator::VisitAllocateClosure(AllocateClosureInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitAllocateRecord(AllocateRecordInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
   SetValue(instr, non_constant_);
 }

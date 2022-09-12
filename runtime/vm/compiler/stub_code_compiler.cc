@@ -1062,6 +1062,87 @@ void StubCodeCompiler::GenerateAllocateGrowableArrayStub(Assembler* assembler) {
 #endif  // defined(TARGET_ARCH_IA32)
 }
 
+void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
+  const Register temp_reg = AllocateRecordABI::kTempReg;
+  const Register result_reg = AllocateRecordABI::kResultReg;
+  const Register num_fields_reg = AllocateRecordABI::kNumFieldsReg;
+  const Register field_names_reg = AllocateRecordABI::kFieldNamesReg;
+  Label slow_case;
+
+  // Check for allocation tracing.
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kRecordCid, &slow_case, temp_reg));
+
+  // Compute the rounded instance size.
+  const intptr_t fixed_size_plus_alignment_padding =
+      (target::Record::field_offset(0) +
+       target::ObjectAlignment::kObjectAlignment - 1);
+  __ AddScaled(temp_reg, num_fields_reg, TIMES_COMPRESSED_WORD_SIZE,
+               fixed_size_plus_alignment_padding);
+  __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
+
+  // Now allocate the object.
+  __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
+  __ AddRegisters(temp_reg, result_reg);
+  // Check if the allocation fits into the remaining space.
+  __ CompareWithMemoryValue(temp_reg,
+                            Address(THR, target::Thread::end_offset()));
+  __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
+
+  // Successfully allocated the object, now update top to point to
+  // next object start and initialize the object.
+  __ StoreToOffset(temp_reg, Address(THR, target::Thread::top_offset()));
+  __ SubRegisters(temp_reg, result_reg);
+  __ AddImmediate(result_reg, kHeapObjectTag);
+
+  // Calculate the size tag.
+  {
+    Label size_tag_overflow, done;
+    __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
+    __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
+    __ LslImmediate(temp_reg,
+                    target::UntaggedObject::kTagBitsSizeTagPos -
+                        target::ObjectAlignment::kObjectAlignmentLog2);
+    __ Jump(&done, Assembler::kNearJump);
+
+    __ Bind(&size_tag_overflow);
+    // Set overflow size tag value.
+    __ LoadImmediate(temp_reg, 0);
+
+    __ Bind(&done);
+    uword tags = target::MakeTagWordForNewSpaceObject(kRecordCid, 0);
+    __ OrImmediate(temp_reg, tags);
+    __ StoreToOffset(
+        temp_reg,
+        FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
+  }
+
+  __ StoreToOffset(
+      num_fields_reg,
+      FieldAddress(result_reg, target::Record::num_fields_offset()),
+      kFourBytes);
+
+  __ StoreCompressedIntoObjectNoBarrier(
+      result_reg,
+      FieldAddress(result_reg, target::Record::field_names_offset()),
+      field_names_reg);
+
+  __ Ret();
+
+  __ Bind(&slow_case);
+
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Space on the stack for the return value.
+  __ SmiTag(num_fields_reg);
+  __ PushRegistersInOrder({num_fields_reg, field_names_reg});
+  __ CallRuntime(kAllocateRecordRuntimeEntry, 2);
+  __ Drop(2);
+  __ PopRegister(AllocateRecordABI::kResultReg);
+
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 // The UnhandledException class lives in the VM isolate, so it cannot cache
 // an allocation stub for itself. Instead, we cache it in the stub code list.
 void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(

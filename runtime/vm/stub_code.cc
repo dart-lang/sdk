@@ -193,9 +193,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     case kClosureCid:
       return object_store->allocate_closure_stub();
     case kRecordCid:
-      // TODO(dartbug.com/49719)
-      UNIMPLEMENTED();
-      break;
+      return object_store->allocate_record_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
   if (stub.IsNull()) {

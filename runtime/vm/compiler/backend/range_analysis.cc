@@ -2780,6 +2780,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
     case Slot::Kind::kDartField:
     case Slot::Kind::kCapturedVariable:
+    case Slot::Kind::kRecordField:
       // Use default value.
       Definition::InferRange(analysis, range);
       break;
