@@ -1,4 +1,4 @@
-## 5.0.0 (Not yet released - breaking changes)
+## 5.0.0
 * Removed deprecated methods from AST.
 * Removed deprecated `DiagnosticMessage.message`.
 * Removed deprecated `LibraryElement.getImportsWithPrefix()`.
@@ -9,6 +9,9 @@
 * Removed deprecated `Declaration.declaredElement`.
 * Removed deprecated `Element.enclosingElement` and `enclosingElement2`.
 * Removed deprecated `ExportElement`, `ImportElement`.
+* Removed deprecated `NamedCompilationUnitMember.name`.
+* Removed deprecated `Declaration.declaredElement`.
+* Removed deprecated `DartType.element`.
 
 ## 4.7.0
 * Add missing `addXyz` to `NodeLintRegistry`.
