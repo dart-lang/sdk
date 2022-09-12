@@ -226,9 +226,9 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     }
     type = element.returnType;
   } else if (element is TypeAliasElement) {
-    var aliasedElement = element.aliasedElement;
-    if (aliasedElement is GenericFunctionTypeElement) {
-      type = aliasedElement.returnType;
+    final aliasedType = element.aliasedType;
+    if (aliasedType is FunctionType) {
+      type = aliasedType.returnType;
     } else {
       return null;
     }
