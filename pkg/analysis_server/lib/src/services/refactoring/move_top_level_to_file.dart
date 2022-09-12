@@ -4,7 +4,9 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// An object that can compute a refactoring in a Dart file.
 class MoveTopLevelToFile extends RefactoringProducer {
@@ -30,18 +32,73 @@ class MoveTopLevelToFile extends RefactoringProducer {
         ),
       ];
 
-  @override
-  Future<void> compute(List<String> commandArguments, ChangeBuilder builder) {
-    // TODO: implement compute
-    throw UnimplementedError();
+  /// Return the member to be moved. As a side-effect, initialize the [title]
+  /// and [defaultFilePath].
+  _MemberToMove? get _memberToMove {
+    var node = selectedNode;
+    if (node is ClassDeclaration && selectionIsInToken(node.name2)) {
+      var name = node.name2.lexeme;
+      var unitPath = result.unit.declaredElement?.source.fullName;
+      if (unitPath == null) {
+        return null;
+      }
+      var context = result.session.resourceProvider.pathContext;
+
+      title = "Move '$name' to file";
+      defaultFilePath =
+          context.join(context.dirname(unitPath), _fileNameForClassName(name));
+      return _MemberToMove(unitPath, node, name);
+    }
+    // TODO(brianwilkeson) Handle other top-level members.
+    return null;
   }
 
   @override
-  bool isAvailable() {
-    // TODO: implement isAvailable
-    // TODO: initialize `title` to "Move '$name' to file"
-    // TODO: initialize `defaultFilePath` to a path based on the name of the
-    //  declaration.
-    return false;
+  Future<void> compute(
+      List<String> commandArguments, ChangeBuilder builder) async {
+    var member = _memberToMove;
+    if (member == null) {
+      return;
+    }
+    // TODO(brianwilkerson) Copy the file header to the new file.
+    await builder.addDartFileEdit(commandArguments[0], (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeln(utils.getNodeText(member.node));
+      });
+    });
+    await builder.addDartFileEdit(member.containingFile, (builder) {
+      builder.addDeletion(range.deletionRange(member.node));
+    });
   }
+
+  @override
+  bool isAvailable() => _memberToMove != null;
+
+  /// Computes a filename for a given class name (convert from PascalCase to
+  /// snake_case).
+  // TODO(brianwilkerson) Copied from handler_rename.dart. Move this code to a
+  //  common location, preferably as an extension on `String`.
+  String _fileNameForClassName(String className) {
+    final fileName = className
+        .replaceAllMapped(RegExp('[A-Z]'),
+            (match) => match.start == 0 ? match[0]! : '_${match[0]}')
+        .toLowerCase();
+    return '$fileName.dart';
+  }
+}
+
+/// Information about the member to be moved.
+class _MemberToMove {
+  /// The absolute and normalized path of the file containing the member.
+  final String containingFile;
+
+  /// The member to be moved.
+  final CompilationUnitMember node;
+
+  /// The name of the member.
+  final String name;
+
+  /// Initialize a newly created instance representing the [member] with the
+  /// given [name].
+  _MemberToMove(this.containingFile, this.node, this.name);
 }
