@@ -543,12 +543,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method just before visiting one of the cases in the body of a
   /// switch statement.  See [switchStatement_expressionEnd] for details.
-  ///
-  /// [hasLabel] indicates whether the case has any labels.
-  ///
-  /// [node] should be the same node that was passed to
-  /// [AssignedVariables.endNode] for the switch statement.
-  void switchStatement_beginCase(bool hasLabel, Statement? node);
+  void switchStatement_beginCase();
 
   /// Call this method just after visiting the body of a switch statement.  See
   /// [switchStatement_expressionEnd] for details.
@@ -566,7 +561,13 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method just after visiting a sequence of two or more `case` or
   /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
   /// for details.`
-  void switchStatement_endAlternatives();
+  ///
+  /// [node] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the switch statement.
+  ///
+  /// [hasLabels] indicates whether the case has any labels.
+  void switchStatement_endAlternatives(Statement node,
+      {required bool hasLabels});
 
   /// Call this method just after visiting the expression part of a switch
   /// statement or expression.  [switchStatement] should be the switch statement
@@ -578,14 +579,15 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// - For each case body:
   ///   - Call [switchStatement_beginCase].
   ///   - If there is more than one `case` or `default` clause associated with
-  ///     this case body, call [switchStatement_beginAlternatives].
+  ///     this case body, call [switchStatement_beginAlternatives].  (Also safe
+  ///     to call if there is just one `case` or `default` clause).
   ///   - For each `case` or `default` clause associated with this case body:
   ///     - If a `when` clause is present, visit it and then call
   ///       [switchStatement_afterWhen].
-  ///     - If there is more than one `case` or `default` clause associated with
-  ///       this case body, call [switchStatement_endAlternative].
-  ///   - If there is more than one `case` or `default` clause associated with
-  ///     this case body, call [switchStatement_endAlternatives].
+  ///     - If [switchStatement_beginAlternatives] was called, call
+  ///       [switchStatement_endAlternative].
+  ///   - If [switchStatement_beginAlternatives] was called, call
+  ///     [switchStatement_endAlternatives].
   ///   - Visit the case body.
   /// - Call [switchStatement_end].
   void switchStatement_expressionEnd(Statement? switchStatement);
@@ -1215,9 +1217,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Statement? node) {
-    _wrap('switchStatement_beginCase($hasLabel, $node)',
-        () => _wrapped.switchStatement_beginCase(hasLabel, node));
+  void switchStatement_beginCase() {
+    _wrap('switchStatement_beginCase()',
+        () => _wrapped.switchStatement_beginCase());
   }
 
   @override
@@ -1233,9 +1235,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_endAlternatives() {
-    _wrap('switchStatement_endAlternatives()',
-        () => _wrapped.switchStatement_endAlternatives());
+  void switchStatement_endAlternatives(Statement node,
+      {required bool hasLabels}) {
+    _wrap(
+        'switchStatement_endAlternatives($node, hasLabels: $hasLabels)',
+        () => _wrapped.switchStatement_endAlternatives(node,
+            hasLabels: hasLabels));
   }
 
   @override
@@ -3756,16 +3761,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Statement? node) {
+  void switchStatement_beginCase() {
     _SimpleStatementContext<Type> context =
         _stack.last as _SimpleStatementContext<Type>;
-    if (hasLabel) {
-      AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
-      _current =
-          context._previous.conservativeJoin(this, info.written, info.captured);
-    } else {
-      _current = context._previous;
-    }
+    _current = context._previous;
   }
 
   @override
@@ -3793,10 +3792,21 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_endAlternatives() {
-    _SwitchAlternativesContext<Type> context =
+  void switchStatement_endAlternatives(Statement? node,
+      {required bool hasLabels}) {
+    _SwitchAlternativesContext<Type> alternativesContext =
         _stack.removeLast() as _SwitchAlternativesContext<Type>;
-    _current = context._combinedModel!.unsplit();
+    _SimpleStatementContext<Type> switchContext =
+        _stack.last as _SimpleStatementContext<Type>;
+    if (hasLabels) {
+      AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
+      _current = switchContext._previous
+          .conservativeJoin(this, info.written, info.captured);
+    } else {
+      _current =
+          (alternativesContext._combinedModel ?? alternativesContext._previous)
+              .unsplit();
+    }
   }
 
   @override
@@ -4606,7 +4616,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void switchStatement_beginAlternatives() {}
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Statement? node) {}
+  void switchStatement_beginCase() {}
 
   @override
   void switchStatement_end(bool isExhaustive) {}
@@ -4615,7 +4625,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void switchStatement_endAlternative() {}
 
   @override
-  void switchStatement_endAlternatives() {}
+  void switchStatement_endAlternatives(Statement node,
+      {required bool hasLabels}) {}
 
   @override
   void switchStatement_expressionEnd(Statement? switchStatement) {}

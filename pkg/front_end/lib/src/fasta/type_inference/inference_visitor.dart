@@ -6525,7 +6525,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int caseIndex = 0; caseIndex < node.cases.length; ++caseIndex) {
       SwitchCaseImpl switchCase = node.cases[caseIndex] as SwitchCaseImpl;
       hasDefault = hasDefault || switchCase.isDefault;
-      flowAnalysis.switchStatement_beginCase(switchCase.hasLabel, node);
+      flowAnalysis.switchStatement_beginCase();
+      flowAnalysis.switchStatement_beginAlternatives();
+      flowAnalysis.switchStatement_endAlternative();
+      flowAnalysis.switchStatement_endAlternatives(node,
+          hasLabels: switchCase.hasLabel);
       for (int index = 0; index < switchCase.expressions.length; index++) {
         ExpressionInferenceResult caseExpressionResult = inferExpression(
             switchCase.expressions[index], expressionType, true,

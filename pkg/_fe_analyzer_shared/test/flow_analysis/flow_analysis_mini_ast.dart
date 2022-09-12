@@ -59,7 +59,8 @@ class _GetExpressionInfo extends Expression {
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeExpression(target);
+    var type =
+        h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
     h.flow.forwardExpression(this, target);
     callback(h.flow.expressionInfoForTesting(this));
     return new SimpleTypeAnalysisResult<Type>(type: type);
@@ -98,7 +99,8 @@ class _WhyNotPromoted extends Expression {
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
-    var type = h.typeAnalyzer.analyzeExpression(target);
+    var type =
+        h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
     h.flow.forwardExpression(this, target);
     Type.withComparisonsAllowed(() {
       callback(h.flow.whyNotPromoted(this)());

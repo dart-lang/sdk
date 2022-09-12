@@ -90,7 +90,7 @@ main() {
       test('IR', () {
         h.run([
           switchExpr(expr('int'), [
-            defaultExpr(body: intLiteral(0)),
+            default_.thenExpr(intLiteral(0)),
           ]).checkIr('switchExpr(expr(int), case(default, 0))').stmt,
         ]);
       });
@@ -98,7 +98,7 @@ main() {
       test('scrutinee expression context', () {
         h.run([
           switchExpr(expr('int').checkContext('?'), [
-            defaultExpr(body: intLiteral(0)),
+            default_.thenExpr(intLiteral(0)),
           ]).inContext('num'),
         ]);
       });
@@ -106,7 +106,7 @@ main() {
       test('body expression context', () {
         h.run([
           switchExpr(expr('int'), [
-            defaultExpr(body: nullLiteral.checkContext('C?')),
+            default_.thenExpr(nullLiteral.checkContext('C?')),
           ]).inContext('C?'),
         ]);
       });
@@ -114,8 +114,8 @@ main() {
       test('least upper bound behavior', () {
         h.run([
           switchExpr(expr('int'), [
-            caseExpr(intLiteral(0).pattern, body: expr('int')),
-            defaultExpr(body: expr('double')),
+            intLiteral(0).pattern.thenExpr(expr('int')),
+            default_.thenExpr(expr('double')),
           ]).checkType('num').stmt
         ]);
       });
@@ -124,12 +124,13 @@ main() {
         var i = Var('i');
         h.run([
           switchExpr(expr('int'), [
-            caseExpr(i.pattern(),
-                when: i.expr
+            i
+                .pattern()
+                .when(i.expr
                     .checkType('int')
                     .eq(expr('num'))
-                    .checkContext('bool'),
-                body: expr('String')),
+                    .checkContext('bool'))
+                .thenExpr(expr('String')),
           ])
               .checkIr('switchExpr(expr(int), '
                   'case(head(varPattern(i, matchedType: int, '
@@ -142,18 +143,113 @@ main() {
 
   group('Statements:', () {
     group('Switch:', () {
+      test('Empty', () {
+        h.run([
+          switch_(expr('int'), [],
+              isExhaustive: false, expectLastCaseTerminates: true),
+        ]);
+      });
+
+      test('Exhaustive', () {
+        h.run([
+          switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: true,
+              expectIsExhaustive: true),
+        ]);
+      });
+
+      test('No default', () {
+        h.run([
+          switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: false,
+              expectHasDefault: false,
+              expectIsExhaustive: false),
+        ]);
+      });
+
+      test('Has default', () {
+        h.run([
+          switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  break_(),
+                ]),
+                default_.then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: false,
+              expectHasDefault: true,
+              expectIsExhaustive: true),
+        ]);
+      });
+
+      test('Last case terminates', () {
+        h.run([
+          switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  expr('int').stmt,
+                ]),
+                intLiteral(1).pattern.then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: false,
+              expectLastCaseTerminates: true),
+        ]);
+      });
+
+      test("Last case doesn't terminate", () {
+        h.run([
+          switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  break_(),
+                ]),
+                intLiteral(1).pattern.then([
+                  expr('int').stmt,
+                ]),
+              ],
+              isExhaustive: false,
+              expectLastCaseTerminates: false),
+        ]);
+      });
+
+      test('Scrutinee type', () {
+        h.run([
+          switch_(expr('int'), [],
+              isExhaustive: false, expectScrutineeType: 'int'),
+        ]);
+      });
+
       test('const pattern', () {
         h.run([
           switch_(
                   expr('int').checkContext('?'),
                   [
-                    case_(intLiteral(0).pattern, body: [
+                    intLiteral(0).pattern.then([
                       break_(),
                     ]),
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(head(const(0, matchedType: int))), '
+                  'case(heads(head(const(0, matchedType: int), true)), '
                   'block(break())))'),
         ]);
       });
@@ -165,14 +261,14 @@ main() {
             switch_(
                     expr('int').checkContext('?'),
                     [
-                      case_(x.pattern(), body: [
+                      x.pattern().then([
                         break_(),
                       ]),
                     ],
                     isExhaustive: false)
                 .checkIr('switch(expr(int), '
                     'case(heads(head(varPattern(x, matchedType: int, '
-                    'staticType: int))), block(break())))'),
+                    'staticType: int), true)), block(break())))'),
           ]);
         });
 
@@ -182,14 +278,14 @@ main() {
             switch_(
                     expr('int').checkContext('?'),
                     [
-                      case_(x.pattern(type: 'num'), body: [
+                      x.pattern(type: 'num').then([
                         break_(),
                       ]),
                     ],
                     isExhaustive: false)
                 .checkIr('switch(expr(int), '
                     'case(heads(head(varPattern(x, matchedType: int, '
-                    'staticType: num))), block(break())))'),
+                    'staticType: num), true)), block(break())))'),
           ]);
         });
       });
@@ -199,7 +295,7 @@ main() {
           switch_(
               expr('int').checkContext('?'),
               [
-                case_(intLiteral(0).pattern, body: [
+                intLiteral(0).pattern.then([
                   break_(),
                 ]),
               ],
@@ -212,15 +308,15 @@ main() {
           switch_(
                   expr('int'),
                   [
-                    case_(intLiteral(0).pattern, body: []),
-                    case_(intLiteral(1).pattern, body: [
+                    intLiteral(0).pattern.then([]),
+                    intLiteral(1).pattern.then([
                       break_(),
                     ]),
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(head(const(0, matchedType: int)), '
-                  'head(const(1, matchedType: int))), block(break())))'),
+                  'case(heads(head(const(0, matchedType: int), true), '
+                  'head(const(1, matchedType: int), true)), block(break())))'),
         ]);
       });
 
@@ -233,12 +329,12 @@ main() {
           switch_(
                   expr('int'),
                   [
-                    l.thenCase(case_(intLiteral(0).pattern, body: [])),
-                    case_(intLiteral(1).pattern, body: [
+                    l.then(intLiteral(0).pattern).then([]),
+                    intLiteral(1).pattern.then([
                       x.expr.checkType('int?').stmt,
                       break_(),
                     ]),
-                    case_(intLiteral(2).pattern, body: [
+                    intLiteral(2).pattern.then([
                       x.expr.checkType('int').stmt,
                       x.write(nullLiteral).stmt,
                       continue_(),
@@ -246,10 +342,10 @@ main() {
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(head(const(0, matchedType: int)), '
-                  'head(const(1, matchedType: int)), l), '
+                  'case(heads(head(const(0, matchedType: int), true), '
+                  'head(const(1, matchedType: int), true), l), '
                   'block(stmt(x), break())), '
-                  'case(heads(head(const(2, matchedType: int))), '
+                  'case(heads(head(const(2, matchedType: int), true)), '
                   'block(stmt(x), stmt(null), continue())))'),
         ]);
       });
@@ -259,16 +355,17 @@ main() {
           switch_(
                   expr('int'),
                   [
-                    case_(intLiteral(0).pattern, body: [
+                    intLiteral(0).pattern.then([
                       break_(),
                     ]),
-                    case_(intLiteral(1).pattern, body: []),
+                    intLiteral(1).pattern.then([]),
                   ],
                   isExhaustive: false)
               .checkIr('switch(expr(int), '
-                  'case(heads(head(const(0, matchedType: int))), '
+                  'case(heads(head(const(0, matchedType: int), true)), '
                   'block(break())), '
-                  'case(heads(head(const(1, matchedType: int))), block()))'),
+                  'case(heads(head(const(1, matchedType: int), true)), '
+                  'block()))'),
         ]);
       });
 
@@ -278,14 +375,15 @@ main() {
           switch_(
                   expr('int'),
                   [
-                    case_(i.pattern(),
-                        when: i.expr
+                    i
+                        .pattern()
+                        .when(i.expr
                             .checkType('int')
                             .eq(expr('num'))
-                            .checkContext('bool'),
-                        body: [
-                          break_(),
-                        ]),
+                            .checkContext('bool'))
+                        .then([
+                      break_(),
+                    ]),
                   ],
                   isExhaustive: true)
               .checkIr('switch(expr(int), '
@@ -301,8 +399,8 @@ main() {
             switch_(
                     expr('int'),
                     [
-                      case_(x.pattern(), body: []),
-                      default_(body: [])..errorId = 'DEFAULT',
+                      x.pattern().then([]),
+                      (default_..errorId = 'DEFAULT').then([]),
                     ],
                     isExhaustive: true)
                 .expectErrors({'missingMatchVar(DEFAULT, x)'}),
@@ -315,9 +413,8 @@ main() {
             switch_(
                     expr('int'),
                     [
-                      case_(intLiteral(0).pattern, body: [])
-                        ..errorId = 'CASE(0)',
-                      case_(x.pattern(), body: []),
+                      (intLiteral(0).pattern..errorId = 'CASE(0)').then([]),
+                      x.pattern().then([]),
                     ],
                     isExhaustive: true)
                 .expectErrors({'missingMatchVar(CASE(0), x)'}),
@@ -331,7 +428,7 @@ main() {
             switch_(
                     expr('int'),
                     [
-                      l.thenCase(case_(x.pattern(), body: [])),
+                      l.then(x.pattern()).then([]),
                     ],
                     isExhaustive: true)
                 .expectErrors({'missingMatchVar(LABEL, x)'}),
@@ -346,10 +443,10 @@ main() {
             switch_(
                     expr('num'),
                     [
-                      case_(x.pattern(type: 'int')..errorId = 'PATTERN(int x)',
-                          body: []),
-                      case_(x.pattern(type: 'num')..errorId = 'PATTERN(num x)',
-                          body: []),
+                      (x.pattern(type: 'int')..errorId = 'PATTERN(int x)')
+                          .then([]),
+                      (x.pattern(type: 'num')..errorId = 'PATTERN(num x)')
+                          .then([]),
                     ],
                     isExhaustive: true)
                 .expectErrors({
@@ -367,9 +464,9 @@ main() {
             switch_(
                     expr('int'),
                     [
-                      case_(x.pattern()..errorId = 'PATTERN(x)', body: []),
-                      case_(x.pattern(type: 'int')..errorId = 'PATTERN(int x)',
-                          body: []),
+                      (x.pattern()..errorId = 'PATTERN(x)').then([]),
+                      (x.pattern(type: 'int')..errorId = 'PATTERN(int x)')
+                          .then([]),
                     ],
                     isExhaustive: true)
                 .expectErrors({
@@ -381,6 +478,401 @@ main() {
 
         test('implicit/implicit type', () {
           // TODO(paulberry): need more support to be able to test this
+        });
+      });
+
+      group('Case completes normally:', () {
+        test('Reported when patterns disabled', () {
+          h.patternsEnabled = false;
+          h.run([
+            (switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  expr('int').stmt,
+                ]),
+                default_.then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: true,
+            )..errorId = 'SWITCH')
+                .expectErrors({'switchCaseCompletesNormally(SWITCH, 0, 1)'}),
+          ]);
+        });
+
+        test('Handles cases that share a body', () {
+          h.patternsEnabled = false;
+          h.run([
+            (switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([]),
+                intLiteral(1).pattern.then([]),
+                intLiteral(2).pattern.then([
+                  expr('int').stmt,
+                ]),
+                default_.then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: true,
+            )..errorId = 'SWITCH')
+                .expectErrors({'switchCaseCompletesNormally(SWITCH, 0, 3)'}),
+          ]);
+        });
+
+        test('Not reported when unreachable', () {
+          h.patternsEnabled = false;
+          h.run([
+            switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  break_(),
+                ]),
+                default_.then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: true,
+            ).expectErrors({}),
+          ]);
+        });
+
+        test('Not reported for final case', () {
+          h.patternsEnabled = false;
+          h.run([
+            switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  expr('int').stmt,
+                ]),
+              ],
+              isExhaustive: false,
+            ).expectErrors({}),
+          ]);
+        });
+
+        test('Not reported in legacy mode', () {
+          // In legacy mode, the criteria for reporting a switch case that
+          // "falls through" are less accurate (since flow analysis isn't
+          // available in legacy mode).  This logic is not currently implemented
+          // in the shared analyzer.
+          h.legacy = true;
+          h.run([
+            switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  expr('int').stmt,
+                ]),
+                default_.then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: false,
+            ).expectErrors({}),
+          ]);
+        });
+
+        test('Not reported when patterns enabled', () {
+          // When patterns are enabled, there is an implicit `break` at the end
+          // of every switch body.
+          h.patternsEnabled = true;
+          h.run([
+            switch_(
+              expr('int'),
+              [
+                intLiteral(0).pattern.then([
+                  expr('int').stmt,
+                ]),
+                default_.then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: false,
+            ).expectErrors({}),
+          ]);
+        });
+      });
+
+      group('Case expression type mismatch:', () {
+        group('Pre-null safety:', () {
+          test('subtype', () {
+            h.legacy = true;
+            h.run([
+              switch_(
+                  expr('num'),
+                  [
+                    expr('int').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+
+          test('supertype', () {
+            h.legacy = true;
+            h.run([
+              switch_(
+                  expr('int'),
+                  [
+                    expr('num').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+
+          test('unrelated types', () {
+            h.legacy = true;
+            h.run([
+              switch_(
+                      expr('int')..errorId = 'SCRUTINEE',
+                      [
+                        (expr('String')..errorId = 'EXPRESSION').pattern.then([
+                          break_(),
+                        ]),
+                      ],
+                      isExhaustive: false)
+                  .expectErrors(
+                {
+                  'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
+                      'caseExpression: EXPRESSION, scrutineeType: int, '
+                      'caseExpressionType: String, nullSafetyEnabled: false)'
+                },
+              ),
+            ]);
+          });
+
+          test('dynamic scrutinee', () {
+            h.legacy = true;
+            h.run([
+              switch_(
+                  expr('dynamic'),
+                  [
+                    expr('int').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+
+          test('dynamic case', () {
+            h.legacy = true;
+            h.run([
+              switch_(
+                  expr('int'),
+                  [
+                    expr('dynamic').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+        });
+
+        group('Null safe, patterns disabled:', () {
+          test('subtype', () {
+            h.patternsEnabled = false;
+            h.run([
+              switch_(
+                  expr('num'),
+                  [
+                    expr('int').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+
+          test('supertype', () {
+            h.patternsEnabled = false;
+            h.run([
+              switch_(
+                      expr('int')..errorId = 'SCRUTINEE',
+                      [
+                        (expr('num')..errorId = 'EXPRESSION').pattern.then([
+                          break_(),
+                        ]),
+                      ],
+                      isExhaustive: false)
+                  .expectErrors(
+                {
+                  'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
+                      'caseExpression: EXPRESSION, scrutineeType: int, '
+                      'caseExpressionType: num, nullSafetyEnabled: true)'
+                },
+              ),
+            ]);
+          });
+
+          test('unrelated types', () {
+            h.patternsEnabled = false;
+            h.run([
+              switch_(
+                      expr('int')..errorId = 'SCRUTINEE',
+                      [
+                        (expr('String')..errorId = 'EXPRESSION').pattern.then([
+                          break_(),
+                        ]),
+                      ],
+                      isExhaustive: false)
+                  .expectErrors(
+                {
+                  'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
+                      'caseExpression: EXPRESSION, scrutineeType: int, '
+                      'caseExpressionType: String, nullSafetyEnabled: true)'
+                },
+              ),
+            ]);
+          });
+
+          test('dynamic scrutinee', () {
+            h.patternsEnabled = false;
+            h.run([
+              switch_(
+                  expr('dynamic'),
+                  [
+                    expr('int').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+
+          test('dynamic case', () {
+            h.patternsEnabled = false;
+            h.run([
+              switch_(
+                      expr('int')..errorId = 'SCRUTINEE',
+                      [
+                        (expr('dynamic')..errorId = 'EXPRESSION').pattern.then([
+                          break_(),
+                        ]),
+                      ],
+                      isExhaustive: false)
+                  .expectErrors(
+                {
+                  'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
+                      'caseExpression: EXPRESSION, scrutineeType: int, '
+                      'caseExpressionType: dynamic, nullSafetyEnabled: true)'
+                },
+              ),
+            ]);
+          });
+        });
+
+        group('Patterns enabled:', () {
+          test('subtype', () {
+            h.run([
+              switch_(
+                  expr('num'),
+                  [
+                    expr('int').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+
+          test('supertype', () {
+            h.run([
+              switch_(
+                  expr('int'),
+                  [
+                    expr('num').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+
+          test('unrelated types', () {
+            h.run([
+              switch_(
+                  expr('int'),
+                  [
+                    expr('String').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+
+          test('dynamic scrutinee', () {
+            h.run([
+              switch_(
+                  expr('dynamic'),
+                  [
+                    expr('int').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+
+          test('dynamic case', () {
+            h.run([
+              switch_(
+                  expr('int'),
+                  [
+                    expr('dynamic').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false),
+            ]);
+          });
+        });
+      });
+
+      group('Pre-merged', () {
+        // The CFE merges cases that share a body at parse time, so make sure we
+        // we can handle merged cases
+        test('Empty', () {
+          // During CFE error recovery, there can be an empty case.
+          h.run([
+            switch_(
+              expr('int'),
+              [
+                mergedCase([]).then([
+                  break_(),
+                ]),
+              ],
+              isExhaustive: false,
+            ).checkIr('switch(expr(int), case(heads(), block()))'),
+          ], errorRecoveryOk: true);
+        });
+
+        test('Multiple', () {
+          h.run([
+            switch_(
+                    expr('int'),
+                    [
+                      mergedCase([intLiteral(0).pattern, intLiteral(1).pattern])
+                          .then([
+                        break_(),
+                      ]),
+                    ],
+                    isExhaustive: false)
+                .checkIr('switch(expr(int), '
+                    'case(heads(head(const(0, matchedType: int), true), '
+                    'head(const(1, matchedType: int), true)), '
+                    'block(break())))'),
+          ]);
         });
       });
     });

@@ -2438,7 +2438,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       var members = node.members;
       for (var member in members) {
-        flow.switchStatement_beginCase(member.labels.isNotEmpty, node);
+        flow.switchStatement_beginCase();
+        flow.switchStatement_beginAlternatives();
+        flow.switchStatement_endAlternative();
+        flow.switchStatement_endAlternatives(node,
+            hasLabels: member.labels.isNotEmpty);
         member.accept(this);
 
         exhaustiveness.visitSwitchMember(member);

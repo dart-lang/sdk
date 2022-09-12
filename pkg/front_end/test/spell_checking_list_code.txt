@@ -261,6 +261,7 @@ consecutive
 considerable
 consideration
 considering
+constant's
 constness
 constraining
 consult
@@ -611,6 +612,7 @@ histogram
 history
 hit
 hoc
+hook
 hopefully
 horizontal
 href
@@ -1210,6 +1212,7 @@ scheglov
 scoped
 scoping
 scrutinee
+scrutinee's
 sdk's
 seconds
 sections

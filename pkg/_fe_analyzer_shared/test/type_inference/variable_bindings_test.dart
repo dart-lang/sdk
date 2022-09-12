@@ -210,7 +210,8 @@ class _Empty extends _Node {
   void _visit(_Harness h) {}
 }
 
-class _Errors implements TypeAnalyzerErrors<_Node, String, String> {
+class _Errors
+    implements TypeAnalyzerErrors<_Node, Never, Never, String, String> {
   final List<String> _errors = [];
 
   @override
@@ -256,6 +257,10 @@ class _Harness implements VariableBindingCallbacks<_Node, String, String> {
 
   @override
   final TypeOperations2<String> typeOperations = _TypeOperations();
+
+  @override
+  final TypeAnalyzerOptions options =
+      TypeAnalyzerOptions(nullSafetyEnabled: true, patternsEnabled: true);
 
   void run(_Node node,
       {List<String>? expectEntries, List<String> expectErrors = const []}) {
