@@ -2170,21 +2170,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsGetter = js_ast.Method(name, getter, isGetter: true)
       ..sourceInformation = _nodeStart(field);
 
-    var body = <js_ast.Statement>[];
-    var value = _emitIdentifier('value');
-    if (_requiresExtraNullCheck(field.setterType, field.annotations)) {
-      body.add(
-          _nullSafetyParameterCheck(value, field.location, field.name.text));
-    }
     var args = field.isFinal
-        ? [js_ast.Super(), name, value]
-        : [
-            js_ast.This(),
-            virtualFieldSymbol,
-            if (isCovariantField(field)) _emitCast(value, field.type) else value
-          ];
-    body.add(js.call('#[#] = #', args).toStatement());
-    var jsSetter = js_ast.Method(name, js_ast.Fun([value], js_ast.Block(body)),
+        ? [js_ast.Super(), name]
+        : [js_ast.This(), virtualFieldSymbol];
+
+    js_ast.Expression value = _emitIdentifier('value');
+    if (!field.isFinal && isCovariantField(field)) {
+      value = _emitCast(value, field.type);
+    }
+    args.add(value);
+
+    var jsSetter = js_ast.Method(
+        name, js.fun('function(value) { #[#] = #; }', args),
         isSetter: true)
       ..sourceInformation = _nodeStart(field);
 
@@ -2371,17 +2368,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               member.fileOffset,
               member.name.text.length));
         if (!member.isFinal && !member.isConst) {
-          var body = <js_ast.Statement>[];
-          var value = _emitIdentifier('value');
-
-          if (_requiresExtraNullCheck(member.setterType, member.annotations)) {
-            body.add(_nullSafetyParameterCheck(
-                value, member.location, member.name.text));
-          }
-          // Even when no null check is present a dummy setter is still required
-          // to indicate writeable.
+          // TODO(jmesserly): currently uses a dummy setter to indicate
+          // writable.
           accessors.add(js_ast.Method(
-              access, js_ast.Fun([value], js_ast.Block(body)),
+              access, js.call('function(_) {}') as js_ast.Fun,
               isSetter: true));
         }
       } else if (member is Procedure) {
@@ -3618,42 +3608,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   bool _mustBeNonNullable(DartType type) =>
       type.nullability == Nullability.nonNullable;
 
-  /// Returns `true` when an additional null check is needed because of the
-  /// null safety mode, and the provided [type] and [annotations].
-  bool _requiresExtraNullCheck(DartType type, List<Expression> annotations) =>
-      !_options.soundNullSafety &&
-      _mustBeNonNullable(type) &&
-      !_annotatedNotNull(annotations);
-
-  /// Returns a null check for [value] that if fails produces an error message
-  /// containing the [location] and [name] of the original value being checked.
-  ///
-  /// This is used to generate checks for non-nullable parameters when running
-  /// with weak null safety. The checks can be silent, warn, or throw, depending
-  /// on the flags set in the SDK at runtime.
-  js_ast.Statement _nullSafetyParameterCheck(
-      js_ast.Identifier value, Location? location, String? name) {
-    // TODO(nshahan): Remove when weak mode null safety assertions are no longer
-    // supported.
-    // The check on `field.setterType` is per:
-    // https://github.com/dart-lang/language/blob/master/accepted/2.12/nnbd/feature-specification.md#automatic-debug-assertion-insertion
-    var condition = js.call('# == null', [value]);
-    // Offsets are not available for compiler-generated variables
-    // Get the best available location even if the offset is missing.
-    // https://github.com/dart-lang/sdk/issues/34942
-    return js.statement(' if (#) #;', [
-      condition,
-      runtimeCall('nullFailed(#, #, #, #)', [
-        location != null
-            ? _cacheUri(location.file.toString())
-            : js_ast.LiteralNull(),
-        js.number(location?.line ?? -1),
-        js.number(location?.column ?? -1),
-        js.escapedString('$name')
-      ])
-    ]);
-  }
-
   /// Emits argument initializers, which handles optional/named args, as well
   /// as generic type checks needed due to our covariance.
   List<js_ast.Statement> _emitArgumentInitializers(
@@ -3684,8 +3638,30 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       if (_annotatedNullCheck(p.annotations)) {
         body.add(_nullParameterCheck(jsParam));
-      } else if (_requiresExtraNullCheck(p.type, p.annotations)) {
-        body.add(_nullSafetyParameterCheck(jsParam, p.location, p.name));
+      } else if (!_options.soundNullSafety &&
+          _mustBeNonNullable(p.type) &&
+          !_annotatedNotNull(p.annotations)) {
+        // TODO(vsm): Remove if / when CFE does this:
+        // https://github.com/dart-lang/sdk/issues/40597
+        // The check on `p.type` is per:
+        // https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
+        var condition = js.call('# == null', [jsParam]);
+        // Offsets are not available for compiler-generated variables
+        // Get the best available location even if the offset is missing.
+        // https://github.com/dart-lang/sdk/issues/34942
+        var location = p.location;
+        var check = js.statement(' if (#) #;', [
+          condition,
+          runtimeCall('nullFailed(#, #, #, #)', [
+            location != null
+                ? _cacheUri(location.file.toString())
+                : js_ast.LiteralNull(),
+            js.number(location?.line ?? -1),
+            js.number(location?.column ?? -1),
+            js.escapedString('${p.name}')
+          ])
+        ]);
+        body.add(check);
       }
     }
 
