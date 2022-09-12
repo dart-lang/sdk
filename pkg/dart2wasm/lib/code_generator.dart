@@ -45,6 +45,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   late final Closures closures;
 
+  bool exceptionLocationPrinted = false;
+
   final Map<VariableDeclaration, w.Local> locals = {};
   w.Local? thisLocal;
   w.Local? preciseThisLocal;
@@ -405,11 +407,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         }
       }
       for (Initializer initializer in member.initializers) {
-        initializer.accept(this);
+        visitInitializer(initializer);
       }
     }
 
-    member.function!.body?.accept(this);
+    Statement? body = member.function!.body;
+    if (body != null) {
+      visitStatement(body);
+    }
     _implicitReturn();
     b.end();
   }
@@ -466,7 +471,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     allocateContext(lambda.functionNode);
     captureParameters();
 
-    lambda.functionNode.body!.accept(this);
+    visitStatement(lambda.functionNode.body!);
     _implicitReturn();
     b.end();
 
@@ -548,9 +553,39 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// result to the expected type if needed. All expression code generation goes
   /// through this method.
   w.ValueType wrap(Expression node, w.ValueType expectedType) {
-    w.ValueType resultType = node.accept1(this, expectedType);
-    translator.convertType(function, resultType, expectedType);
-    return expectedType;
+    try {
+      w.ValueType resultType = node.accept1(this, expectedType);
+      translator.convertType(function, resultType, expectedType);
+      return expectedType;
+    } catch (_) {
+      _printLocation(node);
+      rethrow;
+    }
+  }
+
+  void visitStatement(Statement node) {
+    try {
+      node.accept(this);
+    } catch (_) {
+      _printLocation(node);
+      rethrow;
+    }
+  }
+
+  void visitInitializer(Initializer node) {
+    try {
+      node.accept(this);
+    } catch (_) {
+      _printLocation(node);
+      rethrow;
+    }
+  }
+
+  void _printLocation(TreeNode node) {
+    if (!exceptionLocationPrinted) {
+      print("Exception in ${node.runtimeType} at ${node.location}");
+      exceptionLocationPrinted = true;
+    }
   }
 
   w.ValueType call(Reference target) {
@@ -583,7 +618,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    node.variable.accept(this);
+    visitStatement(node.variable);
   }
 
   @override
@@ -629,7 +664,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   void visitBlock(Block node) {
     for (Statement statement in node.statements) {
-      statement.accept(this);
+      visitStatement(statement);
     }
   }
 
@@ -637,7 +672,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitLabeledStatement(LabeledStatement node) {
     w.Label label = b.block();
     labels[node] = label;
-    node.body.accept(this);
+    visitStatement(node.body);
     labels.remove(node);
     b.end();
   }
@@ -700,7 +735,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // nodes, we generate a single wasm catch instruction, and dispatch at
     // runtime based on the type of the caught exception.
     w.Label try_ = b.try_();
-    node.body.accept(this);
+    visitStatement(node.body);
     b.br(try_);
 
     // Insert a catch instruction which will catch any thrown Dart
@@ -760,7 +795,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.local_get(thrownStackTrace);
         b.local_set(guardedStackTrace);
       }
-      catch_.body.accept(this);
+      visitStatement(catch_.body);
 
       // Jump out of the try entirely if we enter any catch block.
       b.br(try_);
@@ -787,18 +822,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.Label finalizerBlock = b.block();
     finalizers.add(TryBlockFinalizer(finalizerBlock));
     w.Label tryBlock = b.try_();
-    node.body.accept(this);
+    visitStatement(node.body);
     bool mustHandleReturn = finalizers.removeLast().mustHandleReturn;
     b.br(tryBlock);
     b.catch_(translator.exceptionTag);
-    node.finalizer.accept(this);
+    visitStatement(node.finalizer);
     b.rethrow_(tryBlock);
     b.end(); // end tryBlock.
-    node.finalizer.accept(this);
+    visitStatement(node.finalizer);
     b.br(tryFinallyBlock);
     b.end(); // end finalizerBlock.
     if (mustHandleReturn) {
-      node.finalizer.accept(this);
+      visitStatement(node.finalizer);
       if (finalizers.isNotEmpty) {
         b.br(finalizers.last.label);
       } else {
@@ -889,8 +924,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitIfStatement(IfStatement node) {
     _conditional(
         node.condition,
-        () => node.then.accept(this),
-        node.otherwise != null ? () => node.otherwise!.accept(this) : null,
+        () => visitStatement(node.then),
+        node.otherwise != null ? () => visitStatement(node.otherwise!) : null,
         const []);
   }
 
@@ -898,7 +933,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitDoStatement(DoStatement node) {
     w.Label loop = b.loop();
     allocateContext(node);
-    node.body.accept(this);
+    visitStatement(node.body);
     _branchIf(node.condition, loop, negated: false);
     b.end();
   }
@@ -909,7 +944,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.Label loop = b.loop();
     _branchIf(node.condition, block, negated: true);
     allocateContext(node);
-    node.body.accept(this);
+    visitStatement(node.body);
     b.br(loop);
     b.end();
     b.end();
@@ -920,12 +955,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     Context? context = closures.contexts[node];
     allocateContext(node);
     for (VariableDeclaration variable in node.variables) {
-      variable.accept(this);
+      visitStatement(variable);
     }
     w.Label block = b.block();
     w.Label loop = b.loop();
     _branchIf(node.condition, block, negated: true);
-    node.body.accept(this);
+    visitStatement(node.body);
 
     if (context != null && !context.isEmpty) {
       // Create a new context for each iteration of the loop.
@@ -1140,7 +1175,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         switchBackwardJumpInfos[node]!.defaultLoopLabel = b.loop();
       }
 
-      c.body.accept(this);
+      visitStatement(c.body);
 
       if (c.isDefault) {
         b.end(); // defaultLoopLabel
@@ -1206,13 +1241,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitBlockExpression(
       BlockExpression node, w.ValueType expectedType) {
-    node.body.accept(this);
+    visitStatement(node.body);
     return wrap(node.value, expectedType);
   }
 
   @override
   w.ValueType visitLet(Let node, w.ValueType expectedType) {
-    node.variable.accept(this);
+    visitStatement(node.variable);
     return wrap(node.body, expectedType);
   }
 
