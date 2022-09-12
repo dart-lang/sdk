@@ -302,6 +302,7 @@ mixin ClientCapabilitiesHelperMixin {
       'callHierarchy': {'dynamicRegistration': true},
       'completion': {'dynamicRegistration': true},
       'hover': {'dynamicRegistration': true},
+      'inlayHint': {'dynamicRegistration': true},
       'signatureHelp': {'dynamicRegistration': true},
       'references': {'dynamicRegistration': true},
       'documentHighlight': {'dynamicRegistration': true},
@@ -1261,6 +1262,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         request, _fromJsonList(Location.fromJson));
   }
 
+  Future<List<InlayHint>> getInlayHints(Uri uri, Range range) {
+    final request = makeRequest(
+      Method.textDocument_inlayHint,
+      InlayHintParams(
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        range: range,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(InlayHint.fromJson));
+  }
+
   Future<List<Location>> getReferences(
     Uri uri,
     Position pos, {
@@ -1759,6 +1772,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// Returns the range of [searchText] in [content].
   Range rangeOfString(String content, String searchText) =>
       rangeOfPattern(content, searchText);
+
+  /// Returns a [Range] that covers the entire of [content].
+  Range rangeOfWholeContent(String content) {
+    return Range(
+      start: positionFromOffset(0, content),
+      end: positionFromOffset(content.length, content),
+    );
+  }
 
   /// Returns all ranges surrounded by `[[markers]]` in the provided string,
   /// excluding the markers themselves (as well as position markers `^` from

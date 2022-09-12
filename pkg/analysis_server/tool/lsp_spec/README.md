@@ -97,7 +97,7 @@ Below is a list of LSP methods and their implementation status.
 |   textDocument/rangeFormatting | ✅ | | |
 | textDocument/hover | ✅ | | |
 | textDocument/implementation | ✅ | | |
-| textDocument/inlayHint | | | |
+| textDocument/inlayHint | ✅ | | |
 |   inlayHint/resolve | | | |
 | textDocument/inlineValue | | | |
 | textDocument/linkedEditingRange | | | |

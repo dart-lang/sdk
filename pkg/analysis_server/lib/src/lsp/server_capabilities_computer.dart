@@ -26,6 +26,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_didClose,
     Method.textDocument_completion,
     Method.textDocument_hover,
+    Method.textDocument_inlayHint,
     Method.textDocument_signatureHelp,
     Method.textDocument_references,
     Method.textDocument_documentHighlight,
@@ -91,6 +92,9 @@ class ClientDynamicRegistrations {
 
   bool get implementation =>
       _capabilities.textDocument?.implementation?.dynamicRegistration ?? false;
+
+  bool get inlayHints =>
+      _capabilities.textDocument?.inlayHint?.dynamicRegistration ?? false;
 
   bool get rangeFormatting =>
       _capabilities.textDocument?.rangeFormatting?.dynamicRegistration ?? false;
@@ -259,6 +263,11 @@ class ServerCapabilitiesComputer {
       documentRangeFormattingProvider: dynamicRegistrations.typeFormatting
           ? null
           : Either2<bool, DocumentRangeFormattingOptions>.t1(enableFormatter),
+      inlayHintProvider: dynamicRegistrations.inlayHints
+          ? null
+          : Either3<bool, InlayHintOptions, InlayHintRegistrationOptions>.t2(
+              InlayHintOptions(resolveProvider: false),
+            ),
       renameProvider: dynamicRegistrations.rename
           ? null
           : renameOptionsSupport
@@ -535,6 +544,14 @@ class ServerCapabilitiesComputer {
           SemanticTokensOptionsFull(delta: false),
         ),
         range: Either2<bool, SemanticTokensOptionsRange>.t1(true),
+      ),
+    );
+    register(
+      dynamicRegistrations.inlayHints,
+      Method.textDocument_inlayHint,
+      InlayHintRegistrationOptions(
+        documentSelector: [dartFiles],
+        resolveProvider: false,
       ),
     );
 
