@@ -682,7 +682,7 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   if (!arguments_descriptor.IsNull()) {
     __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
   }
-  const intptr_t offset = (selector_offset - DispatchTable::OriginElement()) *
+  const intptr_t offset = (selector_offset - DispatchTable::kOriginElement) *
                           compiler::target::kWordSize;
   __ LoadDispatchTable(table_reg);
   __ call(compiler::Address(table_reg, cid_reg, TIMES_8, offset));

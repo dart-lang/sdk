@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'type_analyzer.dart';
 import 'variable_bindings.dart';
 
 /// Container for the result of running type analysis on an expression.
@@ -36,6 +37,74 @@ class IntTypeAnalysisResult<Type extends Object>
   final bool convertedToDouble;
 
   IntTypeAnalysisResult({required super.type, required this.convertedToDouble});
+}
+
+/// Information about the code context surrounding a pattern match.
+class MatchContext<Node extends Object, Expression extends Node> {
+  /// Simple case where the match context is non-final and there's nothing else
+  /// special going on.
+  static const MatchContext<Never, Never> simpleNonFinal =
+      const MatchContext(isFinal: false, topPattern: null);
+
+  /// If non-`null`, the match is being done in an irrefutable context, and this
+  /// is the surrounding AST node that establishes the irrefutable context.
+  final Node? irrefutableContext;
+
+  /// Indicates whether variables declared in the pattern should be `final`.
+  final bool isFinal;
+
+  /// Indicates whether variables declared in the pattern should be `late`.
+  final bool isLate;
+
+  /// The top level pattern in this pattern match.
+  final Node? topPattern;
+
+  /// The initializer being assigned to this pattern via a variable declaration
+  /// statement, or `null` if this pattern does not occur in a variable
+  /// declaration statement.
+  final Expression? _initializer;
+
+  /// The switch scrutinee, or `null` if this pattern does not occur in a switch
+  /// statement or switch expression.
+  final Expression? _switchScrutinee;
+
+  const MatchContext(
+      {Expression? initializer,
+      this.irrefutableContext,
+      required this.isFinal,
+      this.isLate = false,
+      Expression? switchScrutinee,
+      required this.topPattern})
+      : _initializer = initializer,
+        _switchScrutinee = switchScrutinee;
+
+  /// If the pattern [pattern] is the [topPattern] and there is a corresponding
+  /// initializer expression, returns it.  Otherwise returns `null`.
+  ///
+  /// Note: the type of [pattern] is `Object` to avoid a runtime covariance
+  /// check (which would fail if this method is called on [simpleNonFinal]).
+  Expression? getInitializer(Object pattern) =>
+      identical(pattern, topPattern) ? _initializer : null;
+
+  /// If the pattern [pattern] is the [topPattern] and there is a corresponding
+  /// switch scrutinee expression, returns it.  Otherwise returns `null`.
+  ///
+  /// Note: the type of [pattern] is `Object` to avoid a runtime covariance
+  /// check (which would fail if this method is called on [simpleNonFinal]).
+  Expression? getSwitchScrutinee(Object pattern) =>
+      identical(pattern, topPattern) ? _switchScrutinee : null;
+
+  /// Returns a modified version of `this`, with [irrefutableContext] set to
+  /// `null`.  This is used to suppress cascading errors after reporting
+  /// [TypeAnalyzerErrors.refutablePatternInIrrefutableContext].
+  MatchContext<Node, Expression> makeRefutable() => irrefutableContext == null
+      ? this
+      : new MatchContext(
+          initializer: _initializer,
+          isFinal: isFinal,
+          isLate: isLate,
+          switchScrutinee: _switchScrutinee,
+          topPattern: topPattern);
 }
 
 /// Data structure returned by the [TypeAnalyzer] `analyze` methods for
@@ -73,10 +142,7 @@ abstract class PatternDispatchResult<Node extends Object,
   ///
   /// Stack effect (see [TypeAnalyzer] for explanation): pushes (Pattern).
   void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
-      {required bool isFinal,
-      required bool isLate,
-      Expression? initializer,
-      required Node? irrefutableContext});
+      MatchContext<Node, Expression> context);
 }
 
 /// Container for the result of running type analysis on an expression that does
@@ -93,4 +159,30 @@ class SimpleTypeAnalysisResult<Type extends Object>
 
   @override
   Type resolveShorting() => type;
+}
+
+/// Container for the result of running type analysis on an integer literal.
+class SwitchStatementTypeAnalysisResult<Type> {
+  /// Whether the switch statement had a `default` clause.
+  final bool hasDefault;
+
+  /// Whether the switch statement was exhaustive.
+  final bool isExhaustive;
+
+  /// Whether the last case body in the switch statement terminated.
+  final bool lastCaseTerminates;
+
+  /// The number of case bodies in the switch statement (after merging cases
+  /// that share a body).
+  final int numExecutionPaths;
+
+  /// The static type of the scrutinee expression.
+  final Type scrutineeType;
+
+  SwitchStatementTypeAnalysisResult(
+      {required this.hasDefault,
+      required this.isExhaustive,
+      required this.lastCaseTerminates,
+      required this.numExecutionPaths,
+      required this.scrutineeType});
 }

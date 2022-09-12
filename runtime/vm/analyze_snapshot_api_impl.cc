@@ -238,7 +238,7 @@ void DumpObjectPoolJSON(Thread* thread, dart::JSONWriter* js) {
 //   auto dispatch = thread->isolate_group()->dispatch_table();
 //   auto length = dispatch->length();
 // We must unbias the array entries so we don't crash on null access.
-//   auto entries = dispatch->ArrayOrigin() - DispatchTable::OriginElement();
+//   auto entries = dispatch->ArrayOrigin() - DispatchTable::kOriginElement;
 //   for (intptr_t i = 0; i < length; i++) {
 //     OS::Print("0x%lx at %ld\n", entries[i], i);
 //   }

@@ -1933,7 +1933,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var member in node.members) {
       _postDominatedLocals.doScoped(action: () {
         var hasLabel = member.labels.isNotEmpty;
-        _flowAnalysis!.switchStatement_beginCase(hasLabel, node);
+        _flowAnalysis!.switchStatement_beginCase();
+        _flowAnalysis!.switchStatement_beginAlternatives();
+        _flowAnalysis!.switchStatement_endAlternative();
+        _flowAnalysis!
+            .switchStatement_endAlternatives(node, hasLabels: hasLabel);
         if (member is SwitchCase) {
           _dispatch(member.expression);
         } else {

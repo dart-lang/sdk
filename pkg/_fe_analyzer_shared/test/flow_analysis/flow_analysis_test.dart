@@ -1917,9 +1917,10 @@ main() {
     test('switchExpression throw in scrutinee makes all cases unreachable', () {
       h.run([
         switchExpr(throw_(expr('C')), [
-          caseExpr(intLiteral(0).pattern,
-              body: checkReachable(false).thenExpr(intLiteral(1))),
-          defaultExpr(body: checkReachable(false).thenExpr(intLiteral(2))),
+          intLiteral(0)
+              .pattern
+              .thenExpr(checkReachable(false).thenExpr(intLiteral(1))),
+          default_.thenExpr(checkReachable(false).thenExpr(intLiteral(2))),
         ]).stmt,
         checkReachable(false),
       ]);
@@ -1928,8 +1929,8 @@ main() {
     test('switchExpression throw in case body has isolated effect', () {
       h.run([
         switchExpr(expr('int'), [
-          caseExpr(intLiteral(0).pattern, body: throw_(expr('C'))),
-          defaultExpr(body: checkReachable(true).thenExpr(intLiteral(2))),
+          intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
+          default_.thenExpr(checkReachable(true).thenExpr(intLiteral(2))),
         ]).stmt,
         checkReachable(true),
       ]);
@@ -1938,8 +1939,8 @@ main() {
     test('switchExpression throw in all case bodies affects flow after', () {
       h.run([
         switchExpr(expr('int'), [
-          caseExpr(intLiteral(0).pattern, body: throw_(expr('C'))),
-          defaultExpr(body: throw_(expr('C'))),
+          intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
+          default_.thenExpr(throw_(expr('C'))),
         ]).stmt,
         checkReachable(false),
       ]);
@@ -1949,8 +1950,9 @@ main() {
       var x = Var('x');
       h.run([
         switchExpr(expr('int'), [
-          caseExpr(x.pattern(type: 'int?'),
-              body: checkPromoted(x, 'int').thenExpr(nullLiteral)),
+          x
+              .pattern(type: 'int?')
+              .thenExpr(checkPromoted(x, 'int').thenExpr(nullLiteral)),
         ]).stmt,
       ]);
     });
@@ -1960,10 +1962,10 @@ main() {
         switch_(
             throw_(expr('C')),
             [
-              case_(intLiteral(0).pattern, body: [
+              intLiteral(0).pattern.then([
                 checkReachable(false),
               ]),
-              case_(intLiteral(1).pattern, body: [
+              intLiteral(1).pattern.then([
                 checkReachable(false),
               ]),
             ],
@@ -1978,7 +1980,7 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(x.pattern(type: 'int?'), body: [
+              x.pattern(type: 'int?').then([
                 checkPromoted(x, 'int'),
               ]),
             ],
@@ -1992,7 +1994,7 @@ main() {
         switch_(
             expr('num'),
             [
-              case_(x.pattern(), when: x.expr.is_('int'), body: [
+              x.pattern().when(x.expr.is_('int')).then([
                 checkPromoted(x, 'int'),
               ]),
             ],
@@ -2004,9 +2006,10 @@ main() {
       var x = Var('x');
       h.run([
         switchExpr(expr('num'), [
-          caseExpr(x.pattern(),
-              when: x.expr.is_('int'),
-              body: checkPromoted(x, 'int').thenExpr(expr('String'))),
+          x
+              .pattern()
+              .when(x.expr.is_('int'))
+              .thenExpr(checkPromoted(x, 'int').thenExpr(expr('String'))),
         ]).stmt,
       ]);
     });
@@ -2019,12 +2022,12 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, body: [
+              intLiteral(0).pattern.then([
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
               ]),
-              case_(intLiteral(1).pattern, body: [
+              intLiteral(1).pattern.then([
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -2042,7 +2045,7 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, body: [
+              intLiteral(0).pattern.then([
                 checkPromoted(x, 'int'),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
@@ -2061,7 +2064,7 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, body: [
+              intLiteral(0).pattern.then([
                 checkPromoted(x, 'int'),
                 localFunction([
                   x.write(expr('int?')).stmt,
@@ -2086,13 +2089,13 @@ main() {
               getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
             ])),
             [
-              l.thenCase(case_(intLiteral(0).pattern, body: [
+              l.then(intLiteral(0).pattern).then([
                 checkNotPromoted(x),
                 getSsaNodes(
                     (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
                 x.write(expr('int?')).stmt,
                 checkNotPromoted(x),
-              ])),
+              ]),
             ],
             isExhaustive: false),
       ]);
@@ -2107,14 +2110,14 @@ main() {
         switch_(
             expr('int'),
             [
-              l.thenCase(case_(intLiteral(0).pattern, body: [
+              l.then(intLiteral(0).pattern).then([
                 x.expr.as_('int').stmt,
                 checkNotPromoted(x),
                 localFunction([
                   x.write(expr('int?')).stmt,
                 ]),
                 checkNotPromoted(x),
-              ])),
+              ]),
             ],
             isExhaustive: false),
       ]);
@@ -2133,7 +2136,7 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, body: [
+              intLiteral(0).pattern.then([
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
                 break_(),
@@ -2162,13 +2165,13 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, body: [
+              intLiteral(0).pattern.then([
                 w.expr.as_('int').stmt,
                 y.expr.as_('int').stmt,
                 x.write(expr('int?')).stmt,
                 break_(),
               ]),
-              default_(body: [
+              default_.then([
                 w.expr.as_('int').stmt,
                 x.expr.as_('int').stmt,
                 y.write(expr('int?')).stmt,
@@ -2190,11 +2193,11 @@ main() {
         switch_(
             expr('int'),
             [
-              case_(intLiteral(0).pattern, body: [
+              intLiteral(0).pattern.then([
                 x.expr.as_('int').stmt,
                 break_(),
               ]),
-              default_(body: []),
+              default_.then([]),
             ],
             isExhaustive: true),
         checkNotPromoted(x),
@@ -2211,15 +2214,15 @@ main() {
         switch_(
             expr('num'),
             [
-              case_(x.pattern(),
-                  when: x.expr.is_('int').and(y.expr.is_('int')), body: []),
-              case_(x.pattern(),
-                  when: y.expr.is_('int').and(z.expr.is_('int')),
-                  body: [
-                    checkNotPromoted(x),
-                    checkPromoted(y, 'int'),
-                    checkNotPromoted(z),
-                  ]),
+              x
+                  .pattern()
+                  .when(x.expr.is_('int').and(y.expr.is_('int')))
+                  .then([]),
+              x.pattern().when(y.expr.is_('int').and(z.expr.is_('int'))).then([
+                checkNotPromoted(x),
+                checkPromoted(y, 'int'),
+                checkNotPromoted(z),
+              ]),
             ],
             isExhaustive: true),
       ]);

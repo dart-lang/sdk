@@ -84,8 +84,11 @@ mixin TypeOperations<Type extends Object> {
 /// TODO(paulberry): once the analyzer and front end both use [TypeAnalyzer],
 /// combine this mixin with [TypeOperations].
 mixin TypeOperations2<Type extends Object> implements TypeOperations<Type> {
-  /// Returns `true` if [leftType] is assignable to [rightType].
-  bool isAssignableTo(Type leftType, Type rightType);
+  /// Returns `true` if [fromType] is assignable to [toType].
+  bool isAssignableTo(Type fromType, Type toType);
+
+  /// Returns `true` if [type] is the type `dynamic`.
+  bool isDynamic(Type type);
 
   /// Computes the least upper bound of [type1] and [type2].
   Type lub(Type type1, Type type2);

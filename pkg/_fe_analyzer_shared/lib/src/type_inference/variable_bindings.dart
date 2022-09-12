@@ -46,7 +46,10 @@ class VariableBinding<Node extends Object, Variable extends Object,
 abstract class VariableBindingCallbacks<Node extends Object,
     Variable extends Object, Type extends Object> {
   /// Returns the interface for reporting error conditions up to the client.
-  TypeAnalyzerErrors<Node, Variable, Type> get errors;
+  TypeAnalyzerErrors<Node, Node, Node, Variable, Type>? get errors;
+
+  /// Options affecting the behavior of [TypeAnalyzer].
+  TypeAnalyzerOptions get options;
 
   /// Returns the client's implementation of the [TypeOperations] class.
   TypeOperations2<Type> get typeOperations;
@@ -67,7 +70,7 @@ class VariableBindings<Node extends Object, Variable extends Object,
   /// matched by a call to [finishAlternatives].  Each inner list contains the
   /// list of alternatives that have been passed to [startAlternative] so far
   /// at the corresponding nesting level.
-  List<List<Node>> _alternatives = [];
+  List<List<Node>> _alternativesStack = [];
 
   /// The innermost alternative for which variable bindings are currently being
   /// accumulated.
@@ -79,7 +82,7 @@ class VariableBindings<Node extends Object, Variable extends Object,
   ///
   /// Should not be called until after all the alternatives have been visited.
   Iterable<VariableBinding<Node, Variable, Type>> get entries {
-    assert(_alternatives.isEmpty);
+    assert(_alternativesStack.isEmpty);
     return _bindings.values;
   }
 
@@ -91,10 +94,14 @@ class VariableBindings<Node extends Object, Variable extends Object,
   bool add(Node pattern, Variable variable,
       {required Type staticType, required bool isImplicitlyTyped}) {
     VariableBinding<Node, Variable, Type>? binding = _bindings[variable];
+    TypeAnalyzerErrors<Node, Node, Node, Variable, Type>? errors =
+        _callbacks.errors;
     if (binding == null) {
-      for (List<Node> alternatives in _alternatives) {
-        for (int i = 0; i < alternatives.length - 1; i++) {
-          _callbacks.errors.missingMatchVar(alternatives[i], variable);
+      if (errors != null) {
+        for (List<Node> alternatives in _alternativesStack) {
+          for (int i = 0; i < alternatives.length - 1; i++) {
+            errors.missingMatchVar(alternatives[i], variable);
+          }
         }
       }
       _bindings[variable] = new VariableBinding._(pattern, variable,
@@ -104,19 +111,19 @@ class VariableBindings<Node extends Object, Variable extends Object,
       return true;
     } else {
       if (identical(_currentAlternative, binding._latestAlternative)) {
-        _callbacks.errors.matchVarOverlap(
+        errors?.matchVarOverlap(
             pattern: pattern, previousPattern: binding._latestPattern);
       }
       if (!_callbacks.typeOperations
           .isSameType(binding._latestStaticType, staticType)) {
-        _callbacks.errors.inconsistentMatchVar(
+        errors?.inconsistentMatchVar(
             pattern: pattern,
             type: staticType,
             previousPattern: binding._latestPattern,
             previousType: binding._latestStaticType);
         binding._latestStaticType = staticType;
       } else if (binding._isImplicitlyTyped != isImplicitlyTyped) {
-        _callbacks.errors.inconsistentMatchVarExplicitness(
+        errors?.inconsistentMatchVarExplicitness(
             pattern: pattern, previousPattern: binding._latestPattern);
       }
       binding._latestPattern = pattern;
@@ -130,13 +137,13 @@ class VariableBindings<Node extends Object, Variable extends Object,
   /// hand side of a logical-or pattern, or one of the cases in a set of cases
   /// that share a body).
   void finishAlternative() {
-    if (_alternatives.last.length > 1) {
+    if (_alternativesStack.last.length > 1) {
       Node previousAlternative =
-          _alternatives.last[_alternatives.last.length - 2];
+          _alternativesStack.last[_alternativesStack.last.length - 2];
       for (VariableBinding<Node, Variable, Type> binding in _bindings.values) {
         if (identical(binding._latestAlternative, previousAlternative)) {
           _callbacks.errors
-              .missingMatchVar(_currentAlternative!, binding.variable);
+              ?.missingMatchVar(_currentAlternative!, binding.variable);
           // For error recovery, pretend it wasn't missing.
           binding._latestAlternative = _currentAlternative;
         }
@@ -147,12 +154,18 @@ class VariableBindings<Node extends Object, Variable extends Object,
   /// Called at the end of processing a set of alternatives (either a logical-or
   /// pattern, or all of the cases in a set of cases that share a body).
   void finishAlternatives() {
-    Node lastAlternative = _alternatives.removeLast().last;
-    _currentAlternative =
-        _alternatives.isEmpty ? null : _alternatives.last.last;
-    for (VariableBinding<Node, Variable, Type> binding in _bindings.values) {
-      if (identical(binding._latestAlternative, lastAlternative)) {
-        binding._latestAlternative = _currentAlternative;
+    List<Node> alternatives = _alternativesStack.removeLast();
+    if (alternatives.isEmpty) {
+      _callbacks.errors?.assertInErrorRecovery();
+      // Do nothing; it will be as if `startAlternatives` was never called.
+    } else {
+      Node lastAlternative = alternatives.last;
+      _currentAlternative =
+          _alternativesStack.isEmpty ? null : _alternativesStack.last.last;
+      for (VariableBinding<Node, Variable, Type> binding in _bindings.values) {
+        if (identical(binding._latestAlternative, lastAlternative)) {
+          binding._latestAlternative = _currentAlternative;
+        }
       }
     }
   }
@@ -162,12 +175,12 @@ class VariableBindings<Node extends Object, Variable extends Object,
   /// that share a body).
   void startAlternative(Node alternative) {
     _currentAlternative = alternative;
-    _alternatives.last.add(alternative);
+    _alternativesStack.last.add(alternative);
   }
 
   /// Called at the end of processing a set of alternatives (either a logical-or
   /// pattern, or all of the cases in a set of cases that share a body).
   void startAlternatives() {
-    _alternatives.add([]);
+    _alternativesStack.add([]);
   }
 }

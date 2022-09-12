@@ -98,6 +98,10 @@ class ClassTableAllocator : public ValueObject {
   // Clone the given |array| with |size| elements.
   template <class T>
   inline T* Clone(T* array, intptr_t size) {
+    if (array == nullptr) {
+      ASSERT(size == 0);
+      return nullptr;
+    }
     auto result = Alloc<T>(size);
     memmove(result, array, size * sizeof(T));
     return result;
@@ -112,7 +116,10 @@ class ClassTableAllocator : public ValueObject {
   inline T* Realloc(T* array, intptr_t size, intptr_t new_size) {
     ASSERT(size < new_size);
     auto result = AllocZeroInitialized<T>(new_size);
-    memmove(result, array, size * sizeof(T));
+    if (size != 0) {
+      ASSERT(result != nullptr);
+      memmove(result, array, size * sizeof(T));
+    }
     Free(array);
     return result;
   }
