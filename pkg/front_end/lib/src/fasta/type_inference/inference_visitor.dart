@@ -7317,6 +7317,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Index into [positional] of the positional element we find next.
       int positionalIndex = positional.length - 1;
 
+      // For const literals we don't hoist to avoid using let variables in
+      // inside constants. Since the elements of the literal must be constant
+      // themselves, we know that there is no side effects of performing
+      // constant evaluation out of order.
+      final bool enableHoisting = !node.isConst;
+
       // Set to `true` if we need to hoist all preceding elements.
       bool needsHoisting = false;
 
@@ -7355,7 +7361,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (!namedNeedsSorting && element.name != sortedNames[nameIndex]) {
             // Named elements are not sorted, so we need to hoist and sort them.
             namedNeedsSorting = true;
-            needsHoisting = true;
+            needsHoisting = enableHoisting;
           }
           nameIndex--;
         } else {
@@ -7381,7 +7387,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             if (nameIndex >= 0) {
               // We have not seen all named elements yet, so we must hoist the
               // remaining named elements and the preceding positional elements.
-              needsHoisting = true;
+              needsHoisting = enableHoisting;
             }
           }
           positionalTypes[positionalIndex] = type;
