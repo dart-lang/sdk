@@ -482,7 +482,10 @@ class Types {
       }
     }
     List<Class> concrete = _getConcreteSubtypes(type.classNode).toList();
-    if (type.classNode == coreTypes.functionClass) {
+    if (type.classNode == coreTypes.objectClass) {
+      b.drop();
+      b.i32_const(1);
+    } else if (type.classNode == coreTypes.functionClass) {
       ClassInfo functionInfo = translator.classInfo[translator.functionClass]!;
       b.ref_test(functionInfo.struct);
     } else if (concrete.isEmpty) {
