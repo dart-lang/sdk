@@ -132,7 +132,7 @@ class FunctionCollector extends MemberVisitor1<w.FunctionType, Reference> {
     w.FunctionType ftype = m.addFunctionType(
         [...outer.type.inputs, asyncStackType],
         [translator.topInfo.nullableType]);
-    return m.addFunction(ftype, "${outer.functionName} (inner)");
+    return m.addFunction(ftype, "${outer.functionName} inner");
   }
 
   void activateSelector(SelectorInfo selector) {

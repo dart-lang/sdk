@@ -269,9 +269,18 @@ class CaptureFinder extends RecursiveVisitor {
       throw "Not supported: Type parameters for "
           "function expression or local function at ${node.location}";
     }
-    int parameterCount = node.requiredParameterCount;
-    w.FunctionType type = translator.closureFunctionType(parameterCount);
-    w.DefinedFunction function = m.addFunction(type, "$member (closure)");
+    List<w.ValueType> inputs = [
+      w.RefType.data(nullable: false),
+      for (VariableDeclaration param in node.positionalParameters)
+        translator.translateType(param.type)
+    ];
+    List<w.ValueType> outputs = [
+      if (node.returnType != const VoidType())
+        translator.translateType(node.returnType)
+    ];
+    w.FunctionType type = m.addFunctionType(inputs, outputs);
+    w.DefinedFunction function =
+        m.addFunction(type, "$member closure at ${node.location}");
     closures.lambdas[node] = Lambda(node, function);
 
     depth++;

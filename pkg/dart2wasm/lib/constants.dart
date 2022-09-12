@@ -201,7 +201,7 @@ class Constants {
     ClassInfo info = translator.classInfo[cls]!;
     w.FunctionType ftype = m.addFunctionType(
         const [w.NumType.i32, w.NumType.i32], [info.nonNullableType]);
-    return m.addFunction(ftype, "makeString (${cls.name})");
+    return m.addFunction(ftype, "makeString ${cls.name}");
   }
 
   void makeStringFunctionBody(Class cls, w.DefinedFunction function,

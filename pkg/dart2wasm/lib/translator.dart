@@ -689,8 +689,8 @@ class Translator {
     return tearOffFunctionCache.putIfAbsent(member, () {
       assert(member.kind == ProcedureKind.Method);
       FunctionNode functionNode = member.function;
-      int parameterCount = functionNode.requiredParameterCount;
-      if (functionNode.positionalParameters.length != parameterCount ||
+      if (functionNode.positionalParameters.length !=
+              functionNode.requiredParameterCount ||
           functionNode.namedParameters.isNotEmpty) {
         throw "Not supported: Tear-off with optional parameters"
             " at ${member.location}";
@@ -699,26 +699,30 @@ class Translator {
         throw "Not supported: Tear-off with type parameters"
             " at ${member.location}";
       }
-      w.FunctionType memberSignature = signatureFor(member.reference);
-      w.FunctionType closureSignature = closureFunctionType(parameterCount);
-      int signatureOffset = member.isInstanceMember ? 1 : 0;
-      assert(memberSignature.inputs.length == signatureOffset + parameterCount);
-      assert(closureSignature.inputs.length == 1 + parameterCount);
-      w.DefinedFunction function =
-          m.addFunction(closureSignature, "$member (tear-off)");
       w.BaseFunction target = functions.getFunction(member.reference);
-      w.Instructions b = function.body;
-      for (int i = 0; i < memberSignature.inputs.length; i++) {
-        w.Local paramLocal = function.locals[(1 - signatureOffset) + i];
-        b.local_get(paramLocal);
-        convertType(function, paramLocal.type, memberSignature.inputs[i]);
-      }
-      b.call(target);
-      convertType(function, outputOrVoid(target.type.outputs),
-          outputOrVoid(closureSignature.outputs));
-      b.end();
-      return function;
+      return getClosureWrapper(functionNode, target, "$member tear-off");
     });
+  }
+
+  w.DefinedFunction getClosureWrapper(
+      FunctionNode functionNode, w.BaseFunction target, String name) {
+    int parameterCount = functionNode.requiredParameterCount;
+    w.FunctionType targetSignature = target.type;
+    w.FunctionType closureSignature = closureFunctionType(parameterCount);
+    assert(closureSignature.inputs.length == 1 + parameterCount);
+    int signatureOffset = targetSignature.inputs.length - parameterCount;
+    w.DefinedFunction function = m.addFunction(closureSignature, name);
+    w.Instructions b = function.body;
+    for (int i = 0; i < targetSignature.inputs.length; i++) {
+      w.Local paramLocal = function.locals[(1 - signatureOffset) + i];
+      b.local_get(paramLocal);
+      convertType(function, paramLocal.type, targetSignature.inputs[i]);
+    }
+    b.call(target);
+    convertType(function, outputOrVoid(target.type.outputs),
+        outputOrVoid(closureSignature.outputs));
+    b.end();
+    return function;
   }
 
   w.ValueType outputOrVoid(List<w.ValueType> outputs) {

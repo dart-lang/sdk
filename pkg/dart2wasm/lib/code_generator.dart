@@ -1891,7 +1891,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.StructType _instantiateClosure(FunctionNode functionNode) {
     int parameterCount = functionNode.requiredParameterCount;
     Lambda lambda = closures.lambdas[functionNode]!;
-    w.DefinedGlobal global = translator.makeFunctionRef(lambda.function);
+    w.DefinedFunction wrapper = translator.getClosureWrapper(functionNode,
+        lambda.function, "closure wrapper at ${functionNode.location}");
+    w.DefinedGlobal global = translator.makeFunctionRef(wrapper);
 
     ClassInfo info = translator.classInfo[translator.functionClass]!;
     translator.functions.allocateClass(info.classId);
@@ -1901,7 +1903,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.i32_const(initialIdentityHash);
     _pushContext(functionNode);
     b.global_get(global);
-    b.struct_new(translator.closureStructType(parameterCount));
+    b.struct_new(struct);
 
     return struct;
   }
@@ -1948,14 +1950,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitLocalFunctionInvocation(
       LocalFunctionInvocation node, w.ValueType expectedType) {
     var decl = node.variable.parent as FunctionDeclaration;
-    _pushContext(decl.function);
-    for (Expression arg in node.arguments.positional) {
-      wrap(arg, translator.topInfo.nullableType);
-    }
     Lambda lambda = closures.lambdas[decl.function]!;
+    List<w.ValueType> inputs = lambda.function.type.inputs;
+    _pushContext(decl.function);
+    for (int i = 0; i < node.arguments.positional.length; i++) {
+      wrap(node.arguments.positional[i], inputs[1 + i]);
+    }
     b.comment("Local call of ${decl.variable.name}");
     b.call(lambda.function);
-    return translator.topInfo.nullableType;
+    return translator.outputOrVoid(lambda.function.type.outputs);
   }
 
   @override
