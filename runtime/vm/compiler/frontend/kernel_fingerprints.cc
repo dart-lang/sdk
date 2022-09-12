@@ -598,6 +598,18 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateListOfNamedExpressionsFingerprint();  // read named.
       CalculateDartTypeFingerprint();                // read recordType.
       return;
+    case kRecordIndexGet:
+      ReadPosition();                    // read position.
+      CalculateExpressionFingerprint();  // read receiver.
+      CalculateDartTypeFingerprint();    // read recordType.
+      BuildHash(ReadUInt());             // read index.
+      return;
+    case kRecordNameGet:
+      ReadPosition();                         // read position.
+      CalculateExpressionFingerprint();       // read receiver.
+      CalculateDartTypeFingerprint();         // read recordType.
+      CalculateStringReferenceFingerprint();  // read name.
+      return;
     case kFunctionExpression:
       ReadPosition();                      // read position.
       CalculateFunctionNodeFingerprint();  // read function node.

@@ -1131,6 +1131,10 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(
       return BuildMapLiteral(position);
     case kRecordLiteral:
       return BuildRecordLiteral(position);
+    case kRecordIndexGet:
+      return BuildRecordFieldGet(position, /*is_named=*/false);
+    case kRecordNameGet:
+      return BuildRecordFieldGet(position, /*is_named=*/true);
     case kFunctionExpression:
       return BuildFunctionExpression();
     case kLet:
@@ -4088,6 +4092,36 @@ Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {
 
   SkipDartType();  // read recordType.
 
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
+                                                        bool is_named) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
+
+  Fragment instructions = BuildExpression();  // read receiver.
+  const RecordType& record_type =
+      RecordType::Cast(T.BuildType());  // read recordType.
+
+  intptr_t field_index = -1;
+  if (is_named) {
+    const String& field_name = H.DartSymbolPlain(ReadStringReference());
+    for (intptr_t i = 0, n = record_type.NumNamedFields(); i < n; ++i) {
+      if (record_type.FieldNameAt(i) == field_name.ptr()) {
+        field_index = i;
+        break;
+      }
+    }
+    ASSERT(field_index >= 0 && field_index < record_type.NumNamedFields());
+    field_index += record_type.NumPositionalFields();
+  } else {
+    field_index = ReadUInt();
+    ASSERT(field_index < record_type.NumPositionalFields());
+  }
+
+  instructions += B->LoadNativeField(Slot::GetRecordFieldSlot(
+      thread(), compiler::target::Record::field_offset(field_index)));
   return instructions;
 }
 

@@ -882,6 +882,18 @@ void ScopeBuilder::VisitExpression() {
       VisitListOfNamedExpressions();  // read named.
       VisitDartType();                // read recordType.
       return;
+    case kRecordIndexGet:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read receiver.
+      helper_.SkipDartType();  // read recordType.
+      helper_.ReadUInt();      // read index.
+      return;
+    case kRecordNameGet:
+      helper_.ReadPosition();         // read position.
+      VisitExpression();              // read receiver.
+      helper_.SkipDartType();         // read recordType.
+      helper_.SkipStringReference();  // read name.
+      return;
     case kFunctionExpression: {
       intptr_t offset = helper_.ReaderOffset() - 1;  // -1 to include tag byte.
       helper_.ReadPosition();                        // read position.

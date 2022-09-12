@@ -14,4 +14,10 @@ main() {
   //                                ^
   // [analyzer] SYNTACTIC_ERROR.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA
   // [cfe] Record type with one entry requires a trailing comma.
+
+  () emptyRecord = Record.empty;
+  //               ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'Record'.
+  print(emptyRecord);
 }

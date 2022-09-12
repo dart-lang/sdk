@@ -46,12 +46,6 @@ main() {
 
   ({int ok}) oneElementNamedRecord = (ok: 1);
   print(oneElementNamedRecord);
-
-  () emptyRecord = Record.empty;
-//                 ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Undefined name 'Record'.
-  print(emptyRecord);
 }
 
 (int, T) f1<T>(T t) {

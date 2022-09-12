@@ -2617,6 +2617,18 @@ void KernelReaderHelper::SkipExpression() {
       SkipListOfNamedExpressions();  // read named.
       SkipDartType();                // read recordType.
       return;
+    case kRecordIndexGet:
+      ReadPosition();    // read position.
+      SkipExpression();  // read receiver.
+      SkipDartType();    // read recordType.
+      ReadUInt();        // read index.
+      return;
+    case kRecordNameGet:
+      ReadPosition();         // read position.
+      SkipExpression();       // read receiver.
+      SkipDartType();         // read recordType.
+      SkipStringReference();  // read name.
+      return;
     case kFunctionExpression:
       ReadPosition();      // read position.
       SkipFunctionNode();  // read function node.
