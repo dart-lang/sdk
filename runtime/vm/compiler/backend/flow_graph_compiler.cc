@@ -2582,6 +2582,10 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
     return GenerateFunctionTypeTest(source, type, is_instance_lbl,
                                     is_not_instance_lbl);
   }
+  if (type.IsRecordType()) {
+    // TODO(dartbug.com/49719)
+    UNIMPLEMENTED();
+  }
 
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(zone(), type.type_class());

@@ -446,6 +446,7 @@
   SIZEOF(PcDescriptors, HeaderSize, UntaggedPcDescriptors)                     \
   SIZEOF(Pointer, InstanceSize, UntaggedPointer)                               \
   SIZEOF(ReceivePort, InstanceSize, UntaggedReceivePort)                       \
+  SIZEOF(RecordType, InstanceSize, UntaggedRecordType)                         \
   SIZEOF(RegExp, InstanceSize, UntaggedRegExp)                                 \
   SIZEOF(Script, InstanceSize, UntaggedScript)                                 \
   SIZEOF(SendPort, InstanceSize, UntaggedSendPort)                             \

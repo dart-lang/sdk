@@ -126,7 +126,7 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     }
   }
 
-  if (type.IsFunctionType()) {
+  if (type.IsFunctionType() || type.IsRecordType()) {
     const bool nullable = Instance::NullIsAssignableTo(type);
     return nullable ? StubCode::DefaultNullableTypeTest().ptr()
                     : StubCode::DefaultTypeTest().ptr();
@@ -1006,6 +1006,7 @@ static void UnwrapAbstractType(compiler::Assembler* assembler,
     __ CompareImmediate(scratch, kTypeParameterCid);
     __ BranchIf(EQUAL, is_type_parameter);
   }
+  // TODO(dartbug.com/49719)
 }
 
 void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
@@ -1153,6 +1154,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
   __ Bind(&check_subtype_cid);
   UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
                      TTSInternalRegs::kScratchReg, &sub_is_type);
+  // TODO(dartbug.com/49719)
   __ Comment("Checks for FunctionType");
   __ EnsureHasClassIdInDEBUG(kFunctionTypeCid,
                              TTSInternalRegs::kSubTypeArgumentReg,
@@ -1365,6 +1367,10 @@ AbstractTypePtr TypeArgumentInstantiator::InstantiateType(
     return result.NormalizeFutureOrType(Heap::kOld);
   } else if (type.IsFunctionType()) {
     // No support for function types yet.
+    UNREACHABLE();
+    return nullptr;
+  } else if (type.IsRecordType()) {
+    // No support for record types yet.
     UNREACHABLE();
     return nullptr;
   } else if (type.IsTypeRef()) {

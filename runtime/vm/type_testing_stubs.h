@@ -210,6 +210,9 @@ class TypeArgumentClassFinder {
     } else if (type.IsFunctionType()) {
       // No support for function types yet.
       return false;
+    } else if (type.IsRecordType()) {
+      // No support for record types yet.
+      return false;
     } else if (type.IsTypeRef()) {
       // No support for recursive types.
       return false;

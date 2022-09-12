@@ -257,6 +257,18 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       CalculateDartTypeFingerprint();  // read left;
       CalculateDartTypeFingerprint();  // read right;
       break;
+    case kRecordType: {
+      BuildHash(static_cast<uint32_t>(ReadNullability()));
+      CalculateListOfDartTypesFingerprint();
+      const intptr_t named_count = ReadListLength();
+      BuildHash(named_count);
+      for (intptr_t i = 0; i < named_count; ++i) {
+        CalculateStringReferenceFingerprint();
+        CalculateDartTypeFingerprint();
+        ReadFlags();
+      }
+      break;
+    }
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();

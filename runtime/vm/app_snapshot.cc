@@ -4350,6 +4350,129 @@ class FunctionTypeDeserializationCluster
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class RecordTypeSerializationCluster
+    : public CanonicalSetSerializationCluster<CanonicalRecordTypeSet,
+                                              RecordType,
+                                              RecordTypePtr> {
+ public:
+  RecordTypeSerializationCluster(bool is_canonical,
+                                 bool represents_canonical_set)
+      : CanonicalSetSerializationCluster(
+            kRecordTypeCid,
+            is_canonical,
+            represents_canonical_set,
+            "RecordType",
+            compiler::target::RecordType::InstanceSize()) {}
+  ~RecordTypeSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    RecordTypePtr type = RecordType::RawCast(object);
+    objects_.Add(type);
+    PushFromTo(type);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    ReorderObjects(s);
+
+    for (intptr_t i = 0; i < count; i++) {
+      RecordTypePtr type = objects_[i];
+      s->AssignRef(type);
+    }
+    WriteCanonicalSetLayout(s);
+  }
+
+  void WriteFill(Serializer* s) {
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      WriteRecordType(s, objects_[i]);
+    }
+  }
+
+ private:
+  void WriteRecordType(Serializer* s, RecordTypePtr type) {
+    AutoTraceObject(type);
+    WriteFromTo(type);
+    ASSERT(type->untag()->type_state_ <
+           (1 << UntaggedRecordType::kTypeStateBitSize));
+    ASSERT(type->untag()->nullability_ < (1 << kNullabilityBitSize));
+    static_assert(UntaggedRecordType::kTypeStateBitSize + kNullabilityBitSize <=
+                      kBitsPerByte * sizeof(uint8_t),
+                  "Cannot pack type_state_ and nullability_ into a uint8_t");
+    const uint8_t combined =
+        (type->untag()->type_state_ << kNullabilityBitSize) |
+        type->untag()->nullability_;
+    ASSERT_EQUAL(type->untag()->type_state_, combined >> kNullabilityBitSize);
+    ASSERT_EQUAL(type->untag()->nullability_, combined & kNullabilityBitMask);
+    s->Write<uint8_t>(combined);
+  }
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class RecordTypeDeserializationCluster
+    : public CanonicalSetDeserializationCluster<CanonicalRecordTypeSet> {
+ public:
+  RecordTypeDeserializationCluster(bool is_canonical, bool is_root_unit)
+      : CanonicalSetDeserializationCluster(is_canonical,
+                                           is_root_unit,
+                                           "RecordType") {}
+  ~RecordTypeDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    ReadAllocFixedSize(d, RecordType::InstanceSize());
+    BuildCanonicalSetFromLayout(d);
+  }
+
+  void ReadFill(Deserializer* d_, bool primary) {
+    Deserializer::Local d(d_);
+
+    const bool mark_canonical = primary && is_canonical();
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      RecordTypePtr type = static_cast<RecordTypePtr>(d.Ref(id));
+      Deserializer::InitializeHeader(
+          type, kRecordTypeCid, RecordType::InstanceSize(), mark_canonical);
+      d.ReadFromTo(type);
+      const uint8_t combined = d.Read<uint8_t>();
+      type->untag()->type_state_ = combined >> kNullabilityBitSize;
+      type->untag()->nullability_ = combined & kNullabilityBitMask;
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
+    if (!table_.IsNull()) {
+      auto object_store = d->isolate_group()->object_store();
+      VerifyCanonicalSet(d, refs,
+                         Array::Handle(object_store->canonical_record_types()));
+      object_store->set_canonical_record_types(table_);
+    } else if (!primary && is_canonical()) {
+      AbstractType& type = AbstractType::Handle(d->zone());
+      for (intptr_t i = start_index_, n = stop_index_; i < n; i++) {
+        type ^= refs.At(i);
+        type = type.Canonicalize(d->thread(), nullptr);
+        refs.SetAt(i, type);
+      }
+    }
+
+    RecordType& type = RecordType::Handle(d->zone());
+    Code& stub = Code::Handle(d->zone());
+
+    if (Snapshot::IncludesCode(d->kind())) {
+      for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+        type ^= refs.At(id);
+        type.UpdateTypeTestingStubEntryPoint();
+      }
+    } else {
+      for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+        type ^= refs.At(id);
+        stub = TypeTestingStubGenerator::DefaultCodeForType(type);
+        type.InitializeTypeTestingStubNonAtomic(stub);
+      }
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeRefSerializationCluster : public SerializationCluster {
  public:
   TypeRefSerializationCluster()
@@ -5994,6 +6117,7 @@ class ProgramSerializationRoots : public SerializationRoots {
   V(canonical_types, Array, HashTables::New<CanonicalTypeSet>(4))              \
   V(canonical_function_types, Array,                                           \
     HashTables::New<CanonicalFunctionTypeSet>(4))                              \
+  V(canonical_record_types, Array, HashTables::New<CanonicalRecordTypeSet>(4)) \
   V(canonical_type_arguments, Array,                                           \
     HashTables::New<CanonicalTypeArgumentsSet>(4))                             \
   V(canonical_type_parameters, Array,                                          \
@@ -6668,6 +6792,10 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       type = "FunctionType";
       break;
     };
+    case kRecordTypeCid: {
+      type = "RecordType";
+      break;
+    };
     default:
       FATAL("Request to create artificial node for object with cid %d", cid);
   }
@@ -6853,6 +6981,9 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
                                               cluster_represents_canonical_set);
     case kFunctionTypeCid:
       return new (Z) FunctionTypeSerializationCluster(
+          is_canonical, cluster_represents_canonical_set);
+    case kRecordTypeCid:
+      return new (Z) RecordTypeSerializationCluster(
           is_canonical, cluster_represents_canonical_set);
     case kTypeRefCid:
       return new (Z) TypeRefSerializationCluster();
@@ -7998,6 +8129,9 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case kFunctionTypeCid:
       return new (Z)
           FunctionTypeDeserializationCluster(is_canonical, !is_non_root_unit_);
+    case kRecordTypeCid:
+      return new (Z)
+          RecordTypeDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kTypeRefCid:
       ASSERT(!is_canonical);
       return new (Z) TypeRefDeserializationCluster();

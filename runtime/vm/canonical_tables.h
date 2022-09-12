@@ -212,6 +212,45 @@ class CanonicalFunctionTypeTraits {
 };
 typedef UnorderedHashSet<CanonicalFunctionTypeTraits> CanonicalFunctionTypeSet;
 
+class CanonicalRecordTypeKey {
+ public:
+  explicit CanonicalRecordTypeKey(const RecordType& key) : key_(key) {}
+  bool Matches(const RecordType& arg) const { return key_.Equals(arg); }
+  uword Hash() const { return key_.Hash(); }
+  const RecordType& key_;
+
+ private:
+  DISALLOW_ALLOCATION();
+};
+
+// Traits for looking up Canonical RecordType based on its hash.
+class CanonicalRecordTypeTraits {
+ public:
+  static const char* Name() { return "CanonicalRecordTypeTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    ASSERT(a.IsRecordType() && b.IsRecordType());
+    const RecordType& arg1 = RecordType::Cast(a);
+    const RecordType& arg2 = RecordType::Cast(b);
+    return arg1.Equals(arg2) && (arg1.Hash() == arg2.Hash());
+  }
+  static bool IsMatch(const CanonicalRecordTypeKey& a, const Object& b) {
+    ASSERT(b.IsRecordType());
+    return a.Matches(RecordType::Cast(b));
+  }
+  static uword Hash(const Object& key) {
+    ASSERT(key.IsRecordType());
+    return RecordType::Cast(key).Hash();
+  }
+  static uword Hash(const CanonicalRecordTypeKey& key) { return key.Hash(); }
+  static ObjectPtr NewKey(const CanonicalRecordTypeKey& obj) {
+    return obj.key_.ptr();
+  }
+};
+typedef UnorderedHashSet<CanonicalRecordTypeTraits> CanonicalRecordTypeSet;
+
 class CanonicalTypeParameterKey {
  public:
   explicit CanonicalTypeParameterKey(const TypeParameter& key) : key_(key) {}

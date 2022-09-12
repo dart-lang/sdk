@@ -1542,6 +1542,7 @@ class TypeTranslator {
   void BuildTypeInternal();
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
+  void BuildRecordType();
   void BuildTypeParameterType();
   void BuildIntersectionType();
 

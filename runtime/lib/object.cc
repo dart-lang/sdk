@@ -81,7 +81,8 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
     return Type::IntType();
   } else if (instance.IsDouble()) {
     return Type::Double();
-  } else if (instance.IsType() || instance.IsFunctionType()) {
+  } else if (instance.IsType() || instance.IsFunctionType() ||
+             instance.IsRecordType()) {
     return Type::DartTypeType();
   } else if (IsArrayClassId(instance.GetClassId())) {
     const auto& cls = Class::Handle(

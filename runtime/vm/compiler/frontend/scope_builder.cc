@@ -1355,6 +1355,9 @@ void ScopeBuilder::VisitDartType() {
     case kSimpleFunctionType:
       VisitFunctionType(true);
       return;
+    case kRecordType:
+      VisitRecordType();
+      return;
     case kTypeParameterType:
       VisitTypeParameterType();
       return;
@@ -1415,6 +1418,22 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
   }
 
   VisitDartType();  // read return type.
+}
+
+void ScopeBuilder::VisitRecordType() {
+  helper_.ReadNullability();  // read nullability.
+  const intptr_t positional_count =
+      helper_.ReadListLength();  // read positional list length.
+  for (intptr_t i = 0; i < positional_count; ++i) {
+    VisitDartType();  // read positional[i].
+  }
+  const intptr_t named_count =
+      helper_.ReadListLength();  // read named list length.
+  for (intptr_t i = 0; i < named_count; ++i) {
+    helper_.SkipStringReference();  // read named[i].name.
+    VisitDartType();                // read named[i].type.
+    helper_.ReadFlags();            // read named[i].flags
+  }
 }
 
 void ScopeBuilder::VisitTypeParameterType() {

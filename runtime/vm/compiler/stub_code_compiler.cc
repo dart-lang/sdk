@@ -336,6 +336,7 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
       __ Ret();
   }
 
+  // TODO(dartbug.com/49719)
   // Handle [FunctionType]s.
   __ Bind(&type_parameter_value_is_not_type);
   __ CompareImmediate(InstantiateTypeABI::kScratchReg, kFunctionTypeCid);

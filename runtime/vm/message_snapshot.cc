@@ -3382,6 +3382,10 @@ void MessageSerializer::Trace(Object* object) {
     ILLEGAL(SuspendState)
     ILLEGAL(UserTag)
 
+    // TODO(dartbug.com/49719): allow sending records as long as their
+    // elements are objects that can be sent.
+    ILLEGAL(RecordType)
+
     // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since
     // those are the only non-abstract classes (so we avoid checking more cids
     // here that cannot happen in reality)

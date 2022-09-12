@@ -135,6 +135,7 @@ class ObjectPointerVisitor;
   ARW_AR(Array, symbol_table)                                                  \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \
+  RW(Array, canonical_record_types)                                            \
   RW(Array, canonical_type_parameters)                                         \
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \

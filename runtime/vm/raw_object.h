@@ -2718,6 +2718,20 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   friend class Function;
 };
 
+class UntaggedRecordType : public UntaggedAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(RecordType);
+
+  COMPRESSED_POINTER_FIELD(ArrayPtr, field_types)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names);
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
+  VISIT_TO(hash)
+  uint8_t type_state_;
+  uint8_t nullability_;
+
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+};
+
 class UntaggedTypeRef : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);

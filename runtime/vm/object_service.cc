@@ -1240,6 +1240,29 @@ void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
+void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "RecordType");
+
+  {
+    JSONArray arr(&jsobj, "fields");
+    const intptr_t num_fields = NumFields();
+    const intptr_t num_positional_fields = NumPositionalFields();
+    AbstractType& type = AbstractType::Handle();
+    String& name = String::Handle();
+    for (intptr_t i = 0; i < num_fields; ++i) {
+      JSONObject field(&arr);
+      type = FieldTypeAt(i);
+      field.AddProperty("type", type);
+      if (i >= num_positional_fields) {
+        name = FieldNameAt(i - num_positional_fields);
+        field.AddProperty("name", name.ToCString());
+      }
+    }
+  }
+}
+
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);

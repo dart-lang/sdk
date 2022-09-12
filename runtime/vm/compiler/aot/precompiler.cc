@@ -1187,6 +1187,13 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AbstractType& type = AbstractType::Handle(Z);
     type = TypeRef::Cast(abstype).type();
     AddType(type);
+  } else if (abstype.IsRecordType()) {
+    const auto& rec = RecordType::Cast(abstype);
+    AbstractType& type = AbstractType::Handle(Z);
+    for (intptr_t i = 0, n = rec.NumFields(); i < n; ++i) {
+      type = rec.FieldTypeAt(i);
+      AddType(type);
+    }
   }
 }
 
@@ -2392,6 +2399,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
       void VisitObject(ObjectPtr obj) {
         if (obj->GetClassId() == kTypeCid ||
             obj->GetClassId() == kFunctionTypeCid ||
+            obj->GetClassId() == kRecordTypeCid ||
             obj->GetClassId() == kTypeRefCid) {
           type_ ^= obj;
           types_->Add(type_);

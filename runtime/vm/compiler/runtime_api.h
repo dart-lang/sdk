@@ -715,6 +715,12 @@ class FunctionType : public AllStatic {
   FINAL_CLASS();
 };
 
+class RecordType : public AllStatic {
+ public:
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
 class TypeRef : public AllStatic {
  public:
   static word type_offset();

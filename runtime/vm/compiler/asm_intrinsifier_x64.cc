@@ -1068,11 +1068,15 @@ static void JumpIfNotList(Assembler* assembler, Register cid, Label* target) {
 }
 
 static void JumpIfType(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfInRange, target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, kTypeCid, kRecordTypeCid, kIfInRange, target);
 }
 
 static void JumpIfNotType(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kTypeCid, kFunctionTypeCid, kIfNotInRange, target);
+  COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
+                 (kRecordTypeCid == kTypeCid + 2));
+  RangeCheck(assembler, cid, kTypeCid, kRecordTypeCid, kIfNotInRange, target);
 }
 
 // Return type quickly for simple types (not parameterized and not signature).

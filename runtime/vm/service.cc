@@ -2869,6 +2869,11 @@ static void CollectStringifiedType(Zone* zone,
     output.Add(instance);
     return;
   }
+  if (type.IsRecordType()) {
+    // _Record class is not useful for the CFE. We use null instead.
+    output.Add(instance);
+    return;
+  }
   if (type.IsDynamicType()) {
     // Dynamic is weird in that it seems to have a class with no name and a
     // library called something like '7189777121420'. We use null instead.

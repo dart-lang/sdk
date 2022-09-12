@@ -2213,6 +2213,17 @@ void KernelReaderHelper::SkipDartType() {
     case kSimpleFunctionType:
       SkipFunctionType(true);
       return;
+    case kRecordType: {
+      ReadNullability();
+      SkipListOfDartTypes();
+      const intptr_t named_count = ReadListLength();
+      for (intptr_t i = 0; i < named_count; ++i) {
+        SkipStringReference();
+        SkipDartType();
+        ReadFlags();
+      }
+      return;
+    }
     case kTypedefType:
       ReadNullability();      // read nullability.
       ReadUInt();             // read index for canonical name.
@@ -3148,6 +3159,9 @@ void TypeTranslator::BuildTypeInternal() {
     case kSimpleFunctionType:
       BuildFunctionType(true);
       break;
+    case kRecordType:
+      BuildRecordType();
+      break;
     case kTypeParameterType:
       BuildTypeParameterType();
       if (result_.IsTypeParameter() &&
@@ -3297,6 +3311,62 @@ void TypeTranslator::BuildFunctionType(bool simple) {
   }
 
   result_ = signature.ptr();
+}
+
+void TypeTranslator::BuildRecordType() {
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
+    nullability = Nullability::kLegacy;
+  }
+
+  const intptr_t positional_count = helper_->ReadListLength();
+  intptr_t named_count = 0;
+  {
+    AlternativeReadingScope alt(&helper_->reader_);
+    for (intptr_t i = 0; i < positional_count; ++i) {
+      helper_->SkipDartType();
+    }
+    named_count = helper_->ReadListLength();
+  }
+
+  const intptr_t num_fields = positional_count + named_count;
+  const Array& field_types =
+      Array::Handle(Z, Array::New(num_fields, Heap::kOld));
+  const Array& field_names =
+      (named_count == 0)
+          ? Object::empty_array()
+          : Array::Handle(Z, Array::New(named_count, Heap::kOld));
+
+  // Suspend finalization of types inside this one. They will be finalized after
+  // the whole record type is constructed.
+  bool finalize = finalize_;
+  finalize_ = false;
+
+  intptr_t pos = 0;
+  for (intptr_t i = 0; i < positional_count; ++i) {
+    BuildTypeInternal();  // read ith positional field.
+    field_types.SetAt(pos++, result_);
+  }
+
+  helper_->ReadListLength();
+  for (intptr_t i = 0; i < named_count; ++i) {
+    String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
+    field_names.SetAt(i, name);
+    BuildTypeInternal();
+    field_types.SetAt(pos++, result_);
+    helper_->ReadFlags();
+  }
+
+  finalize_ = finalize;
+
+  RecordType& rec = RecordType::Handle(
+      Z, RecordType::New(field_types, field_names, nullability));
+
+  if (finalize_) {
+    rec ^= ClassFinalizer::FinalizeType(rec);
+  }
+
+  result_ = rec.ptr();
 }
 
 void TypeTranslator::BuildTypeParameterType() {

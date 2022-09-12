@@ -67,6 +67,7 @@
   V(PcDescriptors)                                                             \
   V(Pointer)                                                                   \
   V(ReceivePort)                                                               \
+  V(RecordType)                                                                \
   V(RegExp)                                                                    \
   V(Script)                                                                    \
   V(Sentinel)                                                                  \

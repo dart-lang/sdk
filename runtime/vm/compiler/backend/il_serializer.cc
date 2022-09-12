@@ -1598,6 +1598,11 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       stream_->WriteBytes(latin1, length);
       break;
     }
+    case kRecordTypeCid: {
+      // TODO(dartbug.com/49719)
+      UNIMPLEMENTED();
+      break;
+    }
     case kSentinelCid:
       if (x.ptr() == Object::sentinel().ptr()) {
         Write<bool>(true);
@@ -1857,6 +1862,11 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       stream_->ReadBytes(latin1, length);
       return String::ZoneHandle(Z,
                                 Symbols::FromLatin1(thread(), latin1, length));
+    }
+    case kRecordTypeCid: {
+      // TODO(dartbug.com/49719)
+      UNIMPLEMENTED();
+      break;
     }
     case kSentinelCid:
       return Read<bool>() ? Object::sentinel() : Object::transition_sentinel();
