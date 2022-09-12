@@ -11,6 +11,6 @@ void main(List<String> args) {
 
   var options = parser.parse(args);
   for (var path in options.rest) {
-    Spelunker(path).spelunk();
+    FileSpelunker(path).spelunk();
   }
 }

@@ -324,7 +324,7 @@ void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
 
       var features = optionsImpl.contextFeatures;
 
-      Spelunker(file.absolute.path, featureSet: features).spelunk();
+      FileSpelunker(file.absolute.path, featureSet: features).spelunk();
       print('');
       // Lints.
       ResultReporter(errorInfos).write();
