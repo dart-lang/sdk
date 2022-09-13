@@ -2562,7 +2562,10 @@ abstract class FunctionBody implements AstNode {
   bool isPotentiallyMutatedInScope(VariableElement variable);
 }
 
-/// A top-level function declaration.
+/// A function declaration.
+///
+/// Wrapped in a [FunctionDeclarationStatement] to represent a local function
+/// declaration, otherwise a top-level function declaration.
 ///
 ///    functionDeclaration ::=
 ///        'external' functionSignature

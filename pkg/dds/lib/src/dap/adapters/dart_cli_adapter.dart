@@ -124,7 +124,9 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     }
 
     // Handle customTool and deletion of any arguments for it.
-    final executable = args.customTool ?? Platform.resolvedExecutable;
+    final executable = normalizePath(
+      args.customTool ?? Platform.resolvedExecutable,
+    );
     final removeArgs = args.customToolReplacesArgs;
     if (args.customTool != null && removeArgs != null) {
       vmArgs.removeRange(0, math.min(removeArgs, vmArgs.length));
@@ -133,7 +135,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     final processArgs = [
       ...vmArgs,
       ...toolArgs,
-      args.program,
+      normalizePath(args.program),
       ...?args.args,
     ];
 
@@ -153,20 +155,25 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
                 : null
         : null;
 
+    var cwd = args.cwd;
+    if (cwd != null) {
+      cwd = normalizePath(cwd);
+    }
+
     if (terminalKind != null) {
       await launchInEditorTerminal(
         debug,
         terminalKind,
         executable,
         processArgs,
-        workingDirectory: args.cwd,
+        workingDirectory: cwd,
         env: args.env,
       );
     } else {
       await launchAsProcess(
         executable,
         processArgs,
-        workingDirectory: args.cwd,
+        workingDirectory: cwd,
         env: args.env,
       );
     }
@@ -216,7 +223,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     // we can detect with the normal watching code.
     final requestArgs = RunInTerminalRequestArguments(
       args: [executable, ...processArgs],
-      cwd: workingDirectory ?? path.dirname(args.program),
+      cwd: workingDirectory ?? normalizePath(path.dirname(args.program)),
       env: env,
       kind: terminalKind,
       title: args.name ?? 'Dart',

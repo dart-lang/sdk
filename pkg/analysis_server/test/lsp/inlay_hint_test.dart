@@ -118,6 +118,34 @@ void f() {
     await _testHints(content, expected);
   }
 
+  Future<void> test_method_parameters() async {
+    final content = '''
+class A {
+  void m1(int a, [String? b]) {}
+  void m2(int a, {String? b, required String c}) {}
+}
+class B extends A {
+  @override
+  void m1(a, [b]) {}
+  void m2(a, {b, required c}) {}
+  void m3(a, {b}) {}
+}
+''';
+    final expected = '''
+class A {
+  void m1(int a, [String? b]) {}
+  void m2(int a, {String? b, required String c}) {}
+}
+class B extends A {
+  @override
+  void m1((Type:int) a, [(Type:String?) b]) {}
+  void m2((Type:int) a, {(Type:String?) b, required (Type:String) c}) {}
+  void m3((Type:dynamic) a, {(Type:dynamic) b}) {}
+}
+''';
+    await _testHints(content, expected);
+  }
+
   Future<void> test_method_returnType() async {
     final content = '''
 class A {
@@ -140,6 +168,18 @@ f() => '';
     // top-level function return types are not inferred and always `dynamic`
     final expected = '''
 (Type:dynamic) f() => '';
+''';
+    await _testHints(content, expected);
+  }
+
+  Future<void> test_topLevelVariable_closureResult() async {
+    final content = '''
+var c1 = (() => 3)();
+int c2 = (() => 3)(); // already typed
+''';
+    final expected = '''
+var (Type:int) c1 = (() => 3)();
+int c2 = (() => 3)(); // already typed
 ''';
     await _testHints(content, expected);
   }

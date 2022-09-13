@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'type_analyzer.dart';
-import 'variable_bindings.dart';
 
 /// Container for the result of running type analysis on an expression.
 ///
@@ -125,23 +124,19 @@ abstract class PatternDispatchResult<Node extends Object,
   /// for a switch statement this is the type of the scrutinee or substructure
   /// thereof).
   ///
-  /// [bindings] is a data structure keeping track of the variable patterns seen
-  /// so far and their type information.
+  /// [typeInfos] is a data structure keeping track of the variable patterns
+  /// seen so far and their type information.
   ///
-  /// [isFinal] and [isLate] only apply to variable patterns, and indicate
-  /// whether the variable in question should be late and/or final.
-  ///
-  /// [initializer] is only present if [node] is the principal pattern of a
-  /// variable declaration; it is the variable declaration's initializer
-  /// expression.  This is used by flow analysis to track when the truth or
-  /// falsity of a boolean variable causes other variables to be promoted.
-  ///
-  /// If the match is happening in an irrefutable context, [irrefutableContext]
-  /// should be the containing AST node that establishes the context as
-  /// irrefutable.  Otherwise it should be `null`.
+  /// [context] keeps track of other contextual information pertinent to the
+  /// match, such as whether it is late and/or final, whether there is an
+  /// initializer expression (and if so, what it is), and whether the match is
+  /// happening in an irrefutable context (and if so, what surrounding construct
+  /// causes it to be irrefutable).
   ///
   /// Stack effect (see [TypeAnalyzer] for explanation): pushes (Pattern).
-  void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
+  void match(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
       MatchContext<Node, Expression> context);
 }
 

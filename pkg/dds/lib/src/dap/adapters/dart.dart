@@ -22,6 +22,7 @@ import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 import '../utils.dart';
+import 'mixins.dart';
 
 /// The mime type to send with source responses to the client.
 ///
@@ -285,7 +286,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
 /// (for example when the server sends a `StoppedEvent` it may cause the client
 /// to then send a `stackTraceRequest` or `scopesRequest` to get variables).
 abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
-    TA extends AttachRequestArguments> extends BaseDebugAdapter<TL, TA> {
+        TA extends AttachRequestArguments> extends BaseDebugAdapter<TL, TA>
+    with FileUtils {
   late final DartCommonLaunchAttachRequestArguments args;
   final _debuggerInitializedCompleter = Completer<void>();
   final _configurationDoneCompleter = Completer<void>();
@@ -706,7 +708,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     void Function(Object?) sendResponse,
   ) async {
     switch (request.command) {
-
       // Used by tests to validate available protocols (e.g. DDS). There may be
       // value in making this available to clients in future, but for now it's
       // internal.
@@ -1186,7 +1187,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     final path = args.source.path;
     final name = args.source.name;
-    final uri = path != null ? Uri.file(path).toString() : name!;
+    final uri = path != null ? Uri.file(normalizePath(path)).toString() : name!;
 
     await _isolateManager.setBreakpoints(uri, breakpoints);
 
