@@ -344,8 +344,7 @@ class CObject {
   static Dart_CObject* NewString(intptr_t length);
   static Dart_CObject* NewString(const char* str);
   static Dart_CObject* NewArray(intptr_t length);
-  static Dart_CObject* NewUint8Array(intptr_t length);
-  static Dart_CObject* NewUint32Array(intptr_t length);
+  static Dart_CObject* NewUint8Array(const void* data, intptr_t length);
   static Dart_CObject* NewExternalUint8Array(intptr_t length,
                                              uint8_t* data,
                                              void* peer,
@@ -547,7 +546,7 @@ class CObjectTypedData : public CObject {
     return cobject_->value.as_typed_data.type;
   }
   intptr_t Length() const { return cobject_->value.as_typed_data.length; }
-  uint8_t* Buffer() const { return cobject_->value.as_typed_data.values; }
+  const uint8_t* Buffer() const { return cobject_->value.as_typed_data.values; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectTypedData);
@@ -558,7 +557,7 @@ class CObjectUint8Array : public CObject {
   DECLARE_COBJECT_TYPED_DATA_CONSTRUCTORS(Uint8)
 
   intptr_t Length() const { return cobject_->value.as_typed_data.length; }
-  uint8_t* Buffer() const { return cobject_->value.as_typed_data.values; }
+  const uint8_t* Buffer() const { return cobject_->value.as_typed_data.values; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectUint8Array);

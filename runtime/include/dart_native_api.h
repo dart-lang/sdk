@@ -80,7 +80,7 @@ typedef struct _Dart_CObject {
     struct {
       Dart_TypedData_Type type;
       intptr_t length; /* in elements, not bytes */
-      uint8_t* values;
+      const uint8_t* values;
     } as_typed_data;
     struct {
       Dart_TypedData_Type type;

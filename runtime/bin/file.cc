@@ -1395,7 +1395,7 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
   int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
   int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
   int64_t length = end - start;
-  uint8_t* buffer_start;
+  const uint8_t* buffer_start;
   if (request[1]->IsTypedData()) {
     CObjectTypedData typed_data(request[1]);
     start = start * SizeInBytes(typed_data.Type());
@@ -1403,11 +1403,12 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
     buffer_start = typed_data.Buffer() + start;
   } else {
     CObjectArray array(request[1]);
-    buffer_start = Dart_ScopeAllocate(length);
+    uint8_t* allocated_buffer = Dart_ScopeAllocate(length);
+    buffer_start = allocated_buffer;
     for (int i = 0; i < length; i++) {
       if (array[i + start]->IsInt32OrInt64()) {
         int64_t value = CObjectInt32OrInt64ToInt64(array[i + start]);
-        buffer_start[i] = static_cast<uint8_t>(value & 0xFF);
+        allocated_buffer[i] = static_cast<uint8_t>(value & 0xFF);
       } else {
         // Unsupported type.
         return CObject::IllegalArgumentError();
@@ -1415,7 +1416,7 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
     }
     start = 0;
   }
-  return file->WriteFully(reinterpret_cast<void*>(buffer_start), length)
+  return file->WriteFully(reinterpret_cast<const void*>(buffer_start), length)
              ? new CObjectInt64(CObject::NewInt64(length))
              : CObject::NewOSError();
 }
