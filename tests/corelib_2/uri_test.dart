@@ -575,6 +575,81 @@ void testPackageUris() {
       uri.resolve("/qux").toString());
 }
 
+void testBackslashes() {
+  // Tests change which makes `\` be treated as `/` in
+  // autority and path.
+
+  Expect.stringEquals("https://example.com/",
+      Uri.parse(r"https:\\example.com\").toString());
+
+  Expect.stringEquals("https://example.com/",
+      Uri.parse(r"https:\/example.com/").toString());
+  Expect.stringEquals("https://example.com/",
+      Uri.parse(r"https:/\example.com/").toString());
+  Expect.stringEquals("https://example.com/",
+      Uri.parse(r"https://example.com/").toString());
+  Expect.stringEquals("https://example.com/foo//bar",
+      Uri.parse(r"https://example.com/foo\\bar").toString());
+
+  Expect.stringEquals("https:/example.com/foo?%5C#%5C",
+      Uri.parse(r"https:\example.com/foo?\#\").toString());
+
+  Expect.stringEquals("https://example.com/@example.net/foo",
+      Uri.parse(r"https://example.com\@example.net/foo").toString());
+
+  Expect.stringEquals("file:///foo",
+      Uri.parse(r"file:foo").toString());
+  Expect.stringEquals("file:///foo",
+      Uri.parse(r"file:\foo").toString());
+  Expect.stringEquals("file://foo/",
+      Uri.parse(r"file:\\foo").toString());
+  Expect.stringEquals("file:///foo",
+      Uri.parse(r"file:\\\foo").toString());
+  Expect.stringEquals("file:///foo",
+      Uri.parse(r"file:\//foo").toString());
+  Expect.stringEquals("file:///foo",
+      Uri.parse(r"file:/\/foo").toString());
+  Expect.stringEquals("file:///foo",
+      Uri.parse(r"file://\foo").toString());
+
+  // No scheme.
+  Expect.stringEquals("//example.com/foo",
+      Uri.parse(r"\\example.com\foo").toString());
+
+  // No authority.
+  Expect.stringEquals("http:/foo",
+      Uri.parse(r"http:\foo").toString());
+
+  /// No scheme or authority.
+
+  Expect.stringEquals("foo/bar/baz",
+      Uri.parse(r"foo\bar\baz").toString());
+
+  Expect.stringEquals("foo/bar/baz",
+      Uri.parse(r"foo\bar\.\baz").toString());
+
+  Expect.stringEquals("foo/baz",
+      Uri.parse(r"foo\bar\..\baz").toString());
+
+  // Not converted to / in query or fragment, still escaped.
+  Expect.stringEquals("https://example.com/foo?%5C#%5C",
+      Uri.parse(r"https://example.com/foo?\#\").toString());
+
+  // Applies when a path is provided, but not when using path segments.
+  Expect.stringEquals("https://example.com/foo/bar",
+    Uri(scheme: "https", host: "example.com", path: r"\foo\bar").toString());
+
+  Expect.stringEquals("https://example.com/foo%5Cbar",
+    Uri(scheme: "https", host: "example.com", pathSegments: [r"foo\bar"])
+        .toString());
+
+  // Does not apply to constructors which expect an unencoded path.
+  Expect.stringEquals("http://example.com/%5Cfoo%5Cbar",
+      Uri.http("example.com", r"\foo\bar").toString());
+  Expect.stringEquals("https://example.com/%5Cfoo%5Cbar",
+      Uri.https("example.com", r"\foo\bar").toString());
+}
+
 main() {
   testUri("http:", true);
   testUri("file:///", true);
@@ -727,6 +802,7 @@ main() {
   testNormalization();
   testReplace();
   testPackageUris();
+  testBackslashes();
 }
 
 String dump(Uri uri) {

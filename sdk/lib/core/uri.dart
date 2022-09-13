@@ -150,7 +150,8 @@ abstract class Uri {
   /// [pathSegments].
   /// When [path] is used, it should be a valid URI path,
   /// but invalid characters, except the general delimiters ':/@[]?#',
-  /// will be escaped if necessary.
+  /// will be escaped if necessary. A backslash, `\`, will be converted
+  /// to a slash `/`.
   /// When [pathSegments] is used, each of the provided segments
   /// is first percent-encoded and then joined using the forward slash
   /// separator.
@@ -237,7 +238,7 @@ abstract class Uri {
   ///
   /// The `path` component is set from the [unencodedPath]
   /// argument. The path passed must not be encoded as this constructor
-  /// encodes the path.
+  /// encodes the path. Only `/` is recognized as path separtor.
   /// If omitted, the path defaults to being empty.
   ///
   /// The `query` component is set from the optional [queryParameters]
@@ -996,6 +997,14 @@ abstract class Uri {
       } else if (portStart > start && portStart + 1 == pathStart) {
         // If the port is empty, it should be omitted.
         // Pathological case, don't bother correcting it.
+        isSimple = false;
+      } else if (uri.startsWith(r"\", pathStart) ||
+          hostStart > start &&
+              (uri.startsWith(r"\", hostStart - 1) ||
+                  uri.startsWith(r"\", hostStart - 2))) {
+        // Seeing a `\` anywhere.
+        // The scanner doesn't record when the first path character is a `\`
+        // or when the last slash before the authority is a `\`.
         isSimple = false;
       } else if (queryStart < end &&
               (queryStart == pathStart + 2 &&
@@ -2305,7 +2314,7 @@ class _Uri implements Uri {
       throw ArgumentError('Both path and pathSegments specified');
     } else {
       result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable,
-          escapeDelimiters: true);
+          escapeDelimiters: true, replaceBackslash: true);
     }
     if (result.isEmpty) {
       if (isFile) return "/";
@@ -2322,7 +2331,10 @@ class _Uri implements Uri {
   /// "pure path" and normalization won't remove leading ".." segments.
   /// Otherwise it follows the RFC 3986 "remove dot segments" algorithm.
   static String _normalizePath(String path, String scheme, bool hasAuthority) {
-    if (scheme.isEmpty && !hasAuthority && !path.startsWith('/')) {
+    if (scheme.isEmpty &&
+        !hasAuthority &&
+        !path.startsWith('/') &&
+        !path.startsWith(r'\')) {
       return _normalizeRelativePath(path, scheme.isNotEmpty || hasAuthority);
     }
     return _removeDotSegments(path);
@@ -2451,9 +2463,10 @@ class _Uri implements Uri {
   /// this methods returns the substring if [component] from [start] to [end].
   static String _normalizeOrSubstring(
       String component, int start, int end, List<int> charTable,
-      {bool escapeDelimiters = false}) {
+      {bool escapeDelimiters = false, bool replaceBackslash = false}) {
     return _normalize(component, start, end, charTable,
-            escapeDelimiters: escapeDelimiters) ??
+            escapeDelimiters: escapeDelimiters,
+            replaceBackslash: replaceBackslash) ??
         component.substring(start, end);
   }
 
@@ -2468,7 +2481,7 @@ class _Uri implements Uri {
   /// Returns `null` if the original content was already normalized.
   static String? _normalize(
       String component, int start, int end, List<int> charTable,
-      {bool escapeDelimiters = false}) {
+      {bool escapeDelimiters = false, bool replaceBackslash = false}) {
     StringBuffer? buffer;
     int sectionStart = start;
     int index = start;
@@ -2494,6 +2507,9 @@ class _Uri implements Uri {
           } else {
             sourceLength = 3;
           }
+        } else if (char == _BACKSLASH && replaceBackslash) {
+          replacement = "/";
+          sourceLength = 1;
         } else if (!escapeDelimiters && _isGeneralDelimiter(char)) {
           _fail(component, index, "Invalid character");
           throw "unreachable"; // TODO(lrn): Remove when Never-returning functions are recognized as throwing.
@@ -4197,6 +4213,7 @@ List<Uint8List> _createTables() {
   setChars(b, ".", schemeOrPathDot);
   setChars(b, ":", authOrPath | schemeEnd); // Handle later.
   setChars(b, "/", authOrPathSlash);
+  setChars(b, r"\", authOrPathSlash | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4204,7 +4221,7 @@ List<Uint8List> _createTables() {
   setChars(b, pchar, schemeOrPath);
   setChars(b, ".", schemeOrPathDot2);
   setChars(b, ':', authOrPath | schemeEnd);
-  setChars(b, "/", pathSeg | notSimple);
+  setChars(b, r"/\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4213,6 +4230,7 @@ List<Uint8List> _createTables() {
   setChars(b, "%", schemeOrPath | notSimple);
   setChars(b, ':', authOrPath | schemeEnd);
   setChars(b, "/", relPathSeg);
+  setChars(b, r"\", relPathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4220,12 +4238,14 @@ List<Uint8List> _createTables() {
   setChars(b, pchar, schemeOrPath);
   setChars(b, ':', authOrPath | schemeEnd);
   setChars(b, "/", pathSeg);
+  setChars(b, r"\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
   b = build(authOrPath, path | notSimple);
   setChars(b, pchar, path | pathStart);
   setChars(b, "/", authOrPathSlash | pathStart);
+  setChars(b, r"\", authOrPathSlash | pathStart); // This should be non-simple.
   setChars(b, ".", pathSegDot | pathStart);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
@@ -4233,6 +4253,7 @@ List<Uint8List> _createTables() {
   b = build(authOrPathSlash, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, "/", uinfoOrHost0 | hostStart);
+  setChars(b, r"\", uinfoOrHost0 | hostStart); // This should be non-simple.
   setChars(b, ".", pathSegDot);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
@@ -4244,6 +4265,7 @@ List<Uint8List> _createTables() {
   setChars(b, "@", uinfoOrHost0 | hostStart);
   setChars(b, "[", ipv6Host | notSimple);
   setChars(b, "/", pathSeg | pathStart);
+  setChars(b, r"\", pathSeg | pathStart); // This should be non-simple.
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4253,6 +4275,7 @@ List<Uint8List> _createTables() {
   setChars(b, ":", uinfoOrPort0 | portStart);
   setChars(b, "@", uinfoOrHost0 | hostStart);
   setChars(b, "/", pathSeg | pathStart);
+  setChars(b, r"\", pathSeg | pathStart); // This should be non-simple.
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4260,6 +4283,7 @@ List<Uint8List> _createTables() {
   setRange(b, "19", uinfoOrPort);
   setChars(b, "@", uinfoOrHost0 | hostStart);
   setChars(b, "/", pathSeg | pathStart);
+  setChars(b, r"\", pathSeg | pathStart); // This should be non-simple.
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4267,6 +4291,7 @@ List<Uint8List> _createTables() {
   setRange(b, "09", uinfoOrPort);
   setChars(b, "@", uinfoOrHost0 | hostStart);
   setChars(b, "/", pathSeg | pathStart);
+  setChars(b, r"\", pathSeg | pathStart); // This should be non-simple.
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
@@ -4276,46 +4301,48 @@ List<Uint8List> _createTables() {
   b = build(relPathSeg, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, ".", relPathSegDot);
-  setChars(b, "/", pathSeg | notSimple);
+  setChars(b, r"/\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
   b = build(relPathSegDot, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, ".", relPathSegDot2);
-  setChars(b, "/", pathSeg | notSimple);
+  setChars(b, r"/\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
   b = build(relPathSegDot2, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, "/", relPathSeg);
+  setChars(b, r"\", relPathSeg | notSimple);
   setChars(b, "?", query | queryStart); // This should be non-simple.
   setChars(b, "#", fragment | fragmentStart); // This should be non-simple.
 
   b = build(pathSeg, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, ".", pathSegDot);
-  setChars(b, "/", pathSeg | notSimple);
+  setChars(b, r"/\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
   b = build(pathSegDot, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, ".", pathSegDot2);
-  setChars(b, "/", pathSeg | notSimple);
+  setChars(b, r"/\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
   b = build(pathSegDot2, path | notSimple);
   setChars(b, pchar, path);
-  setChars(b, "/", pathSeg | notSimple);
+  setChars(b, r"/\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
   b = build(path, path | notSimple);
   setChars(b, pchar, path);
   setChars(b, "/", pathSeg);
+  setChars(b, r"/\", pathSeg | notSimple);
   setChars(b, "?", query | queryStart);
   setChars(b, "#", fragment | fragmentStart);
 
