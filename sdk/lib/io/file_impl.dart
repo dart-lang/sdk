@@ -13,7 +13,7 @@ class _FileStream extends Stream<List<int>> {
 
   // Information about the underlying file.
   String? _path;
-  late RandomAccessFile _openedFile;
+  RandomAccessFile? _openedFile;
   int _position;
   int? _end;
   final Completer _closeCompleter = new Completer();
@@ -30,6 +30,10 @@ class _FileStream extends Stream<List<int>> {
   _FileStream(this._path, int? position, this._end) : _position = position ?? 0;
 
   _FileStream.forStdin() : _position = 0;
+
+  _FileStream.forRandomAccessFile(RandomAccessFile f)
+      : _position = 0,
+        _openedFile = f;
 
   StreamSubscription<Uint8List> listen(void onData(Uint8List event)?,
       {Function? onError, void onDone()?, bool? cancelOnError}) {
@@ -56,7 +60,7 @@ class _FileStream extends Stream<List<int>> {
       _controller.close();
     }
 
-    _openedFile.close().catchError(_controller.addError).whenComplete(done);
+    _openedFile!.close().catchError(_controller.addError).whenComplete(done);
     return _closeCompleter.future;
   }
 
@@ -82,20 +86,27 @@ class _FileStream extends Stream<List<int>> {
         return;
       }
     }
-    _openedFile.read(readBytes).then((block) {
+    _openedFile!.read(readBytes).then((block) {
       _readInProgress = false;
       if (_unsubscribed) {
         _closeFile();
         return;
       }
       _position += block.length;
-      if (block.length < readBytes || (_end != null && _position == _end)) {
+      // read() may return less than `readBytes` if `_openFile` is a pipe or
+      // terminal or if a signal is received. Only a empty return indicates
+      // that the write side of the pipe is closed or that we are at the end
+      // of a file.
+      // See https://man7.org/linux/man-pages/man2/read.2.html
+      if (block.length == 0 || (_end != null && _position == _end)) {
         _atEnd = true;
       }
       if (!_atEnd && !_controller.isPaused) {
         _readBlock();
       }
-      _controller.add(block);
+      if (block.length > 0) {
+        _controller.add(block);
+      }
       if (_atEnd) {
         _closeFile();
       }
@@ -141,7 +152,10 @@ class _FileStream extends Stream<List<int>> {
     }
 
     final path = _path;
-    if (path != null) {
+    final openedFile = _openedFile;
+    if (openedFile != null) {
+      onOpenFile(openedFile);
+    } else if (path != null) {
       new File(path)
           .open(mode: FileMode.read)
           .then(onOpenFile, onError: openFailed);
@@ -165,6 +179,9 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
 
   _FileStreamConsumer.fromStdio(int fd)
       : _openFuture = new Future.value(_File._openStdioSync(fd));
+
+  _FileStreamConsumer.fromRandomAccessFile(RandomAccessFile f)
+      : _openFuture = Future.value(f);
 
   Future<File?> addStream(Stream<List<int>> stream) {
     Completer<File?> completer = new Completer<File?>.sync();
@@ -259,6 +276,8 @@ class _File extends FileSystemEntity implements File {
 
   external static _createLink(
       _Namespace namespace, Uint8List rawPath, String target);
+
+  external static List<dynamic> _createPipe(_Namespace namespace);
 
   external static _linkTarget(_Namespace namespace, Uint8List rawPath);
 
@@ -1043,5 +1062,45 @@ class _RandomAccessFile implements RandomAccessFile {
     if (closed) {
       throw new FileSystemException("File closed", path);
     }
+  }
+}
+
+class _ReadPipe extends _FileStream implements ReadPipe {
+  _ReadPipe(RandomAccessFile file) : super.forRandomAccessFile(file);
+}
+
+class _WritePipe extends _IOSinkImpl implements WritePipe {
+  RandomAccessFile _file;
+  _WritePipe(file)
+      : this._file = file,
+        super(_FileStreamConsumer.fromRandomAccessFile(file), utf8);
+}
+
+class _Pipe implements Pipe {
+  final ReadPipe _readPipe;
+  final WritePipe _writePipe;
+
+  ReadPipe get read => _readPipe;
+  WritePipe get write => _writePipe;
+
+  _Pipe(this._readPipe, this._writePipe);
+
+  static Future<_Pipe> create() {
+    final completer = Completer<_Pipe>.sync();
+
+    _File._dispatchWithNamespace(_IOService.fileCreatePipe, [null])
+        .then((response) {
+      final filePointers = (response as List).cast<int>();
+      completer.complete(_Pipe(
+          _ReadPipe(_RandomAccessFile(filePointers[0], '')),
+          _WritePipe(_RandomAccessFile(filePointers[1], ''))));
+    });
+    return completer.future;
+  }
+
+  factory _Pipe.createSync() {
+    final filePointers = _File._createPipe(_Namespace._namespace);
+    return _Pipe(_ReadPipe(_RandomAccessFile(filePointers[0] as int, '')),
+        _WritePipe(_RandomAccessFile(filePointers[1] as int, '')));
   }
 }

@@ -550,6 +550,25 @@ void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
   }
 }
 
+void FUNCTION_NAME(File_CreatePipe)(Dart_NativeArguments args) {
+  Namespace* namespc = Namespace::GetNamespace(args, 0);
+
+  File* readPipe;
+  File* writePipe;
+  if (File::CreatePipe(namespc, &readPipe, &writePipe)) {
+    Dart_Handle pipes = ThrowIfError(Dart_NewList(2));
+    Dart_Handle readHandle =
+        ThrowIfError(Dart_NewInteger(reinterpret_cast<intptr_t>(readPipe)));
+    Dart_Handle writeHandle =
+        ThrowIfError(Dart_NewInteger(reinterpret_cast<intptr_t>(writePipe)));
+    ThrowIfError(Dart_ListSetAt(pipes, 0, readHandle));
+    ThrowIfError(Dart_ListSetAt(pipes, 1, writeHandle));
+    Dart_SetReturnValue(args, pipes);
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  }
+}
+
 void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
   Namespace* namespc = Namespace::GetNamespace(args, 0);
   Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
@@ -913,6 +932,31 @@ CObject* File::CreateRequest(const CObjectArray& request) {
                       exclusive.Value())
              ? CObject::True()
              : CObject::NewOSError();
+}
+
+CObject* File::CreatePipeRequest(const CObjectArray& request) {
+  if ((request.Length() < 1) || !request[0]->IsIntptr()) {
+    return CObject::IllegalArgumentError();
+  }
+  Namespace* namespc = CObjectToNamespacePointer(request[0]);
+  RefCntReleaseScope<Namespace> rs(namespc);
+
+  File* readPipe;
+  File* writePipe;
+  if (!CreatePipe(namespc, &readPipe, &writePipe)) {
+    return CObject::NewOSError();
+  }
+
+  CObjectArray* pipes = new CObjectArray(CObject::NewArray(2));
+  CObjectNativePointer* readHandle = new CObjectNativePointer(
+      CObject::NewNativePointer(reinterpret_cast<intptr_t>(readPipe),
+                                sizeof(*readPipe), ReleaseFile));
+  CObjectNativePointer* writeHandle = new CObjectNativePointer(
+      CObject::NewNativePointer(reinterpret_cast<intptr_t>(writePipe),
+                                sizeof(*writePipe), ReleaseFile));
+  pipes->SetAt(0, readHandle);
+  pipes->SetAt(1, writeHandle);
+  return pipes;
 }
 
 CObject* File::OpenRequest(const CObjectArray& request) {

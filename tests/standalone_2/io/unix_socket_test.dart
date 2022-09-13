@@ -738,7 +738,7 @@ Future testSocketMessage(String uniqueName) async {
   });
 }
 
-Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
+Future testStdioMessage(String tempDirPath, {bool caller = false}) async {
   if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
     return;
   }
@@ -829,6 +829,140 @@ Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
   });
 
   return completer.future;
+}
+
+Future testReadPipeMessage(String uniqueName) async {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  final address =
+      InternetAddress('$uniqueName/sock', type: InternetAddressType.unix);
+  final server = await RawServerSocket.bind(address, 0, shared: false);
+
+  server.listen((RawSocket socket) async {
+    socket.listen((e) async {
+      switch (e) {
+        case RawSocketEvent.read:
+          final SocketMessage message = socket.readMessage();
+          if (message == null) {
+            return;
+          }
+          Expect.equals('Hello', String.fromCharCodes(message.data));
+          Expect.equals(1, message.controlMessages.length);
+          final SocketControlMessage controlMessage =
+              message.controlMessages[0];
+          final handles = controlMessage.extractHandles();
+          Expect.isNotNull(handles);
+          Expect.equals(1, handles.length);
+          final receivedPipe = handles[0].toReadPipe();
+          Expect.equals('Hello over pipe!',
+              await receivedPipe.transform(utf8.decoder).join());
+          socket.write('server replied'.codeUnits);
+          break;
+        case RawSocketEvent.readClosed:
+          socket.close();
+          server.close();
+          break;
+      }
+    });
+  });
+
+  final RawServerSocket testServer = await createTestServer();
+  final testPipe = await Pipe.create();
+
+  // Send a message containing an open pipe.
+  final socket = await RawSocket.connect(address, 0);
+  socket.listen((e) {
+    switch (e) {
+      case RawSocketEvent.write:
+        socket.sendMessage(<SocketControlMessage>[
+          SocketControlMessage.fromHandles(
+              <ResourceHandle>[ResourceHandle.fromReadPipe(testPipe.read)])
+        ], 'Hello'.codeUnits);
+        testPipe.write.add('Hello over pipe!'.codeUnits);
+        testPipe.write.close();
+        break;
+      case RawSocketEvent.read:
+        final data = socket.read();
+        if (data == null) {
+          return;
+        }
+
+        final dataString = String.fromCharCodes(data);
+        Expect.equals('server replied', dataString);
+        socket.close();
+        testPipe.write.close();
+        testServer.close();
+    }
+  });
+}
+
+Future testWritePipeMessage(String uniqueName) async {
+  if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  final address =
+      InternetAddress('$uniqueName/sock', type: InternetAddressType.unix);
+  final server = await RawServerSocket.bind(address, 0, shared: false);
+
+  server.listen((RawSocket socket) async {
+    socket.listen((e) async {
+      switch (e) {
+        case RawSocketEvent.read:
+          final SocketMessage message = socket.readMessage();
+          if (message == null) {
+            return;
+          }
+          Expect.equals('Hello', String.fromCharCodes(message.data));
+          Expect.equals(1, message.controlMessages.length);
+          final SocketControlMessage controlMessage =
+              message.controlMessages[0];
+          final handles = controlMessage.extractHandles();
+          Expect.isNotNull(handles);
+          Expect.equals(1, handles.length);
+          final receivedPipe = handles[0].toWritePipe();
+
+          receivedPipe.add('Hello over pipe!'.codeUnits);
+          receivedPipe.close();
+          socket.write('server replied'.codeUnits);
+          break;
+        case RawSocketEvent.readClosed:
+          socket.close();
+          server.close();
+          break;
+      }
+    });
+  });
+
+  final RawServerSocket testServer = await createTestServer();
+  final testPipe = await Pipe.create();
+
+  // Send a message containing an open pipe.
+  final socket = await RawSocket.connect(address, 0);
+  socket.listen((e) async {
+    switch (e) {
+      case RawSocketEvent.write:
+        socket.sendMessage(<SocketControlMessage>[
+          SocketControlMessage.fromHandles(
+              <ResourceHandle>[ResourceHandle.fromWritePipe(testPipe.write)])
+        ], 'Hello'.codeUnits);
+
+        Expect.equals('Hello over pipe!',
+            await testPipe.read.transform(utf8.decoder).join());
+        break;
+      case RawSocketEvent.read:
+        final data = socket.read();
+        if (data == null) {
+          return;
+        }
+
+        final dataString = String.fromCharCodes(data);
+        Expect.equals('server replied', dataString);
+        socket.close();
+        testPipe.write.close();
+        testServer.close();
+    }
+  });
 }
 
 Future testDeleteFile(String tempDirPath) async {
@@ -954,6 +1088,12 @@ void main(List<String> args) async {
     });
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testSocketMessage('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testReadPipeMessage('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testWritePipeMessage('${dir.path}');
     });
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testStdioMessage('${dir.path}', caller: true);
