@@ -207,16 +207,8 @@ bool TestIntConverterCanonicalizationRule(Thread* thread,
 
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
-  FlowGraphBuilderHelper H;
-
-  // Add a variable into the scope which would provide static type for the
-  // parameter.
-  LocalVariable* v0_var =
-      new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                        String::Handle(Symbols::New(thread, "v0")),
-                        AbstractType::ZoneHandle(Type::IntType()));
-  v0_var->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
-  H.flow_graph()->parsed_function().scope()->AddVariable(v0_var);
+  FlowGraphBuilderHelper H(/*num_parameters=*/1);
+  H.AddVariable("v0", AbstractType::ZoneHandle(Type::IntType()));
 
   auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
 
@@ -269,7 +261,8 @@ ISOLATE_UNIT_TEST_CASE(IL_PhiCanonicalization) {
 
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
-  FlowGraphBuilderHelper H;
+  FlowGraphBuilderHelper H(/*num_parameters=*/1);
+  H.AddVariable("v0", AbstractType::ZoneHandle(Type::DynamicType()));
 
   auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
   auto b2 = H.JoinEntry();
@@ -322,7 +315,9 @@ ISOLATE_UNIT_TEST_CASE(IL_UnboxIntegerCanonicalization) {
 
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
 
-  FlowGraphBuilderHelper H;
+  FlowGraphBuilderHelper H(/*num_parameters=*/2);
+  H.AddVariable("v0", AbstractType::ZoneHandle(Type::DynamicType()));
+  H.AddVariable("v1", AbstractType::ZoneHandle(Type::DynamicType()));
 
   auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
   Definition* unbox;
@@ -397,7 +392,9 @@ static void TestNullAwareEqualityCompareCanonicalization(
 
   CompilerState S(thread, /*is_aot=*/true, /*is_optimizing=*/true);
 
-  FlowGraphBuilderHelper H;
+  FlowGraphBuilderHelper H(/*num_parameters=*/2);
+  H.AddVariable("v0", AbstractType::ZoneHandle(Type::IntType()));
+  H.AddVariable("v1", AbstractType::ZoneHandle(Type::IntType()));
 
   auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
 

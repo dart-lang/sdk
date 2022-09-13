@@ -145,6 +145,8 @@ class CompileType : public ZoneAllocated {
   // represent unknown type.
   static CompileType Dynamic();
 
+  static CompileType DynamicOrSentinel();
+
   static CompileType Null();
 
   // Create non-nullable Bool type.
