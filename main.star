@@ -650,9 +650,25 @@ luci.list_view_entry(
 dart.try_builder(
     "dev",
     experiments = {"luci.non_production": 100},
-    recipe = "roller/roll_to_dev",
+    recipe = "release/merge",
     execution_timeout = 15 * time.minute,
-    properties = {"from_ref": "refs/heads/lkgr"},
+    properties = {"from_ref": "refs/heads/lkgr", "to_ref": "refs/heads/dev"},
+)
+
+dart.try_builder(
+    "beta",
+    experiments = {"luci.non_production": 100},
+    recipe = "release/merge",
+    execution_timeout = 15 * time.minute,
+    properties = {"from_ref": "refs/heads/dev", "to_ref": "refs/heads/beta"},
+)
+
+dart.try_builder(
+    "stable",
+    experiments = {"luci.non_production": 100},
+    recipe = "release/merge",
+    execution_timeout = 15 * time.minute,
+    properties = {"from_ref": "refs/heads/beta", "to_ref": "refs/heads/stable"},
 )
 
 dart.try_builder(
