@@ -103,6 +103,28 @@ final foo = Foo("test");
     );
   }
 
+  Future<void> test_field_recordType() async {
+    final content = '''
+class C<T> {
+  (int, int) r = (0, 1);
+}
+''';
+    final offset = content.indexOf('int');
+
+    final regions = await _computeSelectionRanges(content, offset);
+    _expectRegions(
+      regions,
+      content,
+      [
+        'int',
+        '(int, int)',
+        '(int, int) r = (0, 1)',
+        '(int, int) r = (0, 1);',
+        'class C<T> {\n  (int, int) r = (0, 1);\n}',
+      ],
+    );
+  }
+
   Future<void> test_method() async {
     final content = '''
 class Foo<T> {
@@ -178,6 +200,33 @@ void a(String b) {
         '{\n  print((1 + 2) * 3);\n}',
         '(String b) {\n  print((1 + 2) * 3);\n}',
         'void a(String b) {\n  print((1 + 2) * 3);\n}',
+      ],
+    );
+  }
+
+  Future<void> test_topLevelFunction_record() async {
+    final content = '''
+void f() {
+  var r = (x: 3, y: 2);
+}
+''';
+    final offset = content.indexOf('y');
+
+    final regions = await _computeSelectionRanges(content, offset);
+    _expectRegions(
+      regions,
+      content,
+      [
+        'y',
+        'y:',
+        'y: 2',
+        '(x: 3, y: 2)',
+        'r = (x: 3, y: 2)',
+        'var r = (x: 3, y: 2)',
+        'var r = (x: 3, y: 2);',
+        '{\n  var r = (x: 3, y: 2);\n}',
+        '() {\n  var r = (x: 3, y: 2);\n}',
+        'void f() {\n  var r = (x: 3, y: 2);\n}',
       ],
     );
   }
