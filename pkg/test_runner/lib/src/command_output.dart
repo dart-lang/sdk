@@ -1570,11 +1570,12 @@ mixin _StaticErrorOutput on CommandOutput {
   Expectation _validateExpectedErrors(TestCase testCase,
       [OutputWriter? writer]) {
     // Filter out errors that aren't for this configuration.
-    var errorSource = {
+    var errorSource = const {
       Compiler.dart2analyzer: ErrorSource.analyzer,
       Compiler.dart2js: ErrorSource.web,
       Compiler.dart2wasm: ErrorSource.web,
       Compiler.dartdevc: ErrorSource.web,
+      Compiler.dartdevk: ErrorSource.web,
       Compiler.fasta: ErrorSource.cfe
     }[testCase.configuration.compiler]!;
 

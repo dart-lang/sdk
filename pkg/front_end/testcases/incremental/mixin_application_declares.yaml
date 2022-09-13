@@ -3,10 +3,9 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 type: newworld
-target: None
+target: none
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main_lib1.dart: |
         class SuperClass {
@@ -32,7 +31,6 @@ worlds:
         }
     expectedLibraryCount: 3
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -46,9 +44,8 @@ worlds:
           method();
         }
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -61,4 +58,4 @@ worlds:
           method();
         }
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

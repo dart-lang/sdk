@@ -173,7 +173,7 @@ class Playground {
 
 /// Abstraction for a package fetched via pub.
 class PubPackage extends Package {
-  PubPackage(String name, [String? version]) : super(name) {
+  PubPackage(super.name, [String? version]) {
     throw UnimplementedError();
   }
 

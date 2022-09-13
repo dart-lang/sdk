@@ -245,6 +245,31 @@ void f() {
 }''', removeUnused: true);
   }
 
+  Future<void> test_remove_unnecessaryImports() async {
+    newFile(
+      convertPath('$testPackageLibPath/declarations.dart'),
+      'class A {} class B {}',
+    );
+    newFile(
+      convertPath('$testPackageLibPath/exports.dart'),
+      'export "a.dart" show A;',
+    );
+    await _computeUnitAndErrors(r'''
+import 'declarations.dart';
+import 'exports.dart';
+
+A? a;
+B? b;
+''');
+    // validate change
+    _assertOrganize(r'''
+import 'declarations.dart';
+
+A? a;
+B? b;
+''', removeUnused: true);
+  }
+
   Future<void> test_remove_unusedImports() async {
     await _computeUnitAndErrors(r'''
 library lib;
@@ -561,19 +586,25 @@ void f() {
 ''');
   }
 
-  Future<void>
-      test_sort_imports_dontConnectFirstCommentsWithBlankLinesBetween() async {
+  Future<void> test_sort_imports_blankLinesInImportComments() async {
+    // Only the blank line in the first import is treated specially and split.
     await _computeUnitAndErrors(r'''
-// Copyright...
+// Import 1 comment 1
 
-// Some comment related to the line below
+// Import 1 comment 2
 import 'package:b/a.dart';
+// Import 2 comment 1
+
+// Import 2 comment 2
 import 'package:a/b.dart';''');
     _assertOrganize(r'''
-// Copyright...
+// Import 1 comment 1
 
+// Import 2 comment 1
+
+// Import 2 comment 2
 import 'package:a/b.dart';
-// Some comment related to the line below
+// Import 1 comment 2
 import 'package:b/a.dart';''');
   }
 
@@ -658,7 +689,8 @@ import 'c.dart'; // c
 ''');
   }
 
-  Future<void> test_sort_imports_with_library_keepPrecedingComments() async {
+  Future<void>
+      test_sort_imports_with_library_blankLineInImportComments() async {
     await _computeUnitAndErrors(r'''
 /// Copyright...
 library lib;
@@ -677,11 +709,11 @@ import 'package:a/b.dart';''');
 /// Copyright...
 library lib;
 
-// Test comment
-
 // Comment for a
 
 import 'package:a/b.dart';
+// Test comment
+
 // We are keeping this because ... l1
 // We are keeping this because ... l2
 // We are keeping this because ... l3

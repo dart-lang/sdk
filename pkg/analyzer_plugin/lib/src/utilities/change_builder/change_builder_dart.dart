@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -120,7 +121,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {ArgumentList? argumentList,
       void Function()? bodyWriter,
       String? classNameGroupName,
-      SimpleIdentifier? constructorName,
+      String? constructorName,
       String? constructorNameGroupName,
       List<String>? fieldNames,
       void Function()? initializerWriter,
@@ -138,9 +139,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (constructorName != null) {
       write('.');
       if (constructorNameGroupName == null) {
-        write(constructorName.name);
+        write(constructorName);
       } else {
-        addSimpleLinkedEdit(constructorNameGroupName, constructorName.name);
+        addSimpleLinkedEdit(constructorNameGroupName, constructorName);
       }
     }
     write('(');
@@ -286,7 +287,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeImportedName(List<Uri> uris, String name) {
     assert(uris.isNotEmpty);
-    var imports = <ImportElement>[];
+    var imports = <LibraryImportElement>[];
     for (var uri in uris) {
       imports.addAll(dartFileEditBuilder._getImportsForUri(uri));
     }
@@ -301,7 +302,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     } else {
       var prefix = import.prefix;
       if (prefix != null) {
-        write(prefix.displayName);
+        write(prefix.element.displayName);
         write('.');
       }
     }
@@ -692,7 +693,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeReference(Element element) {
-    if (element.enclosingElement is CompilationUnitElement) {
+    if (element.enclosingElement3 is CompilationUnitElement) {
       _writeLibraryReference(element);
     }
     write(element.displayName);
@@ -1005,8 +1006,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   /// Given a list of [imports] that do, or can, make the [name] visible in
   /// scope, return the one that will lead to the cleanest code.
-  ImportElement? _getBestImportForName(
-      List<ImportElement> imports, String name) {
+  LibraryImportElement? _getBestImportForName(
+      List<LibraryImportElement> imports, String name) {
     if (imports.isEmpty) {
       return null;
     } else if (imports.length == 1) {
@@ -1086,7 +1087,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       } else if (expectedType.isDartCoreString) {
         _addSingleCharacterName(excluded, res, $s);
       } else if (expectedType is InterfaceType) {
-        var className = expectedType.element.name;
+        var className = expectedType.element2.name;
         _addAll(excluded, res, _getCamelWordCombinations(className));
       }
     }
@@ -1101,7 +1102,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartType? _getVisibleType(DartType? type,
       {ExecutableElement? methodBeingCopied}) {
     if (type is InterfaceType) {
-      var element = type.element;
+      var element = type.element2;
       if (element.isPrivate &&
           !dartFileEditBuilder._isDefinedLocally(element)) {
         return null;
@@ -1110,11 +1111,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
-      var element = type.element;
-      var enclosing = element.enclosingElement;
+      var element = type.element2;
+      var enclosing = element.enclosingElement3;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is ParameterElement) {
-        enclosing = enclosing!.enclosingElement;
+        enclosing = enclosing!.enclosingElement3;
       }
       if (enclosing == _enclosingExecutable ||
           enclosing == _enclosingClass ||
@@ -1160,7 +1161,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (import != null) {
       var prefix = import.prefix;
       if (prefix != null) {
-        write(prefix.displayName);
+        write(prefix.element.displayName);
         write('.');
       }
     } else {
@@ -1253,7 +1254,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     if (type is InterfaceType) {
       _writeTypeElementArguments(
-        element: type.element,
+        element: type.element2,
         typeArguments: type.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );
@@ -1268,7 +1269,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is TypeParameterType) {
-      write(type.element.name);
+      write(type.element2.name);
       _writeTypeNullability(type);
       return true;
     }
@@ -1350,6 +1351,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedUnit,
       int timeStamp, this.libraryChangeBuilder)
       : super(changeBuilder, resolvedUnit.path, timeStamp);
+
+  CodeStyleOptions get codeStyleOptions =>
+      resolvedUnit.session.analysisContext.analysisOptions.codeStyleOptions;
 
   @override
   bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
@@ -1464,10 +1468,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return ImportLibraryElementResultImpl(null);
     }
 
-    for (var import in resolvedUnit.libraryElement.imports) {
+    for (var import in resolvedUnit.libraryElement.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.source.uri == uri) {
-        return ImportLibraryElementResultImpl(import.prefix?.name);
+        return ImportLibraryElementResultImpl(import.prefix?.element.name);
       }
     }
 
@@ -1489,7 +1493,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (resolvedUnit.libraryElement.source.uri == uri) return false;
 
     // Existing import.
-    for (var import in resolvedUnit.libraryElement.imports) {
+    for (var import in resolvedUnit.libraryElement.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.source.uri == uri) {
         return true;
@@ -1610,7 +1614,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         var isLastExistingDart = false;
         var isLastExistingPackage = false;
         for (var existingImport in importDirectives) {
-          var existingUri = existingImport.uriContent ?? '';
+          var existingUri = existingImport.uri.stringValue ?? '';
 
           var isExistingDart = existingUri.startsWith('dart:');
           var isExistingPackage = existingUri.startsWith('package:');
@@ -1752,8 +1756,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Return the import element used to import the given [element] into the
   /// target library, or `null` if the element was not imported, such as when
   /// the element is declared in the same library.
-  ImportElement? _getImportElement(Element element) {
-    for (var import in resolvedUnit.libraryElement.imports) {
+  LibraryImportElement? _getImportElement(Element element) {
+    for (var import in resolvedUnit.libraryElement.libraryImports) {
       var definedNames = import.namespace.definedNames;
       if (definedNames.containsValue(element)) {
         return import;
@@ -1762,8 +1766,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return null;
   }
 
-  Iterable<ImportElement> _getImportsForUri(Uri uri) sync* {
-    for (var import in resolvedUnit.libraryElement.imports) {
+  Iterable<LibraryImportElement> _getImportsForUri(Uri uri) sync* {
+    for (var import in resolvedUnit.libraryElement.libraryImports) {
       var importUri = import.importedLibrary?.source.uri;
       if (importUri == uri) {
         yield import;
@@ -1794,7 +1798,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var whatPath = pathContext.fromUri(uri);
       return getRelativePath(whatPath);
     }
-    var preferRelative = _isLintEnabled('prefer_relative_imports');
+    var preferRelative = codeStyleOptions.useRelativeUris;
     if (forceRelative || (preferRelative && !forceAbsolute)) {
       if (canBeRelativeImport(uri, resolvedUnit.uri)) {
         var whatPath = resolvedUnit.session.uriConverter.uriToPath(uri);
@@ -1831,12 +1835,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Return `true` if the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
     return element.library == resolvedUnit.libraryElement;
-  }
-
-  bool _isLintEnabled(String lintName) {
-    final analysisOptions =
-        resolvedUnit.session.analysisContext.analysisOptions;
-    return analysisOptions.isLintEnabled(lintName);
   }
 
   /// Create an edit to replace the return type of the innermost function
@@ -1912,13 +1910,13 @@ class _EnclosingElementFinder {
     var node = NodeLocator2(offset).searchWithin(target);
     while (node != null) {
       if (node is ClassDeclaration) {
-        enclosingClass = node.declaredElement;
+        enclosingClass = node.declaredElement2;
       } else if (node is ConstructorDeclaration) {
-        enclosingExecutable = node.declaredElement;
+        enclosingExecutable = node.declaredElement2;
       } else if (node is MethodDeclaration) {
-        enclosingExecutable = node.declaredElement;
+        enclosingExecutable = node.declaredElement2;
       } else if (node is FunctionDeclaration) {
-        enclosingExecutable = node.declaredElement;
+        enclosingExecutable = node.declaredElement2;
       }
       node = node.parent;
     }

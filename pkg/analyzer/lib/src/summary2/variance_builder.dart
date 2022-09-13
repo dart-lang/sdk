@@ -6,11 +6,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 class VarianceBuilder {
   final Linker _linker;
@@ -55,7 +57,7 @@ class VarianceBuilder {
 
   Variance _compute(TypeParameterElement variable, DartType? type) {
     if (type is TypeParameterType) {
-      if (type.element == variable) {
+      if (type.element2 == variable) {
         return Variance.covariant;
       } else {
         return Variance.unrelated;
@@ -103,6 +105,14 @@ class VarianceBuilder {
         typeFormals: type.typeFormals,
         parameters: type.parameters,
       );
+    } else if (type is RecordTypeBuilder) {
+      var result = Variance.unrelated;
+      for (final field in type.node.fields) {
+        result = result.meet(
+          _compute(variable, field.type.typeOrThrow),
+        );
+      }
+      return result;
     }
     return Variance.unrelated;
   }
@@ -164,7 +174,7 @@ class VarianceBuilder {
     try {
       for (var parameter in parameterList.typeParameters) {
         var variance = _computeFunctionType(
-          parameter.declaredElement!,
+          parameter.declaredElement2!,
           returnType: node.returnType?.type,
           typeFormals: null,
           parameters: FunctionTypeBuilder.getParameters(
@@ -210,7 +220,7 @@ class VarianceBuilder {
     _visit.add(node);
     try {
       for (var parameter in parameterList.typeParameters) {
-        var variance = _compute(parameter.declaredElement!, type);
+        var variance = _compute(parameter.declaredElement2!, type);
         _setVariance(parameter, variance);
       }
     } finally {
@@ -247,7 +257,7 @@ class VarianceBuilder {
   }
 
   static void _setVariance(TypeParameter node, Variance variance) {
-    var element = node.declaredElement as TypeParameterElementImpl;
+    var element = node.declaredElement2 as TypeParameterElementImpl;
     element.variance = variance;
   }
 }

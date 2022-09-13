@@ -684,6 +684,8 @@ void Object::InitVtables() {
     builtin_vtables_[kTypedData##clazz##Cid] = fake_internal_handle.vtable();  \
     TypedDataView fake_view_handle;                                            \
     builtin_vtables_[kTypedData##clazz##ViewCid] = fake_view_handle.vtable();  \
+    builtin_vtables_[kUnmodifiableTypedData##clazz##ViewCid] =                 \
+        fake_view_handle.vtable();                                             \
     ExternalTypedData fake_external_handle;                                    \
     builtin_vtables_[kExternalTypedData##clazz##Cid] =                         \
         fake_external_handle.vtable();                                         \
@@ -694,6 +696,7 @@ void Object::InitVtables() {
   {
     TypedDataView fake_handle;
     builtin_vtables_[kByteDataViewCid] = fake_handle.vtable();
+    builtin_vtables_[kUnmodifiableByteDataViewCid] = fake_handle.vtable();
   }
 
   {
@@ -1393,6 +1396,13 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
           if (counter_ == 0) counter_++;
           Object::SetCachedHashIfNotSet(obj, counter_);
         }
+      }
+#endif
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (obj->IsClass()) {
+        // Won't be able to update read-only VM isolate classes if implementors
+        // are discovered later.
+        static_cast<ClassPtr>(obj)->untag()->implementor_cid_ = kDynamicCid;
       }
 #endif
     }
@@ -2105,12 +2115,20 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
   cls =                                                                        \
       Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate_group); \
   RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
+  pending_classes.Add(cls);                                                    \
+  cls = Class::NewUnmodifiableTypedDataViewClass(                              \
+      kUnmodifiableTypedData##clazz##ViewCid, isolate_group);                  \
+  RegisterPrivateClass(cls, Symbols::_Unmodifiable##clazz##View(), lib);       \
   pending_classes.Add(cls);
 
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
 
     cls = Class::NewTypedDataViewClass(kByteDataViewCid, isolate_group);
     RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
+    pending_classes.Add(cls);
+    cls = Class::NewUnmodifiableTypedDataViewClass(kUnmodifiableByteDataViewCid,
+                                                   isolate_group);
+    RegisterPrivateClass(cls, Symbols::_UnmodifiableByteDataView(), lib);
     pending_classes.Add(cls);
 
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
@@ -2356,8 +2374,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid,
                                               isolate_group);
-    cls.set_type_arguments_field_offset(Pointer::type_arguments_offset(),
-                                        RTN::Pointer::type_arguments_offset());
+    cls.set_type_arguments_field_offset(Instance::NextFieldOffset(),
+                                        RTN::Instance::NextFieldOffset());
     cls.set_num_type_arguments_unsafe(1);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
@@ -2495,10 +2513,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
-  cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate_group);
+  cls =                                                                        \
+      Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid, isolate_group); \
+  cls = Class::NewUnmodifiableTypedDataViewClass(                              \
+      kUnmodifiableTypedData##clazz##ViewCid, isolate_group);
     CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
     cls = Class::NewTypedDataViewClass(kByteDataViewCid, isolate_group);
+    cls = Class::NewUnmodifiableTypedDataViewClass(kUnmodifiableByteDataViewCid,
+                                                   isolate_group);
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid,       \
                                          isolate_group);
@@ -2870,6 +2893,7 @@ bool Class::HasCompressedPointers() const {
   case kTypedData##clazz##Cid:                                                 \
     return dart::TypedData::ContainsCompressedPointers();                      \
   case kTypedData##clazz##ViewCid:                                             \
+  case kUnmodifiableTypedData##clazz##ViewCid:                                 \
     return dart::TypedDataView::ContainsCompressedPointers();                  \
   case kExternalTypedData##clazz##Cid:                                         \
     return dart::ExternalTypedData::ContainsCompressedPointers();
@@ -2984,6 +3008,7 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
                                target_next_field_offset);
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
+  NOT_IN_PRECOMPILED(result.set_implementor_cid(kIllegalCid));
   result.set_num_type_arguments_unsafe(0);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
@@ -3197,6 +3222,28 @@ void Class::AddFunction(const Function& function) const {
   }
 }
 
+intptr_t Class::FindFunctionIndex(const Function& needle) const {
+  Thread* thread = Thread::Current();
+  if (EnsureIsFinalized(thread) != Error::null()) {
+    return -1;
+  }
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  Array& funcs = thread->ArrayHandle();
+  Function& function = thread->FunctionHandle();
+  funcs = current_functions();
+  ASSERT(!funcs.IsNull());
+  const intptr_t len = funcs.Length();
+  for (intptr_t i = 0; i < len; i++) {
+    function ^= funcs.At(i);
+    if (needle.ptr() == function.ptr()) {
+      return i;
+    }
+  }
+  // No function found.
+  return -1;
+}
+
 FunctionPtr Class::FunctionFromIndex(intptr_t idx) const {
   const Array& funcs = Array::Handle(current_functions());
   if ((idx < 0) || (idx >= funcs.Length())) {
@@ -3209,20 +3256,13 @@ FunctionPtr Class::FunctionFromIndex(intptr_t idx) const {
 }
 
 FunctionPtr Class::ImplicitClosureFunctionFromIndex(intptr_t idx) const {
-  const Array& funcs = Array::Handle(current_functions());
-  if ((idx < 0) || (idx >= funcs.Length())) {
+  Function& func = Function::Handle(FunctionFromIndex(idx));
+  if (func.IsNull() || !func.HasImplicitClosureFunction()) {
     return Function::null();
   }
-  Function& func = Function::Handle();
-  func ^= funcs.At(idx);
+  func = func.ImplicitClosureFunction();
   ASSERT(!func.IsNull());
-  if (!func.HasImplicitClosureFunction()) {
-    return Function::null();
-  }
-  const Function& closure_func =
-      Function::Handle(func.ImplicitClosureFunction());
-  ASSERT(!closure_func.IsNull());
-  return closure_func.ptr();
+  return func.ptr();
 }
 
 intptr_t Class::FindImplicitClosureFunctionIndex(const Function& needle) const {
@@ -3984,6 +4024,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   // TODO(dartbug.com/37737): Currently, we intentionally keep the recognized
   // kind when creating the dynamic invocation forwarder.
   forwarder.set_kind(UntaggedFunction::kDynamicInvocationForwarder);
+  forwarder.set_modifier(UntaggedFunction::kNoModifier);
   forwarder.set_is_debuggable(false);
 
   // TODO(vegorov) for error reporting reasons it is better to make this
@@ -4656,6 +4697,35 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
   SetFields(new_arr);
 }
 
+intptr_t Class::FindFieldIndex(const Field& needle) const {
+  Thread* thread = Thread::Current();
+  if (EnsureIsFinalized(thread) != Error::null()) {
+    return -1;
+  }
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FIELD_HANDLESCOPE(thread);
+  Array& fields = thread->ArrayHandle();
+  Field& field = thread->FieldHandle();
+  fields = this->fields();
+  ASSERT(!fields.IsNull());
+  for (intptr_t i = 0, n = fields.Length(); i < n; ++i) {
+    field ^= fields.At(i);
+    if (needle.ptr() == field.ptr()) {
+      return i;
+    }
+  }
+  // Not found.
+  return -1;
+}
+
+FieldPtr Class::FieldFromIndex(intptr_t idx) const {
+  Array& fields = Array::Handle(this->fields());
+  if ((idx < 0) || (idx >= fields.Length())) {
+    return Field::null();
+  }
+  return Field::RawCast(fields.At(idx));
+}
+
 bool Class::InjectCIDFields() const {
   if (library() != Library::InternalLibrary() ||
       Name() != Symbols::ClassID().ptr()) {
@@ -4740,6 +4810,7 @@ ClassPtr Class::NewCommon(intptr_t index) {
   result.set_next_field_offset(host_next_field_offset,
                                target_next_field_offset);
   result.set_id(index);
+  NOT_IN_PRECOMPILED(result.set_implementor_cid(kIllegalCid));
   result.set_num_type_arguments_unsafe(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
@@ -4804,14 +4875,15 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     cls.set_super_type(Type::Handle(Type::ObjectType()));
     // Compute instance size. First word contains a pointer to a properly
     // sized typed array once the first native field has been set.
-    const intptr_t host_instance_size = sizeof(UntaggedInstance) + kWordSize;
+    const intptr_t host_instance_size =
+        sizeof(UntaggedInstance) + kCompressedWordSize;
 #if defined(DART_PRECOMPILER)
     const intptr_t target_instance_size =
         compiler::target::Instance::InstanceSize() +
-        compiler::target::kWordSize;
+        compiler::target::kCompressedWordSize;
 #else
     const intptr_t target_instance_size =
-        sizeof(UntaggedInstance) + compiler::target::kWordSize;
+        sizeof(UntaggedInstance) + compiler::target::kCompressedWordSize;
 #endif
     cls.set_instance_size(
         RoundedAllocationSize(host_instance_size),
@@ -4825,6 +4897,7 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
+    NOT_IN_PRECOMPILED(cls.set_implementor_cid(kDynamicCid));
     library.AddClass(cls);
     return cls.ptr();
   } else {
@@ -4887,6 +4960,26 @@ ClassPtr Class::NewTypedDataClass(intptr_t class_id,
 ClassPtr Class::NewTypedDataViewClass(intptr_t class_id,
                                       IsolateGroup* isolate_group) {
   ASSERT(IsTypedDataViewClassId(class_id));
+  const intptr_t host_instance_size = TypedDataView::InstanceSize();
+  const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
+      RTN::TypedDataView::InstanceSize());
+  Class& result = Class::Handle(New<TypedDataView, RTN::TypedDataView>(
+      class_id, isolate_group, /*register_class=*/false));
+  result.set_instance_size(host_instance_size, target_instance_size);
+
+  const intptr_t host_next_field_offset = TypedDataView::NextFieldOffset();
+  const intptr_t target_next_field_offset =
+      RTN::TypedDataView::NextFieldOffset();
+  result.set_next_field_offset(host_next_field_offset,
+                               target_next_field_offset);
+  result.set_is_prefinalized();
+  isolate_group->class_table()->Register(result);
+  return result.ptr();
+}
+
+ClassPtr Class::NewUnmodifiableTypedDataViewClass(intptr_t class_id,
+                                                  IsolateGroup* isolate_group) {
+  ASSERT(IsUnmodifiableTypedDataViewClassId(class_id));
   const intptr_t host_instance_size = TypedDataView::InstanceSize();
   const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
       RTN::TypedDataView::InstanceSize());
@@ -5146,6 +5239,27 @@ void Class::set_end_token_pos(TokenPosition token_pos) const {
   ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&untag()->end_token_pos_, token_pos);
 }
+
+void Class::set_implementor_cid(intptr_t value) const {
+  ASSERT(value >= 0 && value < std::numeric_limits<classid_t>::max());
+  StoreNonPointer(&untag()->implementor_cid_, value);
+}
+
+bool Class::NoteImplementor(const Class& implementor) const {
+  ASSERT(!implementor.is_abstract());
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  if (implementor_cid() == kDynamicCid) {
+    return false;
+  } else if (implementor_cid() == implementor.id()) {
+    return false;
+  } else if (implementor_cid() == kIllegalCid) {
+    set_implementor_cid(implementor.id());
+    return true;  // None -> One
+  } else {
+    set_implementor_cid(kDynamicCid);
+    return true;  // One -> Many
+  }
+}
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 int32_t Class::SourceFingerprint() const {
@@ -5236,6 +5350,10 @@ void Class::set_is_loaded(bool value) const {
 void Class::set_is_finalized() const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!is_finalized());
+  set_is_finalized_unsafe();
+}
+
+void Class::set_is_finalized_unsafe() const {
   set_state_bits(
       ClassFinalizedBits::update(UntaggedClass::kFinalized, state_bits()));
 }
@@ -7538,16 +7656,22 @@ bool Function::FfiCSignatureReturnsStruct() const {
 
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
+  if (FfiCallbackTarget() == Object::null()) {
+    return -1;
+  }
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
-  return FfiTrampolineData::Cast(obj).callback_id();
-}
-
-void Function::SetFfiCallbackId(int32_t value) const {
-  ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(data());
-  ASSERT(!obj.IsNull());
-  FfiTrampolineData::Cast(obj).set_callback_id(value);
+  const FfiTrampolineData& trampoline_data = FfiTrampolineData::Cast(obj);
+  int32_t callback_id = trampoline_data.callback_id();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(callback_id >= 0);
+#else
+  if (callback_id < 0) {
+    callback_id = Thread::Current()->AllocateFfiCallbackId();
+    trampoline_data.set_callback_id(callback_id);
+  }
+#endif
+  return callback_id;
 }
 
 bool Function::FfiIsLeaf() const {
@@ -8114,7 +8238,7 @@ void Function::SetIsOptimizable(bool value) const {
 
 bool Function::ForceOptimize() const {
   return RecognizedKindForceOptimize() || IsFfiTrampoline() ||
-         IsTypedDataViewFactory();
+         IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory();
 }
 
 bool Function::RecognizedKindForceOptimize() const {
@@ -8203,7 +8327,7 @@ bool Function::CanBeInlined() const {
     return false;
   }
 
-  return is_inlinable() && !is_generated_body();
+  return is_inlinable();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -9120,7 +9244,6 @@ FunctionPtr Function::New(const FunctionType& signature,
   result.set_is_visible(true);      // Will be computed later.
   result.set_is_debuggable(true);   // Will be computed later.
   result.set_is_intrinsic(false);
-  result.set_is_generated_body(false);
   result.set_has_pragma(false);
   result.set_is_polymorphic_target(false);
   result.set_is_synthetic(false);
@@ -9905,22 +10028,7 @@ void Function::PrintName(const NameFormattingParams& params,
     return;
   }
   auto& fun = Function::Handle(ptr());
-  intptr_t fun_depth = 0;
-  // If |this| is a generated body closure, start with the closest
-  // non-generated parent function.
-  while (fun.is_generated_body()) {
-    fun = fun.parent_function();
-    fun_depth++;
-  }
   FunctionPrintNameHelper(fun, params, printer);
-  // If we skipped generated bodies then append a suffix to the end.
-  if (fun_depth > 0 && params.disambiguate_names) {
-    printer->AddString("{body");
-    if (fun_depth > 1) {
-      printer->Printf(" depth %" Pd "", fun_depth);
-    }
-    printer->AddString("}");
-  }
 }
 
 StringPtr Function::GetSource() const {
@@ -10508,7 +10616,7 @@ FfiTrampolineDataPtr FfiTrampolineData::New() {
       FfiTrampolineData::kClassId, FfiTrampolineData::InstanceSize(),
       Heap::kOld, FfiTrampolineData::ContainsCompressedPointers());
   FfiTrampolineDataPtr data = static_cast<FfiTrampolineDataPtr>(raw);
-  data->untag()->callback_id_ = 0;
+  data->untag()->callback_id_ = -1;
   data->untag()->is_leaf_ = false;
   return data;
 }
@@ -11308,6 +11416,7 @@ static intptr_t GetListLength(const Object& value) {
 
 static intptr_t GetListLengthOffset(intptr_t cid) {
   if (IsTypedDataClassId(cid) || IsTypedDataViewClassId(cid) ||
+      IsUnmodifiableTypedDataViewClassId(cid) ||
       IsExternalTypedDataClassId(cid)) {
     return TypedData::length_offset();
   } else if (cid == kArrayCid || cid == kImmutableArrayCid) {
@@ -18622,7 +18731,8 @@ intptr_t LoadingUnit::LoadingUnitOf(const Function& function) {
 }
 
 intptr_t LoadingUnit::LoadingUnitOf(const Code& code) {
-  if (code.IsStubCode() || code.IsTypeTestStubCode()) {
+  if (code.IsStubCode() || code.IsTypeTestStubCode() ||
+      code.IsAllocationStubCode()) {
     return LoadingUnit::kRootId;
   } else {
     Thread* thread = Thread::Current();
@@ -18636,13 +18746,7 @@ intptr_t LoadingUnit::LoadingUnitOf(const Code& code) {
     LoadingUnit& unit = thread->LoadingUnitHandle();
     Function& func = thread->FunctionHandle();
 
-    if (code.IsAllocationStubCode()) {
-      cls ^= code.owner();
-      lib = cls.library();
-      unit = lib.loading_unit();
-      ASSERT(!unit.IsNull());
-      return unit.id();
-    } else if (code.IsFunctionCode()) {
+    if (code.IsFunctionCode()) {
       func ^= code.function();
       cls = func.Owner();
       lib = cls.library();
@@ -19905,7 +20009,7 @@ bool Instance::IsValidFieldOffset(intptr_t offset) const {
 
 intptr_t Instance::ElementSizeFor(intptr_t cid) {
   if (IsExternalTypedDataClassId(cid) || IsTypedDataClassId(cid) ||
-      IsTypedDataViewClassId(cid)) {
+      IsTypedDataViewClassId(cid) || IsUnmodifiableTypedDataViewClassId(cid)) {
     return TypedDataBase::ElementSizeInBytes(cid);
   }
   switch (cid) {
@@ -25293,14 +25397,8 @@ TypedDataPtr TypedData::New(intptr_t class_id,
 }
 
 const char* TypedData::ToCString() const {
-  switch (GetClassId()) {
-#define CASE_TYPED_DATA_CLASS(clazz)                                           \
-  case kTypedData##clazz##Cid:                                                 \
-    return #clazz;
-    CLASS_LIST_TYPED_DATA(CASE_TYPED_DATA_CLASS);
-#undef CASE_TYPED_DATA_CLASS
-  }
-  return "TypedData";
+  const Class& cls = Class::Handle(clazz());
+  return cls.ScrubbedNameCString();
 }
 
 FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
@@ -25378,12 +25476,13 @@ const char* TypedDataBase::ToCString() const {
 }
 
 const char* TypedDataView::ToCString() const {
-  auto zone = Thread::Current()->zone();
-  return OS::SCreate(zone, "TypedDataView(cid: %" Pd ")", GetClassId());
+  const Class& cls = Class::Handle(clazz());
+  return cls.ScrubbedNameCString();
 }
 
 const char* ExternalTypedData::ToCString() const {
-  return "ExternalTypedData";
+  const Class& cls = Class::Handle(clazz());
+  return cls.ScrubbedNameCString();
 }
 
 PointerPtr Pointer::New(const AbstractType& type_arg,
@@ -25497,7 +25596,7 @@ const char* ReceivePort::ToCString() const {
 }
 
 SendPortPtr SendPort::New(Dart_Port id, Heap::Space space) {
-  return New(id, Isolate::Current()->origin_id(), space);
+  return New(id, ILLEGAL_PORT, space);
 }
 
 SendPortPtr SendPort::New(Dart_Port id,
@@ -25932,12 +26031,6 @@ const char* StackTrace::ToCString() const {
         isolate_instructions_image.instructions_relocated_address();
     auto const vm_relocated_address =
         vm_instructions_image.instructions_relocated_address();
-    // The Dart standard requires the output of StackTrace.toString to include
-    // all pending activations with precise source locations (i.e., to expand
-    // inlined frames and provide line and column numbers).
-    buffer.Printf(
-        "Warning: This VM has been configured to produce stack traces "
-        "that violate the Dart standard.\n");
     // This prologue imitates Android's debuggerd to make it possible to paste
     // the stack trace into ndk-stack.
     buffer.Printf(
@@ -25945,6 +26038,19 @@ const char* StackTrace::ToCString() const {
     OSThread* thread = OSThread::Current();
     buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
                   OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
+#if defined(DART_COMPRESSED_POINTERS)
+    const char kCompressedPointers[] = "yes";
+#else
+    const char kCompressedPointers[] = "no";
+#endif
+#if defined(USING_SIMULATOR)
+    const char kUsingSimulator[] = "yes";
+#else
+    const char kUsingSimulator[] = "no";
+#endif
+    buffer.Printf("os: %s arch: %s comp: %s sim: %s\n",
+                  kHostOperatingSystemName, kTargetArchitectureName,
+                  kCompressedPointers, kUsingSimulator);
     if (auto const build_id = isolate_instructions_image.build_id()) {
       const intptr_t length = isolate_instructions_image.build_id_length();
       buffer.Printf("build_id: '");

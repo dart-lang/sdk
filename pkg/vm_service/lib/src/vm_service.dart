@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.58.0';
+const String vmServiceVersion = '3.60.0';
 
 /// @optional
 const String optional = 'optional';
@@ -2442,7 +2442,7 @@ class RPCError implements Exception {
 
   String? get details => data == null ? null : data!['details'];
 
-  /// Return a map representation of this error suitable for converstion to
+  /// Return a map representation of this error suitable for conversion to
   /// json.
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {
@@ -2845,8 +2845,8 @@ class AllocationProfile extends Response {
   int? dateLastServiceGC;
 
   AllocationProfile({
-    required this.members,
-    required this.memoryUsage,
+    this.members,
+    this.memoryUsage,
     this.dateLastAccumulatorReset,
     this.dateLastServiceGC,
   });
@@ -2906,8 +2906,8 @@ class BoundField {
   dynamic value;
 
   BoundField({
-    required this.decl,
-    required this.value,
+    this.decl,
+    this.value,
   });
 
   BoundField._fromJson(Map<String, dynamic> json) {
@@ -2959,11 +2959,11 @@ class BoundVariable extends Response {
   int? scopeEndTokenPos;
 
   BoundVariable({
-    required this.name,
-    required this.value,
-    required this.declarationTokenPos,
-    required this.scopeStartTokenPos,
-    required this.scopeEndTokenPos,
+    this.name,
+    this.value,
+    this.declarationTokenPos,
+    this.scopeStartTokenPos,
+    this.scopeEndTokenPos,
   });
 
   BoundVariable._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -3028,10 +3028,10 @@ class Breakpoint extends Obj {
   dynamic location;
 
   Breakpoint({
-    required this.breakpointNumber,
-    required this.enabled,
-    required this.resolved,
-    required this.location,
+    this.breakpointNumber,
+    this.enabled,
+    this.resolved,
+    this.location,
     required String id,
     this.isSyntheticAsyncContinuation,
   }) : super(
@@ -3096,8 +3096,8 @@ class ClassRef extends ObjRef {
   List<InstanceRef>? typeParameters;
 
   ClassRef({
-    required this.name,
-    required this.library,
+    this.name,
+    this.library,
     required String id,
     this.location,
     this.typeParameters,
@@ -3209,15 +3209,15 @@ class Class extends Obj implements ClassRef {
   List<ClassRef>? subclasses;
 
   Class({
-    required this.name,
-    required this.library,
-    required this.isAbstract,
-    required this.isConst,
-    required this.traceAllocations,
-    required this.interfaces,
-    required this.fields,
-    required this.functions,
-    required this.subclasses,
+    this.name,
+    this.library,
+    this.isAbstract,
+    this.isConst,
+    this.traceAllocations,
+    this.interfaces,
+    this.fields,
+    this.functions,
+    this.subclasses,
     required String id,
     this.location,
     this.typeParameters,
@@ -3321,11 +3321,11 @@ class ClassHeapStats extends Response {
   int? instancesCurrent;
 
   ClassHeapStats({
-    required this.classRef,
-    required this.accumulatedSize,
-    required this.bytesCurrent,
-    required this.instancesAccumulated,
-    required this.instancesCurrent,
+    this.classRef,
+    this.accumulatedSize,
+    this.bytesCurrent,
+    this.instancesAccumulated,
+    this.instancesCurrent,
   });
 
   ClassHeapStats._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -3366,7 +3366,7 @@ class ClassList extends Response {
   List<ClassRef>? classes;
 
   ClassList({
-    required this.classes,
+    this.classes,
   });
 
   ClassList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -3403,8 +3403,8 @@ class CodeRef extends ObjRef {
   /*CodeKind*/ String? kind;
 
   CodeRef({
-    required this.name,
-    required this.kind,
+    this.name,
+    this.kind,
     required String id,
   }) : super(
           id: id,
@@ -3448,8 +3448,8 @@ class Code extends Obj implements CodeRef {
   /*CodeKind*/ String? kind;
 
   Code({
-    required this.name,
-    required this.kind,
+    this.name,
+    this.kind,
     required String id,
   }) : super(
           id: id,
@@ -3489,7 +3489,7 @@ class ContextRef extends ObjRef {
   int? length;
 
   ContextRef({
-    required this.length,
+    this.length,
     required String id,
   }) : super(
           id: id,
@@ -3536,8 +3536,8 @@ class Context extends Obj implements ContextRef {
   List<ContextElement>? variables;
 
   Context({
-    required this.length,
-    required this.variables,
+    this.length,
+    this.variables,
     required String id,
     this.parent,
   }) : super(
@@ -3585,7 +3585,7 @@ class ContextElement {
   dynamic value;
 
   ContextElement({
-    required this.value,
+    this.value,
   });
 
   ContextElement._fromJson(Map<String, dynamic> json) {
@@ -3637,8 +3637,8 @@ class CpuSamples extends Response {
   int? pid;
 
   /// A list of functions seen in the relevant samples. These references can be
-  /// looked up using the indicies provided in a `CpuSample` `stack` to
-  /// determine which function was on the stack.
+  /// looked up using the indices provided in a `CpuSample` `stack` to determine
+  /// which function was on the stack.
   List<ProfileFunction>? functions;
 
   /// A list of samples collected in the range `[timeOriginMicros,
@@ -3646,15 +3646,15 @@ class CpuSamples extends Response {
   List<CpuSample>? samples;
 
   CpuSamples({
-    required this.samplePeriod,
-    required this.maxStackDepth,
-    required this.sampleCount,
-    required this.timeSpan,
-    required this.timeOriginMicros,
-    required this.timeExtentMicros,
-    required this.pid,
-    required this.functions,
-    required this.samples,
+    this.samplePeriod,
+    this.maxStackDepth,
+    this.sampleCount,
+    this.timeSpan,
+    this.timeOriginMicros,
+    this.timeExtentMicros,
+    this.pid,
+    this.functions,
+    this.samples,
   });
 
   CpuSamples._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -3729,7 +3729,7 @@ class CpuSamplesEvent {
   int? pid;
 
   /// A list of references to functions seen in the relevant samples. These
-  /// references can be looked up using the indicies provided in a `CpuSample`
+  /// references can be looked up using the indices provided in a `CpuSample`
   /// `stack` to determine which function was on the stack.
   List<dynamic>? functions;
 
@@ -3738,15 +3738,15 @@ class CpuSamplesEvent {
   List<CpuSample>? samples;
 
   CpuSamplesEvent({
-    required this.samplePeriod,
-    required this.maxStackDepth,
-    required this.sampleCount,
-    required this.timeSpan,
-    required this.timeOriginMicros,
-    required this.timeExtentMicros,
-    required this.pid,
-    required this.functions,
-    required this.samples,
+    this.samplePeriod,
+    this.maxStackDepth,
+    this.sampleCount,
+    this.timeSpan,
+    this.timeOriginMicros,
+    this.timeExtentMicros,
+    this.pid,
+    this.functions,
+    this.samples,
   });
 
   CpuSamplesEvent._fromJson(Map<String, dynamic> json) {
@@ -3833,9 +3833,9 @@ class CpuSample {
   int? classId;
 
   CpuSample({
-    required this.tid,
-    required this.timestamp,
-    required this.stack,
+    this.tid,
+    this.timestamp,
+    this.stack,
     this.vmTag,
     this.userTag,
     this.truncated,
@@ -3885,8 +3885,8 @@ class ErrorRef extends ObjRef {
   String? message;
 
   ErrorRef({
-    required this.kind,
-    required this.message,
+    this.kind,
+    this.message,
     required String id,
   }) : super(
           id: id,
@@ -3942,8 +3942,8 @@ class Error extends Obj implements ErrorRef {
   InstanceRef? stacktrace;
 
   Error({
-    required this.kind,
-    required this.message,
+    this.kind,
+    this.message,
     required String id,
     this.exception,
     this.stacktrace,
@@ -4073,6 +4073,13 @@ class Event extends Response {
   @optional
   InstanceRef? inspectee;
 
+  /// The garbage collection (GC) operation performed.
+  ///
+  /// This is provided for the event kinds:
+  ///  - GC
+  @optional
+  String? gcType;
+
   /// The RPC name of the extension that was added.
   ///
   /// This is provided for the ServiceExtensionAdded event.
@@ -4187,8 +4194,8 @@ class Event extends Response {
   ByteData? data;
 
   Event({
-    required this.kind,
-    required this.timestamp,
+    this.kind,
+    this.timestamp,
     this.isolate,
     this.vm,
     this.breakpoint,
@@ -4197,6 +4204,7 @@ class Event extends Response {
     this.exception,
     this.bytes,
     this.inspectee,
+    this.gcType,
     this.extensionRPC,
     this.extensionKind,
     this.extensionData,
@@ -4236,6 +4244,7 @@ class Event extends Response {
     bytes = json['bytes'];
     inspectee = createServiceObject(json['inspectee'], const ['InstanceRef'])
         as InstanceRef?;
+    gcType = json['gcType'];
     extensionRPC = json['extensionRPC'];
     extensionKind = json['extensionKind'];
     extensionData = ExtensionData.parse(json['extensionData']);
@@ -4284,6 +4293,7 @@ class Event extends Response {
     _setIfNotNull(json, 'exception', exception?.toJson());
     _setIfNotNull(json, 'bytes', bytes);
     _setIfNotNull(json, 'inspectee', inspectee?.toJson());
+    _setIfNotNull(json, 'gcType', gcType);
     _setIfNotNull(json, 'extensionRPC', extensionRPC);
     _setIfNotNull(json, 'extensionKind', extensionKind);
     _setIfNotNull(json, 'extensionData', extensionData?.data);
@@ -4347,12 +4357,12 @@ class FieldRef extends ObjRef {
   SourceLocation? location;
 
   FieldRef({
-    required this.name,
-    required this.owner,
-    required this.declaredType,
-    required this.isConst,
-    required this.isFinal,
-    required this.isStatic,
+    this.name,
+    this.owner,
+    this.declaredType,
+    this.isConst,
+    this.isFinal,
+    this.isStatic,
     required String id,
     this.location,
   }) : super(
@@ -4444,12 +4454,12 @@ class Field extends Obj implements FieldRef {
   dynamic staticValue;
 
   Field({
-    required this.name,
-    required this.owner,
-    required this.declaredType,
-    required this.isConst,
-    required this.isFinal,
-    required this.isStatic,
+    this.name,
+    this.owner,
+    this.declaredType,
+    this.isConst,
+    this.isFinal,
+    this.isStatic,
     required String id,
     this.location,
     this.staticValue,
@@ -4522,9 +4532,9 @@ class Flag {
   String? valueAsString;
 
   Flag({
-    required this.name,
-    required this.comment,
-    required this.modified,
+    this.name,
+    this.comment,
+    this.modified,
     this.valueAsString,
   });
 
@@ -4559,7 +4569,7 @@ class FlagList extends Response {
   List<Flag>? flags;
 
   FlagList({
-    required this.flags,
+    this.flags,
   });
 
   FlagList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -4605,7 +4615,7 @@ class Frame extends Response {
   /*FrameKind*/ String? kind;
 
   Frame({
-    required this.index,
+    this.index,
     this.function,
     this.code,
     this.location,
@@ -4675,6 +4685,9 @@ class FuncRef extends ObjRef {
   /// Is this function implicitly defined (e.g., implicit getter/setter)?
   bool? implicit;
 
+  /// Is this function an abstract method?
+  bool? isAbstract;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -4684,11 +4697,12 @@ class FuncRef extends ObjRef {
   SourceLocation? location;
 
   FuncRef({
-    required this.name,
-    required this.owner,
-    required this.isStatic,
-    required this.isConst,
-    required this.implicit,
+    this.name,
+    this.owner,
+    this.isStatic,
+    this.isConst,
+    this.implicit,
+    this.isAbstract,
     required String id,
     this.location,
   }) : super(
@@ -4702,6 +4716,7 @@ class FuncRef extends ObjRef {
     isStatic = json['static'] ?? false;
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
+    isAbstract = json['abstract'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }
@@ -4719,6 +4734,7 @@ class FuncRef extends ObjRef {
       'static': isStatic,
       'const': isConst,
       'implicit': implicit,
+      'abstract': isAbstract,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     return json;
@@ -4730,7 +4746,7 @@ class FuncRef extends ObjRef {
 
   String toString() => '[FuncRef ' //
       'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
-      'isConst: ${isConst}, implicit: ${implicit}]';
+      'isConst: ${isConst}, implicit: ${implicit}, isAbstract: ${isAbstract}]';
 }
 
 /// A `Func` represents a Dart language function.
@@ -4759,6 +4775,9 @@ class Func extends Obj implements FuncRef {
   /// Is this function implicitly defined (e.g., implicit getter/setter)?
   bool? implicit;
 
+  /// Is this function an abstract method?
+  bool? isAbstract;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -4775,12 +4794,13 @@ class Func extends Obj implements FuncRef {
   CodeRef? code;
 
   Func({
-    required this.name,
-    required this.owner,
-    required this.isStatic,
-    required this.isConst,
-    required this.implicit,
-    required this.signature,
+    this.name,
+    this.owner,
+    this.isStatic,
+    this.isConst,
+    this.implicit,
+    this.isAbstract,
+    this.signature,
     required String id,
     this.location,
     this.code,
@@ -4795,6 +4815,7 @@ class Func extends Obj implements FuncRef {
     isStatic = json['static'] ?? false;
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
+    isAbstract = json['abstract'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
     signature = createServiceObject(json['signature'], const ['InstanceRef'])
@@ -4815,6 +4836,7 @@ class Func extends Obj implements FuncRef {
       'static': isStatic,
       'const': isConst,
       'implicit': implicit,
+      'abstract': isAbstract,
       'signature': signature?.toJson(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
@@ -4828,7 +4850,7 @@ class Func extends Obj implements FuncRef {
 
   String toString() => '[Func ' //
       'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
-      'isConst: ${isConst}, implicit: ${implicit}, signature: ${signature}]';
+      'isConst: ${isConst}, implicit: ${implicit}, isAbstract: ${isAbstract}, signature: ${signature}]';
 }
 
 /// `InstanceRef` is a reference to an `Instance`.
@@ -4980,9 +5002,9 @@ class InstanceRef extends ObjRef {
   String? debugName;
 
   InstanceRef({
-    required this.kind,
-    required this.identityHashCode,
-    required this.classRef,
+    this.kind,
+    this.identityHashCode,
+    this.classRef,
     required String id,
     this.valueAsString,
     this.valueAsStringIsTruncated,
@@ -5389,9 +5411,9 @@ class Instance extends Obj implements InstanceRef {
   String? debugName;
 
   Instance({
-    required this.kind,
-    required this.identityHashCode,
-    required this.classRef,
+    this.kind,
+    this.identityHashCode,
+    this.classRef,
     required String id,
     this.valueAsString,
     this.valueAsStringIsTruncated,
@@ -5579,10 +5601,10 @@ class IsolateRef extends Response {
   bool? isSystemIsolate;
 
   IsolateRef({
-    required this.id,
-    required this.number,
-    required this.name,
-    required this.isSystemIsolate,
+    this.id,
+    this.number,
+    this.name,
+    this.isSystemIsolate,
   });
 
   IsolateRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -5683,19 +5705,19 @@ class Isolate extends Response implements IsolateRef {
   List<String>? extensionRPCs;
 
   Isolate({
-    required this.id,
-    required this.number,
-    required this.name,
-    required this.isSystemIsolate,
-    required this.isolateFlags,
-    required this.startTime,
-    required this.runnable,
-    required this.livePorts,
-    required this.pauseOnExit,
-    required this.pauseEvent,
-    required this.libraries,
-    required this.breakpoints,
-    required this.exceptionPauseMode,
+    this.id,
+    this.number,
+    this.name,
+    this.isSystemIsolate,
+    this.isolateFlags,
+    this.startTime,
+    this.runnable,
+    this.livePorts,
+    this.pauseOnExit,
+    this.pauseEvent,
+    this.libraries,
+    this.breakpoints,
+    this.exceptionPauseMode,
     this.rootLib,
     this.error,
     this.extensionRPCs,
@@ -5779,8 +5801,8 @@ class IsolateFlag {
   String? valueAsString;
 
   IsolateFlag({
-    required this.name,
-    required this.valueAsString,
+    this.name,
+    this.valueAsString,
   });
 
   IsolateFlag._fromJson(Map<String, dynamic> json) {
@@ -5821,10 +5843,10 @@ class IsolateGroupRef extends Response {
   bool? isSystemIsolateGroup;
 
   IsolateGroupRef({
-    required this.id,
-    required this.number,
-    required this.name,
-    required this.isSystemIsolateGroup,
+    this.id,
+    this.number,
+    this.name,
+    this.isSystemIsolateGroup,
   });
 
   IsolateGroupRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -5881,11 +5903,11 @@ class IsolateGroup extends Response implements IsolateGroupRef {
   List<IsolateRef>? isolates;
 
   IsolateGroup({
-    required this.id,
-    required this.number,
-    required this.name,
-    required this.isSystemIsolateGroup,
-    required this.isolates,
+    this.id,
+    this.number,
+    this.name,
+    this.isSystemIsolateGroup,
+    this.isolates,
   });
 
   IsolateGroup._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -5933,7 +5955,7 @@ class InboundReferences extends Response {
   List<InboundReference>? references;
 
   InboundReferences({
-    required this.references,
+    this.references,
   });
 
   InboundReferences._fromJson(Map<String, dynamic> json)
@@ -5979,7 +6001,7 @@ class InboundReference {
   FieldRef? parentField;
 
   InboundReference({
-    required this.source,
+    this.source,
     this.parentListIndex,
     this.parentField,
   });
@@ -6016,8 +6038,8 @@ class InstanceSet extends Response {
   List<ObjRef>? instances;
 
   InstanceSet({
-    required this.totalCount,
-    required this.instances,
+    this.totalCount,
+    this.instances,
   });
 
   InstanceSet._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -6057,8 +6079,8 @@ class LibraryRef extends ObjRef {
   String? uri;
 
   LibraryRef({
-    required this.name,
-    required this.uri,
+    this.name,
+    this.uri,
     required String id,
   }) : super(
           id: id,
@@ -6122,14 +6144,14 @@ class Library extends Obj implements LibraryRef {
   List<ClassRef>? classes;
 
   Library({
-    required this.name,
-    required this.uri,
-    required this.debuggable,
-    required this.dependencies,
-    required this.scripts,
-    required this.variables,
-    required this.functions,
-    required this.classes,
+    this.name,
+    this.uri,
+    this.debuggable,
+    this.dependencies,
+    this.scripts,
+    this.variables,
+    this.functions,
+    this.classes,
     required String id,
   }) : super(
           id: id,
@@ -6208,10 +6230,10 @@ class LibraryDependency {
   List<String>? hides;
 
   LibraryDependency({
-    required this.isImport,
-    required this.isDeferred,
-    required this.prefix,
-    required this.target,
+    this.isImport,
+    this.isDeferred,
+    this.prefix,
+    this.target,
     this.shows,
     this.hides,
   });
@@ -6276,14 +6298,14 @@ class LogRecord extends Response {
   InstanceRef? stackTrace;
 
   LogRecord({
-    required this.message,
-    required this.time,
-    required this.level,
-    required this.sequenceNumber,
-    required this.loggerName,
-    required this.zone,
-    required this.error,
-    required this.stackTrace,
+    this.message,
+    this.time,
+    this.level,
+    this.sequenceNumber,
+    this.loggerName,
+    this.zone,
+    this.error,
+    this.stackTrace,
   });
 
   LogRecord._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -6322,7 +6344,9 @@ class LogRecord extends Response {
     return json;
   }
 
-  String toString() => '[LogRecord]';
+  String toString() => '[LogRecord ' //
+      'message: ${message}, time: ${time}, level: ${level}, sequenceNumber: ${sequenceNumber}, ' //
+      'loggerName: ${loggerName}, zone: ${zone}, error: ${error}, stackTrace: ${stackTrace}]';
 }
 
 class MapAssociation {
@@ -6336,8 +6360,8 @@ class MapAssociation {
   dynamic value;
 
   MapAssociation({
-    required this.key,
-    required this.value,
+    this.key,
+    this.value,
   });
 
   MapAssociation._fromJson(Map<String, dynamic> json) {
@@ -6383,9 +6407,9 @@ class MemoryUsage extends Response {
   int? heapUsage;
 
   MemoryUsage({
-    required this.externalUsage,
-    required this.heapCapacity,
-    required this.heapUsage,
+    this.externalUsage,
+    this.heapCapacity,
+    this.heapUsage,
   });
 
   MemoryUsage._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -6443,10 +6467,10 @@ class Message extends Response {
   SourceLocation? location;
 
   Message({
-    required this.index,
-    required this.name,
-    required this.messageObjectId,
-    required this.size,
+    this.index,
+    this.name,
+    this.messageObjectId,
+    this.size,
     this.handler,
     this.location,
   });
@@ -6495,7 +6519,7 @@ class NativeFunction {
   String? name;
 
   NativeFunction({
-    required this.name,
+    this.name,
   });
 
   NativeFunction._fromJson(Map<String, dynamic> json) {
@@ -6523,7 +6547,7 @@ class NullValRef extends InstanceRef {
   String? valueAsString;
 
   NullValRef({
-    required this.valueAsString,
+    this.valueAsString,
   }) : super(
           id: 'instance/null',
           identityHashCode: 0,
@@ -6575,7 +6599,7 @@ class NullVal extends Instance implements NullValRef {
   String? valueAsString;
 
   NullVal({
-    required this.valueAsString,
+    this.valueAsString,
   }) : super(
           id: 'instance/null',
           identityHashCode: 0,
@@ -6633,7 +6657,7 @@ class ObjRef extends Response {
   bool? fixedId;
 
   ObjRef({
-    required this.id,
+    this.id,
     this.fixedId,
   });
 
@@ -6702,7 +6726,7 @@ class Obj extends Response implements ObjRef {
   int? size;
 
   Obj({
-    required this.id,
+    this.id,
     this.fixedId,
     this.classRef,
     this.size,
@@ -6761,8 +6785,8 @@ class Parameter {
   bool? required;
 
   Parameter({
-    required this.parameterType,
-    required this.fixed,
+    this.parameterType,
+    this.fixed,
     this.name,
     this.required,
   });
@@ -6801,7 +6825,7 @@ class PortList extends Response {
   List<InstanceRef>? ports;
 
   PortList({
-    required this.ports,
+    this.ports,
   });
 
   PortList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -6851,11 +6875,11 @@ class ProfileFunction {
   dynamic function;
 
   ProfileFunction({
-    required this.kind,
-    required this.inclusiveTicks,
-    required this.exclusiveTicks,
-    required this.resolvedUrl,
-    required this.function,
+    this.kind,
+    this.inclusiveTicks,
+    this.exclusiveTicks,
+    this.resolvedUrl,
+    this.function,
   });
 
   ProfileFunction._fromJson(Map<String, dynamic> json) {
@@ -6896,7 +6920,7 @@ class ProtocolList extends Response {
   List<Protocol>? protocols;
 
   ProtocolList({
-    required this.protocols,
+    this.protocols,
   });
 
   ProtocolList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -6936,9 +6960,9 @@ class Protocol {
   int? minor;
 
   Protocol({
-    required this.protocolName,
-    required this.major,
-    required this.minor,
+    this.protocolName,
+    this.major,
+    this.minor,
   });
 
   Protocol._fromJson(Map<String, dynamic> json) {
@@ -6969,7 +6993,7 @@ class ProcessMemoryUsage extends Response {
   ProcessMemoryItem? root;
 
   ProcessMemoryUsage({
-    required this.root,
+    this.root,
   });
 
   ProcessMemoryUsage._fromJson(Map<String, dynamic> json)
@@ -7012,10 +7036,10 @@ class ProcessMemoryItem {
   List<ProcessMemoryItem>? children;
 
   ProcessMemoryItem({
-    required this.name,
-    required this.description,
-    required this.size,
-    required this.children,
+    this.name,
+    this.description,
+    this.size,
+    this.children,
   });
 
   ProcessMemoryItem._fromJson(Map<String, dynamic> json) {
@@ -7052,7 +7076,7 @@ class ReloadReport extends Response {
   bool? success;
 
   ReloadReport({
-    required this.success,
+    this.success,
   });
 
   ReloadReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7096,7 +7120,7 @@ class RetainingObject {
   String? parentField;
 
   RetainingObject({
-    required this.value,
+    this.value,
     this.parentListIndex,
     this.parentMapKey,
     this.parentField,
@@ -7141,9 +7165,9 @@ class RetainingPath extends Response {
   List<RetainingObject>? elements;
 
   RetainingPath({
-    required this.length,
-    required this.gcRootType,
-    required this.elements,
+    this.length,
+    this.gcRootType,
+    this.elements,
   });
 
   RetainingPath._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7216,8 +7240,8 @@ class Sentinel extends Response {
   String? valueAsString;
 
   Sentinel({
-    required this.kind,
-    required this.valueAsString,
+    this.kind,
+    this.valueAsString,
   });
 
   Sentinel._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7252,7 +7276,7 @@ class ScriptRef extends ObjRef {
   String? uri;
 
   ScriptRef({
-    required this.uri,
+    this.uri,
     required String id,
   }) : super(
           id: id,
@@ -7338,8 +7362,8 @@ class Script extends Obj implements ScriptRef {
   List<List<int>>? tokenPosTable;
 
   Script({
-    required this.uri,
-    required this.library,
+    this.uri,
+    this.library,
     required String id,
     this.lineOffset,
     this.columnOffset,
@@ -7424,7 +7448,7 @@ class ScriptList extends Response {
   List<ScriptRef>? scripts;
 
   ScriptList({
-    required this.scripts,
+    this.scripts,
   });
 
   ScriptList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7476,8 +7500,8 @@ class SourceLocation extends Response {
   int? column;
 
   SourceLocation({
-    required this.script,
-    required this.tokenPos,
+    this.script,
+    this.tokenPos,
     this.endTokenPos,
     this.line,
     this.column,
@@ -7533,8 +7557,8 @@ class SourceReport extends Response {
   List<ScriptRef>? scripts;
 
   SourceReport({
-    required this.ranges,
-    required this.scripts,
+    this.ranges,
+    this.scripts,
   });
 
   SourceReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7580,8 +7604,8 @@ class SourceReportCoverage {
   List<int>? misses;
 
   SourceReportCoverage({
-    required this.hits,
-    required this.misses,
+    this.hits,
+    this.misses,
   });
 
   SourceReportCoverage._fromJson(Map<String, dynamic> json) {
@@ -7648,10 +7672,10 @@ class SourceReportRange {
   SourceReportCoverage? branchCoverage;
 
   SourceReportRange({
-    required this.scriptIndex,
-    required this.startPos,
-    required this.endPos,
-    required this.compiled,
+    this.scriptIndex,
+    this.startPos,
+    this.endPos,
+    this.compiled,
     this.error,
     this.coverage,
     this.possibleBreakpoints,
@@ -7726,9 +7750,9 @@ class Stack extends Response {
   bool? truncated;
 
   Stack({
-    required this.frames,
-    required this.messages,
-    required this.truncated,
+    this.frames,
+    this.messages,
+    this.truncated,
     this.asyncCausalFrames,
     this.awaiterFrames,
   });
@@ -7814,9 +7838,9 @@ class Timeline extends Response {
   int? timeExtentMicros;
 
   Timeline({
-    required this.traceEvents,
-    required this.timeOriginMicros,
-    required this.timeExtentMicros,
+    this.traceEvents,
+    this.timeOriginMicros,
+    this.timeExtentMicros,
   });
 
   Timeline._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7888,9 +7912,9 @@ class TimelineFlags extends Response {
   List<String>? recordedStreams;
 
   TimelineFlags({
-    required this.recorderName,
-    required this.availableStreams,
-    required this.recordedStreams,
+    this.recorderName,
+    this.availableStreams,
+    this.recordedStreams,
   });
 
   TimelineFlags._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7927,7 +7951,7 @@ class Timestamp extends Response {
   int? timestamp;
 
   Timestamp({
-    required this.timestamp,
+    this.timestamp,
   });
 
   Timestamp._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7959,7 +7983,7 @@ class TypeArgumentsRef extends ObjRef {
   String? name;
 
   TypeArgumentsRef({
-    required this.name,
+    this.name,
     required String id,
   }) : super(
           id: id,
@@ -8006,8 +8030,8 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
   List<InstanceRef>? types;
 
   TypeArguments({
-    required this.name,
-    required this.types,
+    this.name,
+    this.types,
     required String id,
   }) : super(
           id: id,
@@ -8058,9 +8082,9 @@ class TypeParameters {
   TypeArgumentsRef? defaults;
 
   TypeParameters({
-    required this.names,
-    required this.bounds,
-    required this.defaults,
+    this.names,
+    this.bounds,
+    this.defaults,
   });
 
   TypeParameters._fromJson(Map<String, dynamic> json) {
@@ -8167,7 +8191,7 @@ class UriList extends Response {
   List<String?>? uris;
 
   UriList({
-    required this.uris,
+    this.uris,
   });
 
   UriList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -8204,8 +8228,8 @@ class Version extends Response {
   int? minor;
 
   Version({
-    required this.major,
-    required this.minor,
+    this.major,
+    this.minor,
   });
 
   Version._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -8239,7 +8263,7 @@ class VMRef extends Response {
   String? name;
 
   VMRef({
-    required this.name,
+    this.name,
   });
 
   VMRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -8305,18 +8329,18 @@ class VM extends Response implements VMRef {
   List<IsolateGroupRef>? systemIsolateGroups;
 
   VM({
-    required this.name,
-    required this.architectureBits,
-    required this.hostCPU,
-    required this.operatingSystem,
-    required this.targetCPU,
-    required this.version,
-    required this.pid,
-    required this.startTime,
-    required this.isolates,
-    required this.isolateGroups,
-    required this.systemIsolates,
-    required this.systemIsolateGroups,
+    this.name,
+    this.architectureBits,
+    this.hostCPU,
+    this.operatingSystem,
+    this.targetCPU,
+    this.version,
+    this.pid,
+    this.startTime,
+    this.isolates,
+    this.isolateGroups,
+    this.systemIsolates,
+    this.systemIsolateGroups,
   });
 
   VM._fromJson(Map<String, dynamic> json) : super._fromJson(json) {

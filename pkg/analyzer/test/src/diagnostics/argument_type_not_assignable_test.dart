@@ -205,6 +205,18 @@ main() {
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 125, 9),
     ]);
   }
+
+  void test_recordType() async {
+    await assertErrorsInCode('''
+void f((int a, int b) r) {}
+
+void g() {
+  f((a: 1, b: 2));
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 44, 12),
+    ]);
+  }
 }
 
 mixin ArgumentTypeNotAssignableTestCases on PubPackageResolutionTest {

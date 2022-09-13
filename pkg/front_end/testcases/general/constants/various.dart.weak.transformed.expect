@@ -642,7 +642,7 @@ Constructor coverage from constants:
 org-dartlang-testcase:///various.dart:
 - ExtendsFoo2. (from org-dartlang-testcase:///various.dart:123:9)
 - Foo. (from org-dartlang-testcase:///various.dart:111:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - ConstClassWithFailingAssertWithEmptyMessage. (from org-dartlang-testcase:///various.dart:146:9)
 - ClassWithTypeArguments. (from org-dartlang-testcase:///various.dart:153:9)
 - ConstClassWithFinalFields2. (from org-dartlang-testcase:///various.dart:179:9)

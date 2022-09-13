@@ -6,8 +6,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-String paddedHex(int value, [int bytes = 0]) =>
-    value.toRadixString(16).padLeft(2 * bytes, '0');
+String paddedHex(int value, [int? bytes]) =>
+    value.toRadixString(16).padLeft(2 * (bytes ?? 0), '0');
 
 class Reader {
   final ByteData bdata;
@@ -28,37 +28,46 @@ class Reader {
   Reader.fromTypedData(TypedData data, {int? wordSize, Endian? endian})
       : _wordSize = wordSize,
         _endian = endian,
-        bdata =
-            ByteData.view(data.buffer, data.offsetInBytes, data.lengthInBytes);
+        bdata = ByteData.sublistView(data);
 
   Reader.fromFile(String path, {int? wordSize, Endian? endian})
       : _wordSize = wordSize,
         _endian = endian,
         bdata = ByteData.sublistView(File(path).readAsBytesSync());
 
-  /// Returns a reader focused on a different portion of the underlying buffer.
-  Reader refocusedCopy(int pos, int size) {
-    assert(pos >= 0 && pos < bdata.buffer.lengthInBytes);
-    assert(size >= 0 && (pos + size) <= bdata.buffer.lengthInBytes);
-    return Reader.fromTypedData(ByteData.view(bdata.buffer, pos, size),
+  // Similar to the sublistView constructor for classes in dart:typed-data.
+  // That is, it creates a new reader that views a subset of the underlying
+  // buffer currently viewed by [this]. Thus, [pos] and [size] are relative
+  // to the view of [this], not to the underlying buffer as a whole.
+  Reader shrink(int pos, [int? size]) {
+    assert(pos >= 0 && pos <= length);
+    if (size != null) {
+      assert(size >= 0 && (pos + size) <= length);
+    } else {
+      size = length - pos;
+    }
+    return Reader.fromTypedData(ByteData.sublistView(bdata, pos, pos + size),
         wordSize: _wordSize, endian: _endian);
   }
 
   int get start => bdata.offsetInBytes;
   int get offset => _offset;
   int get length => bdata.lengthInBytes;
+  int get remaining => length - offset;
   bool get done => _offset >= length;
+
+  Uint8List get bytes => Uint8List.sublistView(bdata);
 
   void seek(int offset, {bool absolute = false}) {
     final newOffset = (absolute ? 0 : _offset) + offset;
-    assert(newOffset >= 0 && newOffset < bdata.lengthInBytes);
+    assert(newOffset >= 0 && newOffset <= bdata.lengthInBytes);
     _offset = newOffset;
   }
 
   int readBytes(int size, {bool signed = false}) {
     if (_offset + size > length) {
       throw ArgumentError('attempt to read $size bytes with only '
-          '${length - _offset} bytes remaining in the reader');
+          '$remaining bytes remaining in the reader');
     }
     final start = _offset;
     _offset += size;
@@ -83,18 +92,38 @@ class Reader {
     }
   }
 
+  ByteData readRawBytes(int size) {
+    if (offset + size > length) {
+      throw ArgumentError('attempt to read $size bytes with only '
+          '$remaining bytes remaining in the reader');
+    }
+    final start = _offset;
+    _offset += size;
+    return ByteData.sublistView(bdata, start, start + size);
+  }
+
   int readByte({bool signed = false}) => readBytes(1, signed: signed);
   int readWord() => readBytes(wordSize);
-  String readNullTerminatedString() {
-    final start = bdata.offsetInBytes + _offset;
-    for (var i = 0; _offset + i < bdata.lengthInBytes; i++) {
-      if (bdata.getUint8(_offset + i) == 0) {
-        _offset += i + 1;
-        return String.fromCharCodes(bdata.buffer.asUint8List(start, i));
+  String readNullTerminatedString({int? maxSize}) {
+    final start = _offset;
+    int end = maxSize != null ? _offset + maxSize : bdata.lengthInBytes;
+    for (; _offset < end; _offset++) {
+      if (bdata.getUint8(_offset) == 0) {
+        end = _offset;
+        _offset++; // Move reader past null terminator.
+        break;
       }
     }
     return String.fromCharCodes(
-        bdata.buffer.asUint8List(start, bdata.lengthInBytes - _offset));
+        bdata.buffer.asUint8List(bdata.offsetInBytes + start, end - start));
+  }
+
+  String readFixedLengthNullTerminatedString(int maxSize) {
+    final start = _offset;
+    final str = readNullTerminatedString(maxSize: maxSize);
+    // Ensure reader points past fixed space, not at end of string within it.
+    _offset = start + maxSize;
+    return str;
   }
 
   int readLEB128EncodedInteger({bool signed = false}) {
@@ -179,19 +208,19 @@ class Reader {
       ..writeln();
     buffer
       ..write('Start:  0x')
-      ..write(paddedHex(start, _wordSize ?? 0))
+      ..write(paddedHex(start, _wordSize))
       ..write(' (')
       ..write(start)
       ..writeln(')');
     buffer
       ..write('Offset: 0x')
-      ..write(paddedHex(offset, _wordSize ?? 0))
+      ..write(paddedHex(offset, _wordSize))
       ..write(' (')
       ..write(offset)
       ..writeln(')');
     buffer
       ..write('Length: 0x')
-      ..write(paddedHex(length, _wordSize ?? 0))
+      ..write(paddedHex(length, _wordSize))
       ..write(' (')
       ..write(length)
       ..writeln(')');

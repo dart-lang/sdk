@@ -437,6 +437,37 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parseRecordType(final Token start, Token token) {
+    doPrint('parseRecordType(' '$start, ' '$token)');
+    indent++;
+    var result = super.parseRecordType(start, token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseRecordTypeField(Token token,
+      {required bool identifierIsOptional}) {
+    doPrint('parseRecordTypeField('
+        '$token, '
+        'identifierIsOptional: $identifierIsOptional)');
+    indent++;
+    var result = super.parseRecordTypeField(token,
+        identifierIsOptional: identifierIsOptional);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseRecordTypeNamedFields(Token token) {
+    doPrint('parseRecordTypeNamedFields(' '$token)');
+    indent++;
+    var result = super.parseRecordTypeNamedFields(token);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseFormalParametersRequiredOpt(Token token, MemberKind kind) {
     doPrint('parseFormalParametersRequiredOpt(' '$token, ' '$kind)');
     indent++;
@@ -1558,10 +1589,13 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
-    doPrint('parseParenthesizedExpressionOrFunctionLiteral(' '$token)');
+  Token parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(
+      Token token) {
+    doPrint('parseParenthesizedExpressionFunctionLiteralOrRecordLiteral('
+        '$token)');
     indent++;
-    var result = super.parseParenthesizedExpressionOrFunctionLiteral(token);
+    var result =
+        super.parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(token);
     indent--;
     return result;
   }
@@ -1576,19 +1610,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseParenthesizedExpression(Token token) {
-    doPrint('parseParenthesizedExpression(' '$token)');
+  Token parseParenthesizedExpressionOrRecordLiteral(Token token) {
+    doPrint('parseParenthesizedExpressionOrRecordLiteral(' '$token)');
     indent++;
-    var result = super.parseParenthesizedExpression(token);
-    indent--;
-    return result;
-  }
-
-  @override
-  Token parseExpressionInParenthesis(Token token) {
-    doPrint('parseExpressionInParenthesis(' '$token)');
-    indent++;
-    var result = super.parseExpressionInParenthesis(token);
+    var result = super.parseParenthesizedExpressionOrRecordLiteral(token);
     indent--;
     return result;
   }

@@ -134,4 +134,4 @@ Extra constant evaluation: evaluated: 155, effectively constant: 5
 Constructor coverage from constants:
 org-dartlang-testcase:///issue_49245_variation_potential_exponential_blowup.dart:
 - Foo. (from org-dartlang-testcase:///issue_49245_variation_potential_exponential_blowup.dart:6:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

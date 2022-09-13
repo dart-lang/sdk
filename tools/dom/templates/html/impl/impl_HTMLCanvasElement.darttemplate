@@ -21,8 +21,8 @@ $!MEMBERS
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  gl.RenderingContext$NULLABLE getContext3d({alpha: true, depth: true, stencil: false,
-    antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false}) {
+  gl.RenderingContext$NULLABLE getContext3d({alpha = true, depth = true, stencil = false,
+    antialias = true, premultipliedAlpha = true, preserveDrawingBuffer = false}) {
 
     var options = {
       'alpha': alpha,

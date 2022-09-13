@@ -18,6 +18,8 @@ import 'configuration.dart' show Configuration;
 
 import 'source/source_library_builder.dart';
 
+import 'scope.dart' show NameIteratorExtension;
+
 class Import {
   /// The library that is importing [imported];
   final SourceLibraryBuilder importer;
@@ -74,7 +76,10 @@ class Import {
         prefixBuilder!.addToExportScope(name, member, charOffset);
       };
     }
-    imported!.exportScope.forEach((String name, Builder member) {
+    imported!.exportScope
+        .filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: false)
+        .forEach((String name, Builder member) {
       if (combinators != null) {
         for (CombinatorBuilder combinator in combinators!) {
           if (combinator.isShow && !combinator.names.contains(name)) return;

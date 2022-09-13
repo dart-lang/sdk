@@ -51,7 +51,8 @@ class InvokeDynamicSpecializer {
     Selector selector = instruction.selector;
     if (selector.name == name) return;
     instruction.selector = Selector.call(
-        Name(name, commonElements.interceptorsLibrary), selector.callStructure);
+        Name(name, commonElements.interceptorsLibrary.canonicalUri),
+        selector.callStructure);
   }
 
   constant_system.Operation operation() => null;

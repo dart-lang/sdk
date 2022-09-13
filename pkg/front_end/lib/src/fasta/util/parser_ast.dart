@@ -30,11 +30,11 @@ import '../source/diet_parser.dart';
 import 'parser_ast_helper.dart';
 
 CompilationUnitEnd getAST(List<int> rawBytes,
-    {bool includeBody: true,
-    bool includeComments: false,
-    bool enableExtensionMethods: false,
-    bool enableNonNullable: false,
-    bool enableTripleShift: false,
+    {bool includeBody = true,
+    bool includeComments = false,
+    bool enableExtensionMethods = false,
+    bool enableNonNullable = false,
+    bool enableTripleShift = false,
     List<Token>? languageVersionsSeen}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
@@ -1553,6 +1553,10 @@ class ParserASTListener extends AbstractParserAstListener {
             (end == "InvalidYieldStatement")) {
           // beginYieldStatement is ended by either endYieldStatement or
           // endInvalidYieldStatement.
+        } else if (begin == "ParenthesizedExpressionOrRecordLiteral" &&
+            (end == "ParenthesizedExpression" || end == "RecordLiteral")) {
+          // beginParenthesizedExpressionOrRecordLiteral is ended by either
+          // endParenthesizedExpression or endRecordLiteral.
         } else {
           throw "Unknown combination: begin$begin and end$end";
         }

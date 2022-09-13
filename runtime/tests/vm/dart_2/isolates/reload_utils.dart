@@ -123,7 +123,7 @@ Future compile(String from, String to) async {
   }
 }
 
-Future<Reloader> launchOn(String file, {bool verbose: false}) async {
+Future<Reloader> launchOn(String file, {bool verbose = false}) async {
   final command = [
     if (verbose) '--trace-reload',
     if (verbose) '--trace-reload-verbose',

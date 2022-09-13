@@ -5,7 +5,7 @@
 library dart2js.diagnostic_listener;
 
 import '../../compiler_api.dart' as api;
-import 'compiler_diagnostics_facade.dart';
+import '../compiler_interfaces.dart' show CompilerDiagnosticsFacade;
 import '../elements/entities.dart';
 import '../options.dart';
 import 'messages.dart';

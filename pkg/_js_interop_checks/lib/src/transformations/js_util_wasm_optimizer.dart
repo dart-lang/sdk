@@ -155,19 +155,30 @@ class JsUtilWasmOptimizer extends Transformer {
       } else if (hasJSInteropAnnotation(node)) {
         String selectorString = getJSName(node);
         late Expression target;
+        late String name;
         if (selectorString.isEmpty) {
           target = _globalThis;
+          name = node.name.text;
         } else {
           List<String> selectors = selectorString.split('.');
-          target = getObjectOffGlobalThis(node, selectors);
+          if (selectors.length == 1) {
+            target = _globalThis;
+            name = selectors.single;
+          } else {
+            target = getObjectOffGlobalThis(
+                node, selectors.sublist(0, selectors.length - 1));
+            name = selectors.last;
+          }
         }
         if (node.isGetter) {
-          transformedBody = _getExternalTopLevelGetterBody(node, target);
+          transformedBody = _getExternalGetterBody(node, target, name);
         } else if (node.isSetter) {
-          transformedBody = _getExternalTopLevelSetterBody(node, target);
+          transformedBody = _getExternalSetterBody(
+              node, target, name, node.function.positionalParameters.single);
         } else {
           assert(node.kind == ProcedureKind.Method);
-          transformedBody = _getExternalTopLevelMethodBody(node, target);
+          transformedBody = _getExternalMethodBody(
+              node, target, name, node.function.positionalParameters);
         }
       }
     }
@@ -297,7 +308,8 @@ class JsUtilWasmOptimizer extends Transformer {
   Expression getObjectOffGlobalThis(Procedure node, List<String> selectors) {
     Expression currentTarget = _globalThis;
     for (String selector in selectors) {
-      currentTarget = _getProperty(node, currentTarget, selector);
+      currentTarget = _getProperty(node, currentTarget, selector,
+          typeArgument: _nonNullableObjectType);
     }
     return currentTarget;
   }
@@ -315,8 +327,9 @@ class JsUtilWasmOptimizer extends Transformer {
         type: _nonNullableObjectType);
     body.add(object);
     for (VariableDeclaration variable in node.function.namedParameters) {
-      body.add(ExpressionStatement(
-          _setProperty(node, VariableGet(object), variable.name!, variable)));
+      body.add(ExpressionStatement(_setProperty(
+          node, VariableGet(object), variable.name!, variable,
+          typeArgument: variable.type)));
     }
     body.add(ReturnStatement(VariableGet(object)));
     return Block(body);
@@ -349,12 +362,12 @@ class JsUtilWasmOptimizer extends Transformer {
   ///
   /// The new [Expression] is equivalent to:
   /// `js_util.getProperty([object], [getterName])`.
-  Expression _getProperty(
-          Procedure node, Expression object, String getterName) =>
+  Expression _getProperty(Procedure node, Expression object, String getterName,
+          {DartType? typeArgument}) =>
       StaticInvocation(
           _getPropertyTarget,
           Arguments([object, StringLiteral(getterName)],
-              types: [node.function.returnType]))
+              types: [typeArgument ?? node.function.returnType]))
         ..fileOffset = node.fileOffset;
 
   /// Returns a new function body for the given [node] external getter.
@@ -368,20 +381,16 @@ class JsUtilWasmOptimizer extends Transformer {
           VariableGet(node.function.positionalParameters.single),
           _getExtensionMemberName(node));
 
-  ReturnStatement _getExternalTopLevelGetterBody(
-          Procedure node, Expression target) =>
-      _getExternalGetterBody(node, target, node.name.text);
-
   /// Returns a new [Expression] for the given [node] external setter.
   ///
   /// The new [Expression] is equivalent to:
   /// `js_util.setProperty([object], [setterName], [value])`.
   Expression _setProperty(Procedure node, Expression object, String setterName,
-          VariableDeclaration value) =>
+          VariableDeclaration value, {DartType? typeArgument}) =>
       StaticInvocation(
           _setPropertyTarget,
           Arguments([object, StringLiteral(setterName), VariableGet(value)],
-              types: [node.function.returnType]))
+              types: [typeArgument ?? node.function.returnType]))
         ..fileOffset = node.fileOffset;
 
   /// Returns a new function body for the given [node] external setter.
@@ -395,11 +404,6 @@ class JsUtilWasmOptimizer extends Transformer {
     return _getExternalSetterBody(node, VariableGet(parameters.first),
         _getExtensionMemberName(node), parameters.last);
   }
-
-  ReturnStatement _getExternalTopLevelSetterBody(
-          Procedure node, Expression target) =>
-      _getExternalSetterBody(node, target, node.name.text,
-          node.function.positionalParameters.single);
 
   /// Returns a new function body for the given [node] external method.
   ///
@@ -424,15 +428,10 @@ class JsUtilWasmOptimizer extends Transformer {
 
   ReturnStatement _getExternalExtensionMethodBody(Procedure node) {
     final parameters = node.function.positionalParameters;
-    assert(parameters.length > 0);
+    assert(parameters.isNotEmpty);
     return _getExternalMethodBody(node, VariableGet(parameters.first),
         _getExtensionMemberName(node), parameters.sublist(1));
   }
-
-  ReturnStatement _getExternalTopLevelMethodBody(
-          Procedure node, Expression target) =>
-      _getExternalMethodBody(
-          node, target, node.name.text, node.function.positionalParameters);
 
   /// Returns the extension member name.
   ///

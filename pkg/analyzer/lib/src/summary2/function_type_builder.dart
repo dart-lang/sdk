@@ -150,7 +150,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   ) {
     return node.parameters.asImpl.map((parameter) {
       return ParameterElementImpl.synthetic(
-        parameter.identifier?.name ?? '',
+        parameter.name?.lexeme ?? '',
         _getParameterType(isNNBD, parameter),
         parameter.kind,
       );
@@ -208,6 +208,6 @@ class FunctionTypeBuilder extends TypeBuilder {
     TypeParameterList? node,
   ) {
     if (node == null) return const [];
-    return node.typeParameters.map((n) => n.declaredElement!).toList();
+    return node.typeParameters.map((n) => n.declaredElement2!).toList();
   }
 }

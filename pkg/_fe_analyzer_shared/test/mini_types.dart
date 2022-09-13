@@ -11,7 +11,8 @@ import 'package:test/test.dart';
 /// Representation of a function type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
 ///
-/// Optional and named parameters are not (yet) supported.
+/// Optional parameters, named parameters, and type parameters are not (yet)
+/// supported.
 class FunctionType extends Type {
   /// The return type.
   final Type returnType;
@@ -22,7 +23,25 @@ class FunctionType extends Type {
   FunctionType(this.returnType, this.positionalParameters) : super._();
 
   @override
-  String get type => '$returnType Function(${positionalParameters.join(', ')})';
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? newReturnType = returnType.recursivelyDemote(covariant: covariant);
+    List<Type>? newPositionalParameters =
+        positionalParameters.recursivelyDemote(covariant: !covariant);
+    if (newReturnType == null && newPositionalParameters == null) {
+      return null;
+    }
+    return FunctionType(newReturnType ?? returnType,
+        newPositionalParameters ?? positionalParameters);
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var result = '$returnType Function(${positionalParameters.join(', ')})';
+    if (!allowSuffixes) {
+      result = '($result)';
+    }
+    return result;
+  }
 }
 
 /// Representation of a "simple" type suitable for unit testing of code in the
@@ -40,7 +59,14 @@ class NonFunctionType extends Type {
   NonFunctionType(this.name, {this.args = const []}) : super._();
 
   @override
-  String get type {
+  Type? recursivelyDemote({required bool covariant}) {
+    List<Type>? newArgs = args.recursivelyDemote(covariant: covariant);
+    if (newArgs == null) return null;
+    return NonFunctionType(name, args: newArgs);
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
     if (args.isEmpty) {
       return name;
     } else {
@@ -62,7 +88,17 @@ class PromotedTypeVariableType extends Type {
   PromotedTypeVariableType(this.innerType, this.promotion) : super._();
 
   @override
-  String get type => '$innerType&$promotion';
+  Type? recursivelyDemote({required bool covariant}) =>
+      covariant ? innerType : new NonFunctionType('Never');
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var result = '$innerType&${promotion._toString(allowSuffixes: false)}';
+    if (!allowSuffixes) {
+      result = '($result)';
+    }
+    return result;
+  }
 }
 
 /// Representation of a nullable type suitable for unit testing of code in the
@@ -76,7 +112,20 @@ class QuestionType extends Type {
   QuestionType(this.innerType) : super._();
 
   @override
-  String get type => '$innerType?';
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? newInnerType = innerType.recursivelyDemote(covariant: covariant);
+    if (newInnerType == null) return null;
+    return QuestionType(newInnerType);
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var result = '$innerType?';
+    if (!allowSuffixes) {
+      result = '($result)';
+    }
+    return result;
+  }
 }
 
 /// Representation of a "star" type suitable for unit testing of code in the
@@ -87,7 +136,20 @@ class StarType extends Type {
   StarType(this.innerType) : super._();
 
   @override
-  String get type => '$innerType*';
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? newInnerType = innerType.recursivelyDemote(covariant: covariant);
+    if (newInnerType == null) return null;
+    return StarType(newInnerType);
+  }
+
+  @override
+  String _toString({required bool allowSuffixes}) {
+    var result = '$innerType*';
+    if (!allowSuffixes) {
+      result = '($result)';
+    }
+    return result;
+  }
 }
 
 /// Representation of a type suitable for unit testing of code in the
@@ -118,7 +180,7 @@ abstract class Type {
     return type.hashCode;
   }
 
-  String get type;
+  String get type => _toString(allowSuffixes: true);
 
   @override
   bool operator ==(Object other) {
@@ -130,8 +192,21 @@ abstract class Type {
     return other is Type && this.type == other.type;
   }
 
+  /// Finds the nearest type that doesn't involve any type parameter promotion.
+  /// If `covariant` is `true`, a supertype will be returned (replacing promoted
+  /// type parameters with their unpromoted counterparts); otherwise a subtype
+  /// will be returned (replacing promoted type parameters with `Never`).
+  ///
+  /// Returns `null` if this type is already free from type promotion.
+  Type? recursivelyDemote({required bool covariant});
+
   @override
   String toString() => type;
+
+  /// Returns a string representation of this type.  If `allowSuffixes` is
+  /// `false`, then the result will be surrounded in parenthesis if it would
+  /// otherwise have ended in a suffix.
+  String _toString({required bool allowSuffixes});
 
   /// Executes [callback] while temporarily allowing types to be compared using
   /// `==` and `hashCode`.
@@ -152,7 +227,10 @@ class UnknownType extends Type {
   const UnknownType() : super._();
 
   @override
-  String get type => '?';
+  Type? recursivelyDemote({required bool covariant}) => null;
+
+  @override
+  String _toString({required bool allowSuffixes}) => '?';
 }
 
 class _TypeParser {
@@ -181,22 +259,16 @@ class _TypeParser {
     fail('Error parsing type `$_typeStr` at token $_currentToken: $message');
   }
 
-  Type _parseNullability(Type innerType) {
+  Type? _parseSuffix(Type type) {
     if (_currentToken == '?') {
       _next();
-      return QuestionType(innerType);
+      return QuestionType(type);
     } else if (_currentToken == '*') {
       _next();
-      return StarType(innerType);
-    } else {
-      return innerType;
-    }
-  }
-
-  Type? _parseSuffix(Type type) {
-    if (_currentToken == '&') {
+      return StarType(type);
+    } else if (_currentToken == '&') {
       _next();
-      var promotion = _parseType();
+      var promotion = _parseUnsuffixedType();
       return PromotedTypeVariableType(type, promotion);
     } else if (_currentToken == 'Function') {
       _next();
@@ -216,7 +288,7 @@ class _TypeParser {
         }
       }
       _next();
-      return _parseNullability(FunctionType(type, parameterTypes));
+      return FunctionType(type, parameterTypes);
     } else {
       return null;
     }
@@ -224,19 +296,43 @@ class _TypeParser {
 
   Type _parseType() {
     // We currently accept the following grammar for types:
-    //   type := identifier typeArgs? nullability suffix* | `?`
+    //   type := unsuffixedType nullability suffix*
+    //   unsuffixedType := identifier typeArgs?
+    //                   | `?`
+    //                   | `(` type `)`
     //   typeArgs := `<` type (`,` type)* `>`
     //   nullability := (`?` | `*`)?
-    //   suffix := `Function` `(` type (`,` type)* `)` suffix
-    //           | `&` type
+    //   suffix := `Function` `(` type (`,` type)* `)`
+    //           | `?`
+    //           | `*`
+    //           | `&` unsuffixedType
     // TODO(paulberry): support more syntax if needed
+    var result = _parseUnsuffixedType();
+    while (true) {
+      var newResult = _parseSuffix(result);
+      if (newResult == null) break;
+      result = newResult;
+    }
+    return result;
+  }
+
+  Type _parseUnsuffixedType() {
     if (_currentToken == '?') {
       _next();
       return const UnknownType();
     }
+    if (_currentToken == '(') {
+      _next();
+      var type = _parseType();
+      if (_currentToken != ')') {
+        _parseFailure('Expected `)`');
+      }
+      _next();
+      return type;
+    }
     var typeName = _currentToken;
     if (_identifierRegexp.matchAsPrefix(typeName) == null) {
-      _parseFailure('Expected an identifier or `?`');
+      _parseFailure('Expected an identifier, `?`, or `(`');
     }
     _next();
     List<Type> typeArgs;
@@ -255,13 +351,7 @@ class _TypeParser {
     } else {
       typeArgs = const [];
     }
-    var result = _parseNullability(NonFunctionType(typeName, args: typeArgs));
-    while (true) {
-      var newResult = _parseSuffix(result);
-      if (newResult == null) break;
-      result = newResult;
-    }
-    return result;
+    return NonFunctionType(typeName, args: typeArgs);
   }
 
   static Type parse(String typeStr) {
@@ -291,5 +381,24 @@ class _TypeParser {
     }
     result.add('<END>');
     return result;
+  }
+}
+
+extension on List<Type> {
+  /// Calls [Type.recursivelyDemote] to translate every list member into a type
+  /// that doesn't involve any type promotion.  If no type would be changed by
+  /// this operation, returns `null`.
+  List<Type>? recursivelyDemote({required bool covariant}) {
+    List<Type>? newList;
+    for (int i = 0; i < length; i++) {
+      Type type = this[i];
+      Type? newType = type.recursivelyDemote(covariant: covariant);
+      if (newList == null) {
+        if (newType == null) continue;
+        newList = sublist(0, i);
+      }
+      newList.add(newType ?? type);
+    }
+    return newList;
   }
 }

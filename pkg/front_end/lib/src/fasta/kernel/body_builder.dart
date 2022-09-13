@@ -4,7 +4,7 @@
 
 library fasta.body_builder;
 
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
@@ -52,6 +52,7 @@ import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
+import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -60,6 +61,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -69,15 +71,22 @@ import '../builder/void_type_declaration_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../fasta_codes.dart' as fasta;
-import '../fasta_codes.dart' show LocatedMessage, Message, Template, noLength;
+import '../fasta_codes.dart'
+    show
+        LocatedMessage,
+        Message,
+        Template,
+        noLength,
+        templateDuplicatedRecordLiteralFieldName,
+        templateDuplicatedRecordLiteralFieldNameContext,
+        templateExperimentNotEnabledOffByDefault;
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
 import '../messages.dart' as messages show getLocationFromUri;
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
 import '../names.dart' show emptyName, minusName, plusName;
-import '../problems.dart'
-    show internalProblem, unexpected, unhandled, unsupported;
+import '../problems.dart' show internalProblem, unhandled, unsupported;
 import '../scope.dart';
 import '../source/diet_parser.dart';
 import '../source/source_class_builder.dart';
@@ -92,8 +101,10 @@ import '../source/source_procedure_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
 import '../source/value_kinds.dart';
+import '../type_inference/inference_results.dart'
+    show InitializerInferenceResult;
 import '../type_inference/type_inferrer.dart'
-    show TypeInferrer, InferredFunctionBody, InitializerInferenceResult;
+    show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart' show UnknownType;
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'collections.dart';
@@ -374,10 +385,11 @@ class BodyBuilder extends StackListenerImpl
                 coreTypes.objectClass != declarationBuilder.cls,
         benchmarker = libraryBuilder.loader.target.benchmarker,
         this.scope = enclosingScope {
-    formalParameterScope?.forEach((String name, Builder builder) {
-      if (builder is VariableBuilder) {
-        typeInferrer.assignedVariables.declare(builder.variable!);
-      }
+    formalParameterScope
+        ?.filteredIterator<VariableBuilder>(
+            includeDuplicates: false, includeAugmentations: false)
+        .forEach((VariableBuilder builder) {
+      typeInferrer.assignedVariables.declare(builder.variable!);
     });
   }
 
@@ -599,7 +611,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
 
-  void _enterLocalState({bool inLateLocalInitializer: false}) {
+  void _enterLocalState({bool inLateLocalInitializer = false}) {
     _localInitializerState =
         _localInitializerState.prepend(inLateLocalInitializer);
   }
@@ -1017,7 +1029,7 @@ class BodyBuilder extends StackListenerImpl
     }
     pop(); // Annotations.
 
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
     assert(stack.length == 0);
   }
 
@@ -1026,12 +1038,22 @@ class BodyBuilder extends StackListenerImpl
   ///
   /// Back logged computations include resolution of redirecting factory
   /// invocations and checking of typedef types.
+  ///
+  /// If the parameter [allowFurtherDelays] is set to `true`, the backlog
+  /// computations are allowed to be delayed one more time if they can't be
+  /// completed in the current invocation of [performBacklogComputations] and
+  /// have a chance to be completed during the next invocation. If
+  /// [allowFurtherDelays] is set to `false`, the backlog computations are
+  /// assumed to be final and the function throws an internal exception in case
+  /// if any of the computations can't be completed.
   void performBacklogComputations(
-      [List<DelayedActionPerformer>? delayedActionPerformers]) {
+      {List<DelayedActionPerformer>? delayedActionPerformers,
+      required bool allowFurtherDelays}) {
     _finishVariableMetadata();
     _unaliasTypeAliasedConstructorInvocations();
     _unaliasTypeAliasedFactoryInvocations(typeAliasedFactoryInvocations);
-    _resolveRedirectingFactoryTargets(redirectingFactoryInvocations);
+    _resolveRedirectingFactoryTargets(redirectingFactoryInvocations,
+        allowFurtherDelays: allowFurtherDelays);
     libraryBuilder.checkPendingBoundsChecks(typeEnvironment);
     if (hasDelayedActions) {
       assert(
@@ -1043,7 +1065,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void finishRedirectingFactoryBody() {
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
   }
 
   @override
@@ -1370,7 +1392,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
   }
 
   void checkAsyncReturnType(AsyncMarker asyncModifier, DartType returnType,
@@ -1415,9 +1437,6 @@ class BodyBuilder extends StackListenerImpl
 
       case AsyncMarker.Sync:
         break; // skip
-      case AsyncMarker.SyncYielding:
-        unexpected("async, async*, sync, or sync*", "$asyncModifier",
-            member.charOffset, uri);
     }
 
     if (problem != null) {
@@ -1521,8 +1540,17 @@ class BodyBuilder extends StackListenerImpl
     return replacementNode;
   }
 
+  /// If the parameter [allowFurtherDelays] is set to `true`, the resolution of
+  /// redirecting factories is allowed to be delayed one more time if it can't
+  /// be completed in the current invocation of
+  /// [_resolveRedirectingFactoryTargets] and has a chance to be completed
+  /// during the next invocation. If [allowFurtherDelays] is set to `false`,
+  /// the resolution of redirecting factories is assumed to be final and the
+  /// function throws an internal exception in case if any of the resolutions
+  /// can't be completed.
   void _resolveRedirectingFactoryTargets(
-      List<FactoryConstructorInvocation> redirectingFactoryInvocations) {
+      List<FactoryConstructorInvocation> redirectingFactoryInvocations,
+      {required bool allowFurtherDelays}) {
     List<FactoryConstructorInvocation> invocations =
         redirectingFactoryInvocations.toList();
     redirectingFactoryInvocations.clear();
@@ -1537,6 +1565,9 @@ class BodyBuilder extends StackListenerImpl
       // ignore: unnecessary_null_comparison
       if (typeInferrer != null) {
         if (!invocation.hasBeenInferred) {
+          if (allowFurtherDelays) {
+            delayedRedirectingFactoryInvocations.add(invocation);
+          }
           continue;
         }
       } else {
@@ -1641,9 +1672,10 @@ class BodyBuilder extends StackListenerImpl
   /// redirecting factory invocation depends on the type inference in the
   /// redirecting factory.
   @override
-  void performDelayedActions() {
+  void performDelayedActions({required bool allowFurtherDelays}) {
     if (delayedRedirectingFactoryInvocations.isNotEmpty) {
-      _resolveRedirectingFactoryTargets(delayedRedirectingFactoryInvocations);
+      _resolveRedirectingFactoryTargets(delayedRedirectingFactoryInvocations,
+          allowFurtherDelays: allowFurtherDelays);
       if (delayedRedirectingFactoryInvocations.isNotEmpty) {
         for (StaticInvocation invocation
             in delayedRedirectingFactoryInvocations) {
@@ -1726,7 +1758,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       temporaryParent = new ListLiteral(expressions);
     }
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
@@ -1797,7 +1829,7 @@ class BodyBuilder extends StackListenerImpl
         "Previously implicit assumption about inferFunctionBody "
         "not returning anything different.");
 
-    performBacklogComputations();
+    performBacklogComputations(allowFurtherDelays: false);
     libraryBuilder.loader.transformPostInference(fakeReturn,
         transformSetLiterals, transformCollections, libraryBuilder.library);
 
@@ -2237,7 +2269,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void endParenthesizedExpression(Token token) {
     assert(checkState(token, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -2668,9 +2700,9 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildUnresolvedError(String name, int charOffset,
       {Member? candidate,
-      bool isSuper: false,
+      bool isSuper = false,
       required UnresolvedKind kind,
-      bool isStatic: false,
+      bool isStatic = false,
       Arguments? arguments,
       Expression? rhs,
       LocatedMessage? message,
@@ -2751,8 +2783,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   Message warnUnresolvedMember(Name name, int charOffset,
-      {bool isSuper: false,
-      bool reportWarning: true,
+      {bool isSuper = false,
+      bool reportWarning = true,
       List<LocatedMessage>? context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoMember.withArguments(name.text)
@@ -2766,8 +2798,8 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Message warnUnresolvedGet(Name name, int charOffset,
-      {bool isSuper: false,
-      bool reportWarning: true,
+      {bool isSuper = false,
+      bool reportWarning = true,
       List<LocatedMessage>? context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.text)
@@ -2781,8 +2813,8 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Message warnUnresolvedSet(Name name, int charOffset,
-      {bool isSuper: false,
-      bool reportWarning: true,
+      {bool isSuper = false,
+      bool reportWarning = true,
       List<LocatedMessage>? context}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.text)
@@ -2796,8 +2828,8 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Message warnUnresolvedMethod(Name name, int charOffset,
-      {bool isSuper: false,
-      bool reportWarning: true,
+      {bool isSuper = false,
+      bool reportWarning = true,
       List<LocatedMessage>? context}) {
     String plainName = name.text;
 
@@ -2820,7 +2852,7 @@ class BodyBuilder extends StackListenerImpl
     return message;
   }
 
-  Message warnUnresolvedConstructor(Name name, {bool isSuper: false}) {
+  Message warnUnresolvedConstructor(Name name, {bool isSuper = false}) {
     Message message = isSuper
         ? fasta.templateSuperclassHasNoConstructor.withArguments(name.text)
         : fasta.templateConstructorNotFound.withArguments(name.text);
@@ -2836,14 +2868,14 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  Member? lookupSuperMember(Name name, {bool isSetter: false}) {
+  Member? lookupSuperMember(Name name, {bool isSetter = false}) {
     return (declarationBuilder as ClassBuilder).lookupInstanceMember(
         hierarchy, name,
         isSetter: isSetter, isSuper: true);
   }
 
   @override
-  Constructor? lookupConstructor(Name name, {bool isSuper: false}) {
+  Constructor? lookupConstructor(Name name, {bool isSuper = false}) {
     return sourceClassBuilder!.lookupConstructor(name, isSuper: isSuper);
   }
 
@@ -2885,7 +2917,7 @@ class BodyBuilder extends StackListenerImpl
   /// [charOffset] as the file offset.
   @override
   VariableGet createVariableGet(VariableDeclaration variable, int charOffset,
-      {bool forNullGuardedAccess: false}) {
+      {bool forNullGuardedAccess = false}) {
     if (!(variable as VariableDeclarationImpl).isLocalFunction) {
       typeInferrer.assignedVariables.read(variable);
     }
@@ -2915,7 +2947,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,
-      {bool isQualified: false, PrefixBuilder? prefix}) {
+      {bool isQualified = false, PrefixBuilder? prefix}) {
     int charOffset = offsetForToken(token);
     if (token.isSynthetic) {
       return new ParserErrorGenerator(this, token, fasta.messageSyntheticToken);
@@ -3284,8 +3316,8 @@ class BodyBuilder extends StackListenerImpl
   @override
   void endIfStatement(Token ifToken, Token? elseToken) {
     Statement? elsePart = popStatementIfNotNull(elseToken);
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
-        pop() as AssignedVariablesNodeInfo<VariableDeclaration>;
+    AssignedVariablesNodeInfo assignedVariablesInfo =
+        pop() as AssignedVariablesNodeInfo;
     Statement thenPart = popStatement();
     Expression condition = pop() as Expression;
     Statement node = forest.createIfStatement(
@@ -3308,7 +3340,7 @@ class BodyBuilder extends StackListenerImpl
   void endVariableInitializer(Token assignmentOperator) {
     debugEvent("VariableInitializer");
     assert(assignmentOperator.stringValue == "=");
-    AssignedVariablesNodeInfo<VariableDeclaration>? assignedVariablesInfo;
+    AssignedVariablesNodeInfo? assignedVariablesInfo;
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     Expression initializer = popForValue();
     if (isLate) {
@@ -3535,8 +3567,8 @@ class BodyBuilder extends StackListenerImpl
   /// ends. Since these need to be associated with the try statement created in
   /// in [endTryStatement] we store them the stack until the try statement is
   /// created.
-  Link<AssignedVariablesNodeInfo<VariableDeclaration>> tryStatementInfoStack =
-      const Link<AssignedVariablesNodeInfo<VariableDeclaration>>();
+  Link<AssignedVariablesNodeInfo> tryStatementInfoStack =
+      const Link<AssignedVariablesNodeInfo>();
 
   @override
   void beginBlock(Token token, BlockKind blockKind) {
@@ -3728,7 +3760,7 @@ class BodyBuilder extends StackListenerImpl
     // [handleForInitializerEmptyStatement],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.popNode();
 
     Object? variableOrExpression = pop();
@@ -3795,7 +3827,7 @@ class BodyBuilder extends StackListenerImpl
     // [handleForInitializerEmptyStatement],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.deferNode();
 
     Object? variableOrExpression = pop();
@@ -3928,6 +3960,70 @@ class BodyBuilder extends StackListenerImpl
         isConst: constKeyword != null ||
             constantContext == ConstantContext.inferred);
     push(node);
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count) {
+    debugEvent("RecordLiteral");
+    assert(checkState(
+        token,
+        repeatedKinds(
+            unionOfKinds([
+              ValueKinds.Generator,
+              ValueKinds.Expression,
+              ValueKinds.ProblemBuilder,
+              ValueKinds.NamedExpression,
+            ]),
+            count)));
+
+    if (!libraryFeatures.records.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.records.name),
+          token.offset,
+          noLength);
+    }
+
+    // Pop all elements. This will put them in evaluation order.
+    List<Object?>? elements =
+        const FixedNullableList<Object>().pop(stack, count);
+
+    List<Object> originalElementOrder = [];
+    List<Expression> positional = [];
+    List<NamedExpression> named = [];
+    Map<String, NamedExpression>? namedElements;
+    if (elements != null) {
+      for (Object? element in elements) {
+        if (element is NamedExpression) {
+          namedElements ??= {};
+          NamedExpression? existingExpression = namedElements[element.name];
+          if (existingExpression != null) {
+            existingExpression.value = buildProblem(
+                templateDuplicatedRecordLiteralFieldName
+                    .withArguments(element.name),
+                element.fileOffset,
+                element.name.length,
+                context: [
+                  templateDuplicatedRecordLiteralFieldNameContext
+                      .withArguments(element.name)
+                      .withLocation(uri, existingExpression.fileOffset,
+                          element.name.length)
+                ])
+              ..parent = existingExpression;
+          } else {
+            originalElementOrder.add(element);
+            namedElements[element.name] = element;
+            named.add(element);
+          }
+        } else {
+          Expression expression = toValue(element);
+          positional.add(expression);
+          originalElementOrder.add(expression);
+        }
+      }
+    }
+    push(new InternalRecordLiteral(
+        positional, named, namedElements, originalElementOrder));
   }
 
   void buildLiteralSet(List<TypeBuilder>? typeArguments, Token? constKeyword,
@@ -4256,6 +4352,88 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    debugEvent("RecordType");
+    assert(checkState(leftBracket, [
+      if (hasNamedFields) ValueKinds.RecordTypeFieldBuilderListOrNull,
+      ...repeatedKinds(ValueKinds.RecordTypeFieldBuilder,
+          hasNamedFields ? count - 1 : count),
+    ]));
+
+    if (!libraryFeatures.records.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.records.name),
+          leftBracket.offset,
+          noLength);
+    }
+
+    if (!libraryBuilder.isNonNullableByDefault) {
+      reportErrorIfNullableType(questionMark);
+    }
+
+    List<RecordTypeFieldBuilder>? namedFields;
+    if (hasNamedFields) {
+      namedFields =
+          pop(NullValue.RecordTypeFieldList) as List<RecordTypeFieldBuilder>?;
+    }
+    List<RecordTypeFieldBuilder>? positionalFields =
+        const FixedNullableList<RecordTypeFieldBuilder>().popNonNullable(stack,
+            hasNamedFields ? count - 1 : count, dummyRecordTypeFieldBuilder);
+
+    push(new RecordTypeBuilder(
+      positionalFields,
+      namedFields,
+      questionMark != null
+          ? libraryBuilder.nullableBuilder
+          : libraryBuilder.nonNullableBuilder,
+      uri,
+      leftBracket.charOffset,
+    ));
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    debugEvent("RecordTypeEntry");
+    assert(checkState(null, [
+      unionOfKinds([
+        ValueKinds.IdentifierOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      unionOfKinds([
+        ValueKinds.TypeBuilder,
+        ValueKinds.ParserRecovery,
+      ]),
+      ValueKinds.AnnotationListOrNull,
+    ]));
+
+    Object? name = pop();
+    Object? type = pop();
+    // TODO(johnniwinther): How should we handle annotations?
+    pop(NullValue.Metadata); // Annotations.
+    push(new RecordTypeFieldBuilder(
+        [],
+        type is ParserRecovery
+            ? new InvalidTypeBuilder(uri, type.charOffset)
+            : type as TypeBuilder,
+        name is Identifier ? name.name : null,
+        name is Identifier ? name.charOffset : TreeNode.noOffset));
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    debugEvent("RecordTypeNamedFields");
+    assert(checkState(leftBracket, [
+      ...repeatedKinds(ValueKinds.RecordTypeFieldBuilder, count),
+    ]));
+    List<RecordTypeFieldBuilder>? fields =
+        const FixedNullableList<RecordTypeFieldBuilder>()
+            .popNonNullable(stack, count, dummyRecordTypeFieldBuilder);
+    push(fields ?? NullValue.RecordTypeFieldList);
+  }
+
+  @override
   void endFunctionType(Token functionToken, Token? questionMark) {
     debugEvent("FunctionType");
     if (!libraryBuilder.isNonNullableByDefault) {
@@ -4383,8 +4561,8 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("ConditionalExpression");
     Expression elseExpression = popForValue();
     Expression thenExpression = pop() as Expression;
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
-        pop() as AssignedVariablesNodeInfo<VariableDeclaration>;
+    AssignedVariablesNodeInfo assignedVariablesInfo =
+        pop() as AssignedVariablesNodeInfo;
     Expression condition = pop() as Expression;
     Expression node = forest.createConditionalExpression(
         offsetForToken(question), condition, thenExpression, elseExpression);
@@ -4990,10 +5168,10 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {Constness constness: Constness.implicit,
+      {Constness constness = Constness.implicit,
       TypeAliasBuilder? typeAliasBuilder,
-      int charOffset: -1,
-      int charLength: noLength}) {
+      int charOffset = -1,
+      int charLength = noLength}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
     List<TypeParameter> typeParameters = target.function!.typeParameters;
@@ -5757,8 +5935,8 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("endIfElseControlFlow");
     Object? elseEntry = pop(); // else entry
     Object? thenEntry = pop(); // then entry
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesInfo =
-        pop() as AssignedVariablesNodeInfo<VariableDeclaration>;
+    AssignedVariablesNodeInfo assignedVariablesInfo =
+        pop() as AssignedVariablesNodeInfo;
     Object? condition = pop(); // parenthesized expression
     Token ifToken = pop() as Token;
 
@@ -5927,6 +6105,10 @@ class BodyBuilder extends StackListenerImpl
       push(identifier);
     }
   }
+
+  @override
+  // TODO: Handle directly.
+  void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
 
   @override
   void endFunctionName(Token beginToken, Token token) {
@@ -6232,7 +6414,7 @@ class BodyBuilder extends StackListenerImpl
     }
 
     // This is matched by the call to [beginNode] in [handleForInLoopParts].
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.popNode();
 
     Expression iterable = popForValue();
@@ -6348,7 +6530,7 @@ class BodyBuilder extends StackListenerImpl
     Token? awaitToken = pop(NullValue.AwaitToken) as Token?;
 
     // This is matched by the call to [beginNode] in [handleForInLoopParts].
-    AssignedVariablesNodeInfo<VariableDeclaration> assignedVariablesNodeInfo =
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo =
         typeInferrer.assignedVariables.deferNode();
 
     Expression expression = popForValue();
@@ -6994,7 +7176,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage>? context,
-      bool suppressMessage: false,
+      bool suppressMessage = false,
       Expression? expression}) {
     if (!suppressMessage) {
       addProblem(message, charOffset, length,
@@ -7077,7 +7259,7 @@ class BodyBuilder extends StackListenerImpl
   Statement buildProblemStatement(Message message, int charOffset,
       {List<LocatedMessage>? context,
       int? length,
-      bool suppressMessage: false}) {
+      bool suppressMessage = false}) {
     length ??= noLength;
     return new ExpressionStatement(buildProblem(message, charOffset, length,
         context: context, suppressMessage: suppressMessage));
@@ -7394,7 +7576,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression: false, bool isNullAware: false}) {
+      {bool isConstantExpression = false, bool isNullAware = false}) {
     if (constantContext != ConstantContext.none &&
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
@@ -7422,9 +7604,9 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Expression buildSuperInvocation(Name name, Arguments arguments, int offset,
-      {bool isConstantExpression: false,
-      bool isNullAware: false,
-      bool isImplicitCall: false}) {
+      {bool isConstantExpression = false,
+      bool isNullAware = false,
+      bool isImplicitCall = false}) {
     if (constantContext != ConstantContext.none &&
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
@@ -7456,7 +7638,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity}) {
     libraryBuilder.addProblem(message, charOffset, length, uri,
@@ -7465,7 +7647,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void addProblemErrorIfConst(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage>? context}) {
+      {bool wasHandled = false, List<LocatedMessage>? context}) {
     // TODO(askesc): Instead of deciding on the severity, this method should
     // take two messages: one to use when a constant expression is
     // required and one to use otherwise.
@@ -7480,7 +7662,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildProblemErrorIfConst(
       Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage>? context}) {
+      {bool wasHandled = false, List<LocatedMessage>? context}) {
     addProblemErrorIfConst(message, charOffset, length,
         wasHandled: wasHandled, context: context);
     String text = libraryBuilder.loader.target.context
@@ -7554,7 +7736,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   String constructorNameForDiagnostics(String name,
-      {String? className, bool isSuper: false}) {
+      {String? className, bool isSuper = false}) {
     if (className == null) {
       Class cls = sourceClassBuilder!.cls;
       if (isSuper) {

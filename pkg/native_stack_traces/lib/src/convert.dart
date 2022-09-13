@@ -11,45 +11,101 @@ import 'dwarf.dart';
 String _stackTracePiece(CallInfo call, int depth) =>
     '#${depth.toString().padRight(6)} $call';
 
-// A pattern matching the last line of the non-symbolic stack trace header.
-//
-// Currently, this happens to include the only pieces of information from the
-// stack trace header we need: the absolute addresses during program
-// execution of the start of the isolate and VM instructions.
+// The initial header line in a non-symbolic stack trace.
+const _headerStartLine =
+    '*** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***';
+
+// A pattern matching the os/arch line of the non-symbolic stack trace header.
 //
 // This RegExp has been adjusted to parse the header line found in
 // non-symbolic stack traces and the modified version in signal handler stack
 // traces.
-final _headerEndRE = RegExp(r'isolate_instructions(?:=|: )([\da-f]+),? '
-    r'vm_instructions(?:=|: )([\da-f]+)');
+final _osArchLineRE = RegExp(r'os(?:=|: )(\S+?),? '
+    r'arch(?:=|: )(\S+?),? comp(?:=|: )(yes|no),? sim(?:=|: )(yes|no)');
 
-// Parses instructions section information into a new [StackTraceHeader].
+// A pattern matching the last line of the non-symbolic stack trace header.
 //
-// Returns a new [StackTraceHeader] if [line] contains the needed header
-// information, otherwise returns `null`.
-StackTraceHeader? _parseInstructionsLine(String line) {
-  final match = _headerEndRE.firstMatch(line);
-  if (match == null) return null;
-  final isolateAddr = int.parse(match[1]!, radix: 16);
-  final vmAddr = int.parse(match[2]!, radix: 16);
-  return StackTraceHeader(isolateAddr, vmAddr);
-}
+// This RegExp has been adjusted to parse the header line found in
+// non-symbolic stack traces and the modified version in signal handler stack
+// traces.
+final _instructionsLineRE = RegExp(r'isolate_instructions(?:=|: )([\da-f]+),? '
+    r'vm_instructions(?:=|: )([\da-f]+)');
 
 /// Header information for a non-symbolic Dart stack trace.
 class StackTraceHeader {
-  final int _isolateStart;
-  final int _vmStart;
+  String? _os;
+  String? _arch;
+  bool? _compressed;
+  bool? _simulated;
+  int? _isolateStart;
+  int? _vmStart;
 
-  StackTraceHeader(this._isolateStart, this._vmStart);
+  String? get os => _os;
+  String? get architecture => _arch;
+  bool? get compressedPointers => _compressed;
+  bool? get usingSimulator => _simulated;
+
+  static StackTraceHeader fromStarts(int isolateStart, int vmStart,
+          {String? architecture}) =>
+      StackTraceHeader()
+        .._isolateStart = isolateStart
+        .._vmStart = vmStart
+        .._arch = architecture;
+
+  /// Try and parse the given line as one of the recognized lines in the
+  /// header of a non-symbolic stack trace.
+  ///
+  /// Returns whether the line was recognized and parsed successfully.
+  bool tryParseHeaderLine(String line) {
+    if (line.contains(_headerStartLine)) {
+      // This is the start of a new non-symbolic stack trace, so reset all the
+      // stored information to be parsed anew.
+      _os = null;
+      _arch = null;
+      _compressed = null;
+      _simulated = null;
+      _isolateStart = null;
+      _vmStart = null;
+      return true;
+    }
+    RegExpMatch? match = _osArchLineRE.firstMatch(line);
+    if (match != null) {
+      _os = match[1]!;
+      _arch = match[2]!;
+      _compressed = match[3]! == "yes";
+      _simulated = match[4]! == "yes";
+      // The architecture line always proceeds the instructions section line,
+      // so reset these to null just in case we missed the header line.
+      _isolateStart = null;
+      _vmStart = null;
+      return true;
+    }
+    match = _instructionsLineRE.firstMatch(line);
+    if (match != null) {
+      _isolateStart = int.parse(match[1]!, radix: 16);
+      _vmStart = int.parse(match[2]!, radix: 16);
+      return true;
+    }
+    return false;
+  }
 
   /// The [PCOffset] for the given absolute program counter address.
-  PCOffset offsetOf(int address) {
-    final isolateOffset = address - _isolateStart;
-    var vmOffset = address - _vmStart;
+  PCOffset? offsetOf(int address) {
+    if (_isolateStart == null || _vmStart == null) return null;
+    final isolateOffset = address - _isolateStart!;
+    var vmOffset = address - _vmStart!;
     if (vmOffset > 0 && vmOffset == min(vmOffset, isolateOffset)) {
-      return PCOffset(vmOffset, InstructionsSection.vm);
+      return PCOffset(vmOffset, InstructionsSection.vm,
+          os: _os,
+          architecture: _arch,
+          compressedPointers: _compressed,
+          usingSimulator: _simulated);
     } else {
-      return PCOffset(isolateOffset, InstructionsSection.isolate);
+      return PCOffset(isolateOffset, InstructionsSection.isolate,
+          os: _os,
+          architecture: _arch,
+          compressedPointers: _compressed,
+          usingSimulator: _simulated);
     }
   }
 }
@@ -81,7 +137,8 @@ final _traceLineRE = RegExp(
 /// any hexdecimal digits will be parsed as decimal.
 ///
 /// Returns null if the string is not of the expected format.
-PCOffset? tryParseSymbolOffset(String s, [bool forceHexadecimal = false]) {
+PCOffset? tryParseSymbolOffset(String s,
+    {bool forceHexadecimal = false, StackTraceHeader? header}) {
   final match = _symbolOffsetRE.firstMatch(s);
   if (match == null) return null;
   final symbolString = match.namedGroup('symbol')!;
@@ -99,31 +156,38 @@ PCOffset? tryParseSymbolOffset(String s, [bool forceHexadecimal = false]) {
   if (offset == null) return null;
   switch (symbolString) {
     case constants.vmSymbolName:
-      return PCOffset(offset, InstructionsSection.vm);
+      return PCOffset(offset, InstructionsSection.vm,
+          os: header?.os,
+          architecture: header?.architecture,
+          compressedPointers: header?.compressedPointers,
+          usingSimulator: header?.usingSimulator);
     case constants.isolateSymbolName:
-      return PCOffset(offset, InstructionsSection.isolate);
+      return PCOffset(offset, InstructionsSection.isolate,
+          os: header?.os,
+          architecture: header?.architecture,
+          compressedPointers: header?.compressedPointers,
+          usingSimulator: header?.usingSimulator);
     default:
       break;
   }
   return null;
 }
 
-PCOffset? _retrievePCOffset(StackTraceHeader? header, RegExpMatch? match) {
+PCOffset? _retrievePCOffset(StackTraceHeader header, RegExpMatch? match) {
   if (match == null) return null;
   final restString = match.namedGroup('rest')!;
   // Try checking for symbol information first, since we don't need the header
   // information to translate it.
   if (restString.isNotEmpty) {
-    final offset = tryParseSymbolOffset(restString);
+    final offset = tryParseSymbolOffset(restString, header: header);
     if (offset != null) return offset;
   }
   // If we're parsing the absolute address, we can only convert it into
   // a PCOffset if we saw the instructions line of the stack trace header.
-  if (header != null) {
-    final addressString = match.namedGroup('absolute')!;
-    final address = int.parse(addressString, radix: 16);
-    return header.offsetOf(address);
-  }
+  final addressString = match.namedGroup('absolute')!;
+  final address = int.parse(addressString, radix: 16);
+  final pcOffset = header.offsetOf(address);
+  if (pcOffset != null) return pcOffset;
   // If all other cases failed, check for a virtual address. Until this package
   // depends on a version of Dart which only prints virtual addresses when the
   // virtual addresses in the snapshot are the same as in separately saved
@@ -131,18 +195,20 @@ PCOffset? _retrievePCOffset(StackTraceHeader? header, RegExpMatch? match) {
   final virtualString = match.namedGroup('virtual');
   if (virtualString != null) {
     final address = int.parse(virtualString, radix: 16);
-    return PCOffset(address, InstructionsSection.none);
+    return PCOffset(address, InstructionsSection.none,
+        os: header.os,
+        architecture: header.architecture,
+        compressedPointers: header.compressedPointers,
+        usingSimulator: header.usingSimulator);
   }
   return null;
 }
 
 /// The [PCOffset]s for frames of the non-symbolic stack traces in [lines].
 Iterable<PCOffset> collectPCOffsets(Iterable<String> lines) sync* {
-  StackTraceHeader? header;
+  final header = StackTraceHeader();
   for (var line in lines) {
-    final parsedHeader = _parseInstructionsLine(line);
-    if (parsedHeader != null) {
-      header = parsedHeader;
+    if (header.tryParseHeaderLine(line)) {
       continue;
     }
     final match = _traceLineRE.firstMatch(line);
@@ -185,11 +251,10 @@ class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
   @override
   Stream<String> bind(Stream<String> stream) async* {
     var depth = 0;
-    StackTraceHeader? header;
+    final header = StackTraceHeader();
     await for (final line in stream) {
-      final parsedHeader = _parseInstructionsLine(line);
-      if (parsedHeader != null) {
-        header = parsedHeader;
+      // If we successfully parse a header line, then we reset the depth to 0.
+      if (header.tryParseHeaderLine(line)) {
         depth = 0;
         yield line;
         continue;

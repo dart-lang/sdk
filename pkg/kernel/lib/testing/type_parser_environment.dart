@@ -464,13 +464,12 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
   }
 
   @override
-  TypeParameterType visitIntersectionType(
+  IntersectionType visitIntersectionType(
       ParsedIntersectionType node, TypeParserEnvironment environment) {
     TypeParameterType type =
         _parseType(node.a, environment) as TypeParameterType;
     DartType bound = _parseType(node.b, environment);
-    return new TypeParameterType.intersection(
-        type.parameter, type.nullability, bound);
+    return new IntersectionType(type, bound);
   }
 
   Supertype toSupertype(InterfaceType type) {

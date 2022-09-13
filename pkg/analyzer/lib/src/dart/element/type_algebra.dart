@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 /// Generates a fresh copy of the given type parameters, with their bounds
 /// substituted to reference the new parameters.
@@ -183,7 +184,7 @@ abstract class Substitution {
     if (type.typeArguments.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return fromPairs(type.element.typeParameters, type.typeArguments);
+    return fromPairs(type.element2.typeParameters, type.typeArguments);
   }
 
   /// Substitutes each parameter to the type it maps to in [map].
@@ -514,7 +515,7 @@ abstract class _TypeSubstitutor
     }
 
     return InterfaceTypeImpl(
-      element: type.element,
+      element2: type.element2,
       typeArguments: typeArguments,
       nullabilitySuffix: type.nullabilitySuffix,
       alias: alias,
@@ -546,8 +547,44 @@ abstract class _TypeSubstitutor
   DartType visitNeverType(NeverType type) => type;
 
   @override
+  DartType visitRecordType(covariant RecordTypeImpl type) {
+    final before = useCounter;
+
+    final positionalFields = type.positionalFields.map((field) {
+      return RecordTypePositionalFieldImpl(
+        type: field.type.accept(this),
+      );
+    }).toList();
+
+    final namedFields = type.namedFields.map((field) {
+      return RecordTypeNamedFieldImpl(
+        name: field.name,
+        type: field.type.accept(this),
+      );
+    }).toList();
+
+    final alias = _mapAlias(type.alias);
+    if (useCounter == before) {
+      return type;
+    }
+
+    return RecordTypeImpl(
+      positionalFields: positionalFields,
+      namedFields: namedFields,
+      nullabilitySuffix: type.nullabilitySuffix,
+      alias: alias,
+    );
+  }
+
+  @override
+  DartType visitRecordTypeBuilder(RecordTypeBuilder type) {
+    // TODO: implement visitRecordTypeBuilder
+    throw UnimplementedError();
+  }
+
+  @override
   DartType visitTypeParameterType(TypeParameterType type) {
-    var argument = getSubstitute(type.element);
+    var argument = getSubstitute(type.element2);
     if (argument == null) {
       return type;
     }

@@ -48,6 +48,11 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitIntersectionType(ir.IntersectionType node, StringBuffer sb) {
+    sb.write(node.left.parameter.name);
+  }
+
+  @override
   void visitFunctionType(ir.FunctionType node, StringBuffer sb) {
     writeType(node.returnType, sb);
     sb.write(' Function');
@@ -81,6 +86,27 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
       }
       String comma = '';
       for (ir.NamedType namedType in node.namedParameters) {
+        sb.write(comma);
+        sb.write(namedType.name);
+        sb.write(': ');
+        writeType(namedType.type, sb);
+        comma = ',';
+      }
+    }
+    sb.write(')');
+  }
+
+  @override
+  void visitRecordType(ir.RecordType node, StringBuffer sb) {
+    sb.write('Record');
+    sb.write('(');
+    _writeTypes(node.positional, sb);
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) {
+        sb.write(',');
+      }
+      String comma = '';
+      for (ir.NamedType namedType in node.named) {
         sb.write(comma);
         sb.write(namedType.name);
         sb.write(': ');

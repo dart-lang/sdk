@@ -37,7 +37,7 @@ main() {
     defineReflectiveTests(AnalysisDriverSchedulerTest);
     defineReflectiveTests(AnalysisDriverTest);
     defineReflectiveTests(AnalysisDriver_PubPackageTest);
-    defineReflectiveTests(AnalysisDriver_BazelWorkspaceTest);
+    defineReflectiveTests(AnalysisDriver_BlazeWorkspaceTest);
   });
 }
 
@@ -54,19 +54,18 @@ Future pumpEventQueue([int times = 5000]) {
 }
 
 @reflectiveTest
-class AnalysisDriver_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
+class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
   void test_nestedLib_notCanonicalUri() async {
     var outerLibPath = '$workspaceRootPath/my/outer/lib';
 
-    var innerPath = convertPath('$outerLibPath/inner/lib/b.dart');
+    var innerFile = newFile('$outerLibPath/inner/lib/b.dart', 'class B {}');
     var innerUri = Uri.parse('package:my.outer.lib.inner/b.dart');
-    newFile(innerPath, 'class B {}');
 
-    var analysisSession = contextFor(innerPath).currentSession;
+    var analysisSession = contextFor(innerFile).currentSession;
 
     void assertInnerUri(ResolvedUnitResult result) {
       var innerLibrary = result.libraryElement.importedLibraries
-          .where((e) => e.source.fullName == innerPath)
+          .where((e) => e.source.fullName == innerFile.path)
           .single;
       expect(innerLibrary.source.uri, innerUri);
     }
@@ -112,7 +111,7 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
   }
 
   test_getLibraryByUri_cannotResolveUri() async {
-    final driver = driverFor(testFile.path);
+    final driver = driverFor(testFile);
     expect(
       await driver.getLibraryByUri('foo:bar'),
       isA<CannotResolveUriResult>(),
@@ -124,7 +123,7 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
 library augment 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     expect(
       await driver.getLibraryByUri('package:test/a.dart'),
       isA<NotLibraryButAugmentationResult>(),
@@ -136,7 +135,7 @@ library augment 'b.dart';
 part of 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     expect(
       await driver.getLibraryByUri('package:test/a.dart'),
       isA<NotLibraryButPartResult>(),
@@ -144,7 +143,7 @@ part of 'b.dart';
   }
 
   test_getParsedLibraryByUri_cannotResolveUri() async {
-    final driver = driverFor(testFile.path);
+    final driver = driverFor(testFile);
     final uri = Uri.parse('foo:bar');
     expect(
       driver.getParsedLibraryByUri(uri),
@@ -157,7 +156,7 @@ part of 'b.dart';
 library augment 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     final uri = Uri.parse('package:test/a.dart');
     expect(
       driver.getParsedLibraryByUri(uri),
@@ -170,7 +169,7 @@ library augment 'b.dart';
 part of 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     final uri = Uri.parse('package:test/a.dart');
     expect(
       driver.getParsedLibraryByUri(uri),
@@ -183,7 +182,7 @@ part of 'b.dart';
 library augment 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     expect(
       await driver.getResolvedLibrary(a.path),
       isA<NotLibraryButAugmentationResult>(),
@@ -195,7 +194,7 @@ library augment 'b.dart';
 part of 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     expect(
       await driver.getResolvedLibrary(a.path),
       isA<NotLibraryButPartResult>(),
@@ -203,7 +202,7 @@ part of 'b.dart';
   }
 
   test_getResolvedLibraryByUri_cannotResolveUri() async {
-    final driver = driverFor(testFile.path);
+    final driver = driverFor(testFile);
     final uri = Uri.parse('foo:bar');
     expect(
       await driver.getResolvedLibraryByUri(uri),
@@ -216,7 +215,7 @@ part of 'b.dart';
 library augment 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     final uri = Uri.parse('package:test/a.dart');
     expect(
       await driver.getResolvedLibraryByUri(uri),
@@ -229,7 +228,7 @@ library augment 'b.dart';
 part of 'b.dart';
 ''');
 
-    final driver = driverFor(a.path);
+    final driver = driverFor(a);
     final uri = Uri.parse('package:test/a.dart');
     expect(
       await driver.getResolvedLibraryByUri(uri),
@@ -1749,8 +1748,8 @@ class B {}
 
     var result = await driver.getLibraryByUri(aUriStr);
     result as LibraryElementResult;
-    expect(result.element.getType('A'), isNotNull);
-    expect(result.element.getType('B'), isNotNull);
+    expect(result.element.getClass('A'), isNotNull);
+    expect(result.element.getClass('B'), isNotNull);
 
     // It is an error to ask for a library when we know that it is a part.
     expect(
@@ -1877,7 +1876,7 @@ class B {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    assertType(f.declaredElement!.type, 'int Function()');
+    assertType(f.declaredElement2!.type, 'int Function()');
     assertType(f.returnType!.typeOrThrow, 'int');
 
     // The same result is also received through the stream.
@@ -2090,8 +2089,8 @@ export 'dart:math';
     ResolvedUnitResult result = await driver.getResultValid(testFile);
     expect(result.path, testFile);
     // Has only exports for valid URIs.
-    List<ExportElement> imports = result.libraryElement.exports;
-    expect(imports.map((import) {
+    final exports = result.libraryElement.libraryExports;
+    expect(exports.map((import) {
       return import.exportedLibrary?.source.uri.toString();
     }), ['dart:async', null, 'dart:math']);
   }
@@ -2107,7 +2106,7 @@ import 'dart:math';
     ResolvedUnitResult result = await driver.getResultValid(testFile);
     expect(result.path, testFile);
     // Has only imports for valid URIs.
-    List<ImportElement> imports = result.libraryElement.imports;
+    final imports = result.libraryElement.libraryImports;
     expect(imports.map((import) {
       return import.importedLibrary?.source.uri.toString();
     }), ['dart:async', null, 'dart:math', 'dart:core']);
@@ -2442,10 +2441,10 @@ class C {
 
     var result = await driver.getResultValid(b);
     var c = _getTopLevelVar(result.unit, 'c');
-    var typeC = c.declaredElement!.type as InterfaceType;
+    var typeC = c.declaredElement2!.type as InterfaceType;
     // The class C has an old field 'foo', not the new 'bar'.
-    expect(typeC.element.getField('foo'), isNotNull);
-    expect(typeC.element.getField('bar'), isNull);
+    expect(typeC.element2.getField('foo'), isNotNull);
+    expect(typeC.element2.getField('bar'), isNull);
   }
 
   test_importOfNonLibrary_part_afterLibrary() async {
@@ -3382,7 +3381,7 @@ class F extends X {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    assertType(f.declaredElement!.type, 'int Function()');
+    assertType(f.declaredElement2!.type, 'int Function()');
     assertType(f.returnType!.typeOrThrow, 'int');
   }
 
@@ -3504,21 +3503,21 @@ var v = 0
   void _assertClassFieldType(CompilationUnit unit, String className,
       String fieldName, String expected) {
     var node = _getClassField(unit, className, fieldName);
-    var type = node.declaredElement!.type;
+    var type = node.declaredElement2!.type;
     assertType(type, expected);
   }
 
   void _assertClassMethodReturnType(CompilationUnit unit, String className,
       String fieldName, String expected) {
     var node = _getClassMethod(unit, className, fieldName);
-    var type = node.declaredElement!.returnType;
+    var type = node.declaredElement2!.returnType;
     assertType(type, expected);
   }
 
   void _assertTopLevelVarType(
       CompilationUnit unit, String name, String expected) {
     VariableDeclaration variable = _getTopLevelVar(unit, name);
-    assertType(variable.declaredElement!.type, expected);
+    assertType(variable.declaredElement2!.type, expected);
   }
 
   void _expectCircularityError(EvaluationResultImpl evaluationResult) {
@@ -3532,7 +3531,7 @@ var v = 0
   ClassDeclaration _getClass(CompilationUnit unit, String name) {
     for (CompilationUnitMember declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
-        if (declaration.name.name == name) {
+        if (declaration.name2.lexeme == name) {
           return declaration;
         }
       }
@@ -3546,7 +3545,7 @@ var v = 0
     for (ClassMember declaration in classDeclaration.members) {
       if (declaration is FieldDeclaration) {
         for (var field in declaration.fields.variables) {
-          if (field.name.name == fieldName) {
+          if (field.name2.lexeme == fieldName) {
             return field;
           }
         }
@@ -3560,7 +3559,7 @@ var v = 0
     ClassDeclaration classDeclaration = _getClass(unit, className);
     for (ClassMember declaration in classDeclaration.members) {
       if (declaration is MethodDeclaration &&
-          declaration.name.name == methodName) {
+          declaration.name2.lexeme == methodName) {
         return declaration;
       }
     }
@@ -3568,9 +3567,10 @@ var v = 0
         '$unit');
   }
 
-  ImportElement _getImportElement(CompilationUnit unit, int directiveIndex) {
+  LibraryImportElement _getImportElement(
+      CompilationUnit unit, int directiveIndex) {
     var import = unit.directives[directiveIndex] as ImportDirective;
-    return import.element!;
+    return import.element2!;
   }
 
   Source _getImportSource(CompilationUnit unit, int directiveIndex) {
@@ -3581,7 +3581,7 @@ var v = 0
     for (CompilationUnitMember declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in declaration.variables.variables) {
-          if (variable.name.name == name) {
+          if (variable.name2.lexeme == name) {
             return variable;
           }
         }

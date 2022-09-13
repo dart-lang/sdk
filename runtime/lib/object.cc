@@ -11,6 +11,7 @@
 #include "vm/heap/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -313,9 +314,41 @@ DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
   return Object::null();
 }
 
+DEFINE_NATIVE_ENTRY(Internal_writeHeapSnapshotToFile, 0, 1) {
+#if !defined(PRODUCT)
+  const String& filename =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
+  {
+    FileHeapSnapshotWriter file_writer(thread, filename.ToCString());
+    HeapSnapshotWriter writer(thread, &file_writer);
+    writer.Write();
+  }
+#else
+  Exceptions::ThrowUnsupportedError(
+      "Heap snapshots are only supported in non-product mode.");
+#endif  // !defined(PRODUCT)
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
   DeoptimizeFunctionsOnStack();
   return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Internal_randomInstructionsOffsetInsideAllocateObjectStub,
+                    0,
+                    0) {
+  auto& stub = Code::Handle(
+      zone, isolate->group()->object_store()->allocate_object_stub());
+  const uword entry = stub.EntryPoint();
+  const uword random_offset = isolate->random()->NextUInt32() % stub.Size();
+  // We return the offset into the isolate instructions instead of the full
+  // address because that fits into small Smis on 32-bit architectures or
+  // compressed pointer builds.
+  const uword instructions_start =
+      reinterpret_cast<uword>(isolate->source()->snapshot_instructions);
+  ASSERT(entry >= instructions_start);
+  return Smi::New((entry - instructions_start) + random_offset);
 }
 
 static bool ExtractInterfaceTypeArgs(Zone* zone,

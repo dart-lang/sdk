@@ -54,7 +54,7 @@ class FlutterWrapBuilder extends CorrectionProducer {
         builder.writeln(';');
 
         builder.write(indentNew1);
-        builder.writeln('}');
+        builder.writeln('}${codeStyleOptions.addTrailingCommas ? "," : ""}');
 
         builder.write(indentOld);
         builder.write(')');

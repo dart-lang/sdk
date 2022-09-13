@@ -97,7 +97,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   FormalParameterBuilder(this.metadata, this.kind, this.modifiers, this.type,
       this.name, LibraryBuilder? compilationUnit, int charOffset,
-      {Uri? fileUri, this.isExtensionThis: false})
+      {Uri? fileUri, this.isExtensionThis = false})
       : this.fileUri = fileUri ?? compilationUnit?.fileUri,
         super(compilationUnit, charOffset) {
     type.registerInferredTypeListener(this);
@@ -268,7 +268,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
             bodyBuilder.transformCollections,
             library.library);
         initializerWasInferred = true;
-        bodyBuilder.performBacklogComputations(delayedActionPerformers);
+        bodyBuilder.performBacklogComputations(
+            delayedActionPerformers: delayedActionPerformers,
+            allowFurtherDelays: false);
       } else if (kind != FormalParameterKind.requiredPositional) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;

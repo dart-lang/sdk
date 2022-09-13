@@ -9,13 +9,13 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
 class ClassHierarchy {
-  final Map<ClassElement, _Hierarchy> _map = {};
+  final Map<InterfaceElement, _Hierarchy> _map = {};
 
-  List<ClassHierarchyError> errors(ClassElement element) {
+  List<ClassHierarchyError> errors(InterfaceElement element) {
     return _getHierarchy(element).errors;
   }
 
-  List<InterfaceType> implementedInterfaces(ClassElement element) {
+  List<InterfaceType> implementedInterfaces(InterfaceElement element) {
     return _getHierarchy(element).interfaces;
   }
 
@@ -30,7 +30,7 @@ class ClassHierarchy {
     });
   }
 
-  _Hierarchy _getHierarchy(ClassElement element) {
+  _Hierarchy _getHierarchy(InterfaceElement element) {
     var hierarchy = _map[element];
 
     if (hierarchy != null) {
@@ -55,7 +55,7 @@ class ClassHierarchy {
       interfacesMerger.add(type);
 
       var substitution = Substitution.fromInterfaceType(type);
-      var rawInterfaces = implementedInterfaces(type.element);
+      var rawInterfaces = implementedInterfaces(type.element2);
       for (var rawInterface in rawInterfaces) {
         var newInterface =
             substitution.substituteType(rawInterface) as InterfaceType;
@@ -65,9 +65,13 @@ class ClassHierarchy {
       }
     }
 
-    append(element.supertype);
-    for (var type in element.superclassConstraints) {
-      append(type);
+    if (element is ClassElement) {
+      append(element.supertype);
+    }
+    if (element is MixinElement) {
+      for (var type in element.superclassConstraints) {
+        append(type);
+      }
     }
     for (var type in element.interfaces) {
       append(type);
@@ -114,7 +118,7 @@ class IncompatibleInterfacesClassHierarchyError extends ClassHierarchyError {
 
 class InterfacesMerger {
   final TypeSystemImpl _typeSystem;
-  final _map = <ClassElement, _ClassInterfaceType>{};
+  final Map<InterfaceElement, _ClassInterfaceType> _map = {};
 
   InterfacesMerger(this._typeSystem);
 
@@ -123,7 +127,7 @@ class InterfacesMerger {
   }
 
   void add(InterfaceType type) {
-    var element = type.element;
+    var element = type.element2;
     var classResult = _map[element];
     if (classResult == null) {
       classResult = _ClassInterfaceType(_typeSystem);

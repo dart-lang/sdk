@@ -131,6 +131,84 @@ class A {
     expect(res, hasLength(0));
   }
 
+  Future<void> test_comment_enumMember_qualified() async {
+    final contents = '''
+      /// [A.o^ne].
+      enum A {
+        [[one]],
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_extensionMember() async {
+    final contents = '''
+      /// [myFi^eld]
+      extension on String {
+        String get [[myField]] => '';
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_extensionMember_qualified() async {
+    final contents = '''
+      /// [StringExtension.myFi^eld]
+      extension StringExtension on String {
+        String get [[myField]] => '';
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_instanceMember_qualified() async {
+    final contents = '''
+      /// [A.myFi^eld].
+      class A {
+        final String [[myField]] = '';
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_instanceMember_qualified_inherited() async {
+    final contents = '''
+      class A {
+        final String [[myField]] = '';
+      }
+      /// [B.myFi^eld].
+      class B extends A {}
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_namedConstructor_qualified() async {
+    final contents = '''
+      /// [A.nam^ed].
+      class A {
+        A.[[named]]();
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_comment_staticMember_qualified() async {
+    final contents = '''
+      /// [A.myStaticFi^eld].
+      class A {
+        static final String [[myStaticField]] = '';
+      }
+    ''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_constructor() async {
     final contents = '''
 f() {
@@ -167,6 +245,17 @@ f() {
 
 class [[A]] {
   A.named();
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_fieldFormalParam() async {
+    final contents = '''
+class A {
+  final String [[a]];
+  A(this.^a});
 }
 ''';
 
@@ -397,6 +486,19 @@ part of 'ma^in.dart';
   Future<void> test_sameLine() async {
     final contents = '''
 int plusOne(int [[value]]) => 1 + val^ue;
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_superFormalParam() async {
+    final contents = '''
+class A {
+  A({required int [[a]]});
+}
+class B extends A {
+  B({required super.^a}) : assert(a > 0);
+}
 ''';
 
     await testContents(contents);

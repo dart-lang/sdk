@@ -30,11 +30,11 @@ Widget build(BuildContext context) {
     await initialize(initializationOptions: {'closingLabels': true});
 
     final labelsUpdateBeforeChange = waitForClosingLabels(mainFileUri);
-    openFile(mainFileUri, initialContent);
+    await openFile(mainFileUri, initialContent);
     final labelsBeforeChange = await labelsUpdateBeforeChange;
 
     final labelsUpdateAfterChange = waitForClosingLabels(mainFileUri);
-    replaceFile(1, mainFileUri, updatedContent);
+    await replaceFile(1, mainFileUri, updatedContent);
     final labelsAfterChange = await labelsUpdateAfterChange;
 
     expect(labelsBeforeChange, isEmpty);
@@ -70,7 +70,7 @@ Widget build(BuildContext context) {
     await initialize(initializationOptions: {'closingLabels': true});
 
     final closingLabelsUpdate = waitForClosingLabels(mainFileUri);
-    openFile(mainFileUri, content);
+    await openFile(mainFileUri, content);
     final labels = await closingLabelsUpdate;
 
     expect(labels, hasLength(2));

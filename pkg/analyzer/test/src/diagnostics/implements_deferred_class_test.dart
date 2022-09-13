@@ -68,13 +68,13 @@ mixin M implements math.Random {}
       error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 56, 11),
     ]);
     var mathImport = findElement.import('dart:math');
-    var randomElement = mathImport.importedLibrary!.getType('Random')!;
+    var randomElement = mathImport.importedLibrary!.getClass('Random')!;
 
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, ['Random']);
 
     var typeRef = findNode.namedType('Random {}');
     assertNamedType(typeRef, randomElement, 'Random',
-        expectedPrefix: mathImport.prefix);
+        expectedPrefix: mathImport.prefix?.element);
   }
 }

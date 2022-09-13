@@ -135,12 +135,14 @@ import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_abstract_test.dart' as remove_abstract;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
+import 'remove_assertion_test.dart' as remove_assertion;
 import 'remove_assignment_test.dart' as remove_assignment;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
 import 'remove_constructor_name_test.dart' as remove_constructor_name;
 import 'remove_dead_code_test.dart' as remove_dead_code;
+import 'remove_default_value_test.dart' as remove_default_value;
 import 'remove_deprecated_new_in_comment_reference_test.dart'
     as remove_deprecated_new_in_comment_reference;
 import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
@@ -163,6 +165,7 @@ import 'remove_parentheses_in_getter_invocation_test.dart'
     as remove_parentheses_in_getter_invocation;
 import 'remove_print_test.dart' as remove_print;
 import 'remove_question_mark_test.dart' as remove_question_mark;
+import 'remove_required_test.dart' as remove_required;
 import 'remove_returned_value_test.dart' as remove_returned_value;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
@@ -354,12 +357,14 @@ void main() {
     remove_abstract.main();
     remove_annotation.main();
     remove_argument.main();
+    remove_assertion.main();
     remove_assignment.main();
     remove_await.main();
     remove_comparison.main();
     remove_const.main();
     remove_constructor_name.main();
     remove_dead_code.main();
+    remove_default_value.main();
     remove_deprecated_new_in_comment_reference.main();
     remove_duplicate_case.main();
     remove_empty_catch.main();
@@ -378,6 +383,7 @@ void main() {
     remove_parentheses_in_getter_invocation.main();
     remove_print.main();
     remove_question_mark.main();
+    remove_required.main();
     remove_returned_value.main();
     remove_this_expression.main();
     remove_type_annotation.main();

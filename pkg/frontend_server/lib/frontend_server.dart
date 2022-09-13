@@ -7,7 +7,7 @@ library frontend_server;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Directory, File, IOSink, stdin, stdout;
+import 'dart:io' show File, IOSink, stdout;
 import 'dart:typed_data' show BytesBuilder;
 
 import 'package:args/args.dart';
@@ -31,15 +31,12 @@ import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:package_config/package_config.dart';
-import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 
-import 'src/binary_protocol.dart';
 import 'src/javascript_bundle.dart';
-import 'src/strong_components.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -58,8 +55,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
           'supported when --aot and --minimal-kernel are not used.',
       defaultsTo: null)
-  ..addFlag('compact-async',
-      help: 'Enable new compact async/await implementation.', defaultsTo: true)
+  ..addFlag('compact-async', help: 'Obsolete, ignored.', hide: true)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
@@ -206,6 +202,11 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('print-incremental-dependencies',
       help: 'Print list of sources added and removed from compilation',
       defaultsTo: true)
+  ..addOption('resident-info-file-name',
+      help:
+          'Allowing for incremental compilation of changes when using the Dart CLI.'
+          ' Stores server information in this file for accessing later',
+      hide: true)
   ..addOption('verbosity',
       help: 'Sets the verbosity level of the compilation',
       defaultsTo: Verbosity.defaultValue,
@@ -360,10 +361,10 @@ class FrontendCompiler implements CompilerInterface {
       {this.printerFactory,
       this.transformer,
       this.unsafePackageSerialization,
-      this.incrementalSerialization: true,
-      this.useDebuggerModuleNames: false,
-      this.emitDebugMetadata: false,
-      this.emitDebugSymbols: false}) {
+      this.incrementalSerialization = true,
+      this.useDebuggerModuleNames = false,
+      this.emitDebugMetadata = false,
+      this.emitDebugSymbols = false}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
@@ -385,7 +386,7 @@ class FrontendCompiler implements CompilerInterface {
   ArgResults _options;
 
   IncrementalCompiler _generator;
-  JavaScriptBundler _bundler;
+  IncrementalJavaScriptBundler _bundler;
 
   WidgetCache _widgetCache;
 
@@ -543,7 +544,6 @@ class FrontendCompiler implements CompilerInterface {
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
-      compactAsync: options['compact-async'],
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
@@ -610,7 +610,8 @@ class FrontendCompiler implements CompilerInterface {
 
       if (_compilerOptions.target.name == 'dartdevc') {
         await writeJavascriptBundle(results, _kernelBinaryFilename,
-            options['filesystem-scheme'], options['dartdevc-module-format']);
+            options['filesystem-scheme'], options['dartdevc-module-format'],
+            fullComponent: true);
       }
       await writeDillFile(results, _kernelBinaryFilename,
           filterExternal: importDill != null || options['minimal-kernel'],
@@ -669,16 +670,30 @@ class FrontendCompiler implements CompilerInterface {
 
   /// Write a JavaScript bundle containg the provided component.
   Future<void> writeJavascriptBundle(KernelCompilationResults results,
-      String filename, String fileSystemScheme, String moduleFormat) async {
+      String filename, String fileSystemScheme, String moduleFormat,
+      {bool fullComponent}) async {
+    assert(fullComponent != null);
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
             File('.dart_tool/package_config.json').absolute.uri);
     var soundNullSafety = _compilerOptions.nnbdMode == NnbdMode.Strong;
     final Component component = results.component;
-    // Compute strongly connected components.
-    final strongComponents = StrongComponents(component,
-        results.loadedLibraries, _mainSource, _compilerOptions.fileSystem);
-    await strongComponents.computeModules();
+
+    _bundler ??= IncrementalJavaScriptBundler(
+      _compilerOptions.fileSystem,
+      results.loadedLibraries,
+      fileSystemScheme,
+      useDebuggerModuleNames: useDebuggerModuleNames,
+      emitDebugMetadata: emitDebugMetadata,
+      moduleFormat: moduleFormat,
+      soundNullSafety: soundNullSafety,
+    );
+    if (fullComponent) {
+      await _bundler.initialize(component, _mainSource);
+    } else {
+      await _bundler.invalidate(
+          component, _generator.lastKnownGoodResult?.component, _mainSource);
+    }
 
     // Create JavaScript bundler.
     final File sourceFile = File('$filename.sources');
@@ -689,13 +704,7 @@ class FrontendCompiler implements CompilerInterface {
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
-    _bundler = JavaScriptBundler(
-        component, strongComponents, fileSystemScheme, packageConfig,
-        useDebuggerModuleNames: useDebuggerModuleNames,
-        emitDebugMetadata: emitDebugMetadata,
-        emitDebugSymbols: emitDebugSymbols,
-        moduleFormat: moduleFormat,
-        soundNullSafety: soundNullSafety);
+
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
@@ -705,7 +714,7 @@ class FrontendCompiler implements CompilerInterface {
     final kernel2JsCompilers = await _bundler.compile(
         results.classHierarchy,
         results.coreTypes,
-        results.loadedLibraries,
+        packageConfig,
         sourceFileSink,
         manifestFileSink,
         sourceMapsFileSink,
@@ -722,7 +731,7 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   writeDillFile(KernelCompilationResults results, String filename,
-      {bool filterExternal: false,
+      {bool filterExternal = false,
       IncrementalSerializer incrementalSerializer}) async {
     final Component component = results.component;
     final IOSink sink = File(filename).openWrite();
@@ -844,7 +853,8 @@ class FrontendCompiler implements CompilerInterface {
 
     if (_compilerOptions.target.name == 'dartdevc') {
       await writeJavascriptBundle(results, _kernelBinaryFilename,
-          _options['filesystem-scheme'], _options['dartdevc-module-format']);
+          _options['filesystem-scheme'], _options['dartdevc-module-format'],
+          fullComponent: false);
     } else {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
@@ -1371,92 +1381,4 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
         break;
     }
   });
-}
-
-/// Entry point for this module, that creates `_FrontendCompiler` instance and
-/// processes user input.
-/// `compiler` is an optional parameter so it can be replaced with mocked
-/// version for testing.
-Future<int> starter(
-  List<String> args, {
-  CompilerInterface compiler,
-  Stream<List<int>> input,
-  StringSink output,
-  IncrementalCompiler generator,
-  BinaryPrinterFactory binaryPrinterFactory,
-}) async {
-  ArgResults options;
-  try {
-    options = argParser.parse(args);
-  } catch (error) {
-    print('ERROR: $error\n');
-    print(usage);
-    return 1;
-  }
-
-  if (options['train']) {
-    if (options.rest.isEmpty) {
-      throw Exception('Must specify input.dart');
-    }
-
-    final String input = options.rest[0];
-    final String sdkRoot = options['sdk-root'];
-    final String platform = options['platform'];
-    final Directory temp =
-        Directory.systemTemp.createTempSync('train_frontend_server');
-    try {
-      final String outputTrainingDill = path.join(temp.path, 'app.dill');
-      final List<String> args = <String>[
-        '--incremental',
-        '--sdk-root=$sdkRoot',
-        '--output-dill=$outputTrainingDill',
-      ];
-      if (platform != null) {
-        args.add('--platform=${Uri.file(platform)}');
-      }
-      options = argParser.parse(args);
-      compiler ??=
-          FrontendCompiler(output, printerFactory: binaryPrinterFactory);
-
-      await compiler.compile(input, options, generator: generator);
-      compiler.acceptLastDelta();
-      await compiler.recompileDelta();
-      compiler.acceptLastDelta();
-      compiler.resetIncrementalCompiler();
-      await compiler.recompileDelta();
-      compiler.acceptLastDelta();
-      await compiler.recompileDelta();
-      compiler.acceptLastDelta();
-      return 0;
-    } finally {
-      temp.deleteSync(recursive: true);
-    }
-  }
-
-  final binaryProtocolAddressStr = options['binary-protocol-address'];
-  if (binaryProtocolAddressStr is String) {
-    runBinaryProtocol(binaryProtocolAddressStr);
-    return 0;
-  }
-
-  compiler ??= FrontendCompiler(output,
-      printerFactory: binaryPrinterFactory,
-      unsafePackageSerialization: options["unsafe-package-serialization"],
-      incrementalSerialization: options["incremental-serialization"],
-      useDebuggerModuleNames: options['debugger-module-names'],
-      emitDebugMetadata: options['experimental-emit-debug-metadata'],
-      emitDebugSymbols: options['emit-debug-symbols']);
-
-  if (options.rest.isNotEmpty) {
-    return await compiler.compile(options.rest[0], options,
-            generator: generator)
-        ? 0
-        : 254;
-  }
-
-  Completer<int> completer = Completer<int>();
-  var subscription = listenAndCompile(
-      compiler, input ?? stdin, options, completer,
-      generator: generator);
-  return completer.future..then((value) => subscription.cancel());
 }

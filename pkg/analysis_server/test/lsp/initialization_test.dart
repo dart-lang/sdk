@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,10 +44,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
             as Map<String, Object?>);
   }
 
-  Future<void> test_bazelWorkspace() async {
+  Future<void> test_blazeWorkspace() async {
     var workspacePath = '/home/user/ws';
-    // Make it a Bazel workspace.
-    newFile(convertPath('$workspacePath/WORKSPACE'), '');
+    // Make it a Blaze workspace.
+    newFile('$workspacePath/${file_paths.blazeWorkspaceMarker}', '');
 
     var packagePath = '$workspacePath/team/project1';
 
@@ -327,6 +328,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         expect(options.change, equals(TextDocumentSyncKind.Incremental));
       },
     );
+    expect(initResult.capabilities.callHierarchyProvider, isNotNull);
     expect(initResult.capabilities.completionProvider, isNotNull);
     expect(initResult.capabilities.hoverProvider, isNotNull);
     expect(initResult.capabilities.signatureHelpProvider, isNotNull);
@@ -387,6 +389,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Ensure no static registrations. This list should include all server equivalents
     // of the dynamic registrations listed in `ClientDynamicRegistrations.supported`.
     expect(initResult.capabilities.textDocumentSync, isNull);
+    expect(initResult.capabilities.callHierarchyProvider, isNull);
     expect(initResult.capabilities.completionProvider, isNull);
     expect(initResult.capabilities.hoverProvider, isNull);
     expect(initResult.capabilities.signatureHelpProvider, isNull);
@@ -470,14 +473,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // The server will send an unregister request followed by another register
     // request to change document filter on folding. We need to respond to the
     // unregister request as the server awaits that.
-    requestsFromServer
+    // This is set up as a future callback and should not be awaited here.
+    unawaited(requestsFromServer
         .firstWhere((r) => r.method == Method.client_unregisterCapability)
         .then((request) {
       respondTo(request, null);
-      return UnregistrationParams.fromJson(
-              request.params as Map<String, Object?>)
-          .unregisterations;
-    });
+    }));
 
     final request = await expectRequest(Method.client_registerCapability, () {
       final plugin = configureTestPlugin();
@@ -811,12 +812,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([file1]));
   }
 
-  Future<void> test_nonProjectFiles_bazelWorkspace() async {
+  Future<void> test_nonProjectFiles_blazeWorkspace() async {
     final file1 = convertPath('/home/nonProject/file1.dart');
     newFile(file1, '');
 
-    // Make /home a bazel workspace.
-    newFile(convertPath('/home/WORKSPACE'), '');
+    // Make /home a Blaze workspace.
+    newFile('/home/${file_paths.blazeWorkspaceMarker}', '');
 
     await initialize(allowEmptyRootUri: true);
 

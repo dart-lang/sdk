@@ -6,8 +6,6 @@
 
 // Implementation of `Timer` and `scheduleMicrotask` via the JS event loop.
 
-import 'dart:_internal' show patch, scheduleCallback;
-
 @patch
 class Timer {
   @patch

@@ -97,7 +97,7 @@ class InstantiationStubGenerator {
     // TODO(sra): .withSourceInformation(sourceInformation);
 
     jsAst.Name name = _namer.invocationName(callSelector);
-    return ParameterStubMethod(name, null, function);
+    return ParameterStubMethod(name, null, function, element: functionField);
   }
 
   /// Generates a stub for a 'signature' selector. The stub calls the underlying
@@ -120,7 +120,8 @@ class InstantiationStubGenerator {
     // TODO(sra): Generate source information for stub that has no member.
     // TODO(sra): .withSourceInformation(sourceInformation);
 
-    return ParameterStubMethod(operatorSignature, null, function);
+    return ParameterStubMethod(operatorSignature, null, function,
+        element: functionField);
   }
 
   jsAst.Fun _generateSignatureNewRti(FieldEntity functionField) =>

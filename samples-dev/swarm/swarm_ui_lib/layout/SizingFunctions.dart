@@ -6,9 +6,7 @@ part of layout;
 
 // This file has classes representing the grid sizing functions
 
-/**
- * Represents the sizing function used for the min or max of a row or column.
- */
+/// Represents the sizing function used for the min or max of a row or column.
 // TODO(jmesserly): rename to GridSizing, or make internal
 class SizingFunction {
   const SizingFunction();
@@ -26,13 +24,11 @@ class SizingFunction {
   SizingFunction clone() => this;
 }
 
-/**
- * Fixed size reprensents a length as defined by CSS3 Values spec.
- * Can also be a percentage of the Grid element's logical width (for columns)
- * or logical height (for rows). When the width or height of the Grid element
- * is undefined, the percentage is ignored and the Grid Track will be
- * auto-sized.
- */
+/// Fixed size represents a length as defined by CSS3 Values spec.
+/// Can also be a percentage of the Grid element's logical width (for columns)
+/// or logical height (for rows). When the width or height of the Grid element
+/// is undefined, the percentage is ignored and the Grid Track will be
+/// auto-sized.
 class FixedSizing extends SizingFunction {
   final String units;
   final num length;
@@ -49,10 +45,13 @@ class FixedSizing extends SizingFunction {
   }
 
   // TODO(jmesserly): this is only needed because of our mutable property
+  @override
   FixedSizing clone() => FixedSizing(length, units);
 
+  @override
   bool get isMinContentSized => _contentSized;
 
+  @override
   num resolveLength(num? gridSize) {
     if (units == '%') {
       if (gridSize == null) {
@@ -68,60 +67,66 @@ class FixedSizing extends SizingFunction {
     }
   }
 
-  String toString() => 'FixedSizing: ${length}${units} $_contentSized';
+  @override
+  String toString() => 'FixedSizing: $length$units $_contentSized';
 }
 
-/**
- * Fraction is a non-negative floating-point number followed by 'fr'. Each
- * fraction value takes a share of the remaining space proportional to its
- * number.
- */
+/// Fraction is a non-negative floating-point number followed by 'fr'. Each
+/// fraction value takes a share of the remaining space proportional to its
+/// number.
 class FractionSizing extends SizingFunction {
+  @override
   final num fractionValue;
   FractionSizing(this.fractionValue);
 
+  @override
   bool get isFraction => true;
 
+  @override
   String toString() => 'FixedSizing: ${fractionValue}fr';
 }
 
 class MinContentSizing extends SizingFunction {
   const MinContentSizing();
 
+  @override
   bool get isMinContentSized => true;
 
+  @override
   String toString() => 'MinContentSizing';
 }
 
 class MaxContentSizing extends SizingFunction {
   const MaxContentSizing();
 
+  @override
   bool get isMaxContentSized {
     return true;
   }
 
+  @override
   String toString() => 'MaxContentSizing';
 }
 
-/** The min and max sizing functions for a track. */
+/// The min and max sizing functions for a track. */
 class TrackSizing {
-  /** The min sizing function for the track. */
+  /// The min sizing function for the track. */
   final SizingFunction min;
 
-  /** The min sizing function for the track. */
+  /// The min sizing function for the track. */
   final SizingFunction max;
 
   const TrackSizing.auto()
       : min = const MinContentSizing(),
         max = const MaxContentSizing();
 
-  TrackSizing(this.min, this.max) {}
+  TrackSizing(this.min, this.max);
 
   // TODO(jmesserly): this is only needed because FixedSizing is mutable
   TrackSizing clone() => TrackSizing(min.clone(), max.clone());
 }
 
-/** Represents a GridTrack breadth property. */
+/// Represents a GridTrack breadth property. */
 // TODO(jmesserly): these classes could be replaced with reflection/mirrors
 abstract class _BreadthAccumulator {
   void setSize(GridTrack? t, num value);
@@ -133,23 +138,29 @@ abstract class _BreadthAccumulator {
 class _UsedBreadthAccumulator implements _BreadthAccumulator {
   const _UsedBreadthAccumulator();
 
+  @override
   void setSize(GridTrack? t, num value) {
     t!.usedBreadth = value;
   }
 
+  @override
   num? getSize(GridTrack? t) => t!.usedBreadth;
 
+  @override
   SizingFunction getSizingFunction(GridTrack? t) => t!.minSizing;
 }
 
 class _MaxBreadthAccumulator implements _BreadthAccumulator {
   const _MaxBreadthAccumulator();
 
+  @override
   void setSize(GridTrack? t, num value) {
     t!.maxBreadth = value;
   }
 
+  @override
   num? getSize(GridTrack? t) => t!.maxBreadth;
 
+  @override
   SizingFunction getSizingFunction(GridTrack? t) => t!.maxSizing;
 }

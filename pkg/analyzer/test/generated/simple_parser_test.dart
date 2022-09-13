@@ -108,10 +108,10 @@ class SimpleParserTest extends FastaParserTestCase {
 class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
 ''');
     var clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.name, 'C');
+    expect(clazz.name2.lexeme, 'C');
     expect(clazz.typeParameters!.typeParameters, hasLength(1));
     TypeParameter typeParameter = clazz.typeParameters!.typeParameters[0];
-    expect(typeParameter.name.name, 'T');
+    expect(typeParameter.name2.lexeme, 'T');
     expect(typeParameter.metadata, hasLength(1));
     Annotation metadata = typeParameter.metadata[0];
     expect(metadata.name.name, 'Foo.bar');
@@ -154,7 +154,7 @@ class C {
     expect(method.parameters!.parameters, hasLength(1));
     var parameter =
         method.parameters!.parameters[0] as FunctionTypedFormalParameter;
-    expect(parameter.identifier, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_parseAnnotation_n1() {
@@ -719,77 +719,6 @@ class C {}
     expect(identifier.token, isNotNull);
     expect(identifier.name, "a");
     expect(identifier.offset, 5);
-  }
-
-  void test_parseCommentReferences_33738() {
-    CompilationUnit unit =
-        parseCompilationUnit('/** [String] */ abstract class Foo {}');
-    var clazz = unit.declarations[0] as ClassDeclaration;
-    Comment comment = clazz.documentationComment!;
-    expect(clazz.isAbstract, isTrue);
-    List<CommentReference> references = comment.references;
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.expression, isNotNull);
-    expect(reference.offset, 5);
-  }
-
-  void test_parseCommentReferences_beforeAnnotation() {
-    CompilationUnit unit = parseCompilationUnit('''
-/// See [int] and [String]
-/// and [Object].
-@Annotation
-abstract class Foo {}
-''');
-    var clazz = unit.declarations[0] as ClassDeclaration;
-    Comment comment = clazz.documentationComment!;
-    expect(clazz.isAbstract, isTrue);
-    List<CommentReference> references = comment.references;
-    expect(references, hasLength(3));
-
-    expectReference(int index, String expectedText, int expectedOffset) {
-      CommentReference reference = references[index];
-      var identifier = reference.expression as Identifier;
-      expect(identifier.name, expectedText);
-      expect(reference.offset, expectedOffset);
-    }
-
-    expectReference(0, 'int', 9);
-    expectReference(1, 'String', 19);
-    expectReference(2, 'Object', 36);
-  }
-
-  void test_parseCommentReferences_complex() {
-    CompilationUnit unit = parseCompilationUnit('''
-/// This dartdoc comment [should] be ignored
-@Annotation
-/// This dartdoc comment is [included].
-// a non dartdoc comment [inbetween]
-/// See [int] and [String] but `not [a]`
-/// ```
-/// This [code] block should be ignored
-/// ```
-/// and [Object].
-abstract class Foo {}
-''');
-    var clazz = unit.declarations[0] as ClassDeclaration;
-    Comment comment = clazz.documentationComment!;
-    expect(clazz.isAbstract, isTrue);
-    List<CommentReference> references = comment.references;
-    expect(references, hasLength(4));
-
-    expectReference(int index, String expectedText, int expectedOffset) {
-      CommentReference reference = references[index];
-      var identifier = reference.expression as Identifier;
-      expect(identifier.name, expectedText);
-      expect(reference.offset, expectedOffset);
-    }
-
-    expectReference(0, 'included', 86);
-    expectReference(1, 'int', 143);
-    expectReference(2, 'String', 153);
-    expectReference(3, 'Object', 240);
   }
 
   void test_parseCommentReferences_multiLine() {
@@ -1649,13 +1578,13 @@ Function<A>(core.List<core.int> x) m() => null;
 
     expect(parameters[0], isSimpleFormalParameter);
     var parameter = parameters[0] as SimpleFormalParameter;
-    expect(parameter.identifier, isNull);
+    expect(parameter.name, isNull);
     expect(parameter.type, isNamedType);
     expect((parameter.type as NamedType).name.name, 'int');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
-    expect(parameter.identifier, isNull);
+    expect(parameter.name, isNull);
     expect(parameter.type, isNamedType);
     expect((parameter.type as NamedType).name.name, 'int');
   }
@@ -1734,15 +1663,15 @@ Function<A>(core.List<core.int> x) m() => null;
 
     expect(parameters[0], isSimpleFormalParameter);
     var parameter = parameters[0] as SimpleFormalParameter;
-    expect(parameter.identifier, isNotNull);
-    expect(parameter.identifier!.name, 's');
+    expect(parameter.name, isNotNull);
+    expect(parameter.name!.lexeme, 's');
     expect(parameter.type, isNamedType);
     expect((parameter.type as NamedType).name.name, 'String');
 
     expect(parameters[1], isSimpleFormalParameter);
     parameter = parameters[1] as SimpleFormalParameter;
-    expect(parameter.identifier, isNotNull);
-    expect(parameter.identifier!.name, 'i');
+    expect(parameter.name, isNotNull);
+    expect(parameter.name!.lexeme, 'i');
     expect(parameter.type, isNamedType);
     expect((parameter.type as NamedType).name.name, 'int');
   }
@@ -1920,7 +1849,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isGenericFunctionType);
     expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name, isNotNull);
+    expect(parameter.name2, isNotNull);
   }
 
   void test_parseTypeParameter_bounded_functionType_return() {
@@ -1930,7 +1859,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isGenericFunctionType);
     expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name, isNotNull);
+    expect(parameter.name2, isNotNull);
   }
 
   void test_parseTypeParameter_bounded_generic() {
@@ -1940,7 +1869,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isNamedType);
     expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name, isNotNull);
+    expect(parameter.name2, isNotNull);
   }
 
   void test_parseTypeParameter_bounded_simple() {
@@ -1950,7 +1879,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isNamedType);
     expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name, isNotNull);
+    expect(parameter.name2, isNotNull);
   }
 
   void test_parseTypeParameter_simple() {
@@ -1960,7 +1889,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isNull);
     expect(parameter.extendsKeyword, isNull);
-    expect(parameter.name, isNotNull);
+    expect(parameter.name2, isNotNull);
   }
 
   void test_parseTypeParameterList_multiple() {
@@ -1992,7 +1921,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(parameterList.rightBracket, isNotNull);
     expect(parameterList.typeParameters, hasLength(1));
     TypeParameter typeParameter = parameterList.typeParameters[0];
-    expect(typeParameter.name.name, 'A');
+    expect(typeParameter.name2.lexeme, 'A');
     var bound = typeParameter.bound as NamedType;
     expect(bound.name.name, 'B');
     var typeArguments = bound.typeArguments!;
@@ -2026,7 +1955,7 @@ Function<A>(core.List<core.int> x) m() => null;
     VariableDeclaration declaration = parseVariableDeclaration('var a = b;');
     expectNotNullIfNoErrors(declaration);
     assertNoErrors();
-    expect(declaration.name, isNotNull);
+    expect(declaration.name2, isNotNull);
     expect(declaration.equals, isNotNull);
     expect(declaration.initializer, isNotNull);
   }
@@ -2111,7 +2040,7 @@ Function<A>(core.List<core.int> x) m() => null;
     VariableDeclaration declaration = parseVariableDeclaration('var a;');
     expectNotNullIfNoErrors(declaration);
     assertNoErrors();
-    expect(declaration.name, isNotNull);
+    expect(declaration.name2, isNotNull);
     expect(declaration.equals, isNull);
     expect(declaration.initializer, isNull);
   }
@@ -2143,11 +2072,11 @@ Function<A>(core.List<core.int> x) m() => null;
       expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
     ]);
     var typeAlias = unit.declarations[0] as GenericTypeAlias;
-    expect(typeAlias.name.toSource(), 'K');
+    expect(typeAlias.name2.lexeme, 'K');
     var functionType = typeAlias.functionType!;
     expect(functionType.parameters.parameters, hasLength(1));
     var parameter = functionType.parameters.parameters[0];
-    expect(parameter.identifier, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_typeAlias_parameter_missingIdentifier_37733() {
@@ -2157,10 +2086,10 @@ Function<A>(core.List<core.int> x) m() => null;
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
     ]);
     var typeAlias = unit.declarations[0] as GenericTypeAlias;
-    expect(typeAlias.name.toSource(), 'T');
+    expect(typeAlias.name2.lexeme, 'T');
     var functionType = typeAlias.functionType!;
     expect(functionType.parameters.parameters, hasLength(1));
     var parameter = functionType.parameters.parameters[0];
-    expect(parameter.identifier, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 }

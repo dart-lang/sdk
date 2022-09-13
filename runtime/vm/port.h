@@ -63,9 +63,12 @@ class PortMap : public AllStatic {
   // Returns the owning Isolate for port 'id'.
   static Isolate* GetIsolate(Dart_Port id);
 
+  // Returns the origin id for port 'id'.
+  static Dart_Port GetOriginId(Dart_Port id);
+
   // Whether the destination port's isolate is a member of [isolate_group].
-  static bool IsReceiverInThisIsolateGroup(Dart_Port receiver,
-                                           IsolateGroup* group);
+  static bool IsReceiverInThisIsolateGroupOrClosed(Dart_Port receiver,
+                                                   IsolateGroup* group);
 
   static void Init();
   static void Cleanup();

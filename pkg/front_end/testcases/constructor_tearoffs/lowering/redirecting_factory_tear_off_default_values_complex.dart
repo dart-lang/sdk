@@ -138,7 +138,7 @@ expect(expected, actual) {
   if (expected != actual) throw 'Expected $expected, actual $actual';
 }
 
-throws(Function() f, {bool inSoundModeOnly: false}) {
+throws(Function() f, {bool inSoundModeOnly = false}) {
   try {
     f();
   } catch (e) {

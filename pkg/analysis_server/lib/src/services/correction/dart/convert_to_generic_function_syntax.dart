@@ -76,7 +76,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
     }
 
     var functionName = utils.getRangeText(
-        range.startEnd(node.name, node.typeParameters ?? node.name));
+        range.startEnd(node.name2, node.typeParameters ?? node.name2));
     var parameters = utils.getNodeText(node.parameters);
     String replacement;
     if (returnType == null) {
@@ -102,8 +102,8 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
     var returnTypeNode = node.returnType;
     var returnType =
         returnTypeNode != null ? '${utils.getNodeText(returnTypeNode)} ' : '';
-    var functionName = utils.getRangeText(range.startEnd(
-        node.identifier, node.typeParameters ?? node.identifier));
+    var functionName = utils.getRangeText(
+        range.startEnd(node.name, node.typeParameters ?? node.name));
     var parameters = utils.getNodeText(node.parameters);
     var question = node.question != null ? '?' : '';
     var replacement =

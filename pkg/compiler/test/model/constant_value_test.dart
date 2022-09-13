@@ -7,6 +7,7 @@
 library dart2js.constants.values.test;
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -30,8 +31,10 @@ void main() {
     """);
     ClassEntity C = env.getClass('C');
     InterfaceType C_raw = env.elementEnvironment.getRawType(C);
-    FieldEntity field1 = env.elementEnvironment.lookupClassMember(C, 'field1');
-    FieldEntity field2 = env.elementEnvironment.lookupClassMember(C, 'field2');
+    FieldEntity field1 =
+        env.elementEnvironment.lookupClassMember(C, PublicName('field1'));
+    FieldEntity field2 =
+        env.elementEnvironment.lookupClassMember(C, PublicName('field2'));
     ConstructedConstantValue value1 = new ConstructedConstantValue(C_raw, {
       field1: new IntConstantValue(BigInt.zero),
       field2: new IntConstantValue(BigInt.one),

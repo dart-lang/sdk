@@ -104,7 +104,7 @@
   "id": "outputUnit/1",
   "kind": "outputUnit",
   "name": "1",
-  "size": 1087,
+  "size": 1112,
   "filename": "out_1.part.js",
   "imports": [
     "lib"
@@ -236,7 +236,7 @@
 
 import 'lib.dart' deferred as lib;
 
-/*spec.member: main:
+/*member: main:
  closure=[{
   "id": "closure/memory:sdk/tests/web/native/main.dart::main.main_closure",
   "kind": "closure",
@@ -300,49 +300,6 @@ import 'lib.dart' deferred as lib;
   "code": "call$1(_) {\n      A.checkDeferredIsLoaded(\"lib\");\n      C.C_Deferred.call$0();\n    }",
   "type": "Null Function(dynamic)",
   "functionKind": 2
-}],
- holding=[
-  {"id":"function/dart:_js_helper::loadDeferredLibrary","mask":null},
-  {"id":"function/dart:_rti::_setArrayType","mask":null},
-  {"id":"function/dart:_rti::findType","mask":null},
-  {"id":"function/dart:async::_Future.then","mask":"[exact=_Future]"},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call","mask":null},
-  {"id":"function/memory:sdk/tests/web/native/main.dart::main.main_closure.call","mask":null}]
-*/
-/*canary.member: main:
- closure=[{
-  "id": "closure/memory:sdk/tests/web/native/main.dart::main.main_closure",
-  "kind": "closure",
-  "name": "main_closure",
-  "size": 201,
-  "outputUnit": "outputUnit/main",
-  "parent": "function/memory:sdk/tests/web/native/main.dart::main",
-  "function": "function/memory:sdk/tests/web/native/main.dart::main.main_closure.call"
-}],
- function=[{
-  "id": "function/memory:sdk/tests/web/native/main.dart::main",
-  "kind": "function",
-  "name": "main",
-  "size": 301,
-  "outputUnit": "outputUnit/main",
-  "parent": "library/memory:sdk/tests/web/native/main.dart::",
-  "children": [
-    "closure/memory:sdk/tests/web/native/main.dart::main.main_closure"
-  ],
-  "modifiers": {
-    "static": false,
-    "const": false,
-    "factory": false,
-    "external": false
-  },
-  "returnType": "dynamic",
-  "inferredReturnType": "[exact=_Future]",
-  "parameters": [],
-  "sideEffects": "SideEffects(reads anything; writes anything)",
-  "inlinedCount": 0,
-  "code": "main() {\n      return A.loadDeferredLibrary(\"lib\").then$1$1(new A.main_closure(), type$.Null);\n    }",
-  "type": "dynamic Function()",
-  "functionKind": 0
 }],
  holding=[
   {"id":"function/dart:_js_helper::loadDeferredLibrary","mask":null},

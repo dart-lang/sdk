@@ -17,12 +17,12 @@ library /*isNonNullableByDefault*/;
 // const bool nullAwareOnNull = barFromEnvOrNull ?? true;
 //                              ^
 //
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:101:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
 //  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
 //   const Class.method(T t) : this(-t);
 //                                  ^
 //
-// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:123:27: Error: The parameter 'named' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:124:27: Error: The parameter 'named' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
 // int procedure(int i, {int named}) => i;
 //                           ^^^^^
@@ -91,7 +91,7 @@ class Class<T extends self::A> extends core::Object /*hasConstConstructor*/  {
     : this self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class::T)
     ;
   const constructor method(self::Class::T t) → self::Class<self::Class::T>
-    : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+    : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:101:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
@@ -151,7 +151,7 @@ static const field core::bool isMapOfMapOfInt2 = #C9;
 static const field core::Symbol symbolWithUnevaluatedParameter = #C37;
 static const field core::Symbol symbolWithInvalidName = #C38;
 static const field self::Class<self::B>? c0 = #C44;
-static const field self::Class<self::A>? c1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+static const field self::Class<self::A>? c1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:101:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^";
@@ -171,7 +171,7 @@ static method procedure(core::int i, {core::int named = #C10}) → core::int
   return i;
 static method main() → dynamic {
   core::print(#C44);
-  core::print(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+  core::print(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:101:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^");
@@ -273,13 +273,13 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///various.dart:
-- C. (from org-dartlang-testcase:///various.dart:92:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
-- Class.redirect (from org-dartlang-testcase:///various.dart:99:9)
-- Class. (from org-dartlang-testcase:///various.dart:98:9)
-- A. (from org-dartlang-testcase:///various.dart:80:9)
-- Class.method (from org-dartlang-testcase:///various.dart:100:9)
-- Subclass. (from org-dartlang-testcase:///various.dart:104:9)
-- B. (from org-dartlang-testcase:///various.dart:86:9)
+- C. (from org-dartlang-testcase:///various.dart:93:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- Class.redirect (from org-dartlang-testcase:///various.dart:100:9)
+- Class. (from org-dartlang-testcase:///various.dart:99:9)
+- A. (from org-dartlang-testcase:///various.dart:81:9)
+- Class.method (from org-dartlang-testcase:///various.dart:101:9)
+- Subclass. (from org-dartlang-testcase:///various.dart:105:9)
+- B. (from org-dartlang-testcase:///various.dart:87:9)
 - Foo. (from org-dartlang-testcase:///various.dart:31:9)
-- ConstClassWithF. (from org-dartlang-testcase:///various.dart:120:9)
+- ConstClassWithF. (from org-dartlang-testcase:///various.dart:121:9)

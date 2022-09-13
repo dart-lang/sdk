@@ -22,6 +22,7 @@ import 'package:analyzer/dart/element/element.dart'
         Element,
         ExecutableElement,
         ExtensionElement,
+        InterfaceElement,
         LibraryElement,
         LocalVariableElement,
         ParameterElement,
@@ -967,10 +968,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // There are no completions.
     data.recordPercentage(
         'Methods with type parameters', node.typeParameters != null);
-    var element = node.declaredElement!;
-    if (!element.isStatic && element.enclosingElement is ClassElement) {
+    var element = node.declaredElement2!;
+    if (!element.isStatic && element.enclosingElement3 is ClassElement) {
       var overriddenMembers = inheritanceManager.getOverridden2(
-          element.enclosingElement as ClassElement,
+          element.enclosingElement3 as ClassElement,
           Name(element.librarySource.uri, element.name));
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the
@@ -993,7 +994,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (node.target is SuperExpression) {
       var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
       if (enclosingMethod != null) {
-        if (enclosingMethod.name.name == node.methodName.name) {
+        if (enclosingMethod.name2.lexeme == node.methodName.name) {
           data.recordTypeMatch('super invocation member', 'same');
         } else {
           data.recordTypeMatch('super invocation member', 'different');
@@ -1120,7 +1121,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (node.target is SuperExpression) {
       var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
       if (enclosingMethod != null) {
-        if (enclosingMethod.name.name == node.propertyName.name) {
+        if (enclosingMethod.name2.lexeme == node.propertyName.name) {
           data.recordTypeMatch('super property access member', 'same');
         } else {
           data.recordTypeMatch('super property access member', 'different');
@@ -1406,7 +1407,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     Element? currentElement = element;
     while (currentElement != enclosingLibrary) {
       depth++;
-      currentElement = currentElement?.enclosingElement;
+      currentElement = currentElement?.enclosingElement3;
     }
     return depth;
   }
@@ -1487,12 +1488,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var node = reference;
     while (node != null) {
       if (node is MethodDeclaration) {
-        if (node.declaredElement == function) {
+        if (node.declaredElement2 == function) {
           return depth;
         }
         depth++;
       } else if (node is ConstructorDeclaration) {
-        if (node.declaredElement == function) {
+        if (node.declaredElement2 == function) {
           return depth;
         }
         depth++;
@@ -1570,7 +1571,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       return;
     }
     if (targetType is InterfaceType) {
-      var targetClass = targetType.element;
+      var targetClass = targetType.element2;
       var extension = member.thisOrAncestorOfType<ExtensionElement>();
       if (extension != null) {
         _recordDistance('member (extension)', 0);
@@ -1585,19 +1586,23 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         /// superclasses caused by mixins.
         int getSuperclassDepth() {
           var depth = 0;
-          ClassElement? currentClass = targetClass;
+          InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             if (currentClass == memberClass) {
               return depth;
             }
             for (var mixin in currentClass.mixins.reversed) {
               depth++;
-              if (mixin.element == memberClass) {
+              if (mixin.element2 == memberClass) {
                 return depth;
               }
             }
             depth++;
-            currentClass = currentClass.supertype?.element;
+            if (currentClass is ClassElement) {
+              currentClass = currentClass.supertype?.element2;
+            } else {
+              currentClass = null;
+            }
           }
           return -1;
         }
@@ -1606,10 +1611,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         /// includes all of the implicit superclasses caused by mixins.
         int getTargetDepth() {
           var depth = 0;
-          ClassElement? currentClass = targetClass;
+          InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             depth += currentClass.mixins.length + 1;
-            currentClass = currentClass.supertype?.element;
+            if (currentClass is ClassElement) {
+              currentClass = currentClass.supertype?.element2;
+            } else {
+              break;
+            }
           }
           return depth;
         }
@@ -1688,7 +1697,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var reference = _leftMostIdentifier(node);
     var element = reference?.staticElement;
     if (element is ParameterElement) {
-      var definingElement = element.enclosingElement!;
+      var definingElement = element.enclosingElement3!;
       var depth = _parameterReferenceDepth(node, definingElement);
       _recordDistance('function depth of referenced parameter', depth);
     } else if (element is LocalVariableElement) {
@@ -1816,20 +1825,20 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           argumentType is InterfaceType &&
           parameterType is InterfaceType) {
         int distance;
-        if (parameterType.element == typeProvider.futureOrElement) {
+        if (parameterType.element2 == typeProvider.futureOrElement) {
           var typeArgument = parameterType.typeArguments[0];
           distance = featureComputer.inheritanceDistance(
-              argumentType.element, typeProvider.futureElement);
+              argumentType.element2, typeProvider.futureElement);
           if (typeArgument is InterfaceType) {
             var argDistance = featureComputer.inheritanceDistance(
-                argumentType.element, typeArgument.element);
+                argumentType.element2, typeArgument.element2);
             if (distance < 0 || (argDistance >= 0 && argDistance < distance)) {
               distance = argDistance;
             }
           }
         } else {
           distance = featureComputer.inheritanceDistance(
-              argumentType.element, parameterType.element);
+              argumentType.element2, parameterType.element2);
         }
         data.recordDistance('Subtype of context type ($descriptor)', distance);
         data.recordDistance('Subtype of context type (all)', distance);

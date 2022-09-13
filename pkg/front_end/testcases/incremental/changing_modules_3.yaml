@@ -65,6 +65,7 @@ worlds:
         - Field unique_SimulateTransformer
     neededDillLibraries:
       - package:foo/foo.dart
+    advancedInvalidation: modulesToLoad
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -97,3 +98,4 @@ worlds:
       package:foo/foo.dart:
         - Field foo2
         - Field unique_SimulateTransformer
+    advancedInvalidation: modulesToLoad

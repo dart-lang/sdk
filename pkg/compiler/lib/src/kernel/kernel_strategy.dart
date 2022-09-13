@@ -51,7 +51,10 @@ import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.
-class KernelFrontendStrategy implements KernelFrontendStrategyForBackendUsage {
+class KernelFrontendStrategy
+    implements
+        KernelFrontendStrategyForBackendUsage,
+        KernelFrontendStrategyForDeferredLoading {
   final CompilerOptions _options;
   final CompilerTask _compilerTask;
   /*late*/ KernelToElementMap _elementMap;
@@ -117,7 +120,7 @@ class KernelFrontendStrategy implements KernelFrontendStrategyForBackendUsage {
         (_, MemberEntity member) {
       if (!member.isInstanceMember) return;
       MemberEntity interceptorMember = elementEnvironment
-          .lookupLocalClassMember(interceptorClass, member.name);
+          .lookupLocalClassMember(interceptorClass, member.memberName);
       // Interceptors must override all Object methods due to calling convention
       // differences.
       assert(
@@ -154,8 +157,8 @@ class KernelFrontendStrategy implements KernelFrontendStrategyForBackendUsage {
     // TODO(johnniwinther): This is a hack. The annotation data is built while
     // using it. With CFE constants the annotations data can be built fully
     // before creating the resolution enqueuer.
-    AnnotationsData annotationsData = AnnotationsDataImpl(
-        compiler.options, annotationsDataBuilder.pragmaAnnotations);
+    AnnotationsData annotationsData = AnnotationsDataImpl(compiler.options,
+        compiler.reporter, annotationsDataBuilder.pragmaAnnotations);
     InterceptorDataBuilder interceptorDataBuilder = InterceptorDataBuilderImpl(
         nativeBasicData, elementEnvironment, commonElements);
     return ResolutionEnqueuer(
@@ -245,6 +248,7 @@ class KernelFrontendStrategy implements KernelFrontendStrategyForBackendUsage {
 
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.
+  @override
   KernelElementEnvironment get elementEnvironment =>
       _elementMap.elementEnvironment;
 
@@ -392,6 +396,9 @@ class KernelWorkItem implements WorkItem {
           node,
           pragmaAnnotationData);
       _annotationsDataBuilder.registerPragmaAnnotations(element, annotations);
+      // TODO(sra): Replace the above three statements with a single call to a
+      // new API on AnnotationsData that causes the annotations to be parsed and
+      // checked.
 
       ModularMemberData modularMemberData =
           _modularStrategy.getModularMemberData(node, annotations);

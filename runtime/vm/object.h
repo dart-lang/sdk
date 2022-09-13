@@ -314,6 +314,9 @@ class Object {
   bool IsCanonical() const { return ptr()->untag()->IsCanonical(); }
   void SetCanonical() const { ptr()->untag()->SetCanonical(); }
   void ClearCanonical() const { ptr()->untag()->ClearCanonical(); }
+  bool IsImmutable() const { return ptr()->untag()->IsImmutable(); }
+  void SetImmutable() const { ptr()->untag()->SetImmutable(); }
+  void ClearImmutable() const { ptr()->untag()->ClearImmutable(); }
   intptr_t GetClassId() const {
     return !ptr()->IsHeapObject() ? static_cast<intptr_t>(kSmiCid)
                                   : ptr()->untag()->GetClassId();
@@ -1110,6 +1113,19 @@ class Class : public Object {
     StoreNonPointer(&untag()->id_, value);
   }
   static intptr_t id_offset() { return OFFSET_OF(UntaggedClass, id_); }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If the interface of this class has a single concrete implementation, either
+  // via `extends` or by `implements`, returns its CID.
+  // If it has no implementation, returns kIllegalCid.
+  // If it has more than one implementation, returns kDynamicCid.
+  intptr_t implementor_cid() const { return untag()->implementor_cid_; }
+
+  // Returns true if the implementor tracking state changes and so must be
+  // propagated to this class's superclass and interfaces.
+  bool NoteImplementor(const Class& implementor) const;
+#endif
+
   static intptr_t num_type_arguments_offset() {
     return OFFSET_OF(UntaggedClass, num_type_arguments_);
   }
@@ -1465,6 +1481,9 @@ class Class : public Object {
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
 
+  intptr_t FindFieldIndex(const Field& needle) const;
+  FieldPtr FieldFromIndex(intptr_t idx) const;
+
   // If this is a dart:internal.ClassID class, then inject our own const
   // fields. Returns true if synthetic fields are injected and regular
   // field declarations should be ignored.
@@ -1492,6 +1511,7 @@ class Class : public Object {
   }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
+  intptr_t FindFunctionIndex(const Function& needle) const;
   FunctionPtr FunctionFromIndex(intptr_t idx) const;
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;
@@ -1531,6 +1551,9 @@ class Class : public Object {
     return RoundedAllocationSize(sizeof(UntaggedClass));
   }
 
+  // Returns true if any class implements this interface via `implements`.
+  // Returns false if all possible implementations of this interface must be
+  // instances of this class or its subclasses.
   bool is_implemented() const { return ImplementedBit::decode(state_bits()); }
   void set_is_implemented() const;
   void set_is_implemented_unsafe() const;
@@ -1716,6 +1739,9 @@ class Class : public Object {
   // Allocate the raw TypedDataView/ByteDataView classes.
   static ClassPtr NewTypedDataViewClass(intptr_t class_id,
                                         IsolateGroup* isolate_group);
+  static ClassPtr NewUnmodifiableTypedDataViewClass(
+      intptr_t class_id,
+      IsolateGroup* isolate_group);
 
   // Allocate the raw ExternalTypedData classes.
   static ClassPtr NewExternalTypedDataClass(intptr_t class_id,
@@ -1874,6 +1900,7 @@ class Class : public Object {
   void set_user_name(const String& value) const;
   const char* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
+  void set_implementor_cid(intptr_t value) const;
 
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,
@@ -2717,9 +2744,6 @@ class Function : public Object {
   // Can only be called on FFI trampolines.
   // -1 for Dart -> native calls.
   int32_t FfiCallbackId() const;
-
-  // Can only be called on FFI trampolines.
-  void SetFfiCallbackId(int32_t value) const;
 
   // Can only be called on FFI trampolines.
   bool FfiIsLeaf() const;
@@ -3576,104 +3600,26 @@ class Function : public Object {
            UntaggedFunction::kFfiTrampoline;
   }
 
-  // Recognise async functions like:
-  //   user_func async {
-  //     // ...
-  //   }
-  bool IsAsyncFunction() const {
-    return modifier() == UntaggedFunction::kAsync;
-  }
-
-  // TODO(dartbug.com/48378): replace this predicate with IsAsyncFunction()
-  // after old async functions are removed.
-  bool IsCompactAsyncFunction() const {
-    return IsAsyncFunction() && is_debuggable();
-  }
-
-  // TODO(dartbug.com/48378): replace this predicate with IsAsyncGenerator()
-  // after old async* functions are removed.
-  bool IsCompactAsyncStarFunction() const {
-    return IsAsyncGenerator() && is_debuggable();
-  }
-
-  // TODO(dartbug.com/48378): replace this predicate with IsSyncGenerator()
-  // after old sync* functions are removed.
-  bool IsCompactSyncStarFunction() const {
-    return IsSyncGenerator() && is_debuggable();
-  }
-
   // Returns true for functions which execution can be suspended
   // using Suspend/Resume stubs. Such functions have an artificial
   // :suspend_state local variable at the fixed location of the frame.
   bool IsSuspendableFunction() const {
-    return IsCompactAsyncFunction() || IsCompactAsyncStarFunction() ||
-           IsCompactSyncStarFunction();
+    return modifier() != UntaggedFunction::kNoModifier;
   }
 
-  // Recognise synthetic sync-yielding functions like the inner-most:
-  //   user_func /* was async */ {
-  //      :async_op(..) yielding {
-  //        // ...
-  //      }
-  //   }
-  bool IsAsyncClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsAsyncFunction();
+  // Returns true if this function is marked with 'async' modifier.
+  bool IsAsyncFunction() const {
+    return modifier() == UntaggedFunction::kAsync;
   }
 
-  // Recognise sync* functions like:
-  //   user_func sync* {
-  //     // ...
-  //   }
+  // Returns true if this function is marked with 'sync*' modifier.
   bool IsSyncGenerator() const {
     return modifier() == UntaggedFunction::kSyncGen;
   }
 
-  // Recognise synthetic :sync_op_gen()s like:
-  //   user_func /* was sync* */ {
-  //     :sync_op_gen() {
-  //        // ...
-  //      }
-  //   }
-  bool IsSyncGenClosureMaker() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsSyncGenerator();
-  }
-
-  // Recognise async* functions like:
-  //   user_func async* {
-  //     // ...
-  //   }
+  // Returns true if this function is marked with 'async*' modifier.
   bool IsAsyncGenerator() const {
     return modifier() == UntaggedFunction::kAsyncGen;
-  }
-
-  // Recognise synthetic sync-yielding functions like the inner-most:
-  //   user_func /* originally async* */ {
-  //      :async_op(..) yielding {
-  //        // ...
-  //      }
-  //   }
-  bool IsAsyncGenClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsAsyncGenerator();
-  }
-
-  bool IsAsyncOrGenerator() const {
-    return modifier() != UntaggedFunction::kNoModifier;
-  }
-
-  // Recognise synthetic sync-yielding functions like the inner-most:
-  //   user_func /* was sync* */ {
-  //     :sync_op_gen() {
-  //        :sync_op(..) yielding {
-  //          // ...
-  //        }
-  //      }
-  //   }
-  bool IsSyncGenClosure() const {
-    return is_generated_body() &&
-           Function::Handle(parent_function()).IsSyncGenClosureMaker();
   }
 
   bool IsTypedDataViewFactory() const {
@@ -3681,6 +3627,15 @@ class Function : public Object {
       // This is a native factory constructor.
       const Class& klass = Class::Handle(Owner());
       return IsTypedDataViewClassId(klass.id());
+    }
+    return false;
+  }
+
+  bool IsUnmodifiableTypedDataViewFactory() const {
+    if (is_native() && kind() == UntaggedFunction::kConstructor) {
+      // This is a native factory constructor.
+      const Class& klass = Class::Handle(Owner());
+      return IsUnmodifiableTypedDataViewClassId(klass.id());
     }
     return false;
   }
@@ -3855,7 +3810,6 @@ class Function : public Object {
   // native: Bridge to C/C++ code.
   // external: Just a declaration that expects to be defined in another patch
   //           file.
-  // generated_body: Has a generated body.
   // polymorphic_target: A polymorphic method.
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
@@ -3872,7 +3826,6 @@ class Function : public Object {
   V(Intrinsic, is_intrinsic)                                                   \
   V(Native, is_native)                                                         \
   V(External, is_external)                                                     \
-  V(GeneratedBody, is_generated_body)                                          \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
@@ -4545,7 +4498,7 @@ class Field : public Object {
                             const Object& owner,
                             TokenPosition token_pos,
                             TokenPosition end_token_pos);
-  friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
+  friend class StoreFieldInstr;  // Generated code access to bit field.
 
   enum {
     kConstBit = 0,
@@ -7076,13 +7029,6 @@ class Context : public Object {
   static const intptr_t kBytesPerElement = kCompressedWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
-  static const intptr_t kAwaitJumpVarIndex = 0;
-  static const intptr_t kAsyncFutureIndex = 1;
-  static const intptr_t kControllerIndex = 1;
-  // Expected context index of chained futures in recognized async functions.
-  // These are used to unwind async stacks.
-  static const intptr_t kIsSyncIndex = 2;
-
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return sizeof(UntaggedContext); }
     static constexpr intptr_t kElementSize = kBytesPerElement;
@@ -7830,6 +7776,8 @@ class Instance : public Object {
   friend class Closure;
   friend class Pointer;
   friend class DeferredObject;
+  friend class FlowGraphSerializer;
+  friend class FlowGraphDeserializer;
   friend class RegExp;
   friend class StubCode;
   friend class TypedDataView;
@@ -7956,6 +7904,8 @@ class TypeParameters : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameters, Object);
   friend class Class;
   friend class ClassFinalizer;
+  friend class FlowGraphSerializer;
+  friend class FlowGraphDeserializer;
   friend class Function;
   friend class FunctionType;
   friend class Object;
@@ -8157,7 +8107,7 @@ class TypeArguments : public Instance {
     kSizeInWords,
   };
 
-  // The array is terminated by the value kNoInstantiator occuring in place of
+  // The array is terminated by the value kNoInstantiator occurring in place of
   // the instantiator type args of the 4-tuple that would otherwise follow.
   // Therefore, kNoInstantiator must be distinct from any type arguments vector,
   // even a null one. Since arrays are initialized with 0, the instantiations_
@@ -8363,7 +8313,7 @@ class AbstractType : public Instance {
   // type arguments, if any.
   void PrintName(NameVisibility visibility, BaseTextBuffer* printer) const;
 
-  // Add the class name and URI of each occuring type to the uris
+  // Add the class name and URI of each occurring type to the uris
   // list and mark ambiguous triplets to be printed.
   virtual void EnumerateURIs(URIs* uris) const;
 
@@ -9969,6 +9919,7 @@ class OneByteString : public AllStatic {
 
   friend class Class;
   friend class ExternalOneByteString;
+  friend class FlowGraphSerializer;
   friend class ImageWriter;
   friend class String;
   friend class StringHasher;
@@ -10089,6 +10040,7 @@ class TwoByteString : public AllStatic {
   }
 
   friend class Class;
+  friend class FlowGraphSerializer;
   friend class ImageWriter;
   friend class String;
   friend class StringHasher;
@@ -10793,20 +10745,25 @@ class TypedDataBase : public PointerBase {
   }
 
   static TypedDataElementType ElementType(classid_t cid) {
-    if (cid == kByteDataViewCid) {
+    if (cid == kByteDataViewCid || cid == kUnmodifiableByteDataViewCid) {
       return kUint8ArrayElement;
     } else if (IsTypedDataClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 3;
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderInternal) / 4;
       return static_cast<TypedDataElementType>(index);
     } else if (IsTypedDataViewClassId(cid)) {
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 3;
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderView) / 4;
+      return static_cast<TypedDataElementType>(index);
+    } else if (IsExternalTypedDataClassId(cid)) {
+      const intptr_t index =
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 4;
       return static_cast<TypedDataElementType>(index);
     } else {
-      ASSERT(IsExternalTypedDataClassId(cid));
+      ASSERT(IsUnmodifiableTypedDataViewClassId(cid));
       const intptr_t index =
-          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderExternal) / 3;
+          (cid - kTypedDataInt8ArrayCid - kTypedDataCidRemainderUnmodifiable) /
+          4;
       return static_cast<TypedDataElementType>(index);
     }
   }
@@ -10863,7 +10820,7 @@ class TypedDataBase : public PointerBase {
     return size;
   }
   static const intptr_t kNumElementSizes =
-      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 3 + 1;
+      (kTypedDataFloat64x2ArrayCid - kTypedDataInt8ArrayCid) / 4 + 1;
   static const intptr_t element_size_table[kNumElementSizes];
 
   HEAP_OBJECT_IMPLEMENTATION(TypedDataBase, PointerBase);

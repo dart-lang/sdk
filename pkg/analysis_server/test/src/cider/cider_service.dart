@@ -10,7 +10,8 @@ import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 
@@ -33,7 +34,7 @@ class CiderServiceTest with ResourceProviderMixin {
     );
     var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
 
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
       resourceProvider,
       convertPath(testPath),
     )!;
@@ -56,7 +57,7 @@ class CiderServiceTest with ResourceProviderMixin {
 
     logger = PerformanceLog(logBuffer);
 
-    newFile('/workspace/WORKSPACE', '');
+    newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
     newFile('/workspace/dart/test/BUILD', '');
     createFileResolver();
   }

@@ -1,0 +1,75 @@
+void foo() {
+(int, int) record1 = (1, 2);
+(int x, int y) record1Named = (1, 2);
+(int, int, ) record2 = (1, 2);
+(int x, int y, ) record2Named = (1, 2);
+(int, int, {int a, int b}) record3 = (1, 2, a: 3, b: 4);
+(int x, int y, {int a, int b}) record3Named = (1, 2, a: 3, b: 4);
+(int, int, {int a, int b, }) record4 = (1, 2, a: 3, b: 4);
+(int x, int y, {int a, int b, }) record4Named = (1, 2, a: 3, b: 4);
+
+void Function(int, int) foobar;
+
+((int, int), int) record5 = ((1, 2), 2);
+
+int async (int x, int y) {
+print("sync named async with int return type taking 2 parameters");
+}
+
+(int x, int y) async (int x, int y) {
+print("sync named async with record type return type taking 2 parameters");
+}
+
+(int x, int y) async (int x, int y) => print("sync named async with record type return type taking 2 parameters");
+
+(int x, int y) {
+print("sync unnamed taking 2 parameters");
+}();
+
+(int x, int y) => print("sync unnamed taking 2 parameters");
+
+(int x, int y) async {
+print("async unnamed taking 2 parameters");
+}();
+
+(int x, int y) async => print("async unnamed taking 2 parameters");
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] record1[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] record1Named[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken],[SimpleToken] )[SimpleToken] record2[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken],[SimpleToken] )[SimpleToken] record2Named[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken],[SimpleToken] {[BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken]}[SimpleToken])[SimpleToken] record3[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken],[SimpleToken] a[StringToken]:[SimpleToken] 3[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 4[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken],[SimpleToken] {[BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken]}[SimpleToken])[SimpleToken] record3Named[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken],[SimpleToken] a[StringToken]:[SimpleToken] 3[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 4[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken],[SimpleToken] {[BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken],[SimpleToken] }[SimpleToken])[SimpleToken] record4[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken],[SimpleToken] a[StringToken]:[SimpleToken] 3[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 4[StringToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken],[SimpleToken] {[BeginToken]int[StringToken] a[StringToken],[SimpleToken] int[StringToken] b[StringToken],[SimpleToken] }[SimpleToken])[SimpleToken] record4Named[StringToken] =[SimpleToken] ([BeginToken]1[StringToken],[SimpleToken] 2[StringToken],[SimpleToken] a[StringToken]:[SimpleToken] 3[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 4[StringToken])[SimpleToken];[SimpleToken]
+
+void[KeywordToken] Function[KeywordToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] foobar[StringToken];[SimpleToken]
+
+([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken],[SimpleToken] int[StringToken])[SimpleToken] record5[StringToken] =[SimpleToken] ([BeginToken]([BeginToken]1[StringToken],[SimpleToken] 2[StringToken])[SimpleToken],[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+
+int[StringToken] async[KeywordToken] ([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"sync named async with int return type taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] async[KeywordToken] ([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"sync named async with record type return type taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] async[KeywordToken] ([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"sync named async with record type return type taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"sync unnamed taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] =>[SimpleToken] print[StringToken]([BeginToken]"sync unnamed taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] async[KeywordToken] {[BeginToken]
+print[StringToken]([BeginToken]"async unnamed taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] async[KeywordToken] =>[SimpleToken] print[StringToken]([BeginToken]"async unnamed taking 2 parameters"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 
@@ -44,5 +45,35 @@ class GenUtil {
         resourceProvider: provider,
         sdkPath: sdkPath);
     return collection.contexts[0].currentSession;
+  }
+}
+
+extension DartTypeExtension on DartType {
+  /// Returns an approximation of the [DartType] code, suitable for this tool.
+  String get asCode {
+    final type = this;
+    if (type is DynamicType) {
+      return 'dynamic';
+    } else if (type is FunctionType) {
+      final parameters = type.parameters.map((e) => e.type.asCode);
+      return type.returnType.asCode + ' Function($parameters)';
+    } else if (type is InterfaceType) {
+      final typeArguments = type.typeArguments;
+      if (typeArguments.isEmpty ||
+          typeArguments.every((t) => t is DynamicType)) {
+        return type.element2.name;
+      } else {
+        final typeArgumentsStr = typeArguments.map((t) => t.asCode).join(', ');
+        return '${type.element2.name}<$typeArgumentsStr>';
+      }
+    } else if (type is NeverType) {
+      return 'Never';
+    } else if (type is TypeParameterType) {
+      return type.element2.name;
+    } else if (type is VoidType) {
+      return 'void';
+    } else {
+      throw UnimplementedError('(${type.runtimeType}) $type');
+    }
   }
 }

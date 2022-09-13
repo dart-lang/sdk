@@ -97,7 +97,7 @@ void main(List<String> arguments) {
 }
 
 Future runTest(int index, Test test,
-    {bool printJs: false, bool writeJs, bool verbose: false}) async {
+    {bool printJs = false, bool writeJs, bool verbose = false}) async {
   print("--$index------------------------------------------------------------");
   print("Compiling dart2js\n ${test.annotatedCode}");
   OutputCollector collector = new OutputCollector();

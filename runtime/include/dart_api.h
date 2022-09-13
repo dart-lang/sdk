@@ -1277,6 +1277,40 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
  */
 DART_EXPORT void Dart_NotifyLowMemory(void);
 
+typedef enum {
+  /**
+   * Balanced
+   */
+  Dart_PerformanceMode_Default,
+  /**
+   * Optimize for low latency, at the expense of throughput and memory overhead
+   * by performing work in smaller batches (requiring more overhead) or by
+   * delaying work (requiring more memory). An embedder should not remain in
+   * this mode indefinitely.
+   */
+  Dart_PerformanceMode_Latency,
+  /**
+   * Optimize for high throughput, at the expense of latency and memory overhead
+   * by performing work in larger batches with more intervening growth.
+   */
+  Dart_PerformanceMode_Throughput,
+  /**
+   * Optimize for low memory, at the expensive of throughput and latency by more
+   * frequently performing work.
+   */
+  Dart_PerformanceMode_Memory,
+} Dart_PerformanceMode;
+
+/**
+ * Set the desired performance trade-off.
+ *
+ * Requires a current isolate.
+ *
+ * Returns the previous performance mode.
+ */
+DART_EXPORT Dart_PerformanceMode
+Dart_SetPerformanceMode(Dart_PerformanceMode mode);
+
 /**
  * Starts the CPU sampling profiler.
  */
@@ -1615,7 +1649,7 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_RunLoop(void);
  * \param error A non-NULL pointer which will hold an error message if the call
  *   fails. The error has to be free()ed by the caller.
  *
- * \return If successfull the VM takes owernship of the isolate and takes care
+ * \return If successful the VM takes owernship of the isolate and takes care
  *   of its message loop. If not successful the caller retains owernship of the
  *   isolate.
  */
@@ -1644,6 +1678,8 @@ DART_EXPORT bool Dart_HasLivePorts(void);
  * object.
  *
  * Requires there to be a current isolate.
+ *
+ * For posting messages outside of an isolate see \ref Dart_PostCObject.
  *
  * \param port_id The destination port.
  * \param object An object from the current isolate.
@@ -2582,6 +2618,13 @@ Dart_NewExternalTypedDataWithFinalizer(Dart_TypedData_Type type,
                                        void* peer,
                                        intptr_t external_allocation_size,
                                        Dart_HandleFinalizer callback);
+DART_EXPORT Dart_Handle Dart_NewUnmodifiableExternalTypedDataWithFinalizer(
+    Dart_TypedData_Type type,
+    const void* data,
+    intptr_t length,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_HandleFinalizer callback);
 
 /**
  * Returns a ByteBuffer object for the typed data.

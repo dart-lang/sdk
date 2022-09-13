@@ -35,9 +35,8 @@ ConstantPropagator::ConstantPropagator(
       unknown_(Object::unknown_constant()),
       non_constant_(Object::non_constant()),
       constant_value_(Object::Handle(Z)),
-      reachable_(new (Z) BitVector(Z, graph->preorder().length())),
-      unwrapped_phis_(new (Z)
-                          BitVector(Z, graph->max_virtual_register_number())),
+      reachable_(new(Z) BitVector(Z, graph->preorder().length())),
+      unwrapped_phis_(new(Z) BitVector(Z, graph->current_ssa_temp_index())),
       block_worklist_(),
       definition_worklist_(graph, 10) {}
 
@@ -233,8 +232,10 @@ void ConstantPropagator::VisitGoto(GotoInstr* instr) {
 }
 
 void ConstantPropagator::VisitIndirectGoto(IndirectGotoInstr* instr) {
-  for (intptr_t i = 0; i < instr->SuccessorCount(); i++) {
-    SetReachable(instr->SuccessorAt(i));
+  if (reachable_->Contains(instr->GetBlock()->preorder_number())) {
+    for (intptr_t i = 0; i < instr->SuccessorCount(); i++) {
+      SetReachable(instr->SuccessorAt(i));
+    }
   }
 }
 
@@ -293,8 +294,7 @@ void ConstantPropagator::VisitStoreIndexedUnsafe(
 
 void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {}
 
-void ConstantPropagator::VisitStoreInstanceField(
-    StoreInstanceFieldInstr* instr) {}
+void ConstantPropagator::VisitStoreField(StoreFieldInstr* instr) {}
 
 void ConstantPropagator::VisitMemoryCopy(MemoryCopyInstr* instr) {}
 
@@ -407,6 +407,13 @@ void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {
 void ConstantPropagator::VisitGenericCheckBound(GenericCheckBoundInstr* instr) {
   // Don't propagate constants through check, since it would eliminate
   // the data dependence between the bound check and the load/store.
+  // Graph finalization will expose the constant eventually.
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitCheckWritable(CheckWritableInstr* instr) {
+  // Don't propagate constants through check, since it would eliminate
+  // the data dependence between the writable check and its use.
   // Graph finalization will expose the constant eventually.
   SetValue(instr, non_constant_);
 }
@@ -1497,7 +1504,11 @@ static bool HasPhis(BlockEntryInstr* block) {
 }
 
 static bool IsEmptyBlock(BlockEntryInstr* block) {
-  return block->next()->IsGoto() && !HasPhis(block) &&
+  // A block containing a goto to itself forms an infinite loop.
+  // We don't consider this an empty block to handle the edge-case where code
+  // reduces to an infinite loop.
+  return block->next()->IsGoto() &&
+         block->next()->AsGoto()->successor() != block && !HasPhis(block) &&
          !block->IsIndirectEntry();
 }
 
@@ -1711,8 +1722,8 @@ bool ConstantPropagator::TransformDefinition(Definition* defn) {
   ASSERT((defn == nullptr) || !defn->IsPushArgument());
   if ((defn != nullptr) && IsConstant(defn->constant_value()) &&
       (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
-      !defn->IsConstant() && !defn->IsStoreIndexed() &&
-      !defn->IsStoreInstanceField() && !defn->IsStoreStaticField()) {
+      !defn->IsConstant() && !defn->IsStoreIndexed() && !defn->IsStoreField() &&
+      !defn->IsStoreStaticField()) {
     if (FLAG_trace_constant_propagation && graph_->should_print()) {
       THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
                 defn->constant_value().ToCString());

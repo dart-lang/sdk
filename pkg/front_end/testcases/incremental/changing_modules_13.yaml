@@ -5,7 +5,7 @@
 # Reproduction of https://github.com/flutter/flutter/issues/40966.
 
 type: newworld
-target: None
+target: none
 modules:
   module:
     module/a.dart: |
@@ -43,3 +43,4 @@ worlds:
     modules:
       - module
     expectedLibraryCount: 2
+    advancedInvalidation: modulesToLoad

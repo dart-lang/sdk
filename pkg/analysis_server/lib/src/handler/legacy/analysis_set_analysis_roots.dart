@@ -21,8 +21,11 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
     var includedPathList = params.included;
     var excludedPathList = params.excluded;
 
-    server.options.analytics?.sendEvent('analysis', 'setAnalysisRoots',
-        value: includedPathList.length);
+    unawaited(server.options.analytics?.sendEvent(
+      'analysis',
+      'setAnalysisRoots',
+      value: includedPathList.length,
+    ));
     server.analyticsManager.startedSetAnalysisRoots(params);
 
     // validate
@@ -41,9 +44,8 @@ class AnalysisSetAnalysisRootsHandler extends LegacyHandler {
 
     var detachableFileSystemManager = server.detachableFileSystemManager;
     if (detachableFileSystemManager != null) {
-      // TODO(scheglov) remove the last argument
-      detachableFileSystemManager
-          .setAnalysisRoots(request.id, includedPathList, excludedPathList, {});
+      detachableFileSystemManager.setAnalysisRoots(
+          request.id, includedPathList, excludedPathList);
     } else {
       await server.setAnalysisRoots(
           request.id, includedPathList, excludedPathList);

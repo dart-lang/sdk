@@ -32,4 +32,4 @@ final bool inSoundMode = <int?>[] is! List<int>;
 main() {}
 testArgs() {}
 testNoArgs() {}
-throws(Function() f, {bool inSoundModeOnly: false}) {}
+throws(Function() f, {bool inSoundModeOnly = false}) {}

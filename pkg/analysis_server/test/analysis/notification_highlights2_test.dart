@@ -503,7 +503,6 @@ void f() {
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>.name(');
     assertHasRegion(HighlightRegionType.CLASS, 'int>(');
     assertHasRegion(HighlightRegionType.CLASS, 'int>.name(');
-    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(p)');
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
   }
 
@@ -1395,6 +1394,7 @@ class B extends A {
 }
 ''');
     await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'required super.aaa');
     assertHasRegion(HighlightRegionType.KEYWORD, 'super.aaa');
     assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
   }

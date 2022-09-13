@@ -9,8 +9,338 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(InvalidAnnotationTarget_MustBeOverriddenTest);
+    defineReflectiveTests(InvalidAnnotationTarget_MustCallSuperTest);
     defineReflectiveTests(InvalidAnnotationTargetTest);
   });
+}
+
+@reflectiveTest
+class InvalidAnnotationTarget_MustBeOverriddenTest
+    extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
+  test_class_instance_field() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  int f = 0;
+}
+''');
+  }
+
+  test_class_instance_getter() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  int get f => 0;
+}
+''');
+  }
+
+  test_class_instance_method() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void m() {}
+}
+''');
+  }
+
+  test_class_instance_setter() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void set s(int value) {}
+}
+''');
+  }
+
+  test_class_static_field() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustBeOverridden
+  static int f = 0;
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+    ]);
+  }
+
+  test_class_static_getter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustBeOverridden
+  static int get f => 0;
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+    ]);
+  }
+
+  test_class_static_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustBeOverridden
+  static void m() {}
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+    ]);
+  }
+
+  test_class_static_setter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustBeOverridden
+  static void set f(int value) {}
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 17),
+    ]);
+  }
+
+  test_constructor() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  @mustBeOverridden
+  C();
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 47, 16),
+    ]);
+  }
+
+  test_enum_member() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+enum E {
+  one, two;
+  @mustBeOverridden
+  void m() {}
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 57, 17),
+    ]);
+  }
+
+  test_extension_member() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+extension E on String {
+  @mustBeOverridden
+  void m() {}
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 60, 17),
+    ]);
+  }
+
+  test_mixin_instance_method() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+mixin M {
+  @mustBeOverridden
+  void m() {}
+}
+''');
+  }
+
+  test_topLevel() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@mustBeOverridden
+void m() {}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 35, 16),
+    ]);
+  }
+}
+
+@reflectiveTest
+class InvalidAnnotationTarget_MustCallSuperTest
+    extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
+  test_class_instance_field() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustCallSuper
+  int f = 0;
+}
+''');
+  }
+
+  test_class_instance_getter() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustCallSuper
+  int get f => 0;
+}
+''');
+  }
+
+  test_class_instance_method() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustCallSuper
+  void m() {}
+}
+''');
+  }
+
+  test_class_instance_setter() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustCallSuper
+  void set s(int value) {}
+}
+''');
+  }
+
+  test_class_static_field() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  static int f = 0;
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+    ]);
+  }
+
+  test_class_static_getter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  static int get f => 0;
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+    ]);
+  }
+
+  test_class_static_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  static void m() {}
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+    ]);
+  }
+
+  test_class_static_setter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  static void set f(int value) {}
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 45, 14),
+    ]);
+  }
+
+  test_constructor() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  @mustCallSuper
+  C();
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 47, 13),
+    ]);
+  }
+
+  test_enum_member() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+enum E {
+  one, two;
+  @mustCallSuper
+  void m() {}
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 57, 14),
+    ]);
+  }
+
+  test_extension_member() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+extension E on String {
+  @mustCallSuper
+  void m() {}
+}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 60, 14),
+    ]);
+  }
+
+  test_mixin_instance_method() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+mixin M {
+  @mustCallSuper
+  void m() {}
+}
+''');
+  }
+
+  test_topLevel() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@mustCallSuper
+void m() {}
+''', [
+      error(HintCode.INVALID_ANNOTATION_TARGET, 35, 13),
+    ]);
+  }
 }
 
 @reflectiveTest

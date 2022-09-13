@@ -63,6 +63,7 @@ enum NullValue {
   OperatorList,
   ParameterDefaultValue,
   Prefix,
+  RecordTypeFieldList,
   ShowClause,
   StringLiteral,
   SwitchScope,
@@ -431,7 +432,12 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void endRecordLiteral(Token token, int count) {
+    debugEvent("RecordLiteral");
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
   }
 
@@ -517,7 +523,7 @@ abstract class StackListener extends Listener {
   }
 
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context});
+      {bool wasHandled = false, List<LocatedMessage> context});
 }
 
 abstract class Stack {
@@ -650,7 +656,7 @@ class StackImpl implements Stack {
 class DebugStack implements Stack {
   Stack realStack = new StackImpl();
   Stack stackTraceStack = new StackImpl();
-  List<StackTrace> latestStacktraces = <StackTrace>[];
+  List<StackTrace?> latestStacktraces = <StackTrace?>[];
 
   @override
   Object? operator [](int index) {

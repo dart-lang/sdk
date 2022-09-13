@@ -17037,7 +17037,7 @@ _Invalid context for 'super' invocation._
 #### Description
 
 The analyzer produces this diagnostic when the keyword `super` is used
-outside of a instance method.
+outside of an instance method.
 
 #### Example
 
@@ -19398,11 +19398,19 @@ _The declaration '{0}' isn't referenced._
 The analyzer produces this diagnostic when a private declaration isn't
 referenced in the library that contains the declaration. The following
 kinds of declarations are analyzed:
-- Private top-level declarations, such as classes, enums, mixins, typedefs,
-  top-level variables, and top-level functions
-- Private static and instance methods
+- Private top-level declarations and all of their members
+- Private members of public declarations
 - Optional parameters of private functions for which a value is never
-  passed, even when the parameter doesn't have a private name
+  passed
+
+Not all references to an element will mark it as "used":
+- Assigning a value to a top-level variable (with a standard `=`
+  assignment, or a null-aware `??=` assignment) does not count as using
+  it.
+- Refering to an element in a doc comment reference does not count as
+  using it.
+- Refering to a class, mixin, or enum in the right side of an `is`
+  expression does not count as using it.
 
 #### Example
 

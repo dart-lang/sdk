@@ -26,8 +26,9 @@
 /// might not yet be available.
 /// The Future returns the value of the computation
 /// when it completes at some time in the future.
-/// Futures are often used for potentially lengthy computations
-/// such as I/O and interaction with users.
+/// Futures are often used for APIs that are implemented using a
+/// different thread or isolate (e.g., the asynchronous I/O
+/// operations of `dart:io` or HTTP requests of `dart:html`).
 ///
 /// Many methods in the Dart libraries return `Future`s when
 /// performing tasks. For example, when binding an `HttpServer`

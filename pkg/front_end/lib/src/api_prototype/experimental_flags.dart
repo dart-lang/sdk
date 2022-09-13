@@ -24,9 +24,9 @@ class AllowedExperimentalFlags {
   final Map<String, Set<ExperimentalFlag>> packageExperiments;
 
   const AllowedExperimentalFlags({
-    this.sdkDefaultExperiments: const {},
-    this.sdkLibraryExperiments: const {},
-    this.packageExperiments: const {},
+    this.sdkDefaultExperiments = const {},
+    this.sdkLibraryExperiments = const {},
+    this.packageExperiments = const {},
   });
 
   /// Return the set of enabled experiments for the package with the [name],

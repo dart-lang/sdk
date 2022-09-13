@@ -27,7 +27,7 @@ class Variance {
   /// Computes the variance of the [typeParameter] in the [type].
   factory Variance(TypeParameterElement typeParameter, DartType type) {
     if (type is TypeParameterType) {
-      if (type.element == typeParameter) {
+      if (type.element2 == typeParameter) {
         return covariant;
       } else {
         return unrelated;
@@ -36,7 +36,7 @@ class Variance {
       var result = unrelated;
       for (int i = 0; i < type.typeArguments.length; ++i) {
         var argument = type.typeArguments[i];
-        var parameter = type.element.typeParameters[i];
+        var parameter = type.element2.typeParameters[i];
 
         // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.

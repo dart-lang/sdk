@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
@@ -119,6 +120,33 @@ class FakeFlutter {
   Widget f() => Center(child: Container());
 }
 ''');
+  }
+
+  Future<void> test_selection() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  Widget f() {
+    return /*caret*/Container();
+  }
+}
+''');
+    var expected = '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  Widget f() {
+    return Center(child: Container());
+  }
+}
+''';
+
+    var assist = await assertHasAssist(expected);
+
+    expect(
+      assist.selection!.offset,
+      normalizeSource(expected).indexOf('child: '),
+    );
+    expect(assist.selectionLength, 0);
   }
 
   Future<void> test_variableDeclaration() async {

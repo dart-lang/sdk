@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -26,15 +27,46 @@ NavigationCollector computeDartNavigation(
     unit.accept(visitor);
   } else {
     var node = _getNodeForRange(unit, offset, length);
-    // Take the outer-most node that shares this offset/length so that we get
-    // things like ConstructorName instead of SimpleIdentifier.
-    // https://github.com/dart-lang/sdk/issues/46725
+
+    {
+      final parent = node?.parent;
+      // ignore: deprecated_member_use
+      if (parent is ConstructorDeclaration && parent.name == node) {
+        node = parent;
+      }
+    }
+
     if (node != null) {
-      node = _getOutermostNode(node);
+      node = _getNavigationTargetNode(node);
     }
     node?.accept(visitor);
   }
   return collector;
+}
+
+/// Gets the nearest node that should be used for navigation.
+///
+/// This is usually the outermost node with the same offset as node but in some
+/// cases may be a different ancestor where required to produce the correct
+/// result.
+AstNode _getNavigationTargetNode(AstNode node) {
+  AstNode? current = node;
+  while (current != null &&
+      current.parent != null &&
+      current.offset == current.parent!.offset) {
+    current = current.parent;
+  }
+  current ??= node;
+
+  // To navigate to formal params, we need to visit the parameter and not just
+  // the identifier but they don't start at the same offset as they have a
+  // prefix.
+  final parent = current.parent;
+  if (parent is FormalParameter) {
+    current = parent;
+  }
+
+  return current;
 }
 
 AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
@@ -45,21 +77,6 @@ AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
     }
   }
   return node;
-}
-
-/// Gets the outer-most node with the same offset as node.
-///
-/// This reduces the number of nodes the visitor needs to walk when collecting
-/// navigation for a specific location in the file.
-AstNode _getOutermostNode(AstNode node) {
-  AstNode? current = node;
-  while (current != null &&
-      current.parent != null &&
-      current != current.parent &&
-      current.offset == current.parent!.offset) {
-    current = current.parent;
-  }
-  return current ?? node;
 }
 
 /// A Dart specific wrapper around [NavigationCollector].
@@ -139,7 +156,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     var element = node.element;
     if (element is ConstructorElement && element.isSynthetic) {
-      element = element.enclosingElement;
+      element = element.enclosingElement3;
     }
     var name = node.name;
     if (name is PrefixedIdentifier) {
@@ -240,8 +257,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConfiguration(Configuration node) {
-    var source = node.uriSource;
-    if (source != null) {
+    final resolvedUri = node.resolvedUri;
+    if (resolvedUri is DirectiveUriWithSource) {
+      final source = resolvedUri.source;
       if (resourceProvider.getResource(source.fullName).exists) {
         // TODO(brianwilkerson) If the analyzer ever resolves the URI to a
         //  library, use that library element to create the region.
@@ -263,12 +281,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // For a default constructor, override the class name to be the declaration
     // itself rather than linking to the class.
-    var name = node.name;
-    if (name == null) {
-      computer._addRegionForNode(node.returnType, node.declaredElement);
+    var nameToken = node.name2;
+    if (nameToken == null) {
+      computer._addRegionForNode(node.returnType, node.declaredElement2);
     } else {
       node.returnType.accept(this);
-      name.accept(this);
+      computer._addRegionForToken(nameToken, node.declaredElement2);
     }
     node.parameters.accept(this);
     node.initializers.accept(this);
@@ -310,10 +328,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (node.type == null) {
       var token = node.keyword;
       if (token != null && token.keyword == Keyword.VAR) {
-        var inferredType = node.declaredElement?.type;
-        var element = inferredType?.element;
-        if (element != null) {
-          computer._addRegionForToken(token, element);
+        var inferredType = node.declaredElement2?.type;
+        if (inferredType is InterfaceType) {
+          computer._addRegionForToken(token, inferredType.element2);
         }
       }
     }
@@ -322,7 +339,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegionForNode(node.name, node.constructorElement);
+    computer._addRegionForToken(node.name2, node.constructorElement);
 
     var arguments = node.arguments;
     if (arguments != null) {
@@ -337,7 +354,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element;
+    var exportElement = node.element2;
     if (exportElement != null) {
       Element? libraryElement = exportElement.exportedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -350,7 +367,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     final element = node.declaredElement;
     if (element is FieldFormalParameterElementImpl) {
       computer._addRegionForToken(node.thisKeyword, element.field);
-      computer._addRegionForNode(node.identifier, element.field);
+      computer._addRegionForToken(node.name, element.field);
     }
 
     node.type?.accept(this);
@@ -360,7 +377,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importElement = node.element;
+    var importElement = node.element2;
     if (importElement != null) {
       Element? libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
@@ -378,12 +395,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    computer._addRegionForNode(node.name, node.element);
+    computer._addRegionForNode(node.name, node.element2);
   }
 
   @override
   void visitPartDirective(PartDirective node) {
-    final element = node.element;
+    final element = node.element2;
     if (element is PartElement) {
       final uri = element.uri;
       if (uri is DirectiveUriWithUnit) {
@@ -406,7 +423,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    computer._addRegionForNode(node.libraryName ?? node.uri, node.element);
+    computer._addRegionForNode(node.libraryName ?? node.uri, node.element2);
     super.visitPartOfDirective(node);
   }
 
@@ -427,7 +444,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       RedirectingConstructorInvocation node) {
     Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement;
+      element = element.enclosingElement3;
     }
     // add region
     computer._addRegionForToken(node.thisKeyword, element);
@@ -446,7 +463,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     Element? element = node.staticElement;
     if (element != null && element.isSynthetic) {
-      element = element.enclosingElement;
+      element = element.enclosingElement3;
     }
     // add region
     computer._addRegionForToken(node.superKeyword, element);
@@ -461,7 +478,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (element is SuperFormalParameterElementImpl) {
       var superParameter = element.superConstructorParameter;
       computer._addRegionForToken(node.superKeyword, superParameter);
-      computer._addRegionForNode(node.identifier, superParameter);
+      computer._addRegionForToken(node.name, superParameter);
     }
 
     node.type?.accept(this);
@@ -475,13 +492,18 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     /// the given list of [variables], or `null` if not all variable have the
     /// same inferred type.
     Element? getCommonElement(List<VariableDeclaration> variables) {
-      var firstElement = variables[0].declaredElement?.type.element;
-      if (firstElement == null) {
+      final firstType = variables[0].declaredElement2?.type;
+      if (firstType is! InterfaceType) {
         return null;
       }
+
+      var firstElement = firstType.element2;
       for (var i = 1; i < variables.length; i++) {
-        var element = variables[1].declaredElement?.type.element;
-        if (element != firstElement) {
+        final type = variables[i].declaredElement2?.type;
+        if (type is! InterfaceType) {
+          return null;
+        }
+        if (type.element2 != firstElement) {
           return null;
         }
       }

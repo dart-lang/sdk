@@ -1826,6 +1826,53 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginRecordType(Token leftBracket) {
+    RecordTypeBegin data =
+        new RecordTypeBegin(ParserAstType.BEGIN, leftBracket: leftBracket);
+    seen(data);
+  }
+
+  @override
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    RecordTypeEnd data = new RecordTypeEnd(ParserAstType.END,
+        leftBracket: leftBracket,
+        questionMark: questionMark,
+        count: count,
+        hasNamedFields: hasNamedFields);
+    seen(data);
+  }
+
+  @override
+  void beginRecordTypeEntry() {
+    RecordTypeEntryBegin data = new RecordTypeEntryBegin(ParserAstType.BEGIN);
+    seen(data);
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    RecordTypeEntryEnd data = new RecordTypeEntryEnd(ParserAstType.END);
+    seen(data);
+  }
+
+  @override
+  void beginRecordTypeNamedFields(Token leftBracket) {
+    RecordTypeNamedFieldsBegin data = new RecordTypeNamedFieldsBegin(
+        ParserAstType.BEGIN,
+        leftBracket: leftBracket);
+    seen(data);
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    RecordTypeNamedFieldsEnd data = new RecordTypeNamedFieldsEnd(
+        ParserAstType.END,
+        count: count,
+        leftBracket: leftBracket);
+    seen(data);
+  }
+
+  @override
   void beginFunctionType(Token beginToken) {
     FunctionTypeBegin data =
         new FunctionTypeBegin(ParserAstType.BEGIN, beginToken: beginToken);
@@ -2294,6 +2341,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleNamedRecordField(Token colon) {
+    NamedRecordFieldHandle data =
+        new NamedRecordFieldHandle(ParserAstType.HANDLE, colon: colon);
+    seen(data);
+  }
+
+  @override
   void beginNewExpression(Token token) {
     NewExpressionBegin data =
         new NewExpressionBegin(ParserAstType.BEGIN, token: token);
@@ -2383,9 +2437,24 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
-    ParenthesizedExpressionHandle data =
-        new ParenthesizedExpressionHandle(ParserAstType.HANDLE, token: token);
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {
+    ParenthesizedExpressionOrRecordLiteralBegin data =
+        new ParenthesizedExpressionOrRecordLiteralBegin(ParserAstType.BEGIN,
+            token: token);
+    seen(data);
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count) {
+    RecordLiteralEnd data =
+        new RecordLiteralEnd(ParserAstType.END, token: token, count: count);
+    seen(data);
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
+    ParenthesizedExpressionEnd data =
+        new ParenthesizedExpressionEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
@@ -5899,6 +5968,81 @@ class NoNameHandle extends ParserAstNode {
       };
 }
 
+class RecordTypeBegin extends ParserAstNode {
+  final Token leftBracket;
+
+  RecordTypeBegin(ParserAstType type, {required this.leftBracket})
+      : super("RecordType", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "leftBracket": leftBracket,
+      };
+}
+
+class RecordTypeEnd extends ParserAstNode {
+  final Token leftBracket;
+  final Token? questionMark;
+  final int count;
+  final bool hasNamedFields;
+
+  RecordTypeEnd(ParserAstType type,
+      {required this.leftBracket,
+      this.questionMark,
+      required this.count,
+      required this.hasNamedFields})
+      : super("RecordType", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "leftBracket": leftBracket,
+        "questionMark": questionMark,
+        "count": count,
+        "hasNamedFields": hasNamedFields,
+      };
+}
+
+class RecordTypeEntryBegin extends ParserAstNode {
+  RecordTypeEntryBegin(ParserAstType type) : super("RecordTypeEntry", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {};
+}
+
+class RecordTypeEntryEnd extends ParserAstNode {
+  RecordTypeEntryEnd(ParserAstType type) : super("RecordTypeEntry", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {};
+}
+
+class RecordTypeNamedFieldsBegin extends ParserAstNode {
+  final Token leftBracket;
+
+  RecordTypeNamedFieldsBegin(ParserAstType type, {required this.leftBracket})
+      : super("RecordTypeNamedFields", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "leftBracket": leftBracket,
+      };
+}
+
+class RecordTypeNamedFieldsEnd extends ParserAstNode {
+  final int count;
+  final Token leftBracket;
+
+  RecordTypeNamedFieldsEnd(ParserAstType type,
+      {required this.count, required this.leftBracket})
+      : super("RecordTypeNamedFields", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "count": count,
+        "leftBracket": leftBracket,
+      };
+}
+
 class FunctionTypeBegin extends ParserAstNode {
   final Token beginToken;
 
@@ -6733,6 +6877,18 @@ class NamedArgumentHandle extends ParserAstNode {
       };
 }
 
+class NamedRecordFieldHandle extends ParserAstNode {
+  final Token colon;
+
+  NamedRecordFieldHandle(ParserAstType type, {required this.colon})
+      : super("NamedRecordField", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "colon": colon,
+      };
+}
+
 class NewExpressionBegin extends ParserAstNode {
   final Token token;
 
@@ -6886,10 +7042,38 @@ class ParenthesizedConditionHandle extends ParserAstNode {
       };
 }
 
-class ParenthesizedExpressionHandle extends ParserAstNode {
+class ParenthesizedExpressionOrRecordLiteralBegin extends ParserAstNode {
   final Token token;
 
-  ParenthesizedExpressionHandle(ParserAstType type, {required this.token})
+  ParenthesizedExpressionOrRecordLiteralBegin(ParserAstType type,
+      {required this.token})
+      : super("ParenthesizedExpressionOrRecordLiteral", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class RecordLiteralEnd extends ParserAstNode {
+  final Token token;
+  final int count;
+
+  RecordLiteralEnd(ParserAstType type,
+      {required this.token, required this.count})
+      : super("RecordLiteral", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+        "count": count,
+      };
+}
+
+class ParenthesizedExpressionEnd extends ParserAstNode {
+  final Token token;
+
+  ParenthesizedExpressionEnd(ParserAstType type, {required this.token})
       : super("ParenthesizedExpression", type);
 
   @override

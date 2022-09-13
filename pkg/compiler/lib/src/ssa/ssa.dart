@@ -6,9 +6,12 @@
 
 library ssa;
 
+import 'package:compiler/src/ssa/metrics.dart';
+
 import '../common.dart';
 import '../common/codegen.dart' show CodegenResult, CodegenRegistry;
 import '../common/elements.dart' show CommonElements, JElementEnvironment;
+import '../common/metrics.dart';
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -36,6 +39,7 @@ import 'optimize.dart';
 class SsaFunctionCompiler implements FunctionCompiler {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
+  final SsaMetrics _metrics;
   final SsaCodeGeneratorTask generator;
   final SsaBuilderTask _builder;
   final SsaOptimizerTask optimizer;
@@ -46,13 +50,14 @@ class SsaFunctionCompiler implements FunctionCompiler {
   SsaFunctionCompiler(
       this._options,
       this._reporter,
+      this._metrics,
       JsBackendStrategy backendStrategy,
       Measurer measurer,
       this.sourceInformationStrategy)
       : generator =
             SsaCodeGeneratorTask(measurer, _options, sourceInformationStrategy),
         _builder = SsaBuilderTask(
-            measurer, backendStrategy, sourceInformationStrategy),
+            measurer, backendStrategy, sourceInformationStrategy, _metrics),
         optimizer = SsaOptimizerTask(measurer, _options);
 
   @override
@@ -85,7 +90,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
       return registry.close(null);
     }
     optimizer.optimize(member, graph, _codegen, closedWorld,
-        _globalInferenceResults, registry);
+        _globalInferenceResults, registry, _metrics);
     js.Expression result = generator.generateCode(
         member, graph, _codegen, closedWorld, registry, namer, emitter);
     if (graph.needsAsyncRewrite) {
@@ -325,8 +330,13 @@ class SsaBuilderTask extends CompilerTask {
   final SourceInformationStrategy _sourceInformationFactory;
   SsaBuilder _builder;
 
-  SsaBuilderTask(
-      Measurer measurer, this._backendStrategy, this._sourceInformationFactory)
+  final SsaMetrics _metrics;
+
+  @override
+  Metrics get metrics => _metrics;
+
+  SsaBuilderTask(Measurer measurer, this._backendStrategy,
+      this._sourceInformationFactory, this._metrics)
       : super(measurer);
 
   @override

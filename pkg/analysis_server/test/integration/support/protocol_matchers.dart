@@ -835,6 +835,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   LITERAL_INTEGER
 ///   LITERAL_LIST
 ///   LITERAL_MAP
+///   LITERAL_RECORD
 ///   LITERAL_STRING
 ///   LOCAL_FUNCTION_DECLARATION
 ///   LOCAL_FUNCTION_REFERENCE
@@ -917,6 +918,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'LITERAL_INTEGER',
   'LITERAL_LIST',
   'LITERAL_MAP',
+  'LITERAL_RECORD',
   'LITERAL_STRING',
   'LOCAL_FUNCTION_DECLARATION',
   'LOCAL_FUNCTION_REFERENCE',
@@ -2305,20 +2307,25 @@ final Matcher isDiagnosticGetServerPortResult = LazyMatcher(() =>
 /// {
 ///   "included": List<FilePath>
 ///   "inTestMode": optional bool
+///   "codes": optional List<String>
 /// }
 final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
     'edit.bulkFixes params', {'included': isListOf(isFilePath)},
-    optionalFields: {'inTestMode': isBool}));
+    optionalFields: {'inTestMode': isBool, 'codes': isListOf(isString)}));
 
 /// edit.bulkFixes result
 ///
 /// {
+///   "message": String
 ///   "edits": List<SourceFileEdit>
 ///   "details": List<BulkFix>
 /// }
-final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
-    'edit.bulkFixes result',
-    {'edits': isListOf(isSourceFileEdit), 'details': isListOf(isBulkFix)}));
+final Matcher isEditBulkFixesResult =
+    LazyMatcher(() => MatchesJsonObject('edit.bulkFixes result', {
+          'message': isString,
+          'edits': isListOf(isSourceFileEdit),
+          'details': isListOf(isBulkFix)
+        }));
 
 /// edit.formatIfEnabled params
 ///

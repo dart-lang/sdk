@@ -31,8 +31,8 @@ class EvalBoxElement extends CustomElement implements Renderable {
 
   factory EvalBoxElement(M.IsolateRef isolate, M.ObjectRef context,
       M.ObjectRepository objects, M.EvalRepository eval,
-      {bool multiline: false,
-      Iterable<String> quickExpressions: const [],
+      {bool multiline = false,
+      Iterable<String> quickExpressions = const [],
       RenderingQueue queue}) {
     assert(isolate != null);
     assert(context != null);

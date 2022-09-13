@@ -3,14 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Sections in this file should contain "$compiler == dartdevc" or dartdevk.
-[ $compiler == dartdevc ]
-class/large_class_declaration_test: Slow, Pass
-extension_methods/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing extension methods.
-nnbd/*: Skip
-variance/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing variance.
-
-[ $compiler == dartdevk && !$checked ]
-assert/initializer_const_error2_test/*: SkipByDesign # DDC does not support non-checked mode.
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
 async_star/throw_in_catch_test: Skip # Times out. Issue 29920

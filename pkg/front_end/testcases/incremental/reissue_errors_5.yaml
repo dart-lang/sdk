@@ -38,11 +38,14 @@ worlds:
         }
     expectedLibraryCount: 3
     errors: true
+
   - entry: main.dart
     errors: true
     worldType: updated
     expectInitializeFromDill: false
     expectedLibraryCount: 3
+    advancedInvalidation: noDirectlyInvalidated
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -58,6 +61,8 @@ worlds:
         }
     expectedLibraryCount: 3
     errors: true
+    advancedInvalidation: bodiesOnly
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -73,3 +78,4 @@ worlds:
         foo() {}
     expectedLibraryCount: 2
     errors: false
+    advancedInvalidation: outlineChange

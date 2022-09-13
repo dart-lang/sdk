@@ -61,7 +61,9 @@ import 'element_map_interfaces.dart' as interfaces
         KernelElementEnvironment,
         KernelToElementMapForClassHierarchy,
         KernelToElementMapForImpactData,
-        KernelToElementMapForNativeData;
+        KernelToElementMapForKernelImpact,
+        KernelToElementMapForNativeData,
+        KernelToElementMapForDeferredLoading;
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
@@ -73,6 +75,8 @@ class KernelToElementMap
         interfaces.KernelToElementMapForClassHierarchy,
         interfaces.KernelToElementMapForImpactData,
         interfaces.KernelToElementMapForNativeData,
+        interfaces.KernelToElementMapForDeferredLoading,
+        interfaces.KernelToElementMapForKernelImpact,
         IrToElementMap {
   @override
   final CompilerOptions options;
@@ -254,11 +258,11 @@ class KernelToElementMap
     return cls;
   }
 
-  MemberEntity lookupClassMember(IndexedClass cls, String name,
+  MemberEntity lookupClassMember(IndexedClass cls, Name name,
       {bool setter = false}) {
     assert(checkFamily(cls));
     KClassEnv classEnv = classes.getEnv(cls);
-    return classEnv.lookupMember(this, name, setter: setter);
+    return classEnv.lookupMember(this, name);
   }
 
   ConstructorEntity lookupConstructor(IndexedClass cls, String name) {
@@ -299,7 +303,7 @@ class KernelToElementMap
     assert(checkFamily(cls));
     if (data is KClassDataImpl && !data.isCallTypeComputed) {
       MemberEntity callMember =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+          _elementEnvironment.lookupClassMember(cls, Names.call);
       if (callMember is FunctionEntity &&
           callMember.isFunction &&
           !callMember.isAbstract) {
@@ -500,6 +504,7 @@ class KernelToElementMap
   /// Kernel will say that C()'s super initializer resolves to Object(), but
   /// this function will return an entity representing the unnamed mixin
   /// application "Object+M"'s constructor.
+  @override
   ConstructorEntity getSuperConstructor(
       ir.Constructor sourceNode, ir.Member targetNode) {
     ConstructorEntity source = getConstructor(sourceNode);
@@ -546,6 +551,7 @@ class KernelToElementMap
   }
 
   /// Returns the [InterfaceType] corresponding to [type].
+  @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
       _typeConverter.visitType(type).withoutNullability;
 
@@ -839,6 +845,7 @@ class KernelToElementMap
   }
 
   /// Returns the defining node for [member].
+  @override
   ir.Member getMemberNode(covariant IndexedMember member) {
     assert(checkFamily(member));
     return members.getData(member).node;
@@ -851,6 +858,7 @@ class KernelToElementMap
   }
 
   /// Return the [ImportEntity] corresponding to [node].
+  @override
   ImportEntity getImport(ir.LibraryDependency node) {
     if (node == null) return null;
     ir.Library library = node.parent;
@@ -863,6 +871,7 @@ class KernelToElementMap
   ir.CoreTypes get coreTypes => _coreTypes ??= ir.CoreTypes(env.mainComponent);
 
   /// Returns the type environment for the underlying kernel model.
+  @override
   ir.TypeEnvironment get typeEnvironment =>
       _typeEnvironment ??= ir.TypeEnvironment(coreTypes, classHierarchy);
 
@@ -870,6 +879,7 @@ class KernelToElementMap
   ir.ClassHierarchy get classHierarchy =>
       _classHierarchy ??= ir.ClassHierarchy(env.mainComponent, coreTypes);
 
+  @override
   ir.StaticTypeContext getStaticTypeContext(MemberEntity member) {
     // TODO(johnniwinther): Cache the static type context.
     return ir.StaticTypeContext(getMemberNode(member), typeEnvironment);
@@ -888,9 +898,10 @@ class KernelToElementMap
                 : ir.EvaluationMode.strong);
   }
 
-  /// Returns the [Name] corresponding to [name].
-  Name getName(ir.Name name) {
-    return Name(name.text, name.isPrivate ? getLibrary(name.library) : null);
+  @override
+  Name getName(ir.Name name, {bool setter = false}) {
+    return Name(name.text, name.isPrivate ? name.library.importUri : null,
+        isSetter: setter);
   }
 
   /// Returns the [CallStructure] corresponding to the [arguments].
@@ -929,6 +940,7 @@ class KernelToElementMap
 
   /// Returns the [Selector] corresponding to the invocation of [name] with
   /// [arguments].
+  @override
   Selector getInvocationSelector(ir.Name irName, int positionalArguments,
       List<String> namedArguments, int typeArguments) {
     Name name = getName(irName);
@@ -952,13 +964,13 @@ class KernelToElementMap
 
   Selector getGetterSelector(ir.Name irName) {
     Name name =
-        Name(irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
+        Name(irName.text, irName.isPrivate ? irName.library.importUri : null);
     return Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name =
-        Name(irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
+        Name(irName.text, irName.isPrivate ? irName.library.importUri : null);
     return Selector.setter(name);
   }
 
@@ -1037,6 +1049,7 @@ class KernelToElementMap
 
   /// Computes the [NativeBehavior] for a call to the [JS] function.
   /// TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
@@ -1070,6 +1083,7 @@ class KernelToElementMap
   /// TODO(johnniwinther): Cache this for later use.
   /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN]
   /// function.
+  @override
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(
@@ -1098,6 +1112,7 @@ class KernelToElementMap
   /// Computes the [NativeBehavior] for a call to the
   /// [JS_EMBEDDED_GLOBAL] function.
   /// TODO(johnniwinther): Cache this for later use.
+  @override
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
@@ -1154,6 +1169,7 @@ class KernelToElementMap
   }
 
   /// Computes the [ConstantValue] for the constant [expression].
+  @override
   ConstantValue getConstantValue(
       ir.StaticTypeContext staticTypeContext, ir.Expression node,
       {bool requireConstant = true,
@@ -1201,11 +1217,12 @@ class KernelToElementMap
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
   /// `super.noSuchMethod` invocation within [cls].
+  @override
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
     while (cls != null) {
       cls = elementEnvironment.getSuperClass(cls);
-      MemberEntity member = elementEnvironment.lookupLocalClassMember(
-          cls, Identifiers.noSuchMethod_);
+      MemberEntity member =
+          elementEnvironment.lookupLocalClassMember(cls, Names.noSuchMethod_);
       if (member != null && !member.isAbstract) {
         if (member.isFunction) {
           FunctionEntity function = member;
@@ -1219,7 +1236,7 @@ class KernelToElementMap
       }
     }
     FunctionEntity function = elementEnvironment.lookupLocalClassMember(
-        commonElements.objectClass, Identifiers.noSuchMethod_);
+        commonElements.objectClass, Names.noSuchMethod_);
     assert(function != null,
         failedAt(cls, "No super noSuchMethod found for class $cls."));
     return function;
@@ -1465,6 +1482,7 @@ class KernelToElementMap
   }
 
   /// NativeBasicData is need for computation of the default super class.
+  @override
   NativeBasicData get nativeBasicData {
     var data = _nativeBasicData;
     if (data == null) {
@@ -1551,6 +1569,7 @@ class KernelToElementMap
   }
 
   /// Returns the [Local] corresponding to the local function [node].
+  @override
   Local getLocalFunction(ir.LocalFunction node) {
     KLocalFunction localFunction = localFunctionMap[node];
     if (localFunction == null) {
@@ -1616,6 +1635,7 @@ class KernelToElementMap
   }
 
   /// Compute the kind of foreign helper function called by [node], if any.
+  @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
       switch (node.target.name.text) {
@@ -1634,6 +1654,7 @@ class KernelToElementMap
 
   /// Computes the [InterfaceType] referenced by a call to the
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
+  @override
   InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length != 1 ||
         node.arguments.named.isNotEmpty) {
@@ -1878,10 +1899,9 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  MemberEntity lookupLocalClassMember(ClassEntity cls, String name,
-      {bool setter = false, bool required = false}) {
-    MemberEntity member =
-        elementMap.lookupClassMember(cls, name, setter: setter);
+  MemberEntity lookupLocalClassMember(ClassEntity cls, Name name,
+      {bool required = false}) {
+    MemberEntity member = elementMap.lookupClassMember(cls, name);
     if (member == null && required) {
       throw failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '$name' was not found in ${cls.name}.");

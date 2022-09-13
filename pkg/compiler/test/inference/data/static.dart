@@ -147,7 +147,7 @@ _returnDefaultZeroCalled([/*[exact=JSNumNotInt]*/ a = 0]) => a;
 staticCallWithNamedArguments1() => _returnNamedDefaultZero();
 
 /*member: _returnNamedDefaultZero:[exact=JSUInt31]*/
-_returnNamedDefaultZero({/*[exact=JSUInt31]*/ a: 0}) => a;
+_returnNamedDefaultZero({/*[exact=JSUInt31]*/ a = 0}) => a;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// A static method that has a named parameter with a default value of `0`.
@@ -158,7 +158,7 @@ _returnNamedDefaultZero({/*[exact=JSUInt31]*/ a: 0}) => a;
 staticCallWithNamedArguments2() => _returnNamedDefaultZeroCalled(a: 0.5);
 
 /*member: _returnNamedDefaultZeroCalled:[exact=JSNumNotInt]*/
-_returnNamedDefaultZeroCalled({/*[exact=JSNumNotInt]*/ a: 0}) => a;
+_returnNamedDefaultZeroCalled({/*[exact=JSNumNotInt]*/ a = 0}) => a;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// A static method that has a named parameter. Two call sites, one with an

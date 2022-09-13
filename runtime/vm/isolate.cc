@@ -126,8 +126,8 @@ class VerifyOriginId : public IsolateVisitor {
 
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
-  return WriteMessage(/* can_send_any_object */ false, /* same_group */ false,
-                      obj, dest_port, Message::kNormalPriority);
+  return WriteMessage(/* same_group */ false, obj, dest_port,
+                      Message::kNormalPriority);
 }
 
 static std::unique_ptr<Message> SerializeMessage(Zone* zone,
@@ -1042,8 +1042,7 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   element = Capability::New(capability);
   msg.SetAt(2, element);
 
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                    /* same_group */ false, msg, main_port(),
+  PortMap::PostMessage(WriteMessage(/* same_group */ false, msg, main_port(),
                                     Message::kOOBPriority));
 }
 
@@ -1739,13 +1738,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
   // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
-
-  if (group()->obfuscate()) {
-    OS::PrintErr(
-        "Warning: This VM has been configured to obfuscate symbol information "
-        "which violates the Dart standard.\n"
-        "         See dartbug.com/30524 for more information.\n");
-  }
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -2832,6 +2824,13 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 }
 
+void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
+                                 ValidationPolicy validate_frames) {
+  if (mutator_thread_ != nullptr) {
+    mutator_thread_->VisitObjectPointers(visitor, validate_frames);
+  }
+}
+
 void IsolateGroup::ReleaseStoreBuffers() {
   thread_registry()->ReleaseStoreBuffers();
 }
@@ -3023,9 +3022,7 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
   for (Isolate* isolate : isolates_) {
     // Visit mutator thread, even if the isolate isn't entered/scheduled
     // (there might be live API handles to visit).
-    if (isolate->mutator_thread_ != nullptr) {
-      isolate->mutator_thread_->VisitObjectPointers(visitor, validate_frames);
-    }
+    isolate->VisitStackPointers(visitor, validate_frames);
   }
 
   visitor->clear_gc_root_type();
@@ -3118,6 +3115,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("name", name());
   jsobj.AddPropertyF("number", "%" Pd64 "", static_cast<int64_t>(main_port()));
   jsobj.AddProperty("isSystemIsolate", is_system_isolate());
+  jsobj.AddPropertyF("isolateGroupId", ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
+                     group()->id());
   if (ref) {
     return;
   }
@@ -3437,8 +3436,7 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
     element = Smi::New(Isolate::kBeforeNextEventAction);
     msg.SetAt(2, element);
     std::unique_ptr<Message> message = WriteMessage(
-        /* can_send_any_object */ false, /* same_group */ false, msg,
-        main_port(), Message::kOOBPriority);
+        /* same_group */ false, msg, main_port(), Message::kOOBPriority);
     bool posted = PortMap::PostMessage(std::move(message));
     ASSERT(posted);
   }

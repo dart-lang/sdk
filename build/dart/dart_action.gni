@@ -173,7 +173,6 @@ template("_prebuilt_tool_action") {
 #    testonly
 #    visibility
 template("prebuilt_dart_action") {
-  assert(defined(invoker.script), "script must be defined for $target_name")
   assert(defined(invoker.outputs), "outputs must be defined for $target_name")
   assert(defined(invoker.args), "args must be defined for $target_name")
   assert(!defined(invoker.sources),
@@ -197,23 +196,6 @@ if (_is_fuchsia) {
       forward_variables_from(invoker, "*")
       binary = prebuilt_gen_snapshot
     }
-  }
-}
-
-template("prebuilt_dart2js_action") {
-  assert(defined(invoker.script), "script must be defined for $target_name")
-  assert(defined(invoker.outputs), "outputs must be defined for $target_name")
-  assert(defined(invoker.args), "args must be defined for $target_name")
-
-  _prebuilt_tool_action(target_name) {
-    forward_variables_from(invoker, "*")
-
-    # TODO(zra): On Fuchsia use a prebuilt dart2js, or a prebuilt Observatory.
-    extension = ""
-    if (is_win) {
-      extension = ".bat"
-    }
-    binary = "$_dart_root/tools/sdks/dart-sdk/bin/dart2js${extension}"
   }
 }
 

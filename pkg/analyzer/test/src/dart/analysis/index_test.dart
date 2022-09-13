@@ -123,7 +123,7 @@ class B extends p.A {} // 2
 class A {}
 ''');
     ClassElement elementA = findElement.class_('A');
-    ClassElement elementObject = elementA.supertype!.element;
+    final elementObject = elementA.supertype!.element2;
     assertThat(elementObject).isExtendedAt('A {}', true, length: 0);
   }
 
@@ -362,11 +362,11 @@ main() {
 ''');
 
     var intMethod = findNode.methodDeclaration('foo() {} // int');
-    assertThat(intMethod.declaredElement!)
+    assertThat(intMethod.declaredElement2!)
         .isInvokedAt('foo(); // int ref', true);
 
     var doubleMethod = findNode.methodDeclaration('foo() {} // double');
-    assertThat(doubleMethod.declaredElement!)
+    assertThat(doubleMethod.declaredElement2!)
         .isInvokedAt('foo(); // double ref', true);
   }
 
@@ -526,7 +526,7 @@ class B extends Object with p.A {} // 2
 mixin A {} // 1
 class B extends Object with A {} // 2
 ''');
-    ClassElement elementA = findElement.mixin('A');
+    final elementA = findElement.mixin('A');
     assertThat(elementA)
       ..isMixedInAt('A {} // 2', false)
       ..isReferencedAt('A {} // 2', false);
@@ -546,7 +546,7 @@ class B = Object with A; // 2
 mixin A {} // 1
 class B = Object with A; // 2
 ''');
-    ClassElement elementA = findElement.mixin('A');
+    final elementA = findElement.mixin('A');
     assertThat(elementA).isMixedInAt('A; // 2', false);
   }
 
@@ -622,7 +622,7 @@ main(MyEnum p) {
   MyEnum.a;
 }
 ''');
-    ClassElement element = findElement.enum_('MyEnum');
+    final element = findElement.enum_('MyEnum');
     assertThat(element)
       ..isReferencedAt('MyEnum p) {', false)
       ..isReferencedAt('MyEnum v;', false)
@@ -1169,7 +1169,7 @@ main() {
   print(MyEnum.B);
 }
 ''');
-    ClassElement enumElement = findElement.enum_('MyEnum');
+    final enumElement = findElement.enum_('MyEnum');
     assertThat(enumElement.getGetter('values')!)
         .isReferencedAt('values);', true);
     assertThat(typeProvider.enumElement!.getGetter('index')!)
@@ -1537,16 +1537,16 @@ main() {
 
     var intGetter = findNode.methodDeclaration('0; // int getter');
     var intSetter = findNode.methodDeclaration('{} // int setter');
-    assertThat(intGetter.declaredElement!)
+    assertThat(intGetter.declaredElement2!)
         .isReferencedAt('foo; // int getter ref', true);
-    assertThat(intSetter.declaredElement!)
+    assertThat(intSetter.declaredElement2!)
         .isReferencedAt('foo = 0; // int setter ref', true);
 
     var doubleGetter = findNode.methodDeclaration('0; // double getter');
     var doubleSetter = findNode.methodDeclaration('{} // double setter');
-    assertThat(doubleGetter.declaredElement!)
+    assertThat(doubleGetter.declaredElement2!)
         .isReferencedAt('foo; // double getter ref', true);
-    assertThat(doubleSetter.declaredElement!)
+    assertThat(doubleSetter.declaredElement2!)
         .isReferencedAt('foo = 0; // double setter ref', true);
   }
 

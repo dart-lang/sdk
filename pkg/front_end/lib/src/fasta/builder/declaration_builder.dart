@@ -20,10 +20,10 @@ abstract class DeclarationBuilder implements TypeDeclarationBuilder {
   /// Lookup a member accessed statically through this declaration.
   Builder? findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
-      {bool isSetter: false});
+      {bool isSetter = false});
 
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage>? context});
+      {bool wasHandled = false, List<LocatedMessage>? context});
 
   /// Returns the type of `this` in an instance of this declaration.
   ///
@@ -37,7 +37,7 @@ abstract class DeclarationBuilder implements TypeDeclarationBuilder {
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
   Builder? lookupLocalMember(String name,
-      {bool setter: false, bool required: false});
+      {bool setter = false, bool required = false});
 }
 
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
@@ -61,7 +61,7 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage>? context}) {
+      {bool wasHandled = false, List<LocatedMessage>? context}) {
     libraryBuilder.addProblem(message, charOffset, length, fileUri,
         wasHandled: wasHandled, context: context);
   }

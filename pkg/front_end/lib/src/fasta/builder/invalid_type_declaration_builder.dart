@@ -27,7 +27,7 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
   final bool suppressMessage;
 
   InvalidTypeDeclarationBuilder(String name, this.message,
-      {this.context, this.suppressMessage: true})
+      {this.context, this.suppressMessage = true})
       : super(null, 0, name, null, message.charOffset);
 
   @override

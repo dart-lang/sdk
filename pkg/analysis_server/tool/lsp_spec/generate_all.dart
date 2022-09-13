@@ -111,9 +111,11 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 
 List<LspEntity> getCustomClasses() {
   /// Helper to create an interface type.
-  Interface interface(String name, List<Member> fields, {String? baseType}) {
+  Interface interface(String name, List<Member> fields,
+      {String? baseType, String? comment}) {
     return Interface(
       name: name,
+      comment: comment,
       baseTypes: [if (baseType != null) TypeReference(baseType)],
       members: fields,
     );
@@ -293,16 +295,6 @@ List<LspEntity> getCustomClasses() {
       [],
     ),
     interface(
-      'DartSuggestionSetCompletionItemResolutionInfo',
-      [
-        // These fields have short-ish names because they're on the payload
-        // for all suggestion-set backed completions.
-        field('file', type: 'string'),
-        field('libId', type: 'int'),
-      ],
-      baseType: 'CompletionItemResolutionInfo',
-    ),
-    interface(
       'DartNotImportedCompletionResolutionInfo',
       [
         field(
@@ -353,7 +345,68 @@ List<LspEntity> getCustomClasses() {
         ]),
       ),
       isRename: false,
-    )
+    ),
+    //
+    // Command parameter support
+    //
+    interface(
+      'CommandParameter',
+      [
+        field(
+          'label',
+          type: 'String',
+          comment:
+              'A human-readable label to be displayed in the UI affordance '
+              'used to prompt the user for the value of the parameter.',
+        ),
+        field(
+          'type',
+          type: 'CommandParameterType',
+          comment: 'The type of the value of the parameter.',
+        ),
+        field(
+          'defaultValue',
+          type: 'String',
+          comment: 'The default value for the parameter.',
+        ),
+      ],
+      comment: 'Information about one of the arguments needed by the command.'
+          '\n\n'
+          'A list of parameters is sent in the `data` field of the '
+          '`CodeAction` returned by the server. The values of the parameters '
+          'should appear in the `args` field of the `Command` sent to the '
+          'server in the same order as the corresponding parameters.',
+    ),
+    LspEnum(
+      name: 'CommandParameterType',
+      comment: 'The type of the value associated with a CommandParameter. All '
+          'values are encoded as strings, but the type indicates how the '
+          'string will be decoded by the server.',
+      members: [
+        Constant(
+          name: 'boolean',
+          value: 'boolean',
+          type: TypeReference('String'),
+          comment: 'The type associated with a bool value.'
+              '\n\n'
+              "The value must either be `'true'` or `'false'`.",
+        ),
+        Constant(
+          name: 'string',
+          value: 'string',
+          type: TypeReference('String'),
+          comment: 'The type associated with a string value.',
+        ),
+        Constant(
+          name: 'filePath',
+          value: 'filePath',
+          type: TypeReference('String'),
+          comment:
+              'The type associated with a value representing a path to a file.',
+        ),
+      ],
+      typeOfValues: TypeReference('String'),
+    ),
   ];
   return customTypes;
 }

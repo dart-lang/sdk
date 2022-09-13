@@ -9,7 +9,9 @@ import 'transformations/flags.dart';
 import 'type_environment.dart' show StatefulStaticTypeContext, TypeEnvironment;
 
 void verifyComponent(Component component,
-    {bool? isOutline, bool? afterConst, bool constantsAreAlwaysInlined: true}) {
+    {bool? isOutline,
+    bool? afterConst,
+    bool constantsAreAlwaysInlined = true}) {
   VerifyingVisitor.check(component,
       isOutline: isOutline,
       afterConst: afterConst,
@@ -528,7 +530,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     switch (currentAsyncMarker) {
       case AsyncMarker.Sync:
       case AsyncMarker.Async:
-      case AsyncMarker.SyncYielding:
         // ok
         break;
       case AsyncMarker.SyncStar:
@@ -556,7 +557,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         break;
       case AsyncMarker.SyncStar:
       case AsyncMarker.AsyncStar:
-      case AsyncMarker.SyncYielding:
         // ok
         break;
     }
@@ -914,7 +914,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             currentParent, "Type $node references an anonymous mixin class.");
       }
     }
-    defaultDartType(node);
   }
 
   @override

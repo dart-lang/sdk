@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library js_backend.backend.codegen_listener;
 
 import 'dart:collection';
@@ -101,7 +99,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   @override
   void onQueueOpen(
-      Enqueuer enqueuer, FunctionEntity mainMethod, Iterable<Uri> libraries) {
+      Enqueuer enqueuer, FunctionEntity? mainMethod, Iterable<Uri> libraries) {
     enqueuer.applyImpact(_nativeEnqueuer.processNativeClasses(libraries));
     if (mainMethod != null) {
       enqueuer.applyImpact(_computeMainImpact(mainMethod));
@@ -178,8 +176,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
           .registerTypeUse(TypeUse.instantiation(_commonElements.typeType));
       // If the type is a web component, we need to ensure the constructors are
       // available to 'upgrade' the native object.
-      if (constant.representedType is InterfaceType) {
-        InterfaceType representedType = constant.representedType;
+      final representedType = constant.representedType;
+      if (representedType is InterfaceType) {
         _customElementsAnalysis.registerTypeConstant(representedType.element);
       }
     } else if (constant is InstantiationConstantValue) {
@@ -228,10 +226,10 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction && member.isInstanceMember) {
-      ClassEntity cls = member.enclosingClass;
+      ClassEntity cls = member.enclosingClass!;
       if (member.name == Identifiers.call &&
           _elementEnvironment.isGenericClass(cls) &&
-          _rtiNeed.methodNeedsSignature(member)) {
+          _rtiNeed.methodNeedsSignature(member as FunctionEntity)) {
         worldImpact.addImpact(_registerComputeSignature());
       }
     }

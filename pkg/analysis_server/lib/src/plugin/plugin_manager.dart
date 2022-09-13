@@ -18,7 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
@@ -343,12 +343,12 @@ class PluginManager {
       _pluginMap[path] = plugin;
       try {
         var session = await plugin.start(byteStorePath, sdkPath);
-        session?.onDone.then((_) {
+        unawaited(session?.onDone.then((_) {
           if (_pluginMap[path] == plugin) {
             _pluginMap.remove(path);
             _notifyPluginsChanged();
           }
-        });
+        }));
       } catch (exception, stackTrace) {
         // Record the exception (for debugging purposes) and record the fact
         // that we should not try to communicate with the plugin.
@@ -438,7 +438,7 @@ class PluginManager {
       // because we won't be running pub.
       return _computeFiles(pluginFolder);
     }
-    var workspace = BazelWorkspace.find(resourceProvider, pluginFolder.path) ??
+    var workspace = BlazeWorkspace.find(resourceProvider, pluginFolder.path) ??
         GnWorkspace.find(resourceProvider, pluginFolder.path);
     if (workspace != null) {
       // Similarly, we won't be running pub if we're in a workspace because
@@ -534,9 +534,9 @@ class PluginManager {
         //
         _pluginMap[path] = plugin;
         var session = await plugin.start(byteStorePath, sdkPath);
-        session?.onDone.then((_) {
+        unawaited(session?.onDone.then((_) {
           _pluginMap.remove(path);
-        });
+        }));
         //
         // Re-initialize the plugin.
         //
@@ -993,7 +993,7 @@ class PluginSession {
     name = result.name;
     version = result.version;
     if (!isCompatible) {
-      sendRequest(PluginShutdownParams());
+      unawaited(sendRequest(PluginShutdownParams()));
       info.reportException(CaughtException(
           PluginException('Plugin is not compatible.'), StackTrace.current));
       return false;

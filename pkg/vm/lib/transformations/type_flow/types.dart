@@ -99,6 +99,13 @@ abstract class TypesBuilder {
       } else {
         result = fromStaticType(bound, canBeNull);
       }
+    } else if (type is IntersectionType) {
+      final bound = type.right;
+      if (bound is TypeParameterType) {
+        result = const AnyType();
+      } else {
+        result = fromStaticType(bound, canBeNull);
+      }
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
     }

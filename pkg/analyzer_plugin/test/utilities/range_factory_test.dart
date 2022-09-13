@@ -194,6 +194,14 @@ class RangeFactory_NodeInListTest extends AbstractSingleUnitTest {
     return invocation.argumentList.arguments;
   }
 
+  /// Assuming that the test code starts with a class whose default constructor,
+  /// return the list of initializers in that constructor.
+  NodeList<ConstructorInitializer> get _constructorInitializers {
+    var c = testUnit.declarations[0] as ClassDeclaration;
+    var constructor = c.members.whereType<ConstructorDeclaration>().single;
+    return constructor.initializers;
+  }
+
   Future<void> test_argumentList_first_named() async {
     await resolveTestCode('''
 void f() {
@@ -302,6 +310,28 @@ void g(int a) {}
 ''');
     var list = _argumentList;
     expect(range.nodeInList(list, list[0]), SourceRange(15, 2));
+  }
+
+  Future<void> test_constructorDeclaration_first() async {
+    await resolveTestCode('''
+class A {
+  int x;
+  A() : x = 0;
+}
+''');
+    var list = _constructorInitializers;
+    expect(range.nodeInList(list, list[0]), SourceRange(24, 8));
+  }
+
+  Future<void> test_constructorDeclaration_last() async {
+    await resolveTestCode('''
+class A {
+  int x, y;
+  A() : x = 0, y = 1;
+}
+''');
+    var list = _constructorInitializers;
+    expect(range.nodeInList(list, list[1]), SourceRange(35, 7));
   }
 }
 
@@ -480,7 +510,7 @@ class B {}
   Future<void> test_endEnd() async {
     await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name;
+    var mainName = mainFunction.name2;
     var mainBody = mainFunction.functionExpression.body;
     expect(range.endEnd(mainName, mainBody), SourceRange(4, 5));
   }
@@ -488,14 +518,14 @@ class B {}
   Future<void> test_endLength() async {
     await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name;
+    var mainName = mainFunction.name2;
     expect(range.endLength(mainName, 3), SourceRange(4, 3));
   }
 
   Future<void> test_endStart() async {
     await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name;
+    var mainName = mainFunction.name2;
     var mainBody = mainFunction.functionExpression.body;
     expect(range.endStart(mainName, mainBody), SourceRange(4, 3));
   }
@@ -512,17 +542,16 @@ const class B {}
 
   Future<void> test_node() async {
     await resolveTestCode('main() {}');
-    var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name;
-    expect(range.node(mainName), SourceRange(0, 4));
+    var main = testUnit.declarations[0] as FunctionDeclaration;
+    expect(range.node(main), SourceRange(0, 9));
   }
 
   Future<void> test_nodes() async {
     await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name;
+    var mainParameters = mainFunction.functionExpression.parameters!;
     var mainBody = mainFunction.functionExpression.body;
-    expect(range.nodes([mainName, mainBody]), SourceRange(1, 9));
+    expect(range.nodes([mainParameters, mainBody]), SourceRange(5, 5));
   }
 
   Future<void> test_nodes_empty() async {
@@ -537,7 +566,7 @@ const class B {}
   Future<void> test_startEnd_nodeNode() async {
     await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name;
+    var mainName = mainFunction.name2;
     var mainBody = mainFunction.functionExpression.body;
     expect(range.startEnd(mainName, mainBody), SourceRange(1, 9));
   }
@@ -545,8 +574,8 @@ const class B {}
   Future<void> test_startLength_node() async {
     await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name;
-    expect(range.startLength(mainName, 10), SourceRange(1, 10));
+    var parameters = mainFunction.functionExpression.parameters!;
+    expect(range.startLength(parameters, 10), SourceRange(5, 10));
   }
 
   void test_startOffsetEndOffset() {
@@ -556,16 +585,16 @@ const class B {}
   Future<void> test_startStart_nodeNode() async {
     await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name;
+    var parameters = mainFunction.functionExpression.parameters!;
     var mainBody = mainFunction.functionExpression.body;
-    expect(range.startStart(mainName, mainBody), SourceRange(0, 7));
+    expect(range.startStart(parameters, mainBody), SourceRange(4, 3));
   }
 
   Future<void> test_token() async {
     await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name;
-    expect(range.token(mainName.beginToken), SourceRange(1, 4));
+    var mainName = mainFunction.name2;
+    expect(range.token(mainName), SourceRange(1, 4));
   }
 
   Future<void> _deletionRange(String code,

@@ -5,7 +5,7 @@
 // This test ensures that --trace-precompiler runs without issue and prints
 // valid JSON for reasons to retain objects.
 
-// OtherResources=use_dwarf_stack_traces_flag_program.dart
+// OtherResources=use_save_debugging_info_flag_program.dart
 
 import "dart:convert";
 import "dart:io";
@@ -37,8 +37,9 @@ main(List<String> args) async {
 
   await withTempDir('trace-precompiler-flag-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
-    // We can just reuse the program for the use_dwarf_stack_traces test.
-    final script = path.join(cwDir, 'use_dwarf_stack_traces_flag_program.dart');
+    // We can just reuse the program for the use_save_debugging_info_flag test.
+    final script =
+        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.

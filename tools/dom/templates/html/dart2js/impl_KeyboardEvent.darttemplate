@@ -26,14 +26,14 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    */
   factory $CLASSNAME(String type, {
       Window$NULLABLE view,
-      bool canBubble: true,
-      bool cancelable: true,
+      bool canBubble = true,
+      bool cancelable = true,
       int$NULLABLE location,
       int$NULLABLE keyLocation, // Legacy alias for location
-      bool ctrlKey: false,
-      bool altKey: false,
-      bool shiftKey: false,
-      bool metaKey: false}) {
+      bool ctrlKey = false,
+      bool altKey = false,
+      bool shiftKey = false,
+      bool metaKey = false}) {
     if (view == null) {
       view = window;
     }

@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 82;
+  UInt32 formatVersion = 86;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -382,7 +382,8 @@ type Field extends Member {
   FileOffset fileEndOffset;
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
-                isNonNullableByDefault, isInternalImplementation);
+                isNonNullableByDefault, isInternalImplementation,
+                isEnumElement);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -510,8 +511,7 @@ enum AsyncMarker {
   Sync,
   SyncStar,
   Async,
-  AsyncStar,
-  SyncYielding
+  AsyncStar
 }
 */
 
@@ -650,6 +650,22 @@ type InstanceGet extends Expression {
   DartType resultType;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin; // May be NullReference.
+}
+
+type RecordIndexGet extends Expression {
+  Byte tag = 101;
+  FileOffset fileOffset;
+  Expression receiver;
+  DartType receiverType;
+  UInt index;
+}
+
+type RecordNameGet extends Expression {
+  Byte tag = 102;
+  FileOffset fileOffset;
+  Expression receiver;
+  DartType receiverType;
+  StringReference name;
 }
 
 type InstanceSet extends Expression {
@@ -1094,6 +1110,22 @@ type MapEntry {
   Expression value;
 }
 
+type RecordLiteral extends Expression {
+  Byte tag = 104; // Note: tag is out of order.
+  FileOffset fileOffset;
+  List<Expression> positional;
+  List<NamedExpression> named;
+  DartType recordType;
+}
+
+type ConstRecordLiteral extends Expression {
+  Byte tag = 105; // Note: tag is out of order.
+  FileOffset fileOffset;
+  List<Expression> positional;
+  List<NamedExpression> named;
+  DartType recordType;
+}
+
 type AwaitExpression extends Expression {
   Byte tag = 51;
   FileOffset fileOffset;
@@ -1238,6 +1270,13 @@ type ConstructorTearOffConstant extends Constant {
 type RedirectingFactoryTearOffConstant extends Constant {
   Byte tag = 16;
   CanonicalNameReference constructorReference;
+}
+
+type RecordConstant extends Constant {
+  Byte tag = 17;
+  List<ConstantReference> positional;
+  List<Pair<StringReference, ConstantReference>> named;
+  DartType recordType;
 }
 
 abstract type Statement extends Node {}
@@ -1398,7 +1437,7 @@ type TryFinally extends Statement {
 type YieldStatement extends Statement {
   Byte tag = 77;
   FileOffset fileOffset;
-  Byte flags (isYieldStar, isNative);
+  Byte flags (isYieldStar);
   Expression expression;
 }
 
@@ -1493,6 +1532,13 @@ type FunctionType extends DartType {
   DartType returnType;
 }
 
+type RecordType extends DartType {
+  Byte tag = 100;
+  Byte nullability; // Index into the Nullability enum above.
+  List<DartType> positional;
+  List<NamedDartType> named;
+}
+
 type SimpleFunctionType extends DartType {
   Byte tag = 97; // Note: tag is out of order.
   Byte nullability; // Index into the Nullability enum above.
@@ -1530,7 +1576,12 @@ type TypeParameterType extends DartType {
   // the class type parameters in a constructor refer to those declared on the
   // class.
   UInt index;
-  Option<DartType> bound;
+}
+
+type IntersectionType extends DartType {
+  Byte tag = 99;
+  TypeParameterType left;
+  DartType right;
 }
 
 type TypedefType {

@@ -67,7 +67,7 @@ Future runCompiler(Uri compiler, Uri input, Uri output) async {
   }
 }
 
-Future compare(Uri a, Uri b, {bool silent: false}) async {
+Future compare(Uri a, Uri b, {bool silent = false}) async {
   List<int> bytesA = await new File.fromUri(a).readAsBytes();
   List<int> bytesB = await new File.fromUri(b).readAsBytes();
   if (bytesA.length == bytesB.length) {

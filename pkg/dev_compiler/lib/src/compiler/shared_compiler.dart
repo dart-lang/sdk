@@ -732,8 +732,8 @@ abstract class SharedCompiler<Library extends Object, Class extends Object,
   /// Note, this function mutates the items list and returns it as the `body`
   /// field of the result.
   @protected
-  js_ast.Program finishModule(
-      List<js_ast.ModuleItem> items, String moduleName) {
+  js_ast.Program finishModule(List<js_ast.ModuleItem> items, String moduleName,
+      {List<js_ast.Comment> header = const []}) {
     // TODO(jmesserly): there's probably further consolidation we can do
     // between DDC's two backends, by moving more code into this method, as the
     // code between `startModule` and `finishModule` is very similar in both.
@@ -747,7 +747,7 @@ abstract class SharedCompiler<Library extends Object, Class extends Object,
     moduleItems.clear();
 
     // Build the module.
-    return js_ast.Program(items, name: moduleName);
+    return js_ast.Program(items, name: moduleName, header: header);
   }
 
   /// Flattens blocks in [items] to a single list.

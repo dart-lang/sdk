@@ -173,8 +173,11 @@ abstract class TestSuite {
 
     // Tests of web-specific static errors are run on web compilers.
     if (testFile.isWebStaticErrorTest &&
-        (configuration.compiler == Compiler.dart2js ||
-            configuration.compiler == Compiler.dartdevc)) {
+        const {
+          Compiler.dart2js,
+          Compiler.dartdevc,
+          Compiler.dartdevk,
+        }.contains(configuration.compiler)) {
       return true;
     }
 
@@ -386,6 +389,7 @@ class FfiTestSuite extends TestSuite {
 
   static const targetAbis = [
     "arm64_android",
+    "arm64_fuchsia",
     "arm64_ios",
     "arm64_linux",
     "arm64_macos",
@@ -395,6 +399,7 @@ class FfiTestSuite extends TestSuite {
     "ia32_android",
     "ia32_linux",
     "ia32_win",
+    "x64_fuchsia",
     "x64_ios",
     "x64_linux",
     "x64_macos",

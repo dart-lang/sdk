@@ -88,7 +88,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       {required bool isExtensionMember,
       required bool isInstanceMember,
       String? nativeMethodName,
-      bool isSynthetic: false})
+      bool isSynthetic = false})
       // ignore: unnecessary_null_comparison
       : assert(isExtensionMember != null),
         // ignore: unnecessary_null_comparison

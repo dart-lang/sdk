@@ -16,6 +16,7 @@ adapter
 adaptor
 adopted
 advantages
+af
 albeit
 aligns
 allocations
@@ -284,6 +285,7 @@ forces
 foreground
 forrest
 forty
+fortytwo
 foundation
 fox
 frequency
@@ -328,6 +330,7 @@ hosted
 hosting
 hot
 hotreload
+hover
 hunk
 hurray
 i'm
@@ -569,6 +572,7 @@ secondary
 secondtest
 segment
 selection
+selects
 semifuzz
 sensitive
 series
@@ -645,6 +649,7 @@ timings
 tinv
 tk
 told
+tooltip
 touch
 tpt
 transitively

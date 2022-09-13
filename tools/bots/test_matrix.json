@@ -1,6 +1,6 @@
 {
   "branches": [
-    "master"
+    "main"
   ],
   "filesets": {
     "analyzer_unit_tests": [
@@ -19,7 +19,6 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -102,7 +101,6 @@
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
-      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -219,7 +217,6 @@
       "runtime/tests/",
       "samples-dev/",
       "samples/",
-      "samples_2/",
       "sdk/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
@@ -282,7 +279,6 @@
       "xcodebuild/",
       "pkg/",
       "samples/",
-      "samples_2/",
       "samples-dev/",
       "tools/",
       "third_party/android_tools/sdk/platform-tools/adb",
@@ -1290,6 +1286,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--no-clang",
+            "--no-goma",
             "--use-qemu",
             "--use-mallinfo2",
             "dart_precompiled_runtime",
@@ -1334,6 +1331,14 @@
           "arguments": [
             "runtime",
             "dart_precompiled_runtime",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart (cross x64)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--arch=simx64",
             "gen_snapshot"
           ]
         },
@@ -1492,7 +1497,6 @@
         "vm-kernel-precomp-linux-release-simarm64",
         "vm-kernel-precomp-linux-release-simriscv32",
         "vm-kernel-precomp-linux-release-simriscv64",
-        "vm-kernel-precomp-mac-product-x64",
         "vm-kernel-precomp-mac-release-simarm64",
         "vm-kernel-precomp-mac-release-simarm64c",
         "vm-kernel-precomp-win-product-x64",
@@ -1518,6 +1522,30 @@
           ],
           "fileset": "vm-kernel",
           "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-mac-product-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel precomp builders lacking shard support."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-${arch}"
+          ]
         }
       ]
     },
@@ -3119,7 +3147,8 @@
             "-ndart2wasm-hostasserts-linux-x64-d8",
             "language",
             "corelib",
-            "web/wasm"
+            "web/wasm",
+            "lib/js/static_interop_test"
           ],
           "shards": 3,
           "fileset": "dart2wasm_hostasserts"

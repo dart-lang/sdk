@@ -40,7 +40,7 @@ class FunctionSet {
   /// noSuchMethod handlers that are potential targets indirectly through the
   /// noSuchMethod mechanism.
   Iterable<MemberEntity> filter(
-      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
+      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
     return query(selector, receiver, domain).functions;
   }
 
@@ -66,7 +66,7 @@ class FunctionSet {
   /// [selector] on a receiver constrained by [constraint] including
   /// 'noSuchMethod' methods where applicable.
   FunctionSetQuery query(
-      Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
+      Selector selector, AbstractValue? receiver, AbstractValueDomain domain) {
     String name = selector.name;
     SelectorMask selectorMask = _createSelectorMask(selector, receiver, domain);
     SelectorMask noSuchMethodMask =

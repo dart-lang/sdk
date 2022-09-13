@@ -27,7 +27,8 @@
   },
   "children": [
     "function/memory:sdk/tests/web/native/lib2.dart::A.method"
-  ]
+  ],
+  "supers": []
 }]*/
 class A {
   const A();

@@ -121,6 +121,10 @@ class Thread;
     StubCode::RangeErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
   V(CodePtr, range_error_shared_with_fpu_regs_stub_,                           \
     StubCode::RangeErrorSharedWithFPURegs().ptr(), nullptr)                    \
+  V(CodePtr, write_error_shared_without_fpu_regs_stub_,                        \
+    StubCode::WriteErrorSharedWithoutFPURegs().ptr(), nullptr)                 \
+  V(CodePtr, write_error_shared_with_fpu_regs_stub_,                           \
+    StubCode::WriteErrorSharedWithFPURegs().ptr(), nullptr)                    \
   V(CodePtr, allocate_mint_with_fpu_regs_stub_,                                \
     StubCode::AllocateMintSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, allocate_mint_without_fpu_regs_stub_,                             \
@@ -137,8 +141,6 @@ class Thread;
   V(CodePtr, return_async_not_future_stub_,                                    \
     StubCode::ReturnAsyncNotFuture().ptr(), nullptr)                           \
   V(CodePtr, return_async_star_stub_, StubCode::ReturnAsyncStar().ptr(),       \
-    nullptr)                                                                   \
-  V(CodePtr, return_sync_star_stub_, StubCode::ReturnSyncStar().ptr(),         \
     nullptr)                                                                   \
   V(CodePtr, stack_overflow_shared_without_fpu_regs_stub_,                     \
     StubCode::StackOverflowSharedWithoutFPURegs().ptr(), nullptr)              \
@@ -186,8 +188,7 @@ class Thread;
   V(suspend_state_yield_async_star)                                            \
   V(suspend_state_return_async_star)                                           \
   V(suspend_state_init_sync_star)                                              \
-  V(suspend_state_yield_sync_star)                                             \
-  V(suspend_state_return_sync_star)                                            \
+  V(suspend_state_suspend_sync_star_at_start)                                  \
   V(suspend_state_handle_exception)
 
 // This assertion marks places which assume that boolean false immediate
@@ -1097,6 +1098,10 @@ class Thread : public ThreadState {
 
   void InitVMConstants();
 
+  int64_t GetNextTaskId() { return next_task_id_++; }
+  static intptr_t next_task_id_offset() {
+    return OFFSET_OF(Thread, next_task_id_);
+  }
   Random* random() { return &thread_random_; }
   static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
 
@@ -1210,6 +1215,7 @@ class Thread : public ThreadState {
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
+  ALIGN8 int64_t next_task_id_;
   ALIGN8 Random thread_random_;
 
   TsanUtils* tsan_utils_ = nullptr;

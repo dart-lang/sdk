@@ -7,6 +7,7 @@
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/deferred_load/output_unit.dart' show OutputUnit;
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
@@ -29,7 +30,8 @@ MemberEntity lookupMember(JElementEnvironment elementEnvironment, String name) {
     ClassEntity cls = elementEnvironment.lookupClass(
         elementEnvironment.mainLibrary, className);
     Expect.isNotNull(cls, "No class '$className' found in the main library.");
-    member = elementEnvironment.lookupClassMember(cls, name);
+    member = elementEnvironment.lookupClassMember(
+        cls, Name(name, cls.library.canonicalUri));
     member ??= elementEnvironment.lookupConstructor(cls, name);
     Expect.isNotNull(member, "No member '$name' found in $cls");
   } else {

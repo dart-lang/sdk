@@ -26,7 +26,7 @@ part 'SliderMenu.dart';
 // subclasses are refactored to use the new way. There will be some scaffolding
 // and construction cones laying around. Try not to freak out.
 
-/** A generic view. */
+/// A generic view. */
 class View implements Positionable {
   Element _node;
   ViewLayout _layout;
@@ -35,25 +35,25 @@ class View implements Positionable {
   // App track the views that want to be notified of resize()
   StreamSubscription _resizeSubscription;
 
-  /**
-   * Style properties configured for this view.
-   */
+  /// Style properties configured for this view.
   // TODO(jmesserly): We should be getting these from our CSS preprocessor.
   // I'm not sure if this will stay as a Map, or just be a get method.
   // TODO(jacobr): Consider returning a somewhat typed base.Style wrapper
   // object instead, and integrating with built in CSS properties.
+  @override
   final Map<String, String> customStyle;
 
-  View() : customStyle = new Map<String, String>();
+  View() : customStyle = <String, String>{};
 
-  View.fromNode(Element this._node) : customStyle = new Map<String, String>();
+  View.fromNode(this._node) : customStyle = <String, String>{};
 
   View.html(String html)
-      : customStyle = new Map<String, String>(),
-        _node = new Element.html(html);
+      : customStyle = <String, String>{},
+        _node = Element.html(html);
 
   // TODO(rnystrom): Get rid of this when all views are refactored to not use
   // it.
+  @override
   Element get node {
     // Lazy render.
     if (_node == null) {
@@ -63,22 +63,19 @@ class View implements Positionable {
     return _node;
   }
 
-  /**
-   * A subclass that contains child views should override this to return those
-   * views. View uses this to ensure that child views are properly rendered
-   * and initialized when their parent view is without the parent having to
-   * manually handle that traversal.
-   */
+  /// A subclass that contains child views should override this to return those
+  /// views. View uses this to ensure that child views are properly rendered
+  /// and initialized when their parent view is without the parent having to
+  /// manually handle that traversal.
+  @override
   Iterable<View> get childViews {
     return const [];
   }
 
-  /**
-   * View presumes the collection of views returned by childViews is more or
-   * less static after the view is first created. Subclasses should call this
-   * when that invariant doesn't hold to let View know that a new childView has
-   * appeared.
-   */
+  /// View presumes the collection of views returned by childViews is more or
+  /// less static after the view is first created. Subclasses should call this
+  /// when that invariant doesn't hold to let View know that a new childView has
+  /// appeared.
   void childViewAdded(View child) {
     if (isInDocument) {
       child._enterDocument();
@@ -88,37 +85,31 @@ class View implements Positionable {
     }
   }
 
-  /**
-   * View presumes the collection of views returned by childViews is more or
-   * less static after the view is first created. Subclasses should call this
-   * when that invariant doesn't hold to let View know that a childView has
-   * been removed.
-   */
+  /// View presumes the collection of views returned by childViews is more or
+  /// less static after the view is first created. Subclasses should call this
+  /// when that invariant doesn't hold to let View know that a childView has
+  /// been removed.
   void childViewRemoved(View child) {
     if (isInDocument) {
       child._exitDocument();
     }
   }
 
-  /** Gets whether this View has already been rendered or not. */
+  /// Gets whether this View has already been rendered or not. */
   bool get isRendered {
     return _node != null;
   }
 
-  /**
-   * Gets whether this View (or one of its parents) has been added to the
-   * document or not.
-   */
+  /// Gets whether this View (or one of its parents) has been added to the
+  /// document or not.
   bool get isInDocument {
     return _node != null &&
         node.ownerDocument is HtmlDocument &&
         (node.ownerDocument as HtmlDocument).body.contains(node);
   }
 
-  /**
-   * Adds this view to the document as a child of the given node. This should
-   * generally only be called once for the top-level view.
-   */
+  /// Adds this view to the document as a child of the given node. This should
+  /// generally only be called once for the top-level view.
   void addToDocument(Element parentNode) {
     assert(!isInDocument);
 
@@ -137,66 +128,58 @@ class View implements Positionable {
     _node.remove();
   }
 
-  /**
-   * Override this to generate the DOM structure for the view.
-   */
+  /// Override this to generate the DOM structure for the view.
   // TODO(rnystrom): make this method abstract, see b/5015671
   Element render() {
     throw 'abstract';
   }
 
-  /**
-   * Override this to perform initialization behavior that requires access to
-   * the DOM associated with the View, such as event wiring.
-   */
+  /// Override this to perform initialization behavior that requires access to
+  /// the DOM associated with the View, such as event wiring.
   void afterRender(Element node) {
     // Do nothing by default.
   }
 
-  /**
-   * Override this to perform behavior after this View has been added to the
-   * document. This is appropriate if you need access to state (such as the
-   * calculated size of an element) that's only available when the View is in
-   * the document.
-   *
-   * This will be called each time the View is added to the document, if it is
-   * added and removed multiple times.
-   */
+  /// Override this to perform behavior after this View has been added to the
+  /// document. This is appropriate if you need access to state (such as the
+  /// calculated size of an element) that's only available when the View is in
+  /// the document.
+  ///
+  /// This will be called each time the View is added to the document, if it is
+  /// added and removed multiple times.
   void enterDocument() {}
 
-  /**
-   * Override this to perform behavior after this View has been removed from the
-   * document. This can be a convenient time to unregister event handlers bound
-   * in enterDocument().
-   *
-   * This will be called each time the View is removed from the document, if it
-   * is added and removed multiple times.
-   */
+  /// Override this to perform behavior after this View has been removed from the
+  /// document. This can be a convenient time to unregister event handlers bound
+  /// in enterDocument().
+  ///
+  /// This will be called each time the View is removed from the document, if it
+  /// is added and removed multiple times.
   void exitDocument() {}
 
-  /** Override this to perform behavior after the window is resized. */
+  /// Override this to perform behavior after the window is resized. */
   // TODO(jmesserly): this isn't really the event we want. Ideally we want to
   // fire the event only if this particular View changed size. Also we should
   // give a view the ability to measure itself when added to the document.
   void windowResized() {}
 
-  /**
-   * Registers the given listener callback to the given observable. Also
-   * immediately invokes the callback once as if a change has just come in.
-   * This lets you define a render() method that renders the skeleton of a
-   * view, then register a bunch of listeners which all fire to populate the
-   * view with model data.
-   */
-  void watch(Observable observable, void watcher(EventSummary summary)) {
+  /// Registers the given listener callback to the given observable. Also
+  /// immediately invokes the callback once as if a change has just come in.
+  /// This lets you define a render() method that renders the skeleton of a
+  /// view, then register a bunch of listeners which all fire to populate the
+  /// view with model data.
+  void watch(
+      Observable observable, void Function(EventSummary summary) watcher) {
     // Make a fake summary for the initial watch.
-    final summary = new EventSummary(observable);
+    final summary = EventSummary(observable);
     watcher(summary);
 
     attachWatch(observable, watcher);
   }
 
-  /** Registers the given listener callback to the given observable. */
-  void attachWatch(Observable observable, void watcher(EventSummary summary)) {
+  /// Registers the given listener callback to the given observable. */
+  void attachWatch(
+      Observable observable, void Function(EventSummary summary) watcher) {
     observable.addChangeListener(watcher);
 
     // TODO(rnystrom): Should keep track of this and unregister when the view
@@ -207,15 +190,11 @@ class View implements Positionable {
     _node.onClick.listen(handler);
   }
 
-  /**
-   * Gets whether the view is hidden.
-   */
+  /// Gets whether the view is hidden.
   bool get hidden => _node.style.display == 'none';
 
-  /**
-   * Sets whether the view is hidden.
-   */
-  void set hidden(bool hidden) {
+  /// Sets whether the view is hidden.
+  set hidden(bool hidden) {
     if (hidden) {
       node.style.display = 'none';
     } else {
@@ -231,43 +210,35 @@ class View implements Positionable {
     node.classes.remove(className);
   }
 
-  /** Sets the CSS3 transform applied to the view. */
+  /// Sets the CSS3 transform applied to the view. */
   set transform(String transform) {
     node.style.transform = transform;
   }
 
   // TODO(rnystrom): Get rid of this, or move into a separate class?
-  /** Creates a View whose node is a <div> with the given class(es). */
-  static View div(String cssClass, [String body = null]) {
-    if (body == null) {
-      body = '';
-    }
-    return new View.html('<div class="$cssClass">$body</div>');
+  /// Creates a View whose node is a <div> with the given class(es). */
+  static View div(String cssClass, [String body]) {
+    body ??= '';
+    return View.html('<div class="$cssClass">$body</div>');
   }
 
-  /**
-   * Internal render method that deals with traversing child views. Should not
-   * be overridden.
-   */
+  /// Internal render method that deals with traversing child views. Should not
+  /// be overridden.
   void _render() {
     // TODO(rnystrom): Should render child views here. Not implemented yet.
     // Instead, we rely on the parent accessing .node to implicitly cause the
     // child to be rendered.
 
     // Render this view.
-    if (_node == null) {
-      _node = render();
-    }
+    _node ??= render();
 
     // Pass the node back to the derived view so it can register event
     // handlers on it.
     afterRender(_node);
   }
 
-  /**
-   * Internal method that deals with traversing child views. Should not be
-   * overridden.
-   */
+  /// Internal method that deals with traversing child views. Should not be
+  /// overridden.
   void _enterDocument() {
     // Notify the children first.
     for (final child in childViews) {
@@ -279,17 +250,14 @@ class View implements Positionable {
 
   // Layout related methods
 
+  @override
   ViewLayout get layout {
-    if (_layout == null) {
-      _layout = new ViewLayout.fromView(this);
-    }
+    _layout ??= ViewLayout.fromView(this);
     return _layout;
   }
 
-  /**
-   * Internal method that deals with traversing child views. Should not be
-   * overridden.
-   */
+  /// Internal method that deals with traversing child views. Should not be
+  /// overridden.
   void _exitDocument() {
     // Notify this View first so that it's children are still valid.
     exitDocument();
@@ -300,11 +268,9 @@ class View implements Positionable {
     }
   }
 
-  /**
-   * If needed, starts a layout computation from the top level.
-   * Also hooks the relevant events like window resize, so we can layout on too
-   * demand.
-   */
+  /// If needed, starts a layout computation from the top level.
+  /// Also hooks the relevant events like window resize, so we can layout on too
+  /// demand.
   void _hookGlobalLayoutEvents() {
     if (_resizeSubscription == null) {
       var handler = EventBatch.wrap((e) => doLayout());
@@ -322,6 +288,7 @@ class View implements Positionable {
     }
   }
 
+  @override
   void doLayout() {
     _measureLayout().then((changed) {
       if (changed) {
@@ -332,7 +299,7 @@ class View implements Positionable {
 
   Future<bool> _measureLayout() {
     // TODO(10459): code should not use Completer.sync.
-    final changed = new Completer<bool>.sync();
+    final changed = Completer<bool>.sync();
     _measureLayoutHelper(changed);
 
     var changedComplete = false;
@@ -356,10 +323,9 @@ class View implements Positionable {
     // a good tradeoff?
     if (ViewLayout.hasCustomLayout(this)) {
       // TODO(10459): code should not use Completer.sync.
-      Completer sizeCompleter = new Completer<Size>.sync();
+      Completer sizeCompleter = Completer<Size>.sync();
       scheduleMicrotask(() {
-        sizeCompleter
-            .complete(new Size(_node.client.width, _node.client.height));
+        sizeCompleter.complete(Size(_node.client.width, _node.client.height));
       });
       layout.measureLayout(sizeCompleter.future, changed);
     } else {

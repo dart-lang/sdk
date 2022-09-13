@@ -307,6 +307,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #endif
 
   OSThread::Init();
+  Random::Init();
   Zone::Init();
 #if defined(SUPPORT_TIMELINE)
   Timeline::Init();
@@ -779,6 +780,7 @@ char* Dart::Cleanup() {
   Timeline::Cleanup();
 #endif
   Zone::Cleanup();
+  Random::Cleanup();
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
@@ -955,6 +957,43 @@ bool Dart::DetectNullSafety(const char* script_uri,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+// The runtime assumes it can create certain kinds of objects at-will without
+// a check whether their class need to be finalized first.
+//
+// Some of those objects can end up flowing to user code (i.e. their class is a
+// subclass of [Instance]).
+//
+// We therefore ensure that classes are finalized before objects of them are
+// created or at least before such objects can reach user code.
+static void FinalizeBuiltinClasses(Thread* thread) {
+  auto class_table = thread->isolate_group()->class_table();
+  Class& cls = Class::Handle(thread->zone());
+
+#define ENSURE_FINALIZED(clazz)                                                \
+  if (class_table->HasValidClassAt(k##clazz##Cid)) {                           \
+    cls = class_table->At(k##clazz##Cid);                                      \
+    RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Object::null());           \
+  }
+
+  CLASS_LIST_INSTANCE_SINGLETONS(ENSURE_FINALIZED)
+  CLASS_LIST_ARRAYS(ENSURE_FINALIZED)
+  CLASS_LIST_STRINGS(ENSURE_FINALIZED)
+  // No maps/sets.
+
+#define ENSURE_TD_FINALIZED(clazz)                                             \
+  ENSURE_FINALIZED(TypedData##clazz)                                           \
+  ENSURE_FINALIZED(TypedData##clazz##View)                                     \
+  ENSURE_FINALIZED(ExternalTypedData##clazz)                                   \
+  ENSURE_FINALIZED(UnmodifiableTypedData##clazz##View)
+
+  CLASS_LIST_TYPED_DATA(ENSURE_TD_FINALIZED)
+#undef ENSURE_TD_FINALIZED
+
+  ENSURE_FINALIZED(ByteDataView)
+  ENSURE_FINALIZED(UnmodifiableByteDataView)
+  ENSURE_FINALIZED(ByteBuffer)
+}
+
 ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                  const uint8_t* snapshot_instructions,
                                  const uint8_t* kernel_buffer,
@@ -1017,6 +1056,7 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
            Code::null());
 #endif
   } else {
+    FinalizeBuiltinClasses(T);
 #if !defined(TARGET_ARCH_IA32)
     if (I != Dart::vm_isolate()) {
       if (IG->object_store()->build_generic_method_extractor_code() !=
@@ -1131,30 +1171,17 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
                              FLAG_branch_coverage);
     }
 
-// Generated code must match the host architecture and ABI.
-#if defined(TARGET_ARCH_ARM)
-#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
-    buffer.AddString(" arm-ios");
-#else
-    buffer.AddString(" arm-eabi");
-#endif
-    buffer.AddString(TargetCPUFeatures::hardfp_supported() ? " hardfp"
-                                                           : " softfp");
-#elif defined(TARGET_ARCH_ARM64)
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // See signal handler cheat in Assembler::EnterFrame.
-    buffer.AddString(" arm64-fuchsia");
-#else
-    buffer.AddString(" arm64-sysv");
-#endif
-#elif defined(TARGET_ARCH_IA32)
+    // Generated code must match the host architecture and ABI. We check the
+    // strong condition of matching on operating system so that
+    // Platform.isAndroid etc can be compile-time constants.
+#if defined(TARGET_ARCH_IA32)
     buffer.AddString(" ia32");
 #elif defined(TARGET_ARCH_X64)
-#if defined(DART_TARGET_OS_WINDOWS)
-    buffer.AddString(" x64-win");
-#else
-    buffer.AddString(" x64-sysv");
-#endif
+    buffer.AddString(" x64");
+#elif defined(TARGET_ARCH_ARM)
+    buffer.AddString(" arm");
+#elif defined(TARGET_ARCH_ARM64)
+    buffer.AddString(" arm64");
 #elif defined(TARGET_ARCH_RISCV32)
     buffer.AddString(" riscv32");
 #elif defined(TARGET_ARCH_RISCV64)
@@ -1162,6 +1189,25 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #else
 #error What architecture?
 #endif
+
+#if defined(DART_TARGET_OS_ANDROID)
+    buffer.AddString(" android");
+#elif defined(DART_TARGET_OS_FUCHSIA)
+    buffer.AddString(" fuchsia");
+#elif defined(DART_TARGET_OS_MACOS)
+#if defined(DART_TARGET_OS_MACOS_IOS)
+    buffer.AddString(" ios");
+#else
+    buffer.AddString(" macos");
+#endif
+#elif defined(DART_TARGET_OS_LINUX)
+    buffer.AddString(" linux");
+#elif defined(DART_TARGET_OS_WINDOWS)
+    buffer.AddString(" windows");
+#else
+#error What operating system?
+#endif
+
 #if defined(DART_COMPRESSED_POINTERS)
     buffer.AddString(" compressed-pointers");
 #else

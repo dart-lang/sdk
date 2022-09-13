@@ -171,19 +171,40 @@ const _IsTestGroup isTestGroup = _IsTestGroup();
 ///   constructor is not a compile-time constant.
 const _Literal literal = _Literal();
 
-/// Used to annotate an instance method `m`. Indicates that every invocation of
-/// a method that overrides `m` must also invoke `m`. In addition, every method
-/// that overrides `m` is implicitly annotated with this same annotation.
+/// Used to annotate an instance member `m` declared on a class or mixin `C`.
+/// Indicates that every subclass of `C`, concrete or abstract, must directly
+/// override `m`.
 ///
-/// Note that private methods with this annotation cannot be validly overridden
-/// outside of the library that defines the annotated method.
+/// This annotation places no restrictions on the overriding members. In
+/// particular, it does not require that the overriding members invoke the
+/// overridden member. The annotation [mustCallSuper] can be used to add that
+/// requirement.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
-/// * the annotation is associated with anything other than an instance method,
+/// * the annotation is associated with anything other than an instance member
+///   (a method, operator, field, getter, or setter) of a class or of a mixin,
 ///   or
-/// * a method that overrides a method that has this annotation can return
-///   without invoking the overridden method.
+/// * the annotation is associated with a member `m` in class or mixin `C`, and
+///   there is a class or mixin `D` which is a subclass of `C` (directly or
+///   indirectly), and `D` does not directly declare a concrete override of `m`
+///   and does not directly declare a concrete override of `noSuchMethod`.
+const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
+
+/// Used to annotate an instance member (method, getter, setter, operator, or
+/// field) `m`. Indicates that every invocation of a member that overrides `m`
+/// must also invoke `m`. In addition, every method that overrides `m` is
+/// implicitly annotated with this same annotation.
+///
+/// Note that private members with this annotation cannot be validly overridden
+/// outside of the library that defines the annotated member.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than an instance member,
+///   or
+/// * a member that overrides a member that has this annotation can return
+///   without invoking the overridden member.
 const _MustCallSuper mustCallSuper = _MustCallSuper();
 
 /// Used to annotate an instance member (method, getter, setter, operator, or
@@ -427,6 +448,22 @@ class _Literal {
   const _Literal();
 }
 
+@Target({
+  TargetKind.field,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.setter,
+})
+class _MustBeOverridden {
+  const _MustBeOverridden();
+}
+
+@Target({
+  TargetKind.field,
+  TargetKind.getter,
+  TargetKind.method,
+  TargetKind.setter,
+})
 class _MustCallSuper {
   const _MustCallSuper();
 }

@@ -1,0 +1,9 @@
+rdi int64
+xmm0 double
+rsi int32
+xmm1 double
+rdx int32
+rcx int64
+r8 int64
+=>
+rax void

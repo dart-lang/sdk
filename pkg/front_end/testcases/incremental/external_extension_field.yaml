@@ -5,7 +5,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         extension E on String {
@@ -16,7 +15,6 @@ worlds:
         }
     expectedLibraryCount: 1
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -30,4 +28,4 @@ worlds:
           "foo".field = "bar".field;
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

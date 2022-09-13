@@ -9,7 +9,6 @@ type: newworld
 forceLateLoweringForTesting: true
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       lib1.dart: |
         void set property(int value) {}
@@ -25,7 +24,6 @@ worlds:
         }
     expectedLibraryCount: 4
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -37,9 +35,8 @@ worlds:
           property = 87;
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -50,9 +47,8 @@ worlds:
           print(123);
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -64,4 +60,4 @@ worlds:
           property = property;
         }
     expectedLibraryCount: 4
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

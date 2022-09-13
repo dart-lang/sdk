@@ -221,25 +221,31 @@ abstract class File implements FileSystemEntity {
   /// all directories in its path already exist. If [recursive] is `true`, any
   /// non-existing parent paths are created first.
   ///
-  /// Existing files are left untouched by [create]. Calling [create] on an
-  /// existing file might fail if there are restrictive permissions on
-  /// the file.
+  /// If [exclusive] is `true` and to-be-created file already exists, this
+  /// operation completes the future with a [FileSystemException].
+  ///
+  /// If [exclusive] is `false`, existing files are left untouched by [create].
+  /// Calling [create] on an existing file still might fail if there are
+  /// restrictive permissions on the file.
   ///
   /// Completes the future with a [FileSystemException] if the operation fails.
-  Future<File> create({bool recursive = false});
+  Future<File> create({bool recursive = false, bool exclusive = false});
 
   /// Synchronously creates the file.
-  ///
-  /// Existing files are left untouched by [createSync].
-  /// Calling [createSync] on an existing file might fail
-  /// if there are restrictive permissions on the file.
   ///
   /// If [recursive] is `false`, the default, the file is created
   /// only if all directories in its path already exist.
   /// If [recursive] is `true`, all non-existing parent paths are created first.
   ///
+  /// If [exclusive] is `true` and to-be-created file already exists, this
+  /// operation completes the future with a [FileSystemException].
+  ///
+  /// If [exclusive] is `false`, existing files are left untouched by
+  /// [createSync]. Calling [createSync] on an existing file still might fail
+  /// if there are restrictive permissions on the file.
+  ///
   /// Throws a [FileSystemException] if the operation fails.
-  void createSync({bool recursive = false});
+  void createSync({bool recursive = false, bool exclusive = false});
 
   /// Renames this file.
   ///

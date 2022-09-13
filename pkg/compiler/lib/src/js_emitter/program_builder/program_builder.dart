@@ -200,7 +200,7 @@ class ProgramBuilder {
     _classes.forEach((ClassEntity cls, Class c) {
       ClassEntity superclass = _elementEnvironment.getSuperClass(cls);
       if (superclass != null) {
-        c.setSuperclass(_classes[superclass]);
+        c.superclass = _classes[superclass];
         assert(
             c.onlyForConstructor || c.superclass != null,
             failedAt(
@@ -211,7 +211,7 @@ class ProgramBuilder {
       if (c.isSimpleMixinApplication || c.isMixinApplicationWithMembers) {
         ClassEntity effectiveMixinClass =
             _elementEnvironment.getEffectiveMixinClass(cls);
-        c.setMixinClass(_classes[effectiveMixinClass]);
+        c.mixinClass = _classes[effectiveMixinClass];
         assert(
             c.mixinClass != null,
             failedAt(
@@ -1032,8 +1032,8 @@ class ProgramBuilder {
       {bool isHolderInterceptedClass = false, ClassEntity cls}) {
     List<Field> fields = [];
 
-    void visitField(FieldEntity field, js.Name name, bool needsGetter,
-        bool needsSetter, bool needsCheckedSetter) {
+    void visitField(FieldEntity field, bool needsGetter, bool needsSetter,
+        bool needsCheckedSetter) {
       int getterFlags = 0;
       if (needsGetter) {
         if (!_interceptorData.fieldHasInterceptedGetter(field)) {
@@ -1071,6 +1071,7 @@ class ProgramBuilder {
         constantValue = fieldData.constantValue;
       }
 
+      js.Name name = _namer.instanceFieldPropertyName(field);
       js.Name accessorName = _namer.fieldAccessorName(field);
 
       fields.add(Field(
@@ -1086,7 +1087,7 @@ class ProgramBuilder {
     }
 
     FieldVisitor visitor = FieldVisitor(
-        _elementEnvironment, _codegenWorld, _nativeData, _namer, _closedWorld);
+        _elementEnvironment, _codegenWorld, _nativeData, _closedWorld);
     visitor.visitFields(visitField, cls);
 
     return fields;

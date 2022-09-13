@@ -1396,6 +1396,7 @@ class B extends A {
   Future<void> test_ClassDeclaration_body() async {
     // ClassDeclaration  CompilationUnit
     addSource('$testPackageLibPath/b.dart', '''
+        const topLevel = 1;
         class B { }''');
     addTestSource('''
         import "b.dart" as x;
@@ -1414,8 +1415,41 @@ class B extends A {
       expect(suggestionO.isPrivate, isFalse);
     }
     assertNotSuggested('T');
+    assertNotSuggested('topLevel'); // const top-levels only shown after @
     // Suggested by LibraryPrefixContributor
     assertNotSuggested('x');
+  }
+
+  Future<void> test_ClassDeclaration_body_annotation() async {
+    // ClassDeclaration  CompilationUnit
+    addSource('$testPackageLibPath/b.dart', '''
+        class B {
+          const B();
+          B.named();
+          const B.namedConst();
+        }
+        class C {
+          C();
+        }
+        const b1 = B();
+        final b2 = B();
+        ''');
+    addTestSource('''
+        import "b.dart";
+        class A {@^}
+        ''');
+
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+
+    assertSuggestConstructor('B'); // const constructor
+    assertSuggestConstructor('B.namedConst'); // const constructor
+    assertSuggestTopLevelVar('b1', 'B'); // const top-level
+
+    assertNotSuggested('C', elemKind: ElementKind.CONSTRUCTOR); // non-const
+    assertNotSuggested('B.named'); // non-const
+    assertNotSuggested('b2'); // non-const
   }
 
   Future<void> test_ClassDeclaration_body_final() async {

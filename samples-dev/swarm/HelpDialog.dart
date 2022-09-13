@@ -6,25 +6,24 @@
 
 part of swarmlib;
 
-/**
- * An informational dialog that shows keyboard shortcuts and provides a
- * link to the Dart language webpage.
- */
+/// An informational dialog that shows keyboard shortcuts and provides a
+/// link to the Dart language webpage.
 //TODO(efortuna): fix DialogView so it doesn't require the HTML passed to
 // the constructor.
 class HelpDialog extends DialogView {
-  CompositeView _parent;
-  Function _doneHandler;
+  final CompositeView _parent;
+  final Function _doneHandler;
 
   HelpDialog(this._parent, this._doneHandler)
       : super('Information', '', makeContent());
 
+  @override
   void onDone() {
     _doneHandler();
   }
 
   static View makeContent() {
-    return new View.html('''
+    return View.html('''
         <div>
 
           <p>
@@ -46,40 +45,40 @@ class HelpDialog extends DialogView {
     String cellStart = '''<th valign="middle" align="center">''';
     return '''<table width="90%" border=1 cellspacing="0" cellpadding="2">
             <tr bgcolor="#c3d9ff">
-              ${cellStart} Shortcut Key </th>
-              ${cellStart} Action </th>
+              $cellStart Shortcut Key </th>
+              $cellStart Action </th>
             </tr>
             <tr>
-              ${cellStart} j, &lt;down arrow&gt; </th>
-              ${cellStart} Next Article </th>
+              $cellStart j, &lt;down arrow&gt; </th>
+              $cellStart Next Article </th>
             </tr>
             <tr>
-              ${cellStart} k, &lt;up arrow&gt; </th>
-              ${cellStart} Previous Article </th>
+              $cellStart k, &lt;up arrow&gt; </th>
+              $cellStart Previous Article </th>
             </tr>
             <tr>
-              ${cellStart} o, &lt;enter&gt; </th>
-              ${cellStart} Open Article </th>
+              $cellStart o, &lt;enter&gt; </th>
+              $cellStart Open Article </th>
             </tr>
             <tr>
-              ${cellStart} &lt;esc&gt;, &lt;delete&gt; </th>
-              ${cellStart} Back </th>
+              $cellStart &lt;esc&gt;, &lt;delete&gt; </th>
+              $cellStart Back </th>
             </tr>
             <tr>
-              ${cellStart} a, h, &lt;left arrow&gt; </th>
-              ${cellStart} Left </th>
+              $cellStart a, h, &lt;left arrow&gt; </th>
+              $cellStart Left </th>
             </tr>
             <tr>
-              ${cellStart} d, l, &lt;right arrow&gt; </th>
-              ${cellStart} Right </th>
+              $cellStart d, l, &lt;right arrow&gt; </th>
+              $cellStart Right </th>
             </tr>
             <tr>
-              ${cellStart} n </th>
-              ${cellStart} Next Category </th>
+              $cellStart n </th>
+              $cellStart Next Category </th>
             </tr>
             <tr>
-              ${cellStart} p </th>
-              ${cellStart} Previous Category </th>
+              $cellStart p </th>
+              $cellStart Previous Category </th>
             </tr>
 
         </table>''';

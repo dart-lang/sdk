@@ -69,7 +69,7 @@ DiagnosticMessageHandler onDiagnosticMessageHandler() {
 // TODO(sigmund): delete as soon as the disableTypeInference flag and the
 // legacyMode flag get merged, and we have a single way of specifying the
 // legacy-mode flag to the FE.
-Target createTarget({bool isFlutter: false}) {
+Target createTarget({bool isFlutter = false}) {
   TargetFlags flags = new TargetFlags();
   if (isFlutter) {
     return new FlutterTarget(flags);

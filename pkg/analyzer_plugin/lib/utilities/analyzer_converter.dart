@@ -213,10 +213,9 @@ class AnalyzerConverter {
   /// Convert the element kind of the [element] from the 'analyzer' package to
   /// an element kind defined by the plugin API.
   plugin.ElementKind _convertElementToElementKind(analyzer.Element element) {
-    if (element is analyzer.ClassElement && element.isEnum) {
+    if (element is analyzer.EnumElement) {
       return plugin.ElementKind.ENUM;
-    } else if (element is analyzer.FieldElement &&
-        element.isEnumConstant &&
+    } else if (element is analyzer.FieldElement && element.isEnumConstant
         // MyEnum.values and MyEnum.one.index return isEnumConstant = true
         // so these additional checks are necessary.
         // TODO(danrubel) MyEnum.values is constant, but is a list
@@ -225,8 +224,11 @@ class AnalyzerConverter {
         // so should it return isEnumConstant = true?
         // Or should we return ElementKind.ENUM_CONSTANT here
         // in either or both of these cases?
-        element.type.element == element.enclosingElement) {
-      return plugin.ElementKind.ENUM_CONSTANT;
+        ) {
+      final type = element.type;
+      if (type is InterfaceType && type.element2 == element.enclosingElement3) {
+        return plugin.ElementKind.ENUM_CONSTANT;
+      }
     }
     return convertElementKind(element.kind);
   }
@@ -324,15 +326,15 @@ class AnalyzerConverter {
     if (currentElement is analyzer.CompilationUnitElement) {
       return currentElement;
     }
-    if (currentElement.enclosingElement is analyzer.LibraryElement) {
-      currentElement = currentElement.enclosingElement;
+    if (currentElement.enclosingElement3 is analyzer.LibraryElement) {
+      currentElement = currentElement.enclosingElement3;
     }
     if (currentElement is analyzer.LibraryElement) {
       return currentElement.definingCompilationUnit;
     }
     for (;
         currentElement != null;
-        currentElement = currentElement.enclosingElement) {
+        currentElement = currentElement.enclosingElement3) {
       if (currentElement is analyzer.CompilationUnitElement) {
         return currentElement;
       }

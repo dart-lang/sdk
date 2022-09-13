@@ -5,9 +5,9 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/noop_analytics.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -167,7 +167,7 @@ abstract class AbstractLspAnalysisServerTest
   @override
   Future sendNotificationToServer(NotificationMessage notification) async {
     channel.sendNotificationToServer(notification);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
   }
 
   @override
@@ -299,6 +299,7 @@ mixin ClientCapabilitiesHelperMixin {
     // the fields listed in `ClientDynamicRegistrations.supported`.
     return extendTextDocumentCapabilities(source, {
       'synchronization': {'dynamicRegistration': true},
+      'callHierarchy': {'dynamicRegistration': true},
       'completion': {'dynamicRegistration': true},
       'hover': {'dynamicRegistration': true},
       'signatureHelp': {'dynamicRegistration': true},
@@ -840,6 +841,26 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return newContent;
   }
 
+  Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
+      CallHierarchyItem item) {
+    final request = makeRequest(
+      Method.callHierarchy_incomingCalls,
+      CallHierarchyIncomingCallsParams(item: item),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CallHierarchyIncomingCall.fromJson));
+  }
+
+  Future<List<CallHierarchyOutgoingCall>?> callHierarchyOutgoing(
+      CallHierarchyItem item) {
+    final request = makeRequest(
+      Method.callHierarchy_outgoingCalls,
+      CallHierarchyOutgoingCallsParams(item: item),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CallHierarchyOutgoingCall.fromJson));
+  }
+
   Future changeFile(
     int newVersion,
     Uri uri,
@@ -877,6 +898,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
     await sendNotificationToServer(notification);
   }
+
+  /// Gets the entire range for [code].
+  Range entireRange(String code) => Range(
+        start: startOfDocPos,
+        end: positionFromOffset(code.length, code),
+      );
 
   Future<Object?> executeCodeAction(
       Either2<Command, CodeAction> codeAction) async {
@@ -1636,6 +1663,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return toPosition(lineInfo.getLocation(offset));
   }
 
+  Future<List<CallHierarchyItem>?> prepareCallHierarchy(Uri uri, Position pos) {
+    final request = makeRequest(
+      Method.textDocument_prepareCallHierarchy,
+      CallHierarchyPrepareParams(
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+        request, _fromJsonList(CallHierarchyItem.fromJson));
+  }
+
   Future<PlaceholderAndRange?> prepareRename(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_prepareRename,
@@ -1694,17 +1733,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
   }
 
-  /// Returns the range of [searchText] in [content].
-  Range? rangeOfString(String content, String searchText) {
+  /// Returns the range of [pattern] in [content].
+  Range rangeOfPattern(String content, Pattern pattern) {
     content = withoutMarkers(content);
-    final startOffset = content.indexOf(searchText);
-    return startOffset == -1
-        ? null
-        : Range(
-            start: positionFromOffset(startOffset, content),
-            end: positionFromOffset(startOffset + searchText.length, content),
-          );
+    final match = pattern.allMatches(content).first;
+    return Range(
+      start: positionFromOffset(match.start, content),
+      end: positionFromOffset(match.end, content),
+    );
   }
+
+  /// Returns the range of [searchText] in [content].
+  Range rangeOfString(String content, String searchText) =>
+      rangeOfPattern(content, searchText);
 
   /// Returns all ranges surrounded by `[[markers]]` in the provided string,
   /// excluding the markers themselves (as well as position markers `^` from
@@ -1741,6 +1782,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
 
     return rangesFromMarkersImpl(content).toList();
+  }
+
+  /// Gets the range in [content] that beings with the string [prefix] and
+  /// has a length matching [text].
+  Range rangeStartingAtString(String content, String prefix, String text) {
+    content = withoutMarkers(content);
+    final offset = content.indexOf(prefix);
+    final end = offset + text.length;
+    return Range(
+      start: positionFromOffset(offset, content),
+      end: positionFromOffset(end, content),
+    );
   }
 
   Future<WorkspaceEdit?> rename(

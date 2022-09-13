@@ -36,7 +36,7 @@ class AddCallSuper extends CorrectionProducer {
     if (methodDeclaration == null) return;
     var classElement = methodDeclaration
         .thisOrAncestorOfType<ClassDeclaration>()
-        ?.declaredElement;
+        ?.declaredElement2;
     if (classElement == null) return;
 
     var name = Name(classElement.library.source.uri, node.name);
@@ -48,7 +48,7 @@ class AddCallSuper extends CorrectionProducer {
     var parameters = methodDeclaration.parameters?.parameters;
     var argumentList = parameters
             ?.map((p) {
-              var name = p.identifier?.name;
+              var name = p.name?.lexeme;
               if (overriddenParameters.contains(name)) {
                 return p.isNamed ? '$name: $name' : name;
               }

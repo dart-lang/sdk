@@ -1,6 +1,52 @@
-## 4.3.0-dev
+## 4.7.0-dev
+* Add missing `addXyz` to `NodeLintRegistry`.
+
+## 4.6.0
+* Added `DartType.element2`, so that `InterfaceType.element2` overrides it.
+
+## 4.5.0
+* Update deprecation message for `FormalParameter.identifier`.
+* Deprecated `ClassOrMixinDeclaration`, use `ClassDeclaration` and `MixinDeclaration` directly.
+* Deprecated `Declaration.declaredElement`, use `declaredElement2` instead.
+  This is necessary to separate `ClassElement`, `EnumElement`, and `MixinElement`.
+  And, in the future, augmentations like `ClassAugmentationElement`, etc.
+* Deprecated `TypeSystem.instantiateToBounds2()`, use `instantiateInterfaceToBounds()` or
+  `instantiateTypeAliasToBounds()` instead.
+
+## 4.4.0
+* Deprecated `ClassDeclaration.isAbstract`, use `abstractKeyword` instead.
+* Deprecated `ClassTypeAlias.isAbstract`, use `abstractKeyword` instead.
+* Deprecated `ClassOrMixinDeclaration.getField`, filter `members` instead.
+* Deprecated `ClassOrMixinDeclaration.getMethod`, filter `members` instead.
+* Deprecated `ClassDeclaration.getConstructor`, filter `members` instead.
+* Deprecated `Directive.element`, use `element2` instead.
+* Deprecated `ClassElement.hasStaticMember`, it is not useful for clients.
+* Deprecated `NamespaceDirective.uriElement`, use `element2.uri` with `DirectiveUriWithLibrary` instead.
+* Deprecated `UriBasedDirective.uriContent`, `UriBasedDirective.uriElement`, `UriBasedDirective.uriSource`.
+  Use `Directive.element2.uri` instead.
+* Deprecated `NamespaceDirective.selectedSource`, use `element2.uri` with `DirectiveUriWithSource` instead.
+* Deprecated `Configuration.uriSource`, use `resolvedUri` instead.
+* Deprecated `CatchClause.exceptionParameter` and `CatchClause.stackTraceParameter`.
+  Use `exceptionParameter2` and `stackTraceParameter2` instead.
+* Added `FileResult.isAugmentation` and `isLibrary` to complement `isPart`.
+* Deprecated 'XyzDeclaration.name' in AST, use `name2` and `declaredElement` instead.
+* Deprecated `Element.enclosingElement2`, use `enclosingElement3` instead.  The meaningful change is that
+  `ConstructorElement.enclosingElement3` returns now `IntefaceElement`, not `ClassElement`.
+* Deprecated `get enums/mixin`, use `get enums2/mixins2` instead.
+* Deprecated `DartType.element`, check for `InterfaceType`, `TypeParameterType`, and then ask the element.
+* Deprecated `ClassElement.isEnum` and `isMixin`. Check for `is EnumElement` and `is MixinElement` instead.
+* Deprecated `LibraryElement.getType()` use `getClass()` instead.
+
+## 4.3.1
+* Fix `identifier` for `LibraryExportElement` and `LibraryImportElement`.
+
+## 4.3.0
 * Deprecated `Directive.keyword`, use corresponding `xyzToken` in specific directives.
 * Deprecated `LibraryElement.parts`, use `parts2` instead.
+* Deprecated `LibraryElement.exports`, use `libraryExports` instead.
+* Deprecated `LibraryElement.imports`, use `libraryImports` instead.
+* Deprecated `Element.enclosingElement`, use `enclosingElement2` instead.
+* `Member` is not equal to `ElementImpl`, use `Element.declaration`.
 
 ## 4.2.0
 * Update SDK constraints to `>=2.17.0 <3.0.0`.

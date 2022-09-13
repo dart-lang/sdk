@@ -29,23 +29,59 @@ abstract class SourceFileProvider implements api.CompilerInput {
     if (!resourceUri.isAbsolute) {
       resourceUri = cwd.resolveUri(resourceUri);
     }
-    api.Input<List<int>> input;
-    switch (inputKind) {
-      case api.InputKind.UTF8:
-        input = utf8SourceFiles[resourceUri];
-        break;
-      case api.InputKind.binary:
-        input = binarySourceFiles[resourceUri];
-        break;
-    }
+    api.Input<List<int>> input = _loadInputFromCache(resourceUri, inputKind);
     if (input != null) return Future.value(input);
 
     if (resourceUri.isScheme('file')) {
       return _readFromFile(resourceUri, inputKind);
-    } else if (resourceUri.isScheme('http') || resourceUri.isScheme('https')) {
-      return _readFromHttp(resourceUri, inputKind);
     } else {
       throw ArgumentError("Unknown scheme in uri '$resourceUri'");
+    }
+  }
+
+  /// Fetches any existing value of [resourceUri] in a cache.
+  ///
+  /// For `api.InputKind.UTF8` inputs, this looks up both the cache of
+  /// utf8 source files and binary source files. This is done today because of
+  /// how dart2js binds to the CFE's file system. While dart2js reads sources as
+  /// utf8, the CFE file system may read them as binary inputs. In case the CFE
+  /// needs to report errors, dart2js will only find the location data if it
+  /// checks both caches.
+  api.Input<List<int>> _loadInputFromCache(
+      Uri resourceUri, api.InputKind inputKind) {
+    switch (inputKind) {
+      case api.InputKind.UTF8:
+        var input = utf8SourceFiles[resourceUri];
+        if (input != null) return input;
+        input = binarySourceFiles[resourceUri];
+        if (input == null) return null;
+        return _storeSourceInCache(resourceUri, input.data, api.InputKind.UTF8);
+      case api.InputKind.binary:
+        return binarySourceFiles[resourceUri];
+    }
+    return null;
+  }
+
+  /// Adds [source] to the cache under the [resourceUri] key.
+  api.Input _storeSourceInCache(
+      Uri resourceUri, List<int> source, api.InputKind inputKind) {
+    switch (inputKind) {
+      case api.InputKind.UTF8:
+        return utf8SourceFiles[resourceUri] = CachingUtf8BytesSourceFile(
+            resourceUri, relativizeUri(resourceUri), source);
+      case api.InputKind.binary:
+        return binarySourceFiles[resourceUri] = Binary(resourceUri, source);
+    }
+    return null;
+  }
+
+  @override
+  void registerUtf8ContentsForDiagnostics(Uri resourceUri, List<int> source) {
+    if (!resourceUri.isAbsolute) {
+      resourceUri = cwd.resolveUri(resourceUri);
+    }
+    if (!utf8SourceFiles.containsKey(resourceUri)) {
+      _storeSourceInCache(resourceUri, source, api.InputKind.UTF8);
     }
   }
 
@@ -61,29 +97,19 @@ abstract class SourceFileProvider implements api.CompilerInput {
       throw "Error reading '${relativizeUri(resourceUri)}' $detail";
     }
     dartCharactersRead += source.length;
-    api.Input input;
-    switch (inputKind) {
-      case api.InputKind.UTF8:
-        input = utf8SourceFiles[resourceUri] = CachingUtf8BytesSourceFile(
-            resourceUri, relativizeUri(resourceUri), source);
-        break;
-      case api.InputKind.binary:
-        input = binarySourceFiles[resourceUri] = Binary(resourceUri, source);
-        break;
-    }
-    return input;
+    return _storeSourceInCache(resourceUri, source, inputKind);
   }
 
   /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
   /// returned.
-  api.Input autoReadFromFile(Uri resourceUri) {
+  api.Input readUtf8FromFileSyncForTesting(Uri resourceUri) {
     try {
       return _readFromFileSync(resourceUri, api.InputKind.UTF8);
     } catch (e) {
       // Silence the error. The [resourceUri] was not requested by the user and
       // was only needed to give better error messages.
+      return null;
     }
-    return null;
   }
 
   Future<api.Input<List<int>>> _readFromFile(
@@ -97,53 +123,17 @@ abstract class SourceFileProvider implements api.CompilerInput {
     return Future.value(input);
   }
 
-  Future<api.Input<List<int>>> _readFromHttp(
-      Uri resourceUri, api.InputKind inputKind) {
-    assert(resourceUri.isScheme('http'));
-    HttpClient client = HttpClient();
-    return client
-        .getUrl(resourceUri)
-        .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) {
-      if (response.statusCode != HttpStatus.ok) {
-        String msg = 'Failure getting $resourceUri: '
-            '${response.statusCode} ${response.reasonPhrase}';
-        throw msg;
-      }
-      return response.toList();
-    }).then((List<List<int>> splitContent) {
-      int totalLength = splitContent.fold(0, (int old, List list) {
-        return old + list.length;
-      });
-      Uint8List result = Uint8List(totalLength);
-      int offset = 0;
-      for (List<int> contentPart in splitContent) {
-        result.setRange(offset, offset + contentPart.length, contentPart);
-        offset += contentPart.length;
-      }
-      dartCharactersRead += totalLength;
-      api.Input<List<int>> input;
-      switch (inputKind) {
-        case api.InputKind.UTF8:
-          input = utf8SourceFiles[resourceUri] = CachingUtf8BytesSourceFile(
-              resourceUri, resourceUri.toString(), result);
-          break;
-        case api.InputKind.binary:
-          input = binarySourceFiles[resourceUri] = Binary(resourceUri, result);
-          break;
-      }
-      return input;
-    });
-  }
-
   relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
 
   SourceFile<List<int>> getUtf8SourceFile(Uri resourceUri) {
-    return utf8SourceFiles[resourceUri];
+    return _loadInputFromCache(resourceUri, api.InputKind.UTF8);
   }
 
   Iterable<Uri> getSourceUris() {
     Set<Uri> uris = Set<Uri>();
+    // Note: this includes also indirect sources that were used to create
+    // `.dill` inputs to the compiler. This is OK, since this API is only
+    // used to calculate DEPS for gn build systems.
     uris.addAll(utf8SourceFiles.keys);
     uris.addAll(binarySourceFiles.keys);
     return uris;
@@ -179,7 +169,6 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   bool isAborting = false;
   bool enableColors = false;
   bool throwOnError = false;
-  bool autoReadFileUri = false;
   int throwOnErrorCount = 0;
   api.Diagnostic lastKind = null;
   int fatalCount = 0;
@@ -265,17 +254,6 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
       print('${color(message)}');
     } else {
       api.Input file = provider.getUtf8SourceFile(uri);
-      if (file == null &&
-          autoReadFileUri &&
-          (uri.isScheme('file') || !uri.isAbsolute) &&
-          uri.path.endsWith('.dart')) {
-        if (!uri.isAbsolute) {
-          uri = provider.cwd.resolveUri(uri);
-        }
-        // When reading from .dill files, the original source files haven't been
-        // loaded. Load the file if possible to provide a better error message.
-        file = provider.autoReadFromFile(uri);
-      }
       if (file is SourceFile) {
         print(file.getLocationMessage(color(message), begin, end,
             colorize: color));
@@ -559,30 +537,20 @@ class BazelInputProvider extends SourceFileProvider {
     }
     api.Input<List<int>> result =
         await readBytesFromUri(resolvedUri, inputKind);
-    switch (inputKind) {
-      case api.InputKind.UTF8:
-        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
-        break;
-      case api.InputKind.binary:
-        binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
-        break;
-    }
-    return result;
-  }
-
-  @override
-  api.Input autoReadFromFile(Uri resourceUri) {
-    var path = resourceUri.path;
-    if (path.startsWith('/bazel-root')) {
-      path = path.substring('/bazel-root/'.length);
-      for (var dir in dirs) {
-        var file = dir.resolve(path);
-        if (File.fromUri(file).existsSync()) {
-          return super.autoReadFromFile(file);
-        }
+    if (uri != resolvedUri) {
+      if (!resolvedUri.isAbsolute) {
+        resolvedUri = cwd.resolveUri(resolvedUri);
+      }
+      switch (inputKind) {
+        case api.InputKind.UTF8:
+          utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
+          break;
+        case api.InputKind.binary:
+          binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
+          break;
       }
     }
-    return null;
+    return result;
   }
 }
 
@@ -629,19 +597,5 @@ class MultiRootInputProvider extends SourceFileProvider {
         break;
     }
     return result;
-  }
-
-  @override
-  api.Input autoReadFromFile(Uri resourceUri) {
-    if (resourceUri.isScheme(markerScheme)) {
-      var path = resourceUri.path;
-      for (var dir in roots) {
-        var file = dir.resolve(path);
-        if (File.fromUri(file).existsSync()) {
-          return super.autoReadFromFile(file);
-        }
-      }
-    }
-    return null;
   }
 }

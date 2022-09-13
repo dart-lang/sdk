@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
@@ -97,6 +98,9 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         server, !options.onlyAnalyzeProjectsWithOpenFiles));
     registerHandler(PrepareRenameHandler(server));
     registerHandler(RenameHandler(server));
+    registerHandler(PrepareCallHierarchyHandler(server));
+    registerHandler(IncomingCallHierarchyHandler(server));
+    registerHandler(OutgoingCallHierarchyHandler(server));
     registerHandler(FoldingHandler(server));
     registerHandler(DiagnosticServerHandler(server));
     registerHandler(WorkspaceSymbolHandler(server));

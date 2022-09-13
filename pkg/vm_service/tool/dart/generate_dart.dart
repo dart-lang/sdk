@@ -292,7 +292,7 @@ class RPCError implements Exception {
 
   String? get details => data == null ? null : data!['details'];
 
-  /// Return a map representation of this error suitable for converstion to
+  /// Return a map representation of this error suitable for conversion to
   /// json.
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {
@@ -1611,7 +1611,8 @@ Map<String, dynamic> toJson() {
     // toString()
     Iterable<TypeField> toStringFields =
         getAllFields().where((f) => !f.optional);
-    if (toStringFields.length <= 7) {
+    const maxFieldsShownInToString = 8;
+    if (toStringFields.length <= maxFieldsShownInToString) {
       String properties = toStringFields
           .map(
               (TypeField f) => "${f.generatableName}: \${${f.generatableName}}")
@@ -1829,13 +1830,10 @@ class TypeField extends Member {
   }
 
   void generateNamedParameter(DartGenerator gen, {bool fromParent = false}) {
-    if (!optional) {
-      gen.write('required ');
-    }
     if (fromParent) {
       String? typeName =
           api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
-      gen.writeStatement('$typeName ${generatableName},');
+      gen.writeStatement('required $typeName ${generatableName},');
     } else {
       gen.writeStatement('this.${generatableName},');
     }

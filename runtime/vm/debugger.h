@@ -388,7 +388,6 @@ class ActivationFrame : public ZoneAllocated {
   ObjectPtr GetReceiver();
 
   const Context& GetSavedCurrentContext();
-  ObjectPtr GetAsyncOperation();
   ObjectPtr GetSuspendStateVar();
   ObjectPtr GetSuspendableFunctionData();
 
@@ -425,14 +424,6 @@ class ActivationFrame : public ZoneAllocated {
   void GetPcDescriptors();
   void GetVarDescriptors();
   void GetDescIndices();
-
-  ObjectPtr GetAsyncContextVariable(const String& name);
-
-  // Get the current continuation index in the :await_jump_var pulled from the
-  // context.
-  intptr_t GetAwaitJumpVariable();
-
-  void ExtractTokenPositionFromAsyncClosure();
 
   bool IsAsyncMachinery() const;
 
@@ -728,10 +719,6 @@ class Debugger {
                                      intptr_t line_number,
                                      intptr_t column_number);
 
-  // Sets synthetic breakpoint at async_op to step over the synthetic part of
-  // the stack trace.
-  Breakpoint* SetBreakpointAtAsyncOp(const Function& async_op);
-
   BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
                                                   intptr_t line_number,
                                                   intptr_t column_number);
@@ -912,11 +899,9 @@ class Debugger {
                               const Code& code,
                               intptr_t post_deopt_frame_index);
 
-  void ResetSteppingFramePointers();
+  void ResetSteppingFramePointer();
   bool SteppedForSyntheticAsyncBreakpoint() const;
   void CleanupSyntheticAsyncBreakpoint();
-  void RememberTopFrameAwaiter();
-  void SetAsyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
   void SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
 
   GroupDebugger* group_debugger() { return isolate_->group()->debugger(); }
@@ -960,10 +945,6 @@ class Debugger {
   // token position range.
   uword last_stepping_fp_;
   TokenPosition last_stepping_pos_;
-
-  // Used to track the current async/async* function.
-  uword async_stepping_fp_;
-  ObjectPtr top_frame_awaiter_;
 
   // If we step while at a breakpoint, we would hit the same pc twice.
   // We use this field to let us skip the next single-step after a

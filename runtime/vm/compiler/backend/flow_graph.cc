@@ -67,7 +67,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
 
 void FlowGraph::EnsureSSATempIndex(Definition* defn, Definition* replacement) {
   if ((replacement->ssa_temp_index() == -1) && (defn->ssa_temp_index() != -1)) {
-    AllocateSSAIndexes(replacement);
+    AllocateSSAIndex(replacement);
   }
 }
 
@@ -191,10 +191,7 @@ ConstantInstr* FlowGraph::GetConstant(const Object& object,
     } else {
       constant = new (zone()) UnboxedConstantInstr(zone_object, representation);
     }
-    constant->set_ssa_temp_index(alloc_ssa_temp_index());
-    if (NeedsPairLocation(constant->representation())) {
-      alloc_ssa_temp_index();
-    }
+    AllocateSSAIndex(constant);
     AddToGraphInitialDefinitions(constant);
     constant_instr_pool_.Insert(constant);
   }
@@ -258,6 +255,7 @@ void FlowGraph::AddToGraphInitialDefinitions(Definition* defn) {
 
 void FlowGraph::AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
                                         Definition* defn) {
+  ASSERT(defn->previous() == nullptr);
   defn->set_previous(entry);
   if (auto par = defn->AsParameter()) {
     par->set_block(entry);  // set cached block
@@ -271,7 +269,7 @@ void FlowGraph::InsertAfter(Instruction* prev,
                             UseKind use_kind) {
   if (use_kind == kValue) {
     ASSERT(instr->IsDefinition());
-    AllocateSSAIndexes(instr->AsDefinition());
+    AllocateSSAIndex(instr->AsDefinition());
   }
   instr->InsertAfter(prev);
   ASSERT(instr->env() == NULL);
@@ -296,7 +294,7 @@ Instruction* FlowGraph::AppendTo(Instruction* prev,
                                  UseKind use_kind) {
   if (use_kind == kValue) {
     ASSERT(instr->IsDefinition());
-    AllocateSSAIndexes(instr->AsDefinition());
+    AllocateSSAIndex(instr->AsDefinition());
   }
   ASSERT(instr->env() == NULL);
   if (env != NULL) {
@@ -1215,8 +1213,7 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
           new (zone()) ParameterInstr(i, param_offset, function_entry, kTagged);
       param_offset++;
     }
-    param->set_ssa_temp_index(alloc_ssa_temp_index());
-    if (NeedsPairLocation(param->representation())) alloc_ssa_temp_index();
+    AllocateSSAIndex(param);
     AddToInitialDefinitions(function_entry, param);
     (*env)[i] = param;
   }
@@ -1228,9 +1225,14 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     if (inlining_parameters != NULL) {
       for (intptr_t i = 0; i < function().NumParameters(); ++i) {
         Definition* defn = (*inlining_parameters)[inlined_type_args_param + i];
-        AllocateSSAIndexes(defn);
-        AddToInitialDefinitions(function_entry, defn);
-
+        if (defn->IsConstant()) {
+          ASSERT(defn->previous() == graph_entry_);
+          ASSERT(defn->HasSSATemp());
+        } else {
+          ASSERT(defn->previous() == nullptr);
+          AllocateSSAIndex(defn);
+          AddToInitialDefinitions(function_entry, defn);
+        }
         intptr_t index = EnvIndex(parsed_function_.RawParameterVariable(i));
         (*env)[index] = defn;
       }
@@ -1250,8 +1252,14 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
       } else {
         defn = (*inlining_parameters)[0];
       }
-      AllocateSSAIndexes(defn);
-      AddToInitialDefinitions(function_entry, defn);
+      if (defn->IsConstant()) {
+        ASSERT(defn->previous() == graph_entry_);
+        ASSERT(defn->HasSSATemp());
+      } else {
+        ASSERT(defn->previous() == nullptr);
+        AllocateSSAIndex(defn);
+        AddToInitialDefinitions(function_entry, defn);
+      }
       (*env)[RawTypeArgumentEnvIndex()] = defn;
     }
 
@@ -1260,7 +1268,7 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
       Definition* defn =
           new (Z) SpecialParameterInstr(SpecialParameterInstr::kArgDescriptor,
                                         DeoptId::kNone, function_entry);
-      AllocateSSAIndexes(defn);
+      AllocateSSAIndex(defn);
       AddToInitialDefinitions(function_entry, defn);
       (*env)[ArgumentDescriptorEnvIndex()] = defn;
     }
@@ -1279,7 +1287,7 @@ void FlowGraph::PopulateEnvironmentFromOsrEntry(
   for (intptr_t i = 0; i < parameter_count; i++) {
     ParameterInstr* param =
         new (zone()) ParameterInstr(i, i, osr_entry, kTagged);
-    param->set_ssa_temp_index(alloc_ssa_temp_index());
+    AllocateSSAIndex(param);
     AddToInitialDefinitions(osr_entry, param);
     (*env)[i] = param;
   }
@@ -1313,7 +1321,7 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
       param = new (Z) ParameterInstr(i, i, catch_entry, kTagged);
     }
 
-    param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+    AllocateSSAIndex(param);  // New SSA temp.
     (*env)[i] = param;
     AddToInitialDefinitions(catch_entry, param);
   }
@@ -1346,7 +1354,7 @@ void FlowGraph::RenameRecursive(
         PhiInstr* phi = (*join->phis())[i];
         if (phi != nullptr) {
           (*env)[i] = phi;
-          AllocateSSAIndexes(phi);  // New SSA temp.
+          AllocateSSAIndex(phi);  // New SSA temp.
           if (block_entry->InsideTryBlock() && !phi->is_alive()) {
             // This is a safe approximation.  Inside try{} all locals are
             // used at every call implicitly, so we mark all phis as live
@@ -1549,7 +1557,7 @@ void FlowGraph::RenameRecursive(
         if (Definition* definition = current->AsDefinition()) {
           if (definition->HasTemp()) {
             // Assign fresh SSA temporary and update expression stack.
-            AllocateSSAIndexes(definition);
+            AllocateSSAIndex(definition);
             env->Add(definition);
           }
         }
@@ -2573,7 +2581,7 @@ void FlowGraph::RenameUsesDominatedByRedefinitions() {
         Value* redefined = definition->RedefinedValue();
         if (redefined != nullptr) {
           if (!definition->HasSSATemp()) {
-            AllocateSSAIndexes(definition);
+            AllocateSSAIndex(definition);
           }
           Definition* original = redefined->definition();
           RenameDominatedUses(original, definition, definition);
@@ -2821,7 +2829,7 @@ JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
 
   // Short-circuit second comparison and connect through phi.
   condition.oper2->InsertAfter(bt);
-  AllocateSSAIndexes(condition.oper2);
+  AllocateSSAIndex(condition.oper2);
   condition.oper2->InheritDeoptTarget(zone(), inherit);  // must inherit
   PhiInstr* phi =
       AddPhi(mid_point, condition.oper2, GetConstant(Bool::False()));
@@ -2841,7 +2849,7 @@ PhiInstr* FlowGraph::AddPhi(JoinEntryInstr* join,
   Value* v1 = new (zone()) Value(d1);
   Value* v2 = new (zone()) Value(d2);
 
-  AllocateSSAIndexes(phi);
+  AllocateSSAIndex(phi);
 
   phi->mark_alive();
   phi->SetInputAt(0, v1);
@@ -2886,6 +2894,122 @@ void FlowGraph::InsertPushArguments() {
 
 void FlowGraph::Print(const char* phase) {
   FlowGraphPrinter::PrintGraph(phase, this);
+}
+
+class SSACompactor : public ValueObject {
+ public:
+  SSACompactor(intptr_t num_blocks,
+               intptr_t num_ssa_vars,
+               ZoneGrowableArray<Definition*>* detached_defs)
+      : block_num_(num_blocks),
+        ssa_num_(num_ssa_vars),
+        detached_defs_(detached_defs) {
+    block_num_.EnsureLength(num_blocks, -1);
+    ssa_num_.EnsureLength(num_ssa_vars, -1);
+  }
+
+  void RenumberGraph(FlowGraph* graph) {
+    for (auto block : graph->reverse_postorder()) {
+      block_num_[block->block_id()] = 1;
+      CollectDetachedMaterializations(block->env());
+
+      if (auto* block_with_idefs = block->AsBlockEntryWithInitialDefs()) {
+        for (Definition* def : *block_with_idefs->initial_definitions()) {
+          RenumberDefinition(def);
+          CollectDetachedMaterializations(def->env());
+        }
+      }
+      if (auto* join = block->AsJoinEntry()) {
+        for (PhiIterator it(join); !it.Done(); it.Advance()) {
+          RenumberDefinition(it.Current());
+        }
+      }
+      for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+        Instruction* instr = it.Current();
+        if (Definition* def = instr->AsDefinition()) {
+          RenumberDefinition(def);
+        }
+        CollectDetachedMaterializations(instr->env());
+      }
+    }
+    for (auto* def : (*detached_defs_)) {
+      RenumberDefinition(def);
+    }
+    graph->set_current_ssa_temp_index(current_ssa_index_);
+
+    // Preserve order between block ids to as predecessors are sorted
+    // by block ids.
+    intptr_t current_block_index = 0;
+    for (intptr_t i = 0, n = block_num_.length(); i < n; ++i) {
+      if (block_num_[i] >= 0) {
+        block_num_[i] = current_block_index++;
+      }
+    }
+    for (auto block : graph->reverse_postorder()) {
+      block->set_block_id(block_num_[block->block_id()]);
+    }
+    graph->set_max_block_id(current_block_index - 1);
+  }
+
+ private:
+  void RenumberDefinition(Definition* def) {
+    if (def->HasSSATemp()) {
+      const intptr_t old_index = def->ssa_temp_index();
+      intptr_t new_index = ssa_num_[old_index];
+      if (new_index < 0) {
+        ssa_num_[old_index] = new_index = current_ssa_index_++;
+      }
+      def->set_ssa_temp_index(new_index);
+    }
+  }
+
+  bool IsDetachedDefinition(Definition* def) {
+    return def->IsMaterializeObject() && (def->next() == nullptr);
+  }
+
+  void AddDetachedDefinition(Definition* def) {
+    for (intptr_t i = 0, n = detached_defs_->length(); i < n; ++i) {
+      if ((*detached_defs_)[i] == def) {
+        return;
+      }
+    }
+    detached_defs_->Add(def);
+    // Follow inputs as detached definitions can reference other
+    // detached definitions.
+    for (intptr_t i = 0, n = def->InputCount(); i < n; ++i) {
+      Definition* input = def->InputAt(i)->definition();
+      if (IsDetachedDefinition(input)) {
+        AddDetachedDefinition(input);
+      }
+    }
+    ASSERT(def->env() == nullptr);
+  }
+
+  void CollectDetachedMaterializations(Environment* env) {
+    if (env == nullptr) {
+      return;
+    }
+    for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
+      Definition* def = it.CurrentValue()->definition();
+      if (IsDetachedDefinition(def)) {
+        AddDetachedDefinition(def);
+      }
+    }
+  }
+
+  GrowableArray<intptr_t> block_num_;
+  GrowableArray<intptr_t> ssa_num_;
+  intptr_t current_ssa_index_ = 0;
+  ZoneGrowableArray<Definition*>* detached_defs_;
+};
+
+void FlowGraph::CompactSSA(ZoneGrowableArray<Definition*>* detached_defs) {
+  if (detached_defs == nullptr) {
+    detached_defs = new (Z) ZoneGrowableArray<Definition*>(Z, 0);
+  }
+  SSACompactor compactor(max_block_id() + 1, current_ssa_temp_index(),
+                         detached_defs);
+  compactor.RenumberGraph(this);
 }
 
 }  // namespace dart

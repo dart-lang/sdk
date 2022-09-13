@@ -83,8 +83,8 @@ class Constants {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       b.i32_const(0);
-      translator.array_new_default(b, arrayType);
-      translator.struct_new(b, info);
+      b.array_new_default(arrayType);
+      b.struct_new(info.struct);
       b.global_set(emptyString);
     } else {
       w.RefType emptyStringType = info.nonNullableType;
@@ -92,8 +92,8 @@ class Constants {
       w.Instructions ib = emptyString.initializer;
       ib.i32_const(info.classId);
       ib.i32_const(initialIdentityHash);
-      translator.array_init(ib, arrayType, 0);
-      translator.struct_new(ib, info);
+      ib.array_new_fixed(arrayType, 0);
+      ib.struct_new(info.struct);
       ib.end();
     }
 
@@ -121,8 +121,8 @@ class Constants {
       b.ref_null(typeInfo.struct); // Initialized later
       b.i64_const(0);
       b.i32_const(0);
-      translator.array_new_default(b, arrayType);
-      translator.struct_new(b, info);
+      b.array_new_default(arrayType);
+      b.struct_new(info.struct);
       b.global_set(emptyTypeList);
     } else {
       w.RefType emptyListType = info.nonNullableType;
@@ -132,8 +132,8 @@ class Constants {
       ib.i32_const(initialIdentityHash);
       ib.ref_null(typeInfo.struct); // Initialized later
       ib.i64_const(0);
-      translator.array_init(ib, arrayType, 0);
-      translator.struct_new(ib, info);
+      ib.array_new_fixed(arrayType, 0);
+      ib.struct_new(info.struct);
       ib.end();
     }
 
@@ -199,7 +199,7 @@ class Constants {
   /// in the corresponding string data segment from which to copy this string.
   w.DefinedFunction makeStringFunction(Class cls) {
     ClassInfo info = translator.classInfo[cls]!;
-    w.FunctionType ftype = translator.functionType(
+    w.FunctionType ftype = m.addFunctionType(
         const [w.NumType.i32, w.NumType.i32], [info.nonNullableType]);
     return m.addFunction(ftype, "makeString (${cls.name})");
   }
@@ -212,13 +212,13 @@ class Constants {
 
     w.Local offset = function.locals[0];
     w.Local length = function.locals[1];
-    w.Local array = function.addLocal(
-        translator.typeForLocal(w.RefType.def(arrayType, nullable: false)));
+    w.Local array =
+        function.addLocal(w.RefType.def(arrayType, nullable: false));
     w.Local index = function.addLocal(w.NumType.i32);
 
     w.Instructions b = function.body;
     b.local_get(length);
-    translator.array_new_default(b, arrayType);
+    b.array_new_default(arrayType);
     b.local_set(array);
 
     b.i32_const(0);
@@ -243,7 +243,7 @@ class Constants {
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     b.local_get(array);
-    translator.struct_new(b, info);
+    b.struct_new(info.struct);
     b.end();
   }
 
@@ -359,7 +359,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
       ClassInfo info = translator.classInfo[translator.boxedClasses[wasmType]]!;
       b.i32_const(info.classId);
       pushValue();
-      translator.struct_new(b, info);
+      b.struct_new(info.struct);
       return info.nonNullableType;
     } else {
       pushValue();
@@ -419,15 +419,14 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           m.addGlobal(w.GlobalType(type.withNullability(true)));
       global.initializer.ref_null(type.heapType);
       global.initializer.end();
-      w.FunctionType ftype = translator.functionType(const [], [type]);
+      w.FunctionType ftype = m.addFunctionType(const [], [type]);
       w.DefinedFunction function = m.addFunction(ftype, "$constant");
       generator(function, function.body);
-      w.Local temp = function.addLocal(translator.typeForLocal(type));
+      w.Local temp = function.addLocal(type);
       w.Instructions b2 = function.body;
       b2.local_tee(temp);
       b2.global_set(global);
       b2.local_get(temp);
-      translator.convertType(function, temp.type, type);
       b2.end();
 
       return ConstantInfo(constant, global, function);
@@ -494,15 +493,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           segment.append(bytes);
           b.i32_const(offset);
           b.i32_const(constant.value.length);
-          translator.array_init_from_data(b, arrayType, segment);
+          b.array_new_data(arrayType, segment);
         } else {
           // Initialize string contents from i32 constants on the stack.
           for (int charCode in constant.value.codeUnits) {
             b.i32_const(charCode);
           }
-          translator.array_init(b, arrayType, constant.value.length);
+          b.array_new_fixed(arrayType, constant.value.length);
         }
-        translator.struct_new(b, info);
+        b.struct_new(info.struct);
       }
     });
   }
@@ -552,7 +551,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         constants.instantiateConstant(
             function, b, subConstant, info.struct.fields[i].type.unpacked);
       }
-      translator.struct_new(b, info);
+      b.struct_new(info.struct);
     });
   }
 
@@ -579,10 +578,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i64_const(length);
       if (lazyConstants) {
         // Allocate array and set each entry to the corresponding sub-constant.
-        w.Local arrayLocal = function!.addLocal(
-            refType.withNullability(!translator.options.localNullability));
+        w.Local arrayLocal = function!.addLocal(refType.withNullability(false));
         b.i32_const(length);
-        translator.array_new_default(b, arrayType);
+        b.array_new_default(arrayType);
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
@@ -592,18 +590,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           b.array_set(arrayType);
         }
         b.local_get(arrayLocal);
-        if (arrayLocal.type.nullable) {
-          b.ref_as_non_null();
-        }
       } else {
         // Push all sub-constants on the stack and initialize array from them.
         for (int i = 0; i < length; i++) {
           constants.instantiateConstant(
               function, b, constant.entries[i], elementType);
         }
-        translator.array_init(b, arrayType, length);
+        b.array_new_fixed(arrayType, length);
       }
-      translator.struct_new(b, info);
+      b.struct_new(info.struct);
     });
   }
 
@@ -641,7 +636,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           function, b, keyTypeConstant, constants.typeInfo.nullableType);
       constants.instantiateConstant(
           function, b, valueTypeConstant, constants.typeInfo.nullableType);
-      translator.struct_new(b, info);
+      b.struct_new(info.struct);
     });
   }
 
@@ -670,7 +665,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i64_const(0); // _deletedKeys
       constants.instantiateConstant(
           function, b, elementTypeConstant, constants.typeInfo.nullableType);
-      translator.struct_new(b, info);
+      b.struct_new(info.struct);
     });
   }
 
@@ -705,7 +700,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       } else {
         b.ref_func(closureFunction);
       }
-      translator.struct_new(b, parameterCount);
+      b.struct_new(translator.closureStructType(parameterCount));
     });
   }
 
@@ -724,7 +719,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i64_const(typeInfo.classId);
       constants.instantiateConstant(
           function, b, typeArgs, typeListExpectedType);
-      translator.struct_new(b, info);
+      b.struct_new(info.struct);
     });
   }
 
@@ -738,7 +733,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       types.encodeNullability(b, type);
       constants.instantiateConstant(
           function, b, typeArgument, types.nonNullableTypeType);
-      translator.struct_new(b, info);
+      b.struct_new(info.struct);
     });
   }
 
@@ -768,7 +763,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           function, b, requiredParameterCountConstant, w.NumType.i64);
       constants.instantiateConstant(function, b, namedParametersConstant,
           types.namedParametersExpectedType);
-      translator.struct_new(b, info);
+      b.struct_new(info.struct);
     });
   }
 
@@ -790,7 +785,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
           b.i32_const(info.classId);
           b.i32_const(initialIdentityHash);
           types.encodeNullability(b, type);
-          translator.struct_new(b, info);
+          b.struct_new(info.struct);
         });
       } else {
         return _makeFunctionType(constant, type, info);
@@ -803,9 +798,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
-        types.encodeNullability(b, type);
-        b.i32_const(environmentIndex);
-        translator.struct_new(b, info);
+
+        // A type parameter's type nullability is undetermined when it's
+        // syntactically not declared nullable and the bound of the type
+        // parameter is nullable. Because we are encoding the declared
+        // nullability, we only declare a type parameter to be nullable if it is
+        // explicitly declared to be nullabe.
+        b.i32_const(type.declaredNullability == Nullability.nullable ? 1 : 0);
+        b.i64_const(environmentIndex);
+        b.struct_new(info.struct);
       });
     } else {
       assert(type is VoidType ||
@@ -816,8 +817,24 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         b.i32_const(info.classId);
         b.i32_const(initialIdentityHash);
         types.encodeNullability(b, type);
-        translator.struct_new(b, info);
+        b.struct_new(info.struct);
       });
     }
+  }
+
+  @override
+  ConstantInfo? visitSymbolConstant(SymbolConstant constant) {
+    ClassInfo info = translator.classInfo[translator.symbolClass]!;
+    translator.functions.allocateClass(info.classId);
+    w.RefType stringType =
+        translator.classInfo[translator.coreTypes.stringClass]!.nonNullableType;
+    StringConstant nameConstant = StringConstant(constant.name);
+    ensureConstant(nameConstant);
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      constants.instantiateConstant(function, b, nameConstant, stringType);
+      b.struct_new(info.struct);
+    });
   }
 }

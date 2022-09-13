@@ -23,7 +23,7 @@ List<int> readBytesFromFileSync(Uri uri) {
 }
 
 Future<List<int>> readBytesFromFile(Uri uri,
-    {bool ensureZeroTermination: true}) async {
+    {bool ensureZeroTermination = true}) async {
   RandomAccessFile file = await new File.fromUri(uri).open();
   Uint8List list;
   try {

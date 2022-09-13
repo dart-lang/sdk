@@ -5,12 +5,12 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
+import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class NormalizeTypeTest extends AbstractTypeSystemTest {
+class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   test_functionType_parameter() {
     _check(
       functionTypeNone(
@@ -338,6 +338,47 @@ class NormalizeTypeTest extends AbstractTypeSystemTest {
     check(futureOrQuestion(objectStar), objectStar);
   }
 
+  test_recordType() {
+    _check(
+      recordTypeNone(
+        positionalTypes: [
+          intNone,
+        ],
+      ),
+      recordTypeNone(
+        positionalTypes: [
+          intNone,
+        ],
+      ),
+    );
+
+    _check(
+      recordTypeNone(
+        positionalTypes: [
+          futureOrNone(objectNone),
+        ],
+      ),
+      recordTypeNone(
+        positionalTypes: [
+          objectNone,
+        ],
+      ),
+    );
+
+    _check(
+      recordTypeNone(
+        namedTypes: {
+          'foo': futureOrNone(objectNone),
+        },
+      ),
+      recordTypeNone(
+        namedTypes: {
+          'foo': objectNone,
+        },
+      ),
+    );
+  }
+
   /// NORM(T*)
   /// * let S be NORM(T)
   test_star() {
@@ -436,7 +477,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest {
 
   void _assertNullability(DartType type, NullabilitySuffix expected) {
     if (type.nullabilitySuffix != expected) {
-      fail('Expected $expected in ${_typeString(type)}');
+      fail('Expected $expected in ${typeString(type)}');
     }
   }
 
@@ -449,10 +490,10 @@ class NormalizeTypeTest extends AbstractTypeSystemTest {
   }
 
   void _check(DartType T, DartType expected) {
-    var expectedStr = _typeString(expected);
+    var expectedStr = typeString(expected);
 
     var result = typeSystem.normalize(T);
-    var resultStr = _typeString(result);
+    var resultStr = typeString(result);
     expect(result, expected, reason: '''
 expected: $expectedStr
 actual: $resultStr
@@ -472,99 +513,12 @@ actual: $resultStr
           fail('''
 parameter1: $parameter1, isCovariant: ${parameter1.isCovariant}
 parameter2: $parameter2, isCovariant: ${parameter2.isCovariant}
-T1: ${_typeString(T1 as TypeImpl)}
-T2: ${_typeString(T2 as TypeImpl)}
+T1: ${typeString(T1 as TypeImpl)}
+T2: ${typeString(T2 as TypeImpl)}
 ''');
         }
         _checkFormalParametersIsCovariant(parameter1.type, parameter2.type);
       }
     }
   }
-
-  String _typeParametersStr(DartType type) {
-    var typeStr = '';
-
-    var typeParameterCollector = _TypeParameterCollector();
-    type.accept(typeParameterCollector);
-    for (var typeParameter in typeParameterCollector.typeParameters) {
-      typeStr += ', $typeParameter';
-    }
-    return typeStr;
-  }
-
-  String _typeString(DartType type) {
-    return type.getDisplayString(withNullability: true) +
-        _typeParametersStr(type);
-  }
-}
-
-class _TypeParameterCollector extends TypeVisitor<void> {
-  final Set<String> typeParameters = {};
-
-  /// We don't need to print bounds for these type parameters, because
-  /// they are already included into the function type itself, and cannot
-  /// be promoted.
-  final Set<TypeParameterElement> functionTypeParameters = {};
-
-  @override
-  void visitDynamicType(DynamicType type) {}
-
-  @override
-  void visitFunctionType(FunctionType type) {
-    functionTypeParameters.addAll(type.typeFormals);
-    for (var typeParameter in type.typeFormals) {
-      var bound = typeParameter.bound;
-      if (bound != null) {
-        bound.accept(this);
-      }
-    }
-    for (var parameter in type.parameters) {
-      parameter.type.accept(this);
-    }
-    type.returnType.accept(this);
-  }
-
-  @override
-  void visitInterfaceType(InterfaceType type) {
-    for (var typeArgument in type.typeArguments) {
-      typeArgument.accept(this);
-    }
-  }
-
-  @override
-  void visitNeverType(NeverType type) {}
-
-  @override
-  void visitTypeParameterType(TypeParameterType type) {
-    if (!functionTypeParameters.contains(type.element)) {
-      var bound = type.element.bound;
-      var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
-
-      if (bound == null && promotedBound == null) {
-        return;
-      }
-
-      var str = '';
-
-      if (bound != null) {
-        var boundStr = bound.getDisplayString(withNullability: true);
-        str += '${type.element.name} extends $boundStr';
-      }
-
-      if (promotedBound != null) {
-        var promotedBoundStr = promotedBound.getDisplayString(
-          withNullability: true,
-        );
-        if (str.isNotEmpty) {
-          str += ', ';
-        }
-        str += '${type.element.name} & $promotedBoundStr';
-      }
-
-      typeParameters.add(str);
-    }
-  }
-
-  @override
-  void visitVoidType(VoidType type) {}
 }

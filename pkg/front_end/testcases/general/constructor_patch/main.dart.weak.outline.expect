@@ -24,10 +24,18 @@ class Class extends core::Object /*hasConstConstructor*/  {
     : self2::Class::defaultValue = defaultValue, super core::Object::•()
     ;
 }
+@_in::patch
+class Class2 extends core::Object {
+  final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
+  field core::int field;
+  external constructor •(core::int field) → self2::Class2
+    ;
+}
 
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:49 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:44 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:43 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:9 -> InstanceConstant(const _Patch{})
-Extra constant evaluation: evaluated: 4, effectively constant: 3
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 5, effectively constant: 4

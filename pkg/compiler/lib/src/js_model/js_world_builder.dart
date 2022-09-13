@@ -14,7 +14,6 @@ import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
-import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_strategy.dart';
 import '../ir/closure.dart';
@@ -46,10 +45,11 @@ class JsClosedWorldBuilder {
   final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
   final ClosureDataBuilder _closureDataBuilder;
   final CompilerOptions _options;
+  final DiagnosticReporter _reporter;
   final AbstractValueStrategy _abstractValueStrategy;
 
   JsClosedWorldBuilder(this._elementMap, this._closureDataBuilder,
-      this._options, this._abstractValueStrategy);
+      this._options, this._reporter, this._abstractValueStrategy);
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
@@ -200,7 +200,7 @@ class JsClosedWorldBuilder {
         JFieldAnalysis.from(closedWorld, map, _options);
 
     AnnotationsDataImpl oldAnnotationsData = closedWorld.annotationsData;
-    AnnotationsData annotationsData = AnnotationsDataImpl(_options,
+    AnnotationsData annotationsData = AnnotationsDataImpl(_options, _reporter,
         map.toBackendMemberMap(oldAnnotationsData.pragmaAnnotations, identity));
 
     OutputUnitData outputUnitData =
@@ -301,24 +301,14 @@ class JsClosedWorldBuilder {
     Set<FunctionEntity> methodsNeedingSignature =
         map.toBackendFunctionSet(rtiNeed.methodsNeedingSignature);
     Set<Selector> selectorsNeedingTypeArguments =
-        rtiNeed.selectorsNeedingTypeArguments.map((Selector selector) {
-      if (selector.memberName.isPrivate) {
-        return Selector(
-            selector.kind,
-            PrivateName(selector.memberName.text,
-                map.toBackendLibrary(selector.memberName.library),
-                isSetter: selector.memberName.isSetter),
-            selector.callStructure);
-      }
-      return selector;
-    }).toSet();
+        rtiNeed.selectorsNeedingTypeArguments;
     return RuntimeTypesNeedImpl(
         _elementEnvironment,
         classesNeedingTypeArguments,
         methodsNeedingSignature,
         methodsNeedingTypeArguments,
-        null,
-        null,
+        const {},
+        const {},
         selectorsNeedingTypeArguments,
         rtiNeed.instantiationsNeedingTypeArguments);
   }

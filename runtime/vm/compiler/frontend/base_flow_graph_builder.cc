@@ -4,6 +4,8 @@
 
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
 
+#include <utility>
+
 #include "vm/compiler/backend/range_analysis.h"  // For Range.
 #include "vm/compiler/ffi/call.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
@@ -446,9 +448,8 @@ Fragment BaseFlowGraphBuilder::AddIntptrIntegers() {
 
 Fragment BaseFlowGraphBuilder::UnboxSmiToIntptr() {
   Value* value = Pop();
-  auto untagged = new (Z)
-      UnboxIntegerInstr(kUnboxedIntPtr, UnboxIntegerInstr::kNoTruncation, value,
-                        DeoptId::kNone, Instruction::kNotSpeculative);
+  auto untagged = UnboxInstr::Create(kUnboxedIntPtr, value, DeoptId::kNone,
+                                     Instruction::kNotSpeculative);
   Push(untagged);
   return Fragment(untagged);
 }
@@ -517,34 +518,31 @@ const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
 Fragment BaseFlowGraphBuilder::StoreNativeField(
     TokenPosition position,
     const Slot& slot,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
     compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
   }
-  StoreInstanceFieldInstr* store =
-      new (Z) StoreInstanceFieldInstr(slot, Pop(), value, emit_store_barrier,
-                                      InstructionSource(position), kind);
+  StoreFieldInstr* store =
+      new (Z) StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
+                              InstructionSource(position), kind);
   return Fragment(store);
 }
 
-Fragment BaseFlowGraphBuilder::StoreInstanceField(
+Fragment BaseFlowGraphBuilder::StoreField(
     const Field& field,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier) {
   return StoreNativeField(TokenPosition::kNoSource,
                           Slot::Get(MayCloneField(Z, field), parsed_function_),
                           kind, emit_store_barrier);
 }
 
-Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
+Fragment BaseFlowGraphBuilder::StoreFieldGuarded(
     const Field& field,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */) {
+    StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */) {
   Fragment instructions;
   const Field& field_clone = MayCloneField(Z, field);
   if (IG->use_field_guards()) {
@@ -811,11 +809,11 @@ IndirectEntryInstr* BaseFlowGraphBuilder::BuildIndirectEntry(
                                     GetNextDeoptId());
 }
 
-InputsArray* BaseFlowGraphBuilder::GetArguments(int count) {
-  InputsArray* arguments = new (Z) ZoneGrowableArray<Value*>(Z, count);
-  arguments->SetLength(count);
+InputsArray BaseFlowGraphBuilder::GetArguments(int count) {
+  InputsArray arguments(Z, count);
+  arguments.SetLength(count);
   for (intptr_t i = count - 1; i >= 0; --i) {
-    arguments->data()[i] = Pop();
+    arguments[i] = Pop();
   }
   return arguments;
 }
@@ -1183,10 +1181,10 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
   const intptr_t total_count =
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
-  InputsArray* arguments = GetArguments(total_count);
-  ClosureCallInstr* call =
-      new (Z) ClosureCallInstr(arguments, type_args_len, argument_names,
-                               InstructionSource(position), GetNextDeoptId());
+  InputsArray arguments = GetArguments(total_count);
+  ClosureCallInstr* call = new (Z)
+      ClosureCallInstr(std::move(arguments), type_args_len, argument_names,
+                       InstructionSource(position), GetNextDeoptId());
   Push(call);
   result <<= call;
   return result;
@@ -1239,10 +1237,10 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
 Fragment BaseFlowGraphBuilder::InvokeMathCFunction(
     MethodRecognizer::Kind recognized_kind,
     intptr_t num_inputs) {
-  InputsArray* args = GetArguments(num_inputs);
-  auto* instr = new (Z)
-      InvokeMathCFunctionInstr(args, GetNextDeoptId(), recognized_kind,
-                               InstructionSource(TokenPosition::kNoSource));
+  InputsArray args = GetArguments(num_inputs);
+  auto* instr = new (Z) InvokeMathCFunctionInstr(
+      std::move(args), GetNextDeoptId(), recognized_kind,
+      InstructionSource(TokenPosition::kNoSource));
   Push(instr);
   return Fragment(instr);
 }

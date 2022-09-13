@@ -538,6 +538,10 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  // TODO: Handle directly.
+  void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
+
+  @override
   void handleNativeClause(Token nativeToken, bool hasName) {
     debugEvent("NativeClause");
     if (hasName) {

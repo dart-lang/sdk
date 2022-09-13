@@ -51,7 +51,7 @@ void main(List<String> args) async {
 const warmupIterations = 100;
 const benchmarkIterations = 50;
 
-void _benchmarkAstFromBinary(Uint8List bytes, {bool eager: true}) {
+void _benchmarkAstFromBinary(Uint8List bytes, {bool eager = true}) {
   final sw = new Stopwatch()..start();
   _fromBinary(bytes, eager: eager);
   final coldRunUs = sw.elapsedMicroseconds;
@@ -171,7 +171,7 @@ bool _parseArgs(List<String> args) {
   return true;
 }
 
-Component _fromBinary(List<int> bytes, {eager: true}) {
+Component _fromBinary(List<int> bytes, {eager = true}) {
   var component = new Component();
   new BinaryBuilder(bytes, filename: 'filename', disableLazyReading: eager)
       .readSingleFileComponent(component);

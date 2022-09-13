@@ -159,8 +159,18 @@ class DartObjectImpl implements DartObject {
   /// The state of the object.
   final InstanceState _state;
 
+  @override
+  final VariableElement? variable;
+
   /// Initialize a newly created object to have the given [type] and [_state].
-  DartObjectImpl(this._typeSystem, this.type, this._state);
+  DartObjectImpl(this._typeSystem, this.type, this._state, {this.variable});
+
+  /// Creates a duplicate instance of [other], tied to [variable].
+  factory DartObjectImpl.forVariable(
+      DartObjectImpl other, VariableElement variable) {
+    return DartObjectImpl(other._typeSystem, other.type, other._state,
+        variable: variable);
+  }
 
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(
@@ -2506,6 +2516,112 @@ abstract class NumState extends InstanceState {
   BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
     return isIdentical(typeSystem, rightOperand);
+  }
+}
+
+/// The state of an object representing a record.
+class RecordState extends InstanceState {
+  /// The values of the positional fields.
+  final List<DartObjectImpl> positionalFields;
+
+  /// The values of the named fields.
+  final Map<String, DartObjectImpl> namedFields;
+
+  /// Initialize a newly created state to represent a record with the given
+  /// values of [positionalFields] and [namedFields].
+  RecordState(this.positionalFields, this.namedFields);
+
+  @override
+  String get typeName => 'Record';
+
+  @override
+  // The behavior of `toString` is undefined.
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  @override
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    if (rightOperand is! RecordState) {
+      return BoolState.FALSE_STATE;
+    }
+    var positionalCount = positionalFields.length;
+    var otherPositionalFields = rightOperand.positionalFields;
+    if (otherPositionalFields.length != positionalCount) {
+      return BoolState.FALSE_STATE;
+    }
+    var namedCount = namedFields.length;
+    var otherNamedFields = rightOperand.namedFields;
+    if (otherNamedFields.length != namedCount) {
+      return BoolState.FALSE_STATE;
+    }
+    for (var i = 0; i < positionalCount; i++) {
+      var result = positionalFields[i]
+          .equalEqual(typeSystem, otherPositionalFields[i])
+          ._state;
+      if (result is! BoolState) {
+        return BoolState.FALSE_STATE;
+      } else if (result != BoolState.TRUE_STATE) {
+        return result;
+      }
+    }
+    for (var entry in namedFields.entries) {
+      var otherValue = otherNamedFields[entry.key];
+      if (otherValue == null) {
+        return BoolState.FALSE_STATE;
+      }
+      var result = entry.value.equalEqual(typeSystem, otherValue)._state;
+      if (result is! BoolState) {
+        return BoolState.FALSE_STATE;
+      } else if (result != BoolState.TRUE_STATE) {
+        return result;
+      }
+    }
+    return BoolState.TRUE_STATE;
+  }
+
+  @override
+  BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    var equal = equalEqual(typeSystem, rightOperand);
+    if (equal == BoolState.FALSE_STATE) {
+      return equal;
+    }
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  @override
+  String toString() {
+    var buffer = StringBuffer();
+    buffer.write('(');
+    bool first = true;
+    for (var value in positionalFields) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write(', ');
+      }
+      buffer.write(value);
+    }
+    var entries = namedFields.entries.toList();
+    if (entries.isNotEmpty) {
+      entries.sort((first, second) => first.key.compareTo(second.key));
+      if (!first) {
+        buffer.write(', ');
+        first = true;
+      }
+      buffer.write('{');
+      for (var entry in entries) {
+        if (first) {
+          first = false;
+        } else {
+          buffer.write(', ');
+        }
+        buffer.write(entry.key);
+        buffer.write(': ');
+        buffer.write(entry.value);
+      }
+      buffer.write('}');
+    }
+    buffer.write(')');
+    return buffer.toString();
   }
 }
 

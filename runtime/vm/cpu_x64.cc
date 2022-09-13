@@ -40,6 +40,7 @@ bool HostCPUFeatures::abm_supported_ = false;
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
+#if !defined(USING_SIMULATOR)
 void HostCPUFeatures::Init() {
   CpuInfo::Init();
   hardware_ = CpuInfo::GetCpuModel();
@@ -62,6 +63,31 @@ void HostCPUFeatures::Cleanup() {
   hardware_ = NULL;
   CpuInfo::Cleanup();
 }
+
+#else  // !defined(USING_SIMULATOR)
+
+void HostCPUFeatures::Init() {
+  CpuInfo::Init();
+  hardware_ = CpuInfo::GetCpuModel();
+  sse4_1_supported_ = false;
+  popcnt_supported_ = false;
+  abm_supported_ = false;
+#if defined(DEBUG)
+  initialized_ = true;
+#endif
+}
+
+void HostCPUFeatures::Cleanup() {
+  DEBUG_ASSERT(initialized_);
+#if defined(DEBUG)
+  initialized_ = false;
+#endif
+  ASSERT(hardware_ != NULL);
+  free(const_cast<char*>(hardware_));
+  hardware_ = NULL;
+  CpuInfo::Cleanup();
+}
+#endif  // !defined(USING_SIMULATOR)
 
 }  // namespace dart
 

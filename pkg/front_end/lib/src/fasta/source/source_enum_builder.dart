@@ -52,7 +52,7 @@ import '../modifier.dart' show constMask, hasInitializerMask, staticMask;
 
 import '../constant_context.dart';
 import '../scope.dart';
-import '../type_inference/type_inferrer.dart';
+import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
 import 'name_scheme.dart';
@@ -477,7 +477,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fieldReference: fieldReference,
             fieldGetterReference: getterReference,
             fieldSetterReference: setterReference,
-            initializerToken: enumConstantInfo.argumentsBeginToken);
+            initializerToken: enumConstantInfo.argumentsBeginToken,
+            isEnumElement: true);
         members[name] = fieldBuilder..next = existing;
         elementBuilders.add(fieldBuilder);
       }
@@ -694,7 +695,14 @@ class SourceEnumBuilder extends SourceClassBuilder {
       if (enumConstantInfo.argumentsBeginToken != null) {
         arguments =
             bodyBuilder.parseArguments(enumConstantInfo.argumentsBeginToken!);
-        bodyBuilder.performBacklogComputations(_delayedActionPerformers);
+        // We pass `true` for [allowFurtherDelays] here because the members of
+        // the enums are built before the inference, and the resolution of the
+        // redirecting factories can't be completed at this moment and
+        // therefore should be delayed to another invocation of
+        // [BodyBuilder.performBacklogComputations].
+        bodyBuilder.performBacklogComputations(
+            delayedActionPerformers: _delayedActionPerformers,
+            allowFurtherDelays: true);
 
         arguments.positional.insertAll(0, enumSyntheticArguments);
         arguments.argumentsOriginalOrder?.insertAll(0, enumSyntheticArguments);

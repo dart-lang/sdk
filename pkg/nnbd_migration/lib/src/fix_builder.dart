@@ -321,7 +321,7 @@ class FixReason_NullCheckHint implements SimpleFixReasonInfo {
 class MigrationResolutionHooksImpl
     with ResolutionUtils
     implements MigrationResolutionHooks {
-  FixBuilder? _fixBuilder;
+  late final FixBuilder _fixBuilder;
 
   final Expando<List<CollectionElement>> _collectionElements = Expando();
 
@@ -334,13 +334,13 @@ class MigrationResolutionHooksImpl
       _flowAnalysis;
 
   /// Deferred processing that should be performed once we have finished
-  /// evaluating the type of a method invocation.
-  final Map<MethodInvocation, DartType Function(DartType)>
-      _deferredMethodInvocationProcessing = {};
+  /// evaluating the type of an expression.
+  final Map<Expression, DartType Function(DartType)>
+      _deferredExpressionProcessing = {};
 
   final Map<Expression, DartType?> _contextTypes = {};
 
-  TypeProvider get typeProvider => _fixBuilder!.typeProvider;
+  TypeProvider get typeProvider => _fixBuilder.typeProvider;
 
   @override
   void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
@@ -352,11 +352,11 @@ class MigrationResolutionHooksImpl
   @override
   List<InterfaceType> getClassInterfaces(AbstractClassElementImpl element) {
     return _wrapExceptions(
-        _fixBuilder!.unit,
+        _fixBuilder.unit,
         () => element.interfacesInternal,
         () => [
               for (var interface in element.interfacesInternal)
-                _getClassInterface(element, interface.element)
+                _getClassInterface(element, interface.element2)
             ]);
   }
 
@@ -364,8 +364,8 @@ class MigrationResolutionHooksImpl
   bool? getConditionalKnownValue(AstNode node) =>
       _wrapExceptions(node, () => null, () {
         // TODO(paulberry): handle conditional expressions.
-        var conditionalDiscard = _fixBuilder!._variables!
-            .getConditionalDiscard(_fixBuilder!.source, node);
+        var conditionalDiscard = _fixBuilder._variables!
+            .getConditionalDiscard(_fixBuilder.source, node);
         if (conditionalDiscard == null) {
           return null;
         } else {
@@ -373,12 +373,12 @@ class MigrationResolutionHooksImpl
             return null;
           }
           var conditionValue = conditionalDiscard.keepTrue;
-          (_fixBuilder!._getChange(node) as NodeChangeForConditional)
+          (_fixBuilder._getChange(node) as NodeChangeForConditional)
             ..conditionValue = conditionValue
             ..conditionReason = conditionalDiscard.reason;
           // If we're just issuing warnings, instruct the resolver to go ahead
           // and visit both branches of the conditional.
-          return _fixBuilder!.warnOnWeakCode! ? null : conditionValue;
+          return _fixBuilder.warnOnWeakCode! ? null : conditionValue;
         }
       });
 
@@ -401,8 +401,8 @@ class MigrationResolutionHooksImpl
 
   @override
   FunctionType getExecutableType(ElementImplWithFunctionType element) =>
-      _wrapExceptions(_fixBuilder!.unit, () => element.typeInternal, () {
-        var type = _fixBuilder!._computeMigratedType(element);
+      _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
+        var type = _fixBuilder._computeMigratedType(element);
         Element baseElement = element;
         if (baseElement is Member) {
           type = baseElement.substitution.substituteType(type);
@@ -413,17 +413,17 @@ class MigrationResolutionHooksImpl
   @override
   DartType getExtendedType(ExtensionElementImpl element) {
     return _wrapExceptions(
-        _fixBuilder!.unit,
+        _fixBuilder.unit,
         () => element.extendedTypeInternal,
-        () => _fixBuilder!._variables!.toFinalType(
-            _fixBuilder!._variables!.decoratedElementType(element)));
+        () => _fixBuilder._variables!.toFinalType(
+            _fixBuilder._variables!.decoratedElementType(element)));
   }
 
   @override
   DartType getFieldType(PropertyInducingElementImpl element) =>
-      _wrapExceptions(_fixBuilder!.unit, () => element.typeInternal, () {
+      _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
         assert(!element.isSynthetic);
-        return _fixBuilder!._computeMigratedType(element);
+        return _fixBuilder._computeMigratedType(element);
       });
 
   @override
@@ -443,10 +443,10 @@ class MigrationResolutionHooksImpl
 
   @override
   DartType? getTypeParameterBound(TypeParameterElementImpl element) {
-    var decoratedBound = _fixBuilder!._variables!
+    var decoratedBound = _fixBuilder._variables!
         .decoratedTypeParameterBound(element, allowNullUnparentedBounds: true);
     if (decoratedBound == null) return element.boundInternal;
-    var bound = _fixBuilder!._variables!.toFinalType(decoratedBound);
+    var bound = _fixBuilder._variables!.toFinalType(decoratedBound);
     if (bound.isDynamic) {
       return null;
     } else if (bound.isDartCoreObject &&
@@ -459,7 +459,7 @@ class MigrationResolutionHooksImpl
 
   @override
   DartType getVariableType(VariableElementImpl variable) =>
-      _wrapExceptions(_fixBuilder!.unit, () => variable.typeInternal, () {
+      _wrapExceptions(_fixBuilder.unit, () => variable.typeInternal, () {
         if (variable.library == null) {
           // This is a synthetic variable created during resolution (e.g. a
           // parameter of a function type), so the type it currently has is the
@@ -467,15 +467,15 @@ class MigrationResolutionHooksImpl
           return variable.typeInternal;
         }
         if (variable is ParameterElement) {
-          var enclosingElement = variable.enclosingElement;
+          var enclosingElement = variable.enclosingElement3;
           if (enclosingElement is PropertyAccessorElement &&
               enclosingElement.isSynthetic) {
             // This is the parameter of a synthetic getter, so it has the same
             // type as the corresponding variable.
-            return _fixBuilder!._computeMigratedType(enclosingElement.variable);
+            return _fixBuilder._computeMigratedType(enclosingElement.variable);
           }
         }
-        return _fixBuilder!._computeMigratedType(variable);
+        return _fixBuilder._computeMigratedType(variable);
       });
 
   @override
@@ -487,15 +487,14 @@ class MigrationResolutionHooksImpl
 
   @override
   bool isLibraryNonNullableByDefault(LibraryElementImpl element) {
-    return _fixBuilder!._graph.isBeingMigrated(element.source) ||
+    return _fixBuilder._graph.isBeingMigrated(element.source) ||
         element.isNonNullableByDefaultInternal;
   }
 
   @override
   bool isMethodInvocationNullAware(MethodInvocation node) {
     return node.isNullAware &&
-        (_shouldStayNullAware[node] ??=
-            _fixBuilder!._shouldStayNullAware(node));
+        (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
   }
 
   /// Indicates whether the given [element] is a member of an extension on a
@@ -503,9 +502,9 @@ class MigrationResolutionHooksImpl
   /// on a nullable type without introducing a null check).
   bool isNullableExtensionMember(Element? element) {
     if (element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is ExtensionElement) {
-        return _fixBuilder!._typeSystem
+        return _fixBuilder._typeSystem
             .isPotentiallyNullable(enclosingElement.extendedType);
       }
     }
@@ -515,8 +514,7 @@ class MigrationResolutionHooksImpl
   @override
   bool isPropertyAccessNullAware(PropertyAccess node) {
     return node.isNullAware &&
-        (_shouldStayNullAware[node] ??=
-            _fixBuilder!._shouldStayNullAware(node));
+        (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
   }
 
   @override
@@ -555,7 +553,7 @@ class MigrationResolutionHooksImpl
     var postMigrationType = parameter.type;
     if (postMigrationType != type) {
       // TODO(paulberry): test field formal parameters.
-      _fixBuilder!._addedParameterTypes[parameter] = postMigrationType;
+      _fixBuilder._addedParameterTypes[parameter] = postMigrationType;
       return postMigrationType;
     }
     return type;
@@ -579,13 +577,13 @@ class MigrationResolutionHooksImpl
       var handler = _PrefixExpressionHandler(node);
       _assignmentLikeExpressionHandlers[node] = handler;
       handler.handleLValueType(this, node.readType, node.writeType!);
-      handler.handleAssignmentRhs(this, _fixBuilder!.typeProvider.intType);
+      handler.handleAssignmentRhs(this, _fixBuilder.typeProvider.intType);
     } else if (node is PostfixExpression) {
       assert(_isIncrementOrDecrementOperator(node.operator.type));
       var handler = _PostfixExpressionHandler(node);
       _assignmentLikeExpressionHandlers[node] = handler;
       handler.handleLValueType(this, node.readType, node.writeType!);
-      handler.handleAssignmentRhs(this, _fixBuilder!.typeProvider.intType);
+      handler.handleAssignmentRhs(this, _fixBuilder.typeProvider.intType);
     } else {
       throw StateError('(${node.runtimeType}) $node');
     }
@@ -600,11 +598,37 @@ class MigrationResolutionHooksImpl
 
   DartType _addCastOrNullCheck(
       Expression node, DartType expressionType, DartType contextType) {
+    var expressionFutureTypeArgument = _getFutureTypeArgument(expressionType);
+    var contextFutureOrTypeArgument = _getFutureOrTypeArgument(contextType);
+    var parent = node.parent;
+    if (parent is AwaitExpression &&
+        expressionFutureTypeArgument != null &&
+        contextFutureOrTypeArgument != null) {
+      // `node` is an expression inside an await expression, and is a Future of
+      // a nullable type. The context type is a FutureOr...
+      var nonNullType = _fixBuilder._typeSystem
+          .promoteToNonNull(expressionFutureTypeArgument);
+      if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, contextType)) {
+        // ... and a null-check will get us where we need to be; add a
+        // null-check to the outer await, instead of adding a cast to FutureOr
+        // inside the await.
+        var change = _createExpressionChange(
+            parent, expressionFutureTypeArgument, contextType);
+        var checks = _fixBuilder._variables!
+            .expressionChecks(_fixBuilder.source, parent);
+        var info = AtomicEditInfo(change.description, checks?.edges ?? {});
+        (_fixBuilder._getChange(parent) as NodeChangeForExpression)
+            .addExpressionChange(change, info);
+        _deferredExpressionProcessing[parent] = (_) => change.resultType;
+        return expressionType;
+      }
+    }
+
     var checks =
-        _fixBuilder!._variables!.expressionChecks(_fixBuilder!.source, node);
+        _fixBuilder._variables!.expressionChecks(_fixBuilder.source, node);
     var change = _createExpressionChange(node, expressionType, contextType);
     var info = AtomicEditInfo(change.description, checks?.edges ?? {});
-    (_fixBuilder!._getChange(node) as NodeChangeForExpression)
+    (_fixBuilder._getChange(node) as NodeChangeForExpression)
         .addExpressionChange(change, info);
     return change.resultType;
   }
@@ -613,8 +637,8 @@ class MigrationResolutionHooksImpl
   /// called [extensionName] from `package:collection/collection.dart`, and that
   /// the pubspec will be appropriately updated (if necessary).
   void _addCollectionPackageExtension(String extensionName) {
-    _fixBuilder!.neededCollectionPackageExtensions.add(extensionName);
-    _fixBuilder!._neededPackages['collection'] =
+    _fixBuilder.neededCollectionPackageExtensions.add(extensionName);
+    _fixBuilder._neededPackages['collection'] =
         Version.parse('1.15.0-nullsafety.4');
   }
 
@@ -622,10 +646,10 @@ class MigrationResolutionHooksImpl
       {AtomicEditInfo? info, HintComment? hint}) {
     var change = _createNullCheckChange(node, type, hint: hint);
     var checks =
-        _fixBuilder!._variables!.expressionChecks(_fixBuilder!.source, node);
+        _fixBuilder._variables!.expressionChecks(_fixBuilder.source, node);
     info ??= AtomicEditInfo(change.description, checks?.edges ?? {});
     var nodeChangeForExpression =
-        _fixBuilder!._getChange(node) as NodeChangeForExpression;
+        _fixBuilder._getChange(node) as NodeChangeForExpression;
     nodeChangeForExpression.addExpressionChange(change, info);
     return change.resultType;
   }
@@ -643,21 +667,20 @@ class MigrationResolutionHooksImpl
     }
     // Either a cast or a null check is needed.  We prefer to do a null
     // check if we can.
-    var nonNullType = _fixBuilder!._typeSystem.promoteToNonNull(expressionType);
-    if (_fixBuilder!._typeSystem.isSubtypeOf(nonNullType, contextType)) {
+    var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(expressionType);
+    if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, contextType)) {
       return _createNullCheckChange(node, expressionType);
     } else {
       _flowAnalysis!.asExpression_end(node, contextType);
       return IntroduceAsChange(contextType,
-          isDowncast: _fixBuilder!._typeSystem
-              .isSubtypeOf(contextType, expressionType));
+          isDowncast:
+              _fixBuilder._typeSystem.isSubtypeOf(contextType, expressionType));
     }
   }
 
   ExpressionChange _createNullCheckChange(Expression node, DartType type,
       {HintComment? hint}) {
-    var resultType =
-        _fixBuilder!._typeSystem.promoteToNonNull(type as TypeImpl);
+    var resultType = _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
     _flowAnalysis!.nonNullAssert_end(node);
     return type.isDartCoreNull && hint == null
         ? NoValidMigrationChange(resultType)
@@ -678,11 +701,21 @@ class MigrationResolutionHooksImpl
   }
 
   InterfaceType _getClassInterface(
-      ClassElement class_, ClassElement superclass) {
-    var decoratedSupertype = _fixBuilder!._decoratedClassHierarchy!
+      ClassElement class_, InterfaceElement superclass) {
+    var decoratedSupertype = _fixBuilder._decoratedClassHierarchy!
         .getDecoratedSupertype(class_, superclass);
-    var finalType = _fixBuilder!._variables!.toFinalType(decoratedSupertype);
+    var finalType = _fixBuilder._variables!.toFinalType(decoratedSupertype);
     return finalType as InterfaceType;
+  }
+
+  DartType? _getFutureOrTypeArgument(DartType type) {
+    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      var typeArguments = type.typeArguments;
+      if (typeArguments.isNotEmpty) {
+        return typeArguments.first;
+      }
+    }
+    return null;
   }
 
   DartType? _getFutureTypeArgument(DartType type) {
@@ -696,16 +729,15 @@ class MigrationResolutionHooksImpl
   }
 
   bool _isSubtypeOrCoercible(DartType type, DartType context) {
-    var fixBuilder = _fixBuilder!;
-    var typeSystem = fixBuilder._typeSystem;
+    var typeSystem = _fixBuilder._typeSystem;
     if (typeSystem.isSubtypeOf(type, context)) {
       return true;
     }
     if (context is FunctionType && type is InterfaceType) {
-      var callMethod =
-          type.lookUpMethod2('call', fixBuilder.unit!.declaredElement!.library);
+      var callMethod = type.lookUpMethod2(
+          'call', _fixBuilder.unit!.declaredElement!.library);
       if (callMethod != null) {
-        var variables = fixBuilder._variables!;
+        var variables = _fixBuilder._variables!;
         var callMethodType = variables.toFinalType(
             variables.decoratedElementType(callMethod.declaration));
         if (callMethod is MethodMember) {
@@ -722,14 +754,12 @@ class MigrationResolutionHooksImpl
 
   DartType _modifyRValueType(Expression node, DartType type,
       {DartType? context}) {
-    if (node is MethodInvocation) {
-      var deferredProcessing = _deferredMethodInvocationProcessing.remove(node);
-      if (deferredProcessing != null) {
-        type = deferredProcessing(type);
-      }
+    var deferredProcessing = _deferredExpressionProcessing.remove(node);
+    if (deferredProcessing != null) {
+      type = deferredProcessing(type);
     }
     var hint =
-        _fixBuilder!._variables!.getNullCheckHint(_fixBuilder!.source, node);
+        _fixBuilder._variables!.getNullCheckHint(_fixBuilder.source, node);
     if (hint != null) {
       type = _addNullCheck(node, type,
           info: AtomicEditInfo(
@@ -753,7 +783,7 @@ class MigrationResolutionHooksImpl
       // transform `.where`.
       type = _tryTransformWhere(node, type) ?? type;
     }
-    if (!_fixBuilder!._typeSystem.isNullable(type)) return type;
+    if (!_fixBuilder._typeSystem.isNullable(type)) return type;
     if (_needsNullCheckDueToStructure(ancestor)) {
       return _addNullCheck(node, type);
     }
@@ -822,8 +852,8 @@ class MigrationResolutionHooksImpl
 
   CollectionElement? _transformCollectionElement(CollectionElement? node) {
     while (node is IfElement) {
-      var conditionalDiscard = _fixBuilder!._variables!
-          .getConditionalDiscard(_fixBuilder!.source, node);
+      var conditionalDiscard = _fixBuilder._variables!
+          .getConditionalDiscard(_fixBuilder.source, node);
       if (conditionalDiscard == null ||
           conditionalDiscard.keepTrue && conditionalDiscard.keepFalse) {
         return node;
@@ -849,7 +879,7 @@ class MigrationResolutionHooksImpl
   /// considered); otherwise returns `null`.
   DartType? _tryTransformOrElse(Expression node, DartType type) {
     var transformationInfo =
-        _fixBuilder!._whereOrNullTransformer.tryTransformOrElseArgument(node);
+        _fixBuilder._whereOrNullTransformer.tryTransformOrElseArgument(node);
     if (transformationInfo != null) {
       // We can fix this by dropping the node and changing the method call.
       _addCollectionPackageExtension('IterableExtension');
@@ -858,14 +888,14 @@ class MigrationResolutionHooksImpl
               transformationInfo.originalName,
               transformationInfo.replacementName),
           {});
-      (_fixBuilder!._getChange(transformationInfo.methodInvocation.methodName)
+      (_fixBuilder._getChange(transformationInfo.methodInvocation.methodName)
               as NodeChangeForMethodName)
           .replaceWith(transformationInfo.replacementName, info);
-      (_fixBuilder!._getChange(transformationInfo.methodInvocation.argumentList)
+      (_fixBuilder._getChange(transformationInfo.methodInvocation.argumentList)
               as NodeChangeForArgumentList)
           .dropArgument(transformationInfo.orElseArgument, info);
-      _deferredMethodInvocationProcessing[transformationInfo.methodInvocation] =
-          (methodInvocationType) => _fixBuilder!._typeSystem
+      _deferredExpressionProcessing[transformationInfo.methodInvocation] =
+          (methodInvocationType) => _fixBuilder._typeSystem
               .makeNullable(methodInvocationType as TypeImpl);
       return type;
     }
@@ -877,8 +907,8 @@ class MigrationResolutionHooksImpl
   /// indicates to the caller that no further transformations to this expression
   /// need to be considered); otherwise returns `null`.
   DartType? _tryTransformWhere(Expression node, DartType type) {
-    var transformationInfo = _fixBuilder!._whereNotNullTransformer
-        .tryTransformMethodInvocation(node);
+    var transformationInfo =
+        _fixBuilder._whereNotNullTransformer.tryTransformMethodInvocation(node);
     if (transformationInfo != null) {
       // We can fix this by dropping the method call's argument and changing the
       // call.
@@ -888,13 +918,13 @@ class MigrationResolutionHooksImpl
               transformationInfo.originalName,
               transformationInfo.replacementName),
           {});
-      (_fixBuilder!._getChange(transformationInfo.methodInvocation.methodName)
+      (_fixBuilder._getChange(transformationInfo.methodInvocation.methodName)
               as NodeChangeForMethodName)
           .replaceWith(transformationInfo.replacementName, info);
-      (_fixBuilder!._getChange(transformationInfo.methodInvocation.argumentList)
+      (_fixBuilder._getChange(transformationInfo.methodInvocation.argumentList)
               as NodeChangeForArgumentList)
           .dropArgument(transformationInfo.argument, info);
-      return _fixBuilder!._whereNotNullTransformer
+      return _fixBuilder._whereNotNullTransformer
           .transformPostMigrationInvocationType(type);
     }
     return null;
@@ -906,12 +936,12 @@ class MigrationResolutionHooksImpl
   /// exception is propagated normally.
   T _wrapExceptions<T>(
       AstNode? node, T Function() fallback, T Function() compute) {
-    if (_fixBuilder!.listener == null) return compute();
+    if (_fixBuilder.listener == null) return compute();
     try {
       return compute();
     } catch (exception, stackTrace) {
-      _fixBuilder!.listener!
-          .reportException(_fixBuilder!.source, node, exception, stackTrace);
+      _fixBuilder.listener!
+          .reportException(_fixBuilder.source, node, exception, stackTrace);
       return fallback();
     }
   }
@@ -976,7 +1006,7 @@ abstract class _AssignmentLikeExpressionHandler {
       MigrationResolutionHooksImpl hooks, DartType rhsType) {
     MethodElement? combiner = this.combiner;
     if (combiner != null) {
-      var fixBuilder = hooks._fixBuilder!;
+      var fixBuilder = hooks._fixBuilder;
       var combinerReturnType =
           fixBuilder._typeSystem.refineBinaryExpressionType(
         readType!,
@@ -1011,13 +1041,13 @@ abstract class _AssignmentLikeExpressionHandler {
       assert(readType!.nullabilitySuffix != NullabilitySuffix.star);
       if (combinerType == TokenType.QUESTION_QUESTION_EQ) {
         rhsContextType = writeTypeToSet;
-        if (fixBuilder!._typeSystem.isNonNullable(readType!)) {
+        if (fixBuilder._typeSystem.isNonNullable(readType!)) {
           (fixBuilder._getChange(node) as NodeChangeForAssignment)
               .isWeakNullAware = true;
         }
       } else {
         if (!readType!.isDynamic &&
-            fixBuilder!._typeSystem.isPotentiallyNullable(readType!)) {
+            fixBuilder._typeSystem.isPotentiallyNullable(readType!)) {
           (fixBuilder._getChange(node) as NodeChangeForAssignmentLike)
               .hasNullableSource = true;
         }
@@ -1109,7 +1139,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       bool explicitTypeNeeded = false;
       for (var variableDeclaration in node.variables) {
         var neededType = _fixBuilder
-            ._computeMigratedType(variableDeclaration.declaredElement!);
+            ._computeMigratedType(variableDeclaration.declaredElement2!);
         neededTypes.add(neededType);
         var inferredType = variableDeclaration.initializer?.staticType ??
             _fixBuilder.typeProvider.dynamicType;
@@ -1147,7 +1177,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
     // Check if the nullability node for a single variable declaration has been
     // declared to be late.
     if (node.variables.length == 1) {
-      var variableElement = node.variables.single.declaredElement!;
+      var variableElement = node.variables.single.declaredElement2!;
       var lateCondition = _fixBuilder._variables!
           .decoratedElementType(variableElement)
           .node!
@@ -1191,7 +1221,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
     for (var directive in unit.directives) {
       if (directive is ImportDirective &&
           directive.prefix == null &&
-          directive.uriContent == uri) {
+          directive.uri.stringValue == uri) {
         return directive;
       }
     }
@@ -1223,7 +1253,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       var nullabilityNode =
           _fixBuilder._variables!.decoratedElementType(element!).node!;
       if (!nullabilityNode.isNullable) {
-        var enclosingElement = element.enclosingElement;
+        var enclosingElement = element.enclosingElement3;
         if (enclosingElement is ConstructorElement &&
             enclosingElement.isFactory &&
             enclosingElement.redirectedConstructor != null &&
@@ -1336,8 +1366,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     // Change an existing `@required` annotation into a `required` keyword if
     // possible.
     final element = parameter.declaredElement!;
-    final method = element.enclosingElement!;
-    final cls = method.enclosingElement!;
+    final method = element.enclosingElement3!;
+    final cls = method.enclosingElement3!;
     var info = AtomicEditInfo(
         NullabilityFixDescription.addRequired(
             cls.name, method.name, element.name),

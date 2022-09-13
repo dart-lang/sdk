@@ -26,17 +26,11 @@ class ObjectPointerVisitor;
   V(ArgumentError, "ArgumentError")                                            \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
-  V(AsyncFuture, ":async_future")                                              \
-  V(AsyncOperation, ":async_op")                                               \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
-  V(AwaitContextVar, ":await_ctx_var")                                         \
-  V(AwaitJumpVar, ":await_jump_var")                                           \
   V(Bool, "bool")                                                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
   V(ByteData, "ByteData")                                                      \
-  V(ByteDataDot, "ByteData.")                                                  \
-  V(ByteDataDot_view, "ByteData._view")                                        \
   V(Call, "call")                                                              \
   V(CastError, "_CastError")                                                   \
   V(CheckLoaded, "_checkLoaded")                                               \
@@ -52,8 +46,6 @@ class ObjectPointerVisitor;
   V(CompressedStackMaps, "CompressedStackMaps")                                \
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
-  V(Controller, ":controller")                                                 \
-  V(ControllerStream, ":controller_stream")                                    \
   V(Current, "current")                                                        \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
@@ -241,7 +233,6 @@ class ObjectPointerVisitor;
   V(SpaceOfSpace, " of ")                                                      \
   V(SpaceWhereNewLine, " where\n")                                             \
   V(StackOverflowError, "StackOverflowError")                                  \
-  V(StackTraceParameter, ":stack_trace")                                       \
   V(Stream, "Stream")                                                          \
   V(StringBase, "_StringBase")                                                 \
   V(Struct, "Struct")                                                          \
@@ -285,16 +276,14 @@ class ObjectPointerVisitor;
   V(_ByteBuffer, "_ByteBuffer")                                                \
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_ByteDataView, "_ByteDataView")                                            \
+  V(_UnmodifiableByteDataView, "_UnmodifiableByteDataView")                    \
   V(_CapabilityImpl, "_CapabilityImpl")                                        \
   V(_ClassMirror, "_ClassMirror")                                              \
   V(_Closure, "_Closure")                                                      \
   V(_ClosureCall, "_Closure.call")                                             \
   V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
-  V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
-  V(_CompleteWithNoFutureOnAsyncReturn, "_completeWithNoFutureOnAsyncReturn")  \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
-  V(_CompleteOnAsyncError, "_completeOnAsyncError")                            \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
@@ -315,6 +304,20 @@ class ObjectPointerVisitor;
   V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \
   V(_FinalizerImpl, "_FinalizerImpl")                                          \
   V(_NativeFinalizer, "_NativeFinalizer")                                      \
+  V(_UnmodifiableInt8ArrayView, "_UnmodifiableInt8ArrayView")                  \
+  V(_UnmodifiableInt16ArrayView, "_UnmodifiableInt16ArrayView")                \
+  V(_UnmodifiableInt32ArrayView, "_UnmodifiableInt32ArrayView")                \
+  V(_UnmodifiableInt64ArrayView, "_UnmodifiableInt64ArrayView")                \
+  V(_UnmodifiableUint8ClampedArrayView, "_UnmodifiableUint8ClampedArrayView")  \
+  V(_UnmodifiableUint8ArrayView, "_UnmodifiableUint8ArrayView")                \
+  V(_UnmodifiableUint16ArrayView, "_UnmodifiableUint16ArrayView")              \
+  V(_UnmodifiableUint32ArrayView, "_UnmodifiableUint32ArrayView")              \
+  V(_UnmodifiableUint64ArrayView, "_UnmodifiableUint64ArrayView")              \
+  V(_UnmodifiableFloat32ArrayView, "_UnmodifiableFloat32ArrayView")            \
+  V(_UnmodifiableFloat64ArrayView, "_UnmodifiableFloat64ArrayView")            \
+  V(_UnmodifiableInt32x4ArrayView, "_UnmodifiableInt32x4ArrayView")            \
+  V(_UnmodifiableFloat32x4ArrayView, "_UnmodifiableFloat32x4ArrayView")        \
+  V(_UnmodifiableFloat64x2ArrayView, "_UnmodifiableFloat64x2ArrayView")        \
   V(_Float32ArrayFactory, "Float32List.")                                      \
   V(_Float32ArrayView, "_Float32ArrayView")                                    \
   V(_Float32List, "_Float32List")                                              \
@@ -383,7 +386,6 @@ class ObjectPointerVisitor;
   V(_StreamIterator, "_StreamIterator")                                        \
   V(_String, "String")                                                         \
   V(_SuspendState, "_SuspendState")                                            \
-  V(_SyncIterator, "_SyncIterator")                                            \
   V(_SyncStarIterator, "_SyncStarIterator")                                    \
   V(_SyncStreamController, "_SyncStreamController")                            \
   V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
@@ -446,7 +448,6 @@ class ObjectPointerVisitor;
   V(_returnAsync, "_returnAsync")                                              \
   V(_returnAsyncNotFuture, "_returnAsyncNotFuture")                            \
   V(_returnAsyncStar, "_returnAsyncStar")                                      \
-  V(_returnSyncStar, "_returnSyncStar")                                        \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
   V(_scanFlags, "_scanFlags")                                                  \
@@ -456,6 +457,7 @@ class ObjectPointerVisitor;
   V(_stackTrace, "_stackTrace")                                                \
   V(_state, "_state")                                                          \
   V(_stateData, "_stateData")                                                  \
+  V(_suspendSyncStarAtStart, "_suspendSyncStarAtStart")                        \
   V(_toString, "_toString")                                                    \
   V(_varData, "_varData")                                                      \
   V(_wordCharacterMap, "_wordCharacterMap")                                    \
@@ -476,7 +478,6 @@ class ObjectPointerVisitor;
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
   V(index_temp, ":index_temp")                                                 \
-  V(is_sync, ":is_sync")                                                       \
   V(isPaused, "isPaused")                                                      \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \
@@ -493,20 +494,21 @@ class ObjectPointerVisitor;
   V(state, "state")                                                            \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
-  V(vm_prefer_inline, "vm:prefer-inline")                                      \
+  V(vm_always_consider_inlining, "vm:always-consider-inlining")                \
   V(vm_entry_point, "vm:entry-point")                                          \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
+  V(vm_external_name, "vm:external-name")                                      \
+  V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
+  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
+  V(vm_invisible, "vm:invisible")                                              \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \
+  V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_recognized, "vm:recognized")                                            \
+  V(vm_testing_print_flow_graph, "vm:testing:print-flow-graph")                \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
-  V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
-  V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
-  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")                        \
-  V(vm_external_name, "vm:external-name")                                      \
-  V(vm_invisible, "vm:invisible")                                              \
-  V(vm_testing_print_flow_graph, "vm:testing:print-flow-graph")
+  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

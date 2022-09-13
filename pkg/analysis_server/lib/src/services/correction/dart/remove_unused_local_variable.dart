@@ -27,11 +27,11 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final declaration = node.parent;
-    if (!(declaration is VariableDeclaration && declaration.name == node)) {
+    if (!(declaration is VariableDeclaration && declaration.name2 == token)) {
       return;
     }
 
-    var element = declaration.declaredElement;
+    var element = declaration.declaredElement2;
     if (element is! LocalVariableElement) {
       return;
     }

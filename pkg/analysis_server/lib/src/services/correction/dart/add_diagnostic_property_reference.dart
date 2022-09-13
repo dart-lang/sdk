@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 class AddDiagnosticPropertyReference extends CorrectionProducer {
   @override
@@ -37,9 +38,10 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       return;
     }
 
-    var classDeclaration = node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
+    final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null ||
-        !flutter.isDiagnosticable(classDeclaration.declaredElement!.thisType)) {
+        !flutter
+            .isDiagnosticable(classDeclaration.declaredElement2!.thisType)) {
       return;
     }
 
@@ -113,8 +115,10 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       builder.writeln("$constructorName('${node.name}', ${node.name}));");
     }
 
-    final debugFillProperties =
-        classDeclaration.getMethod('debugFillProperties');
+    final debugFillProperties = classDeclaration.members
+        .whereType<MethodDeclaration>()
+        .where((e) => e.name2.lexeme == 'debugFillProperties')
+        .singleOrNull;
     if (debugFillProperties == null) {
       var location = utils.prepareNewMethodLocation(classDeclaration);
       if (location == null) {
@@ -164,10 +168,10 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
       for (var parameter in parameterList.parameters) {
         if (parameter is SimpleFormalParameter) {
           final type = parameter.type;
-          final identifier = parameter.identifier;
+          final identifier = parameter.name;
           if (type is NamedType && identifier != null) {
             if (type.name.name == 'DiagnosticPropertiesBuilder') {
-              propertiesBuilderName = identifier.name;
+              propertiesBuilderName = identifier.lexeme;
               break;
             }
           }
@@ -191,13 +195,13 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   DartType? _getReturnType(AstNode node) {
     if (node is MethodDeclaration) {
       // Getter.
-      var element = node.declaredElement;
+      var element = node.declaredElement2;
       if (element is PropertyAccessorElement) {
         return element.returnType;
       }
     } else if (node is VariableDeclaration) {
       // Field.
-      var element = node.declaredElement;
+      var element = node.declaredElement2;
       if (element is FieldElement) {
         return element.type;
       }
@@ -206,8 +210,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
   }
 
   bool _isEnum(DartType type) {
-    final element = type.element;
-    return element is ClassElement && element.isEnum;
+    return type is InterfaceType && type.element2 is EnumElement;
   }
 
   bool _isIterable(DartType type) {

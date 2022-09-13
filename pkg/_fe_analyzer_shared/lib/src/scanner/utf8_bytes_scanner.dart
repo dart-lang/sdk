@@ -89,7 +89,7 @@ class Utf8BytesScanner extends AbstractScanner {
    */
   Utf8BytesScanner(this.bytes,
       {ScannerConfiguration? configuration,
-      bool includeComments: false,
+      bool includeComments = false,
       LanguageVersionChanged? languageVersionChanged})
       : super(configuration, includeComments, languageVersionChanged,
             numberOfBytesHint: bytes.length) {

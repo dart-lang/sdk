@@ -39,7 +39,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.period, isNull);
     expect(constructor.returnType, isNotNull);
@@ -96,7 +96,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name.name, 'late');
+    expect(method.name2.lexeme, 'late');
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -295,7 +295,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.period, isNull);
     expect(constructor.returnType, isNotNull);
@@ -389,7 +389,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.period, isNull);
     expect(constructor.returnType, isNotNull);
@@ -417,7 +417,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseClassMember_field_generic() {
@@ -452,7 +452,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseClassMember_field_gftType_gftReturnType() {
@@ -499,8 +499,7 @@ Function(int, String) v;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
-    _assertIsDeclarationName(variable.name);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseClassMember_field_namedGet() {
@@ -525,7 +524,7 @@ Function(int, String) v;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseClassMember_field_namedOperator() {
@@ -550,7 +549,7 @@ Function(int, String) v;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseClassMember_field_namedOperator_withAssignment() {
@@ -575,7 +574,7 @@ Function(int, String) v;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
     expect(variable.initializer, isNotNull);
   }
 
@@ -601,7 +600,7 @@ Function(int, String) v;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseClassMember_field_nameKeyword() {
@@ -651,7 +650,7 @@ Function(int, String) v;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseClassMember_finalAndCovariantLateWithInitializer() {
@@ -677,7 +676,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.body, isNotNull);
     expect(method.parameters, isNull);
@@ -695,8 +694,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    _assertIsDeclarationName(method.name);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.body, isNotNull);
     expect(method.parameters, isNull);
@@ -712,8 +710,7 @@ Function(int, String) v;
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNotNull);
     expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
-    _assertIsDeclarationName(method.name);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -737,7 +734,7 @@ Function(int, String) v;
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNotNull);
     expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -757,7 +754,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     expect(method.parameters, isNotNull);
@@ -776,7 +773,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
 
@@ -802,7 +799,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     expect(method.parameters, isNotNull);
@@ -821,11 +818,11 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect((method.returnType as NamedType).name.name, 'T');
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     TypeParameter tp = method.typeParameters!.typeParameters[0];
-    expect(tp.name.name, 'T');
+    expect(tp.name2.lexeme, 'T');
     expect(tp.extendsKeyword, isNotNull);
     expect((tp.bound as NamedType).name.name, 'num');
     expect(method.parameters, isNotNull);
@@ -855,7 +852,7 @@ Function(int, String) v;
       expect((typeArguments[1] as NamedType).name.name, 'T');
     }
 
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     expect(method.parameters, isNotNull);
@@ -875,7 +872,7 @@ Function(int, String) v;
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
     expect((method.returnType as NamedType).name.name, 'T');
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     expect(method.parameters, isNotNull);
@@ -894,7 +891,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNotNull);
     expect(method.parameters, isNotNull);
@@ -913,7 +910,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -934,7 +931,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNotNull);
     expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNull);
@@ -953,7 +950,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -972,7 +969,7 @@ Function(int, String) v;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1065,7 +1062,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1084,7 +1081,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1103,7 +1100,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1122,8 +1119,8 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.name.name, 'm');
+    expect(method.name2, isNotNull);
+    expect(method.name2.lexeme, 'm');
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1142,7 +1139,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1161,7 +1158,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1182,7 +1179,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNotNull);
     expect(method.propertyKeyword, isNotNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1201,7 +1198,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1220,7 +1217,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1237,7 +1234,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1253,7 +1250,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNotNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1272,7 +1269,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1291,7 +1288,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isGenericFunctionType);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNotNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1314,7 +1311,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name.name, '>>>');
+    expect(method.name2.lexeme, '>>>');
     expect(method.operatorKeyword, isNotNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1351,7 +1348,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNotNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1370,7 +1367,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNotNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1389,7 +1386,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.modifierKeyword, isNull);
     expect(method.propertyKeyword, isNull);
     expect(method.returnType, isNotNull);
-    expect(method.name.name, '<');
+    expect(method.name2.lexeme, '<');
     expect(method.operatorKeyword, isNotNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -1406,8 +1403,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
     expect(constructor.returnType.name, 'C');
     expect(constructor.period, isNull);
-    expect(constructor.name, isNull);
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator!.type, TokenType.EQ);
@@ -1429,7 +1425,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
     expect(constructor.returnType.name, 'C');
     expect(constructor.period, isNull);
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator, isNull);
@@ -1455,9 +1451,8 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.period, isNull);
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator!.type, TokenType.EQ);
@@ -1504,10 +1499,8 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNotNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.period!.type, TokenType.PERIOD);
-    expect(constructor.name!.name, 'foo');
-    _assertIsDeclarationName(constructor.name!);
+    expect(constructor.name2!.lexeme, 'foo');
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator, isNull);
@@ -1560,10 +1553,8 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.period!.type, TokenType.PERIOD);
-    expect(constructor.name!.name, 'foo');
-    _assertIsDeclarationName(constructor.name!);
+    expect(constructor.name2!.lexeme, 'foo');
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator, isNull);
@@ -1614,8 +1605,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator!.lexeme, ':');
@@ -1638,8 +1628,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator!.lexeme, ':');
@@ -1660,9 +1649,8 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
     expect(constructor.returnType.name, 'C');
-    _assertIsDeclarationName(constructor.returnType as SimpleIdentifier, false);
     expect(constructor.period, isNull);
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator, isNull);
@@ -1795,7 +1783,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseField_external() {
@@ -1878,7 +1866,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseField_late() {
@@ -1902,7 +1890,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseField_late_const() {
@@ -1928,7 +1916,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseField_late_final() {
@@ -1952,7 +1940,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseField_late_var() {
@@ -1975,7 +1963,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseField_non_abstract() {
@@ -2021,7 +2009,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
-    expect(variable.name, isNotNull);
+    expect(variable.name2, isNotNull);
   }
 
   void test_parseGetter_identifier_colon_issue_36961() {
@@ -2038,7 +2026,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.body, isNotNull);
     expect(constructor.documentationComment, isNull);
     expect(constructor.externalKeyword, isNull);
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.returnType, isNotNull);
   }
@@ -2052,7 +2040,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.parameters, isNull);
     expect(method.propertyKeyword, isNotNull);
@@ -2068,7 +2056,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword!.lexeme, 'static');
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNull);
@@ -2115,7 +2103,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNotNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -2132,7 +2120,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNull);
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -2149,7 +2137,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expectCommentText(method.documentationComment, '/// Doc');
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword!.lexeme, 'static');
-    expect(method.name, isNotNull);
+    expect(method.name2, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
     expect(method.parameters, isNotNull);
@@ -2167,11 +2155,6 @@ int f(
     var parameter = function.functionExpression.parameters!.parameters[0]
         as NormalFormalParameter;
     expectCommentText(parameter.documentationComment, '/// Doc');
-  }
-
-  /// Assert that the given [name] is in declaration context.
-  void _assertIsDeclarationName(SimpleIdentifier name, [bool expected = true]) {
-    expect(name.inDeclarationContext(), expected);
   }
 
   void _parseClassMember_method_native() {

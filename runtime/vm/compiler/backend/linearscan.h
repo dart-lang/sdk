@@ -39,8 +39,7 @@ class ReachingDefs : public ValueObject {
 class SSALivenessAnalysis : public LivenessAnalysis {
  public:
   explicit SSALivenessAnalysis(const FlowGraph& flow_graph)
-      : LivenessAnalysis(flow_graph.max_virtual_register_number(),
-                         flow_graph.postorder()),
+      : LivenessAnalysis(flow_graph.max_vreg(), flow_graph.postorder()),
         graph_entry_(flow_graph.graph_entry()) {}
 
  private:
@@ -317,7 +316,7 @@ class FlowGraphAllocator : public ValueObject {
   GrowableArray<LiveRange*> live_ranges_;
 
   GrowableArray<LiveRange*> unallocated_cpu_;
-  GrowableArray<LiveRange*> unallocated_xmm_;
+  GrowableArray<LiveRange*> unallocated_fpu_;
 
   LiveRange* cpu_regs_[kNumberOfCpuRegisters];
   LiveRange* fpu_regs_[kNumberOfFpuRegisters];

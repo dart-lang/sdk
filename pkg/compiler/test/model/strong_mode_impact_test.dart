@@ -142,10 +142,10 @@ class Impact {
   final List<String> parameterChecks;
 
   const Impact(
-      {this.checkedModeChecks: const <String>[],
-      this.asCasts: const <String>[],
-      this.implicitCasts: const <String>[],
-      this.parameterChecks: const <String>[]});
+      {this.checkedModeChecks = const <String>[],
+      this.asCasts = const <String>[],
+      this.implicitCasts = const <String>[],
+      this.parameterChecks = const <String>[]});
 
   @override
   String toString() {

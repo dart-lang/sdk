@@ -10,7 +10,7 @@ class bool {
   @patch
   @pragma("vm:external-name", "Bool_fromEnvironment")
   external const factory bool.fromEnvironment(String name,
-      {bool defaultValue: false});
+      {bool defaultValue = false});
 
   @patch
   @pragma("vm:external-name", "Bool_hasEnvironment")

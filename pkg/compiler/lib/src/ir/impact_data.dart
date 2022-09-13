@@ -192,10 +192,6 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
         }
         registerAsyncStar(elementType);
         break;
-
-      case ir.AsyncMarker.SyncYielding:
-        failedAt(CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected async marker: ${asyncMarker}");
     }
   }
 
@@ -610,19 +606,19 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   @override
-  void registerSuperSet(ir.Member target) {
-    (_data._superSets ??= []).add(target);
+  void registerSuperSet(ir.Member? target) {
+    (_data._superSets ??= []).add(target!);
   }
 
   @override
-  void registerSuperGet(ir.Member target) {
-    (_data._superGets ??= []).add(target);
+  void registerSuperGet(ir.Member? target) {
+    (_data._superGets ??= []).add(target!);
   }
 
   @override
-  void registerSuperInvocation(ir.Member target, int positionalArguments,
+  void registerSuperInvocation(ir.Member? target, int positionalArguments,
       List<String> namedArguments, List<ir.DartType> typeArguments) {
-    (_data._superInvocations ??= []).add(_SuperInvocation(target,
+    (_data._superInvocations ??= []).add(_SuperInvocation(target!,
         _CallStructure(positionalArguments, namedArguments, typeArguments)));
   }
 

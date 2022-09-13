@@ -23,15 +23,20 @@ import '../universe/selector.dart';
 import '../world.dart';
 
 import 'element_map.dart';
+import 'kernel_world_interfaces.dart' as interfaces;
 
 /// The immutable result of the [ResolutionWorldBuilder].
-class KClosedWorld implements BuiltWorld {
+class KClosedWorld implements BuiltWorld, interfaces.KClosedWorld {
   final KernelToElementMap elementMap;
+  @override
   final KElementEnvironment elementEnvironment;
+  @override
   final DartTypes dartTypes;
+  @override
   final KCommonElements commonElements;
   final NativeData nativeData;
   final InterceptorData interceptorData;
+  @override
   final BackendUsage backendUsage;
   final NoSuchMethodData noSuchMethodData;
   final Map<ClassEntity, Set<ClassEntity>> mixinUses;
@@ -75,11 +80,13 @@ class KClosedWorld implements BuiltWorld {
   ///
   /// A closurized method is considered live if the enclosing class has been
   /// instantiated.
+  @override
   final Set<FunctionEntity> closurizedMembersWithFreeTypeVariables;
 
   /// Set of (live) local functions (closures).
   ///
   /// A live function is one whose enclosing member function has been enqueued.
+  @override
   final Iterable<Local> localFunctions;
 
   @override
@@ -129,7 +136,7 @@ class KClosedWorld implements BuiltWorld {
             .checkHasMember(elementMap.getMemberNode(member))) {
           throw SpannableAssertionFailure(
               member,
-              "Member $member is in the environment of its enclosing class"
+              "Member $member is not in the environment of its enclosing class"
               " ${member.enclosingClass}.");
         }
       }
@@ -159,6 +166,7 @@ class KClosedWorld implements BuiltWorld {
 
   /// Returns `true` if [member] has been marked as used (called, read, etc.) in
   /// this world builder.
+  @override
   bool isMemberUsed(MemberEntity member) => liveMemberUsage.containsKey(member);
 
   @override

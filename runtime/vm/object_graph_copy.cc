@@ -176,6 +176,15 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
     return Closure::RawCast(obj)->untag()->context() == Object::null();
   }
 
+  if (IsUnmodifiableTypedDataViewClassId(cid)) {
+    // Unmodifiable typed data views may have mutable backing stores.
+    return TypedDataView::RawCast(obj)
+        ->untag()
+        ->typed_data()
+        ->untag()
+        ->IsImmutable();
+  }
+
   return false;
 }
 
@@ -244,6 +253,8 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
   tags = UntaggedObject::OldAndNotRememberedBit::update(false, tags);
   tags = UntaggedObject::CanonicalBit::update(false, tags);
   tags = UntaggedObject::NewBit::update(true, tags);
+  tags = UntaggedObject::ImmutableBit::update(
+      IsUnmodifiableTypedDataViewClassId(cid), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif
@@ -799,7 +810,8 @@ class FastObjectCopyBase : public ObjectCopyBase {
                                       ExternalTypedData::RawCast(to));
           fast_forward_map_.AddExternalTypedData(
               ExternalTypedData::RawCast(to));
-        } else if (IsTypedDataViewClassId(cid)) {
+        } else if (IsTypedDataViewClassId(cid) ||
+                   IsUnmodifiableTypedDataViewClassId(cid)) {
           // We set the views backing store to `null` to satisfy an assertion in
           // GCCompactor::VisitTypedDataViewPointers().
           SetNewSpaceTaggingWord(to, cid, header_size);
@@ -1009,7 +1021,8 @@ class SlowObjectCopyBase : public ObjectCopyBase {
       InitializeExternalTypedDataWithSafepointChecks(
           thread_, cid, ExternalTypedData::Cast(from), external_to);
       return external_to.ptr();
-    } else if (IsTypedDataViewClassId(cid)) {
+    } else if (IsTypedDataViewClassId(cid) ||
+               IsUnmodifiableTypedDataViewClassId(cid)) {
       // We set the views backing store to `null` to satisfy an assertion in
       // GCCompactor::VisitTypedDataViewPointers().
       InitializeTypedDataView(TypedDataView::RawCast(to));
@@ -1125,7 +1138,10 @@ class ObjectCopy : public Base {
 #undef COPY_TO
 
       case kByteDataViewCid:
-#define COPY_TO(clazz) case kTypedData##clazz##ViewCid:
+      case kUnmodifiableByteDataViewCid:
+#define COPY_TO(clazz)                                                         \
+  case kTypedData##clazz##ViewCid:                                             \
+  case kUnmodifiableTypedData##clazz##ViewCid:
         CLASS_LIST_TYPED_DATA(COPY_TO) {
           typename Types::TypedDataView casted_from =
               Types::CastTypedDataView(from);
@@ -1799,10 +1815,11 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
   Array& expandos_to_rehash_;
 };
 
-class ObjectGraphCopier {
+class ObjectGraphCopier : public StackResource {
  public:
   explicit ObjectGraphCopier(Thread* thread)
-      : thread_(thread),
+      : StackResource(thread),
+        thread_(thread),
         zone_(thread->zone()),
         fast_object_copy_(thread_),
         slow_object_copy_(thread_) {
@@ -1979,7 +1996,8 @@ class ObjectGraphCopier {
       const uword tags = TagsFromUntaggedObject(from.untag());
       const intptr_t cid = UntaggedObject::ClassIdTag::decode(tags);
       // External typed data is already initialized.
-      if (!IsExternalTypedDataClassId(cid) && !IsTypedDataViewClassId(cid)) {
+      if (!IsExternalTypedDataClassId(cid) && !IsTypedDataViewClassId(cid) &&
+          !IsUnmodifiableTypedDataViewClassId(cid)) {
 #if defined(DART_COMPRESSED_POINTERS)
         const bool compressed = true;
 #else

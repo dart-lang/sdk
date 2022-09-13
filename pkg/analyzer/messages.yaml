@@ -3238,6 +3238,12 @@ CompileTimeErrorCode:
         print(i);
       }
       ```
+  DUPLICATE_AUGMENTATION_IMPORT:
+    problemMessage: "The library already contains an augmentation with the URI '{0}'."
+    correctionMessage: Try removing all except one of the duplicated augmentation directives.
+    comment: |-
+      Parameters:
+      0: the URI of the duplicate augmentation
   DUPLICATE_CONSTRUCTOR_NAME:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: "The constructor with name '{0}' is already defined."
@@ -3355,6 +3361,12 @@ CompileTimeErrorCode:
       int x = 0;
       int y = 1;
       ```
+  DUPLICATE_FIELD_NAME:
+    problemMessage: The field name '{0}' is already used in this record.
+    correctionMessage: Try renaming the field.
+    comment: |-
+       Parameters:
+       0: the duplicated name
   DUPLICATE_FIELD_FORMAL_PARAMETER:
     problemMessage: "The field '{0}' can't be initialized by multiple parameters in the same constructor."
     correctionMessage: Try removing one of the parameters, or using different fields.
@@ -5911,6 +5923,12 @@ CompileTimeErrorCode:
 
       Import the library that contains the [part file][] rather than the
       [part file][] itself.
+  IMPORT_OF_NOT_AUGMENTATION:
+    problemMessage: "The imported file '{0}' isn't an augmentation of this library."
+    correctionMessage: Try adding a 'library augment' directive referencing this library to the imported file.
+    comment: |-
+      Parameters:
+      0: the URI of the imported file
   INCONSISTENT_CASE_EXPRESSION_TYPES:
     problemMessage: "Case expressions must have the same types, '{0}' isn't a '{1}'."
     comment: |-
@@ -6955,6 +6973,21 @@ CompileTimeErrorCode:
         static A a() => throw 0;
       }
       ```
+  INVALID_FIELD_NAME_FROM_OBJECT:
+    sharedName: INVALID_FIELD_NAME
+    problemMessage: Record field names can't be the same as a member from 'Object'.
+    correctionMessage: Try using a different name for the field.
+    comment: No parameters.
+  INVALID_FIELD_NAME_PRIVATE:
+    sharedName: INVALID_FIELD_NAME
+    problemMessage: Record field names can't be private.
+    correctionMessage: Try removing the leading underscore.
+    comment: No parameters.
+  INVALID_FIELD_NAME_POSITIONAL:
+    sharedName: INVALID_FIELD_NAME
+    problemMessage: Record field names can't be a dollar sign followed by digits because those are used to access positional fields.
+    correctionMessage: Try using a different name for the field.
+    comment: No parameters.
   INVALID_IMPLEMENTATION_OVERRIDE:
     problemMessage: "'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')."
     hasPublishedDocs: true
@@ -13021,7 +13054,7 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when the keyword `super` is used
-      outside of a instance method.
+      outside of an instance method.
 
       #### Example
 
@@ -14896,7 +14929,7 @@ CompileTimeErrorCode:
       ```
   URI_DOES_NOT_EXIST:
     problemMessage: "Target of URI doesn't exist: '{0}'."
-    correctionMessage: Try creating the file referenced by the URI, or Try using a URI for a file that does exist.
+    correctionMessage: Try creating the file referenced by the URI, or try using a URI for a file that does exist.
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -15180,8 +15213,10 @@ CompileTimeErrorCode:
       }
       ```
       TODO(brianwilkerson) It would be good to add a link to the spec or some
-       other documentation that lists the number of parameters for each operator,
-       but I don't know what to link to.
+       other documentation that lists the number of parameters for each
+       operator, but I don't know what to link to.
+      TODO(brianwilkerson) Another reasonable fix is to convert the operator to
+       be a normal method. 
   WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
     sharedName: WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
     problemMessage: "Operator '-' should declare 0 or 1 parameter, but {0} found."
@@ -19252,6 +19287,33 @@ HintCode:
       ```dart
       class C {}
       ```
+  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
+    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
+    problemMessage: "Missing concrete override implementation of '{0}'."
+    correctionMessage: Try overriding the missing member.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the member
+  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
+    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
+    problemMessage: "Missing concrete override implementation of '{0}' and '{1}'."
+    correctionMessage: Try overriding the missing members.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the first member
+      1: the name of the second member
+  MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
+    sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
+    problemMessage: "Missing concrete override implementation of '{0}', '{1}', and {2} more."
+    correctionMessage: Try overriding the missing members.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the first member
+      1: the name of the second member
+      2: the number of additional missing members that aren't listed
   MISSING_REQUIRED_PARAM:
     problemMessage: "The parameter '{0}' is required."
     hasPublishedDocs: true
@@ -19645,6 +19707,11 @@ HintCode:
     comment: |-
       A condition in operands of a logical operator could evaluate to `null`
       because it uses the null-aware '?.' operator.
+  CAST_FROM_NULL_ALWAYS_FAILS:
+    problemMessage: "This cast will always throw an exception because the expression will always evaluate to 'null'."
+    comment: |-
+      No parameters.
+    hasPublishedDocs: false
   NULL_CHECK_ALWAYS_FAILS:
     problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
     comment: |-
@@ -21210,11 +21277,19 @@ HintCode:
       The analyzer produces this diagnostic when a private declaration isn't
       referenced in the library that contains the declaration. The following
       kinds of declarations are analyzed:
-      - Private top-level declarations, such as classes, enums, mixins, typedefs,
-        top-level variables, and top-level functions
-      - Private static and instance methods
+      - Private top-level declarations and all of their members
+      - Private members of public declarations
       - Optional parameters of private functions for which a value is never
-        passed, even when the parameter doesn't have a private name
+        passed
+
+      Not all references to an element will mark it as "used":
+      - Assigning a value to a top-level variable (with a standard `=`
+        assignment, or a null-aware `??=` assignment) does not count as using
+        it.
+      - Refering to an element in a doc comment reference does not count as
+        using it.
+      - Refering to a class, mixin, or enum in the right side of an `is`
+        expression does not count as using it.
 
       #### Example
 

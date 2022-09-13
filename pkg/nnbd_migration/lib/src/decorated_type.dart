@@ -29,11 +29,11 @@ class DecoratedType implements DecoratedTypeInfo {
   /// If `this` is a function type, the [DecoratedType] of each of its
   /// positional parameters (including both required and optional positional
   /// parameters).
-  final List<DecoratedType?>? positionalParameters;
+  final List<DecoratedType>? positionalParameters;
 
   /// If `this` is a function type, the [DecoratedType] of each of its named
   /// parameters.
-  final Map<String, DecoratedType?>? namedParameters;
+  final Map<String, DecoratedType>? namedParameters;
 
   /// If `this` is a parameterized type, the [DecoratedType] of each of its
   /// type parameters.
@@ -67,7 +67,7 @@ class DecoratedType implements DecoratedTypeInfo {
             assert(namedParameters![parameter.name]!.type == parameter.type);
             namedParameterCount++;
           } else {
-            assert(positionalParameters![positionalParameterCount]!.type ==
+            assert(positionalParameters![positionalParameterCount].type ==
                 parameter.type);
             positionalParameterCount++;
           }
@@ -184,8 +184,8 @@ class DecoratedType implements DecoratedTypeInfo {
     // We'll be storing the type parameter bounds in
     // [_decoratedTypeParameterBounds] so the type parameter needs to have an
     // enclosing element of `null`.
-    assert(parameter.enclosingElement == null,
-        '$parameter should not have parent ${parameter.enclosingElement}');
+    assert(parameter.enclosingElement3 == null,
+        '$parameter should not have parent ${parameter.enclosingElement3}');
   }
 
   /// If `this` represents an interface type, returns the substitution necessary
@@ -199,7 +199,7 @@ class DecoratedType implements DecoratedTypeInfo {
     var type = this.type;
     if (type is InterfaceType) {
       return Map<TypeParameterElement, DecoratedType?>.fromIterables(
-          type.element.typeParameters, typeArguments);
+          type.element2.typeParameters, typeArguments);
     } else {
       throw StateError(
           'Tried to convert a non-interface type to a substitution');
@@ -248,7 +248,7 @@ class DecoratedType implements DecoratedTypeInfo {
         }
         return true;
       } else if (thisType is InterfaceType && otherType is InterfaceType) {
-        if (thisType.element != otherType.element) return false;
+        if (thisType.element2 != otherType.element2) return false;
         if (!_compareLists(typeArguments, other.typeArguments)) {
           return false;
         }
@@ -296,11 +296,10 @@ class DecoratedType implements DecoratedTypeInfo {
     roles[rolePrefix] = node;
     returnType?.recordRoles(roles, rolePrefix: '$rolePrefix/@r');
     for (int i = 0; i < positionalParameters!.length; i++) {
-      positionalParameters![i]!
-          .recordRoles(roles, rolePrefix: '$rolePrefix/$i');
+      positionalParameters![i].recordRoles(roles, rolePrefix: '$rolePrefix/$i');
     }
     for (var entry in namedParameters!.entries) {
-      entry.value!.recordRoles(roles, rolePrefix: '$rolePrefix/${entry.key}');
+      entry.value.recordRoles(roles, rolePrefix: '$rolePrefix/${entry.key}');
     }
     for (int i = 0; i < typeArguments.length; i++) {
       typeArguments[i]!.recordRoles(roles, rolePrefix: '$rolePrefix/$i');
@@ -339,7 +338,7 @@ class DecoratedType implements DecoratedTypeInfo {
     if (type is TypeParameterType || type is VoidType) {
       return '$type$trailing';
     } else if (type is InterfaceType) {
-      var name = type.element.name;
+      var name = type.element2.name;
       var args = '';
       if (type.typeArguments.isNotEmpty) {
         args = '<${typeArguments.join(', ')}>';
@@ -415,7 +414,7 @@ class DecoratedType implements DecoratedTypeInfo {
             Map<TypeParameterElement, DecoratedType>.from(substitution);
         for (int i = 0; i < typeFormals.length; i++) {
           // Check if it's a fresh type variable.
-          if (undecoratedResult.typeFormals[i].enclosingElement == null) {
+          if (undecoratedResult.typeFormals[i].enclosingElement3 == null) {
             substitution[typeFormals[i]] =
                 DecoratedType._forTypeParameterSubstitution(
                     undecoratedResult.typeFormals[i]);
@@ -458,7 +457,7 @@ class DecoratedType implements DecoratedTypeInfo {
       return DecoratedType(undecoratedResult, node,
           typeArguments: newTypeArguments);
     } else if (type is TypeParameterType) {
-      var inner = substitution[type.element];
+      var inner = substitution[type.element2];
       if (inner == null) {
         return this;
       } else {
@@ -484,7 +483,7 @@ class DecoratedType implements DecoratedTypeInfo {
       var undecoratedParameterType = i < numRequiredParameters
           ? undecoratedResult.normalParameterTypes[i]
           : undecoratedResult.optionalParameterTypes[i - numRequiredParameters];
-      newPositionalParameters.add(positionalParameters![i]!
+      newPositionalParameters.add(positionalParameters![i]
           ._substitute(substitution, undecoratedParameterType));
     }
     var newNamedParameters = <String, DecoratedType>{};
@@ -493,7 +492,7 @@ class DecoratedType implements DecoratedTypeInfo {
       var undecoratedParameterType =
           undecoratedResult.namedParameterTypes[name];
       newNamedParameters[name] =
-          (entry.value!._substitute(substitution, undecoratedParameterType));
+          (entry.value._substitute(substitution, undecoratedParameterType));
     }
     return DecoratedType(undecoratedResult, node,
         returnType:
@@ -542,7 +541,7 @@ class DecoratedTypeParameterBounds {
   final _parentedBounds = <TypeParameterElement, DecoratedType?>{};
 
   DecoratedType? get(TypeParameterElement element) {
-    if (element.enclosingElement == null) {
+    if (element.enclosingElement3 == null) {
       return _orphanBounds[element];
     } else {
       return _parentedBounds[element];
@@ -550,7 +549,7 @@ class DecoratedTypeParameterBounds {
   }
 
   void put(TypeParameterElement element, DecoratedType? bounds) {
-    if (element.enclosingElement == null) {
+    if (element.enclosingElement3 == null) {
       _orphanBounds[element] = bounds;
     } else {
       _parentedBounds[element] = bounds;

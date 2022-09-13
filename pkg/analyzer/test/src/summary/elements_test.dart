@@ -40,6 +40,777 @@ class ElementsKeepLinkingTest extends ElementsTest {
 }
 
 abstract class ElementsTest extends ElementsBaseTest {
+  test_augmentation_augmentationImports_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+class B {}
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class C {}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class B @32
+                constructors
+                  synthetic @-1
+      definingUnit
+        classes
+          class A @60
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class C @31
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_augmentation_class_constructor_superConstructor_generic_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class B extends A<int> {
+  B() : super.named(0);
+}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+class A<T> {
+  A.named(T a);
+}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A<int>
+            constructors
+              @56
+                superConstructor: ConstructorMember
+                  base: self::@class::A::@constructor::named
+                  substitution: {T: int}
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        constructors
+          named @42
+            periodOffset: 41
+            nameEnd: 47
+            parameters
+              requiredPositional a @50
+                type: T
+''');
+  }
+
+  test_augmentation_class_constructor_superConstructor_notGeneric_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class B extends A {
+  B() : super.named();
+}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+class A {
+  A.named();
+}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A
+            constructors
+              @51
+                superConstructor: self::@class::A::@constructor::named
+  definingUnit
+    classes
+      class A @31
+        constructors
+          named @39
+            periodOffset: 38
+            nameEnd: 44
+''');
+  }
+
+  test_augmentation_class_constructor_superConstructor_notGeneric_unnamed_explicit() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class B extends A {
+  B() : super();
+}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+class A {}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A
+            constructors
+              @51
+                superConstructor: self::@class::A::@constructor::•
+  definingUnit
+    classes
+      class A @31
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_augmentation_class_notSimplyBounded_circularity_via_typedef() async {
+    // C's type parameter T is not simply bounded because its bound, F, expands
+    // to `dynamic F(C)`, which refers to C.
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class C<T extends F> {}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+typedef F(C value);
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @35
+            typeParameters
+              covariant T @37
+                bound: dynamic
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @33
+        aliasedType: dynamic Function(C<dynamic>)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional value @37
+              type: C<dynamic>
+          returnType: dynamic
+''');
+  }
+
+  test_augmentation_class_notSimplyBounded_self() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class C<T extends C> {}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          notSimplyBounded class C @35
+            typeParameters
+              covariant T @37
+                bound: C<dynamic>
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+  definingUnit
+''');
+  }
+
+  test_augmentation_defaultValue_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+void f({int x = A.a}) {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        functions
+          f @51
+            parameters
+              optionalNamed x @58
+                type: int
+                constantInitializer
+                  PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: A @62
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    period: . @63
+                    identifier: SimpleIdentifier
+                      token: a @64
+                      staticElement: package:test/a.dart::@class::A::@getter::a
+                      staticType: int
+                    staticElement: package:test/a.dart::@class::A::@getter::a
+                    staticType: int
+            returnType: void
+  definingUnit
+''');
+  }
+
+  test_augmentation_defaultValue_prefix_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+void f({int x = prefix.A.a}) {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        functions
+          f @61
+            parameters
+              optionalNamed x @68
+                type: int
+                constantInitializer
+                  PropertyAccess
+                    target: PrefixedIdentifier
+                      prefix: SimpleIdentifier
+                        token: prefix @72
+                        staticElement: self::@augmentation::package:test/b.dart::@prefix::prefix
+                        staticType: null
+                      period: . @78
+                      identifier: SimpleIdentifier
+                        token: A @79
+                        staticElement: package:test/a.dart::@class::A
+                        staticType: null
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    operator: . @80
+                    propertyName: SimpleIdentifier
+                      token: a @81
+                      staticElement: package:test/a.dart::@class::A::@getter::a
+                      staticType: int
+                    staticType: int
+            returnType: void
+  definingUnit
+''');
+  }
+
+  test_augmentation_documented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+/// My documentation.
+library augment 'test.dart';
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      documentationComment: /// My documentation.
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+const b = a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const b @52
+            type: int
+            constantInitializer
+              SimpleIdentifier
+                token: a @56
+                staticElement: package:test/a.dart::@getter::a
+                staticType: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+const b = A.a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const b @52
+            type: int
+            constantInitializer
+              PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: A @56
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                period: . @57
+                identifier: SimpleIdentifier
+                  token: a @58
+                  staticElement: package:test/a.dart::@class::A::@getter::a
+                  staticType: int
+                staticElement: package:test/a.dart::@class::A::@getter::a
+                staticType: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant_instanceCreation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A {};
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+const a = A();
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const a @52
+            type: A
+            constantInitializer
+              InstanceCreationExpression
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: SimpleIdentifier
+                      token: A @56
+                      staticElement: package:test/a.dart::@class::A
+                      staticType: null
+                    type: A
+                  staticElement: package:test/a.dart::@class::A::@constructor::•
+                argumentList: ArgumentList
+                  leftParenthesis: ( @57
+                  rightParenthesis: ) @58
+                staticType: A
+        accessors
+          synthetic static get a @-1
+            returnType: A
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_constant_prefix_class_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static const a = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+const b = prefix.A.a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        topLevelVariables
+          static const b @62
+            type: int
+            constantInitializer
+              PropertyAccess
+                target: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: prefix @66
+                    staticElement: self::@augmentation::package:test/b.dart::@prefix::prefix
+                    staticType: null
+                  period: . @72
+                  identifier: SimpleIdentifier
+                    token: A @73
+                    staticElement: package:test/a.dart::@class::A
+                    staticType: null
+                  staticElement: package:test/a.dart::@class::A
+                  staticType: null
+                operator: . @74
+                propertyName: SimpleIdentifier
+                  token: a @75
+                  staticElement: package:test/a.dart::@class::A::@getter::a
+                  staticType: int
+                staticType: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart' as prefix;
+prefix.A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart as prefix @48
+      definingUnit
+        functions
+          f @65
+            returnType: A
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_topInference() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+final b = a;
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static final b @52
+            type: int
+        accessors
+          synthetic static get b @-1
+            returnType: int
+  definingUnit
+''');
+  }
+
+  test_augmentation_importScope_types_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'a.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+A f() {}
+''');
+
+    // The augmentation imports `a.dart`, so can resolve `A`.
+    // But the library does not import, so there `A` is unresolved.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      imports
+        package:test/a.dart
+      definingUnit
+        functions
+          f @48
+            returnType: A
+  definingUnit
+    functions
+      f @27
+        returnType: dynamic
+''');
+  }
+
+  test_augmentation_importScope_types_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'b.dart';
+import 'a.dart';
+A f() {}
+''');
+
+    // The library imports `a.dart`, so can resolve `A`.
+    // But the augmentation does not import, so there `A` is unresolved.
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  augmentationImports
+    package:test/b.dart
+      definingUnit
+        functions
+          f @31
+            returnType: dynamic
+  definingUnit
+    functions
+      f @44
+        returnType: A
+''');
+  }
+
+  test_augmentation_libraryExports_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+export 'dart:async';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+export 'dart:collection';
+export 'dart:math';
+''');
+    final library = await buildLibrary(r'''
+import 'dart:io';
+import augment 'a.dart';
+import augment 'b.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    dart:io
+  augmentationImports
+    package:test/a.dart
+      exports
+        dart:async
+      definingUnit
+    package:test/b.dart
+      exports
+        dart:collection
+        dart:math
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_augmentation_libraryImports_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import 'dart:async';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+import 'dart:collection';
+import 'dart:math';
+''');
+    final library = await buildLibrary(r'''
+import 'dart:io';
+import augment 'a.dart';
+import augment 'b.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    dart:io
+  augmentationImports
+    package:test/a.dart
+      imports
+        dart:async
+      definingUnit
+    package:test/b.dart
+      imports
+        dart:collection
+        dart:math
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_augmentation_topScope_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+A f() {}
+''');
+
+    // The augmentation declares `A`, and can it be used in the library.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+        functions
+          f @42
+            returnType: A
+  definingUnit
+    functions
+      f @27
+        returnType: A
+''');
+  }
+
+  test_augmentation_topScope_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+A f() {}
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+A f() {}
+''');
+
+    // The library declares `A`, and can it be used in the augmentation.
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        functions
+          f @31
+            returnType: A
+  definingUnit
+    classes
+      class A @31
+        constructors
+          synthetic @-1
+    functions
+      f @38
+        returnType: A
+''');
+  }
+
   test_class_abstract() async {
     var library = await buildLibrary('abstract class C {}');
     checkElementText(library, r'''
@@ -3511,6 +4282,101 @@ library
 ''');
   }
 
+  test_class_field_duplicate_getter() async {
+    var library = await buildLibrary('''
+class C {
+  int foo = 0;
+  int get foo => 0;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+          synthetic foo @-1
+            type: int
+            id: field_1
+            getter: getter_1
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic set foo @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+          get foo @35
+            returnType: int
+            id: getter_1
+            variable: field_1
+''',
+        withPropertyLinking: true);
+  }
+
+  test_class_field_duplicate_setter() async {
+    var library = await buildLibrary('''
+class C {
+  int foo = 0;
+  set foo(int _) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          foo @16
+            type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+          synthetic foo @-1
+            type: int
+            id: field_1
+            setter: setter_1
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic set foo @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+          set foo @31
+            parameters
+              requiredPositional _ @39
+                type: int
+            returnType: void
+            id: setter_1
+            variable: field_1
+''',
+        withPropertyLinking: true);
+  }
+
   test_class_field_external() async {
     var library = await buildLibrary('''
 abstract class C {
@@ -3618,10 +4484,7 @@ library
                                   staticElement: dart:core::@class::double
                                   staticType: null
                                 type: double
-                              identifier: SimpleIdentifier
-                                token: a @78
-                                staticElement: a@78
-                                staticType: null
+                              name: a @78
                               declaredElement: a@78
                               declaredElementType: double
                             rightParenthesis: ) @79
@@ -3680,7 +4543,9 @@ class A {
   set foo(int newValue) {}
 }
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 library
   definingUnit
     classes
@@ -3688,6 +4553,9 @@ library
         fields
           final foo @22
             type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
         constructors
           @29
             parameters
@@ -3697,12 +4565,17 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
+            id: getter_0
+            variable: field_0
           set foo @48
             parameters
               requiredPositional newValue @56
                 type: int
             returnType: void
-''');
+            id: setter_0
+            variable: field_0
+''',
+        withPropertyLinking: true);
   }
 
   test_class_field_formal_param_inferred_type_implicit() async {
@@ -5314,6 +6187,28 @@ library
       class Z @56
         constructors
           synthetic @-1
+''');
+  }
+
+  test_class_notSimplyBounded_circularity_via_typeAlias_recordType() async {
+    var library = await buildLibrary('''
+class C<T extends A> {}
+typedef A = (C, int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class C @6
+        typeParameters
+          covariant T @8
+            bound: dynamic
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    typeAliases
+      notSimplyBounded A @32
+        aliasedType: (C<dynamic>, int)
 ''');
   }
 
@@ -14875,11 +15770,11 @@ library
           SymbolLiteral
             poundSign: # @382
             components
-              components: aaa
+              aaa
                 offset: 383
-              components: bbb
+              bbb
                 offset: 387
-              components: ccc
+              ccc
                 offset: 391
     accessors
       synthetic static get vNull @-1
@@ -16456,6 +17351,76 @@ library
                   base: dart:core::@class::Comparable::@method::compare
                   isLegacy: true
                 staticType: int* Function(Comparable<dynamic>*, Comparable<dynamic>*)*
+        returnType: void
+''');
+  }
+
+  test_defaultValue_recordLiteral_named() async {
+    var library = await buildLibrary('''
+void f({({int f1, bool f2}) x = (f1: 1, f2: true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @28
+            type: ({int f1, bool f2})
+            constantInitializer
+              RecordLiteral
+                leftParenthesis: ( @32
+                fields
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f1 @33
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @35
+                    expression: IntegerLiteral
+                      literal: 1 @37
+                      staticType: int
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: f2 @40
+                        staticElement: <null>
+                        staticType: null
+                      colon: : @42
+                    expression: BooleanLiteral
+                      literal: true @44
+                      staticType: bool
+                rightParenthesis: ) @48
+                staticType: ({int f1, bool f2})
+        returnType: void
+''');
+  }
+
+  test_defaultValue_recordLiteral_positional() async {
+    var library = await buildLibrary('''
+void f({(int, bool) x = (1, true)}) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          optionalNamed x @20
+            type: (int, bool)
+            constantInitializer
+              RecordLiteral
+                leftParenthesis: ( @24
+                fields
+                  IntegerLiteral
+                    literal: 1 @25
+                    staticType: int
+                  BooleanLiteral
+                    literal: true @28
+                    staticType: bool
+                rightParenthesis: ) @32
+                staticType: (int, bool)
         returnType: void
 ''');
   }
@@ -19984,7 +20949,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
 ''',
@@ -20006,7 +20971,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
 ''',
@@ -20033,12 +20998,13 @@ library
     package:test/foo.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
+    exported[(0, 0)] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
   exportNamespace
     A: package:test/foo.dart;A
 ''',
         withExportScope: true);
-    expect(library.exports[0].exportedLibrary!.source.shortName, 'foo.dart');
+    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
+        'foo.dart');
   }
 
   test_export_configurations_useFirst() async {
@@ -20062,12 +21028,13 @@ library
     package:test/foo_io.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
+    exported[(0, 0)] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
   exportNamespace
     A: package:test/foo_io.dart;A
 ''',
         withExportScope: true);
-    expect(library.exports[0].exportedLibrary!.source.shortName, 'foo_io.dart');
+    expect(library.libraryExports[0].exportedLibrary!.source.shortName,
+        'foo_io.dart');
   }
 
   test_export_configurations_useSecond() async {
@@ -20091,12 +21058,12 @@ library
     package:test/foo_html.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
+    exported[(0, 0)] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
   exportNamespace
     A: package:test/foo_html.dart;A
 ''',
         withExportScope: true);
-    ExportElement export = library.exports[0];
+    final export = library.libraryExports[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
   }
 
@@ -20122,7 +21089,7 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
     declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
   exportNamespace
     A: package:test/a.dart;A
@@ -20142,7 +21109,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
   exportNamespace
     f: package:test/a.dart;f
 ''',
@@ -20180,8 +21147,8 @@ library
         hide: A, C
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::B
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::D
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::B
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::D
   exportNamespace
     B: package:test/a.dart;B
     D: package:test/a.dart;D
@@ -20210,7 +21177,7 @@ library
         show: C
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart;C
 ''',
@@ -20250,9 +21217,9 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[0, 1] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[0] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
-    exported[1] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
+    exported[(0, 0), (0, 1)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(0, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
+    exported[(0, 1)] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
     declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
   exportNamespace
     A: package:test/a.dart;A
@@ -20274,7 +21241,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
   exportNamespace
     f=: package:test/a.dart;f=
 ''',
@@ -20301,8 +21268,8 @@ library
         show: A, C
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
   exportNamespace
     A: package:test/a.dart;A
     C: package:test/a.dart;C
@@ -20326,8 +21293,8 @@ library
         show: f
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::f
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::f
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
   exportNamespace
     f: package:test/a.dart;f?
     f=: package:test/a.dart;f=
@@ -20346,7 +21313,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
   exportNamespace
     F: package:test/a.dart;F
 ''',
@@ -20357,7 +21324,9 @@ library
     var library = await buildLibrary('''
 export 'foo.dart';
 ''');
-    expect(library.exports[0].uri, 'foo.dart');
+
+    final uri = library.libraryExports[0].uri as DirectiveUriWithLibrary;
+    expect(uri.relativeUriString, 'foo.dart');
   }
 
   test_export_variable() async {
@@ -20371,8 +21340,8 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@setter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::x
   exportNamespace
     x: package:test/a.dart;x?
     x=: package:test/a.dart;x=
@@ -20391,7 +21360,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart;x?
 ''',
@@ -20409,7 +21378,7 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[0] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart;x?
 ''',
@@ -20444,8 +21413,8 @@ library
           synthetic @-1
             superConstructor: package:test/foo.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo.dart');
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
+    expect(typeA.element2.source.shortName, 'foo.dart');
   }
 
   test_exportImport_configurations_useFirst() async {
@@ -20477,8 +21446,8 @@ library
           synthetic @-1
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_io.dart');
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
+    expect(typeA.element2.source.shortName, 'foo_io.dart');
   }
 
   test_exportImport_configurations_useSecond() async {
@@ -20510,8 +21479,8 @@ library
           synthetic @-1
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_html.dart');
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
+    expect(typeA.element2.source.shortName, 'foo_html.dart');
   }
 
   test_exports() async {
@@ -20528,6 +21497,357 @@ library
   definingUnit
   exportedReferences
   exportNamespace
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class B {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class B @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@class::A
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::B
+  exportNamespace
+    A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
+    B: package:test/test.dart;B
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B1 {}
+class B2 {}
+''');
+    newFile('$testPackageLibPath/c.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/d.dart', r'''
+library augment 'test.dart';
+export 'a.dart';
+''');
+    newFile('$testPackageLibPath/e.dart', r'''
+library augment 'test.dart';
+export 'b.dart';
+export 'c.dart';
+''');
+    var library = await buildLibrary(r'''
+import augment 'd.dart';
+import augment 'e.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/d.dart
+      exports
+        package:test/a.dart
+      definingUnit
+    package:test/e.dart
+      exports
+        package:test/b.dart
+        package:test/c.dart
+      definingUnit
+  definingUnit
+    classes
+      class X @56
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B1
+    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B2
+    exported[(2, 1)] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    B1: package:test/b.dart;B1
+    B2: package:test/b.dart;B2
+    C: package:test/c.dart;C
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_export_hide() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A1 {}
+class A2 {}
+class A3 {}
+class A4 {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+export 'a.dart' hide A2, A4;
+''');
+    var library = await buildLibrary(r'''
+import augment 'b.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/b.dart
+      exports
+        package:test/a.dart
+          combinators
+            hide: A2, A4
+      definingUnit
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A1
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A3
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A1: package:test/a.dart;A1
+    A3: package:test/a.dart;A3
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_export_show() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A1 {}
+class A2 {}
+class A3 {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+export 'a.dart' show A1, A3;
+''');
+    var library = await buildLibrary(r'''
+import augment 'b.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/b.dart
+      exports
+        package:test/a.dart
+          combinators
+            show: A1, A3
+      definingUnit
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A1
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A3
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A1: package:test/a.dart;A1
+    A3: package:test/a.dart;A3
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_nested_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+class B {}
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class C {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/a.dart
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class B @32
+                constructors
+                  synthetic @-1
+      definingUnit
+        classes
+          class A @60
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class C @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@class::A
+    declared root::package:test/test.dart::@augmentation::package:test/b.dart::@class::B
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::C
+  exportNamespace
+    A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
+    B: package:test/test.dart;package:test/a.dart;package:test/b.dart;package:test/b.dart;B
+    C: package:test/test.dart;C
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_nested_export() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    newFile('$testPackageLibPath/c.dart', r'''
+library augment 'test.dart';
+import augment 'd.dart';
+export 'a.dart';
+''');
+    newFile('$testPackageLibPath/d.dart', r'''
+library augment 'c.dart';
+export 'b.dart';
+''');
+    var library = await buildLibrary(r'''
+import augment 'c.dart';
+class X {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/c.dart
+      exports
+        package:test/a.dart
+      augmentationImports
+        package:test/d.dart
+          exports
+            package:test/b.dart
+          definingUnit
+      definingUnit
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
+  exportedReferences
+    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
+    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
+    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+  exportNamespace
+    A: package:test/a.dart;A
+    B: package:test/b.dart;B
+    X: package:test/test.dart;X
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+int a = 0;
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static a @33
+            type: int
+        accessors
+          synthetic static get a @-1
+            returnType: int
+          synthetic static set a @-1
+            parameters
+              requiredPositional _a @-1
+                type: int
+            returnType: void
+  definingUnit
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@getter::a
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@setter::a
+  exportNamespace
+    a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
+    a=: package:test/test.dart;package:test/a.dart;package:test/a.dart;a=
+''',
+        withExportScope: true);
+  }
+
+  test_exportScope_augmentation_variable_const() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+const a = 0;
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        topLevelVariables
+          static const a @35
+            type: int
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @39
+                staticType: int
+        accessors
+          synthetic static get a @-1
+            returnType: int
+  definingUnit
+  exportedReferences
+    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@getter::a
+  exportNamespace
+    a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
 ''',
         withExportScope: true);
   }
@@ -21033,14 +22353,14 @@ typedef void F<T>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement, same(F));
+    expect(T.enclosingElement3, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement, same(F));
+    expect(function.enclosingElement3, same(F));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement, same(function));
+    expect(a.enclosingElement3, same(function));
   }
 
   test_functionTypeAlias_type_element() async {
@@ -21663,10 +22983,7 @@ library
                           staticElement: dart:core::@class::String
                           staticType: null
                         type: String
-                      identifier: SimpleIdentifier
-                        token: a @52
-                        staticElement: a@52
-                        staticType: null
+                      name: a @52
                       declaredElement: a@52
                       declaredElementType: String
                     rightParenthesis: ) @53
@@ -21738,10 +23055,7 @@ library
                           staticElement: dart:core::@class::String
                           staticType: null
                         type: String
-                      identifier: SimpleIdentifier
-                        token: a @52
-                        staticElement: a@52
-                        staticType: null
+                      name: a @52
                       declaredElement: a@52
                       declaredElementType: String
                     rightParenthesis: ) @53
@@ -21824,10 +23138,7 @@ library
                                 staticType: null
                               question: ? @61
                               type: int?
-                            identifier: SimpleIdentifier
-                              token: a @63
-                              staticElement: a@63
-                              staticType: null
+                            name: a @63
                             declaredElement: a@63
                             declaredElementType: int?
                           declaredElement: a@63
@@ -21909,10 +23220,7 @@ library
                                 staticType: null
                               question: ? @61
                               type: int?
-                            identifier: SimpleIdentifier
-                              token: a @63
-                              staticElement: a@63
-                              staticType: null
+                            name: a @63
                             declaredElement: a@63
                             declaredElementType: int?
                           declaredElement: a@63
@@ -21994,10 +23302,7 @@ library
                                 staticElement: dart:core::@class::int
                                 staticType: null
                               type: int
-                            identifier: SimpleIdentifier
-                              token: a @71
-                              staticElement: a@71
-                              staticType: null
+                            name: a @71
                             declaredElement: a@71
                             declaredElementType: int
                           declaredElement: a@71
@@ -22076,10 +23381,7 @@ library
                               staticElement: dart:core::@class::int
                               staticType: null
                             type: int
-                          identifier: SimpleIdentifier
-                            token: a @61
-                            staticElement: a@61
-                            staticType: null
+                          name: a @61
                           declaredElement: a@61
                           declaredElementType: int
                         rightParenthesis: ) @62
@@ -22205,18 +23507,18 @@ typedef F<T> = void Function<U>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement, same(F));
+    expect(T.enclosingElement3, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement, same(F));
+    expect(function.enclosingElement3, same(F));
 
     var U = function.typeParameters[0];
     expect(U.name, 'U');
-    expect(U.enclosingElement, same(function));
+    expect(U.enclosingElement3, same(function));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement, same(function));
+    expect(a.enclosingElement3, same(function));
   }
 
   test_genericTypeAlias_recursive() async {
@@ -22557,8 +23859,8 @@ library
           synthetic @-1
             superConstructor: package:test/foo.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo.dart');
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
+    expect(typeA.element2.source.shortName, 'foo.dart');
   }
 
   test_import_configurations_useFirst() async {
@@ -22588,8 +23890,8 @@ library
           synthetic @-1
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_io.dart');
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
+    expect(typeA.element2.source.shortName, 'foo_io.dart');
   }
 
   test_import_configurations_useFirst_eqTrue() async {
@@ -22619,8 +23921,8 @@ library
           synthetic @-1
             superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_io.dart');
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
+    expect(typeA.element2.source.shortName, 'foo_io.dart');
   }
 
   test_import_configurations_useSecond() async {
@@ -22650,8 +23952,8 @@ library
           synthetic @-1
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_html.dart');
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
+    expect(typeA.element2.source.shortName, 'foo_html.dart');
   }
 
   test_import_configurations_useSecond_eqTrue() async {
@@ -22681,8 +23983,8 @@ library
           synthetic @-1
             superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
 ''');
-    var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
-    expect(typeA.element.source.shortName, 'foo_html.dart');
+    var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
+    expect(typeA.element2.source.shortName, 'foo_html.dart');
   }
 
   test_import_dartCore_explicit() async {
@@ -22788,7 +24090,7 @@ library
         staticType: null
       element: <null>
   imports
-    <unresolved>
+    relativeUri 'ht:'
       metadata
         Annotation
           atSign: @ @0
@@ -22832,8 +24134,16 @@ library
     addSource('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
-    expect(library.imports[0].prefix!.nameOffset, 19);
-    expect(library.imports[0].prefix!.nameLength, 1);
+    // TODO(scheglov) Remove when removing `imports`.
+    {
+      // ignore: deprecated_member_use_from_same_package
+      final prefixElement = library.imports[0].prefix!;
+      expect(prefixElement.nameOffset, 19);
+      expect(prefixElement.nameLength, 1);
+    }
+
+    final prefixElement = library.libraryImports[0].prefix!.element;
+    expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
 library
@@ -22860,9 +24170,10 @@ import 'test.dart' as p;
 class C {}
 class D extends p.C {} // Prevent "unused import" warning
 ''');
-    expect(library.imports, hasLength(2));
-    expect(library.imports[0].importedLibrary!.location, library.location);
-    expect(library.imports[1].importedLibrary!.isDartCore, true);
+    expect(library.libraryImports, hasLength(2));
+    expect(
+        library.libraryImports[0].importedLibrary!.location, library.location);
+    expect(library.libraryImports[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
 library
   imports
@@ -22920,7 +24231,7 @@ library
     var library = await buildLibrary('''
 import "dart:math" show e, pi;
 ''');
-    var import = library.imports[0];
+    var import = library.libraryImports[0];
     var combinator = import.combinators[0] as ShowElementCombinator;
     expect(combinator.offset, 19);
     expect(combinator.end, 29);
@@ -22930,7 +24241,9 @@ import "dart:math" show e, pi;
     var library = await buildLibrary('''
 import 'foo.dart';
 ''');
-    expect(library.imports[0].uri, 'foo.dart');
+
+    final uri = library.libraryImports[0].uri as DirectiveUriWithLibrary;
+    expect(uri.relativeUriString, 'foo.dart');
   }
 
   test_imports() async {
@@ -24109,7 +25422,7 @@ library
     // This test should verify that we correctly record inferred types,
     // when the type is defined in a part of an SDK library. So, test that
     // the type is actually in a part.
-    Element streamElement = p.type.element!;
+    final streamElement = (p.type as InterfaceType).element2;
     if (streamElement is ClassElement) {
       expect(streamElement.source, isNot(streamElement.library.source));
     }
@@ -25345,50 +26658,130 @@ library
 ''');
   }
 
-  test_invalidUris() async {
-    var library = await buildLibrary(r'''
-import ':[invaliduri]';
-import ':[invaliduri]:foo.dart';
-import 'a1.dart';
-import ':[invaliduri]';
-import ':[invaliduri]:foo.dart';
-
-export ':[invaliduri]';
-export ':[invaliduri]:foo.dart';
-export 'a2.dart';
-export ':[invaliduri]';
-export ':[invaliduri]:foo.dart';
-
-part ':[invaliduri]';
-part 'a3.dart';
-part ':[invaliduri]';
-''');
-    checkElementText(library, r'''
-library
-  imports
-    <unresolved>
-    <unresolved>
-    package:test/a1.dart
-    <unresolved>
-    <unresolved>
-  exports
-    <unresolved>
-    <unresolved>
-    package:test/a2.dart
-    <unresolved>
-    <unresolved>
-  definingUnit
-  parts
-    relativeUriString ':[invaliduri]'
-    source 'package:test/a3.dart'
-    relativeUriString ':[invaliduri]'
-''');
-  }
-
   test_library() async {
     var library = await buildLibrary('');
     checkElementText(library, r'''
 library
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+class B {}
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @35
+            constructors
+              synthetic @-1
+  definingUnit
+    classes
+      class B @31
+        constructors
+          synthetic @-1
+''');
+
+    final import_0 = library.augmentationImports[0];
+    final augmentation = import_0.importedAugmentation!;
+    expect(augmentation.enclosingElement3, same(library));
+  }
+
+  test_library_augmentationImports_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+import augment '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    noRelativeUriString
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+import augment '';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/test.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_noSource() async {
+    final library = await buildLibrary(r'''
+import augment 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    relativeUri 'foo:bar'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_notAugmentation_library() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library my.lib;
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_notAugmentation_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUri_notExists() async {
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_augmentationImports_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+import augment ':';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    relativeUriString ':'
   definingUnit
 ''');
   }
@@ -25420,6 +26813,211 @@ library
   name: test
   nameOffset: 30
   documentationComment: /**\n * aaa\n * bbb\n */
+  definingUnit
+''');
+  }
+
+  test_library_exports_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+export '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    noRelativeUriString
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+export '';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    package:test/test.dart
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_noSource() async {
+    final library = await buildLibrary(r'''
+export 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    relativeUri 'foo:bar'
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_notExists() async {
+    final library = await buildLibrary(r'''
+export 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    package:test/a.dart
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_notLibrary_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+    final library = await buildLibrary(r'''
+export 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUri_notLibrary_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+    final library = await buildLibrary(r'''
+export 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_exports_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+export ':';
+''');
+    checkElementText(library, r'''
+library
+  exports
+    relativeUriString ':'
+  definingUnit
+''');
+  }
+
+  test_library_imports_noRelativeUriStr() async {
+    final library = await buildLibrary(r'''
+import '${'foo'}.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    noRelativeUriString
+  definingUnit
+''');
+  }
+
+  test_library_imports_prefix_importedLibraries() async {
+    final library = await buildLibrary(r'''
+import 'dart:async' as p1;
+import 'dart:collection' as p2;
+import 'dart:math' as p1;
+''');
+    final p1 = library.prefixes.singleWhere((prefix) => prefix.name == 'p1');
+    final import_async = library.libraryImports[0];
+    final import_math = library.libraryImports[2];
+    expect(p1.imports2, unorderedEquals([import_async, import_math]));
+  }
+
+  test_library_imports_syntheticDartCore() async {
+    final library = await buildLibrary('');
+    checkElementText(
+        library,
+        r'''
+library
+  imports
+    dart:core synthetic
+  definingUnit
+''',
+        withSyntheticDartCoreImport: true);
+  }
+
+  test_library_imports_withRelativeUri_emptyUriSelf() async {
+    final library = await buildLibrary(r'''
+import '';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    package:test/test.dart
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_noSource() async {
+    final library = await buildLibrary(r'''
+import 'foo:bar';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    relativeUri 'foo:bar'
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_notExists() async {
+    final library = await buildLibrary(r'''
+import 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_notLibrary_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+    final library = await buildLibrary(r'''
+import 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUri_notLibrary_part() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of other.lib;
+''');
+    final library = await buildLibrary(r'''
+import 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    source 'package:test/a.dart'
+  definingUnit
+''');
+  }
+
+  test_library_imports_withRelativeUriString() async {
+    final library = await buildLibrary(r'''
+import ':';
+''');
+    checkElementText(library, r'''
+library
+  imports
+    relativeUriString ':'
   definingUnit
 ''');
   }
@@ -25526,7 +27124,6 @@ library
   }
 
   test_library_parts_withRelativeUri_noSource() async {
-    newFile('$testPackageLibPath/a.dart', '');
     final library = await buildLibrary(r'''
 part 'foo:bar';
 ''');
@@ -25585,6 +27182,16 @@ library
   parts
     relativeUriString ':'
 ''');
+  }
+
+  test_library_prefixes() async {
+    final library = await buildLibrary(r'''
+import 'dart:async' as p1;
+import 'dart:collection' as p2;
+import 'dart:math' as p1;
+''');
+    final prefixNames = library.prefixes.map((e) => e.name).toList();
+    expect(prefixNames, unorderedEquals(['p1', 'p2']));
   }
 
   test_localFunctions() async {
@@ -25868,6 +27475,174 @@ library
 library
   exports
     package:test/a.dart
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+@deprecated
+class A {}
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @47
+            metadata
+              Annotation
+                atSign: @ @29
+                name: SimpleIdentifier
+                  token: deprecated @30
+                  staticElement: dart:core::@getter::deprecated
+                  staticType: null
+                element: dart:core::@getter::deprecated
+            constructors
+              synthetic @-1
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_directive() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@deprecated
+library augment 'test.dart';
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_exportLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+@deprecated
+export 'dart:math';
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      exports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: deprecated @30
+                staticElement: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_importAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'b.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+@deprecated
+import augment 'a.dart';
+''');
+    var library = await buildLibrary('''
+import augment 'b.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/b.dart
+      augmentationImports
+        package:test/a.dart
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: deprecated @30
+                staticElement: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          definingUnit
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_importLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+@deprecated
+import 'dart:math';
+''');
+    var library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      imports
+        dart:math
+          metadata
+            Annotation
+              atSign: @ @29
+              name: SimpleIdentifier
+                token: deprecated @30
+                staticElement: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  test_metadata_augmentation_libraryAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@deprecated
+library augment 'test.dart';
+''');
+    final library = await buildLibrary('''
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      definingUnit
   definingUnit
 ''');
   }
@@ -28430,6 +30205,53 @@ library
 ''');
   }
 
+  test_metadata_library_importAugmentation_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+''');
+    var library = await buildLibrary('''
+@deprecated
+import augment 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+      definingUnit
+  definingUnit
+''');
+  }
+
+  /// Even though the target is not an augmentation, metadata is available.
+  test_metadata_library_importAugmentation_notAugmentation_library() async {
+    var library = await buildLibrary('''
+@deprecated
+import augment 'dart:math';
+''');
+    checkElementText(library, r'''
+library
+  augmentationImports
+    source 'dart:math'
+      metadata
+        Annotation
+          atSign: @ @0
+          name: SimpleIdentifier
+            token: deprecated @1
+            staticElement: dart:core::@getter::deprecated
+            staticType: null
+          element: dart:core::@getter::deprecated
+  definingUnit
+''');
+  }
+
   test_metadata_libraryDirective() async {
     var library = await buildLibrary('@a library L; const a = null;');
     checkElementText(library, r'''
@@ -30737,7 +32559,7 @@ mixin M {}
 
     // We intentionally ask `mixins` directly, to check that we can ask them
     // separately, without asking classes.
-    var mixins = library.definingCompilationUnit.mixins;
+    var mixins = library.definingCompilationUnit.mixins2;
     expect(mixins, hasLength(1));
     expect(mixins[0].name, 'M');
   }
@@ -33019,6 +34841,295 @@ library
     functions
       f @5
         returnType: void
+''');
+  }
+
+  test_recordType_class_field() async {
+    var library = await buildLibrary('''
+class A {
+  final (int, String) x;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final x @32
+            type: (int, String)
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @-1
+            returnType: (int, String)
+''');
+  }
+
+  test_recordType_class_field_fromLiteral() async {
+    var library = await buildLibrary('''
+class A {
+  final x = (0, true);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          final x @18
+            type: (int, bool)
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get x @-1
+            returnType: (int, bool)
+''');
+  }
+
+  test_recordType_class_method_formalParameter() async {
+    var library = await buildLibrary('''
+class A {
+  void foo((int, String) a) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @17
+            parameters
+              requiredPositional a @35
+                type: (int, String)
+            returnType: void
+''');
+  }
+
+  test_recordType_class_method_returnType() async {
+    var library = await buildLibrary('''
+class A {
+  (int, String) foo() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @26
+            returnType: (int, String)
+''');
+  }
+
+  test_recordType_class_typeParameter_bound() async {
+    var library = await buildLibrary('''
+class A<T extends (int, String)> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            bound: (int, String)
+            defaultType: (int, String)
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_recordType_extension_onType() async {
+    var library = await buildLibrary('''
+extension IntStringExtension on (int, String) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensions
+      IntStringExtension @10
+        extendedType: (int, String)
+''');
+  }
+
+  test_recordType_functionType_formalParameter() async {
+    var library = await buildLibrary('''
+void f(void Function((int, String) a) b) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional b @38
+            type: void Function((int, String))
+        returnType: void
+''');
+  }
+
+  test_recordType_functionType_returnType() async {
+    var library = await buildLibrary('''
+void f((int, String) Function() a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional a @32
+            type: (int, String) Function()
+        returnType: void
+''');
+  }
+
+  test_recordType_topFunction_formalParameter() async {
+    var library = await buildLibrary('''
+void f((int, String) a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional a @21
+            type: (int, String)
+        returnType: void
+''');
+  }
+
+  test_recordType_topFunction_returnType_empty() async {
+    var library = await buildLibrary('''
+() f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @3
+        returnType: ()
+''');
+  }
+
+  test_recordType_topFunction_returnType_generic() async {
+    var library = await buildLibrary('''
+(int, T) f<T>() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @9
+        typeParameters
+          covariant T @11
+        returnType: (int, T)
+''');
+  }
+
+  test_recordType_topFunction_returnType_mixed() async {
+    var library = await buildLibrary('''
+(int, String, {bool c}) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @24
+        returnType: (int, String, {bool c})
+''');
+  }
+
+  test_recordType_topFunction_returnType_named() async {
+    var library = await buildLibrary('''
+({int a, String b}) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @20
+        returnType: ({int a, String b})
+''');
+  }
+
+  test_recordType_topFunction_returnType_nested() async {
+    var library = await buildLibrary('''
+((int, String), (bool, double)) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @32
+        returnType: ((int, String), (bool, double))
+''');
+  }
+
+  test_recordType_topFunction_returnType_nullable() async {
+    var library = await buildLibrary('''
+(int, String)? f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @15
+        returnType: (int, String)?
+''');
+  }
+
+  test_recordType_topFunction_returnType_positional() async {
+    var library = await buildLibrary('''
+(int, String) f() {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @14
+        returnType: (int, String)
+''');
+  }
+
+  test_recordType_topVariable() async {
+    var library = await buildLibrary('''
+final (int, String) x;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final x @20
+        type: (int, String)
+    accessors
+      synthetic static get x @-1
+        returnType: (int, String)
+''');
+  }
+
+  test_recordType_topVariable_fromLiteral() async {
+    var library = await buildLibrary('''
+final x = (0, true);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static final x @6
+        type: (int, bool)
+    accessors
+      synthetic static get x @-1
+        returnType: (int, bool)
 ''');
   }
 
@@ -35742,6 +37853,92 @@ library
 ''');
   }
 
+  test_typeAlias_typeParameters_variance_record_contravariant() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (void Function(T), int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: (void Function(T), int)
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_contravariant2() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (void Function(T), int);
+typedef B<T> = List<A<T>>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        aliasedType: (void Function(T), int)
+      B @48
+        typeParameters
+          contravariant T @50
+            defaultType: dynamic
+        aliasedType: List<(void Function(T), int)>
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_covariant() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (T, int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          covariant T @10
+            defaultType: dynamic
+        aliasedType: (T, int)
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_invariant() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (T Function(T), int);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          invariant T @10
+            defaultType: dynamic
+        aliasedType: (T Function(T), int)
+''');
+  }
+
+  test_typeAlias_typeParameters_variance_record_unrelated() async {
+    var library = await buildLibrary(r'''
+typedef A<T> = (int, String);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A @8
+        typeParameters
+          unrelated T @10
+            defaultType: dynamic
+        aliasedType: (int, String)
+''');
+  }
+
   test_typedef_function_generic() async {
     var library = await buildLibrary(
         'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
@@ -36572,6 +38769,46 @@ void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
 ''');
   }
 
+  test_typedef_nonFunction_aliasElement_recordType() async {
+    var library = await buildLibrary(r'''
+typedef A1 = (int, String);
+typedef A2<T, U> = (T, U);
+void f1(A1 a) {}
+void f2(A2<int, String> a) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      A1 @8
+        aliasedType: (int, String)
+      A2 @36
+        typeParameters
+          covariant T @39
+            defaultType: dynamic
+          covariant U @42
+            defaultType: dynamic
+        aliasedType: (T, U)
+    functions
+      f1 @60
+        parameters
+          requiredPositional a @66
+            type: (int, String)
+              alias: self::@typeAlias::A1
+        returnType: void
+      f2 @77
+        parameters
+          requiredPositional a @96
+            type: (int, String)
+              alias: self::@typeAlias::A2
+                typeArguments
+                  int
+                  String
+        returnType: void
+''');
+  }
+
   test_typedef_nonFunction_aliasElement_typeParameterType() async {
     var library = await buildLibrary(r'''
 typedef A<T> = T;
@@ -37394,6 +39631,22 @@ library
 ''');
   }
 
+  test_typedef_selfReference_recordType() async {
+    var library = await buildLibrary(r'''
+typedef F = (F, int) Function();
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    typeAliases
+      notSimplyBounded F @8
+        aliasedType: (dynamic, int) Function()
+        aliasedElement: GenericFunctionTypeElement
+          returnType: (dynamic, int)
+''');
+  }
+
   test_typedefs() async {
     var library = await buildLibrary('f() {} g() {}');
     checkElementText(library, r'''
@@ -37451,26 +39704,119 @@ library
 ''');
   }
 
+  test_unit_variable_duplicate_getter() async {
+    var library = await buildLibrary('''
+int foo = 0;
+int get foo => 0;
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @4
+        type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
+      synthetic static foo @-1
+        type: int
+        id: variable_1
+        getter: getter_1
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+        id: getter_0
+        variable: variable_0
+      synthetic static set foo @-1
+        parameters
+          requiredPositional _foo @-1
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+      static get foo @21
+        returnType: int
+        id: getter_1
+        variable: variable_1
+''',
+        withPropertyLinking: true);
+  }
+
+  test_unit_variable_duplicate_setter() async {
+    var library = await buildLibrary('''
+int foo = 0;
+set foo(int _) {}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    topLevelVariables
+      static foo @4
+        type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
+      synthetic static foo @-1
+        type: int
+        id: variable_1
+        setter: setter_1
+    accessors
+      synthetic static get foo @-1
+        returnType: int
+        id: getter_0
+        variable: variable_0
+      synthetic static set foo @-1
+        parameters
+          requiredPositional _foo @-1
+            type: int
+        returnType: void
+        id: setter_0
+        variable: variable_0
+      static set foo @17
+        parameters
+          requiredPositional _ @25
+            type: int
+        returnType: void
+        id: setter_1
+        variable: variable_1
+''',
+        withPropertyLinking: true);
+  }
+
   test_unit_variable_final_withSetter() async {
     var library = await buildLibrary(r'''
 final int foo = 0;
 set foo(int newValue) {}
 ''');
-    checkElementText(library, r'''
+    checkElementText(
+        library,
+        r'''
 library
   definingUnit
     topLevelVariables
       static final foo @10
         type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
     accessors
       synthetic static get foo @-1
         returnType: int
+        id: getter_0
+        variable: variable_0
       static set foo @23
         parameters
           requiredPositional newValue @31
             type: int
         returnType: void
-''');
+        id: setter_0
+        variable: variable_0
+''',
+        withPropertyLinking: true);
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {
@@ -37947,7 +40293,7 @@ library
 
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';", allowErrors: true);
-    var importedLibrary = library.imports[0].importedLibrary!;
+    var importedLibrary = library.libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
     expect(importedLibrary.exportNamespace, isNotNull);
@@ -38295,6 +40641,34 @@ library
     accessors
       synthetic static get v @-1
         returnType: int
+''');
+  }
+
+  test_variable_initializer_recordType() async {
+    var library = await buildLibrary('''
+const x = (1, true);
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const x @6
+        type: (int, bool)
+        constantInitializer
+          RecordLiteral
+            leftParenthesis: ( @10
+            fields
+              IntegerLiteral
+                literal: 1 @11
+                staticType: int
+              BooleanLiteral
+                literal: true @14
+                staticType: bool
+            rightParenthesis: ) @18
+            staticType: (int, bool)
+    accessors
+      synthetic static get x @-1
+        returnType: (int, bool)
 ''');
   }
 

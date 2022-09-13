@@ -39,12 +39,14 @@ class Object {
 
   /// Concrete subclasses of [Object] will have overrides of [_typeArguments]
   /// which return their type arguments.
-  List<Type> get _typeArguments => const [];
+  List<_Type> get _typeArguments => const [];
 
   /// We use [_runtimeType] for internal type testing, because objects can
   /// override [runtimeType].
   @patch
   external Type get runtimeType;
+
+  @pragma("wasm:entry-point")
   _Type get _runtimeType => _getInterfaceTypeRuntimeType(this, _typeArguments);
 
   @patch
@@ -53,6 +55,7 @@ class Object {
   static String _toString(obj) => "Instance of '${obj.runtimeType}'";
 
   @patch
+  @pragma("wasm:entry-point")
   dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError.withInvocation(this, invocation);
   }

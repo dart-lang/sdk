@@ -521,6 +521,21 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       /*allow_return=*/false, perform_runtime_call);
 }
 
+void StubCodeCompiler::GenerateWriteError(Assembler* assembler,
+                                          bool with_fpu_regs) {
+  auto perform_runtime_call = [&]() {
+    __ CallRuntime(kWriteErrorRuntimeEntry, /*argument_count=*/0);
+    __ Breakpoint();
+  };
+
+  GenerateSharedStubGeneric(
+      assembler, /*save_fpu_registers=*/with_fpu_regs,
+      with_fpu_regs
+          ? target::Thread::write_error_shared_with_fpu_regs_stub_offset()
+          : target::Thread::write_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false, perform_runtime_call);
+}
+
 // Input parameters:
 //   LR : return address.
 //   SP : address of return value.
@@ -1927,9 +1942,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
     if (is_cls_parameterized) {
-      // TODO(41974): Assign all allocation stubs to the root loading unit?
-      if (false &&
-          !IsSameObject(NullObject(),
+      if (!IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
@@ -1941,9 +1954,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
                            allocate_object_parameterized_entry_point_offset()));
       }
     } else {
-      // TODO(41974): Assign all allocation stubs to the root loading unit?
-      if (false &&
-          !IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
+      if (!IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
             __ CodeSize(), allocate_object, /*is_tail_call=*/true));

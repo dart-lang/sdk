@@ -107,8 +107,16 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
   var source = MockSource(path, package_path.toUri(path));
   var error = MockAnalysisError(source, code, 20, 'MSG');
 
-  return ErrorsResultImpl(_MockAnalysisSession(), source.fullName,
-      Uri.file('/'), lineInfo, false, [error]);
+  return ErrorsResultImpl(
+    session: _MockAnalysisSession(),
+    path: source.fullName,
+    uri: Uri.file('/'),
+    lineInfo: lineInfo,
+    isAugmentation: false,
+    isLibrary: true,
+    isPart: false,
+    errors: [error],
+  );
 }
 
 class _MockAnalysisSession implements AnalysisSession {

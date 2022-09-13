@@ -288,7 +288,7 @@ class FileResolver {
       if (element is LocalVariableElement ||
           (element is ParameterElement && !element.isNamed)) {
         await collectReferences2(element.source!.fullName, performance!);
-      } else if (element is ImportElement) {
+      } else if (element is LibraryImportElement) {
         return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
@@ -316,8 +316,7 @@ class FileResolver {
         performance: performance!,
       );
       var file = fileContext.file;
-      // TODO(scheglov) Casts are unsafe.
-      final kind = file.kind as LibraryFileStateKind;
+      final kind = file.kind.library ?? file.kind.asLibrary;
 
       final errorsSignatureBuilder = ApiSignature();
       errorsSignatureBuilder.addString(kind.libraryCycle.apiSignature);
@@ -347,12 +346,14 @@ class FileResolver {
       }
 
       return ErrorsResultImpl(
-        contextObjects!.analysisSession,
-        path,
-        file.uri,
-        file.lineInfo,
-        false, // isPart
-        errors,
+        session: contextObjects!.analysisSession,
+        path: path,
+        uri: file.uri,
+        lineInfo: file.lineInfo,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
+        errors: errors,
       );
     });
   }
@@ -413,7 +414,7 @@ class FileResolver {
     var file = fileContext.file;
 
     final kind = file.kind;
-    if (kind is! LibraryFileStateKind) {
+    if (kind is! LibraryFileKind) {
       throw ArgumentError('$uri is not a library.');
     }
 
@@ -439,7 +440,7 @@ class FileResolver {
     );
 
     // TODO(scheglov) Casts are unsafe.
-    final kind = file.kind as LibraryFileStateKind;
+    final kind = file.kind as LibraryFileKind;
     return kind.libraryCycle.apiSignature;
   }
 
@@ -659,21 +660,26 @@ class FileResolver {
       var resolvedUnits = results.map((fileResult) {
         var file = fileResult.file;
         return ResolvedUnitResultImpl(
-          contextObjects!.analysisSession,
-          file.path,
-          file.uri,
-          file.exists,
-          file.content,
-          file.lineInfo,
-          file.isPart,
-          fileResult.unit,
-          fileResult.errors,
+          session: contextObjects!.analysisSession,
+          path: file.path,
+          uri: file.uri,
+          exists: file.exists,
+          content: file.content,
+          lineInfo: file.lineInfo,
+          isAugmentation: file.kind is AugmentationFileKind,
+          isLibrary: file.kind is LibraryFileKind,
+          isPart: file.kind is PartFileKind,
+          unit: fileResult.unit,
+          errors: fileResult.errors,
         );
       }).toList();
 
       var libraryUnit = resolvedUnits.first;
-      var result = ResolvedLibraryResultImpl(contextObjects!.analysisSession,
-          libraryUnit.libraryElement, resolvedUnits);
+      var result = ResolvedLibraryResultImpl(
+        session: contextObjects!.analysisSession,
+        element: libraryUnit.libraryElement,
+        units: resolvedUnits,
+      );
 
       cachedResults[path] = result;
 
@@ -842,7 +848,7 @@ class FileResolver {
   }
 
   Future<List<CiderSearchMatch>> _searchReferences_Import(
-      ImportElement element) async {
+      LibraryImportElement element) async {
     var results = <CiderSearchMatch>[];
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {

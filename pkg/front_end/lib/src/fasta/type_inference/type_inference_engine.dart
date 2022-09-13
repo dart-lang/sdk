@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -24,7 +26,7 @@ import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type
 /// parameters in a non-covariant fashion.
-class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
+class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   int _variance;
 
   final List<TypeParameter> _typeParametersToSearchFor;
@@ -34,7 +36,28 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
       : _variance = initialVariance;
 
   @override
-  bool defaultDartType(DartType node) => false;
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError(
+        "IncludesTypeParametersNonCovariantly.defaultDartType");
+  }
+
+  @override
+  bool visitDynamicType(DynamicType node) => false;
+
+  @override
+  bool visitExtensionType(ExtensionType node) => false;
+
+  @override
+  bool visitNeverType(NeverType node) => false;
+
+  @override
+  bool visitInvalidType(InvalidType node) => false;
+
+  @override
+  bool visitNullType(NullType node) => false;
+
+  @override
+  bool visitVoidType(VoidType node) => false;
 
   @override
   bool visitFunctionType(FunctionType node) {
@@ -52,6 +75,17 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
       if (parameter.type.accept(this)) return true;
     }
     _variance = oldVariance;
+    return false;
+  }
+
+  @override
+  bool visitRecordType(RecordType node) {
+    for (DartType parameter in node.positional) {
+      if (parameter.accept(this)) return true;
+    }
+    for (NamedType parameter in node.named) {
+      if (parameter.type.accept(this)) return true;
+    }
     return false;
   }
 
@@ -81,6 +115,11 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
   bool visitTypeParameterType(TypeParameterType node) {
     return !Variance.greaterThanOrEqual(_variance, node.parameter.variance) &&
         _typeParametersToSearchFor.contains(node.parameter);
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node) {
+    return node.left.accept(this);
   }
 }
 
@@ -260,7 +299,9 @@ class FlowAnalysisResult {
 }
 
 /// CFE-specific implementation of [TypeOperations].
-class OperationsCfe extends Operations<VariableDeclaration, DartType> {
+class OperationsCfe
+    with TypeOperations<DartType>
+    implements Operations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
   OperationsCfe(this.typeEnvironment);
@@ -317,7 +358,9 @@ class OperationsCfe extends Operations<VariableDeclaration, DartType> {
   }
 
   @override
-  bool isTypeParameterType(DartType type) => type is TypeParameterType;
+  bool isTypeParameterType(DartType type) {
+    return type is TypeParameterType || type is IntersectionType;
+  }
 
   @override
   DartType tryPromoteToType(DartType to, DartType from) {
@@ -325,9 +368,13 @@ class OperationsCfe extends Operations<VariableDeclaration, DartType> {
       return to;
     }
     if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.promotedBound ?? from.bound)) {
-        return new TypeParameterType.intersection(
-            from.parameter, from.nullability, to);
+      if (isSubtypeOf(to, from.bound)) {
+        return new IntersectionType(from, to);
+      }
+    }
+    if (from is IntersectionType) {
+      if (isSubtypeOf(to, from.right)) {
+        return new IntersectionType(from.left, to);
       }
     }
     return from;

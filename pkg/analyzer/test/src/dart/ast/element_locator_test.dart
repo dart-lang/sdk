@@ -52,13 +52,24 @@ void main() {
     expect(element, same(unitElement));
   }
 
-  test_locate_ConstructorDeclaration() async {
+  test_locate_ConstructorDeclaration_named() async {
     await resolveTestCode(r'''
 class A {
   A.foo();
 }
 ''');
-    var node = findNode.constructor('foo();');
+    var node = findNode.constructor('A.foo()');
+    var element = ElementLocator.locate(node);
+    expect(element, isConstructorElement);
+  }
+
+  test_locate_ConstructorDeclaration_unnamed() async {
+    await resolveTestCode(r'''
+class A {
+  A();
+}
+''');
+    var node = findNode.constructor('A()');
     var element = ElementLocator.locate(node);
     expect(element, isConstructorElement);
   }
@@ -137,7 +148,7 @@ class A {
   A();
 }
 ''');
-    var node = findNode.constructor('A();');
+    var node = findNode.simple('A()');
     var element = ElementLocator.locate(node);
     expect(element, isConstructorElement);
   }

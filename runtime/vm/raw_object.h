@@ -163,10 +163,10 @@ class UntaggedObject {
     kNewBit = 3,                  // Generational barrier target.
     kOldBit = 4,                  // Incremental barrier source.
     kOldAndNotRememberedBit = 5,  // Generational barrier source.
-    kReservedTagPos = 6,
-    kReservedTagSize = 2,
+    kImmutableBit = 6,
+    kReservedBit = 7,
 
-    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
+    kSizeTagPos = kReservedBit + 1,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
@@ -252,8 +252,9 @@ class UntaggedObject {
   class OldAndNotRememberedBit
       : public BitField<uword, bool, kOldAndNotRememberedBit, 1> {};
 
-  class ReservedBits
-      : public BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
+  class ImmutableBit : public BitField<uword, bool, kImmutableBit, 1> {};
+
+  class ReservedBit : public BitField<uword, intptr_t, kReservedBit, 1> {};
 
   // Assumes this is a heap object.
   bool IsNewObject() const {
@@ -309,6 +310,10 @@ class UntaggedObject {
   bool IsCanonical() const { return tags_.Read<CanonicalBit>(); }
   void SetCanonical() { tags_.UpdateBool<CanonicalBit>(true); }
   void ClearCanonical() { tags_.UpdateBool<CanonicalBit>(false); }
+
+  bool IsImmutable() const { return tags_.Read<ImmutableBit>(); }
+  void SetImmutable() { tags_.UpdateBool<ImmutableBit>(true); }
+  void ClearImmutable() { tags_.UpdateBool<ImmutableBit>(false); }
 
   bool InVMIsolateHeap() const;
 
@@ -1059,6 +1064,7 @@ class UntaggedClass : public UntaggedObject {
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
+  NOT_IN_PRECOMPILED(classid_t implementor_cid_);
 
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
@@ -1099,6 +1105,7 @@ class UntaggedClass : public UntaggedObject {
   friend class InstanceSerializationCluster;
   friend class TypeSerializationCluster;
   friend class CidRewriteVisitor;
+  friend class FinalizeVMIsolateVisitor;
   friend class Api;
 };
 
@@ -1424,9 +1431,9 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
   // calls. The callback id is also used to for verifying that callbacks are
   // called on the correct isolate. See DLRT_VerifyCallbackIsolate for details.
   //
-  // Will be 0 for non-callbacks. Check 'callback_target_' to determine if this
-  // is a callback or not.
-  uint32_t callback_id_;
+  // Callback id is -1 for non-callbacks or when id is not allocated yet.
+  // Check 'callback_target_' to determine if this is a callback or not.
+  int32_t callback_id_;
 
   // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
   bool is_leaf_;
@@ -1499,7 +1506,7 @@ class UntaggedField : public UntaggedObject {
   friend class CidRewriteVisitor;
   friend class GuardFieldClassInstr;     // For sizeof(guarded_cid_/...)
   friend class LoadFieldInstr;           // For sizeof(guarded_cid_/...)
-  friend class StoreInstanceFieldInstr;  // For sizeof(guarded_cid_/...)
+  friend class StoreFieldInstr;          // For sizeof(guarded_cid_/...)
 };
 
 class alignas(8) UntaggedScript : public UntaggedObject {

@@ -222,6 +222,37 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginRecordType(Token leftBracket) {
+    listener?.beginRecordType(leftBracket);
+  }
+
+  @override
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    listener?.endRecordType(leftBracket, questionMark, count, hasNamedFields);
+  }
+
+  @override
+  void beginRecordTypeEntry() {
+    listener?.beginRecordTypeEntry();
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    listener?.endRecordTypeEntry();
+  }
+
+  @override
+  void beginRecordTypeNamedFields(Token leftBracket) {
+    listener?.beginRecordTypeNamedFields(leftBracket);
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    listener?.endRecordTypeNamedFields(count, leftBracket);
+  }
+
+  @override
   void beginFunctionType(Token beginToken) {
     listener?.beginFunctionType(beginToken);
   }
@@ -1570,6 +1601,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNamedRecordField(Token colon) {
+    listener?.handleNamedRecordField(colon);
+  }
+
+  @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     listener?.handleNamedMixinApplicationWithClause(withKeyword);
   }
@@ -1685,8 +1721,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
-    listener?.handleParenthesizedExpression(token);
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {
+    listener?.beginParenthesizedExpressionOrRecordLiteral(token);
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count) {
+    listener?.endRecordLiteral(token, count);
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
+    listener?.endParenthesizedExpression(token);
   }
 
   @override

@@ -20,14 +20,14 @@
 # - 'notes', whose value is text, typically describing what fix should be
 #   created or why we think a fix for the diagnostic is not appropriate.
 # - 'issue', whose value is a list of the URLs of GitHub issues for the fixes
-#   that should be added. Ideally every issue marked as 'needFix' would have an
+#   that should be added. Ideally every issue marked as 'needsFix' would have an
 #   issue created for it.
 #
 # Stats:
-# - 760 "needsEvaluation"
-# -  28 "needsFix"
-# - 273 "hasFix"
-# -  41 "noFix"
+# - 739 "needsEvaluation"
+# -  45 "needsFix"
+# - 284 "hasFix"
+# -  47 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -89,15 +89,9 @@ AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES:
 AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
   status: needsEvaluation
 CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER:
-  status: needsFix
-  notes: |-
-    1. Remove the initializer.
-    2. Remove the `abstract` keyword.
+  status: hasFix
 CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER:
-  status: needsFix
-  notes: |-
-    1. Remove the initializer.
-    2. Remove the `abstract` keyword.
+  status: hasFix
 CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE:
   status: noFix
   notes: |-
@@ -131,9 +125,7 @@ CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER:
 CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE:
   status: hasFix
 CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the assert.
+  status: hasFix
 CompileTimeErrorCode.ASSIGNMENT_TO_CONST:
   status: noFix
   notes: |-
@@ -346,7 +338,7 @@ CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR:
 CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION:
   status: needsEvaluation
 CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
@@ -354,11 +346,15 @@ CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
 CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
+CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_DEFINITION:
+  status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_FIELD_NAME:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER:
   status: needsEvaluation
@@ -540,6 +536,8 @@ CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
   status: needsEvaluation
+CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION:
+  status: needsEvaluation
 CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES:
   status: needsEvaluation
 CompileTimeErrorCode.INCONSISTENT_INHERITANCE:
@@ -601,6 +599,12 @@ CompileTimeErrorCode.INVALID_CONSTANT:
 CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE:
+  status: needsEvaluation
+CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE:
   status: needsEvaluation
@@ -932,15 +936,27 @@ CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR:
     user really needs to think about what constructor they were trying to invoke
     and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_EXTENSION:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what function they were trying to invoke
+    and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what member they were trying to invoke
+    and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    Object is only declared in SDK code; those developers do OK without fixes.
 CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include moving super invocation to be last.
 CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY:
   status: hasFix
 CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE:
@@ -959,11 +975,17 @@ CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS:
 CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS:
   status: needsEvaluation
 CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include (1) removing the 'static' keyword, (2) changing the type
+    variable to its bound, (3) looking for similarly spelled types.
 CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND:
   status: needsEvaluation
 CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include: (1) changing ` is ` to ` == ` and (2) changing the
+    right operand to the static type of the left.
 CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME:
   status: hasFix
 CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE:
@@ -989,7 +1011,10 @@ CompileTimeErrorCode.UNDEFINED_CLASS:
 CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include (1) adding a declaration for such constructor, (2) look
+    for closely named constructors.
 CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
   status: hasFix
 CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT:
@@ -1070,11 +1095,17 @@ CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH:
 CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
   status: needsEvaluation
 CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include (1) removing all past the first parameter, and (2)
+    removing all but a singular used parameter, if only one is used.
 CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include (1) removing all past the first parameter, and (2)
+    removing all but a singular used parameter, if only one is used.
 CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
-  status: needsEvaluation
+  status: needsFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
@@ -1101,9 +1132,17 @@ CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
 CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION:
   status: needsEvaluation
 CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include: (1) change `yield` to `return` (maybe only if it
+    matches the return type) and (2) change function signature from implicit
+    sync to `sync*` or `async` to `async*`.
 CompileTimeErrorCode.YIELD_IN_NON_GENERATOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Fixes could include: (1) change `yield` to `return` (maybe only if it
+    matches the return type)  and (2) change function signature from implicit
+    sync to `sync*` or `async` to `async*`.
 CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE:
   status: needsEvaluation
 CompileTimeErrorCode.YIELD_OF_INVALID_TYPE:
@@ -1216,6 +1255,8 @@ HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
   status: hasFix
 HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
+HintCode.CAST_FROM_NULL_ALWAYS_FAILS:
+  status: needsEvaluation
 HintCode.DEAD_CODE:
   status: hasFix
 HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
@@ -1360,6 +1401,12 @@ HintCode.INVALID_VISIBILITY_ANNOTATION:
 HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
   status: needsFix
   since: ~2.15
+HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
+  status: needsEvaluation
+HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
+  status: needsEvaluation
+HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
+  status: needsEvaluation
 HintCode.MISSING_REQUIRED_PARAM:
   status: hasFix
 HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
@@ -1628,6 +1675,8 @@ LintCode.cast_nullable_to_non_nullable:
   status: needsEvaluation
 LintCode.close_sinks:
   status: needsEvaluation
+LintCode.combinators_ordering:
+  status: needsEvaluation
 LintCode.comment_references:
   status: needsEvaluation
 LintCode.conditional_uri_does_not_exist:
@@ -1707,7 +1756,9 @@ LintCode.no_runtimeType_toString:
 LintCode.non_constant_identifier_names:
   status: hasFix
 LintCode.noop_primitive_operations:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    There should be a fix to remove the invocation of `toString`.
 LintCode.null_check_on_nullable_type_parameter:
   status: hasFix
   notes: |-
@@ -1899,6 +1950,8 @@ LintCode.unnecessary_this:
   status: hasFix
 LintCode.unnecessary_to_list_in_spreads:
   status: needsEvaluation
+LintCode.unreachable_from_main:
+  status: needsEvaluation
 LintCode.unrelated_type_equality_checks:
   status: needsEvaluation
 LintCode.unsafe_html_attribute:
@@ -1937,6 +1990,11 @@ LintCode.use_setters_to_change_properties:
   status: needsEvaluation
 LintCode.use_string_buffers:
   status: needsEvaluation
+LintCode.use_string_in_part_of_directives:
+  status: needsFix
+  notes: |-
+    There should be a fix to replace the library name with the URI of the
+    library.
 LintCode.use_super_parameters:
   status: hasFix
 LintCode.use_test_throws_matchers:

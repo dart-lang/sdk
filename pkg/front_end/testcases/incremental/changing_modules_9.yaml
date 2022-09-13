@@ -80,6 +80,8 @@ worlds:
         - Class A
       package:moduleB/b.dart:
         - Class B
+    advancedInvalidation: modulesToLoad
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -98,3 +100,4 @@ worlds:
         - Class A
       package:moduleB/b.dart:
         - Class B
+    advancedInvalidation: modulesToLoad

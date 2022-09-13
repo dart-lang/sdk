@@ -4,7 +4,7 @@
 
 part of base;
 
-typedef void AnimationCallback(num currentTime);
+typedef AnimationCallback = void Function(num currentTime);
 
 class CallbackData {
   final AnimationCallback callback;
@@ -13,28 +13,26 @@ class CallbackData {
 
   static int _nextId = 1;
 
-  bool ready(num time) => minTime == null || minTime <= time;
+  bool ready(num time) => minTime <= time;
 
   CallbackData(this.callback, this.minTime) : id = _nextId++;
 }
 
-/**
- * Animation scheduler implementing the functionality provided by
- * [:window.requestAnimationFrame:] for platforms that do not support it
- * or support it badly.  When multiple UI components are animating at once,
- * this approach yields superior performance to calling setTimeout/Timer
- * directly as all pieces of the UI will animate at the same time resulting in
- * fewer layouts.
- */
+/// Animation scheduler implementing the functionality provided by
+/// [:window.requestAnimationFrame:] for platforms that do not support it
+/// or support it badly.  When multiple UI components are animating at once,
+/// this approach yields superior performance to calling setTimeout/Timer
+/// directly as all pieces of the UI will animate at the same time resulting in
+/// fewer layouts.
 // TODO(jacobr): use window.requestAnimationFrame when it is available and
 // 60fps for the current browser.
 class AnimationScheduler {
   static const FRAMES_PER_SECOND = 60;
   static const MS_PER_FRAME = 1000 ~/ FRAMES_PER_SECOND;
 
-  /** List of callbacks to be executed next animation frame. */
+  /// List of callbacks to be executed next animation frame. */
   List<CallbackData> _callbacks;
-  bool _isMobileSafari = false;
+  final bool _isMobileSafari = false;
   late CssStyleDeclaration _safariHackStyle;
   int _frameCount = 0;
 
@@ -49,23 +47,19 @@ class AnimationScheduler {
     }
   }
 
-  /**
-   * Cancel the pending callback matching the specified [id].
-   * This is not heavily optimized as typically users don't cancel animation
-   * frames.
-   */
+  /// Cancel the pending callback matching the specified [id].
+  /// This is not heavily optimized as typically users don't cancel animation
+  /// frames.
   void cancelRequestAnimationFrame(int id) {
     _callbacks = _callbacks.where((CallbackData e) => e.id != id).toList();
   }
 
-  /**
-   * Schedule [callback] to execute at the next animation frame that occurs
-   * at or after [minTime].  If [minTime] is not specified, the first available
-   * animation frame is used.  Returns an id that can be used to cancel the
-   * pending callback.
-   */
+  /// Schedule [callback] to execute at the next animation frame that occurs
+  /// at or after [minTime].  If [minTime] is not specified, the first available
+  /// animation frame is used.  Returns an id that can be used to cancel the
+  /// pending callback.
   int requestAnimationFrame(AnimationCallback callback,
-      [Element? element = null, num? minTime = null]) {
+      [Element? element, num? minTime]) {
     final callbackData = CallbackData(callback, minTime!);
     _requestAnimationFrameHelper(callbackData);
     return callbackData.id;
@@ -114,7 +108,7 @@ class AnimationScheduler {
           (callbackData.callback)(minTime);
         } catch (e) {
           final msg = e.toString();
-          print('Suppressed exception ${msg} triggered by callback');
+          print('Suppressed exception $msg triggered by callback');
         }
       } else {
         _callbacks.add(callbackData);

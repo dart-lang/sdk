@@ -51,6 +51,68 @@ class RemoveInitializerTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_init_to_null;
 
+  Future<void> test_abstract_field_constructor_initializer() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract int x;
+  A() : x = 0;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  abstract int x;
+  A();
+}
+''');
+  }
+
+  Future<void> test_abstract_field_constructor_initializer_first() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract int x;
+  int y;
+  A() : x = 0, y = 1;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  abstract int x;
+  int y;
+  A() : y = 1;
+}
+''');
+  }
+
+  Future<void> test_abstract_field_constructor_initializer_last() async {
+    await resolveTestCode('''
+abstract class A {
+  int y;
+  abstract int x;
+  A() : y = 0, x = 1;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int y;
+  abstract int x;
+  A() : y = 0;
+}
+''');
+  }
+
+  Future<void> test_abstract_field_initializer() async {
+    await resolveTestCode('''
+abstract class A {
+  abstract int x = 0;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  abstract int x;
+}
+''');
+  }
+
   Future<void> test_field() async {
     await resolveTestCode('''
 class Test {

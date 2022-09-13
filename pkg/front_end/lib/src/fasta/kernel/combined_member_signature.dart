@@ -468,7 +468,7 @@ abstract class CombinedMemberSignatureBase<T> {
 
   /// Create a member signature with the [combinedMemberSignatureType] using the
   /// [canonicalMember] as member signature origin.
-  Procedure? createMemberFromSignature({bool copyLocation: true}) {
+  Procedure? createMemberFromSignature({bool copyLocation = true}) {
     if (canonicalMemberIndex == null) {
       return null;
     }

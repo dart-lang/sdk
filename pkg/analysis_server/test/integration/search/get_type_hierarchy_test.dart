@@ -215,7 +215,7 @@ class Pivot /* target */ extends Base2 {}
 
   Future<HierarchyResults?> typeHierarchyTestNullable(String text) async {
     var offset = text.indexOf(' /* target */') - 1;
-    sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
+    await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
     await analysisFinished;
     var result = await sendSearchGetTypeHierarchy(pathname, offset);
 

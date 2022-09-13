@@ -52,6 +52,8 @@ void checkElementText(
   bool withDisplayName = false,
   bool withExportScope = false,
   bool withNonSynthetic = false,
+  bool withPropertyLinking = false,
+  bool withSyntheticDartCoreImport = false,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
@@ -59,6 +61,8 @@ void checkElementText(
     withDisplayName: withDisplayName,
     withExportScope: withExportScope,
     withNonSynthetic: withNonSynthetic,
+    withPropertyLinking: withPropertyLinking,
+    withSyntheticDartCoreImport: withSyntheticDartCoreImport,
   );
   writer.writeLibraryElement(library);
 
@@ -124,7 +128,10 @@ class _ElementWriter {
   final bool withDisplayName;
   final bool withExportScope;
   final bool withNonSynthetic;
+  final bool withPropertyLinking;
+  final bool withSyntheticDartCoreImport;
   final StringBuffer buffer = StringBuffer();
+  final _IdMap _idMap = _IdMap();
 
   String indent = '';
 
@@ -134,6 +141,8 @@ class _ElementWriter {
     required this.withDisplayName,
     required this.withExportScope,
     required this.withNonSynthetic,
+    required this.withPropertyLinking,
+    required this.withSyntheticDartCoreImport,
   });
 
   void writeLibraryElement(LibraryElement e) {
@@ -151,18 +160,7 @@ class _ElementWriter {
         _writelnWithIndent('nameOffset: $nameOffset');
       }
 
-      _writeDocumentation(e);
-      _writeMetadata(e);
-
-      var imports = e.imports.where((import) => !import.isSynthetic).toList();
-      _writeElements('imports', imports, _writeImportElement);
-
-      _writeElements('exports', e.exports, _writeExportElement);
-
-      _writelnWithIndent('definingUnit');
-      _withIndent(() {
-        _writeUnitElement(e.definingCompilationUnit);
-      });
+      _writeLibraryOrAugmentationElement(e);
 
       _writeElements('parts', e.parts2, _writePartElement);
 
@@ -201,8 +199,8 @@ class _ElementWriter {
 
     expect(accessor.variable, same(property));
 
-    var propertyEnclosing = property.enclosingElement;
-    expect(accessor.enclosingElement, same(propertyEnclosing));
+    var propertyEnclosing = property.enclosingElement3;
+    expect(accessor.enclosingElement3, same(propertyEnclosing));
 
     if (propertyEnclosing is CompilationUnitElement) {
       expect(propertyEnclosing.accessors, contains(accessor));
@@ -255,6 +253,24 @@ class _ElementWriter {
     indent = savedIndent;
   }
 
+  void _writeAugmentationElement(LibraryAugmentationElement e) {
+    _writeLibraryOrAugmentationElement(e);
+  }
+
+  void _writeAugmentationImportElement(AugmentationImportElement e) {
+    final uri = e.uri;
+    _writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+    });
+
+    _withIndent(() {
+      _writeMetadata(e);
+      if (uri is DirectiveUriWithAugmentation) {
+        _writeAugmentationElement(uri.augmentation);
+      }
+    });
+  }
+
   void _writeBodyModifiers(ExecutableElement e) {
     if (e.isAsynchronous) {
       expect(e.isSynchronous, isFalse);
@@ -273,20 +289,25 @@ class _ElementWriter {
     }
   }
 
-  void _writeClassElement(ClassElement e) {
+  void _writeClassElement(InterfaceElement e) {
     _writeIndentedLine(() {
-      _writeIf(e.isAbstract && !e.isMixin, 'abstract ');
-      _writeIf(e.isMacro, 'macro ');
+      // TODO(scheglov) `is! MixinElement` after the separation.
+      if (e is ClassElement && e is! MixinElement) {
+        _writeIf(e.isAbstract, 'abstract ');
+        _writeIf(e.isMacro, 'macro ');
+      }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
-      if (e.isEnum) {
+      if (e is EnumElement) {
         buffer.write('enum ');
-      } else if (e.isMixin) {
+      } else if (e is MixinElement) {
         buffer.write('mixin ');
       } else {
         buffer.write('class ');
       }
-      _writeIf(e.isMixinApplication, 'alias ');
+      if (e is ClassElement) {
+        _writeIf(e.isMixinApplication, 'alias ');
+      }
 
       _writeName(e);
     });
@@ -297,13 +318,18 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
 
-      var supertype = e.supertype;
+      InterfaceType? supertype;
+      if (e is ClassElement) {
+        supertype = e.supertype;
+      } else if (e is EnumElement) {
+        supertype = e.supertype;
+      }
       if (supertype != null &&
-          (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
+          (supertype.element2.name != 'Object' || e.mixins.isNotEmpty)) {
         _writeType('supertype', supertype);
       }
 
-      if (e.isMixin) {
+      if (e is MixinElement) {
         var superclassConstraints = e.superclassConstraints;
         if (superclassConstraints.isEmpty) {
           throw StateError('At least Object is expected.');
@@ -317,7 +343,7 @@ class _ElementWriter {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
       var constructors = e.constructors;
-      if (e.isMixin) {
+      if (e is MixinElement) {
         expect(constructors, isEmpty);
       } else {
         expect(constructors, isNotEmpty);
@@ -362,7 +388,7 @@ class _ElementWriter {
       var classReference = reference.parent!.parent!;
       // We need this `if` for duplicate declarations.
       // The reference might be filled by another declaration.
-      if (identical(classReference.element, e.enclosingElement)) {
+      if (identical(classReference.element, e.enclosingElement3)) {
         expect(reference.element, same(e));
       }
     }
@@ -399,7 +425,9 @@ class _ElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        if (!superConstructor.enclosingElement.isDartCoreObject) {
+        final enclosingElement = superConstructor.enclosingElement3;
+        if (enclosingElement is ClassElement &&
+            !enclosingElement.isDartCoreObject) {
           _writeElementReference('superConstructor', superConstructor);
         }
       }
@@ -417,7 +445,7 @@ class _ElementWriter {
 
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
-      expect(e.nonSynthetic, same(e.enclosingElement));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       if (!e.isTempAugmentation) {
         expect(e.nameOffset, isPositive);
@@ -426,16 +454,20 @@ class _ElementWriter {
   }
 
   void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithUnit) {
-      _writelnWithIndent('${uri.unit.source.uri}');
+    if (uri is DirectiveUriWithAugmentationImpl) {
+      buffer.write('${uri.augmentation.source.uri}');
+    } else if (uri is DirectiveUriWithLibraryImpl) {
+      buffer.write('${uri.library.source.uri}');
+    } else if (uri is DirectiveUriWithUnit) {
+      buffer.write('${uri.unit.source.uri}');
     } else if (uri is DirectiveUriWithSource) {
-      _writelnWithIndent("source '${uri.source.uri}'");
+      buffer.write("source '${uri.source.uri}'");
     } else if (uri is DirectiveUriWithRelativeUri) {
-      _writelnWithIndent("relativeUri '${uri.relativeUri}'");
+      buffer.write("relativeUri '${uri.relativeUri}'");
     } else if (uri is DirectiveUriWithRelativeUriString) {
-      _writelnWithIndent("relativeUriString '${uri.relativeUriString}'");
+      buffer.write("relativeUriString '${uri.relativeUriString}'");
     } else {
-      _writelnWithIndent('noRelativeUriString');
+      buffer.write('noRelativeUriString');
     }
   }
 
@@ -480,7 +512,7 @@ class _ElementWriter {
         if (exported is ExportedReferenceDeclared) {
           buffer.write('declared ');
         } else if (exported is ExportedReferenceExported) {
-          buffer.write('exported${exported.indexes} ');
+          buffer.write('exported${exported.locations} ');
         }
         // TODO(scheglov) Use the same writer as for resolved AST.
         buffer.write(exported.reference);
@@ -488,9 +520,11 @@ class _ElementWriter {
     }
   }
 
-  void _writeExportElement(ExportElement e) {
+  void _writeExportElement(LibraryExportElement e) {
+    e.location;
+
     _writeIndentedLine(() {
-      _writeUri(e.exportedLibrary?.source);
+      _writeDirectiveUri(e.uri);
     });
 
     _withIndent(() {
@@ -571,30 +605,53 @@ class _ElementWriter {
     }
   }
 
-  void _writeImportElement(ImportElement e) {
-    _writeIndentedLine(() {
-      _writeUri(e.importedLibrary?.source);
-      _writeIf(e.isDeferred, ' deferred');
+  void _writeImportElement(LibraryImportElement e) {
+    e.location;
 
-      var prefix = e.prefix;
-      if (prefix != null) {
-        buffer.write(' as ');
-        _writeName(prefix);
-      }
+    _writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+      _writeIf(e.isSynthetic, ' synthetic');
+      _writeImportElementPrefix(e.prefix);
     });
 
     _withIndent(() {
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
+  }
 
-    _assertNonSyntheticElementSelf(e);
+  void _writeImportElementPrefix(ImportElementPrefix? prefix) {
+    if (prefix != null) {
+      _writeIf(prefix is DeferredImportElementPrefix, ' deferred');
+      buffer.write(' as ');
+      _writeName(prefix.element);
+    }
   }
 
   void _writeIndentedLine(void Function() f) {
     buffer.write(indent);
     f();
     buffer.writeln();
+  }
+
+  void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElement e) {
+    _writeDocumentation(e);
+    _writeMetadata(e);
+
+    var imports = e.libraryImports
+        .where((import) => withSyntheticDartCoreImport || !import.isSynthetic)
+        .toList();
+    _writeElements('imports', imports, _writeImportElement);
+
+    _writeElements('exports', e.libraryExports, _writeExportElement);
+
+    _writeElements('augmentationImports', e.augmentationImports,
+        _writeAugmentationImportElement);
+
+    _writelnWithIndent('definingUnit');
+    _withIndent(() {
+      _writeUnitElement(e.definingCompilationUnit);
+    });
   }
 
   void _writelnWithIndent(String line) {
@@ -638,9 +695,9 @@ class _ElementWriter {
       _writeNonSyntheticElement(e);
     });
 
-    if (e.isSynthetic && e.enclosingElement is EnumElementImpl) {
+    if (e.isSynthetic && e.enclosingElement3 is EnumElementImpl) {
       expect(e.name, 'toString');
-      expect(e.nonSynthetic, same(e.enclosingElement));
+      expect(e.nonSynthetic, same(e.enclosingElement3));
     } else {
       _assertNonSyntheticElementSelf(e);
     }
@@ -727,7 +784,9 @@ class _ElementWriter {
 
   void _writePartElement(PartElement e) {
     final uri = e.uri;
-    _writeDirectiveUri(uri);
+    _writeIndentedLine(() {
+      _writeDirectiveUri(e.uri);
+    });
 
     _withIndent(() {
       _writeMetadata(e);
@@ -743,7 +802,7 @@ class _ElementWriter {
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
-    var variableEnclosing = variable.enclosingElement;
+    var variableEnclosing = variable.enclosingElement3;
     if (variableEnclosing is CompilationUnitElement) {
       expect(variableEnclosing.topLevelVariables, contains(variable));
     } else if (variableEnclosing is ClassElement) {
@@ -787,6 +846,13 @@ class _ElementWriter {
       _writeBodyModifiers(e);
     });
 
+    void writeLinking() {
+      if (withPropertyLinking) {
+        _writelnWithIndent('id: ${_idMap[e]}');
+        _writelnWithIndent('variable: ${_idMap[e.variable]}');
+      }
+    }
+
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
@@ -796,6 +862,7 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeType('returnType', e.returnType);
       _writeNonSyntheticElement(e);
+      writeLinking();
     });
   }
 
@@ -835,6 +902,22 @@ class _ElementWriter {
       _writeName(e);
     });
 
+    void writeLinking() {
+      if (withPropertyLinking) {
+        _writelnWithIndent('id: ${_idMap[e]}');
+
+        final getter = e.getter;
+        if (getter != null) {
+          _writelnWithIndent('getter: ${_idMap[getter]}');
+        }
+
+        final setter = e.setter;
+        if (setter != null) {
+          _writelnWithIndent('setter: ${_idMap[setter]}');
+        }
+      }
+    }
+
     _withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
@@ -843,6 +926,7 @@ class _ElementWriter {
       _writeType('type', e.type);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
+      writeLinking();
     });
   }
 
@@ -878,11 +962,6 @@ class _ElementWriter {
 
       var aliasedType = e.aliasedType;
       _writeType('aliasedType', aliasedType);
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-      // TODO(scheglov) Remove it when we stop providing it everywhere.
-      if (aliasedType is FunctionType) {
-        expect(aliasedType.element, isNull);
-      }
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElementImpl) {
@@ -952,9 +1031,9 @@ class _ElementWriter {
 
   void _writeUnitElement(CompilationUnitElement e) {
     _writeElements('classes', e.classes, _writeClassElement);
-    _writeElements('enums', e.enums, _writeClassElement);
+    _writeElements('enums', e.enums2, _writeClassElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
-    _writeElements('mixins', e.mixins, _writeClassElement);
+    _writeElements('mixins', e.mixins2, _writeClassElement);
     _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
     _writeElements(
       'topLevelVariables',
@@ -968,17 +1047,24 @@ class _ElementWriter {
     );
     _writeElements('functions', e.functions, _writeFunctionElement);
   }
+}
 
-  void _writeUri(Source? source) {
-    if (source != null) {
-      Uri uri = source.uri;
-      String uriStr = uri.toString();
-      if (uri.isScheme('file')) {
-        uriStr = uri.pathSegments.last;
-      }
-      buffer.write(uriStr);
+class _IdMap {
+  final Map<Element, String> fieldMap = Map.identity();
+  final Map<Element, String> getterMap = Map.identity();
+  final Map<Element, String> setterMap = Map.identity();
+
+  String operator [](Element element) {
+    if (element is FieldElement) {
+      return fieldMap[element] ??= 'field_${fieldMap.length}';
+    } else if (element is TopLevelVariableElement) {
+      return fieldMap[element] ??= 'variable_${fieldMap.length}';
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      return getterMap[element] ??= 'getter_${getterMap.length}';
+    } else if (element is PropertyAccessorElement && element.isSetter) {
+      return setterMap[element] ??= 'setter_${setterMap.length}';
     } else {
-      buffer.write('<unresolved>');
+      return '???';
     }
   }
 }

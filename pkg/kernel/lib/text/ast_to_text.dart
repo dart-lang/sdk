@@ -297,8 +297,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   Printer(this.sink,
       {NameSystem? syntheticNames,
-      this.showOffsets: false,
-      this.showMetadata: false,
+      this.showOffsets = false,
+      this.showMetadata = false,
       this.importTable,
       this.annotator,
       this.metadata})
@@ -763,7 +763,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   void writeFunction(FunctionNode function,
-      {name, List<Initializer>? initializers, bool terminateLine: true}) {
+      {name, List<Initializer>? initializers, bool terminateLine = true}) {
     if (name is String) {
       writeWord(name);
     } else if (name is Name) {
@@ -818,14 +818,12 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
         return 'async';
       case AsyncMarker.AsyncStar:
         return 'async*';
-      case AsyncMarker.SyncYielding:
-        return 'yielding';
       default:
         return '<Invalid async marker: $marker>';
     }
   }
 
-  void writeFunctionBody(Statement body, {bool terminateLine: true}) {
+  void writeFunctionBody(Statement body, {bool terminateLine = true}) {
     if (body is Block && body.statements.isEmpty) {
       ensureSpace();
       writeSymbol('{}');
@@ -944,7 +942,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   void writeList<T>(Iterable<T> nodes, void callback(T x),
-      {String separator: ','}) {
+      {String separator = ','}) {
     bool first = true;
     for (T node in nodes) {
       if (first) {
@@ -1082,7 +1080,8 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
   }
 
-  void writeAnnotationList(List<Expression> nodes, {bool separateLines: true}) {
+  void writeAnnotationList(List<Expression> nodes,
+      {bool separateLines = true}) {
     for (Expression node in nodes) {
       if (separateLines) {
         writeIndentation();
@@ -1103,6 +1102,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   void visitField(Field node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
+    writeModifier(node.isEnumElement, 'enum-element');
     writeModifier(node.isLate, 'late');
     writeModifier(node.isStatic, 'static');
     writeModifier(node.isCovariantByDeclaration, 'covariant-by-declaration');
@@ -1874,6 +1874,23 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    if (node.isConst) {
+      writeWord('const');
+      writeSpace();
+    }
+    writeSymbol('(');
+    writeList(node.positional, writeNode);
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) writeComma();
+      writeSymbol('{');
+      writeList(node.named, writeNode);
+      writeSymbol('}');
+    }
+    writeSymbol(')');
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     writeWord('await');
     writeExpression(node.operand);
@@ -2161,6 +2178,27 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitRecordIndexGet(RecordIndexGet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.\$${node.index}');
+    writeSymbol('{');
+    writeType(node.receiverType.positional[node.index]);
+    writeSymbol('}');
+  }
+
+  @override
+  void visitRecordNameGet(RecordNameGet node) {
+    writeExpression(node.receiver, Precedence.PRIMARY);
+    writeSymbol('.${node.name}');
+    writeSymbol('{');
+    // TODO(johnniwinther): Should we store the result type in the node?
+    writeType(node.receiverType.named
+        .singleWhere((element) => element.name == node.name)
+        .type);
+    writeSymbol('}');
+  }
+
+  @override
   void visitExpressionStatement(ExpressionStatement node) {
     writeIndentation();
     writeExpression(node.expression);
@@ -2414,8 +2452,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     if (node.isYieldStar) {
       writeWord('yield*');
-    } else if (node.isNative) {
-      writeWord('[yield]');
     } else {
       writeWord('yield');
     }
@@ -2445,7 +2481,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   void writeVariableDeclaration(VariableDeclaration node,
-      {bool useVarKeyword: false}) {
+      {bool useVarKeyword = false}) {
     if (showOffsets) writeWord("[${node.fileOffset}]");
     if (showMetadata) writeMetadata(node);
     writeAnnotationList(node.annotations, separateLines: false);
@@ -2653,6 +2689,24 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitRecordType(RecordType node) {
+    writeSymbol('(');
+    writeList(node.positional, writeType);
+    if (node.positional.isNotEmpty && node.named.isNotEmpty) {
+      writeComma(',');
+    }
+    if (node.named.isNotEmpty) {
+      writeSymbol('{');
+      writeList(node.named, writeNode);
+      writeSymbol('}');
+    }
+    writeSymbol(')');
+    writeNullability(node.declaredNullability);
+    // Disallow a word immediately after the record type.
+    state = WORD;
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     writeModifier(node.isRequired, 'required');
     writeWord(node.name);
@@ -2665,19 +2719,21 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   void visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
     writeNullability(node.declaredNullability);
-    DartType? promotedBound = node.promotedBound;
-    if (promotedBound != null) {
-      writeSpaced('&');
-      writeType(promotedBound);
+  }
 
-      writeWord("/* '");
-      writeNullability(node.declaredNullability, inComment: true);
-      writeWord("' & '");
-      writeDartTypeNullability(promotedBound, inComment: true);
-      writeWord("' = '");
-      writeNullability(node.nullability, inComment: true);
-      writeWord("' */");
-    }
+  @override
+  void visitIntersectionType(IntersectionType node) {
+    writeType(node.left);
+    writeSpaced('&');
+    writeType(node.right);
+    writeWord("/* '");
+
+    writeDartTypeNullability(node.left, inComment: true);
+    writeWord("' & '");
+    writeDartTypeNullability(node.right, inComment: true);
+    writeWord("' = '");
+    writeNullability(node.nullability, inComment: true);
+    writeWord("' */");
   }
 
   @override
@@ -3073,6 +3129,9 @@ class Precedence implements ExpressionVisitor<int> {
   int visitMapLiteral(MapLiteral node) => PRIMARY;
 
   @override
+  int visitRecordLiteral(RecordLiteral node) => PRIMARY;
+
+  @override
   int visitAwaitExpression(AwaitExpression node) => PREFIX;
 
   @override
@@ -3113,6 +3172,12 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) => PRIMARY;
+
+  @override
+  int visitRecordIndexGet(RecordIndexGet node) => PRIMARY;
+
+  @override
+  int visitRecordNameGet(RecordNameGet node) => PRIMARY;
 
   @override
   int visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>

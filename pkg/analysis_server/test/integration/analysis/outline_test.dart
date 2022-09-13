@@ -42,7 +42,7 @@ class Class2 {
 ''';
     writeFile(pathname, text);
     await standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({
+    await sendAnalysisSetSubscriptions({
       AnalysisService.OUTLINE: [pathname]
     });
 

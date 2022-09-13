@@ -5,9 +5,10 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/protocol_server.dart' show SearchResult;
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analysis_server/src/search/element_references.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart'
+    show SearchMatch;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -56,8 +57,8 @@ class ReferencesHandler
   Future<ErrorOr<List<Location>?>> _getReferences(String path, int offset,
       ReferenceParams params, ResolvedUnitResult unit) async {
     var element = await server.getElementAtOffset(path, offset);
-    if (element is ImportElement) {
-      element = element.prefix;
+    if (element is LibraryImportElement) {
+      element = element.prefix?.element;
     }
     if (element is FieldFormalParameterElement) {
       element = element.field;
@@ -70,11 +71,22 @@ class ReferencesHandler
     }
 
     final computer = ElementReferencesComputer(server.searchEngine);
+    final session = element.session ?? unit.session;
     final results = await computer.compute(element, false);
 
-    Location? toLocation(SearchResult result) {
-      final lineInfo = server.getLineInfo(result.location.file);
-      return searchResultToLocation(result, lineInfo);
+    Location? toLocation(SearchMatch result) {
+      final file = session.getFile(result.file);
+      if (file is! FileResult) {
+        return null;
+      }
+      return Location(
+        uri: Uri.file(result.file).toString(),
+        range: toRange(
+          file.lineInfo,
+          result.sourceRange.offset,
+          result.sourceRange.length,
+        ),
+      );
     }
 
     final referenceResults =

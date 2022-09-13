@@ -64,4 +64,12 @@ Future<Null> g() async => null;
       error(HintCode.NULL_CHECK_ALWAYS_FAILS, 19, 12),
     ]);
   }
+
+  test_potentiallyNullableTypeVariable() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(T i) {
+  i!;
+}
+''');
+  }
 }

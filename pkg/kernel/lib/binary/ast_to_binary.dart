@@ -295,6 +295,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         writeDartType(constant.types[i]);
       }
       leaveScope(typeParameters: constant.parameters);
+    } else if (constant is RecordConstant) {
+      writeByte(ConstantTag.RecordConstant);
+      writeUInt30(constant.positional.length);
+      constant.positional.forEach(writeConstantReference);
+      writeUInt30(constant.named.length);
+      for (final ConstantRecordNamedField namedField in constant.named) {
+        writeStringReference(namedField.name);
+        writeConstantReference(namedField.value);
+      }
+      writeDartType(constant.recordType);
     } else {
       throw new ArgumentError('Unsupported constant $constant');
     }
@@ -674,8 +684,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void enterScope(
       {List<TypeParameter>? typeParameters,
-      bool memberScope: false,
-      bool variableScope: false}) {
+      bool memberScope = false,
+      bool variableScope = false}) {
     if (typeParameters != null) {
       _typeParameterIndexer.enter(typeParameters);
     }
@@ -691,8 +701,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void leaveScope(
       {List<TypeParameter>? typeParameters,
-      bool memberScope: false,
-      bool variableScope: false}) {
+      bool memberScope = false,
+      bool variableScope = false}) {
     if (variableScope) {
       _variableIndexer!.popScope();
     }
@@ -1598,6 +1608,24 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitRecordIndexGet(RecordIndexGet node) {
+    writeByte(Tag.RecordIndexGet);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeDartType(node.receiverType);
+    writeUInt30(node.index);
+  }
+
+  @override
+  void visitRecordNameGet(RecordNameGet node) {
+    writeByte(Tag.RecordNameGet);
+    writeOffset(node.fileOffset);
+    writeNode(node.receiver);
+    writeDartType(node.receiverType);
+    writeStringReference(node.name);
+  }
+
+  @override
   void visitInstanceTearOff(InstanceTearOff node) {
     writeByte(Tag.InstanceTearOff);
     writeByte(node.kind.index);
@@ -2061,6 +2089,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    writeByte(node.isConst ? Tag.ConstRecordLiteral : Tag.RecordLiteral);
+    writeOffset(node.fileOffset);
+    writeNodeList(node.positional);
+    writeNodeList(node.named);
+    writeNode(node.recordType);
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     writeByte(Tag.AwaitExpression);
     writeOffset(node.fileOffset);
@@ -2489,6 +2526,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitRecordType(RecordType node) {
+    writeByte(Tag.RecordType);
+    writeByte(node.nullability.index);
+    writeNodeList(node.positional);
+    writeNodeList(node.named);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     writeStringReference(node.name);
     writeNode(node.type);
@@ -2501,7 +2546,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.TypeParameterType);
     writeByte(node.declaredNullability.index);
     writeUInt30(_typeParameterIndexer[node.parameter]);
-    writeOptionalNode(node.promotedBound);
+  }
+
+  @override
+  void visitIntersectionType(IntersectionType node) {
+    writeByte(Tag.IntersectionType);
+    writeDartType(node.left);
+    writeDartType(node.right);
   }
 
   @override
@@ -2750,6 +2801,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitMapConstantReference(MapConstant node) {
     throw new UnsupportedError('serialization of MapConstant references');
+  }
+
+  @override
+  void visitRecordConstant(RecordConstant node) {
+    throw new UnsupportedError('serialization of RecordConstants');
+  }
+
+  @override
+  void visitRecordConstantReference(RecordConstant node) {
+    throw new UnsupportedError('serialization of RecordConstant references');
   }
 
   @override

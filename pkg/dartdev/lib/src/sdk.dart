@@ -50,6 +50,12 @@ class Sdk {
         'dds.dart.snapshot',
       );
 
+  String get frontendServerSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'frontend_server.dart.snapshot',
+      );
   String get devToolsBinaries => path.absolute(
         sdkPath,
         'bin',
@@ -114,7 +120,7 @@ class Runtime {
 
   static Runtime _createSingleton() {
     var versionString = Platform.version;
-    // Exepcted format: "version (channel) ..."
+    // Expected format: "version (channel) ..."
     var version = versionString;
     String? channel;
     var versionEnd = versionString.indexOf(' ');

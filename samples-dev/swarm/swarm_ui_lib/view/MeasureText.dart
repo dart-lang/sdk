@@ -8,10 +8,8 @@ part of view;
 
 // TODO(jacobr): handle splitting lines on symbols such as '-' that aren't
 // whitespace but are valid word breaking points.
-/**
- * Utility class to efficiently word break and measure text without requiring
- * access to the DOM.
- */
+/// Utility class to efficiently word break and measure text without requiring
+/// access to the DOM.
 class MeasureText {
   static CanvasRenderingContext2D _context;
 
@@ -23,7 +21,7 @@ class MeasureText {
 
   MeasureText(this.font) {
     if (_context == null) {
-      CanvasElement canvas = new Element.tag('canvas');
+      CanvasElement canvas = Element.tag('canvas');
       _context = canvas.getContext('2d');
     }
     if (_spaceLength == null) {
@@ -60,12 +58,10 @@ class MeasureText {
     }
   }
 
-  /**
-   * Add line broken text as html separated by <br> elements.
-   * Returns the number of lines in the output.
-   * This function is safe to call with [:sb == null:] in which case just the
-   * line count is returned.
-   */
+  /// Add line broken text as html separated by <br> elements.
+  /// Returns the number of lines in the output.
+  /// This function is safe to call with [:sb == null:] in which case just the
+  /// line count is returned.
   int addLineBrokenText(
       StringBuffer sb, String text, num lineWidth, int maxLines) {
     // Strip surrounding whitespace. This ensures we create zero lines if there
@@ -119,8 +115,8 @@ class MeasureText {
     int lines = 0;
     num currentLength = 0;
     int startIndex = 0;
-    int wordStartIndex = null;
-    int lastWordEndIndex = null;
+    int wordStartIndex;
+    int lastWordEndIndex;
     bool lastWhitespace = true;
     // TODO(jacobr): optimize this further.
     // To simplify the logic, we simulate injecting a whitespace character

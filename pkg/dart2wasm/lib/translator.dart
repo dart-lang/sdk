@@ -11,6 +11,7 @@ import 'package:dart2wasm/closures.dart';
 import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/constants.dart';
 import 'package:dart2wasm/dispatch_table.dart';
+import 'package:dart2wasm/dynamic_dispatch.dart';
 import 'package:dart2wasm/functions.dart';
 import 'package:dart2wasm/globals.dart';
 import 'package:dart2wasm/param_info.dart';
@@ -34,19 +35,13 @@ class TranslatorOptions {
   bool inlining = false;
   int inliningLimit = 3;
   bool lazyConstants = false;
-  bool localNullability = false;
   bool nameSection = true;
-  bool nominalTypes = true;
-  bool parameterNullability = true;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
-  bool runtimeTypes = false;
   int? sharedMemoryMaxPages;
   bool stringDataSegments = false;
   List<int>? watchPoints = null;
-
-  bool get useRttGlobals => runtimeTypes && !nominalTypes;
 }
 
 typedef CodeGenCallback = void Function(w.Instructions);
@@ -72,10 +67,12 @@ class Translator {
   late final Class wasmTypesBaseClass;
   late final Class wasmArrayBaseClass;
   late final Class wasmAnyRefClass;
+  late final Class wasmExternRefClass;
   late final Class wasmFuncRefClass;
   late final Class wasmEqRefClass;
   late final Class wasmDataRefClass;
   late final Class wasmFunctionClass;
+  late final Class wasmTableClass;
   late final Class boxedBoolClass;
   late final Class boxedIntClass;
   late final Class boxedDoubleClass;
@@ -111,11 +108,17 @@ class Translator {
   late final Class byteDataViewClass;
   late final Class typeErrorClass;
   late final Class typeUniverseClass;
+  late final Class symbolClass;
+  late final Class invocationClass;
   late final Procedure wasmFunctionCall;
+  late final Procedure wasmTableCallIndirect;
   late final Procedure stackTraceCurrent;
+  late final Procedure asyncHelper;
+  late final Procedure awaitHelper;
   late final Procedure stringEquals;
   late final Procedure stringInterpolate;
   late final Procedure throwNullCheckError;
+  late final Procedure throwThrowNullError;
   late final Procedure throwAsCheckError;
   late final Procedure throwWasmRefError;
   late final Procedure mapFactory;
@@ -125,6 +128,12 @@ class Translator {
   late final Procedure hashImmutableIndexNullable;
   late final Procedure isSubtype;
   late final Procedure objectRuntimeType;
+  late final Procedure typeAsNullable;
+  late final Procedure objectNoSuchMethod;
+  late final Procedure invocationGetterFactory;
+  late final Procedure invocationSetterFactory;
+  late final Procedure invocationMethodFactory;
+  late final Procedure invocationGenericMethodFactory;
   late final Map<Class, w.StorageType> builtinTypes;
   late final Map<w.ValueType, Class> boxedClasses;
 
@@ -135,6 +144,7 @@ class Translator {
   late final Constants constants;
   late final Types types;
   late final FunctionCollector functions;
+  late final DynamicDispatcher dynamics;
 
   // Information about the program used and updated by the various phases.
   final List<ClassInfo> classes = [];
@@ -143,6 +153,7 @@ class Translator {
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
+  final Map<Field, w.DefinedTable> declaredTables = {};
   late Procedure mainFunction;
   late final w.Module m;
   late final w.DefinedFunction initFunction;
@@ -156,8 +167,6 @@ class Translator {
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
   final Map<int, w.StructType> functionTypeCache = {};
-  final Map<w.StructType, int> functionTypeParameterCount = {};
-  final Map<int, w.DefinedGlobal> functionTypeRtt = {};
   final Map<w.BaseFunction, w.DefinedGlobal> functionRefCache = {};
   final Map<Procedure, w.DefinedFunction> tearOffFunctionCache = {};
 
@@ -174,6 +183,7 @@ class Translator {
     dispatchTable = DispatchTable(this);
     functions = FunctionCollector(this);
     types = Types(this);
+    dynamics = DynamicDispatcher(this);
 
     Class Function(String) makeLookup(String libraryName) {
       Library library =
@@ -184,16 +194,19 @@ class Translator {
     Class Function(String) lookupCore = makeLookup("dart.core");
     Class Function(String) lookupCollection = makeLookup("dart.collection");
     Class Function(String) lookupFfi = makeLookup("dart.ffi");
+    Class Function(String) lookupInternal = makeLookup("dart._internal");
     Class Function(String) lookupTypedData = makeLookup("dart.typed_data");
     Class Function(String) lookupWasm = makeLookup("dart.wasm");
 
     wasmTypesBaseClass = lookupWasm("_WasmBase");
     wasmArrayBaseClass = lookupWasm("_WasmArray");
     wasmAnyRefClass = lookupWasm("WasmAnyRef");
+    wasmExternRefClass = lookupWasm("WasmExternRef");
     wasmFuncRefClass = lookupWasm("WasmFuncRef");
     wasmEqRefClass = lookupWasm("WasmEqRef");
     wasmDataRefClass = lookupWasm("WasmDataRef");
     wasmFunctionClass = lookupWasm("WasmFunction");
+    wasmTableClass = lookupWasm("WasmTable");
     boxedBoolClass = lookupCore("_BoxedBool");
     boxedIntClass = lookupCore("_BoxedInt");
     boxedDoubleClass = lookupCore("_BoxedDouble");
@@ -230,16 +243,29 @@ class Translator {
     typedListClass = lookupTypedData("_TypedList");
     typedListViewClass = lookupTypedData("_TypedListView");
     byteDataViewClass = lookupTypedData("_ByteDataView");
+    symbolClass = lookupInternal("Symbol");
     wasmFunctionCall =
         wasmFunctionClass.procedures.firstWhere((p) => p.name.text == "call");
+    wasmTableCallIndirect = wasmTableClass.procedures
+        .firstWhere((p) => p.name.text == "callIndirect");
     stackTraceCurrent =
         stackTraceClass.procedures.firstWhere((p) => p.name.text == "current");
+    asyncHelper = component.libraries
+        .firstWhere((l) => l.name == "dart.async")
+        .procedures
+        .firstWhere((p) => p.name.text == "_asyncHelper");
+    awaitHelper = component.libraries
+        .firstWhere((l) => l.name == "dart.async")
+        .procedures
+        .firstWhere((p) => p.name.text == "_awaitHelper");
     stringEquals =
         stringBaseClass.procedures.firstWhere((p) => p.name.text == "==");
     stringInterpolate = stringBaseClass.procedures
         .firstWhere((p) => p.name.text == "_interpolate");
     throwNullCheckError = typeErrorClass.procedures
         .firstWhere((p) => p.name.text == "_throwNullCheckError");
+    throwThrowNullError = typeErrorClass.procedures
+        .firstWhere((p) => p.name.text == "_throwThrowNullError");
     throwAsCheckError = typeErrorClass.procedures
         .firstWhere((p) => p.name.text == "_throwAsCheckError");
     throwWasmRefError = typeErrorClass.procedures
@@ -266,11 +292,27 @@ class Translator {
     objectRuntimeType = lookupCore("Object")
         .procedures
         .firstWhere((p) => p.name.text == "_runtimeType");
+    typeAsNullable = lookupCore("_Type")
+        .procedures
+        .firstWhere((p) => p.name.text == "asNullable");
+    objectNoSuchMethod = lookupCore("Object")
+        .procedures
+        .firstWhere((p) => p.name.text == "noSuchMethod");
+    invocationClass = lookupCore('Invocation');
+    invocationGetterFactory =
+        invocationClass.procedures.firstWhere((p) => p.name.text == "getter");
+    invocationSetterFactory =
+        invocationClass.procedures.firstWhere((p) => p.name.text == "setter");
+    invocationMethodFactory =
+        invocationClass.procedures.firstWhere((p) => p.name.text == "method");
+    invocationGenericMethodFactory = invocationClass.procedures
+        .firstWhere((p) => p.name.text == "genericMethod");
     builtinTypes = {
       coreTypes.boolClass: w.NumType.i32,
       coreTypes.intClass: w.NumType.i64,
       coreTypes.doubleClass: w.NumType.f64,
       wasmAnyRefClass: const w.RefType.any(nullable: false),
+      wasmExternRefClass: const w.RefType.extern(nullable: false),
       wasmFuncRefClass: const w.RefType.func(nullable: false),
       wasmEqRefClass: const w.RefType.eq(nullable: false),
       wasmDataRefClass: const w.RefType.data(nullable: false),
@@ -292,18 +334,40 @@ class Translator {
     };
   }
 
+  // Finds the `main` method for a given library which is assumed to contain
+  // `main`, either directly or indirectly.
+  Procedure _findMainMethod(Library entryLibrary) {
+    // First check to see if the library itself contains main.
+    for (final procedure in entryLibrary.procedures) {
+      if (procedure.name.text == 'main') {
+        return procedure;
+      }
+    }
+
+    // In some cases, a main method is defined in another file, and then
+    // exported. In these cases, we search for the main method in
+    // [additionalExports].
+    for (final export in entryLibrary.additionalExports) {
+      if (export.node is Procedure && export.asProcedure.name.text == 'main') {
+        return export.asProcedure;
+      }
+    }
+    throw ArgumentError(
+        'Entry uri ${entryLibrary.fileUri} has no main method.');
+  }
+
   Uint8List translate() {
     m = w.Module(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
 
+    dynamics.collect();
     classInfoCollector.collect();
 
     functions.collectImportsAndExports();
-    mainFunction =
-        libraries.first.procedures.firstWhere((p) => p.name.text == "main");
-    functions.addExport(mainFunction.reference, "main");
+    mainFunction = _findMainMethod(libraries.first);
 
-    initFunction = m.addFunction(functionType(const [], const []), "#init");
+    initFunction =
+        m.addFunction(m.addFunctionType(const [], const []), "#init");
     m.startFunction = initFunction;
 
     globals = Globals(this);
@@ -311,6 +375,7 @@ class Translator {
 
     dispatchTable.build();
 
+    m.exportFunction("\$main", generateEntryFunction(mainFunction.reference));
     functions.initialize();
     while (functions.worklist.isNotEmpty) {
       Reference reference = functions.worklist.removeLast();
@@ -362,9 +427,7 @@ class Translator {
         if (!options.printWasm) print("");
       }
 
-      if (exportName != null) {
-        m.exportFunction(exportName, function);
-      } else if (options.exportAll) {
+      if (options.exportAll && exportName == null) {
         m.exportFunction(canonicalName, function);
       }
       var codeGen = CodeGenerator(this, function, reference);
@@ -376,9 +439,10 @@ class Translator {
       }
 
       for (Lambda lambda in codeGen.closures.lambdas.values) {
-        CodeGenerator(this, lambda.function, reference)
-            .generateLambda(lambda, codeGen.closures);
-        _printFunction(lambda.function, "$canonicalName (closure)");
+        w.DefinedFunction lambdaFunction =
+            CodeGenerator(this, lambda.function, reference)
+                .generateLambda(lambda, codeGen.closures);
+        _printFunction(lambdaFunction, "$canonicalName (closure)");
       }
     }
 
@@ -413,6 +477,44 @@ class Translator {
     }
   }
 
+  w.DefinedFunction generateEntryFunction(Reference mainReference) {
+    final ParameterInfo paramInfo = paramInfoFor(mainReference);
+    assert(paramInfo.typeParamCount == 0);
+    final w.BaseFunction mainFunction = functions.getFunction(mainReference);
+    final w.DefinedFunction entry =
+        m.addFunction(m.addFunctionType(const [], const []), "\$main");
+    final w.Instructions b = entry.body;
+
+    if (paramInfo.positional.isNotEmpty) {
+      // Supply dummy commandline arguments
+      constants.instantiateConstant(
+          entry,
+          b,
+          ListConstant(coreTypes.stringNonNullableRawType, const []),
+          mainFunction.type.inputs[0]);
+    }
+    if (paramInfo.positional.length > 1) {
+      // Supply dummy isolate
+      constants.instantiateConstant(
+          entry, b, NullConstant(), mainFunction.type.inputs[1]);
+    }
+    for (int i = 2; i < paramInfo.positional.length; i++) {
+      // Supply default values for positional parameters
+      constants.instantiateConstant(
+          entry, b, paramInfo.positional[i]!, mainFunction.type.inputs[i]);
+    }
+    for (String name in paramInfo.names) {
+      // Supply default values for named parameters
+      constants.instantiateConstant(entry, b, paramInfo.named[name]!,
+          mainFunction.type.inputs[paramInfo.nameIndex[name]!]);
+    }
+    b.call(mainFunction);
+    convertType(entry, outputOrVoid(mainFunction.type.outputs), voidMarker);
+    b.end();
+
+    return entry;
+  }
+
   Class classForType(DartType type) {
     return type is InterfaceType
         ? type.classNode
@@ -426,7 +528,7 @@ class Translator {
   /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag createExceptionTag() {
-    w.FunctionType tagType = functionType(
+    w.FunctionType tagType = m.addFunctionType(
         [topInfo.nonNullableType, stackTraceInfo.nonNullableType], const []);
     w.Tag tag = m.addTag(tagType);
     return tag;
@@ -461,7 +563,7 @@ class Translator {
         }
         if (isWasmType(cls)) {
           if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
-          return (builtin as w.RefType).withNullability(true);
+          return (builtin as w.RefType).withNullability(nullable);
         }
         if (cls == ffiPointerClass) throw "FFI types can't be nullable";
         Class? boxedClass = boxedClasses[builtin];
@@ -473,8 +575,7 @@ class Translator {
         return w.NumType.i32;
       }
     }
-    return w.RefType.def(info.repr.struct,
-        nullable: !options.parameterNullability || nullable);
+    return w.RefType.def(info.repr.struct, nullable: nullable);
   }
 
   w.StorageType translateStorageType(DartType type) {
@@ -503,31 +604,30 @@ class Translator {
           if (functionType.returnType != const VoidType())
             translateType(functionType.returnType)
         ];
-        w.FunctionType wasmType = this.functionType(inputs, outputs);
+        w.FunctionType wasmType = m.addFunctionType(inputs, outputs);
         return w.RefType.def(wasmType, nullable: type.isPotentiallyNullable);
       }
       return typeForInfo(
           classInfo[type.classNode]!, type.isPotentiallyNullable);
     }
-    if (type is DynamicType) {
+    if (type is DynamicType || type is VoidType) {
       return topInfo.nullableType;
     }
-    if (type is NullType) {
+    // TODO(joshualitt): When we add support to `wasm_builder` for bottom heap
+    // types, we should return bottom heap type here.
+    if (type is NullType || type is NeverType) {
       return topInfo.nullableType;
-    }
-    if (type is NeverType) {
-      return topInfo.nullableType;
-    }
-    if (type is VoidType) {
-      return voidMarker;
     }
     if (type is TypeParameterType) {
       return translateStorageType(type.isPotentiallyNullable
           ? type.bound.withDeclaredNullability(type.nullability)
           : type.bound);
     }
+    if (type is IntersectionType) {
+      return translateStorageType(type.left);
+    }
     if (type is FutureOrType) {
-      return topInfo.nullableType;
+      return topInfo.typeWithNullability(type.isPotentiallyNullable);
     }
     if (type is FunctionType) {
       if (type.requiredParameterCount != type.positionalParameters.length ||
@@ -535,8 +635,7 @@ class Translator {
         throw "Function types with optional parameters not supported: $type";
       }
       return w.RefType.def(closureStructType(type.requiredParameterCount),
-          nullable:
-              !options.parameterNullability || type.isPotentiallyNullable);
+          nullable: type.isPotentiallyNullable);
     }
     throw "Unsupported type ${type.runtimeType}";
   }
@@ -550,39 +649,30 @@ class Translator {
   }
 
   w.ArrayType wasmArrayType(w.StorageType type, String name) {
-    return arrayTypeCache.putIfAbsent(
-        type, () => arrayType("Array<$name>", elementType: w.FieldType(type)));
+    return arrayTypeCache.putIfAbsent(type,
+        () => m.addArrayType("Array<$name>", elementType: w.FieldType(type)));
   }
 
   w.StructType closureStructType(int parameterCount) {
     return functionTypeCache.putIfAbsent(parameterCount, () {
       ClassInfo info = classInfo[functionClass]!;
-      w.StructType struct = structType("Function$parameterCount",
+      w.StructType struct = m.addStructType("Function$parameterCount",
           fields: info.struct.fields, superType: info.struct);
       assert(struct.fields.length == FieldIndex.closureFunction);
       struct.fields.add(w.FieldType(
           w.RefType.def(closureFunctionType(parameterCount), nullable: false),
           mutable: false));
-      if (options.useRttGlobals) {
-        functionTypeRtt[parameterCount] =
-            classInfoCollector.makeRtt(struct, info);
-      }
-      functionTypeParameterCount[struct] = parameterCount;
       return struct;
     });
   }
 
   w.FunctionType closureFunctionType(int parameterCount) {
-    return functionType([
-      w.RefType.data(),
+    return m.addFunctionType([
+      w.RefType.data(nullable: false),
       ...List<w.ValueType>.filled(parameterCount, topInfo.nullableType)
     ], [
       topInfo.nullableType
     ]);
-  }
-
-  int parameterCountForFunctionStruct(w.HeapType heapType) {
-    return functionTypeParameterCount[heapType]!;
   }
 
   w.DefinedGlobal makeFunctionRef(w.BaseFunction f) {
@@ -631,10 +721,6 @@ class Translator {
     });
   }
 
-  w.ValueType typeForLocal(w.ValueType type) {
-    return options.localNullability ? type : type.withNullability(true);
-  }
-
   w.ValueType outputOrVoid(List<w.ValueType> outputs) {
     return outputs.isEmpty ? voidMarker : outputs.single;
   }
@@ -675,7 +761,7 @@ class Translator {
         b.local_set(temp);
         b.i32_const(info.classId);
         b.local_get(temp);
-        struct_new(b, info);
+        b.struct_new(info.struct);
       } else if (from is w.RefType && to is! w.RefType) {
         // Unboxing
         ClassInfo info = classInfo[boxedClasses[to]!]!;
@@ -684,7 +770,7 @@ class Translator {
           if (!from.heapType.isSubtypeOf(w.HeapType.data)) {
             b.ref_as_data();
           }
-          ref_cast(b, info);
+          b.ref_cast(info.struct);
         }
         b.struct_get(info.struct, FieldIndex.boxValue);
       } else if (from.withNullability(false).isSubtypeOf(to)) {
@@ -697,20 +783,33 @@ class Translator {
         }
         var heapType = (to as w.RefType).heapType;
         if (heapType is w.FunctionType) {
-          b.ref_as_func();
-          ref_cast(b, heapType);
+          b.ref_cast(heapType);
           return;
         }
-        ClassInfo? info = classForHeapType[heapType];
+        w.Label? nullLabel = null;
         if (!(from as w.RefType).heapType.isSubtypeOf(w.HeapType.data)) {
+          if (from.nullable && to.nullable) {
+            // Nullable cast from above dataref. Since ref.as_data is not
+            // null-polymorphic, we need to check explicitly for null.
+            w.Local temp = function.addLocal(from);
+            b.local_set(temp);
+            nullLabel = b.block(const [], [to]);
+            w.Label nonNullLabel =
+                b.block(const [], [from.withNullability(false)]);
+            b.local_get(temp);
+            b.br_on_non_null(nonNullLabel);
+            b.ref_null(to.heapType);
+            b.br(nullLabel);
+            b.end(); // nonNullLabel
+          }
           b.ref_as_data();
         }
-        ref_cast(
-            b,
-            info ??
-                (heapType.isSubtypeOf(classInfo[functionClass]!.struct)
-                    ? parameterCountForFunctionStruct(heapType)
-                    : heapType));
+        if (heapType is w.DefType) {
+          b.ref_cast(heapType);
+        }
+        if (nullLabel != null) {
+          b.end(); // nullLabel
+        }
       }
     }
   }
@@ -732,6 +831,34 @@ class Translator {
       return staticParamInfo.putIfAbsent(
           target, () => ParameterInfo.fromMember(target));
     }
+  }
+
+  /// Get the Wasm table declared by [field], or `null` if [field] is not a
+  /// declaration of a Wasm table.
+  ///
+  /// This function participates in tree shaking in the sense that if it's
+  /// never called for a particular table declaration, that table is not added
+  /// to the output module.
+  w.DefinedTable? getTable(Field field) {
+    w.DefinedTable? table = declaredTables[field];
+    if (table != null) return table;
+    DartType fieldType = field.type;
+    if (fieldType is InterfaceType && fieldType.classNode == wasmTableClass) {
+      w.RefType elementType =
+          translateType(fieldType.typeArguments.single) as w.RefType;
+      Expression sizeExp = (field.initializer as ConstructorInvocation)
+          .arguments
+          .positional
+          .single;
+      if (sizeExp is StaticGet && sizeExp.target is Field) {
+        sizeExp = (sizeExp.target as Field).initializer!;
+      }
+      int size = sizeExp is ConstantExpression
+          ? (sizeExp.constant as IntConstant).value
+          : (sizeExp as IntLiteral).value;
+      return declaredTables[field] = m.addTable(elementType, size);
+    }
+    return null;
   }
 
   Member? singleTarget(TreeNode node) {
@@ -772,159 +899,6 @@ class Translator {
     }
     return null;
   }
-
-  // Wrappers for type creation to abstract over equi-recursive versus nominal
-  // typing. The given supertype is ignored when nominal types are disabled,
-  // and a suitable default is inserted when nominal types are enabled.
-
-  w.FunctionType functionType(
-      Iterable<w.ValueType> inputs, Iterable<w.ValueType> outputs,
-      {w.HeapType? superType}) {
-    return m.addFunctionType(inputs, outputs,
-        superType: options.nominalTypes ? superType ?? w.HeapType.func : null);
-  }
-
-  w.StructType structType(String name,
-      {Iterable<w.FieldType>? fields, w.HeapType? superType}) {
-    return m.addStructType(name,
-        fields: fields,
-        superType: options.nominalTypes ? superType ?? w.HeapType.data : null);
-  }
-
-  w.ArrayType arrayType(String name,
-      {w.FieldType? elementType, w.HeapType? superType}) {
-    return m.addArrayType(name,
-        elementType: elementType,
-        superType: options.nominalTypes ? superType ?? w.HeapType.data : null);
-  }
-
-  // Wrappers for object allocation and cast instructions to abstract over
-  // RTT-based and static versions of the instructions.
-  // The [type] parameter taken by the methods is either a [ClassInfo] (to use
-  // the RTT for the class), an [int] (to use the RTT for the closure struct
-  // corresponding to functions with that number of parameters) or a
-  // [w.DefType] (to use the canonical RTT for the type).
-
-  void struct_new(w.Instructions b, Object type) {
-    if (options.runtimeTypes) {
-      final struct = _emitRtt(b, type) as w.StructType;
-      b.struct_new_with_rtt(struct);
-    } else {
-      b.struct_new(_targetType(type) as w.StructType);
-    }
-  }
-
-  void struct_new_default(w.Instructions b, Object type) {
-    if (options.runtimeTypes) {
-      final struct = _emitRtt(b, type) as w.StructType;
-      b.struct_new_default_with_rtt(struct);
-    } else {
-      b.struct_new_default(_targetType(type) as w.StructType);
-    }
-  }
-
-  void array_new(w.Instructions b, w.ArrayType type) {
-    if (options.runtimeTypes) {
-      b.rtt_canon(type);
-      b.array_new_with_rtt(type);
-    } else {
-      b.array_new(type);
-    }
-  }
-
-  void array_new_default(w.Instructions b, w.ArrayType type) {
-    if (options.runtimeTypes) {
-      b.rtt_canon(type);
-      b.array_new_default_with_rtt(type);
-    } else {
-      b.array_new_default(type);
-    }
-  }
-
-  void array_init(w.Instructions b, w.ArrayType type, int length) {
-    if (options.runtimeTypes) {
-      b.rtt_canon(type);
-      b.array_init(type, length);
-    } else {
-      b.array_init_static(type, length);
-    }
-  }
-
-  void array_init_from_data(
-      w.Instructions b, w.ArrayType type, w.DataSegment data) {
-    if (options.runtimeTypes) {
-      b.rtt_canon(type);
-      b.array_init_from_data(type, data);
-    } else {
-      b.array_init_from_data_static(type, data);
-    }
-  }
-
-  void ref_test(w.Instructions b, Object type) {
-    if (options.runtimeTypes) {
-      _emitRtt(b, type);
-      b.ref_test();
-    } else {
-      b.ref_test_static(_targetType(type));
-    }
-  }
-
-  void ref_cast(w.Instructions b, Object type) {
-    if (options.runtimeTypes) {
-      _emitRtt(b, type);
-      b.ref_cast();
-    } else {
-      b.ref_cast_static(_targetType(type));
-    }
-  }
-
-  void br_on_cast(w.Instructions b, w.Label label, Object type) {
-    if (options.runtimeTypes) {
-      _emitRtt(b, type);
-      b.br_on_cast(label);
-    } else {
-      b.br_on_cast_static(label, _targetType(type));
-    }
-  }
-
-  void br_on_cast_fail(w.Instructions b, w.Label label, Object type) {
-    if (options.runtimeTypes) {
-      _emitRtt(b, type);
-      b.br_on_cast_fail(label);
-    } else {
-      b.br_on_cast_static_fail(label, _targetType(type));
-    }
-  }
-
-  w.DefType _emitRtt(w.Instructions b, Object type) {
-    if (type is ClassInfo) {
-      if (options.nominalTypes) {
-        b.rtt_canon(type.struct);
-      } else {
-        b.global_get(type.rtt);
-      }
-      return type.struct;
-    } else if (type is int) {
-      int parameterCount = type;
-      w.StructType struct = closureStructType(parameterCount);
-      if (options.nominalTypes) {
-        b.rtt_canon(struct);
-      } else {
-        w.DefinedGlobal rtt = functionTypeRtt[parameterCount]!;
-        b.global_get(rtt);
-      }
-      return struct;
-    } else {
-      b.rtt_canon(type as w.DefType);
-      return type;
-    }
-  }
-
-  w.DefType _targetType(Object type) => type is ClassInfo
-      ? type.struct
-      : type is int
-          ? closureStructType(type)
-          : type as w.DefType;
 }
 
 class NodeCounter extends Visitor<void> with VisitorVoidMixin {

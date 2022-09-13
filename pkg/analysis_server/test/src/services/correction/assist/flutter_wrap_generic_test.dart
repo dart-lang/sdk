@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
@@ -25,6 +26,34 @@ class FlutterWrapGenericTest extends AssistProcessorTest {
     writeTestPackageConfig(
       flutter: true,
     );
+  }
+
+  Future<void> test_editGroup() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  Widget f() {
+    return Te/*caret*/xt('');
+  }
+}
+''');
+    var expected = '''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  Widget f() {
+    return widget(child: Text(''));
+  }
+}
+''';
+    var assist = await assertHasAssist(expected);
+
+    expect(assist.selection, isNull);
+    expect(assist.selectionLength, isNull);
+
+    var editGroup = assist.linkedEditGroups.first;
+    expect(editGroup.length, 'widget'.length);
+    var pos = editGroup.positions.single;
+    expect(pos.offset, normalizeSource(expected).indexOf('widget('));
   }
 
   Future<void> test_minimal() async {

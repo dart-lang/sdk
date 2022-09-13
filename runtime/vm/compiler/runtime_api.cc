@@ -345,7 +345,9 @@ uword MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
   return dart::UntaggedObject::SizeTag::encode(
              TranslateOffsetInWordsToHost(instance_size)) |
          dart::UntaggedObject::ClassIdTag::encode(cid) |
-         dart::UntaggedObject::NewBit::encode(true);
+         dart::UntaggedObject::NewBit::encode(true) |
+         dart::UntaggedObject::ImmutableBit::encode(
+             IsUnmodifiableTypedDataViewClassId(cid));
 }
 
 word Object::tags_offset() {
@@ -362,6 +364,8 @@ const word UntaggedObject::kOldAndNotRememberedBit =
 
 const word UntaggedObject::kOldAndNotMarkedBit =
     dart::UntaggedObject::kOldAndNotMarkedBit;
+
+const word UntaggedObject::kImmutableBit = dart::UntaggedObject::kImmutableBit;
 
 const word UntaggedObject::kSizeTagPos = dart::UntaggedObject::kSizeTagPos;
 
@@ -457,6 +461,7 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return NativeFinalizer::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
+    case kUnmodifiableByteDataViewCid:
     case kPointerCid:
     case kDynamicLibraryCid:
 #define HANDLE_CASE(clazz) case kFfi##clazz##Cid:
@@ -465,7 +470,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
 #define HANDLE_CASE(clazz)                                                     \
   case kTypedData##clazz##Cid:                                                 \
   case kTypedData##clazz##ViewCid:                                             \
-  case kExternalTypedData##clazz##Cid:
+  case kExternalTypedData##clazz##Cid:                                         \
+  case kUnmodifiableTypedData##clazz##ViewCid:
       CLASS_LIST_TYPED_DATA(HANDLE_CASE)
 #undef HANDLE_CASE
       return handle.target_instance_size();
@@ -547,7 +553,8 @@ word Instance::DataOffsetFor(intptr_t cid) {
 
 word Instance::ElementSizeFor(intptr_t cid) {
   if (dart::IsExternalTypedDataClassId(cid) || dart::IsTypedDataClassId(cid) ||
-      dart::IsTypedDataViewClassId(cid)) {
+      dart::IsTypedDataViewClassId(cid) ||
+      dart::IsUnmodifiableTypedDataViewClassId(cid)) {
     return dart::TypedDataBase::ElementSizeInBytes(cid);
   }
   switch (cid) {

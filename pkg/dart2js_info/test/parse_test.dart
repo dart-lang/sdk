@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('parse', () {
     test('hello_world', () {
       var uri = Platform.script.resolve('hello_world/hello_world.js.info.json');
@@ -20,11 +20,11 @@ main() {
       expect(program, isNotNull);
 
       expect(program!.entrypoint, isNotNull);
-      expect(program.size, 90362);
+      expect(program.size, 90293);
       expect(program.compilationMoment,
-          DateTime.parse("2022-05-26 21:08:43.608041"));
-      expect(program.compilationDuration, Duration(microseconds: 3177312));
-      expect(program.toJsonDuration, Duration(milliseconds: 3));
+          DateTime.parse("2022-07-14 17:35:15.006337"));
+      expect(program.compilationDuration, Duration(microseconds: 1289072));
+      expect(program.toJsonDuration, Duration(milliseconds: 2));
       expect(program.dumpInfoDuration, Duration(seconds: 0));
       expect(program.noSuchMethodEnabled, false);
       expect(program.minified, false);

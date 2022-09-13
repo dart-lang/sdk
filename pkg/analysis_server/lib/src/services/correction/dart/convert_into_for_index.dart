@@ -52,7 +52,7 @@ class ConvertIntoForIndex extends CorrectionProducer {
     {
       var iterableType = iterable.staticType;
       if (iterableType is! InterfaceType ||
-          iterableType.element != typeProvider.listElement) {
+          iterableType.element2 != typeProvider.listElement) {
         return;
       }
     }

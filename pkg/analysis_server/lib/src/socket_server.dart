@@ -5,9 +5,9 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
@@ -17,7 +17,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 
 abstract class AbstractSocketServer {
-  AbstractAnalysisServer? get analysisServer;
+  AnalysisServer? get analysisServer;
 
   AnalysisServerOptions get analysisServerOptions;
 
@@ -47,12 +47,14 @@ class SocketServer implements AbstractSocketServer {
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
 
+  /// An optional manager to handle file systems which may not always be
+  /// available.
   final DetachableFileSystemManager? detachableFileSystemManager;
 
   /// The analysis server that was created when a client established a
   /// connection, or `null` if no such connection has yet been established.
   @override
-  AnalysisServer? analysisServer;
+  LegacyAnalysisServer? analysisServer;
 
   SocketServer(
       this.analysisServerOptions,
@@ -80,7 +82,7 @@ class SocketServer implements AbstractSocketServer {
     var resourceProvider = PhysicalResourceProvider(
         stateLocation: analysisServerOptions.cacheFolder);
 
-    var server = analysisServer = AnalysisServer(
+    var server = analysisServer = LegacyAnalysisServer(
       serverChannel,
       resourceProvider,
       analysisServerOptions,
@@ -91,7 +93,7 @@ class SocketServer implements AbstractSocketServer {
       requestStatistics: requestStatistics,
       diagnosticServer: diagnosticServer,
       detachableFileSystemManager: detachableFileSystemManager,
-      enableBazelWatcher: true,
+      enableBlazeWatcher: true,
     );
     detachableFileSystemManager?.setAnalysisServer(server);
   }

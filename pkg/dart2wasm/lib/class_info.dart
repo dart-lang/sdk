@@ -79,9 +79,6 @@ class ClassInfo {
   /// sometimes use the same struct as its superclass.
   final w.StructType struct;
 
-  /// Wasm global containing the RTT for this class.
-  late final w.DefinedGlobal rtt;
-
   /// The superclass for this class. This will usually be the Dart superclass,
   /// but there are a few exceptions, where the Wasm type hierarchy does not
   /// follow the Dart class hierarchy.
@@ -109,9 +106,6 @@ class ClassInfo {
   ClassInfo(this.cls, this.classId, this.depth, this.struct, this.superInfo,
       ClassInfoCollector collector,
       {this.typeParameterMatch = const {}}) {
-    if (collector.options.useRttGlobals) {
-      rtt = collector.makeRtt(struct, superInfo);
-    }
     implementedBy.add(this);
   }
 
@@ -157,24 +151,8 @@ class ClassInfoCollector {
 
   TranslatorOptions get options => translator.options;
 
-  w.DefinedGlobal makeRtt(w.StructType struct, ClassInfo? superInfo) {
-    assert(options.useRttGlobals);
-    int depth = superInfo != null ? superInfo.depth + 1 : 0;
-    final w.DefinedGlobal rtt =
-        m.addGlobal(w.GlobalType(w.Rtt(struct, depth), mutable: false));
-    final w.Instructions b = rtt.initializer;
-    if (superInfo != null) {
-      b.global_get(superInfo.rtt);
-      b.rtt_sub(struct);
-    } else {
-      b.rtt_canon(struct);
-    }
-    b.end();
-    return rtt;
-  }
-
   void initializeTop() {
-    final w.StructType struct = translator.structType("#Top");
+    final w.StructType struct = m.addStructType("#Top");
     topInfo = ClassInfo(null, nextClassId++, 0, struct, null, this);
     translator.classes.add(topInfo);
     translator.classForHeapType[struct] = topInfo;
@@ -187,7 +165,7 @@ class ClassInfoCollector {
       if (superclass == null) {
         ClassInfo superInfo = topInfo;
         final w.StructType struct =
-            translator.structType(cls.name, superType: superInfo.struct);
+            m.addStructType(cls.name, superType: superInfo.struct);
         info = ClassInfo(
             cls, nextClassId++, superInfo.depth + 1, struct, superInfo, this);
         // Mark Top type as implementing Object to force the representation
@@ -248,7 +226,7 @@ class ClassInfoCollector {
                 cls != translator.byteDataViewClass;
         w.StructType struct = canReuseSuperStruct
             ? superInfo.struct
-            : translator.structType(cls.name, superType: superInfo.struct);
+            : m.addStructType(cls.name, superType: superInfo.struct);
         info = ClassInfo(
             cls, nextClassId++, superInfo.depth + 1, struct, superInfo, this,
             typeParameterMatch: typeParameterMatch);
@@ -304,7 +282,7 @@ class ClassInfoCollector {
         if (field.isInstanceMember) {
           w.ValueType wasmType = translator.translateType(field.type);
           // TODO(askesc): Generalize this check for finer nullability control
-          if (wasmType != w.RefType.data()) {
+          if (wasmType != w.RefType.data(nullable: false)) {
             wasmType = wasmType.withNullability(true);
           }
           translator.fieldIndex[field] = info.struct.fields.length;

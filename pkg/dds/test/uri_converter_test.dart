@@ -34,7 +34,7 @@ void main() {
       dds = await DartDevelopmentService.startDartDevelopmentService(
         remoteVmServiceUri,
         uriConverter: (uri) => uri == 'package:test/has_local.dart'
-            ? 'file:///has_local.dart'
+            ? '/home/has_local.dart'
             : null,
       );
       serviceUri = dds!.wsUri!;
@@ -68,7 +68,7 @@ void main() {
           .lookupResolvedPackageUris(isolate.id!, unresolvedUris, local: true);
 
       expect(result.uris?[0], 'org-dartlang-sdk:///sdk/lib/io/io.dart');
-      expect(result.uris?[1], 'file:///has_local.dart');
+      expect(result.uris?[1], 'file:///home/has_local.dart');
       expect(result.uris?[2], null);
     },
     timeout: Timeout.none,

@@ -247,7 +247,7 @@ class NamedTypeBuilder extends TypeBuilder {
   List<ParameterElementImpl> _formalParameters(FormalParameterList node) {
     return node.parameters.asImpl.map((parameter) {
       return ParameterElementImpl.synthetic(
-        parameter.identifier?.name ?? '',
+        parameter.name?.lexeme ?? '',
         _buildFormalParameterType(parameter),
         parameter.kind,
       );
@@ -319,7 +319,7 @@ class NamedTypeBuilder extends TypeBuilder {
   static List<TypeParameterElement> _typeParameters(TypeParameterList? node) {
     if (node != null) {
       return node.typeParameters
-          .map<TypeParameterElement>((p) => p.declaredElement!)
+          .map<TypeParameterElement>((p) => p.declaredElement2!)
           .toList();
     } else {
       return const <TypeParameterElement>[];

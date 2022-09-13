@@ -6,6 +6,7 @@ import '../common.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_backend/native_data.dart' show NativeBasicData;
@@ -325,8 +326,9 @@ abstract class CommonElements {
 
   T _findClassMember<T extends MemberEntity>(ClassEntity cls, String name,
       {bool setter = false, bool required = true}) {
-    return _env.lookupLocalClassMember(cls, name,
-        setter: setter, required: required) as T;
+    return _env.lookupLocalClassMember(
+        cls, Name(name, cls.library.canonicalUri, isSetter: setter),
+        required: required) as T;
   }
 
   ConstructorEntity _findConstructor(ClassEntity cls, String name,
@@ -371,8 +373,10 @@ abstract class CommonElements {
   /// Returns the field that holds the internal name in the implementation class
   /// for `Symbol`.
 
-  FieldEntity get symbolField => _symbolImplementationField ??=
-      _env.lookupLocalClassMember(symbolImplementationClass, '_name',
+  FieldEntity get symbolField =>
+      _symbolImplementationField ??= _env.lookupLocalClassMember(
+          symbolImplementationClass,
+          PrivateName('_name', symbolImplementationClass.library.canonicalUri),
           required: true) as FieldEntity;
 
   InterfaceType get symbolImplementationType =>
@@ -395,10 +399,13 @@ abstract class CommonElements {
   late final ConstructorEntity mapLiteralConstructorEmpty =
       _env.lookupConstructor(mapLiteralClass, '_empty');
   late final FunctionEntity mapLiteralUntypedMaker =
-      _env.lookupLocalClassMember(mapLiteralClass, '_makeLiteral')
+      _env.lookupLocalClassMember(mapLiteralClass,
+              PrivateName('_makeLiteral', mapLiteralClass.library.canonicalUri))
           as FunctionEntity;
-  late final FunctionEntity mapLiteralUntypedEmptyMaker = _env
-      .lookupLocalClassMember(mapLiteralClass, '_makeEmpty') as FunctionEntity;
+  late final FunctionEntity mapLiteralUntypedEmptyMaker =
+      _env.lookupLocalClassMember(mapLiteralClass,
+              PrivateName('_makeEmpty', mapLiteralClass.library.canonicalUri))
+          as FunctionEntity;
 
   late final ClassEntity setLiteralClass =
       _findClass(_env.lookupLibrary(Uris.dart_collection), 'LinkedHashSet')!;
@@ -408,13 +415,17 @@ abstract class CommonElements {
   late final ConstructorEntity setLiteralConstructorEmpty =
       _env.lookupConstructor(setLiteralClass, '_empty');
   late final FunctionEntity setLiteralUntypedMaker =
-      _env.lookupLocalClassMember(setLiteralClass, '_makeLiteral')
+      _env.lookupLocalClassMember(setLiteralClass,
+              PrivateName('_makeLiteral', setLiteralClass.library.canonicalUri))
           as FunctionEntity;
-  late final FunctionEntity setLiteralUntypedEmptyMaker = _env
-      .lookupLocalClassMember(setLiteralClass, '_makeEmpty') as FunctionEntity;
+  late final FunctionEntity setLiteralUntypedEmptyMaker =
+      _env.lookupLocalClassMember(setLiteralClass,
+              PrivateName('_makeEmpty', setLiteralClass.library.canonicalUri))
+          as FunctionEntity;
 
   late final FunctionEntity objectNoSuchMethod = _env.lookupLocalClassMember(
-      objectClass, Identifiers.noSuchMethod_) as FunctionEntity;
+          objectClass, const PublicName(Identifiers.noSuchMethod_))
+      as FunctionEntity;
 
   bool isDefaultNoSuchMethodImplementation(FunctionEntity element) {
     ClassEntity? classElement = element.enclosingClass;
@@ -446,15 +457,16 @@ abstract class CommonElements {
       _findAsyncHelperFunction("_wrapJsFunctionForAsync");
 
   FunctionEntity get yieldStar => _env.lookupLocalClassMember(
-      _findAsyncHelperClass("_IterationMarker"), "yieldStar") as FunctionEntity;
+      _findAsyncHelperClass("_IterationMarker"),
+      const PublicName("yieldStar")) as FunctionEntity;
 
   FunctionEntity get yieldSingle => _env.lookupLocalClassMember(
-          _findAsyncHelperClass("_IterationMarker"), "yieldSingle")
-      as FunctionEntity;
+      _findAsyncHelperClass("_IterationMarker"),
+      const PublicName("yieldSingle")) as FunctionEntity;
 
   FunctionEntity get syncStarUncaughtError => _env.lookupLocalClassMember(
-          _findAsyncHelperClass("_IterationMarker"), "uncaughtError")
-      as FunctionEntity;
+      _findAsyncHelperClass("_IterationMarker"),
+      const PublicName("uncaughtError")) as FunctionEntity;
 
   FunctionEntity get asyncStarHelper =>
       _findAsyncHelperFunction("_asyncStarHelper");
@@ -463,8 +475,8 @@ abstract class CommonElements {
       _findAsyncHelperFunction("_streamOfController");
 
   FunctionEntity get endOfIteration => _env.lookupLocalClassMember(
-          _findAsyncHelperClass("_IterationMarker"), "endOfIteration")
-      as FunctionEntity;
+      _findAsyncHelperClass("_IterationMarker"),
+      const PublicName("endOfIteration")) as FunctionEntity;
 
   ClassEntity get syncStarIterable =>
       _findAsyncHelperClass("_SyncStarIterable");
@@ -1247,17 +1259,16 @@ abstract class ElementEnvironment {
 
   /// Lookup the member [name] in [cls], fail if the class is missing and
   /// [required].
-  MemberEntity? lookupLocalClassMember(ClassEntity cls, String name,
-      {bool setter = false, bool required = false});
+  MemberEntity? lookupLocalClassMember(ClassEntity cls, Name name,
+      {bool required = false});
 
   /// Lookup the member [name] in [cls] and its superclasses.
   ///
   /// Return `null` if the member is not found in the class or any superclass.
-  MemberEntity? lookupClassMember(ClassEntity cls, String name,
-      {bool setter = false}) {
+  MemberEntity? lookupClassMember(ClassEntity cls, Name name) {
     ClassEntity? clsLocal = cls;
     while (clsLocal != null) {
-      final entity = lookupLocalClassMember(clsLocal, name, setter: setter);
+      final entity = lookupLocalClassMember(clsLocal, name);
       if (entity != null) return entity;
 
       clsLocal = getSuperClass(clsLocal);

@@ -70,6 +70,7 @@ abstract class ExpressionVisitor<R> {
   R visitListLiteral(ListLiteral node) => defaultExpression(node);
   R visitSetLiteral(SetLiteral node) => defaultExpression(node);
   R visitMapLiteral(MapLiteral node) => defaultExpression(node);
+  R visitRecordLiteral(RecordLiteral node) => defaultExpression(node);
   R visitAwaitExpression(AwaitExpression node) => defaultExpression(node);
   R visitFunctionExpression(FunctionExpression node) => defaultExpression(node);
   R visitConstantExpression(ConstantExpression node) => defaultExpression(node);
@@ -88,6 +89,8 @@ abstract class ExpressionVisitor<R> {
   R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) =>
       defaultExpression(node);
   R visitTypedefTearOff(TypedefTearOff node) => defaultExpression(node);
+  R visitRecordIndexGet(RecordIndexGet node) => defaultExpression(node);
+  R visitRecordNameGet(RecordNameGet node) => defaultExpression(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -300,6 +303,8 @@ abstract class TreeVisitor<R>
   @override
   R visitMapLiteral(MapLiteral node) => defaultExpression(node);
   @override
+  R visitRecordLiteral(RecordLiteral node) => defaultExpression(node);
+  @override
   R visitAwaitExpression(AwaitExpression node) => defaultExpression(node);
   @override
   R visitFunctionExpression(FunctionExpression node) => defaultExpression(node);
@@ -333,6 +338,10 @@ abstract class TreeVisitor<R>
       defaultExpression(node);
   @override
   R visitTypedefTearOff(TypedefTearOff node) => defaultExpression(node);
+  @override
+  R visitRecordIndexGet(RecordIndexGet node) => defaultExpression(node);
+  @override
+  R visitRecordNameGet(RecordNameGet node) => defaultExpression(node);
 
   // Statements
   @override
@@ -573,6 +582,9 @@ abstract class TreeVisitor1<R, A>
   @override
   R visitMapLiteral(MapLiteral node, A arg) => defaultExpression(node, arg);
   @override
+  R visitRecordLiteral(RecordLiteral node, A arg) =>
+      defaultExpression(node, arg);
+  @override
   R visitAwaitExpression(AwaitExpression node, A arg) =>
       defaultExpression(node, arg);
   @override
@@ -614,6 +626,12 @@ abstract class TreeVisitor1<R, A>
       defaultExpression(node, arg);
   @override
   R visitTypedefTearOff(TypedefTearOff node, A arg) =>
+      defaultExpression(node, arg);
+  @override
+  R visitRecordIndexGet(RecordIndexGet node, A arg) =>
+      defaultExpression(node, arg);
+  @override
+  R visitRecordNameGet(RecordNameGet node, A arg) =>
       defaultExpression(node, arg);
 
   // Statements
@@ -748,6 +766,8 @@ abstract class DartTypeVisitor<R> {
   R visitNeverType(NeverType node) => defaultDartType(node);
   R visitNullType(NullType node) => defaultDartType(node);
   R visitExtensionType(ExtensionType node) => defaultDartType(node);
+  R visitIntersectionType(IntersectionType node) => defaultDartType(node);
+  R visitRecordType(RecordType node) => defaultDartType(node);
 }
 
 abstract class DartTypeVisitor1<R, T> {
@@ -767,6 +787,9 @@ abstract class DartTypeVisitor1<R, T> {
   R visitNeverType(NeverType node, T arg) => defaultDartType(node, arg);
   R visitNullType(NullType node, T arg) => defaultDartType(node, arg);
   R visitExtensionType(ExtensionType node, T arg) => defaultDartType(node, arg);
+  R visitIntersectionType(IntersectionType node, T arg) =>
+      defaultDartType(node, arg);
+  R visitRecordType(RecordType node, T arg) => defaultDartType(node, arg);
 }
 
 /// Visitor for [Constant] nodes.
@@ -791,6 +814,7 @@ abstract class ConstantVisitor<R> {
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitSetConstant(SetConstant node) => defaultConstant(node);
+  R visitRecordConstant(RecordConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   R visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
@@ -824,6 +848,8 @@ abstract class ConstantVisitor1<R, A> {
   R visitMapConstant(MapConstant node, A arg) => defaultConstant(node, arg);
   R visitListConstant(ListConstant node, A arg) => defaultConstant(node, arg);
   R visitSetConstant(SetConstant node, A arg) => defaultConstant(node, arg);
+  R visitRecordConstant(RecordConstant node, A arg) =>
+      defaultConstant(node, arg);
   R visitInstanceConstant(InstanceConstant node, A arg) =>
       defaultConstant(node, arg);
   R visitInstantiationConstant(InstantiationConstant node, A arg) =>
@@ -855,6 +881,7 @@ abstract class _ConstantCallback<R> {
   R visitMapConstant(MapConstant node);
   R visitListConstant(ListConstant node);
   R visitSetConstant(SetConstant node);
+  R visitRecordConstant(RecordConstant node);
   R visitInstanceConstant(InstanceConstant node);
   R visitInstantiationConstant(InstantiationConstant node);
   R visitTypedefTearOffConstant(TypedefTearOffConstant node);
@@ -912,6 +939,10 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 
   @override
   R visitMapConstant(MapConstant node) => _callback.visitMapConstant(node);
+
+  @override
+  R visitRecordConstant(RecordConstant node) =>
+      _callback.visitRecordConstant(node);
 
   @override
   R visitSymbolConstant(SymbolConstant node) =>
@@ -1143,6 +1174,10 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitNullType(NullType node) => defaultDartType(node);
   @override
   R visitExtensionType(ExtensionType node) => defaultDartType(node);
+  @override
+  R visitIntersectionType(IntersectionType node) => defaultDartType(node);
+  @override
+  R visitRecordType(RecordType node) => defaultDartType(node);
 
   // Constants
   @override
@@ -1165,6 +1200,8 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitListConstant(ListConstant node) => defaultConstant(node);
   @override
   R visitSetConstant(SetConstant node) => defaultConstant(node);
+  @override
+  R visitRecordConstant(RecordConstant node) => defaultConstant(node);
   @override
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   @override
@@ -1215,6 +1252,8 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitListConstantReference(ListConstant node) =>
       defaultConstantReference(node);
   R visitSetConstantReference(SetConstant node) =>
+      defaultConstantReference(node);
+  R visitRecordConstantReference(RecordConstant node) =>
       defaultConstantReference(node);
   R visitInstanceConstantReference(InstanceConstant node) =>
       defaultConstantReference(node);
@@ -1357,6 +1396,8 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   R visitListConstantReference(ListConstant node, A arg) =>
       defaultConstantReference(node, arg);
   R visitSetConstantReference(SetConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitRecordConstantReference(RecordConstant node, A arg) =>
       defaultConstantReference(node, arg);
   R visitInstanceConstantReference(InstanceConstant node, A arg) =>
       defaultConstantReference(node, arg);
@@ -2090,6 +2131,12 @@ abstract class ExpressionVisitor1<R, T> {
   R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node, T arg) =>
       defaultExpression(node, arg);
   R visitTypedefTearOff(TypedefTearOff node, T arg) =>
+      defaultExpression(node, arg);
+  R visitRecordIndexGet(RecordIndexGet node, T arg) =>
+      defaultExpression(node, arg);
+  R visitRecordNameGet(RecordNameGet node, T arg) =>
+      defaultExpression(node, arg);
+  R visitRecordLiteral(RecordLiteral node, T arg) =>
       defaultExpression(node, arg);
 }
 

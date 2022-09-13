@@ -26,7 +26,7 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   int unnamedParameterIndex = 0;
   for (var formalParameter in parameters) {
     var key = formalParameter.isNamed
-        ? formalParameter.identifier?.name ?? ''
+        ? formalParameter.name?.lexeme ?? ''
         : unnamedParameterIndex++;
     if (formalParameter.isExplicitlyTyped) {
       result.add(key);
@@ -203,8 +203,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
           Substitution.fromPairs(rawType.typeFormals, inferrer.partialInfer());
     }
 
-    List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo =
-        _isIdentical ? [] : null;
+    List<EqualityInfo<DartType>?>? identicalInfo = _isIdentical ? [] : null;
     var parameterMap = _computeParameterMap(rawType?.parameters ?? const []);
     var deferredFunctionLiterals = _visitArguments(
         parameterMap: parameterMap,
@@ -434,8 +433,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// If the invocation being processed is a call to `identical`, informs flow
   /// analysis about it, so that it can do appropriate promotions.
-  void _recordIdenticalInfo(
-      List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo) {
+  void _recordIdenticalInfo(List<EqualityInfo<DartType>?>? identicalInfo) {
     var flow = resolver.flowAnalysis.flow;
     if (identicalInfo != null) {
       flow?.equalityOperation_end(argumentList.parent as Expression,
@@ -446,7 +444,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// Resolves any function literals that were deferred by [_visitArguments].
   void _resolveDeferredFunctionLiterals(
       {required List<_DeferredParamInfo> deferredFunctionLiterals,
-      List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
+      List<EqualityInfo<DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     var flow = resolver.flowAnalysis.flow;
@@ -481,7 +479,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// returned.
   List<_DeferredParamInfo>? _visitArguments(
       {required Map<Object, ParameterElement> parameterMap,
-      List<EqualityInfo<PromotableElement, DartType>?>? identicalInfo,
+      List<EqualityInfo<DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     assert(whyNotPromotedList.isEmpty);

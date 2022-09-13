@@ -15,18 +15,18 @@ class Class1 {
   /*member: Class1.field1:constant=BoolConstant(false)*/
   final bool field1;
 
-  const Class1({this.field1: false});
+  const Class1({this.field1 = false});
 }
 
 class Class2 {
   /*spec.member: Class2.field2:constant=BoolConstant(true)*/
   final bool field2;
 
-  const Class2({this.field2: false});
+  const Class2({this.field2 = false});
 }
 
 class Class3 {
   final bool field3;
 
-  const Class3({this.field3: false});
+  const Class3({this.field3 = false});
 }

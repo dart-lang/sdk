@@ -18,7 +18,7 @@ class Class1 {
 class Class2 {
   final int field;
 
-  Class2({this.field: 42});
+  Class2({this.field = 42});
 }
 
 void testDefaultValues() {
@@ -59,7 +59,7 @@ expect(expected, actual) {
   if (expected != actual) throw 'Expected $expected, actual $actual';
 }
 
-throws(Function() f, {bool inSoundModeOnly: false}) {
+throws(Function() f, {bool inSoundModeOnly = false}) {
   try {
     f();
   } catch (e) {

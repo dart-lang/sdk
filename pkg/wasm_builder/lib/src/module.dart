@@ -17,6 +17,7 @@ class Module with SerializerMixin {
   final Map<_FunctionTypeKey, FunctionType> functionTypeMap = {};
 
   final List<DefType> defTypes = [];
+  final List<int> recursionGroupSplits = [];
   final List<BaseFunction> functions = [];
   final List<Table> tables = [];
   final List<Memory> memories = [];
@@ -79,7 +80,7 @@ class Module with SerializerMixin {
   /// on the recursion path) are not supported.
   FunctionType addFunctionType(
       Iterable<ValueType> inputs, Iterable<ValueType> outputs,
-      {HeapType? superType}) {
+      {DefType? superType}) {
     final List<ValueType> inputList = List.unmodifiable(inputs);
     final List<ValueType> outputList = List.unmodifiable(outputs);
     final _FunctionTypeKey key = _FunctionTypeKey(inputList, outputList);
@@ -96,7 +97,7 @@ class Module with SerializerMixin {
   /// Fields can be added later, by adding to the [fields] list. This enables
   /// struct types to be recursive.
   StructType addStructType(String name,
-      {Iterable<FieldType>? fields, HeapType? superType}) {
+      {Iterable<FieldType>? fields, DefType? superType}) {
     final type = StructType(name, fields: fields, superType: superType)
       ..index = defTypes.length;
     defTypes.add(type);
@@ -108,11 +109,17 @@ class Module with SerializerMixin {
   /// The element type can be specified later. This enables array types to be
   /// recursive.
   ArrayType addArrayType(String name,
-      {FieldType? elementType, HeapType? superType}) {
+      {FieldType? elementType, DefType? superType}) {
     final type = ArrayType(name, elementType: elementType, superType: superType)
       ..index = defTypes.length;
     defTypes.add(type);
     return type;
+  }
+
+  /// Insert a recursion group split in the list of type definitions. Types can
+  /// only reference other types in the same or earlier recursion groups.
+  void splitRecursionGroup() {
+    recursionGroupSplits.add(defTypes.length);
   }
 
   /// Add a new function to the module with the given function type.
@@ -354,25 +361,21 @@ class DefinedFunction extends BaseFunction
     with SerializerMixin
     implements Serializable {
   /// All local variables defined in the function, including its inputs.
-  final List<Local> locals = [];
+  List<Local> get locals => body.locals;
 
   /// The body of the function.
   late final Instructions body;
 
   DefinedFunction(Module module, super.index, super.type,
       [super.functionName]) {
+    body = Instructions(module, type.outputs);
     for (ValueType paramType in type.inputs) {
-      addLocal(paramType);
+      body.addLocal(paramType, isParameter: true);
     }
-    body = Instructions(module, type.outputs, locals: locals);
   }
 
   /// Add a local variable to the function.
-  Local addLocal(ValueType type) {
-    Local local = Local(locals.length, type);
-    locals.add(local);
-    return local;
-  }
+  Local addLocal(ValueType type) => body.addLocal(type, isParameter: false);
 
   @override
   void serialize(Serializer s) {
@@ -446,7 +449,7 @@ class DefinedTable extends Table {
       : elements = List.filled(minSize, null);
 
   void setElement(int index, BaseFunction function) {
-    assert(type == RefType.func(),
+    assert(type == RefType.func(nullable: true),
         "Elements are only supported for funcref tables");
     elements[index] = function;
   }
@@ -744,9 +747,25 @@ class TypeSection extends Section {
 
   @override
   void serializeContents() {
-    writeUnsigned(module.defTypes.length);
-    for (DefType defType in module.defTypes) {
-      defType.serializeDefinition(this);
+    writeUnsigned(module.recursionGroupSplits.length + 1);
+    int typeIndex = 0;
+    for (int split
+        in module.recursionGroupSplits.followedBy([module.defTypes.length])) {
+      writeByte(0x4F);
+      writeUnsigned(split - typeIndex);
+      for (; typeIndex < split; typeIndex++) {
+        DefType defType = module.defTypes[typeIndex];
+        assert(defType.superType == null || defType.superType!.index < split,
+            "Type '$defType' has a supertype in a later recursion group");
+        assert(
+            defType.constituentTypes
+                .whereType<RefType>()
+                .map((t) => t.heapType)
+                .whereType<DefType>()
+                .every((d) => d.index < split),
+            "Type '$defType' depends on a type in a later recursion group");
+        defType.serializeDefinition(this);
+      }
     }
   }
 }

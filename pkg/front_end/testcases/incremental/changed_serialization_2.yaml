@@ -41,3 +41,4 @@ worlds:
       main.dart: |
         import 'lib.dart';
     expectedLibraryCount: 2
+    advancedInvalidation: outlineChange

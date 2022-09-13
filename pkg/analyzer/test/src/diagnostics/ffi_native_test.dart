@@ -16,6 +16,22 @@ main() {
 
 @reflectiveTest
 class FfiNativeTest extends PubPackageResolutionTest {
+  test_annotation_FfiNative_getters() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+class NativeFieldWrapperClass1 {}
+
+class Paragraph extends NativeFieldWrapperClass1 {
+  @FfiNative<Double Function(Pointer<Void>)>('Paragraph::ideographicBaseline', isLeaf: true)
+  external double get ideographicBaseline;
+
+  @FfiNative<Void Function(Pointer<Void>, Double)>('Paragraph::ideographicBaseline', isLeaf: true)
+  external set ideographicBaseline(double d);
+}
+''', []);
+  }
+
   test_annotation_FfiNative_noArguments() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -50,7 +66,7 @@ external Object doesntMatter(Object);
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 @FfiNative<Int8 Function(Int64)>('DoesntMatter', isLeaf:true)
-external int doesntMatter(int);
+external int doesntMatter(int x);
 ''', []);
   }
 
@@ -87,6 +103,26 @@ external void doesntMatter(Object o);
     ]);
   }
 
+  test_FfiNativeNonFfiParameter() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<IntPtr Function(int)>('doesntmatter')
+external int nonFfiParameter(int v);
+''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 19, 85),
+    ]);
+  }
+
+  test_FfiNativeNonFfiReturnType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<double Function(IntPtr)>('doesntmatter')
+external double nonFfiReturnType(int v);
+''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 19, 92),
+    ]);
+  }
+
   test_FfiNativeTooFewParameters() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -104,6 +140,36 @@ import 'dart:ffi';
 external void doesntMatter(double x);
 ''', [
       error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 19, 95),
+    ]);
+  }
+
+  test_FfiNativeVoidReturn() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<Handle Function(Uint32, Uint32, Handle)>('doesntmatter')
+external void voidReturn(int width, int height, Object outImage);
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 19, 133),
+    ]);
+  }
+
+  test_FfiNativeWrongFfiParameter() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<IntPtr Function(Double)>('doesntmatter')
+external int wrongFfiParameter(int v);
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 19, 90),
+    ]);
+  }
+
+  test_FfiNativeWrongFfiReturnType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<IntPtr Function(IntPtr)>('doesntmatter')
+external double wrongFfiReturnType(int v);
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 19, 94),
     ]);
   }
 }

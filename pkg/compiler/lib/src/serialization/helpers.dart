@@ -142,14 +142,31 @@ class DartTypeNodeWriter
       _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
       _sink.writeInt(index);
       _sink.writeEnum(node.declaredNullability);
-      _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
-          allowNull: true);
+      _sink._writeDartTypeNode(null, functionTypeVariables, allowNull: true);
     } else {
       _sink.writeEnum(DartTypeNodeKind.typeParameterType);
       _sink.writeTypeParameterNode(node.parameter);
       _sink.writeEnum(node.declaredNullability);
-      _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
-          allowNull: true);
+      _sink._writeDartTypeNode(null, functionTypeVariables, allowNull: true);
+    }
+  }
+
+  @override
+  void visitIntersectionType(
+      ir.IntersectionType node, List<ir.TypeParameter> functionTypeVariables) {
+    int index = functionTypeVariables.indexOf(node.left.parameter);
+    if (index != -1) {
+      _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
+      _sink.writeInt(index);
+      _sink.writeEnum(node.declaredNullability);
+      _sink._writeDartTypeNode(node.right, functionTypeVariables,
+          allowNull: false);
+    } else {
+      _sink.writeEnum(DartTypeNodeKind.typeParameterType);
+      _sink.writeTypeParameterNode(node.left.parameter);
+      _sink.writeEnum(node.declaredNullability);
+      _sink._writeDartTypeNode(node.right, functionTypeVariables,
+          allowNull: false);
     }
   }
 

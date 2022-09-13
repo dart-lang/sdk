@@ -180,7 +180,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     {FileSystem? fileSystem,
     required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     required Map<String, String> environmentDefines,
-    bool trackNeededDillLibraries: false,
+    bool trackNeededDillLibraries = false,
     required NnbdMode nnbdMode}) {
   return modular.initializeIncrementalCompiler(
       oldState,

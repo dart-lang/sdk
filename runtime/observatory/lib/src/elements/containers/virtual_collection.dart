@@ -43,7 +43,7 @@ class VirtualCollectionElement extends CustomElement implements Renderable {
 
   factory VirtualCollectionElement(VirtualCollectionCreateCallback create,
       VirtualCollectionUpdateCallback update,
-      {Iterable items: const [],
+      {Iterable items = const [],
       VirtualCollectionHeaderCallback? createHeader,
       VirtualCollectionSearchCallback? search,
       RenderingQueue? queue}) {

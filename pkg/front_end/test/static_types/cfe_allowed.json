@@ -20,8 +20,5 @@
   },
   "pkg/front_end/lib/src/fasta/dill/dill_member_builder.dart": {
     "Dynamic access of 'fileUri'.": 1
-  },
-  "pkg/_fe_analyzer_shared/lib/src/scanner/string_canonicalizer.dart": {
-    "Dynamic invocation of '[]'.": 2
   }
 }

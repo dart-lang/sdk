@@ -8,7 +8,7 @@
 
 type: newworld
 # Set to DDC for compiling modules as outline.
-target: DDC
+target: dartdevc
 modules:
   moduleC:
     moduleC/lib.dart: |
@@ -87,3 +87,4 @@ worlds:
         - Field constB
       package:moduleC/lib.dart:
         - Field constC
+    advancedInvalidation: modulesToLoad

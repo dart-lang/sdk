@@ -386,6 +386,16 @@ class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
                                   bool save_fpu_registers);
 };
 
+class WriteErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  explicit WriteErrorSlowPath(CheckWritableInstr* instruction)
+      : ThrowErrorSlowPathCode(instruction, kWriteErrorRuntimeEntry) {}
+  virtual const char* name() { return "check writable"; }
+
+  virtual void EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                  bool save_fpu_registers);
+};
+
 class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
   explicit LateInitializationErrorSlowPath(Instruction* instruction)
@@ -1008,7 +1018,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
-  friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
+  friend class StoreFieldInstr;          // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
 

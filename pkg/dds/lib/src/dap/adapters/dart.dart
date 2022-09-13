@@ -79,14 +79,14 @@ var _subscribeToOutputStreams = false;
 final _trailingSemicolonPattern = RegExp(r';$');
 
 /// An implementation of [AttachRequestArguments] that includes all fields used
-/// by the base Dart debug adapter.
+/// by the Dart CLI and test debug adapters.
 ///
 /// This class represents the data passed from the client editor to the debug
 /// adapter in attachRequest, which is a request to start debugging an
 /// application.
 ///
-/// Specialised adapters (such as Flutter) will likely have their own versions
-/// of this class.
+/// Specialized adapters (such as Flutter) have their own versions of this
+/// class.
 class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements AttachRequestArguments {
   /// The VM Service URI to attach to.
@@ -114,6 +114,8 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   }) : super(
           name: name,
           cwd: cwd,
+          // env is not supported for Dart attach because we don't spawn a process.
+          env: null,
           restart: restart,
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
@@ -203,8 +205,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.restart,
     required this.name,
     required this.cwd,
-    // TODO(dantup): This can be made required after Flutter DAP is passing it.
-    this.env,
+    required this.env,
     required this.additionalProjectPaths,
     required this.debugSdkLibraries,
     required this.debugExternalPackageLibraries,
@@ -311,7 +312,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// The DDS instance that was started and that [vmService] is connected to.
   ///
   /// `null` if the session is running in noDebug mode of the connection has not
-  /// yet been made.
+  /// yet been made or has been shut down.
   DartDevelopmentService? _dds;
 
   /// The [InitializeRequestArguments] provided by the client in the
@@ -786,8 +787,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await disconnectImpl();
-    await shutdown();
+    await shutdownDebugee();
     sendResponse();
+
+    await shutdown();
   }
 
   /// evaluateRequest is called by the client to evaluate a string expression.
@@ -1227,16 +1230,38 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse(SetExceptionBreakpointsResponseBody());
   }
 
-  /// Shuts down and cleans up.
+  /// Shuts down/detatches from the debugee and cleans up.
   ///
   /// This is called by [disconnectRequest] and [terminateRequest] but may also
   /// be called if the client just disconnects from the server without calling
   /// either.
   ///
   /// This method must tolerate being called multiple times.
-  @mustCallSuper
-  Future<void> shutdown() async {
+  @nonVirtual
+  Future<void> shutdownDebugee() async {
     await _dds?.shutdown();
+    _dds = null;
+  }
+
+  /// Shuts down the debug adapter, including terminating/detatching from the
+  /// debugee if required.
+  @nonVirtual
+  Future<void> shutdown() async {
+    await _waitForPendingOutputEvents();
+    await shutdownDebugee();
+
+    // Delay the shutdown slightly to allow any pending responses (such as the
+    // terminate response) to be sent.
+    //
+    // If we don't wait long enough here, the client may miss events like the
+    // TerminatedEvent. Waiting too long is generally not an issue, as the
+    // client can terminate the process itself once it processes the
+    // TerminatedEvent.
+
+    Future.delayed(
+      Duration(milliseconds: 500),
+      () => super.shutdown(),
+    );
   }
 
   /// [sourceRequest] is called by the client to request source code for a given
@@ -1445,8 +1470,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
 
     await terminateImpl();
-    await shutdown();
+    await shutdownDebugee();
     sendResponse();
+
+    await shutdown();
   }
 
   /// Handles a request from the client for the list of threads.
@@ -1711,7 +1738,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
               ? _converter.convertToRelativePath(path)
               : uri.toString())
           : null;
-      // Because we split on newlines, all items exept the last one need to
+      // Because we split on newlines, all items except the last one need to
       // have their trailing newlines added back.
       final output = i == lines.length - 1 ? line : '$line\n';
       events.add(
@@ -2057,14 +2084,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 }
 
 /// An implementation of [LaunchRequestArguments] that includes all fields used
-/// by the base Dart debug adapter.
+/// by the Dart CLI and test debug adapters.
 ///
 /// This class represents the data passed from the client editor to the debug
 /// adapter in launchRequest, which is a request to start debugging an
 /// application.
 ///
-/// Specialised adapters (such as Flutter) will likely have their own versions
-/// of this class.
+/// Specialized adapters (such as Flutter) have their own versions of this
+/// class.
 class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements LaunchRequestArguments {
   /// If noDebug is true the launch request should launch the program without

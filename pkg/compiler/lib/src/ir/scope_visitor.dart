@@ -118,7 +118,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       assert(node is ir.Procedure || node is ir.Constructor);
       if (!(node is ir.Procedure && node.isRedirectingFactory)) {
         // Skip redirecting factories: they contain invalid expressions only
-        // used to suppport internal CFE modular compilation.
+        // used to support internal CFE modular compilation.
         node.accept(this);
       }
     }
@@ -752,6 +752,12 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitTypeParameterType(ir.TypeParameterType node) {
     _analyzeTypeVariable(node, _currentTypeUsage!);
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
+  EvaluationComplexity visitIntersectionType(ir.IntersectionType node) {
+    _analyzeTypeVariable(node.left, _currentTypeUsage!);
     return const EvaluationComplexity.lazy();
   }
 

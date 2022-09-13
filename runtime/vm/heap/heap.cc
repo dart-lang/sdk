@@ -180,6 +180,11 @@ void Heap::CheckExternalGC(Thread* thread) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   ASSERT(thread->no_callback_scope_depth() == 0);
   ASSERT(!thread->force_growth());
+
+  if (mode_ == Dart_PerformanceMode_Latency) {
+    return;
+  }
+
   if (new_space_.ExternalInWords() >= (4 * new_space_.CapacityInWords())) {
     // Attempt to free some external allocation by a scavenge. (If the total
     // remains above the limit, next external alloc will trigger another.)
@@ -426,6 +431,15 @@ void Heap::NotifyIdle(int64_t deadline) {
   }
 }
 
+Dart_PerformanceMode Heap::SetMode(Dart_PerformanceMode new_mode) {
+  Dart_PerformanceMode old_mode = mode_.exchange(new_mode);
+  if ((old_mode == Dart_PerformanceMode_Latency) &&
+      (new_mode == Dart_PerformanceMode_Default)) {
+    CheckCatchUp(Thread::Current());
+  }
+  return old_mode;
+}
+
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   GCType type,
                                   GCReason reason) {
@@ -562,6 +576,15 @@ void Heap::CollectAllGarbage(GCReason reason, bool compact) {
   CollectOldSpaceGarbage(
       thread, compact ? GCType::kMarkCompact : GCType::kMarkSweep, reason);
   WaitForSweeperTasks(thread);
+}
+
+void Heap::CheckCatchUp(Thread* thread) {
+  ASSERT(thread->CanCollectGarbage());
+  if (old_space()->ReachedHardThreshold()) {
+    CollectGarbage(thread, GCType::kMarkSweep, GCReason::kCatchUp);
+  } else {
+    CheckConcurrentMarking(thread, GCReason::kCatchUp, 0);
+  }
 }
 
 void Heap::CheckConcurrentMarking(Thread* thread,
@@ -859,6 +882,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "idle";
     case GCReason::kDebugging:
       return "debugging";
+    case GCReason::kCatchUp:
+      return "catch-up";
     default:
       UNREACHABLE();
       return "";

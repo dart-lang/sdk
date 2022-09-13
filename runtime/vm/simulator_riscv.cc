@@ -397,7 +397,7 @@ void Simulator::ExecuteNoTrace() {
       CInstr instr(parcel);
       Interpret(instr);
     } else {
-      Instr instr(*reinterpret_cast<uint32_t*>(pc_));
+      Instr instr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_)));
       Interpret(instr);
     }
     instret_++;
@@ -414,7 +414,7 @@ void Simulator::ExecuteTrace() {
       }
       Interpret(instr);
     } else {
-      Instr instr(*reinterpret_cast<uint32_t*>(pc_));
+      Instr instr(LoadUnaligned(reinterpret_cast<uint32_t*>(pc_)));
       if (IsTracingExecution()) {
         Disassembler::Disassemble(pc_, pc_ + instr.length());
       }
@@ -1148,7 +1148,7 @@ void Simulator::InterpretOP_0(Instr instr) {
 }
 
 static intx_t mul(intx_t a, intx_t b) {
-  return a * b;
+  return static_cast<uintx_t>(a) * static_cast<uintx_t>(b);
 }
 
 static intx_t mulh(intx_t a, intx_t b) {
@@ -2618,7 +2618,7 @@ type Simulator::MemoryRead(uintx_t addr, Register base) {
     }
   }
 #endif
-  return *reinterpret_cast<type*>(addr);
+  return LoadUnaligned(reinterpret_cast<type*>(addr));
 }
 
 template <typename type>
@@ -2639,7 +2639,7 @@ void Simulator::MemoryWrite(uintx_t addr, type value, Register base) {
     }
   }
 #endif
-  *reinterpret_cast<type*>(addr) = value;
+  StoreUnaligned(reinterpret_cast<type*>(addr), value);
 }
 
 enum ControlStatusRegister {

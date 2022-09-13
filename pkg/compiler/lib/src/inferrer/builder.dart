@@ -287,8 +287,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       } else {
         type = _types.nullType;
       }
-      _inferrer.setDefaultTypeOfParameter(local, type,
-          isInstanceMember: _analyzedMember.isInstanceMember);
+      _inferrer.setDefaultTypeOfParameter(local, type);
     }
   }
 
@@ -434,10 +433,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
 
       case ir.AsyncMarker.AsyncStar:
         recordReturnType(_types.asyncStarStreamType);
-        break;
-      case ir.AsyncMarker.SyncYielding:
-        failedAt(
-            _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
         break;
     }
     assert(_breaksFor.isEmpty);
@@ -728,6 +723,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       return _types.allocateMap(
           type, node, _analyzedMember, keyTypes, valueTypes);
     });
+  }
+
+  @override
+  TypeInformation visitRecordLiteral(ir.RecordLiteral node) {
+    return defaultExpression(node);
   }
 
   @override
@@ -1477,7 +1477,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
       // We have something like `Uint32List(len)`.
       int length = _findLength(arguments);
       MemberEntity member = _elementMap.elementEnvironment
-          .lookupClassMember(constructor.enclosingClass, '[]');
+          .lookupClassMember(constructor.enclosingClass, Names.INDEX_NAME);
       TypeInformation elementType = _inferrer.returnTypeOfMember(member);
       return _inferrer.concreteTypes.putIfAbsent(
           node,
@@ -2328,6 +2328,11 @@ class TypeInformationConstantVisitor
   }
 
   @override
+  TypeInformation visitRecordConstant(ir.RecordConstant node) {
+    return defaultConstant(node);
+  }
+
+  @override
   TypeInformation visitInstanceConstant(ir.InstanceConstant node) {
     node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
       builder._inferrer.recordTypeOfField(
@@ -2466,7 +2471,7 @@ class LocalState {
   }
 
   LocalState mergeFlow(InferrerEngine inferrer, LocalState other,
-      {bool ignoreAborts: false}) {
+      {bool ignoreAborts = false}) {
     seenReturnOrThrow = false;
     seenBreakOrContinue = false;
 

@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
@@ -109,7 +108,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       // no type
       finished();
     }
@@ -117,7 +116,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       // no type
       finished();
     }
@@ -125,7 +124,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    if (varDecl.name.name == targetName) {
+    if (varDecl.name2.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
     }
@@ -133,7 +132,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -147,7 +146,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -161,7 +160,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var returnType = declaration.functionType?.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -182,17 +181,20 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
-    if (name.name == targetName) {
-      var element = name.staticElement as VariableElement;
-      typeFound = element.type;
+  void declaredLocalVar(
+    Token name,
+    TypeAnnotation? type,
+    LocalVariableElement declaredElement,
+  ) {
+    if (name.lexeme == targetName) {
+      typeFound = declaredElement.type;
       finished();
     }
   }
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var returnType = declaration.returnType;
       if (returnType != null) {
         var type = returnType.type;
@@ -205,8 +207,8 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {
-    if (name.name == targetName) {
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {
+    if (name.lexeme == targetName) {
       // Type provided by the element in computeFull above.
       finished();
     }
@@ -215,7 +217,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
-    if (varDecl.name.name == targetName) {
+    if (varDecl.name2.lexeme == targetName) {
       // Type provided by the element in computeFull above.
       finished();
     }
@@ -247,7 +249,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     }
     for (var targetType in types) {
       var inheritanceDistance = request.featureComputer
-          .inheritanceDistanceFeature(type.element, targetType.element);
+          .inheritanceDistanceFeature(type.element2, targetType.element2);
       for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance.
         if (!method.isStatic) {
@@ -284,11 +286,11 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     var result = <InterfaceType>[];
-    Set<ClassElement> classesSeen = HashSet<ClassElement>();
+    final classesSeen = <InterfaceElement>{};
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element)) {
+      if (!classesSeen.add(nextType.element2)) {
         // Class had already been seen, so ignore this type.
         continue;
       }

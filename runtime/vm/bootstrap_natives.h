@@ -145,7 +145,6 @@ namespace dart {
   V(DateTime_currentTimeMicros, 0)                                             \
   V(DateTime_timeZoneName, 1)                                                  \
   V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
-  V(DateTime_localTimeZoneAdjustmentInSeconds, 0)                              \
   V(AssertionError_throwNew, 3)                                                \
   V(AssertionError_throwNewSource, 4)                                          \
   V(Error_throwWithStackTrace, 2)                                              \
@@ -153,7 +152,7 @@ namespace dart {
   V(TypeError_throwNew, 4)                                                     \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
-  V(Timeline_getNextAsyncId, 0)                                                \
+  V(Timeline_getNextTaskId, 0)                                                 \
   V(Timeline_getTraceClock, 0)                                                 \
   V(Timeline_isDartStreamEnabled, 0)                                           \
   V(Timeline_reportFlowEvent, 5)                                               \
@@ -218,6 +217,21 @@ namespace dart {
   V(TypedDataView_Float64x2ArrayView_new, 4)                                   \
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
+  V(TypedDataView_UnmodifiableByteDataView_new, 4)                             \
+  V(TypedDataView_UnmodifiableInt8ArrayView_new, 4)                            \
+  V(TypedDataView_UnmodifiableUint8ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint8ClampedArrayView_new, 4)                    \
+  V(TypedDataView_UnmodifiableInt16ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint16ArrayView_new, 4)                          \
+  V(TypedDataView_UnmodifiableInt32ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint32ArrayView_new, 4)                          \
+  V(TypedDataView_UnmodifiableInt64ArrayView_new, 4)                           \
+  V(TypedDataView_UnmodifiableUint64ArrayView_new, 4)                          \
+  V(TypedDataView_UnmodifiableFloat32ArrayView_new, 4)                         \
+  V(TypedDataView_UnmodifiableFloat64ArrayView_new, 4)                         \
+  V(TypedDataView_UnmodifiableFloat32x4ArrayView_new, 4)                       \
+  V(TypedDataView_UnmodifiableInt32x4ArrayView_new, 4)                         \
+  V(TypedDataView_UnmodifiableFloat64x2ArrayView_new, 4)                       \
   V(Float32x4_fromDoubles, 4)                                                  \
   V(Float32x4_splat, 1)                                                        \
   V(Float32x4_fromInt32x4Bits, 2)                                              \
@@ -320,6 +334,7 @@ namespace dart {
   V(Internal_unsafeCast, 1)                                                    \
   V(Internal_nativeEffect, 1)                                                  \
   V(Internal_collectAllGarbage, 0)                                             \
+  V(Internal_writeHeapSnapshotToFile, 1)                                       \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_extractTypeArguments, 2)                                          \
@@ -330,6 +345,7 @@ namespace dart {
   V(Internal_writeIntoOneByteString, 3)                                        \
   V(Internal_writeIntoTwoByteString, 3)                                        \
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
+  V(Internal_randomInstructionsOffsetInsideAllocateObjectStub, 0)              \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(Uri_isWindowsPlatform, 0)                                                  \

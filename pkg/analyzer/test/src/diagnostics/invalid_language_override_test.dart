@@ -24,12 +24,12 @@ int i = 0;
     ]);
   }
 
-  test_correct_2_19() async {
+  test_correct_2_190() async {
     await assertErrorsInCode(r'''
-// @dart = 2.19
+// @dart = 2.190
 int i = 0;
 ''', [
-      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 15),
+      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 16),
     ]);
   }
 

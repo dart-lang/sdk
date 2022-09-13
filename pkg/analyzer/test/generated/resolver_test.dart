@@ -74,7 +74,7 @@ class C {
 
     var constructor = findElement.unnamedConstructor('C');
     var x = findElement.localFunction('x');
-    expect(x.enclosingElement, constructor);
+    expect(x.enclosingElement3, constructor);
   }
 }
 

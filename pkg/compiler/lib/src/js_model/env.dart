@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
@@ -19,9 +20,18 @@ import '../js_model/class_type_variable_access.dart';
 import '../ordered_typeset.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
-import 'closure.dart';
-import 'element_map.dart';
-import 'element_map_impl.dart';
+import 'closure.dart'
+    show
+        ClosureClassData,
+        RecordClassData,
+        ClosureFunctionData,
+        ClosureFieldData;
+import 'element_map_interfaces.dart' show JsToElementMap, JsKernelToElementMap;
+import 'element_map_migrated.dart'
+    show
+        ClassDefinition,
+        MemberDefinition,
+        forEachOrderedParameterByFunctionNode;
 import 'elements.dart';
 
 /// Environment for fast lookup of component libraries.
@@ -208,8 +218,7 @@ abstract class JClassEnv {
   /// Return the [MemberEntity] for the member [name] in the class. If [setter]
   /// is `true`, the setter or assignable field corresponding to [name] is
   /// returned.
-  MemberEntity lookupMember(IrToElementMap elementMap, String name,
-      {bool setter = false});
+  MemberEntity lookupMember(IrToElementMap elementMap, Name name);
 
   /// Calls [f] for each member of [cls].
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member));
@@ -235,8 +244,7 @@ class JClassEnvImpl implements JClassEnv {
   @override
   final ir.Class cls;
   final Map<String, ir.Member> _constructorMap;
-  final Map<String, ir.Member> _memberMap;
-  final Map<String, ir.Member> _setterMap;
+  final Map<Name, ir.Member> _memberMap;
   final List<ir.Member> _members; // in declaration order.
   @override
   final bool isMixinApplicationWithMembers;
@@ -244,23 +252,20 @@ class JClassEnvImpl implements JClassEnv {
   /// Constructor bodies created for this class.
   List<ConstructorBodyEntity> _constructorBodyList;
 
-  JClassEnvImpl(this.cls, this._constructorMap, this._memberMap,
-      this._setterMap, this._members, this.isMixinApplicationWithMembers);
+  JClassEnvImpl(this.cls, this._constructorMap, this._memberMap, this._members,
+      this.isMixinApplicationWithMembers);
 
   factory JClassEnvImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ir.Class cls = source.readClassNode();
     Map<String, ir.Member> constructorMap =
         source.readStringMap(source.readMemberNode);
-    Map<String, ir.Member> memberMap =
-        source.readStringMap(source.readMemberNode);
-    Map<String, ir.Member> setterMap =
-        source.readStringMap(source.readMemberNode);
+    Map<Name, ir.Member> memberMap = source.readNameMap(source.readMemberNode);
     List<ir.Member> members = source.readMemberNodes();
     bool isSuperMixinApplication = source.readBool();
     source.end(tag);
-    return JClassEnvImpl(cls, constructorMap, memberMap, setterMap, members,
-        isSuperMixinApplication);
+    return JClassEnvImpl(
+        cls, constructorMap, memberMap, members, isSuperMixinApplication);
   }
 
   @override
@@ -269,8 +274,7 @@ class JClassEnvImpl implements JClassEnv {
     sink.begin(tag);
     sink.writeClassNode(cls);
     sink.writeStringMap(_constructorMap, sink.writeMemberNode);
-    sink.writeStringMap(_memberMap, sink.writeMemberNode);
-    sink.writeStringMap(_setterMap, sink.writeMemberNode);
+    sink.writeNameMap(_memberMap, sink.writeMemberNode);
     sink.writeMemberNodes(_members);
     sink.writeBool(isMixinApplicationWithMembers);
     sink.end(tag);
@@ -280,9 +284,8 @@ class JClassEnvImpl implements JClassEnv {
   bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
 
   @override
-  MemberEntity lookupMember(IrToElementMap elementMap, String name,
-      {bool setter = false}) {
-    ir.Member member = setter ? _setterMap[name] : _memberMap[name];
+  MemberEntity lookupMember(IrToElementMap elementMap, Name name) {
+    ir.Member member = _memberMap[name];
     return member != null ? elementMap.getMember(member) : null;
   }
 
@@ -323,14 +326,14 @@ class RecordEnv implements JClassEnv {
   /// debugging data stream.
   static const String tag = 'record-env';
 
-  final Map<String, IndexedMember> _memberMap;
+  final Map<Name, IndexedMember> _memberMap;
 
   RecordEnv(this._memberMap);
 
   factory RecordEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Map<String, IndexedMember> _memberMap =
-        source.readStringMap(() => source.readMember());
+    Map<Name, IndexedMember> _memberMap =
+        source.readNameMap(() => source.readMember());
     source.end(tag);
     return RecordEnv(_memberMap);
   }
@@ -339,7 +342,7 @@ class RecordEnv implements JClassEnv {
   void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassEnvKind.record);
     sink.begin(tag);
-    sink.writeStringMap(
+    sink.writeNameMap(
         _memberMap, (IndexedMember member) => sink.writeMember(member));
     sink.end(tag);
   }
@@ -367,8 +370,7 @@ class RecordEnv implements JClassEnv {
   }
 
   @override
-  MemberEntity lookupMember(IrToElementMap elementMap, String name,
-      {bool setter = false}) {
+  MemberEntity lookupMember(IrToElementMap elementMap, Name name) {
     return _memberMap[name];
   }
 
@@ -387,12 +389,12 @@ class ClosureClassEnv extends RecordEnv {
   /// debugging data stream.
   static const String tag = 'closure-class-env';
 
-  ClosureClassEnv(Map<String, MemberEntity> memberMap) : super(memberMap);
+  ClosureClassEnv(Map<Name, MemberEntity> memberMap) : super(memberMap);
 
   factory ClosureClassEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    Map<String, IndexedMember> _memberMap =
-        source.readStringMap(() => source.readMember());
+    Map<Name, IndexedMember> _memberMap =
+        source.readNameMap(() => source.readMember());
     source.end(tag);
     return ClosureClassEnv(_memberMap);
   }
@@ -401,19 +403,9 @@ class ClosureClassEnv extends RecordEnv {
   void writeToDataSink(DataSinkWriter sink) {
     sink.writeEnum(JClassEnvKind.closure);
     sink.begin(tag);
-    sink.writeStringMap(
+    sink.writeNameMap(
         _memberMap, (IndexedMember member) => sink.writeMember(member));
     sink.end(tag);
-  }
-
-  @override
-  MemberEntity lookupMember(IrToElementMap elementMap, String name,
-      {bool setter = false}) {
-    if (setter) {
-      // All closure fields are final.
-      return null;
-    }
-    return super.lookupMember(elementMap, name, setter: setter);
   }
 }
 

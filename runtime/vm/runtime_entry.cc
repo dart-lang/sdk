@@ -144,6 +144,10 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
+DEFINE_RUNTIME_ENTRY(WriteError, 0) {
+  Exceptions::ThrowUnsupportedError("Cannot modify an unmodifiable list");
+}
+
 static void NullErrorHelper(Zone* zone,
                             const String& selector,
                             bool is_param_name = false) {
@@ -352,9 +356,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
                                 Array::kMaxElements);
   }
   if (len > Array::kMaxElements) {
-    const Instance& exception = Instance::Handle(
-        zone, thread->isolate_group()->object_store()->out_of_memory());
-    Exceptions::Throw(thread, exception);
+    Exceptions::ThrowOOM();
   }
 
   const Array& array = Array::Handle(
@@ -428,9 +430,7 @@ DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
   if (len < 0) {
     Exceptions::ThrowRangeError("length", Integer::Cast(length), 0, max);
   } else if (len > max) {
-    const Instance& exception = Instance::Handle(
-        zone, thread->isolate_group()->object_store()->out_of_memory());
-    Exceptions::Throw(thread, exception);
+    Exceptions::ThrowOOM();
   }
   const auto& typed_data =
       TypedData::Handle(zone, TypedData::New(cid, static_cast<intptr_t>(len)));
@@ -737,6 +737,13 @@ DEFINE_RUNTIME_ENTRY(AllocateSuspendState, 2) {
     }
     result = SuspendState::New(frame_size, function_data,
                                SpaceForRuntimeAllocation());
+    if (function_data.GetClassId() ==
+        Class::Handle(zone, object_store->sync_star_iterator_class()).id()) {
+      // Refresh _SyncStarIterator._state with the new SuspendState object.
+      function_data.SetField(
+          Field::Handle(zone, object_store->sync_star_iterator_state()),
+          result);
+    }
   } else {
     result = SuspendState::New(frame_size, Instance::Cast(previous_state),
                                SpaceForRuntimeAllocation());

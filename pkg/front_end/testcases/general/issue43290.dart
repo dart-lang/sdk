@@ -5,7 +5,7 @@
 class Class {
   final int length;
 
-  const Class({this.length: 0});
+  const Class({this.length = 0});
 
   method1a() {
     const Class(length: this.length);

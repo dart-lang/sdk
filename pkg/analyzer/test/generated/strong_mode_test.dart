@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -224,7 +223,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
       return exp;
     }
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
 
     CascadeExpression cascade = fetch(0);
     _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.typeOrThrow);
@@ -370,9 +369,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
     var body = constructor.body as BlockFunctionBody;
     var stmt = body.block.statements[0] as ReturnStatement;
     var exp = stmt.expression as InstanceCreationExpression;
-    ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement!;
-    ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement!;
-    expect(exp.constructorName.type.typeOrThrow.element, elementB);
+    ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement2!;
+    ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement2!;
+    final type = exp.constructorName.type.typeOrThrow as InterfaceType;
+    expect(type.element2, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(elementA.typeParameters[0]
           .instantiate(nullabilitySuffix: NullabilitySuffix.star))
@@ -1118,7 +1118,7 @@ void test() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 347, 2),
     ]);
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     void check(int i) {
@@ -1149,7 +1149,7 @@ void test() {
     ]);
 
     DartType cType = findElement.localVar('c').type;
-    Element elementC = AstFinder.getClass(unit, "C").declaredElement!;
+    Element elementC = AstFinder.getClass(unit, "C").declaredElement2!;
 
     _isInstantiationOf(_hasElement(elementC))([_isDynamic])(cType);
   }
@@ -1426,7 +1426,7 @@ test() {
             as VariableDeclarationStatement)
         .variables
         .variables[0];
-    _isDynamic(h.declaredElement!.type);
+    _isDynamic(h.declaredElement2!.type);
     var fCall = h.initializer as MethodInvocation;
     assertInvokeType(fCall, 'dynamic Function(dynamic Function(dynamic))');
     var g = fCall.argumentList.arguments[0];
@@ -1480,9 +1480,9 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     VariableDeclaration mapB = AstFinder.getFieldInClass(unit, "B", "map");
     MethodDeclaration mapC = AstFinder.getMethodInClass(unit, "C", "map");
-    assertMapOfIntToListOfInt(mapB.declaredElement!.type as InterfaceType);
+    assertMapOfIntToListOfInt(mapB.declaredElement2!.type as InterfaceType);
     assertMapOfIntToListOfInt(
-        mapC.declaredElement!.returnType as InterfaceType);
+        mapC.declaredElement2!.returnType as InterfaceType);
 
     var mapLiteralB = mapB.initializer as SetOrMapLiteral;
     var mapLiteralC =
@@ -1667,12 +1667,12 @@ num test(Iterable values) => values.fold(values.first as num, max);
     void hasType(Asserter<DartType> assertion, Expression exp) =>
         assertion(exp.typeOrThrow);
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
-    Element elementC = AstFinder.getClass(unit, "C").declaredElement!;
-    Element elementD = AstFinder.getClass(unit, "D").declaredElement!;
-    Element elementE = AstFinder.getClass(unit, "E").declaredElement!;
-    Element elementF = AstFinder.getClass(unit, "F").declaredElement!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
+    Element elementC = AstFinder.getClass(unit, "C").declaredElement2!;
+    Element elementD = AstFinder.getClass(unit, "D").declaredElement2!;
+    Element elementE = AstFinder.getClass(unit, "E").declaredElement2!;
+    Element elementF = AstFinder.getClass(unit, "F").declaredElement2!;
 
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf =
         _isInstantiationOf(_hasElement(elementA));
@@ -2178,7 +2178,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
 
     _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
   }
@@ -2200,7 +2200,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
 
     _isInstantiationOf(_hasElement(elementB))([_isNum])(type);
   }
@@ -2225,7 +2225,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
 
     _isInstantiationOf(_hasElement(elementB))([_isNull])(type);
   }
@@ -2248,7 +2248,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var body = test.functionExpression.body as ExpressionFunctionBody;
     DartType type = body.expression.typeOrThrow;
 
-    Element elementB = AstFinder.getClass(unit, "B").declaredElement!;
+    Element elementB = AstFinder.getClass(unit, "B").declaredElement2!;
 
     _isInstantiationOf(_hasElement(elementB))([_isInt])(type);
   }
@@ -2274,7 +2274,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
 
     _isInstantiationOf(_hasElement(elementA))([_isObject, _isObject])(type);
   }
@@ -2299,7 +2299,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2325,7 +2325,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2351,7 +2351,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     var functionType = body.expression.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
-    Element elementA = AstFinder.getClass(unit, "A").declaredElement!;
+    Element elementA = AstFinder.getClass(unit, "A").declaredElement2!;
 
     _isInstantiationOf(_hasElement(elementA))([_isNum, _isNum])(type);
   }
@@ -2670,17 +2670,103 @@ void main() {
 
   test_genericFunction() async {
     await assertNoErrorsInCode(r'T f<T>(T x) => null;');
-    expectFunctionType('f', 'T Function<T>(T)', typeFormals: '[T]');
-    SimpleIdentifier f = findNode.simple('f');
-    var e = f.staticElement as FunctionElementImpl;
-    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    assertType(ft, 'String Function(String)');
+
+    final node = findNode.functionDeclaration('f<T>');
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@4
+      staticType: null
+    type: T*
+  name: f
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredElement: T@4
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: SimpleIdentifier
+            token: T
+            staticElement: T@4
+            staticType: null
+          type: T*
+        name: x
+        declaredElement: self::@function::f::@parameter::x
+        declaredElementType: T*
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: NullLiteral
+        literal: null
+        staticType: Null*
+      semicolon: ;
+    declaredElement: self::@function::f
+    staticType: T* Function<T>(T*)*
+  declaredElement: self::@function::f
+  declaredElementType: T* Function<T>(T*)*
+''');
   }
 
   test_genericFunction_bounds() async {
     await assertNoErrorsInCode(r'T f<T extends num>(T x) => null;');
-    expectFunctionType('f', 'T Function<T extends num>(T)',
-        typeFormals: '[T extends num]');
+
+    final node = findNode.functionDeclaration('f<T');
+    assertResolvedNodeText(node, r'''
+FunctionDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@4
+      staticType: null
+    type: T*
+  name: f
+  functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: SimpleIdentifier
+              token: num
+              staticElement: dart:core::@class::num
+              staticType: null
+            type: num*
+          declaredElement: T@4
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: SimpleIdentifier
+            token: T
+            staticElement: T@4
+            staticType: null
+          type: T*
+        name: x
+        declaredElement: self::@function::f::@parameter::x
+        declaredElementType: T*
+      rightParenthesis: )
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: NullLiteral
+        literal: null
+        staticType: Null*
+      semicolon: ;
+    declaredElement: self::@function::f
+    staticType: T* Function<T extends num*>(T*)*
+  declaredElement: self::@function::f
+  declaredElementType: T* Function<T extends num*>(T*)*
+''');
   }
 
   test_genericFunction_parameter() async {
@@ -2698,11 +2784,40 @@ class C<E> {
   static T f<T>(T x) => null;
 }
 ''');
-    expectFunctionType('f', 'T Function<T>(T)', typeFormals: '[T]');
-    SimpleIdentifier f = findNode.simple('f');
-    var e = f.staticElement as MethodElementImpl;
-    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    assertType(ft, 'String Function(String)');
+
+    final node = findNode.methodDeclaration('f<T>');
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@26
+      staticType: null
+    type: T*
+  name: f
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: T
+          staticElement: T@26
+          staticType: null
+        type: T*
+      name: x
+      declaredElement: self::@class::C::@method::f::@parameter::x
+      declaredElementType: T*
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: NullLiteral
+      literal: null
+      staticType: Null*
+    semicolon: ;
+  declaredElement: self::@class::C::@method::f
+  declaredElementType: T* Function<T>(T*)*
+''');
   }
 
   test_genericFunction_typedef() async {
@@ -3201,15 +3316,42 @@ class C {
   T f<T>(T x) => null;
 }
 class D extends C {
-  T f<T>(T x) => null; // from D
+  T f<T>(T y) => null;
 }
 ''');
-    expectFunctionType('f<T>(T x) => null; // from D', 'T Function<T>(T)',
-        typeFormals: '[T]');
-    SimpleIdentifier f = findNode.simple('f<T>(T x) => null; // from D');
-    var e = f.staticElement as MethodElementImpl;
-    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    assertType(ft, 'String Function(String)');
+
+    final node = findNode.methodDeclaration('f<T>(T y)');
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: SimpleIdentifier
+      token: T
+      staticElement: T@61
+      staticType: null
+    type: T*
+  name: f
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: SimpleFormalParameter
+      type: NamedType
+        name: SimpleIdentifier
+          token: T
+          staticElement: T@61
+          staticType: null
+        type: T*
+      name: y
+      declaredElement: self::@class::D::@method::f::@parameter::y
+      declaredElementType: T*
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: NullLiteral
+      literal: null
+      staticType: Null*
+    semicolon: ;
+  declaredElement: self::@class::D::@method::f
+  declaredElementType: T* Function<T>(T*)*
+''');
   }
 
   test_genericMethod_override_bounds() async {

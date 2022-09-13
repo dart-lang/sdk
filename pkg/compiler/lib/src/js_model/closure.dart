@@ -987,42 +987,6 @@ class ClosureClassData extends RecordClassData {
   }
 }
 
-class ClosureClassDefinition implements ClassDefinition {
-  /// Tag used for identifying serialized [ClosureClassDefinition] objects in a
-  /// debugging data stream.
-  static const String tag = 'closure-class-definition';
-
-  @override
-  final SourceSpan location;
-
-  ClosureClassDefinition(this.location);
-
-  factory ClosureClassDefinition.readFromDataSource(DataSourceReader source) {
-    source.begin(tag);
-    SourceSpan location = source.readSourceSpan();
-    source.end(tag);
-    return ClosureClassDefinition(location);
-  }
-
-  @override
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(ClassKind.closure);
-    sink.begin(tag);
-    sink.writeSourceSpan(location);
-    sink.end(tag);
-  }
-
-  @override
-  ClassKind get kind => ClassKind.closure;
-
-  @override
-  ir.Node get node =>
-      throw UnsupportedError('ClosureClassDefinition.node for $location');
-
-  @override
-  String toString() => 'ClosureClassDefinition(kind:$kind,location:$location)';
-}
-
 abstract class ClosureMemberData implements JMemberData {
   @override
   final MemberDefinition definition;
@@ -1037,7 +1001,7 @@ abstract class ClosureMemberData implements JMemberData {
   }
 
   @override
-  InterfaceType getMemberThisType(JsToElementMap elementMap) {
+  InterfaceType getMemberThisType(covariant JsToElementMap elementMap) {
     return memberThisType;
   }
 }
@@ -1179,44 +1143,6 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
   @override
   ClassTypeVariableAccess get classTypeVariableAccess =>
       ClassTypeVariableAccess.none;
-}
-
-class RecordContainerDefinition implements ClassDefinition {
-  /// Tag used for identifying serialized [RecordContainerDefinition] objects in
-  /// a debugging data stream.
-  static const String tag = 'record-definition';
-
-  @override
-  final SourceSpan location;
-
-  RecordContainerDefinition(this.location);
-
-  factory RecordContainerDefinition.readFromDataSource(
-      DataSourceReader source) {
-    source.begin(tag);
-    SourceSpan location = source.readSourceSpan();
-    source.end(tag);
-    return RecordContainerDefinition(location);
-  }
-
-  @override
-  void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(ClassKind.record);
-    sink.begin(tag);
-    sink.writeSourceSpan(location);
-    sink.end(tag);
-  }
-
-  @override
-  ClassKind get kind => ClassKind.record;
-
-  @override
-  ir.Node get node =>
-      throw UnsupportedError('RecordContainerDefinition.node for $location');
-
-  @override
-  String toString() =>
-      'RecordContainerDefinition(kind:$kind,location:$location)';
 }
 
 abstract class ClosureRtiNeed {

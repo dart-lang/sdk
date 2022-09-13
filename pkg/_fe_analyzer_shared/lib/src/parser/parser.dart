@@ -58,7 +58,7 @@ class ErrorCollectingListener extends Listener {
 }
 
 List<ParserError> parse(Token tokens,
-    {bool useImplicitCreationExpression: true}) {
+    {bool useImplicitCreationExpression = true}) {
   ErrorCollectingListener listener = new ErrorCollectingListener();
   Parser parser = new Parser(listener,
       useImplicitCreationExpression: useImplicitCreationExpression);

@@ -15,7 +15,7 @@ import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -209,7 +209,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     var inferredTypes = _inferCall(rawType, [S_and_int]);
     var inferredType = inferredTypes[0] as TypeParameterTypeImpl;
-    expect(inferredType.element, S);
+    expect(inferredType.element2, S);
     expect(inferredType.promotedBound, isNull);
   }
 

@@ -108,22 +108,7 @@ dev_dependencies:
     _process?.kill();
     await _process?.exitCode;
     _process = null;
-    int deleteAttempts = 5;
-    while (deleteAttempts >= 0) {
-      deleteAttempts--;
-      try {
-        if (!dir.existsSync()) {
-          return;
-        }
-        dir.deleteSync(recursive: true);
-      } catch (e) {
-        if (deleteAttempts <= 0) {
-          rethrow;
-        }
-        await Future.delayed(Duration(milliseconds: 500));
-        print('Got $e while deleting $dir. Trying again...');
-      }
-    }
+    await deleteDirectory(dir);
   }
 
   Future<ProcessResult> run(
@@ -203,5 +188,24 @@ dev_dependencies:
   File? findFile(String name) {
     var file = File(path.join(dir.path, name));
     return file.existsSync() ? file : null;
+  }
+}
+
+Future<void> deleteDirectory(Directory dir) async {
+  int deleteAttempts = 5;
+  while (deleteAttempts >= 0) {
+    deleteAttempts--;
+    try {
+      if (!dir.existsSync()) {
+        return;
+      }
+      dir.deleteSync(recursive: true);
+    } catch (e) {
+      if (deleteAttempts <= 0) {
+        rethrow;
+      }
+      await Future.delayed(Duration(milliseconds: 500));
+      log.stdout('Got $e while deleting $dir. Trying again...');
+    }
   }
 }

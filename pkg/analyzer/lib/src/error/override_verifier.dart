@@ -23,7 +23,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
 
   /// The current class or mixin.
-  ClassElement? _currentClass;
+  InterfaceElement? _currentClass;
 
   OverrideVerifier(
       this._inheritance, LibraryElement library, this._errorReporter)
@@ -31,14 +31,14 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _currentClass = node.declaredElement;
+    _currentClass = node.declaredElement2;
     super.visitClassDeclaration(node);
     _currentClass = null;
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _currentClass = node.declaredElement;
+    _currentClass = node.declaredElement2;
     super.visitEnumDeclaration(node);
     _currentClass = null;
   }
@@ -46,7 +46,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
-      var fieldElement = field.declaredElement as FieldElement;
+      var fieldElement = field.declaredElement2 as FieldElement;
       if (fieldElement.hasOverride) {
         var getter = fieldElement.getter;
         if (getter != null && _isOverride(getter)) continue;
@@ -54,9 +54,9 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
         var setter = fieldElement.setter;
         if (setter != null && _isOverride(setter)) continue;
 
-        _errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForToken(
           HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
-          field.name,
+          field.name2,
         );
       }
     }
@@ -64,23 +64,23 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var element = node.declaredElement!;
+    var element = node.declaredElement2!;
     if (element.hasOverride && !_isOverride(element)) {
       if (element is MethodElement) {
-        _errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForToken(
           HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
-          node.name,
+          node.name2,
         );
       } else if (element is PropertyAccessorElement) {
         if (element.isGetter) {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForToken(
             HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
-            node.name,
+            node.name2,
           );
         } else {
-          _errorReporter.reportErrorForNode(
+          _errorReporter.reportErrorForToken(
             HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
-            node.name,
+            node.name2,
           );
         }
       }
@@ -89,7 +89,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _currentClass = node.declaredElement;
+    _currentClass = node.declaredElement2;
     super.visitMixinDeclaration(node);
     _currentClass = null;
   }

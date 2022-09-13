@@ -4,5 +4,5 @@
 
 abstract class DelayedActionPerformer {
   bool get hasDelayedActions;
-  void performDelayedActions();
+  void performDelayedActions({required bool allowFurtherDelays});
 }

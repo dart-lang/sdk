@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -54,7 +55,13 @@ mixin TreeWriter {
 
   String? _toString(Object? value) {
     try {
-      if (value is Source) {
+      if (value is DirectiveUri) {
+        if (value is DirectiveUriWithSource) {
+          final sourceStr = _toString(value.source);
+          return 'DirectiveUriWithSource (source=$sourceStr)';
+        }
+        return value.toString();
+      } else if (value is Source) {
         return 'Source (uri="${value.uri}", path="${value.fullName}")';
       } else if (value is ElementAnnotationImpl) {
         var buffer = StringBuffer();

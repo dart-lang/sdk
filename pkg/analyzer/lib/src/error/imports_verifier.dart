@@ -94,7 +94,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
 
   void _recordIfExtensionMember(Element? element) {
     if (element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is ExtensionElement) {
         _recordUsedExtension(enclosingElement);
       }
@@ -165,7 +165,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
     if (_recordPrefixMap(identifier, element)) {
       return;
     }
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (enclosingElement is CompilationUnitElement) {
       _recordUsedElement(element);
     } else if (enclosingElement is ExtensionElement) {
@@ -258,7 +258,7 @@ class ImportsVerifier {
     final importsWithLibraries = <_ImportDirective>[];
     for (Directive directive in node.directives) {
       if (directive is ImportDirective) {
-        var libraryElement = directive.uriElement;
+        var libraryElement = directive.element2?.importedLibrary;
         if (libraryElement == null) {
           continue;
         }
@@ -390,7 +390,7 @@ class ImportsVerifier {
     for (int i = 0; i < length; i++) {
       ImportDirective unusedImport = _unusedImports[i];
       // Check that the imported URI exists and isn't dart:core
-      var importElement = unusedImport.element;
+      var importElement = unusedImport.element2;
       if (importElement != null) {
         var libraryElement = importElement.importedLibrary;
         if (libraryElement == null ||
@@ -579,18 +579,26 @@ class ImportsVerifier {
     if (identifiers == null) {
       return;
     }
+
+    /// When an element is used, it might be converted into a `Member`,
+    /// to apply substitution, or turn it into legacy. But using something
+    /// is purely declaration based.
+    bool hasElement(SimpleIdentifier identifier, Element element) {
+      return identifier.staticElement?.declaration == element.declaration;
+    }
+
     int length = identifiers.length;
     for (int i = 0; i < length; i++) {
-      Identifier identifier = identifiers[i];
+      var identifier = identifiers[i];
       if (element is PropertyAccessorElement) {
         // If the getter or setter of a variable is used, then the variable (the
         // shown name) is used.
-        if (identifier.staticElement == element.variable) {
+        if (hasElement(identifier, element.variable)) {
           identifiers.remove(identifier);
           break;
         }
       } else {
-        if (identifier.staticElement == element) {
+        if (hasElement(identifier, element)) {
           identifiers.remove(identifier);
           break;
         }
@@ -776,7 +784,7 @@ extension on Map<ImportDirective, Namespace> {
   Namespace? computeNamespace(ImportDirective importDirective) {
     var namespace = this[importDirective];
     if (namespace == null) {
-      var importElement = importDirective.element;
+      var importElement = importDirective.element2;
       if (importElement != null) {
         namespace = importElement.namespace;
         this[importDirective] = namespace;

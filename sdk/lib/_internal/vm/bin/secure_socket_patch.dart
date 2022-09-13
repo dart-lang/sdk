@@ -31,9 +31,9 @@ class _SecureSocket extends _Socket implements SecureSocket {
   _SecureSocket(RawSecureSocket raw) : super(raw);
 
   void renegotiate(
-      {bool useSessionCache: true,
-      bool requestClientCertificate: false,
-      bool requireClientCertificate: false}) {}
+      {bool useSessionCache = true,
+      bool requestClientCertificate = false,
+      bool requireClientCertificate = false}) {}
 
   X509Certificate? get peerCertificate {
     if (_raw == null) {
@@ -194,7 +194,7 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 @patch
 class SecurityContext {
   @patch
-  factory SecurityContext({bool withTrustedRoots: false}) {
+  factory SecurityContext({bool withTrustedRoots = false}) {
     return new _SecurityContext(withTrustedRoots);
   }
 

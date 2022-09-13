@@ -11,7 +11,7 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -173,7 +173,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_class_object() {
-    expect(_longestPathToObject(typeProvider.objectType.element), 0);
+    expect(_longestPathToObject(typeProvider.objectType.element2), 0);
   }
 
   void test_class_recursion() {
@@ -344,7 +344,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     expect(_longestPathToObject(M), 3);
   }
 
-  int _longestPathToObject(ClassElement element) {
+  int _longestPathToObject(InterfaceElement element) {
     return InterfaceLeastUpperBoundHelper.computeLongestInheritancePathToObject(
         element);
   }

@@ -38,7 +38,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitClassDeclaration(ClassDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
@@ -48,7 +48,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitConstructorDeclaration(ConstructorDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
@@ -65,12 +65,27 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitExportDirective(ExportDirective node) {
-    return node.element;
+    return node.element2;
+  }
+
+  @override
+  Element? visitFormalParameter(FormalParameter node) {
+    return node.declaredElement;
   }
 
   @override
   Element? visitFunctionDeclaration(FunctionDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
+  }
+
+  @override
+  Element? visitFunctionTypeAlias(FunctionTypeAlias node) {
+    return node.declaredElement2;
+  }
+
+  @override
+  Element? visitGenericTypeAlias(GenericTypeAlias node) {
+    return node.declaredElement2;
   }
 
   @override
@@ -86,24 +101,26 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
       // Constructor Elements
       var returnType = parent.returnType;
       if (identical(returnType, node)) {
-        var name = parent.name;
+        var name = parent.name2;
         if (name != null) {
-          return name.staticElement;
+          return parent.declaredElement2;
         }
         var element = node.staticElement;
         if (element is ClassElement) {
           return element.unnamedConstructor;
         }
+      } else if (parent.name2 == node.endToken) {
+        return parent.declaredElement2;
       }
     } else if (parent is LibraryIdentifier) {
       var grandParent = parent.parent;
       if (grandParent is PartOfDirective) {
-        var element = grandParent.element;
+        var element = grandParent.element2;
         if (element is LibraryElement) {
           return element.definingCompilationUnit;
         }
       } else if (grandParent is LibraryDirective) {
-        return grandParent.element;
+        return grandParent.element2;
       }
     }
     return node.writeOrReadElement;
@@ -111,7 +128,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitImportDirective(ImportDirective node) {
-    return node.element;
+    return node.element2;
   }
 
   @override
@@ -126,12 +143,12 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitLibraryDirective(LibraryDirective node) {
-    return node.element;
+    return node.element2;
   }
 
   @override
   Element? visitMethodDeclaration(MethodDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 
   @override
@@ -141,7 +158,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPartOfDirective(PartOfDirective node) {
-    return node.element;
+    return node.element2;
   }
 
   @override
@@ -161,15 +178,27 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitStringLiteral(StringLiteral node) {
-    var parent = node.parent;
-    if (parent is UriBasedDirective) {
-      return parent.uriElement;
+    final parent = node.parent;
+    if (parent is ExportDirective) {
+      return parent.element2?.exportedLibrary;
+    } else if (parent is ImportDirective) {
+      return parent.element2?.importedLibrary;
+    } else if (parent is PartDirective) {
+      final elementUri = parent.element2?.uri;
+      if (elementUri is DirectiveUriWithUnit) {
+        return elementUri.unit;
+      }
     }
     return null;
   }
 
   @override
+  Element? visitTypeParameter(TypeParameter node) {
+    return node.declaredElement2;
+  }
+
+  @override
   Element? visitVariableDeclaration(VariableDeclaration node) {
-    return node.declaredElement;
+    return node.declaredElement2;
   }
 }

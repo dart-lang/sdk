@@ -97,7 +97,7 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    var enumElement = constructorElement.enclosingElement;
+    var enumElement = constructorElement.enclosingElement3;
     var typeParameters = enumElement.typeParameters;
 
     var typeArgumentList = node.arguments?.typeArguments;
@@ -131,9 +131,11 @@ class TypeArgumentsVerifier {
       bound = substitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
-        _errorReporter.reportErrorForNode(
+        final errorTarget = typeArgumentNodes?[i] ?? node.name2;
+        _errorReporter.reportErrorForOffset(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          typeArgumentNodes?[i] ?? node.name,
+          errorTarget.offset,
+          errorTarget.length,
           [typeArgument, typeParameter.name, bound],
         );
       }
@@ -328,8 +330,8 @@ class TypeArgumentsVerifier {
       typeParameters = alias.element.typeParameters;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
-      elementName = type.element.name;
-      typeParameters = type.element.typeParameters;
+      elementName = type.element2.name;
+      typeParameters = type.element2.typeParameters;
       typeArguments = type.typeArguments;
     } else {
       return;

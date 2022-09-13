@@ -307,7 +307,6 @@ class FunctionNodeHelper {
     kSyncStar = 1,
     kAsync = 2,
     kAsyncStar = 3,
-    kSyncYielding = 4,
   };
 
   explicit FunctionNodeHelper(KernelReaderHelper* helper) {
@@ -493,6 +492,9 @@ class FieldHelper {
     kIsGenericCovariantImpl = 1 << 4,
     kIsLate = 1 << 5,
     kExtensionMember = 1 << 6,
+    kNonNullableByDefault = 1 << 7,
+    kInternalImplementation = 1 << 8,
+    kEnumElement = 1 << 9,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -1541,6 +1543,7 @@ class TypeTranslator {
   void BuildInterfaceType(bool simple);
   void BuildFunctionType(bool simple);
   void BuildTypeParameterType();
+  void BuildIntersectionType();
 
   class TypeParameterScope {
    public:

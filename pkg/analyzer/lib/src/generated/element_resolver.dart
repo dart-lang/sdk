@@ -26,7 +26,7 @@ import 'package:analyzer/src/generated/super_context.dart';
 ///    * An identifier within the declaration of that name should resolve to the
 ///      element being declared.
 ///    * An identifier denoting a prefix should resolve to the element
-///      representing the import that defines the prefix (an [ImportElement]).
+///      representing the import that defines the prefix (an [LibraryImportElement]).
 ///    * An identifier denoting a variable should resolve to the element
 ///      representing the variable (a [VariableElement]).
 ///    * An identifier denoting a parameter should resolve to the element
@@ -56,8 +56,8 @@ import 'package:analyzer/src/generated/super_context.dart';
 ///    specified library does not exist.
 /// 5. Every [ImportDirective] and [ExportDirective] should resolve to the
 ///    element representing the library being specified by the directive unless
-///    the specified library does not exist (an [ImportElement] or
-///    [ExportElement]).
+///    the specified library does not exist (an [LibraryImportElement] or
+///    [LibraryExportElement]).
 /// 6. The identifier representing the prefix in an [ImportDirective] should
 ///    resolve to the element representing the prefix (a [PrefixElement]).
 /// 7. The identifiers in the hide and show combinators in [ImportDirective]s
@@ -111,6 +111,10 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
+  void visitAugmentationImportDirective(AugmentationImportDirectiveImpl node) {
+    _resolveAnnotations(node.metadata);
+  }
+
   void visitClassDeclaration(ClassDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
@@ -124,7 +128,7 @@ class ElementResolver {
   }
 
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorElement element = node.declaredElement!;
+    ConstructorElement element = node.declaredElement2!;
     if (element is ConstructorElementImpl) {
       var redirectedNode = node.redirectedConstructor;
       if (redirectedNode != null) {
@@ -147,7 +151,7 @@ class ElementResolver {
   void visitConstructorFieldInitializer(
       covariant ConstructorFieldInitializerImpl node) {
     var fieldName = node.fieldName;
-    ClassElement enclosingClass = _resolver.enclosingClass!;
+    final enclosingClass = _resolver.enclosingClass!;
     var fieldElement = enclosingClass.getField(fieldName.name);
     fieldName.staticElement = fieldElement;
   }
@@ -188,7 +192,7 @@ class ElementResolver {
   }
 
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element;
+    var exportElement = node.element2;
     if (exportElement != null) {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson) Figure out whether the element can ever be
@@ -240,7 +244,7 @@ class ElementResolver {
         }
       }
     }
-    var importElement = node.element;
+    var importElement = node.element2;
     if (importElement != null) {
       // The element is null when the URI is invalid
       var library = importElement.importedLibrary;
@@ -260,6 +264,10 @@ class ElementResolver {
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
+  }
+
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    _resolveAnnotations(node.metadata);
   }
 
   void visitLibraryDirective(LibraryDirective node) {
@@ -294,7 +302,7 @@ class ElementResolver {
   void visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass == null) {
+    if (enclosingClass is! ClassElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
@@ -328,7 +336,7 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
       covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass == null) {
+    if (enclosingClass is! ClassElement) {
       // TODO(brianwilkerson) Report this error.
       return;
     }
@@ -357,7 +365,7 @@ class ElementResolver {
     } else {
       if (element.isFactory &&
           // Check if we've reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
-          !element.enclosingElement.constructors
+          !element.enclosingElement3.constructors
               .every((constructor) => constructor.isFactory)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, node, [element]);
@@ -477,7 +485,7 @@ class ElementResolver {
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is
   /// returned.
-  static ClassElement? getTypeReference(Expression expression) {
+  static InterfaceElement? getTypeReference(Expression expression) {
     if (expression is Identifier) {
       var element = expression.staticElement;
       if (element is ClassElement) {
@@ -485,7 +493,7 @@ class ElementResolver {
       } else if (element is TypeAliasElement) {
         var aliasedType = element.aliasedType;
         if (aliasedType is InterfaceType) {
-          return aliasedType.element;
+          return aliasedType.element2;
         }
       }
     }

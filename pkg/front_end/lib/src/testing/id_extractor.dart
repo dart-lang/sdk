@@ -99,7 +99,7 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   NodeId? computeDefaultNodeId(TreeNode node,
-      {bool skipNodeWithNoOffset: false}) {
+      {bool skipNodeWithNoOffset = false}) {
     if (skipNodeWithNoOffset && node.fileOffset == TreeNode.noOffset) {
       return null;
     }

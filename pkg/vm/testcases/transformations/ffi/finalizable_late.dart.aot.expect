@@ -1,0 +1,22 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class Foo extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+static method main() → void {
+  late self::Foo foo;
+  foo = block {
+    final self::Foo :expressionValueWrappedFinalizable = new self::Foo::•();
+    _in::reachabilityFence(foo);
+  } =>:expressionValueWrappedFinalizable;
+  core::print(foo);
+  _in::reachabilityFence(foo);
+}

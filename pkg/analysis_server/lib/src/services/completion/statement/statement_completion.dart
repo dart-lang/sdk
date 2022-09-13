@@ -1013,7 +1013,7 @@ class StatementCompletionProcessor {
           var struct = _KeywordConditionBlockStructure(
               catchKeyword,
               catchNode.leftParenthesis!,
-              catchNode.exceptionParameter!,
+              catchNode.exceptionParameter2!,
               catchNode.rightParenthesis!,
               catchNode.body);
           if (sb != null) {
@@ -1126,7 +1126,7 @@ class StatementCompletionProcessor {
         p?.parent?.parent is! Statement;
   }
 
-  bool _isSyntheticExpression(Expression? expr) {
+  bool _isSyntheticExpression(AstNode? expr) {
     return expr is SimpleIdentifier && expr.isSynthetic;
   }
 
@@ -1229,7 +1229,7 @@ class StatementCompletionProcessor {
 class _KeywordConditionBlockStructure {
   final Token keyword;
   final Token leftParenthesis, rightParenthesis;
-  final Expression condition;
+  final AstNode condition;
   final Statement? block;
 
   _KeywordConditionBlockStructure(this.keyword, this.leftParenthesis,

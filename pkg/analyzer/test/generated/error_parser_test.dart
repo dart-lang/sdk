@@ -852,7 +852,7 @@ class Foo {
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.name, 'A');
+    expect(clazz.name2.lexeme, 'A');
   }
 
   void test_expectedToken_semicolonMissingAfterExpression() {
@@ -888,7 +888,7 @@ class Foo {
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.name, 'A');
+    expect(clazz.name2.lexeme, 'A');
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
@@ -2147,7 +2147,7 @@ class Wrong<T> {
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
       expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 6, 1)
     ]);
-    expect(parameter.identifier, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_missingNameForNamedParameter_equals() {
@@ -2159,7 +2159,7 @@ class Wrong<T> {
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
       expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 6, 1)
     ]);
-    expect(parameter.identifier, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_missingNameForNamedParameter_noDefault() {
@@ -2169,7 +2169,7 @@ class Wrong<T> {
     expectNotNullIfNoErrors(parameter);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1)]);
-    expect(parameter.identifier, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_missingNameInLibraryDirective() {

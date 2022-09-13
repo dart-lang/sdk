@@ -14,7 +14,7 @@ Future<void> setClientName(WebSocketVM client, String name) async =>
     await client.invokeRpc('setClientName', {'name': name});
 
 Future<WebSocketVM> createClient(WebSocketVM vm,
-    {String clientName: clientName}) async {
+    {String clientName = clientName}) async {
   final client = WebSocketVM(vm.target);
   await client.load();
   await setClientName(client, clientName);
@@ -24,9 +24,9 @@ Future<WebSocketVM> createClient(WebSocketVM vm,
 Future<void> setRequireApprovalForResume(
   WebSocketVM vm,
   Isolate isolate, {
-  bool pauseOnStart: false,
-  bool pauseOnExit: false,
-  bool pauseOnReload: false,
+  bool pauseOnStart = false,
+  bool pauseOnExit = false,
+  bool pauseOnReload = false,
 }) async {
   int pauseTypeMask = 0;
   if (pauseOnStart) {

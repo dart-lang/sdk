@@ -10,42 +10,35 @@ part of swarmlib;
 // and then doing a large pass to remove functionality that doesn't make sense
 // given the UI layout.
 
-/**
- * Front page of Swarm.
- */
+/// Front page of Swarm.
 // TODO(jacobr): this code now needs a large refactoring.
 // Suggested refactorings:
 //  Move animation specific code into helper classes.
 class FrontView extends CompositeView {
   final Swarm swarm;
 
-  /** View containing all UI anchored to the top of the page. */
+  /// View containing all UI anchored to the top of the page. */
   CompositeView topView;
-  /** View containing all UI anchored to the left side of the page. */
+
+  /// View containing all UI anchored to the left side of the page. */
   CompositeView bottomView;
   HeaderView headerView;
   SliderMenu sliderMenu;
 
-  /**
-   * When the user is viewing a story, the data source for that story is
-   * detached from the section and shown at the bottom of the screen. This keeps
-   * track of that so we can restore it later.
-   */
+  /// When the user is viewing a story, the data source for that story is
+  /// detached from the section and shown at the bottom of the screen. This keeps
+  /// track of that so we can restore it later.
   DataSourceView detachedView;
 
-  /**
-   * Map from section title to the View that shows this section.  This
-   * is populated lazily.
-   */
+  /// Map from section title to the View that shows this section.  This
+  /// is populated lazily.
   StoryContentView storyView;
   bool nextPrevShown;
 
   ConveyorView sections;
 
-  /**
-   * The set of keys that produce a given behavior (going down one story,
-   * navigating to the column to the right, etc).
-   */
+  /// The set of keys that produce a given behavior (going down one story,
+  /// navigating to the column to the right, etc).
   //TODO(jmesserly): we need a key code enumeration
   final Set downKeyPresses;
   final Set upKeyPresses;
@@ -57,22 +50,22 @@ class FrontView extends CompositeView {
   final Set previousPageKeyPresses;
 
   FrontView(this.swarm)
-      : downKeyPresses = new Set.from([74 /*j*/, 40 /*down*/]),
-        upKeyPresses = new Set.from([75 /*k*/, 38 /*up*/]),
-        rightKeyPresses = new Set.from([39 /*right*/, 68 /*d*/, 76 /*l*/]),
-        leftKeyPresses = new Set.from([37 /*left*/, 65 /*a*/, 72 /*h*/]),
-        openKeyPresses = new Set.from([13 /*enter*/, 79 /*o*/]),
-        backKeyPresses = new Set.from([8 /*delete*/, 27 /*escape*/]),
-        nextPageKeyPresses = new Set.from([78 /*n*/]),
-        previousPageKeyPresses = new Set.from([80 /*p*/]),
+      : downKeyPresses = {74 /*j*/, 40 /*down*/},
+        upKeyPresses = {75 /*k*/, 38 /*up*/},
+        rightKeyPresses = {39 /*right*/, 68 /*d*/, 76 /*l*/},
+        leftKeyPresses = {37 /*left*/, 65 /*a*/, 72 /*h*/},
+        openKeyPresses = {13 /*enter*/, 79 /*o*/},
+        backKeyPresses = {8 /*delete*/, 27 /*escape*/},
+        nextPageKeyPresses = {78 /*n*/},
+        previousPageKeyPresses = {80 /*p*/},
         nextPrevShown = false,
         super('front-view fullpage') {
-    topView = new CompositeView('top-view', false, false, false);
+    topView = CompositeView('top-view', false, false, false);
 
-    headerView = new HeaderView(swarm);
+    headerView = HeaderView(swarm);
     topView.addChild(headerView);
 
-    sliderMenu = new SliderMenu(swarm.sections.sectionTitles, (sectionTitle) {
+    sliderMenu = SliderMenu(swarm.sections.sectionTitles, (sectionTitle) {
       swarm.state.moveToNewSection(sectionTitle);
       _onSectionSelected(sectionTitle);
       // Start with no articles selected.
@@ -81,10 +74,10 @@ class FrontView extends CompositeView {
     topView.addChild(sliderMenu);
     addChild(topView);
 
-    bottomView = new CompositeView('bottom-view', false, false, false);
+    bottomView = CompositeView('bottom-view', false, false, false);
     addChild(bottomView);
 
-    sections = new ConveyorView();
+    sections = ConveyorView();
     sections.viewSelected = _onSectionTransitionEnded;
   }
 
@@ -98,6 +91,7 @@ class FrontView extends CompositeView {
     return view;
   }
 
+  @override
   void afterRender(Element node) {
     _createSectionViews();
     attachWatch(swarm.state.currentArticle, (e) {
@@ -116,9 +110,7 @@ class FrontView extends CompositeView {
     }
   }
 
-  /**
-   * Animates back from the story view to the main grid view.
-   */
+  /// Animates back from the story view to the main grid view.
   void _animateToMainView() {
     sliderMenu.removeClass('hidden');
     storyView.addClass('hidden-story');
@@ -156,7 +148,7 @@ class FrontView extends CompositeView {
       removeChild(storyView);
 
       // Create the new story view and place in the frame.
-      storyView = addChild(new StoryContentView(swarm, item));
+      storyView = addChild(StoryContentView(swarm, item));
     } else {
       // We are animating from the main view to the story view.
       // TODO(jmesserly): make this code better
@@ -173,16 +165,16 @@ class FrontView extends CompositeView {
       currentSection.storyMode = true;
 
       // Create the new story view.
-      storyView = new StoryContentView(swarm, item);
-      new Timer(const Duration(milliseconds: 0), () {
+      storyView = StoryContentView(swarm, item);
+      Timer(const Duration(milliseconds: 0), () {
         _animateDataSourceToMinimized();
 
         sliderMenu.addClass('hidden');
         // Make the fancy sliding into the window animation.
-        new Timer(const Duration(milliseconds: 0), () {
+        Timer(const Duration(milliseconds: 0), () {
           storyView.addClass('hidden-story');
           addChild(storyView);
-          new Timer(const Duration(milliseconds: 0), () {
+          Timer(const Duration(milliseconds: 0), () {
             storyView.removeClass('hidden-story');
           });
           headerView.endTransitionToStoryView();
@@ -214,9 +206,7 @@ class FrontView extends CompositeView {
     }
   }
 
-  /**
-   * Called when the animation to switch to a section has completed.
-   */
+  /// Called when the animation to switch to a section has completed.
   void _onSectionTransitionEnded(SectionView selectedView) {
     // Show the section and hide the others.
     for (SectionView view in sections.childViews) {
@@ -230,10 +220,8 @@ class FrontView extends CompositeView {
     }
   }
 
-  /**
-   * Called when the user chooses a section on the SliderMenu.  Hides
-   * all views except the one they want to see.
-   */
+  /// Called when the user chooses a section on the SliderMenu.  Hides
+  /// all views except the one they want to see.
   void _onSectionSelected(String sectionTitle) {
     final section = swarm.sections.findSection(sectionTitle);
     // Find the view for this section.
@@ -246,15 +234,13 @@ class FrontView extends CompositeView {
     }
   }
 
-  /**
-   * Create SectionViews for each Section in the app and add them to the
-   * conveyor. Note that the SectionViews won't actually populate or load data
-   * sources until they are shown in response to [:_onSectionSelected():].
-   */
+  /// Create SectionViews for each Section in the app and add them to the
+  /// conveyor. Note that the SectionViews won't actually populate or load data
+  /// sources until they are shown in response to [:_onSectionSelected():].
   void _createSectionViews() {
     for (final section in swarm.sections) {
-      final viewFactory = new DataSourceViewFactory(swarm);
-      final sectionView = new SectionView(swarm, section, viewFactory);
+      final viewFactory = DataSourceViewFactory(swarm);
+      final sectionView = SectionView(swarm, section, viewFactory);
 
       // TODO(rnystrom): Hack temp. Access node to make sure SectionView has
       // rendered and created scroller. This can go away when event registration
@@ -266,10 +252,8 @@ class FrontView extends CompositeView {
     addChild(sections);
   }
 
-  /**
-   * Controls the logic of how to respond to keypresses and then update the
-   * UI accordingly.
-   */
+  /// Controls the logic of how to respond to keypresses and then update the
+  /// UI accordingly.
   void processKeyEvent(KeyboardEvent e) {
     int code = e.keyCode;
     if (swarm.state.inMainView) {
@@ -313,7 +297,7 @@ class FrontView extends CompositeView {
   }
 }
 
-/** Transitions the app back to the main screen. */
+/// Transitions the app back to the main screen. */
 void _backToMain(SwarmState state) {
   if (state.currentArticle.value != null) {
     state.clearCurrentArticle();
@@ -322,14 +306,16 @@ void _backToMain(SwarmState state) {
   }
 }
 
-/** A back button that sends the user back to the front page. */
+/// A back button that sends the user back to the front page. */
 class SwarmBackButton extends View {
   Swarm swarm;
 
   SwarmBackButton(this.swarm);
 
-  Element render() => new Element.html('<div class="back-arrow button"></div>');
+  @override
+  Element render() => Element.html('<div class="back-arrow button"></div>');
 
+  @override
   void afterRender(Element node) {
     addOnClick((e) {
       _backToMain(swarm.state);
@@ -337,7 +323,7 @@ class SwarmBackButton extends View {
   }
 }
 
-/** Top view constaining the title and standard buttons. */
+/// Top view constaining the title and standard buttons. */
 class HeaderView extends CompositeView {
   // TODO(jacobr): make this value be coupled with the CSS file.
   static const HEIGHT = 80;
@@ -357,7 +343,7 @@ class HeaderView extends CompositeView {
   View _newWindowButton;
 
   HeaderView(this.swarm) : super('header-view') {
-    _backButton = addChild(new SwarmBackButton(swarm));
+    _backButton = addChild(SwarmBackButton(swarm));
     _title = addChild(View.div('app-title', 'Swarm'));
     _configButton = addChild(View.div('config button'));
     _refreshButton = addChild(View.div('refresh button'));
@@ -365,11 +351,12 @@ class HeaderView extends CompositeView {
 
     // TODO(rnystrom): No more web/text mode (it's just text) so get rid of
     // these.
-    _webBackButton = addChild(new WebBackButton());
-    _webForwardButton = addChild(new WebForwardButton());
+    _webBackButton = addChild(WebBackButton());
+    _webForwardButton = addChild(WebForwardButton());
     _newWindowButton = addChild(View.div('new-window-button button'));
   }
 
+  @override
   void afterRender(Element node) {
     // Respond to changes to whether the story is being shown as text or web.
     attachWatch(swarm.state.storyTextMode, (e) {
@@ -383,18 +370,18 @@ class HeaderView extends CompositeView {
     // Wire up the events.
     _configButton.addOnClick((e) {
       // Bring up the config dialog.
-      if (this._configDialog == null) {
+      if (_configDialog == null) {
         // TODO(terry): Cleanup, HeaderView shouldn't be tangled with main view.
-        this._configDialog = new ConfigHintDialog(swarm.frontView, () {
-          swarm.frontView.removeChild(this._configDialog);
-          this._configDialog = null;
+        _configDialog = ConfigHintDialog(swarm.frontView, () {
+          swarm.frontView.removeChild(_configDialog);
+          _configDialog = null;
 
           // TODO: Need to push these to the server on a per-user basis.
           // Update the storage now.
           swarm.sections.refresh();
         });
 
-        swarm.frontView.addChild(this._configDialog);
+        swarm.frontView.addChild(_configDialog);
       }
       // TODO(jimhug): Graceful redirection to reader.
     });
@@ -407,16 +394,16 @@ class HeaderView extends CompositeView {
     // On click of the info button, show Dart info page in new window/tab.
     _infoButton.addOnClick((e) {
       // Bring up the config dialog.
-      if (this._infoDialog == null) {
+      if (_infoDialog == null) {
         // TODO(terry): Cleanup, HeaderView shouldn't be tangled with main view.
-        this._infoDialog = new HelpDialog(swarm.frontView, () {
-          swarm.frontView.removeChild(this._infoDialog);
-          this._infoDialog = null;
+        _infoDialog = HelpDialog(swarm.frontView, () {
+          swarm.frontView.removeChild(_infoDialog);
+          _infoDialog = null;
 
           swarm.sections.refresh();
         });
 
-        swarm.frontView.addChild(this._infoDialog);
+        swarm.frontView.addChild(_infoDialog);
       }
     });
 
@@ -429,10 +416,8 @@ class HeaderView extends CompositeView {
     startTransitionToMainView();
   }
 
-  /**
-   * Refreshes whether or not the buttons specific to the display of a story in
-   * the web perspective are visible.
-   */
+  /// Refreshes whether or not the buttons specific to the display of a story in
+  /// the web perspective are visible.
   void refreshWebStoryButtons() {
     bool webButtonsHidden = true;
 
@@ -467,70 +452,73 @@ class HeaderView extends CompositeView {
   }
 }
 
-/** A back button for the web view of a story that is equivalent to clicking
- * "back" in the browser. */
+/// A back button for the web view of a story that is equivalent to clicking
+/// "back" in the browser. */
 // TODO(rnystrom): We have nearly identical versions of this littered through
 // the sample apps. Should consolidate into one.
 class WebBackButton extends View {
   WebBackButton();
 
+  @override
   Element render() {
-    return new Element.html('<div class="web-back-button button"></div>');
+    return Element.html('<div class="web-back-button button"></div>');
   }
 
+  @override
   void afterRender(Element node) {
     addOnClick((e) {
       back();
     });
   }
 
-  /** Equivalent to [window.history.back] */
+  /// Equivalent to [window.history.back] */
   static void back() {
     window.history.back();
   }
 }
 
-/** A back button for the web view of a story that is equivalent to clicking
- * "forward" in the browser. */
+/// A back button for the web view of a story that is equivalent to clicking
+/// "forward" in the browser. */
 // TODO(rnystrom): We have nearly identical versions of this littered through
 // the sample apps. Should consolidate into one.
 class WebForwardButton extends View {
   WebForwardButton();
 
+  @override
   Element render() {
-    return new Element.html('<div class="web-forward-button button"></div>');
+    return Element.html('<div class="web-forward-button button"></div>');
   }
 
+  @override
   void afterRender(Element node) {
     addOnClick((e) {
       forward();
     });
   }
 
-  /** Equivalent to [window.history.forward] */
+  /// Equivalent to [window.history.forward] */
   static void forward() {
     window.history.forward();
   }
 }
 
-/**
- * A factory that creates a view for data sources.
- */
+/// A factory that creates a view for data sources.
 class DataSourceViewFactory implements ViewFactory<Feed> {
   Swarm swarm;
 
-  DataSourceViewFactory(this.swarm) {}
+  DataSourceViewFactory(this.swarm);
 
-  View newView(Feed data) => new DataSourceView(data, swarm);
+  @override
+  View newView(Feed data) => DataSourceView(data, swarm);
 
+  @override
   int get width => ArticleViewLayout.getSingleton().width;
+  @override
   int get height => null; // Width for this view isn't known.
 }
 
-/**
- * A view for the items from a single data source.
- * Shows a title and a list of items.
- */
+/// A view for the items from a single data source.
+/// Shows a title and a list of items.
 class DataSourceView extends CompositeView {
   // TODO(jacobr): make this value be coupled with the CSS file.
   static const TAB_ONLY_HEIGHT = 34;
@@ -541,12 +529,12 @@ class DataSourceView extends CompositeView {
   DataSourceView(this.source, Swarm swarm) : super('query') {
     // TODO(jacobr): make the title a view or decide it is sane for a subclass
     // of component view to manually add some DOM cruft.
-    node.nodes.add(new Element.html('<h2>${source.title}</h2>'));
+    node.nodes.add(Element.html('<h2>${source.title}</h2>'));
 
     // TODO(jacobr): use named arguments when available.
-    itemsView = addChild(new VariableSizeListView<Article>(
+    itemsView = addChild(VariableSizeListView<Article>(
         source.articles,
-        new ArticleViewFactory(swarm),
+        ArticleViewFactory(swarm),
         true,
         /* scrollable */
         true,
@@ -559,7 +547,7 @@ class DataSourceView extends CompositeView {
         !Device.supportsTouch /* showScrollbar */));
     itemsView.addClass('story-section');
 
-    node.nodes.add(new Element.html('<div class="query-name-shadow"></div>'));
+    node.nodes.add(Element.html('<div class="query-name-shadow"></div>'));
 
     // Clicking the view (i.e. its title area) unmaximizes to show the entire
     // view.
@@ -569,15 +557,17 @@ class DataSourceView extends CompositeView {
   }
 }
 
-/** A button that toggles between states. */
+/// A button that toggles between states. */
 class ToggleButton extends View {
   EventListeners onChanged;
   List<String> states;
 
-  ToggleButton(this.states) : onChanged = new EventListeners();
+  ToggleButton(this.states) : onChanged = EventListeners();
 
-  Element render() => new Element.tag('button');
+  @override
+  Element render() => Element.tag('button');
 
+  @override
   void afterRender(Element node) {
     state = states[0];
     node.onClick.listen((event) {
@@ -587,12 +577,12 @@ class ToggleButton extends View {
 
   String get state {
     final currentState = node.innerHtml;
-    assert(states.indexOf(currentState, 0) >= 0);
+    assert(states.contains(currentState));
     return currentState;
   }
 
-  void set state(String state) {
-    assert(states.indexOf(state, 0) >= 0);
+  set state(String state) {
+    assert(states.contains(state));
     node.innerHtml = state;
     onChanged.fire(null);
   }
@@ -605,18 +595,19 @@ class ToggleButton extends View {
   }
 }
 
-/**
- * A factory that creates a view for generic items.
- */
+/// A factory that creates a view for generic items.
 class ArticleViewFactory implements VariableSizeViewFactory<Article> {
   Swarm swarm;
 
   ArticleViewLayout layout;
   ArticleViewFactory(this.swarm) : layout = ArticleViewLayout.getSingleton();
 
-  View newView(Article item) => new ArticleView(item, swarm, layout);
+  @override
+  View newView(Article item) => ArticleView(item, swarm, layout);
 
+  @override
   int getWidth(Article item) => layout.width;
+  @override
   int getHeight(Article item) => layout.computeHeight(item);
 }
 
@@ -650,16 +641,14 @@ class ArticleViewLayout {
   int width;
   static ArticleViewLayout _singleton;
   ArticleViewLayout()
-      : measureBodyText = new MeasureText(BODY_FONT),
-        measureTitleText = new MeasureText(TITLE_FONT) {
+      : measureBodyText = MeasureText(BODY_FONT),
+        measureTitleText = MeasureText(TITLE_FONT) {
     num screenWidth = window.screen.width;
     width = DESKTOP_WIDTH;
   }
 
   static ArticleViewLayout getSingleton() {
-    if (_singleton == null) {
-      _singleton = new ArticleViewLayout();
-    }
+    _singleton ??= ArticleViewLayout();
     return _singleton;
   }
 
@@ -673,10 +662,8 @@ class ArticleViewLayout {
     return computeLayout(item, null, null).height;
   }
 
-  /**
-   * titleContainer and snippetContainer may be null in which case the size is
-   * computed but no actual layout is performed.
-   */
+  /// titleContainer and snippetContainer may be null in which case the size is
+  /// computed but no actual layout is performed.
   ArticleViewMetrics computeLayout(
       Article item, StringBuffer titleBuffer, StringBuffer snippetBuffer) {
     int titleWidth = width - BODY_MARGIN_LEFT;
@@ -696,13 +683,11 @@ class ArticleViewLayout {
       height = 92;
     }
 
-    return new ArticleViewMetrics(height, titleLines, bodyLines);
+    return ArticleViewMetrics(height, titleLines, bodyLines);
   }
 }
 
-/**
- * A view for a generic item.
- */
+/// A view for a generic item.
 class ArticleView extends View {
   // Set to false to make inspecting the HTML more pleasant...
   static const SAVE_IMAGES = false;
@@ -713,10 +698,11 @@ class ArticleView extends View {
 
   ArticleView(this.item, this.swarm, this.articleLayout);
 
+  @override
   Element render() {
     Element node;
 
-    final byline = item.author.length > 0 ? item.author : item.dataSource.title;
+    final byline = item.author.isNotEmpty ? item.author : item.dataSource.title;
     final date = DateUtils.toRecentTimeString(item.date);
 
     String storyClass = 'story no-thumb';
@@ -727,13 +713,13 @@ class ArticleView extends View {
       thumbnail = '<img src="${item.thumbUrl}"></img>';
     }
 
-    final title = new StringBuffer();
-    final snippet = new StringBuffer();
+    final title = StringBuffer();
+    final snippet = StringBuffer();
 
     // Note: also populates title and snippet elements.
     final metrics = articleLayout.computeLayout(item, title, snippet);
 
-    node = new Element.html('''
+    node = Element.html('''
 <div class="$storyClass">
   $thumbnail
   <div class="title">$title</div>
@@ -751,6 +737,7 @@ class ArticleView extends View {
     return node;
   }
 
+  @override
   void afterRender(Element node) {
     // Select this view's item.
     addOnClick((e) {
@@ -789,10 +776,8 @@ class ArticleView extends View {
     });
   }
 
-  /**
-   * Notify the view to jump to a different area if we are selecting an
-   * article that is currently outside of the visible area.
-   */
+  /// Notify the view to jump to a different area if we are selecting an
+  /// article that is currently outside of the visible area.
   void _updateViewForSelectedArticle() {
     Article selArticle = swarm.state.selectedArticle.value;
     if (swarm.state.hasArticleSelected) {
@@ -818,7 +803,7 @@ class ArticleView extends View {
   String getDataUriForImage(final img) {
     // TODO(hiltonc,jimhug) eval perf of this vs. reusing one canvas element
     final CanvasElement canvas =
-        new CanvasElement(height: img.height, width: img.width);
+        CanvasElement(height: img.height, width: img.width);
 
     final CanvasRenderingContext2D ctx = canvas.getContext("2d");
     ctx.drawImageScaled(img, 0, 0, img.width, img.height);
@@ -826,10 +811,8 @@ class ArticleView extends View {
     return canvas.toDataUrl("image/png");
   }
 
-  /**
-   * Update this view's selected appearance based on the currently selected
-   * Article.
-   */
+  /// Update this view's selected appearance based on the currently selected
+  /// Article.
   void _refreshSelected(curItem) {
     if (curItem.value == item) {
       addClass('sel');
@@ -843,10 +826,8 @@ class ArticleView extends View {
   }
 }
 
-/**
- * An internal view of a story as text. In other words, the article is shown
- * in-place as opposed to as an embedded web-page.
- */
+/// An internal view of a story as text. In other words, the article is shown
+/// in-place as opposed to as an embedded web-page.
 class StoryContentView extends View {
   final Swarm swarm;
   final Article item;
@@ -855,16 +836,18 @@ class StoryContentView extends View {
 
   StoryContentView(this.swarm, this.item);
 
+  @override
   get childViews => [_pagedStory];
 
+  @override
   Element render() {
     final storyContent =
-        new Element.html('<div class="story-content">${item.htmlBody}</div>');
+        Element.html('<div class="story-content">${item.htmlBody}</div>');
     for (Element element in storyContent.querySelectorAll(
         "iframe, script, style, object, embed, frameset, frame")) {
       element.remove();
     }
-    _pagedStory = new PagedContentView(new View.fromNode(storyContent));
+    _pagedStory = PagedContentView(View.fromNode(storyContent));
 
     // Modify all links to open in new windows....
     // TODO(jacobr): would it be better to add an event listener on click that
@@ -874,7 +857,7 @@ class StoryContentView extends View {
     }
 
     final date = DateUtils.toRecentTimeString(item.date);
-    final container = new Element.html('''
+    final container = Element.html('''
       <div class="story-view">
         <div class="story-text-view">
           <div class="story-header">
@@ -906,22 +889,20 @@ class SectionView extends CompositeView {
   final PageState pageState;
 
   SectionView(this.swarm, this.section, this._viewFactory)
-      : loadingText = new View.html('<div class="loading-section"></div>'),
-        pageState = new PageState(),
+      : loadingText = View.html('<div class="loading-section"></div>'),
+        pageState = PageState(),
         super('section-view') {
     addChild(loadingText);
   }
 
-  /**
-   * Hides the loading text, reloads the data sources, and shows them.
-   */
+  /// Hides the loading text, reloads the data sources, and shows them.
   void showSources() {
     loadingText.node.style.display = 'none';
 
     // Lazy initialize the data source view.
     if (dataSourceView == null) {
       // TODO(jacobr): use named arguments when available.
-      dataSourceView = new ListView<Feed>(
+      dataSourceView = ListView<Feed>(
           section.feeds,
           _viewFactory,
           true /* scrollable */,
@@ -936,7 +917,7 @@ class SectionView extends CompositeView {
       dataSourceView.addClass("data-source-view");
       addChild(dataSourceView);
 
-      pageNumberView = addChild(new PageNumberView(pageState));
+      pageNumberView = addChild(PageNumberView(pageState));
 
       node.style.opacity = '1';
     } else {
@@ -949,9 +930,7 @@ class SectionView extends CompositeView {
     dataSourceView.scroller.reconfigure(() {});
   }
 
-  /**
-   * Hides the data sources and shows the loading text.
-   */
+  /// Hides the data sources and shows the loading text.
   void hideSources() {
     if (dataSourceView != null) {
       node.style.opacity = '0.6';
@@ -970,10 +949,8 @@ class SectionView extends CompositeView {
     }
   }
 
-  /**
-   * Find the [DataSourceView] in this SectionView that's displaying the given
-   * [Feed].
-   */
+  /// Find the [DataSourceView] in this SectionView that's displaying the given
+  /// [Feed].
   DataSourceView findView(Feed dataSource) {
     return dataSourceView.getSubview(dataSourceView.findIndex(dataSource));
   }

@@ -63,7 +63,7 @@ class MakeVariableNullable extends CorrectionProducer {
         if (statement is VariableDeclarationStatement) {
           var variableList = statement.variables;
           for (var declaration in variableList.variables) {
-            if (declaration.declaredElement == variable) {
+            if (declaration.declaredElement2 == variable) {
               return variableList;
             }
           }
@@ -118,7 +118,7 @@ class MakeVariableNullable extends CorrectionProducer {
       if (parameter.question != null) {
         return;
       }
-      _variableName = parameter.identifier.name;
+      _variableName = parameter.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
         // Add '?' after `)`.
         builder.addSimpleInsertion(parameter.endToken.end, '?');
@@ -128,7 +128,7 @@ class MakeVariableNullable extends CorrectionProducer {
       if (type == null || !_typeCanBeMadeNullable(type)) {
         return;
       }
-      _variableName = parameter.identifier.name;
+      _variableName = parameter.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleInsertion(type.end, '?');
       });
@@ -141,7 +141,7 @@ class MakeVariableNullable extends CorrectionProducer {
     if (parameter.question != null) {
       return;
     }
-    _variableName = parameter.identifier.name;
+    _variableName = parameter.name.lexeme;
     await builder.addDartFileEdit(file, (builder) {
       // Add '?' after `)`.
       builder.addSimpleInsertion(parameter.endToken.end, '?');
@@ -155,12 +155,12 @@ class MakeVariableNullable extends CorrectionProducer {
       return;
     }
 
-    var identifier = parameter.identifier;
+    var identifier = parameter.name;
     if (identifier == null) {
       return;
     }
 
-    _variableName = identifier.name;
+    _variableName = identifier.lexeme;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(type.end, '?');
     });
@@ -174,7 +174,7 @@ class MakeVariableNullable extends CorrectionProducer {
       if (parameter.question != null) {
         return;
       }
-      _variableName = parameter.identifier.name;
+      _variableName = parameter.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
         // Add '?' after `)`.
         builder.addSimpleInsertion(parameter.endToken.end, '?');
@@ -184,7 +184,7 @@ class MakeVariableNullable extends CorrectionProducer {
       if (type == null || !_typeCanBeMadeNullable(type)) {
         return;
       }
-      _variableName = parameter.identifier.name;
+      _variableName = parameter.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleInsertion(type.end, '?');
       });
@@ -201,7 +201,7 @@ class MakeVariableNullable extends CorrectionProducer {
       return;
     }
 
-    var oldType = parent.declaredElement!.type;
+    var oldType = parent.declaredElement2!.type;
     if (oldType is! InterfaceTypeImpl) {
       return;
     }
@@ -218,10 +218,7 @@ class MakeVariableNullable extends CorrectionProducer {
   }
 
   bool _typeCanBeMadeNullable(TypeAnnotation typeAnnotation) {
-    if (typeSystem.isNullable(typeAnnotation.typeOrThrow)) {
-      return false;
-    }
-    return true;
+    return !typeSystem.isNullable(typeAnnotation.typeOrThrow);
   }
 
   /// Add edits to the [builder] to update the type in the [declarationList] to
@@ -229,7 +226,7 @@ class MakeVariableNullable extends CorrectionProducer {
   Future<void> _updateVariableType(ChangeBuilder builder,
       VariableDeclarationList declarationList, DartType newType) async {
     var variable = declarationList.variables[0];
-    _variableName = variable.name.name;
+    _variableName = variable.name2.lexeme;
     await builder.addDartFileEdit(file, (builder) {
       var keyword = declarationList.keyword;
       if (keyword != null && keyword.type == Keyword.VAR) {

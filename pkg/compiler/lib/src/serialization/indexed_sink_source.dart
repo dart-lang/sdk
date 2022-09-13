@@ -18,8 +18,6 @@ abstract class IndexedSink<E> {
   void write(E value, void writeValue(E value));
 }
 
-const int _defaultStartOffset = 1;
-
 /// Data sink helper that canonicalizes [E?] values using IDs.
 ///
 /// Writes a unique ID in place of previously visited indexable values. This
@@ -39,7 +37,7 @@ class UnorderedIndexedSink<E> implements IndexedSink<E> {
       {Map<E?, int>? cache, int? startOffset})
       : // [cache] slot 1 is pre-allocated to `null`.
         this._cache = cache ?? {null: 1},
-        this._startOffset = startOffset ?? _defaultStartOffset;
+        this._startOffset = startOffset ?? 0;
 
   /// Write a reference to [value] to the data sink.
   ///

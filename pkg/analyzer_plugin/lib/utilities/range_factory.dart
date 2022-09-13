@@ -117,6 +117,11 @@ class RangeFactory {
     return SourceRange(offset, length);
   }
 
+  /// Return a source range that covers the same range as the given [node].
+  SourceRange entity(SyntacticEntity node) {
+    return SourceRange(node.offset, node.length);
+  }
+
   /// Return a source range that covers the same range as the given [error].
   SourceRange error(AnalysisError error) {
     return SourceRange(error.offset, error.length);
@@ -134,6 +139,13 @@ class RangeFactory {
       var nextToken = item.endToken.next;
       if (nextToken?.type == TokenType.COMMA) {
         return startEnd(item, nextToken!);
+      }
+      var owner = list.owner;
+      if (owner is ConstructorDeclaration) {
+        var previousToSeparator = owner.separator?.previous;
+        if (previousToSeparator != null) {
+          return endStart(previousToSeparator, owner.body);
+        }
       }
       return node(item);
     }

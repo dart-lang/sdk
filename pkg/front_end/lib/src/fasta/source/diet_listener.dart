@@ -194,6 +194,12 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleNamedRecordField(Token colon) {
+    debugEvent("NamedRecordField");
+    pop(); // Named record field name.
+  }
+
+  @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
   }
@@ -265,6 +271,28 @@ class DietListener extends StackListenerImpl {
       push("unary-");
     }
     push(token);
+  }
+
+  @override
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    // TODO: Implement record type.
+    debugEvent("RecordType");
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    // TODO: Implement record type named fields.
+    debugEvent("RecordTypeNamedFields");
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    // TODO: Implement record type entry.
+    debugEvent("RecordTypeEntry");
+
+    pop(); // String - name of field - or null.
+    pop(); // Token - start of metadata (@) - or null.
   }
 
   @override
@@ -1184,7 +1212,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage>? context}) {
+      {bool wasHandled = false, List<LocatedMessage>? context}) {
     libraryBuilder.addProblem(message, charOffset, length, uri,
         wasHandled: wasHandled, context: context);
   }

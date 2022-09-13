@@ -838,7 +838,7 @@ class MyClass {}''';
           initializerWriter: () {
             builder.write('null');
           },
-          type: A.declaredElement?.instantiate(
+          type: A.declaredElement2?.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.star,
           ),
@@ -866,7 +866,7 @@ class MyClass {}''';
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration(
           'foo',
-          type: A.declaredElement?.instantiate(
+          type: A.declaredElement2?.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.star,
           ),
@@ -903,7 +903,7 @@ class MyClass {}''';
         builder.writeLocalVariableDeclaration(
           'foo',
           isFinal: true,
-          type: A.declaredElement?.instantiate(
+          type: A.declaredElement2?.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.star,
           ),
@@ -1762,7 +1762,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
 
   Future<ClassElement> _getClassElement(String path, String name) async {
     var result = (await resolveFile(path)).unit;
-    return result.declaredElement!.getType(name)!;
+    return result.declaredElement!.getClass(name)!;
   }
 
   Future<PropertyAccessorElement> _getTopLevelAccessorElement(
@@ -1984,7 +1984,7 @@ class C extends B {}
     var classC = unit.declarations[2] as ClassDeclaration;
     var builder = DartLinkedEditBuilderImpl(MockEditBuilderImpl());
     builder.addSuperTypesAsSuggestions(
-      classC.declaredElement?.instantiate(
+      classC.declaredElement2?.instantiate(
         typeArguments: [],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
@@ -3032,11 +3032,11 @@ class B extends A {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, content);
 
-    ClassElement? targetElement;
+    InterfaceElement? targetElement;
     {
       var unitResult = (await resolveFile(path)).unit;
       if (targetMixinName != null) {
-        targetElement = unitResult.declaredElement!.mixins
+        targetElement = unitResult.declaredElement!.mixins2
             .firstWhere((e) => e.name == targetMixinName);
       } else {
         targetElement = unitResult.declaredElement!.classes

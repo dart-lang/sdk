@@ -47,6 +47,7 @@ enum class GCReason {
   kExternal,     // Dart_NewFinalizableHandle Dart_NewWeakPersistentHandle
   kIdle,         // Dart_NotifyIdle
   kDebugging,    // service request, etc.
+  kCatchUp,      // End of ForceGrowthScope or Dart_PerformanceMode_Latency.
 };
 
 }  // namespace dart

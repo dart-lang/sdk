@@ -273,7 +273,7 @@ packageJSType(String name) {
 /// denote *some* package:js type in our subtyping logic.
 ///
 /// Used only when a concrete PackageJSType is not available i.e. when neither
-/// the object nor the target type is a PackageJSType. Avoids initializating a
+/// the object nor the target type is a PackageJSType. Avoids initializing a
 /// new PackageJSType every time. Note that we don't add it to the set of JS
 /// types, since it's not an actual JS class.
 final _pkgJSTypeForSubtyping = PackageJSType('');
@@ -1156,35 +1156,40 @@ void checkTypeBound(
 }
 
 @notNull
-String typeName(type) => JS('', '''(() => {
-  if ($type === void 0) return "undefined type";
-  if ($type === null) return "null type";
+String typeName(type) {
+  if (JS<bool>('!', '# === void 0', type)) return 'undefined type';
+  if (JS<bool>('!', '# === null', type)) return 'null type';
   // Non-instance types
-  if (${_jsInstanceOf(type, DartType)}) {
-    return $type.toString();
+  if (_jsInstanceOf(type, DartType)) {
+    return JS<String>('!', '#.toString()', type);
   }
 
   // Instance types
-  let tag = $type[$_runtimeType];
-  if (tag === $Type) {
-    let name = $type.name;
-    let args = ${getGenericArgs(type)};
+  var tag = JS('', '#[#]', type, _runtimeType);
+  if (JS<bool>('!', '# === #', tag, Type)) {
+    var name = JS<String>('!', '#.name', type);
+    var args = getGenericArgs(type);
     if (args == null) return name;
 
-    if (${getGenericClass(type)} == ${getGenericClassStatic<JSArray>()}) name = 'List';
+    if (JS<bool>('!', '# == #', getGenericClass(type),
+        getGenericClassStatic<JSArray>())) {
+      name = 'List';
+    }
 
-    let result = name;
-    result += '<';
-    for (let i = 0; i < args.length; ++i) {
+    var result = name + '<';
+    for (var i = 0; i < JS<int>('!', '#.length', args); ++i) {
       if (i > 0) result += ', ';
-      result += $typeName(args[i]);
+      result += typeName(JS('', '#[#]', args, i));
     }
     result += '>';
     return result;
   }
-  if (tag) return "Not a type: " + tag.name;
-  return "JSObject<" + $type.name + ">";
-})()''');
+  // Test the JavaScript "truthiness" of `tag`.
+  if (JS<bool>('!', '!!#', tag)) {
+    return 'Not a type: ' + JS<String>('!', '#.name', tag);
+  }
+  return 'JSObject<' + JS<String>('!', '#.name', type) + '>';
+}
 
 /// Returns true if [ft1] <: [ft2].
 @notNull

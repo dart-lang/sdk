@@ -4,9 +4,11 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
+import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 /// Visitors that implement this interface can be used to visit partially
 /// inferred types, during type inference.
@@ -26,6 +28,8 @@ abstract class LinkingTypeVisitor<R> {
   R visitFunctionTypeBuilder(FunctionTypeBuilder type);
 
   R visitNamedTypeBuilder(NamedTypeBuilder type);
+
+  R visitRecordTypeBuilder(RecordTypeBuilder type);
 }
 
 /// Recursively visits a DartType tree until any visit method returns `false`.
@@ -51,6 +55,14 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
   @override
   bool visitInterfaceType(InterfaceType type) =>
       visitChildren(type.typeArguments);
+
+  @override
+  bool visitRecordType(covariant RecordTypeImpl type) {
+    return visitChildren([
+      ...type.positionalFields.map((field) => field.type),
+      ...type.namedFields.map((field) => field.type),
+    ]);
+  }
 
   @override
   bool visitTypeParameterType(TypeParameterType type) {

@@ -33,13 +33,13 @@ class VariableDeclarationResolver {
         _resolver.errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
           node,
-          [node.name.name],
+          [node.name2.lexeme],
         );
       }
       return;
     }
 
-    var element = node.declaredElement!;
+    var element = node.declaredElement2!;
     var isTopLevel =
         element is FieldElement || element is TopLevelVariableElement;
 
@@ -70,8 +70,13 @@ class VariableDeclarationResolver {
       element.constantInitializer = initializer;
     }
 
-    _resolver.checkForInvalidAssignment(node.name, initializer,
-        whyNotPromoted: whyNotPromoted);
+    _resolver.checkForAssignableExpressionAtType(
+      initializer,
+      initializer.typeOrThrow,
+      element.type,
+      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      whyNotPromoted: whyNotPromoted,
+    );
   }
 
   void _setInferredType(VariableElement element, DartType initializerType) {

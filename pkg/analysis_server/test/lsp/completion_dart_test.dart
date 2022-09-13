@@ -2,11 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analysis_server/src/services/snippets/dart/dart_snippet_producers.dart';
-import 'package:analysis_server/src/services/snippets/dart/flutter_snippet_producers.dart';
+import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
+import 'package:analysis_server/src/services/snippets/dart/do_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget_with_animation.dart';
+import 'package:analysis_server/src/services/snippets/dart/flutter_stateless_widget.dart';
+import 'package:analysis_server/src/services/snippets/dart/for_in_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/for_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/function_declaration.dart';
+import 'package:analysis_server/src/services/snippets/dart/if_else_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/if_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/main_function.dart';
+import 'package:analysis_server/src/services/snippets/dart/switch_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/test_definition.dart';
+import 'package:analysis_server/src/services/snippets/dart/test_group_definition.dart';
+import 'package:analysis_server/src/services/snippets/dart/try_catch_statement.dart';
+import 'package:analysis_server/src/services/snippets/dart/while_statement.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
@@ -21,7 +38,6 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
-    defineReflectiveTests(CompletionWithPreviewNotImportedCompletionsTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionWithoutNullSafetyTest);
@@ -31,12 +47,11 @@ void main() {
 @reflectiveTest
 class CompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
-  CompletionTest({bool previewNotImportedCompletions = false}) {
+  CompletionTest() {
     defaultInitializationOptions = {
-      'previewNotImportedCompletions': previewNotImportedCompletions,
       // Default to a high budget for tests because everything is cold and
       // may take longer to return.
-      'notImportedCompletionBudgetMilliseconds': 50000
+      'completionBudgetMilliseconds': 50000
     };
   }
 
@@ -88,6 +103,41 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     );
   }
 
+  Future<void> test_annotation_beforeMember() async {
+    final content = '''
+class B {
+  @^
+  int a = 1;
+}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(content));
+    final labels = completions.map((c) => c.label).toList();
+    expect(labels, contains('override'));
+    expect(labels, contains('deprecated'));
+    expect(labels, contains('Deprecated(…)'));
+  }
+
+  Future<void> test_annotation_endOfClass() async {
+    final content = '''
+class B {
+  @^
+}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(content));
+    final labels = completions.map((c) => c.label).toList();
+    expect(labels, contains('override'));
+    expect(labels, contains('deprecated'));
+    expect(labels, contains('Deprecated(…)'));
+  }
+
   Future<void> test_comment() async {
     final content = '''
     // foo ^
@@ -124,32 +174,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     expect(res, isEmpty);
   }
 
-  Future<void> test_commitCharacter_completionItem() async {
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'previewCommitCharacters': true},
-    );
-
-    final content = '''
-void f() {
-  pri^
-}
-    ''';
-
-    await openFile(mainFileUri, withoutMarkers(content));
-    final res = await getCompletion(mainFileUri, positionFromMarker(content));
-
-    final print = res.singleWhere((c) => c.label == 'print(…)');
-    expect(print.commitCharacters, equals(dartCompletionCommitCharacters));
-  }
-
-  Future<void> test_commitCharacter_config() async {
+  Future<void> test_commitCharacter_dynamicRegistration() async {
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
     // initialization.
@@ -758,6 +783,27 @@ final a = Stri^
 
     await expectLater(
         request, throwsA(isResponseError(ErrorCodes.InvalidParams)));
+  }
+
+  Future<void> test_concurrentRequestsCancellation() async {
+    // We expect a new completion request to cancel any in-flight request so
+    // send multiple without awaiting, then check only the last one completes.
+    final content = '^';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final position = positionFromMarker(content);
+    final responseFutures = [
+      getCompletion(mainFileUri, position),
+      getCompletion(mainFileUri, position),
+      getCompletion(mainFileUri, position),
+    ];
+    expect(responseFutures[0],
+        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+    expect(responseFutures[1],
+        throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+    final results = await responseFutures[2];
+    expect(results, isNotEmpty);
   }
 
   Future<void> test_filterTextNotIncludeAdditionalText() async {
@@ -2305,7 +2351,7 @@ void f() {
         initializationOptions: {
           ...?defaultInitializationOptions,
           // Set budget high to ensure it completes.
-          'notImportedCompletionBudgetMilliseconds': 100000,
+          'completionBudgetMilliseconds': 100000,
         },
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -2319,6 +2365,11 @@ void f() {
   }
 
   Future<void> test_unimportedSymbols_isIncompleteSetIfBudgetExhausted() async {
+    newFile(
+      join(projectFolderPath, 'lib', 'other_file.dart'),
+      'class InOtherFile {}',
+    );
+
     final content = '''
 void f() {
   InOtherF^
@@ -2330,7 +2381,7 @@ void f() {
         initializationOptions: {
           ...?defaultInitializationOptions,
           // Set budget low to ensure we don't complete.
-          'notImportedCompletionBudgetMilliseconds': 0,
+          'completionBudgetMilliseconds': 0,
         },
         workspaceCapabilities:
             withApplyEditSupport(emptyWorkspaceClientCapabilities));
@@ -2340,7 +2391,8 @@ void f() {
         await getCompletionList(mainFileUri, positionFromMarker(content));
 
     // Ensure we flagged that we did not return everything.
-    expect(res.isIncomplete, isFalse);
+    expect(res.items, hasLength(0));
+    expect(res.isIncomplete, isTrue);
   }
 
   /// This test reproduces a bug where the pathKey hash used in
@@ -2656,12 +2708,6 @@ $lintsYaml
 }
 
 @reflectiveTest
-class CompletionWithPreviewNotImportedCompletionsTest extends CompletionTest {
-  CompletionWithPreviewNotImportedCompletionsTest()
-      : super(previewNotImportedCompletions: true);
-}
-
-@reflectiveTest
 class DartSnippetCompletionTest extends SnippetCompletionTest {
   Future<void> test_snippets_class() async {
     final content = '''
@@ -2671,8 +2717,8 @@ clas^
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartClassSnippetProducer.prefix,
-      label: DartClassSnippetProducer.label,
+      prefix: ClassDeclaration.prefix,
+      label: ClassDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2712,8 +2758,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartDoWhileLoopSnippetProducer.prefix,
-      label: DartDoWhileLoopSnippetProducer.label,
+      prefix: DoStatement.prefix,
+      label: DoStatement.label,
     );
 
     expect(updated, r'''
@@ -2723,6 +2769,43 @@ void f() {
   } while (${1:condition});
 }
 ''');
+  }
+
+  /// Snippets completions may abort if documents are modified (because they
+  /// need to obtain resolved units when building edits) but they should not
+  /// prevent non-Snippet completion results from being returned (because this
+  /// happens frequently while typing).
+  Future<void> test_snippets_failureDoesNotPreventNonSnippets() async {
+    final content = '''
+void f() {
+  ^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initializeWithSnippetSupport();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+
+    // User a Completer to control when the completion handler starts computing.
+    final completer = Completer<void>();
+    CompletionHandler.delayAfterResolveForTests = completer.future;
+
+    // Start the completion request but don't await it yet.
+    final completionRequest =
+        getCompletionList(mainFileUri, positionFromMarker(content));
+    // Modify the document to ensure the snippet requests will fail to build
+    // edits and then allow the handler to continue.
+    await replaceFile(222, mainFileUri, '');
+    completer.complete();
+
+    // Wait for the results.
+    final result = await completionRequest;
+
+    // Ensure we flagged that we did not return everything but we still got
+    // results.
+    expect(result.isIncomplete, isTrue);
+    expect(result.items, isNotEmpty);
   }
 
   Future<void>
@@ -2738,7 +2821,7 @@ class B {}
     await initializeWithSnippetSupport();
     await expectNoSnippet(
       content,
-      FlutterStatelessWidgetSnippetProducer.prefix,
+      FlutterStatelessWidget.prefix,
     );
   }
 
@@ -2752,8 +2835,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartForLoopSnippetProducer.prefix,
-      label: DartForLoopSnippetProducer.label,
+      prefix: ForStatement.prefix,
+      label: ForStatement.label,
     );
 
     expect(updated, r'''
@@ -2775,8 +2858,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartForInLoopSnippetProducer.prefix,
-      label: DartForInLoopSnippetProducer.label,
+      prefix: ForInStatement.prefix,
+      label: ForInStatement.label,
     );
 
     expect(updated, r'''
@@ -2798,8 +2881,8 @@ class A {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartFunctionSnippetProducer.prefix,
-      label: DartFunctionSnippetProducer.label,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2821,8 +2904,8 @@ void a() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartFunctionSnippetProducer.prefix,
-      label: DartFunctionSnippetProducer.label,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2842,8 +2925,8 @@ fun^
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartFunctionSnippetProducer.prefix,
-      label: DartFunctionSnippetProducer.label,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
     );
 
     expect(updated, r'''
@@ -2863,8 +2946,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartIfSnippetProducer.prefix,
-      label: DartIfSnippetProducer.label,
+      prefix: IfStatement.prefix,
+      label: IfStatement.label,
     );
 
     expect(updated, r'''
@@ -2886,10 +2969,9 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartIfElseSnippetProducer.prefix,
-      label: DartIfElseSnippetProducer.label,
+      prefix: IfElseStatement.prefix,
+      label: IfElseStatement.label,
     );
-
     expect(updated, r'''
 void f() {
   if (${1:condition}) {
@@ -2913,8 +2995,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartMainFunctionSnippetProducer.prefix,
-      label: DartMainFunctionSnippetProducer.label,
+      prefix: MainFunction.prefix,
+      label: MainFunction.label,
     );
 
     expect(updated, r'''
@@ -2949,8 +3031,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartSwitchSnippetProducer.prefix,
-      label: DartSwitchSnippetProducer.label,
+      prefix: SwitchStatement.prefix,
+      label: SwitchStatement.label,
     );
 
     expect(updated, r'''
@@ -2977,8 +3059,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartTestBlockSnippetProducer.prefix,
-      label: DartTestBlockSnippetProducer.label,
+      prefix: TestDefinition.prefix,
+      label: TestDefinition.label,
     );
 
     expect(updated, r'''
@@ -3002,8 +3084,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartTestGroupBlockSnippetProducer.prefix,
-      label: DartTestGroupBlockSnippetProducer.label,
+      prefix: TestGroupDefinition.prefix,
+      label: TestGroupDefinition.label,
     );
 
     expect(updated, r'''
@@ -3025,8 +3107,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartTryCatchSnippetProducer.prefix,
-      label: DartTryCatchSnippetProducer.label,
+      prefix: TryCatchStatement.prefix,
+      label: TryCatchStatement.label,
     );
 
     expect(updated, r'''
@@ -3050,8 +3132,8 @@ void f() {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: DartWhileLoopSnippetProducer.prefix,
-      label: DartWhileLoopSnippetProducer.label,
+      prefix: WhileStatement.prefix,
+      label: WhileStatement.label,
     );
 
     expect(updated, r'''
@@ -3104,8 +3186,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatefulWidgetSnippetProducer.prefix,
-      label: FlutterStatefulWidgetSnippetProducer.label,
+      prefix: FlutterStatefulWidget.prefix,
+      label: FlutterStatefulWidget.label,
     );
 
     expect(updated, '''
@@ -3145,9 +3227,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix:
-          FlutterStatefulWidgetWithAnimationControllerSnippetProducer.prefix,
-      label: FlutterStatefulWidgetWithAnimationControllerSnippetProducer.label,
+      prefix: FlutterStatefulWidgetWithAnimationController.prefix,
+      label: FlutterStatefulWidgetWithAnimationController.label,
     );
 
     expect(updated, '''
@@ -3202,8 +3283,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3236,8 +3317,8 @@ class B {}
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3266,8 +3347,8 @@ stless^
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3292,8 +3373,8 @@ class \${1:MyWidget} extends StatelessWidget {
     await initializeWithSnippetSupport();
     final updated = await expectAndApplySnippet(
       content,
-      prefix: FlutterStatelessWidgetSnippetProducer.prefix,
-      label: FlutterStatelessWidgetSnippetProducer.label,
+      prefix: FlutterStatelessWidget.prefix,
+      label: FlutterStatelessWidget.label,
     );
 
     expect(updated, '''
@@ -3322,7 +3403,7 @@ class A {
     await initializeWithSnippetSupport();
     await expectNoSnippet(
       content,
-      FlutterStatelessWidgetSnippetProducer.prefix,
+      FlutterStatelessWidget.prefix,
     );
   }
 

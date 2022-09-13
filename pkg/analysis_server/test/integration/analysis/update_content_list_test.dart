@@ -27,6 +27,7 @@ void f() {
     // Create a dummy file
     writeFile(pathname, '// dummy text');
     await standardAnalysisSetup();
+    await analysisFinished;
     // Override file contents with badText.
     await sendAnalysisUpdateContent({pathname: AddContentOverlay(badText)});
     await analysisFinished;

@@ -91,6 +91,10 @@ class FindNode {
     return _node(search, (n) => n is CatchClause);
   }
 
+  CatchClauseParameter catchClauseParameter(String search) {
+    return _node(search, (n) => n is CatchClauseParameter);
+  }
+
   ClassDeclaration classDeclaration(String search) {
     return _node(search, (n) => n is ClassDeclaration);
   }
@@ -113,6 +117,10 @@ class FindNode {
 
   ConditionalExpression conditionalExpression(String search) {
     return _node(search, (n) => n is ConditionalExpression);
+  }
+
+  Configuration configuration(String search) {
+    return _node(search, (n) => n is Configuration);
   }
 
   ConstructorDeclaration constructor(String search) {
@@ -153,6 +161,14 @@ class FindNode {
 
   DoubleLiteral doubleLiteral(String search) {
     return _node(search, (n) => n is DoubleLiteral);
+  }
+
+  EmptyFunctionBody emptyFunctionBody(String search) {
+    return _node(search, (n) => n is EmptyFunctionBody);
+  }
+
+  EmptyStatement emptyStatement(String search) {
+    return _node(search, (n) => n is EmptyStatement);
   }
 
   EnumConstantDeclaration enumConstantDeclaration(String search) {
@@ -412,6 +428,14 @@ class FindNode {
     return _node(search, (n) => n is PropertyAccess);
   }
 
+  RecordLiteral recordLiteral(String search) {
+    return _node(search, (n) => n is RecordLiteral);
+  }
+
+  RecordTypeAnnotation recordTypeAnnotation(String search) {
+    return _node(search, (n) => n is RecordTypeAnnotation);
+  }
+
   RedirectingConstructorInvocation redirectingConstructorInvocation(
       String search) {
     return _node(search, (n) => n is RedirectingConstructorInvocation);
@@ -501,7 +525,7 @@ class FindNode {
     for (var declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
-          if (variable.name.name == name) {
+          if (variable.name2.lexeme == name) {
             return variable;
           }
         }

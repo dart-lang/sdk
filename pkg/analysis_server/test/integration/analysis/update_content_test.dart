@@ -33,19 +33,19 @@ void f() {
 
     // There should be no errors now because the contents on disk have been
     // overridden with goodText.
-    sendAnalysisUpdateContent({path: AddContentOverlay(goodText)});
+    await sendAnalysisUpdateContent({path: AddContentOverlay(goodText)});
     await analysisFinished;
     expect(currentAnalysisErrors[path], isEmpty);
 
     // There should be errors now because we've removed the semicolon.
-    sendAnalysisUpdateContent({
+    await sendAnalysisUpdateContent({
       path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 1, '')])
     });
     await analysisFinished;
     expect(currentAnalysisErrors[path], isNotEmpty);
 
     // There should be no errors now because we've added the semicolon back.
-    sendAnalysisUpdateContent({
+    await sendAnalysisUpdateContent({
       path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 0, ';')])
     });
     await analysisFinished;
@@ -53,7 +53,7 @@ void f() {
 
     // Now there should be errors again, because the contents on disk are no
     // longer overridden.
-    sendAnalysisUpdateContent({path: RemoveContentOverlay()});
+    await sendAnalysisUpdateContent({path: RemoveContentOverlay()});
     await analysisFinished;
     expect(currentAnalysisErrors[path], isNotEmpty);
   }

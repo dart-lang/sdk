@@ -62,10 +62,7 @@ FunctionReference
         leftBracket: <
         typeParameters
           TypeParameter
-            name: SimpleIdentifier
-              token: T
-              staticElement: T@89
-              staticType: null
+            name: T
             declaredElement: T@89
         rightBracket: >
       parameters: FormalParameterList
@@ -287,10 +284,7 @@ FunctionReference
       leftBracket: <
       typeParameters
         TypeParameter
-          name: SimpleIdentifier
-            token: T
-            staticElement: T@37
-            staticType: null
+          name: T
           declaredElement: T@37
       rightBracket: >
     parameters: FormalParameterList
@@ -302,10 +296,7 @@ FunctionReference
             staticElement: T@37
             staticType: null
           type: T
-        identifier: SimpleIdentifier
-          token: a
-          staticElement: @36::@parameter::a
-          staticType: null
+        name: a
         declaredElement: @36::@parameter::a
         declaredElementType: T
       rightParenthesis: )

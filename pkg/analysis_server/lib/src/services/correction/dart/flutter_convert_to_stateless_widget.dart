@@ -16,6 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
 
 class FlutterConvertToStatelessWidget extends CorrectionProducer {
   @override
@@ -35,7 +36,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
     }
 
     // Must be a StatefulWidget subclass.
-    var widgetClassElement = widgetClass.declaredElement!;
+    var widgetClassElement = widgetClass.declaredElement2!;
     var superType = widgetClassElement.supertype;
     if (superType == null || !flutter.isExactlyStatefulWidgetType(superType)) {
       return;
@@ -45,10 +46,10 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
     if (createStateMethod == null) return;
 
     var stateClass = _findStateClass(widgetClassElement);
-    var stateClassElement = stateClass?.declaredElement;
+    var stateClassElement = stateClass?.declaredElement2;
     if (stateClass == null ||
         stateClassElement == null ||
-        !Identifier.isPrivateName(stateClass.name.name) ||
+        !Identifier.isPrivateName(stateClass.name2.lexeme) ||
         !_isSameTypeParameters(widgetClass, stateClass)) {
       return;
     }
@@ -83,7 +84,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
           return;
         }
         for (var fieldNode in member.fields.variables) {
-          var fieldElement = fieldNode.declaredElement as FieldElement;
+          var fieldElement = fieldNode.declaredElement2 as FieldElement;
           if (!fieldsAssignedInConstructors.contains(fieldElement)) {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
@@ -105,7 +106,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
         }
         if (!_isDefaultOverride(member)) {
           nodesToMove.add(member);
-          elementsToMove.add(member.declaredElement!);
+          elementsToMove.add(member.declaredElement2!);
         }
       }
     }
@@ -170,7 +171,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
 
   MethodDeclaration? _findCreateStateMethod(ClassDeclaration widgetClass) {
     for (var member in widgetClass.members) {
-      if (member is MethodDeclaration && member.name.name == 'createState') {
+      if (member is MethodDeclaration && member.name2.lexeme == 'createState') {
         var parameters = member.parameters;
         if (parameters?.parameters.isEmpty ?? false) {
           return member;
@@ -214,7 +215,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
     outer:
     for (var stateParam in stateParams) {
       for (var widgetParam in widgetParams) {
-        if (stateParam.name.name == widgetParam.name.name &&
+        if (stateParam.name2.lexeme == widgetParam.name2.lexeme &&
             stateParam.bound?.type == widgetParam.bound?.type) {
           continue outer;
         }
@@ -242,7 +243,7 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
       }
       if (expression is MethodInvocation &&
           expression.target is SuperExpression &&
-          methodDeclaration!.name.name == expression.methodName.name) {
+          methodDeclaration!.name2.lexeme == expression.methodName.name) {
         return true;
       }
     }
@@ -250,15 +251,15 @@ class FlutterConvertToStatelessWidget extends CorrectionProducer {
   }
 
   static bool _isState(ClassElement widgetClassElement, DartType? type) {
-    if (type is! ParameterizedType) return false;
+    if (type is! InterfaceType) return false;
 
-    var typeArguments = type.typeArguments;
-    if (typeArguments.length != 1 ||
-        typeArguments[0].element != widgetClassElement) {
+    final firstArgument = type.typeArguments.singleOrNull;
+    if (firstArgument is! InterfaceType ||
+        firstArgument.element2 != widgetClassElement) {
       return false;
     }
 
-    var classElement = type.element;
+    var classElement = type.element2;
     return classElement is ClassElement &&
         Flutter.instance.isExactState(classElement);
   }
@@ -315,7 +316,7 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
     }
     var element = node.staticElement;
     if (element is ExecutableElement &&
-        element.enclosingElement == widgetClassElement &&
+        element.enclosingElement3 == widgetClassElement &&
         !elementsToMove.contains(element)) {
       var parent = node.parent;
       if (parent is PrefixedIdentifier) {
@@ -358,7 +359,7 @@ class _StatelessVerifier extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var methodElement = node.methodName.staticElement?.declaration;
     if (methodElement is ClassMemberElement) {
-      var classElement = methodElement.enclosingElement;
+      var classElement = methodElement.enclosingElement3;
       if (classElement is ClassElement &&
           Flutter.instance.isExactState(classElement) &&
           !FlutterConvertToStatelessWidget._isDefaultOverride(
@@ -381,15 +382,16 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     super.visitInstanceCreationExpression(node);
-    if (node.staticType?.element != stateClassElement) {
+    final type = node.staticType;
+    if (type is! InterfaceType || type.element2 != stateClassElement) {
       return;
     }
     var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
     var classDeclaration =
         methodDeclaration?.thisOrAncestorOfType<ClassDeclaration>();
 
-    if (methodDeclaration?.name.name != 'createState' ||
-        classDeclaration?.declaredElement != widgetClassElement) {
+    if (methodDeclaration?.name2.lexeme != 'createState' ||
+        classDeclaration?.declaredElement2 != widgetClassElement) {
       used = true;
     }
   }
@@ -397,9 +399,10 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     var type = node.staticType;
-    if (node.methodName.name == 'createState' &&
+    if (type is InterfaceType &&
+        node.methodName.name == 'createState' &&
         (FlutterConvertToStatelessWidget._isState(widgetClassElement, type) ||
-            type?.element == stateClassElement)) {
+            type.element2 == stateClassElement)) {
       used = true;
     }
   }

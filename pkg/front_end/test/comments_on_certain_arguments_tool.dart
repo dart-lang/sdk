@@ -381,7 +381,7 @@ class TestSourceLoader extends SourceLoader {
 
   @override
   Future<Token> tokenize(SourceLibraryBuilder library,
-      {bool suppressLexicalErrors: false}) async {
+      {bool suppressLexicalErrors = false}) async {
     Token result = await super
         .tokenize(library, suppressLexicalErrors: suppressLexicalErrors);
     cache[library.fileUri] = result;

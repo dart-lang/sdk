@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -50,7 +50,7 @@ class CorrectOverrideHelper {
   void verify({
     required ExecutableElement superMember,
     required ErrorReporter errorReporter,
-    required AstNode errorNode,
+    required SyntacticEntity errorNode,
     ErrorCode? errorCode,
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
@@ -110,7 +110,7 @@ class CovariantParametersVerifier {
 
   void verify({
     required ErrorReporter errorReporter,
-    required AstNode errorNode,
+    required SyntacticEntity errorNode,
   }) {
     var superParameters = _superParameters();
     for (var entry in superParameters.entries) {
@@ -123,16 +123,17 @@ class CovariantParametersVerifier {
           var superMember = superParameter.member;
           // Elements enclosing members that can participate in overrides are
           // always named, so we can safely assume
-          // `_thisMember.enclosingElement.name` and
-          // `superMember.enclosingElement.name` are non-`null`.
-          errorReporter.reportErrorForNode(
+          // `_thisMember.enclosingElement3.name` and
+          // `superMember.enclosingElement3.name` are non-`null`.
+          errorReporter.reportErrorForOffset(
             CompileTimeErrorCode.INVALID_OVERRIDE,
-            errorNode,
+            errorNode.offset,
+            errorNode.length,
             [
               _thisMember.name,
-              _thisMember.enclosingElement.name!,
+              _thisMember.enclosingElement3.name!,
               _thisMember.type,
-              superMember.enclosingElement.name!,
+              superMember.enclosingElement3.name!,
               superMember.type,
             ],
           );
@@ -143,12 +144,12 @@ class CovariantParametersVerifier {
 
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
-    var classElement = _thisMember.enclosingElement as ClassElement;
+    var classElement = _thisMember.enclosingElement3 as ClassElement;
     var interfaces = classHierarchy.implementedInterfaces(classElement);
 
     var superMembers = <_SuperMember>[];
     for (var interface in interfaces) {
-      var superMember = _correspondingMember(interface.element, _thisMember);
+      var superMember = _correspondingMember(interface.element2, _thisMember);
       if (superMember != null) {
         superMembers.add(
           _SuperMember(interface, superMember),
@@ -217,7 +218,7 @@ class CovariantParametersVerifier {
   /// Return a member from [classElement] that corresponds to the [proto],
   /// or `null` if no such member exist.
   static ExecutableElement? _correspondingMember(
-    ClassElement classElement,
+    InterfaceElement classElement,
     ExecutableElement proto,
   ) {
     if (proto is MethodElement) {
@@ -271,5 +272,6 @@ class _SuperParameter {
 
   _SuperParameter(this.element, this.type);
 
-  ExecutableElement get member => element.enclosingElement as ExecutableElement;
+  ExecutableElement get member =>
+      element.enclosingElement3 as ExecutableElement;
 }

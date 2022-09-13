@@ -16,8 +16,9 @@ import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -28,8 +29,6 @@ import '../resolution/resolution.dart';
 
 /// [FileResolver] based implementation of [ResolutionTest].
 class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
-  static final String _testFile = '/workspace/dart/test/lib/test.dart';
-
   final MemoryByteStore byteStore = MemoryByteStore();
 
   final FileResolverTestData testData = FileResolverTestData();
@@ -49,10 +48,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  File get testFile => getFile(testFilePath);
-
   @override
-  String get testFilePath => _testFile;
+  File get testFile => getFile('$testPackageLibPath/test.dart');
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -62,7 +59,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   @override
   void addTestFile(String content) {
-    newFile(_testFile, content);
+    newFile(testFile.path, content);
   }
 
   void assertStateString(
@@ -92,9 +89,9 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   ///
   /// We do this the first time, and to test reusing results from [byteStore].
   void createFileResolver() {
-    var workspace = BazelWorkspace.find(
+    var workspace = BlazeWorkspace.find(
       resourceProvider,
-      convertPath(_testFile),
+      testFile.path,
     )!;
 
     fileResolver = FileResolver(
@@ -114,8 +111,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   Future<ErrorsResult> getTestErrors() async {
-    var path = convertPath(_testFile);
-    return fileResolver.getErrors2(path: path);
+    return fileResolver.getErrors2(path: testFile.path);
   }
 
   @override
@@ -132,8 +128,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   @override
   Future<void> resolveTestFile() async {
-    var path = convertPath(_testFile);
-    result = await resolveFile(path);
+    result = await resolveFile(testFile.path);
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
   }
@@ -147,7 +142,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       root: sdkRoot,
     );
 
-    newFile('/workspace/WORKSPACE', '');
+    newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
     newFile('/workspace/dart/test/BUILD', r'''
 dart_package(
   null_safety = True,

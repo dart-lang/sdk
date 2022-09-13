@@ -35,7 +35,7 @@ class A {
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name2.staticElement));
-        expect(annotationElement.enclosingElement, name1.staticElement);
+        expect(annotationElement.enclosingElement3, name1.staticElement);
         expect(annotationElement.displayName, 'A.named');
         expect(annotationElement.parameters, isEmpty);
       } else {
@@ -61,7 +61,7 @@ class A {
       expect(name3.staticElement!.displayName, 'A.named');
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name3.staticElement));
-        expect(annotationElement.enclosingElement, name2.staticElement);
+        expect(annotationElement.enclosingElement3, name2.staticElement);
         expect(annotationElement.displayName, 'A.named');
         expect(annotationElement.parameters, isEmpty);
       } else {
@@ -87,7 +87,7 @@ class A {
       expect(name3.staticElement!.displayName, 'V');
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name3.staticElement));
-        expect(annotationElement.enclosingElement, name2.staticElement);
+        expect(annotationElement.enclosingElement3, name2.staticElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -110,7 +110,7 @@ class A {
       expect(name2.staticElement!.displayName, 'A');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
-        expect(annotationElement.enclosingElement, name2.staticElement);
+        expect(annotationElement.enclosingElement3, name2.staticElement);
         expect(annotationElement.displayName, 'A');
         expect(annotationElement.parameters, isEmpty);
       } else {
@@ -135,7 +135,7 @@ class A {
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
-        expect(annotationElement.enclosingElement, name1.staticElement);
+        expect(annotationElement.enclosingElement3, name1.staticElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -157,7 +157,7 @@ class A {
       expect(name2, isNull);
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
-        expect(annotationElement.enclosingElement, name1.staticElement);
+        expect(annotationElement.enclosingElement3, name1.staticElement);
         expect(annotationElement.displayName, 'A');
         expect(annotationElement.parameters, isEmpty);
       } else {
@@ -179,7 +179,7 @@ const V = 0;
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name1.staticElement));
-        expect(annotationElement.enclosingElement, isCompilationUnitElement);
+        expect(annotationElement.enclosingElement3, isCompilationUnitElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -201,7 +201,7 @@ const V = 0;
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
-        expect(annotationElement.enclosingElement, isCompilationUnitElement);
+        expect(annotationElement.enclosingElement3, isCompilationUnitElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -373,7 +373,7 @@ export 'dart:math' hide pi;
     await assertNoErrorsInCode('''
 export 'dart:math';
 ''');
-    expect(findNode.export('dart:math').element!.exportedLibrary!.name,
+    expect(findNode.export('dart:math').element2!.exportedLibrary!.name,
         'dart.math');
   }
 
@@ -422,7 +422,7 @@ import 'dart:math';
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
-    expect(findNode.import('dart:math').element!.importedLibrary!.name,
+    expect(findNode.import('dart:math').element2!.importedLibrary!.name,
         'dart.math');
   }
 
@@ -432,7 +432,7 @@ import 'dart:math' as p;
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
-    expect(findNode.import('dart:math').element!.importedLibrary!.name,
+    expect(findNode.import('dart:math').element2!.importedLibrary!.name,
         'dart.math');
   }
 
@@ -448,7 +448,7 @@ import 'lib1.dart' show v1, v2;
     ]);
     var importedVariables = findNode
         .import('lib1.dart')
-        .element!
+        .element2!
         .importedLibrary!
         .definingCompilationUnit
         .topLevelVariables;

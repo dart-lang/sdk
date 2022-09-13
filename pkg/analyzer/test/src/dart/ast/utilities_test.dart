@@ -26,6 +26,7 @@ class NodeLocator2Test extends ParserTestCase {
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as NamedType).name;
+    // ignore: deprecated_member_use_from_same_package
     SimpleIdentifier varName = variableList.variables[0].name;
     expect(NodeLocator2(0).searchWithin(unit), same(unit));
     expect(NodeLocator2(1).searchWithin(unit), same(typeName));
@@ -47,6 +48,7 @@ class NodeLocator2Test extends ParserTestCase {
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclarationList variableList = declaration.variables;
     Identifier typeName = (variableList.type as NamedType).name;
+    // ignore: deprecated_member_use_from_same_package
     SimpleIdentifier varName = variableList.variables[0].name;
     expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
     expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));

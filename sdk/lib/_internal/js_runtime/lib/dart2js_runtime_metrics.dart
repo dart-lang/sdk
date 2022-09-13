@@ -6,7 +6,7 @@ library dart2js_runtime_metrics;
 
 import 'dart:_js_helper'
     show
-        copyAndStringifyProperties,
+        copyAndJsonifyProperties,
         fillLiteralMap,
         rawRuntimeMetrics,
         rawStartupMetrics;
@@ -51,12 +51,12 @@ Map<String, Object> get startupMetrics {
 ///
 /// - `runtime`: `'dart2js'`
 ///
-/// - `allocations`: A string representation of a Json Map<String, Object>,
-///   which holds every class or closure created at runtime. The key contains
-///   a resolved path of the class or closure. The value is currently unused.
+/// - `allocations`: A JSON Map<String, Object> that holds every
+///   runtime-allocated class or closure. The key contains a resolved path of
+///   the class or closure. The value is currently unused.
 Map<String, Object> get runtimeMetrics {
   final Map<String, Object> result = {'runtime': 'dart2js'};
   final raw = rawRuntimeMetrics();
-  copyAndStringifyProperties(raw, result);
+  copyAndJsonifyProperties(raw, result);
   return result;
 }

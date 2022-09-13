@@ -39,11 +39,11 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.17.0",
+  "sdk_tag": "version:2.18.0-271.7.beta",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "9849573cd1b8317e58247b8c1672e89b1cd842e2",
+  "co19_rev": "b572e42fbbfe89644236601f93cb982f23f4d7f1",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "b2034a17609472e374623f3dbe0efd9f5cb258af",
 
@@ -58,7 +58,7 @@ vars = {
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:10.5.100",
+  "d8_tag": "version:10.6.182",
   "jsshell_tag": "version:95.0",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -78,10 +78,10 @@ vars = {
   # Note that putting an EOL comment after a dependency below will prevent the
   # 'tools/rev_sdk_deps.dart' tool from attempting to rev to a newer revision.
 
-  "args_rev": "73e8d3b55cbedc9765f8e266f3422d8914f8e62a",
+  "args_rev": "80d4abbd6b38b79bcdbc411b4b517628c7611232",
   "async_rev": "f3ed5f690e2ec9dbe1bfc5184705575b4f6480e5",
   "bazel_worker_rev": "9710de6c9c70b1b583183db9d9721ba64e5a16fe",
-  "benchmark_harness_rev": "4183c76739ed7a27c260ca9ebaab6e0f210d1a37",
+  "benchmark_harness_rev": "6a116758f2b96e92659194bcda990f42106a01d3",
   "boolean_selector_rev": "1d3565e2651d16566bb556955b96ea75018cbd0c",
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
@@ -93,7 +93,7 @@ vars = {
   "clock_rev": "2507a228773c5e877fc9e3330080b234aad965c0",
   "collection_rev": "414ffa1bc8ba18bd608bbf916d95715311d89ac1",
   "convert_rev": "7145da14f9cd730e80fb4c6a10108fcfd205e8e7",
-  "crypto_rev": "223e0a62c0f762fd2b510f753861445b52e14fc3",
+  "crypto_rev": "7cf89d35b3d90786d9f7f75211b3b3cd7e4d173f",
   "csslib_rev": "ba2eb2d80530eedefadaade338a09c2dd60410f3",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
@@ -106,64 +106,63 @@ vars = {
   #   and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
-  "dart_style_rev": "d7b73536a8079331c888b7da539b80e6825270ea", # manually rev'd
+  "dart_style_rev": "49bc3ff32b5578b6e19f8fd376d668130941ee29", # manually rev'd
 
-  "dartdoc_rev": "adc5a45ddafb57e3a600ee7d9e88dc81061d1410",
-  "devtools_rev": "95d292626da26505b02417735f77e8922783b477",
-  "ffi_rev": "18b2b549d55009ff594600b04705ff6161681e07",
-  "file_rev": "0132eeedea2933513bf230513a766a8baeab0c4f",
-  "fixnum_rev": "164712f6547cdfb2709b752188186baf31fd1730",
+  "dartdoc_rev": "63e2f2bd0816223cf886609bbeef5f49d2a16a1f",
+  "devtools_rev": "d131d19091f6b89ac89486bd92440a25a523e8b0",
+  "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
+  "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
+  "fixnum_rev": "e0b17cc1f639c55a9c24947392c64b5a68992535",
   "glob_rev": "1d51fcc172e5adfbae6e82c3f8f119774cb2fca2",
   "html_rev": "8243e967caad9932c13971af3b2a7c8f028383d5",
   "http_multi_server_rev": "20bf079c8955d1250a45afb9cb096472a724a551",
-  "http_parser_rev": "eaa63304c333316acd114e3be7ed701d7d7ba32c",
-  "http_rev": "843c5ecb1ea2233ba7b7049833b5801b149fba86",
+  "http_parser_rev": "b968f7ddde0588273a6cbd1d2eb6569f418606ac",
+  "http_rev": "c7ee0ef0a8bd3488ce88698148df8a8778d78529",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
-  "intl_rev": "e9b573679de5e703d89a242b9dca331c772979ef",
+  "intl_rev": "7e3a1bbdeff241323f56295d8991c004bef815e6",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "805e6536dd961d66f6b8cd46d8f3e61774f957c9",
-  "linter_rev": "1ddc70948d94f2449fec69a95e3ceb7b6b6c8348", # manually rev'd
+  "linter_rev": "304042aaa933a02d2581ab9598dd2ddaebdbc803", # dev
   "lints_rev": "8294e5648ab49474541527e2911e72e4c5aefe55",
-  "logging_rev": "f6979e3bc3b6e1847a08335b7eb6304e18986195",
+  "logging_rev": "d10e24844c2e01d3f6d2b5a1a2bb8717359c6a87",
   "markdown_rev": "e3f4bd28c9e61b522f75f291d4d6cfcfeccd83ee", # b/236358256
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "matcher_rev": "1a7fcae0d7af1604781afabe61fd35d9b404d8ed",
+  "matcher_rev": "cba63ebf8ed1daeffd5f3c55fd30085152c4512d",
   "mime_rev": "0a75a41445eb642674a0a271eecde78cb025ee60",
-  "mockito_rev": "25d25dab6b57ac710c0be0e759def7505b352ea7",
+  "mockito_rev": "2acf22f4d400c6e1eee0f6ca595092220fba8b34",
   "oauth2_rev": "199ebf15cbd5b07958438184f32e41c4447a57bf",
   "package_config_rev": "cff98c90acc457a3b0750f0a7da0e351a35e5d0c",
-  "path_rev": "7a0ed40280345b1c11df4c700c71e590738f4257",
+  "path_rev": "9955b27b9bb98d87591208e19eb01c51d29fd467",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "fa84ddd0e39f45bf3f09dcc5d6b9fbdda7820fef",
-  "protobuf_rev": "2d6c6037cee6c5f683e8f38e598443f9bec74b94",
-  "pub_rev": "27adcf41ab43023c45dafb4ef9b1e3ec0885f102", # manually rev'd
-  "pub_semver_rev": "5c0b4bfd5ca57fe16f1319c581dc8c882e9b8cb2",
+  "protobuf_rev": "19c4eb63e05e7a87c61a98ecca868fff904b589c",
+  "pub_rev": "ec35d46261b610e558dfd0d8525ca3fc8387b4b7", # manually rev'd
+  "pub_semver_rev": "9fd28757ba45961ac5449e0f2b0020670e921475",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
-  "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
-  "shelf_rev": "8f8f3703efd241f9cf6b18e36e0067ca74c47fd8",
+  "shelf_rev": "0965d864d0e6c66d5bb6daece400e80484640bd5",
   "source_map_stack_trace_rev": "72dbf21a33293b2b8434d0a9751e36f9463981ac",
   "source_maps_rev": "e93565b43a7b6b367789de8ffba969c4ebeeb317",
-  "source_span_rev": "24151fd80e4557a626f81f2bc0d6a2ebde172cae",
-  "sse_rev": "2df072848a6090d3ed67f30c69e86ec4d6b96cd6",
+  "source_span_rev": "ff03af16474ce91c89eb3bc28182866f4cb6dfb0",
+  "sse_rev": "00084c43684ddaf7e09c19c5364c4a27eb04efda",
   "stack_trace_rev": "17f09c2c6845bb31c7c385acecce5befb8527a13",
   "stream_channel_rev": "8e0d7ef1f4a3fb97fbd82e11cd539093f58511f3",
-  "string_scanner_rev": "c637deb8d998b72a5807afbd06aba8370db725c0",
+  "string_scanner_rev": "2d84b16d8ae03c3a8c2417b71abe0fe6de7d8bf6",
   "sync_http_rev": "39509d69fd5a9c3da46eab48fcafdf62e6ad4580",
-  "term_glyph_rev": "741efdedf9da62ee66a06c295d36fa28f8780e24",
-  "test_descriptor_rev": "5ed5d7f6bf1191592995dcb8eedbbc17df69d386",
+  "term_glyph_rev": "ec7cf7bb51ebb7d55760a1359f6697690dbc06ba",
+  "test_descriptor_rev": "f392f85a9804349976be041616ef66925cee8a91",
   "test_process_rev": "3e695bcfeab551473ddc288970f345f30e5e1375",
   "test_reflective_loader_rev": "8d0de01bbe852fea1f8e33aba907abcba50a8a1e",
-  "test_rev": "fb4ccaf6c68fcc1d208c5c53a52d8e0e718bdffe",
-  "typed_data_rev": "bb10b64f9a56b8fb49307d4465474bf1c1309f6d",
-  "usage_rev": "1d3c31e780af665fb796a27898a441fcb7d263db",
-  "vector_math_rev": "cdcee487bde4353a6ba7a29bfc7db3840426e50f",
+  "test_rev": "5f52c524cd10ba3dd9aa5614955c338d50b29d21",
+  "typed_data_rev": "6369490ede1c87a4a5758304a606a6e4eee364b9",
+  "usage_rev": "e287a72228974886d8a3b40ddcdf12f69d7c6a22",
+  "vector_math_rev": "feb2a188b1ecd863fd92500453b26a90048e71ad",
   "watcher_rev": "e00c0ea769e32821d91c0880da8eb736839a6e6d",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_rev": "99dbdc5769e19b9eeaf69449a59079153c6a8b1f",
+  "web_socket_channel_rev": "4b46c0c4196a5e76c2b0e2589ed37de247d35938",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "webdev_rev": "9c4428472b04f50748ea4871829897cff43455a3",
+  "webdev_rev": "605b981abe95221d2bd10c069669e4f751e55c5d",
   "webdriver_rev": "e1a9ad671ee82e05eee463f922a34585ed2d2f15",
-  "webkit_inspection_protocol_rev": "57522d6b29d94903b765c757079d906555d5a171",
+  "webkit_inspection_protocol_rev": "57ebca4b97310a10774c59c0fb056d8f23bd5cee",
   "yaml_edit_rev": "01589b3ce447b03aed991db49f1ec6445ad5476d",
   "yaml_rev": "fda5b15692ccfa0feb7793a27fe3829b3d0f77fa",
   "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
@@ -556,23 +555,12 @@ deps = {
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/rust": {
-      "packages": [
-          {
-              "package": "fuchsia/rust/${{platform}}",
-              "version": "git_revision:" + Var("rust_revision"),
-          },
-      ],
-      "condition": "(host_os == 'linux' or host_os == 'mac') and host_cpu == 'x64'",
-      "dep_type": "cipd",
-  },
-
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
   Var("dart_root") + "/third_party/fuchsia/sdk/mac": {
     "packages": [
       {
       "package": "fuchsia/sdk/gn/mac-amd64",
-      "version": "git_revision:c9bdf5da65647923cb79c391824434125cb00bbe"
+      "version": "git_revision:8658717573be7924d71b88c3d404ea2b4ca4984b"
       }
     ],
     "condition": 'host_os == "mac" and host_cpu == "x64"',
@@ -582,7 +570,7 @@ deps = {
     "packages": [
       {
       "package": "fuchsia/sdk/gn/linux-amd64",
-      "version": "git_revision:c9bdf5da65647923cb79c391824434125cb00bbe"
+      "version": "git_revision:8658717573be7924d71b88c3d404ea2b4ca4984b"
       }
     ],
     "condition": 'host_os == "linux" and host_cpu == "x64"',
@@ -681,32 +669,32 @@ hooks = [
     'action': ['python3', 'sdk/tools/generate_sdk_version_file.py'],
   },
   {
-    # Pull Debian sysroot for i386 Linux
-    'name': 'sysroot_i386',
+    'name': 'sysroot_arm',
     'pattern': '.',
+    'condition': 'checkout_linux',
     'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch', 'i386'],
+               '--arch=arm'],
   },
   {
-    # Pull Debian sysroot for amd64 Linux
-    'name': 'sysroot_amd64',
+    'name': 'sysroot_arm64',
     'pattern': '.',
+    'condition': 'checkout_linux',
     'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch', 'amd64'],
+               '--arch=arm64'],
   },
   {
-    # Pull Debian sysroot for arm Linux
-    'name': 'sysroot_amd64',
+    'name': 'sysroot_x86',
     'pattern': '.',
+    'condition': 'checkout_linux',
     'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch', 'arm'],
+               '--arch=x86'],
   },
   {
-    # Pull Debian jessie sysroot for arm64 Linux
-    'name': 'sysroot_amd64',
+    'name': 'sysroot_x64',
     'pattern': '.',
+    'condition': 'checkout_linux',
     'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch', 'arm64'],
+               '--arch=x64'],
   },
   {
     'name': 'buildtools',

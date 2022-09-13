@@ -45,7 +45,7 @@ Test generateTest() {
   // parenthesis of the assert statement to the first character of the
   // condition.
   void makeAssertWithMessage(String condition,
-      {String? message, bool trailingComma: false, int additionalOffset: 0}) {
+      {String? message, bool trailingComma = false, int additionalOffset = 0}) {
     final name = 'testCase${spans.length}';
     sb.writeln('void $name(x) {');
     sb.write('assert(');
@@ -65,7 +65,7 @@ Test generateTest() {
 
   // Create test cases for various variants of the assert statement with
   // the given condition.
-  void makeAssert(String condition, {int additionalOffset: 0}) {
+  void makeAssert(String condition, {int additionalOffset = 0}) {
     makeAssertWithMessage(condition, additionalOffset: additionalOffset);
     makeAssertWithMessage(condition,
         trailingComma: true, additionalOffset: additionalOffset);

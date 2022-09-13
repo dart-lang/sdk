@@ -29,14 +29,14 @@ class BulkFixDetails {
           .getResolvedUnit(file.absolute.path) as ResolvedUnitResult;
       for (var classDecl
           in resolvedFile.unit.declarations.whereType<ClassDeclaration>()) {
-        var classElement = classDecl.declaredElement;
+        var classElement = classDecl.declaredElement2;
         if (classElement != null &&
             classElement.allSupertypes.any(
-                (element) => element.element.name == 'CorrectionProducer')) {
-          var correctionName = classDecl.name.name;
+                (element) => element.element2.name == 'CorrectionProducer')) {
+          var correctionName = classDecl.name2.lexeme;
 
           for (var method in classDecl.members.whereType<MethodDeclaration>()) {
-            if (method.name.name == 'canBeAppliedInBulk') {
+            if (method.name2.lexeme == 'canBeAppliedInBulk') {
               var hasComment =
                   method.returnType?.beginToken.precedingComments != null;
 

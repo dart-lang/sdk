@@ -42,11 +42,11 @@ class ConvertIntoFinalField extends CorrectionProducer {
 
     // Check that there is no corresponding setter.
     {
-      var element = getter.declaredElement;
+      var element = getter.declaredElement2;
       if (element == null) {
         return;
       }
-      var enclosing = element.enclosingElement;
+      var enclosing = element.enclosingElement3;
       if (enclosing is ClassElement) {
         if (enclosing.getSetter(element.name) != null) {
           return;
@@ -76,7 +76,7 @@ class ConvertIntoFinalField extends CorrectionProducer {
       if (returnType != null) {
         code += ' ${utils.getNodeText(returnType)}';
       }
-      code += ' ${utils.getNodeText(getter.name)}';
+      code += ' ${getter.name2.lexeme}';
       if (expression is! NullLiteral) {
         code += ' = ${utils.getNodeText(expression)}';
       }

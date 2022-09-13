@@ -33,7 +33,7 @@ class FunctionRefElement extends CustomElement implements Renderable {
   bool get qualified => _qualified;
 
   factory FunctionRefElement(M.IsolateRef isolate, M.FunctionRef function,
-      {bool qualified: true, RenderingQueue queue}) {
+      {bool qualified = true, RenderingQueue queue}) {
     assert(function != null);
     assert(qualified != null);
     FunctionRefElement e = new FunctionRefElement.created();

@@ -358,15 +358,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
-  if (Options::gen_snapshot_kind() == kAppJIT && !isolate_run_app_snapshot) {
-    // If we sort, we must do it for all isolates, not just the main isolate,
-    // otherwise isolates related by spawnFunction will disagree on CIDs and
-    // cannot correctly send each other messages. If we run from an app
-    // snapshot, things are already sorted, and other isolate created by
-    // spawnFunction will also load from the same snapshot. Sorting such isolate
-    // is counter-productive because it invalidates their code.
-    // After we switch to always using isolate groups, this be changed to
-    // `generating-app-jit && is_main_isolate`.
+  if ((Options::gen_snapshot_kind() == kAppJIT) && is_main_isolate) {
     result = Dart_SortClasses();
     CHECK_RESULT(result);
   }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,7 +14,7 @@ main() {
     defineReflectiveTests(
       DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest,
     );
-    defineReflectiveTests(DeprecatedMemberUse_BazelWorkspaceTest);
+    defineReflectiveTests(DeprecatedMemberUse_BlazeWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_GnWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_PackageBuildWorkspaceTest);
 
@@ -21,7 +22,7 @@ main() {
       DeprecatedMemberUseFromSamePackage_BasicWorkspaceTest,
     );
     defineReflectiveTests(
-      DeprecatedMemberUseFromSamePackage_BazelWorkspaceTest,
+      DeprecatedMemberUseFromSamePackage_BlazeWorkspaceTest,
     );
     defineReflectiveTests(
       DeprecatedMemberUseFromSamePackage_PackageBuildWorkspaceTest,
@@ -324,13 +325,13 @@ void f(A a) {
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    assertBasicWorkspaceFor(testFilePath);
+    assertBasicWorkspaceFor(testFile);
   }
 }
 
 @reflectiveTest
-class DeprecatedMemberUse_BazelWorkspaceTest
-    extends BazelWorkspaceResolutionTest {
+class DeprecatedMemberUse_BlazeWorkspaceTest
+    extends BlazeWorkspaceResolutionTest {
   test_dart() async {
     newFile('$workspaceRootPath/foo/bar/lib/a.dart', r'''
 @deprecated
@@ -352,7 +353,7 @@ void f(A a) {}
 class A {}
 ''');
 
-    assertBazelWorkspaceFor(testFilePath);
+    assertBlazeWorkspaceFor(testFile);
 
     await assertErrorsInCode(r'''
 import 'package:aaa/a.dart';
@@ -374,7 +375,7 @@ class DeprecatedMemberUse_GnWorkspaceTest extends ContextResolutionTest {
   String get myPackageRootPath => '$workspaceRootPath/my';
 
   @override
-  String get testFilePath => '$myPackageLibPath/my.dart';
+  File get testFile => getFile('$myPackageLibPath/my.dart');
 
   String get workspaceRootPath => '/workspace';
 
@@ -435,7 +436,7 @@ void f(A a) {}
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    assertGnWorkspaceFor(testFilePath);
+    assertGnWorkspaceFor(testFile);
   }
 
   void _writeWorkspacePackagesFile(Map<String, String> nameToLibPath) {
@@ -1556,8 +1557,8 @@ void f() {
 }
 
 @reflectiveTest
-class DeprecatedMemberUseFromSamePackage_BazelWorkspaceTest
-    extends BazelWorkspaceResolutionTest {
+class DeprecatedMemberUseFromSamePackage_BlazeWorkspaceTest
+    extends BlazeWorkspaceResolutionTest {
   test_it() async {
     newFile('$myPackageLibPath/a.dart', r'''
 @deprecated
@@ -1625,7 +1626,7 @@ class _PackageBuildWorkspaceBase extends PubPackageResolutionTest {
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    assertPackageBuildWorkspaceFor(testFilePath);
+    assertPackageBuildWorkspaceFor(testFile);
   }
 
   void _createTestPackageBuildMarker() {

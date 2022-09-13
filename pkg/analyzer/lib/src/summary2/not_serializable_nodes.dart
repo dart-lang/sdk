@@ -19,13 +19,13 @@ FunctionExpressionImpl emptyFunctionExpression() {
       null,
       Tokens.closeParenthesis(),
     ),
-    astFactory.blockFunctionBody(
-      null,
-      null,
-      astFactory.block(
-        Tokens.openCurlyBracket(),
-        [],
-        Tokens.closeCurlyBracket(),
+    BlockFunctionBodyImpl(
+      keyword: null,
+      star: null,
+      block: BlockImpl(
+        leftBracket: Tokens.openCurlyBracket(),
+        statements: [],
+        rightBracket: Tokens.closeCurlyBracket(),
       ),
     ),
   );

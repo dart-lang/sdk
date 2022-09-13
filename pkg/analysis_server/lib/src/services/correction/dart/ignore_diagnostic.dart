@@ -6,6 +6,9 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/session.dart'
+    show AnalysisSessionImpl;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -59,6 +62,13 @@ abstract class AbstractIgnoreDiagnostic extends CorrectionProducer {
           lineOffset, '$prefix$indent$comment$eol$suffix');
     });
   }
+
+  bool _isCodeUnignorable() {
+    var session = sessionHelper.session as AnalysisSessionImpl;
+    var analysisOptions =
+        session.analysisContext.analysisOptions as AnalysisOptionsImpl;
+    return analysisOptions.unignorableNames.contains(error.errorCode.name);
+  }
 }
 
 class IgnoreDiagnosticInFile extends AbstractIgnoreDiagnostic {
@@ -67,6 +77,8 @@ class IgnoreDiagnosticInFile extends AbstractIgnoreDiagnostic {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    if (_isCodeUnignorable()) return;
+
     final insertDesc = utils.getInsertDescIgnoreForFile();
     await _computeEdit(
       builder,
@@ -83,6 +95,8 @@ class IgnoreDiagnosticOnLine extends AbstractIgnoreDiagnostic {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    if (_isCodeUnignorable()) return;
+
     final insertDesc = CorrectionUtils_InsertDesc();
     insertDesc.offset = node.offset;
     await _computeEdit(

@@ -89,7 +89,7 @@ class CpuSamplesRepository extends RingBuffer<CpuSample> {
         if (!idToFunctionIndex.containsKey(key)) {
           idToFunctionIndex[key] = functions.length;
           // Keep track of the original index and the location of the function
-          // in the master function list so we can update the function indicies
+          // in the master function list so we can update the function indices
           // for each sample in this batch.
           indexMapping[i] = functions.length;
           functions.add(_buildProfileFunction(newFunctions[i]));
@@ -100,7 +100,7 @@ class CpuSamplesRepository extends RingBuffer<CpuSample> {
         }
       }
 
-      // Update the indicies into the function table for functions that were
+      // Update the indices into the function table for functions that were
       // newly processed in the most recent event.
       for (final sample in samples.samples!) {
         final stack = sample.stack!;

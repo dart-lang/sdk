@@ -16,6 +16,7 @@ import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
+import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
@@ -162,7 +163,7 @@ class KLibraryEnv {
 
   /// Convert this [KLibraryEnv] to a corresponding [JLibraryEnv] containing
   /// only the members in [liveMembers].
-  JLibraryEnv convert(IrToElementMap elementMap,
+  JLibraryEnv convert(IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage) {
     Map<String, ir.Member> memberMap;
     Map<String, ir.Member> setterMap;
@@ -171,7 +172,7 @@ class KLibraryEnv {
     } else {
       memberMap = <String, ir.Member>{};
       _memberMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
+        MemberEntity member = kElementMap.getMember(node);
         if (liveMemberUsage.containsKey(member)) {
           memberMap[name] = node;
         }
@@ -182,7 +183,7 @@ class KLibraryEnv {
     } else {
       setterMap = <String, ir.Member>{};
       _setterMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
+        MemberEntity member = kElementMap.getMember(node);
         if (liveMemberUsage.containsKey(member)) {
           setterMap[name] = node;
         }
@@ -251,11 +252,8 @@ abstract class KClassEnv {
   /// Ensures that all members have been computed for [cls].
   void ensureMembers(KernelToElementMap elementMap);
 
-  /// Return the [MemberEntity] for the member [name] in the class. If [setter]
-  /// is `true`, the setter or assignable field corresponding to [name] is
-  /// returned.
-  MemberEntity lookupMember(IrToElementMap elementMap, String name,
-      {bool setter = false});
+  /// Return the [MemberEntity] for the member [name] in the class.
+  MemberEntity lookupMember(IrToElementMap elementMap, Name name);
 
   /// Calls [f] for each member of [cls].
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member));
@@ -273,8 +271,13 @@ abstract class KClassEnv {
 
   /// Convert this [KClassEnv] to the corresponding [JClassEnv] containing only
   /// the members in [liveMembers].
-  JClassEnv convert(IrToElementMap elementMap,
-      Map<MemberEntity, MemberUsage> liveMemberUsage);
+  ///
+  /// [getJLibrary] returns the [LibraryEntity] in the J-model corresponding to
+  /// a [ir.Library] node.
+  JClassEnv convert(
+      IrToElementMap kElementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage,
+      LibraryEntity Function(ir.Library library) getJLibrary);
 
   /// Returns `true` if [node] is a known member of this class.
   ///
@@ -299,8 +302,7 @@ class KClassEnvImpl implements KClassEnv {
   final ir.Class cls;
 
   Map<String, ir.Member> _constructorMap;
-  Map<String, ir.Member> _memberMap;
-  Map<String, ir.Member> _setterMap;
+  Map<Name, ir.Member> _memberMap;
   List<ir.Member> _members; // in declaration order.
   bool _isMixinApplicationWithMembers;
 
@@ -310,7 +312,7 @@ class KClassEnvImpl implements KClassEnv {
   KClassEnvImpl(this.cls);
 
   KClassEnvImpl.internal(this.cls, this._constructorMap, this._memberMap,
-      this._setterMap, this._members, this._isMixinApplicationWithMembers);
+      this._members, this._isMixinApplicationWithMembers);
 
   @override
   bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
@@ -325,7 +327,6 @@ class KClassEnvImpl implements KClassEnv {
   bool checkHasMember(ir.Member node) {
     if (_memberMap == null) return false;
     return _memberMap.values.contains(node) ||
-        _setterMap.values.contains(node) ||
         _constructorMap.values.contains(node);
   }
 
@@ -337,8 +338,7 @@ class KClassEnvImpl implements KClassEnv {
   void _ensureMaps(KernelToElementMap elementMap) {
     if (_memberMap != null) return;
 
-    _memberMap = <String, ir.Member>{};
-    _setterMap = <String, ir.Member>{};
+    _memberMap = <Name, ir.Member>{};
     _constructorMap = <String, ir.Member>{};
     var members = <ir.Member>[];
     _isMixinApplicationWithMembers = false;
@@ -346,10 +346,10 @@ class KClassEnvImpl implements KClassEnv {
     void addField(ir.Field member, {bool includeStatic}) {
       if (!includeStatic && member.isStatic) return;
       if (isRedirectingFactoryField(member)) return;
-      var name = member.name.text;
+      var name = elementMap.getName(member.name);
       _memberMap[name] = member;
       if (member.hasSetter) {
-        _setterMap[name] = member;
+        _memberMap[name.setter] = member;
       }
       members.add(member);
     }
@@ -361,30 +361,18 @@ class KClassEnvImpl implements KClassEnv {
       if (memberIsIgnorable(member, cls: cls)) return;
       if (!includeStatic && member.isStatic) return;
       if (member.isNoSuchMethodForwarder) {
-        // TODO(sigmund): remove once #33732 is fixed.
-        if (!includeNoSuchMethodForwarders ||
-            member.name.isPrivate &&
-                member.name.libraryName != member.enclosingLibrary.reference) {
+        if (!includeNoSuchMethodForwarders) {
           return;
         }
       }
-      var name = member.name.text;
       if (member.kind == ir.ProcedureKind.Factory) {
         if (member.isRedirectingFactory) {
           // Don't include redirecting factories.
           return;
         }
-        _constructorMap[name] = member;
-      } else if (member.kind == ir.ProcedureKind.Setter) {
-        _setterMap[name] = member;
-        members.add(member);
-        if (isFromMixinApplication) {
-          _isMixinApplicationWithMembers = true;
-        }
+        _constructorMap[member.name.text] = member;
       } else {
-        assert(member.kind == ir.ProcedureKind.Method ||
-            member.kind == ir.ProcedureKind.Getter ||
-            member.kind == ir.ProcedureKind.Operator);
+        var name = elementMap.getName(member.name, setter: member.isSetter);
         _memberMap[name] = member;
         members.add(member);
         if (isFromMixinApplication) {
@@ -438,10 +426,9 @@ class KClassEnvImpl implements KClassEnv {
   }
 
   @override
-  MemberEntity lookupMember(IrToElementMap elementMap, String name,
-      {bool setter = false}) {
+  MemberEntity lookupMember(IrToElementMap elementMap, Name name) {
     _ensureMaps(elementMap);
-    ir.Member member = setter ? _setterMap[name] : _memberMap[name];
+    ir.Member member = _memberMap[name];
     return member != null ? elementMap.getMember(member) : null;
   }
 
@@ -480,42 +467,32 @@ class KClassEnvImpl implements KClassEnv {
   }
 
   @override
-  JClassEnv convert(IrToElementMap elementMap,
-      Map<MemberEntity, MemberUsage> liveMemberUsage) {
+  JClassEnv convert(
+      IrToElementMap kElementMap,
+      Map<MemberEntity, MemberUsage> liveMemberUsage,
+      LibraryEntity Function(ir.Library library) getJLibrary) {
     Map<String, ir.Member> constructorMap;
-    Map<String, ir.Member> memberMap;
-    Map<String, ir.Member> setterMap;
+    Map<Name, ir.Member> memberMap;
     List<ir.Member> members;
     if (_constructorMap == null) {
       constructorMap = const <String, ir.Member>{};
     } else {
       constructorMap = <String, ir.Member>{};
       _constructorMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
+        MemberEntity member = kElementMap.getMember(node);
         if (liveMemberUsage.containsKey(member)) {
           constructorMap[name] = node;
         }
       });
     }
     if (_memberMap == null) {
-      memberMap = const <String, ir.Member>{};
+      memberMap = const <Name, ir.Member>{};
     } else {
-      memberMap = <String, ir.Member>{};
-      _memberMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
+      memberMap = <Name, ir.Member>{};
+      _memberMap.forEach((Name name, ir.Member node) {
+        MemberEntity member = kElementMap.getMember(node);
         if (liveMemberUsage.containsKey(member)) {
           memberMap[name] = node;
-        }
-      });
-    }
-    if (_setterMap == null) {
-      setterMap = const <String, ir.Member>{};
-    } else {
-      setterMap = <String, ir.Member>{};
-      _setterMap.forEach((String name, ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
-        if (liveMemberUsage.containsKey(member)) {
-          setterMap[name] = node;
         }
       });
     }
@@ -524,13 +501,13 @@ class KClassEnvImpl implements KClassEnv {
     } else {
       members = <ir.Member>[];
       _members.forEach((ir.Member node) {
-        MemberEntity member = elementMap.getMember(node);
+        MemberEntity member = kElementMap.getMember(node);
         if (liveMemberUsage.containsKey(member)) {
           members.add(node);
         }
       });
     }
-    return JClassEnvImpl(cls, constructorMap, memberMap, setterMap, members,
+    return JClassEnvImpl(cls, constructorMap, memberMap, members,
         _isMixinApplicationWithMembers ?? false);
   }
 }

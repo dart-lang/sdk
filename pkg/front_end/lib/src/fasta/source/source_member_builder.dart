@@ -54,7 +54,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
   bool get isAugmentation;
 
   /// Returns `true` if this member is a member declared in an augmentation
-  /// library that conflicts with a member in the origin library.
+  /// library that conflicts with a declaration in the origin library.
   bool get isConflictingAugmentationMember;
   void set isConflictingAugmentationMember(bool value);
 
@@ -107,8 +107,6 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   @override
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
-
-  bool get isRedirectingGenerativeConstructor => false;
 
   @override
   bool get isAugmentation => modifiers & augmentMask != 0;

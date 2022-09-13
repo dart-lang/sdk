@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 type: newworld
-target: VM
+target: vm
 worlds:
   - entry: main.dart
     sources:
@@ -53,3 +53,4 @@ worlds:
     invalidate:
       - main.dart
     expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly

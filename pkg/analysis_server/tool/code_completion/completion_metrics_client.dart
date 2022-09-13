@@ -38,7 +38,8 @@ Future<void> main(List<String> args) async {
   var options = CompletionMetricsOptions(result);
   var stopwatch = Stopwatch()..start();
   var client = _AnalysisServerClient(Directory(_sdk.sdkPath), targets);
-  _CompletionClientMetricsComputer(rootPath, options, client).computeMetrics();
+  await _CompletionClientMetricsComputer(rootPath, options, client)
+      .computeMetrics();
   stopwatch.stop();
 
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
@@ -289,7 +290,7 @@ class _AnalysisServerClient {
     _process = process;
     _shutdownResponseReceived = false;
     // This callback hookup can't throw.
-    process.exitCode.whenComplete(() {
+    unawaited(process.exitCode.whenComplete(() {
       _process = null;
 
       if (!_shutdownResponseReceived) {
@@ -312,7 +313,7 @@ class _AnalysisServerClient {
 
         _onCrash.complete();
       }
-    });
+    }));
 
     final errorStream = process.stderr
         .transform<String>(utf8.decoder)
@@ -326,7 +327,7 @@ class _AnalysisServerClient {
 
     _streamController('server.error').stream.listen(_handleServerError);
 
-    _sendCommand('server.setSubscriptions', params: <String, dynamic>{
+    await _sendCommand('server.setSubscriptions', params: <String, dynamic>{
       'subscriptions': <String>['STATUS'],
     });
 

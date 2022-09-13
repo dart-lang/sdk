@@ -136,6 +136,130 @@ class ClosingLabel implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
+/// Information about one of the arguments needed by the command.
+///
+/// A list of parameters is sent in the `data` field of the `CodeAction`
+/// returned by the server. The values of the parameters should appear in the
+/// `args` field of the `Command` sent to the server in the same order as the
+/// corresponding parameters.
+class CommandParameter implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    CommandParameter.canParse,
+    CommandParameter.fromJson,
+  );
+
+  CommandParameter({
+    required this.defaultValue,
+    required this.label,
+    required this.type,
+  });
+  static CommandParameter fromJson(Map<String, Object?> json) {
+    final defaultValueJson = json['defaultValue'];
+    final defaultValue = defaultValueJson as String;
+    final labelJson = json['label'];
+    final label = labelJson as String;
+    final typeJson = json['type'];
+    final type = CommandParameterType.fromJson(typeJson as String);
+    return CommandParameter(
+      defaultValue: defaultValue,
+      label: label,
+      type: type,
+    );
+  }
+
+  /// The default value for the parameter.
+  final String defaultValue;
+
+  /// A human-readable label to be displayed in the UI affordance used to prompt
+  /// the user for the value of the parameter.
+  final String label;
+
+  /// The type of the value of the parameter.
+  final CommandParameterType type;
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['defaultValue'] = defaultValue;
+    result['label'] = label;
+    result['type'] = type.toJson();
+    return result;
+  }
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'defaultValue',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      if (!_canParseString(obj, reporter, 'label',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseCommandParameterType(obj, reporter, 'type',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type CommandParameter');
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CommandParameter &&
+        other.runtimeType == CommandParameter &&
+        defaultValue == other.defaultValue &&
+        label == other.label &&
+        type == other.type;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        defaultValue,
+        label,
+        type,
+      );
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+/// The type of the value associated with a CommandParameter. All values are
+/// encoded as strings, but the type indicates how the string will be decoded by
+/// the server.
+class CommandParameterType implements ToJsonable {
+  const CommandParameterType(this._value);
+  const CommandParameterType.fromJson(this._value);
+
+  final String _value;
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) => obj is String;
+
+  /// The type associated with a bool value.
+  ///
+  /// The value must either be `'true'` or `'false'`.
+  static const boolean = CommandParameterType('boolean');
+
+  /// The type associated with a value representing a path to a file.
+  static const filePath = CommandParameterType('filePath');
+
+  /// The type associated with a string value.
+  static const string = CommandParameterType('string');
+
+  @override
+  Object toJson() => _value;
+
+  @override
+  String toString() => _value.toString();
+
+  @override
+  int get hashCode => _value.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CommandParameterType && other._value == _value;
+}
+
 class CompletionItemResolutionInfo implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     CompletionItemResolutionInfo.canParse,
@@ -146,10 +270,6 @@ class CompletionItemResolutionInfo implements ToJsonable {
     if (DartNotImportedCompletionResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
       return DartNotImportedCompletionResolutionInfo.fromJson(json);
-    }
-    if (DartSuggestionSetCompletionItemResolutionInfo.canParse(
-        json, nullLspJsonReporter)) {
-      return DartSuggestionSetCompletionItemResolutionInfo.fromJson(json);
     }
     if (PubPackageCompletionItemResolutionInfo.canParse(
         json, nullLspJsonReporter)) {
@@ -299,73 +419,6 @@ class DartNotImportedCompletionResolutionInfo
   int get hashCode => Object.hash(
         file,
         libraryUri,
-      );
-
-  @override
-  String toString() => jsonEncoder.convert(toJson());
-}
-
-class DartSuggestionSetCompletionItemResolutionInfo
-    implements CompletionItemResolutionInfo, ToJsonable {
-  static const jsonHandler = LspJsonHandler(
-    DartSuggestionSetCompletionItemResolutionInfo.canParse,
-    DartSuggestionSetCompletionItemResolutionInfo.fromJson,
-  );
-
-  DartSuggestionSetCompletionItemResolutionInfo({
-    required this.file,
-    required this.libId,
-  });
-  static DartSuggestionSetCompletionItemResolutionInfo fromJson(
-      Map<String, Object?> json) {
-    final fileJson = json['file'];
-    final file = fileJson as String;
-    final libIdJson = json['libId'];
-    final libId = libIdJson as int;
-    return DartSuggestionSetCompletionItemResolutionInfo(
-      file: file,
-      libId: libId,
-    );
-  }
-
-  final String file;
-  final int libId;
-
-  @override
-  Map<String, Object?> toJson() {
-    var result = <String, Object?>{};
-    result['file'] = file;
-    result['libId'] = libId;
-    return result;
-  }
-
-  static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'file',
-          allowsUndefined: false, allowsNull: false)) {
-        return false;
-      }
-      return _canParseInt(obj, reporter, 'libId',
-          allowsUndefined: false, allowsNull: false);
-    } else {
-      reporter.reportError(
-          'must be of type DartSuggestionSetCompletionItemResolutionInfo');
-      return false;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is DartSuggestionSetCompletionItemResolutionInfo &&
-        other.runtimeType == DartSuggestionSetCompletionItemResolutionInfo &&
-        file == other.file &&
-        libId == other.libId;
-  }
-
-  @override
-  int get hashCode => Object.hash(
-        file,
-        libId,
       );
 
   @override
@@ -1803,6 +1856,32 @@ bool _canParseBool(
     }
     if ((!nullCheck || value != null) && value is! bool) {
       reporter.reportError('must be of type bool');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseCommandParameterType(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !CommandParameterType.canParse(value, reporter)) {
+      reporter.reportError('must be of type CommandParameterType');
       return false;
     }
   } finally {

@@ -71,12 +71,4 @@ void f() {
 }
 ''');
   }
-
-  test_invalidUri() {
-    assertErrorsInCode('''
-import 'ht:' deferred as foo;
-''', [
-      error(CompileTimeErrorCode.INVALID_URI, 7, 5),
-    ]);
-  }
 }

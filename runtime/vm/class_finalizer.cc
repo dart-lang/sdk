@@ -302,6 +302,7 @@ void ClassFinalizer::VerifyBootstrapClasses() {
                  err.ToErrorCString());
     OS::Exit(255);
   }
+
   if (FLAG_trace_class_finalization) {
     OS::PrintErr("VerifyBootstrapClasses END.\n");
   }
@@ -1091,7 +1092,7 @@ void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
 
   // Add this class as an implementor to the implemented interface's type
   // classes.
-  const auto& interfaces = Array::Handle(zone, cls.interfaces());
+  auto& interfaces = Array::Handle(zone, cls.interfaces());
   const intptr_t mixin_index =
       cls.is_transformed_mixin_application() ? interfaces.Length() - 1 : -1;
   for (intptr_t i = 0; i < interfaces.Length(); ++i) {
@@ -1099,6 +1100,25 @@ void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
     other_cls = type.type_class();
     MarkImplemented(zone, other_cls);
     other_cls.AddDirectImplementor(cls, /* is_mixin = */ i == mixin_index);
+  }
+
+  // Propogate known concrete implementors to interfaces.
+  if (!cls.is_abstract()) {
+    GrowableArray<const Class*> worklist;
+    worklist.Add(&cls);
+    while (!worklist.is_empty()) {
+      const Class& implemented = *worklist.RemoveLast();
+      if (!implemented.NoteImplementor(cls)) continue;
+      type = implemented.super_type();
+      if (!type.IsNull()) {
+        worklist.Add(&Class::Handle(zone, implemented.SuperClass()));
+      }
+      interfaces = implemented.interfaces();
+      for (intptr_t i = 0; i < interfaces.Length(); i++) {
+        type ^= interfaces.At(i);
+        worklist.Add(&Class::Handle(zone, type.type_class()));
+      }
+    }
   }
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -1493,6 +1513,7 @@ class CidRewriteVisitor : public ObjectVisitor {
         return;
       }
       cls->untag()->id_ = Map(old_cid);
+      cls->untag()->implementor_cid_ = Map(cls->untag()->implementor_cid_);
     } else if (obj->IsField()) {
       FieldPtr field = Field::RawCast(obj);
       field->untag()->guarded_cid_ = Map(field->untag()->guarded_cid_);

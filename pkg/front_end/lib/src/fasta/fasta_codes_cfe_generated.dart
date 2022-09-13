@@ -659,6 +659,82 @@ Message _withArgumentsConstEvalInvalidPropertyGet(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)>
+    templateConstEvalInvalidRecordIndexGet = const Template<
+            Message Function(
+                String stringOKEmpty,
+                Constant _constant,
+                bool
+                    isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
+        withArguments: _withArgumentsConstEvalInvalidRecordIndexGet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)> codeConstEvalInvalidRecordIndexGet =
+    const Code<
+            Message Function(String stringOKEmpty, Constant _constant,
+                bool isNonNullableByDefault)>("ConstEvalInvalidRecordIndexGet",
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidRecordIndexGet(
+    String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
+  // ignore: unnecessary_null_comparison
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalInvalidRecordIndexGet,
+      problemMessage:
+          """The property '${stringOKEmpty}' can't be accessed on '${constant}' in a constant expression.""" +
+              labeler.originMessages,
+      arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)>
+    templateConstEvalInvalidRecordNameGet = const Template<
+            Message Function(
+                String stringOKEmpty,
+                Constant _constant,
+                bool
+                    isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
+        withArguments: _withArgumentsConstEvalInvalidRecordNameGet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(String stringOKEmpty, Constant _constant,
+            bool isNonNullableByDefault)> codeConstEvalInvalidRecordNameGet =
+    const Code<
+            Message Function(String stringOKEmpty, Constant _constant,
+                bool isNonNullableByDefault)>("ConstEvalInvalidRecordNameGet",
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalInvalidRecordNameGet(
+    String stringOKEmpty, Constant _constant, bool isNonNullableByDefault) {
+  // ignore: unnecessary_null_comparison
+  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> constantParts = labeler.labelConstant(_constant);
+  String constant = constantParts.join();
+  return new Message(codeConstEvalInvalidRecordNameGet,
+      problemMessage:
+          """The property '${stringOKEmpty}' can't be accessed on '${constant}' in a constant expression.""" +
+              labeler.originMessages,
+      arguments: {'stringOKEmpty': stringOKEmpty, 'constant': _constant});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(Constant _constant, bool isNonNullableByDefault)>
     templateConstEvalInvalidStringInterpolationOperand = const Template<
             Message Function(Constant _constant, bool isNonNullableByDefault)>(
@@ -1841,6 +1917,45 @@ Message _withArgumentsIncorrectTypeArgumentQualifiedInferred(
         'type3': _type3,
         'name2': name2
       });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(int count, int count2, DartType _type,
+            bool isNonNullableByDefault)>
+    templateIndexOutOfBoundInRecordIndexGet =
+    const Template<
+            Message Function(int count, int count2, DartType _type,
+                bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Index #count is out of range 0..#count2 of positional fields of records #type.""",
+        withArguments: _withArgumentsIndexOutOfBoundInRecordIndexGet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            int count, int count2, DartType _type, bool isNonNullableByDefault)>
+    codeIndexOutOfBoundInRecordIndexGet = const Code<
+        Message Function(int count, int count2, DartType _type,
+            bool isNonNullableByDefault)>(
+  "IndexOutOfBoundInRecordIndexGet",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIndexOutOfBoundInRecordIndexGet(
+    int count, int count2, DartType _type, bool isNonNullableByDefault) {
+  // ignore: unnecessary_null_comparison
+  if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
+  if (count2 == null) throw 'No count provided';
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeIndexOutOfBoundInRecordIndexGet,
+      problemMessage:
+          """Index ${count} is out of range 0..${count2} of positional fields of records ${type}.""" +
+              labeler.originMessages,
+      arguments: {'count': count, 'count2': count2, 'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3688,6 +3803,41 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
           """Type parameters couldn't be inferred for the mixin '${name}' because '${name2}' does not implement the mixin's supertype constraint '${type}'.""" +
               labeler.originMessages,
       arguments: {'name': name, 'name2': name2, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String string, DartType _type, bool isNonNullableByDefault)>
+    templateNameNotFoundInRecordNameGet = const Template<
+            Message Function(
+                String string, DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Field name #string isn't found in records of type #type.""",
+        withArguments: _withArgumentsNameNotFoundInRecordNameGet);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String string, DartType _type, bool isNonNullableByDefault)>
+    codeNameNotFoundInRecordNameGet = const Code<
+        Message Function(
+            String string, DartType _type, bool isNonNullableByDefault)>(
+  "NameNotFoundInRecordNameGet",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNameNotFoundInRecordNameGet(
+    String string, DartType _type, bool isNonNullableByDefault) {
+  if (string.isEmpty) throw 'No string provided';
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeNameNotFoundInRecordNameGet,
+      problemMessage:
+          """Field name ${string} isn't found in records of type ${type}.""" +
+              labeler.originMessages,
+      arguments: {'string': string, 'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

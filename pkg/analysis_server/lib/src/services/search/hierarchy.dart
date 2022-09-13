@@ -24,7 +24,7 @@ List<Element> getChildren(Element parent, [String? name]) {
 ///
 /// Includes: fields, accessors and methods.
 /// Excludes: constructors and synthetic elements.
-List<Element> getClassMembers(ClassElement clazz, [String? name]) {
+List<Element> getClassMembers(InterfaceElement clazz, [String? name]) {
   var members = <Element>[];
   visitChildren(clazz, (Element element) {
     if (element.isSynthetic) {
@@ -49,7 +49,7 @@ List<Element> getClassMembers(ClassElement clazz, [String? name]) {
 
 /// Returns a [Set] with direct subclasses of [seed].
 Future<Set<ClassElement>> getDirectSubClasses(
-    SearchEngine searchEngine, ClassElement seed) async {
+    SearchEngine searchEngine, InterfaceElement seed) async {
   var matches = await searchEngine.searchSubtypes(seed);
   return matches.map((match) => match.element).cast<ClassElement>().toSet();
 }
@@ -82,7 +82,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
     SearchEngine searchEngine, ClassMemberElement member) async {
   Set<ClassMemberElement> result = HashSet<ClassMemberElement>();
   // extension member
-  var enclosingElement = member.enclosingElement;
+  var enclosingElement = member.enclosingElement3;
   if (enclosingElement is ExtensionElement) {
     result.add(member);
     return Future.value(result);
@@ -96,7 +96,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   if (enclosingElement is ClassElement) {
     var name = member.displayName;
     var searchClasses = [
-      ...enclosingElement.allSupertypes.map((e) => e.element),
+      ...enclosingElement.allSupertypes.map((e) => e.element2),
       enclosingElement,
     ];
     for (var superClass in searchClasses) {
@@ -126,7 +126,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
 Future<List<ParameterElement>> getHierarchyNamedParameters(
     SearchEngine searchEngine, ParameterElement element) async {
   if (element.isNamed) {
-    var method = element.enclosingElement;
+    var method = element.enclosingElement3;
     if (method is MethodElement) {
       var hierarchyParameters = <ParameterElement>[];
       var hierarchyMembers = await getHierarchyMembers(searchEngine, method);
@@ -153,9 +153,9 @@ Future<List<ParameterElement>> getHierarchyNamedParameters(
 /// Includes: fields, accessors and methods.
 ///
 /// Excludes: constructors and synthetic elements.
-List<Element> getMembers(ClassElement clazz) {
+List<Element> getMembers(InterfaceElement clazz) {
   var classElements = [
-    ...clazz.allSupertypes.map((e) => e.element),
+    ...clazz.allSupertypes.map((e) => e.element2),
     clazz,
   ];
   var members = <Element>[];

@@ -7,6 +7,7 @@ library fasta.dill_class_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -183,8 +184,13 @@ class DillClassBuilder extends ClassBuilderImpl {
   }
 
   @override
+  void forEach(void f(String name, Builder builder)) {
+    scope.unfilteredNameIterator.forEach(f);
+  }
+
+  @override
   void forEachConstructor(void Function(String, MemberBuilder) f,
-      {bool includeInjectedConstructors: false}) {
+      {bool includeInjectedConstructors = false}) {
     constructorScope.forEach(f);
   }
 

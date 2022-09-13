@@ -5,10 +5,13 @@
 @deprecated
 library analyzer.test.constant_test;
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -66,6 +69,7 @@ const x = kIsWeb ? a : b;
     var x_result = findElement.topVar('x').evaluationResult;
     assertDartObjectText(x_result.value, r'''
 dynamic <unknown>
+  variable: self::@variable::x
 ''');
   }
 
@@ -371,6 +375,46 @@ const [for (var i = 0; i < 4; i++) i]
     await _assertValueInt(-42, "-42");
   }
 
+  /// Even though it is an error to specify a default value for a required
+  /// parameter, we still can evaluate it.
+  test_normalParameter_requiredNamed_hasDefault() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A({required int x = 42});
+}
+''');
+
+    final unitResult = await _getUnitElement(a);
+    final x = unitResult.findElement.parameter('x');
+    assertDartObjectText(
+      x.computeConstantValue(),
+      r'''
+int 42
+''',
+      libraryElement: unitResult.library,
+    );
+  }
+
+  /// Even though it is an error to specify a default value for a required
+  /// parameter, we still can evaluate it.
+  test_normalParameter_requiredNamed_noDefault() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A({required int? x});
+}
+''');
+
+    final unitResult = await _getUnitElement(a);
+    final x = unitResult.findElement.parameter('x');
+    assertDartObjectText(
+      x.computeConstantValue(),
+      r'''
+Null null
+''',
+      libraryElement: unitResult.library,
+    );
+  }
+
   test_notEqual_boolean_boolean() async {
     await _assertValueBool(true, "true != false");
   }
@@ -404,12 +448,14 @@ const x2 = E.v2;
 E
   _name: String v1
   index: int 0
+  variable: self::@variable::x1
 ''');
 
     _assertTopVarConstValue('x2', r'''
 E
   _name: String v2
   index: int 1
+  variable: self::@variable::x2
 ''');
   }
 
@@ -430,7 +476,9 @@ E
     _name: String v1
     a: int 42
     index: int 0
+    variable: self::@enum::E::@field::v1
   index: int 1
+  variable: self::@enum::E::@field::v2
 ''');
   }
 
@@ -452,6 +500,7 @@ E<double>
   _name: String v1
   f: double 10.0
   index: int 0
+  variable: self::@variable::x1
 ''');
 
     _assertTopVarConstValue('x2', r'''
@@ -459,6 +508,7 @@ E<int>
   _name: String v2
   f: int 20
   index: int 1
+  variable: self::@variable::x2
 ''');
   }
 
@@ -482,6 +532,7 @@ E<int>
   _name: String v1
   f: int 10
   index: int 0
+  variable: self::@variable::x1
 ''');
 
     _assertTopVarConstValue('x2', r'''
@@ -489,6 +540,7 @@ E<int>
   _name: String v2
   f: int 20
   index: int 1
+  variable: self::@variable::x2
 ''');
 
     _assertTopVarConstValue('x3', r'''
@@ -496,6 +548,7 @@ E<String>
   _name: String v3
   f: String abc
   index: int 2
+  variable: self::@variable::x3
 ''');
   }
 
@@ -594,6 +647,7 @@ B
     a: int 1
     b: int 2
   c: int 3
+  variable: self::@variable::x
 ''');
   }
 
@@ -620,6 +674,7 @@ B
     a: int 1
     b: int 2
   c: int 3
+  variable: self::@variable::x
 ''');
   }
 
@@ -644,6 +699,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -668,6 +724,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -692,6 +749,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -716,6 +774,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -740,6 +799,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -764,6 +824,7 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -788,6 +849,7 @@ B
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -812,6 +874,47 @@ B<int>
   (super): A
     a: int 1
   b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_variable_alias() async {
+    await resolveTestCode('''
+const a = 42;
+const b = a;
+''');
+
+    final a_result = findElement.topVar('a').evaluationResult;
+    assertDartObjectText(a_result.value, r'''
+int 42
+  variable: self::@variable::a
+''');
+
+    final b_result = findElement.topVar('b').evaluationResult;
+    assertDartObjectText(b_result.value, r'''
+int 42
+  variable: self::@variable::b
+''');
+  }
+
+  test_variable_list_elements() async {
+    await resolveTestCode('''
+const a = 0;
+const b = 2;
+const c = [a, 1, b];
+''');
+
+    final b_result = findElement.topVar('c').evaluationResult;
+    assertDartObjectText(b_result.value, r'''
+List
+  elementType: int
+  elements
+    int 0
+      variable: self::@variable::a
+    int 1
+    int 2
+      variable: self::@variable::b
+  variable: self::@variable::c
 ''');
   }
 
@@ -867,10 +970,29 @@ $context
     return evaluator.evaluate(expression);
   }
 
+  Future<_UnitElementResult> _getUnitElement(File file) async {
+    final analysisSession = contextFor(file).currentSession;
+    final unitResult = await analysisSession.getUnitElement(file.path);
+    unitResult as UnitElementResult;
+    return _UnitElementResult(unitResult.element);
+  }
+
   EvaluationResultImpl _topVarConstResult(String name) {
     var element = findElement.topVar(name) as ConstTopLevelVariableElementImpl;
     return element.evaluationResult!;
   }
+}
+
+class _UnitElementResult {
+  final CompilationUnitElement element;
+
+  _UnitElementResult(this.element);
+
+  PartFindElement get findElement {
+    return PartFindElement(element);
+  }
+
+  LibraryElement get library => element.library;
 }
 
 extension on VariableElement {

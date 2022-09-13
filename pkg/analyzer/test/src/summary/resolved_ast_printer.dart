@@ -125,6 +125,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    _writeln('AugmentationImportDirective');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element2);
+    });
+  }
+
+  @override
   void visitAwaitExpression(AwaitExpression node) {
     _writeln('AwaitExpression');
     _withIndent(() {
@@ -204,7 +213,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -215,7 +224,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -255,12 +264,25 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConfiguration(Configuration node) {
+    _writeln('Configuration');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+    _withIndent(() {
+      _sink.write(_indent);
+      _sink.write('resolvedUri: ');
+      _writeDirectiveUri(node.resolvedUri);
+    });
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _writeln('ConstructorDeclaration');
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -315,7 +337,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -335,6 +357,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitDoStatement(DoStatement node) {
     _writeln('DoStatement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitDottedName(DottedName node) {
+    _writeln('DottedName');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -377,7 +407,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         _writeElement('constructorElement', node.constructorElement);
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -388,7 +418,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -398,12 +428,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ExportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
-      _writeSource('selectedSource', node.selectedSource);
-      _writeRaw('selectedUriContent', node.selectedUriContent);
-      _writeRaw('uriContent', node.uriContent);
-      _writeElement('uriElement', node.uriElement);
-      _writeSource('uriSource', node.uriSource);
+      _writeElement('element', node.element2);
     });
   }
 
@@ -432,6 +457,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _writeln('ExtensionDeclaration');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('declaredElement', node.declaredElement2);
+      }
+    });
+  }
+
+  @override
   void visitExtensionOverride(ExtensionOverride node) {
     _writeln('ExtensionOverride');
     _withIndent(() {
@@ -448,7 +484,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -519,8 +555,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
+        _writeElement('declaredElement', node.declaredElement2);
+        _writeType('declaredElementType', node.declaredElement2!.type);
       }
     });
   }
@@ -575,7 +611,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -613,7 +649,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -667,12 +703,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ImportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
-      _writeSource('selectedSource', node.selectedSource);
-      _writeRaw('selectedUriContent', node.selectedUriContent);
-      _writeRaw('uriContent', node.uriContent);
-      _writeElement('uriElement', node.uriElement);
-      _writeSource('uriSource', node.uriSource);
+      _writeElement('element', node.element2);
     });
   }
 
@@ -746,11 +777,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LibraryAugmentationDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      // TODO(scheglov) Implement.
-      // _writeElement('element', node.element);
-      // _writeRaw('uriContent', node.uriContent);
-      // _writeElement('uriElement', node.uriElement);
-      // _writeSource('uriSource', node.uriSource);
+      _writeElement('element', node.element2);
     });
   }
 
@@ -759,7 +786,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LibraryDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
+      _writeElement('element', node.element2);
     });
   }
 
@@ -797,8 +824,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
-        _writeType('declaredElementType', node.declaredElement!.type);
+        _writeElement('declaredElement', node.declaredElement2);
+        _writeType('declaredElementType', node.declaredElement2!.type);
       }
     });
   }
@@ -821,7 +848,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -877,10 +904,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PartDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
-      _writeRaw('uriContent', node.uriContent);
-      _writePartUnitElement('uriElement', node.uriElement);
-      _writeSource('uriSource', node.uriSource);
+      _writeElement('element', node.element2);
     });
   }
 
@@ -889,7 +913,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PartOfDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
+      _writeElement('element', node.element2);
     });
   }
 
@@ -945,6 +969,51 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _writeln('RecordLiteral');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    _writeln('RecordTypeAnnotation');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeType('type', node.type);
+    });
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+      RecordTypeAnnotationNamedField node) {
+    _writeln('RecordTypeAnnotationNamedField');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+      RecordTypeAnnotationNamedFields node) {
+    _writeln('RecordTypeAnnotationNamedFields');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+      RecordTypeAnnotationPositionalField node) {
+    _writeln('RecordTypeAnnotationPositionalField');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1132,7 +1201,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -1169,7 +1238,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -1188,7 +1257,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeElement('declaredElement', node.declaredElement2);
       }
     });
   }
@@ -1285,7 +1354,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   String _elementToReferenceString(Element element) {
-    final enclosingElement = element.enclosingElement;
+    final enclosingElement = element.enclosingElement3;
     final reference = (element as ElementImpl).reference;
     if (reference != null) {
       return _referenceToString(reference);
@@ -1352,8 +1421,31 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _indent = indent;
   }
 
-  void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithUnit) {
+  void _writeAugmentationImportElement(AugmentationImportElement element) {
+    _writeln('AugmentationImportElement');
+    _withIndent(() {
+      _sink.write(_indent);
+      _sink.write('uri: ');
+      _writeDirectiveUri(element.uri);
+    });
+  }
+
+  void _writeDirectiveUri(DirectiveUri? uri) {
+    if (uri == null) {
+      _writeln('<null>');
+    } else if (uri is DirectiveUriWithAugmentation) {
+      _writeln('DirectiveUriWithAugmentation');
+      _withIndent(() {
+        final uriStr = _stringOfSource(uri.augmentation.source);
+        _writelnWithIndent('uri: $uriStr');
+      });
+    } else if (uri is DirectiveUriWithLibrary) {
+      _writeln('DirectiveUriWithLibrary');
+      _withIndent(() {
+        final uriStr = _stringOfSource(uri.library.source);
+        _writelnWithIndent('uri: $uriStr');
+      });
+    } else if (uri is DirectiveUriWithUnit) {
       _writeln('DirectiveUriWithUnit');
       _withIndent(() {
         final uriStr = _stringOfSource(uri.unit.source);
@@ -1409,6 +1501,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       });
     } else if (element is MultiplyDefinedElement) {
       _sink.writeln('<null>');
+    } else if (element is AugmentationImportElement) {
+      _writeAugmentationImportElement(element);
+    } else if (element is LibraryExportElement) {
+      _writeLibraryExportElement(element);
+    } else if (element is LibraryImportElement) {
+      _writeLibraryImportElement(element);
     } else if (element is PartElement) {
       _writePartElement(element);
     } else {
@@ -1433,6 +1531,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         _writeType('type', element.type);
       });
     }
+  }
+
+  void _writeLibraryExportElement(LibraryExportElement element) {
+    _writeln('LibraryExportElement');
+    _withIndent(() {
+      _sink.write(_indent);
+      _sink.write('uri: ');
+      _writeDirectiveUri(element.uri);
+    });
+  }
+
+  void _writeLibraryImportElement(LibraryImportElement element) {
+    _writeln('LibraryImportElement');
+    _withIndent(() {
+      _sink.write(_indent);
+      _sink.write('uri: ');
+      _writeDirectiveUri(element.uri);
+    });
   }
 
   void _writeln(String line) {
@@ -1535,28 +1651,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeDirectiveUri(element.uri);
   }
 
-  void _writePartUnitElement(String name, Element? element) {
-    if (_withResolution) {
-      _sink.write(_indent);
-      _sink.write('$name: ');
-      if (element is CompilationUnitElement) {
-        _sink.writeln('unitElement ${_stringOfSource(element.source)}');
-      } else {
-        _sink.writeln('notUnitElement');
-      }
-    }
-  }
-
   void _writeRaw(String name, Object? value) {
     _writelnWithIndent('$name: $value');
-  }
-
-  void _writeSource(String name, Source? source) {
-    if (source != null) {
-      _writelnWithIndent('$name: ${source.uri}');
-    } else {
-      _writelnWithIndent('$name: <null>');
-    }
   }
 
   void _writeToken(String name, Token? token) {
@@ -1574,13 +1670,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
-  /// TODO(scheglov) maybe inline?
   void _writeTokenList(String name, List<Token> tokens) {
     if (tokens.isNotEmpty) {
       _writelnWithIndent(name);
       _withIndent(() {
         for (var token in tokens) {
-          _writelnWithIndent('$name: $token');
+          _writelnWithIndent(token.lexeme);
           _withIndent(() {
             _writeOffset('offset', token.offset);
           });

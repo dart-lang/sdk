@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 type: newworld
-target: DDC
+target: dartdevc
 trackWidgetCreation: true
 worlds:
   - entry: main.dart
@@ -35,6 +35,7 @@ worlds:
           ]
         }
     expectedLibraryCount: 2
+
   - entry: main.dart
     worldType: updated
     invalidate:
@@ -47,3 +48,4 @@ worlds:
           const GalleryApp({super.key});
         }
     expectedLibraryCount: 2
+    advancedInvalidation: outlineChange

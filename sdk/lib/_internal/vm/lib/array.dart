@@ -62,7 +62,7 @@ abstract class _Array<E> extends FixedLengthListBase<E> {
     throw IterableElementError.tooMany();
   }
 
-  List<E> toList({bool growable: true}) {
+  List<E> toList({bool growable = true}) {
     var length = this.length;
     if (length > 0) {
       _List result = _slice(0, length, !growable);
@@ -115,6 +115,7 @@ class _List<E> extends _Array<E> {
   }
 
   // Specialization of List.of constructor for growable == false.
+  @pragma("vm:always-consider-inlining")
   factory _List.of(Iterable<E> elements) {
     if (elements is _GrowableList) {
       return _List._ofGrowableList(unsafeCast(elements));

@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
@@ -139,6 +138,8 @@ class AstBinaryReader {
         return _readPrefixedIdentifier();
       case Tag.PropertyAccess:
         return _readPropertyAccess();
+      case Tag.RecordLiteral:
+        return _readRecordLiteral();
       case Tag.RedirectingConstructorInvocation:
         return _readRedirectingConstructorInvocation();
       case Tag.SetOrMapLiteral:
@@ -199,11 +200,11 @@ class AstBinaryReader {
   }
 
   Annotation _readAnnotation() {
-    var name = readNode() as Identifier;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
-    var constructorName = _readOptionalNode() as SimpleIdentifier?;
-    var arguments = _readOptionalNode() as ArgumentList?;
-    var node = astFactory.annotation(
+    var name = readNode() as IdentifierImpl;
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
+    var arguments = _readOptionalNode() as ArgumentListImpl?;
+    var node = AnnotationImpl(
       atSign: Tokens.at(),
       name: name,
       typeArguments: typeArguments,
@@ -293,7 +294,10 @@ class AstBinaryReader {
 
   BooleanLiteral _readBooleanLiteral() {
     var value = _readByte() == 1;
-    var node = AstTestFactory.booleanLiteral(value);
+    var node = BooleanLiteralImpl(
+      literal: value ? Tokens.true_() : Tokens.false_(),
+      value: value,
+    );
     _readExpressionResolution(node);
     return node;
   }
@@ -303,23 +307,26 @@ class AstBinaryReader {
   }
 
   CascadeExpression _readCascadeExpression() {
-    var target = readNode() as Expression;
+    var target = readNode() as ExpressionImpl;
     var sections = _readNodeList<Expression>();
-    var node = astFactory.cascadeExpression(target, sections);
+    var node = CascadeExpressionImpl(
+      target: target,
+      cascadeSections: sections,
+    );
     node.staticType = target.staticType;
     return node;
   }
 
   ConditionalExpression _readConditionalExpression() {
-    var condition = readNode() as Expression;
-    var thenExpression = readNode() as Expression;
-    var elseExpression = readNode() as Expression;
-    var node = astFactory.conditionalExpression(
-      condition,
-      Tokens.question(),
-      thenExpression,
-      Tokens.colon(),
-      elseExpression,
+    var condition = readNode() as ExpressionImpl;
+    var thenExpression = readNode() as ExpressionImpl;
+    var elseExpression = readNode() as ExpressionImpl;
+    var node = ConditionalExpressionImpl(
+      condition: condition,
+      question: Tokens.question(),
+      thenExpression: thenExpression,
+      colon: Tokens.colon(),
+      elseExpression: elseExpression,
     );
     _readExpressionResolution(node);
     return node;
@@ -327,34 +334,34 @@ class AstBinaryReader {
 
   ConstructorFieldInitializer _readConstructorFieldInitializer() {
     var flags = _readByte();
-    var fieldName = readNode() as SimpleIdentifier;
-    var expression = readNode() as Expression;
+    var fieldName = readNode() as SimpleIdentifierImpl;
+    var expression = readNode() as ExpressionImpl;
     var hasThis = AstBinaryFlags.hasThis(flags);
-    return astFactory.constructorFieldInitializer(
-      hasThis ? Tokens.this_() : null,
-      hasThis ? Tokens.period() : null,
-      fieldName,
-      Tokens.eq(),
-      expression,
+    return ConstructorFieldInitializerImpl(
+      thisKeyword: hasThis ? Tokens.this_() : null,
+      period: hasThis ? Tokens.period() : null,
+      fieldName: fieldName,
+      equals: Tokens.eq(),
+      expression: expression,
     );
   }
 
   ConstructorName _readConstructorName() {
-    var type = readNode() as NamedType;
-    var name = _readOptionalNode() as SimpleIdentifier?;
+    var type = readNode() as NamedTypeImpl;
+    var name = _readOptionalNode() as SimpleIdentifierImpl?;
 
-    var node = astFactory.constructorName(
-      type,
-      name != null ? Tokens.period() : null,
-      name,
+    var node = ConstructorNameImpl(
+      type: type,
+      period: name != null ? Tokens.period() : null,
+      name: name,
     );
     node.staticElement = _reader.readElement() as ConstructorElement?;
     return node;
   }
 
   ConstructorReference _readConstructorReference() {
-    var constructorName = readNode() as ConstructorName;
-    var node = astFactory.constructorReference(
+    var constructorName = readNode() as ConstructorNameImpl;
+    var node = ConstructorReferenceImpl(
       constructorName: constructorName,
     );
     _readExpressionResolution(node);
@@ -370,13 +377,13 @@ class AstBinaryReader {
 
   DeclaredIdentifier _readDeclaredIdentifier() {
     var flags = _readByte();
-    var type = _readOptionalNode() as TypeAnnotation?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
     var identifier = _readDeclarationName();
     var metadata = _readNodeList<Annotation>();
-    return astFactory.declaredIdentifier(
-      null,
-      metadata,
-      Tokens.choose(
+    return DeclaredIdentifierImpl(
+      comment: null,
+      metadata: metadata,
+      keyword: Tokens.choose(
         AstBinaryFlags.isConst(flags),
         Tokens.const_(),
         AstBinaryFlags.isFinal(flags),
@@ -384,15 +391,15 @@ class AstBinaryReader {
         AstBinaryFlags.isVar(flags),
         Tokens.var_(),
       ),
-      type,
-      identifier,
+      type: type,
+      identifier: identifier,
     );
   }
 
   DefaultFormalParameter _readDefaultFormalParameter() {
     var flags = _readByte();
-    var parameter = readNode() as NormalFormalParameter;
-    var defaultValue = _readOptionalNode() as Expression?;
+    var parameter = readNode() as NormalFormalParameterImpl;
+    var defaultValue = _readOptionalNode() as ExpressionImpl?;
 
     ParameterKind kind;
     if (AstBinaryFlags.isPositional(flags)) {
@@ -405,11 +412,11 @@ class AstBinaryReader {
           : ParameterKind.NAMED;
     }
 
-    var node = astFactory.defaultFormalParameter(
-      parameter,
-      kind,
-      AstBinaryFlags.hasInitializer(flags) ? Tokens.colon() : null,
-      defaultValue,
+    var node = DefaultFormalParameterImpl(
+      parameter: parameter,
+      kind: kind,
+      separator: AstBinaryFlags.hasInitializer(flags) ? Tokens.colon() : null,
+      defaultValue: defaultValue,
     );
 
     var nonDefaultElement = parameter.declaredElement!;
@@ -421,7 +428,7 @@ class AstBinaryReader {
     if (parameter is SimpleFormalParameterImpl) {
       parameter.declaredElement = element;
     }
-    node.identifier?.staticElement = element;
+    node.declaredElement = element;
     element.type = nonDefaultElement.type;
 
     return node;
@@ -429,12 +436,17 @@ class AstBinaryReader {
 
   DottedName _readDottedName() {
     var components = _readNodeList<SimpleIdentifier>();
-    return astFactory.dottedName(components);
+    return DottedNameImpl(
+      components: components,
+    );
   }
 
   DoubleLiteral _readDoubleLiteral() {
     var value = _reader.readDouble();
-    var node = AstTestFactory.doubleLiteral(value);
+    var node = DoubleLiteralImpl(
+      literal: StringToken(TokenType.STRING, '$value', -1),
+      value: value,
+    );
     _readExpressionResolution(node);
     return node;
   }
@@ -853,24 +865,24 @@ class AstBinaryReader {
   }
 
   MixinDeclaration _readMixinDeclaration() {
-    var typeParameters = _readOptionalNode() as TypeParameterList?;
-    var onClause = _readOptionalNode() as OnClause?;
-    var implementsClause = _readOptionalNode() as ImplementsClause?;
-    var name = readNode() as SimpleIdentifier;
+    var typeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var onClause = _readOptionalNode() as OnClauseImpl?;
+    var implementsClause = _readOptionalNode() as ImplementsClauseImpl?;
+    var name = readNode() as SimpleIdentifierImpl;
     var metadata = _readNodeList<Annotation>();
 
-    var node = astFactory.mixinDeclaration(
-      null,
-      metadata,
-      null,
-      Tokens.mixin_(),
-      name,
-      typeParameters,
-      onClause,
-      implementsClause,
-      Tokens.openCurlyBracket(),
-      const <ClassMember>[],
-      Tokens.closeCurlyBracket(),
+    var node = MixinDeclarationImpl(
+      comment: null,
+      metadata: metadata,
+      augmentKeyword: null,
+      mixinKeyword: Tokens.mixin_(),
+      name: name,
+      typeParameters: typeParameters,
+      onClause: onClause,
+      implementsClause: implementsClause,
+      leftBracket: Tokens.openCurlyBracket(),
+      members: const <ClassMember>[],
+      rightBracket: Tokens.closeCurlyBracket(),
     );
 
     return node;
@@ -1012,6 +1024,19 @@ class AstBinaryReader {
     }
 
     var node = astFactory.propertyAccess(target, operator, propertyName);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  RecordLiteralImpl _readRecordLiteral() {
+    var flags = _readByte();
+    var fields = _readNodeList<Expression>();
+    var node = RecordLiteralImpl(
+      constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
+      leftParenthesis: Tokens.openParenthesis(),
+      fields: fields,
+      rightParenthesis: Tokens.closeParenthesis(),
+    );
     _readExpressionResolution(node);
     return node;
   }
@@ -1197,15 +1222,15 @@ class AstBinaryReader {
 
   TypeParameter _readTypeParameter() {
     var name = _readDeclarationName();
-    var bound = _readOptionalNode() as TypeAnnotation?;
+    var bound = _readOptionalNode() as TypeAnnotationImpl?;
     var metadata = _readNodeList<Annotation>();
 
-    var node = astFactory.typeParameter(
-      null,
-      metadata,
-      name,
-      bound != null ? Tokens.extends_() : null,
-      bound,
+    var node = TypeParameterImpl(
+      comment: null,
+      metadata: metadata,
+      name: name,
+      extendsKeyword: bound != null ? Tokens.extends_() : null,
+      bound: bound,
     );
 
     return node;
@@ -1226,13 +1251,13 @@ class AstBinaryReader {
 
   VariableDeclaration _readVariableDeclaration() {
     var flags = _readByte();
-    var name = readNode() as SimpleIdentifier;
-    var initializer = _readOptionalNode() as Expression?;
+    var name = readNode() as SimpleIdentifierImpl;
+    var initializer = _readOptionalNode() as ExpressionImpl?;
 
-    var node = astFactory.variableDeclaration(
-      name,
-      Tokens.eq(),
-      initializer,
+    var node = VariableDeclarationImpl(
+      name: name,
+      equals: Tokens.eq(),
+      initializer: initializer,
     );
 
     node.hasInitializer = AstBinaryFlags.hasInitializer(flags);
@@ -1242,11 +1267,11 @@ class AstBinaryReader {
 
   VariableDeclarationList _readVariableDeclarationList() {
     var flags = _readByte();
-    var type = _readOptionalNode() as TypeAnnotation?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
     var variables = _readNodeList<VariableDeclaration>();
     var metadata = _readNodeList<Annotation>();
 
-    return astFactory.variableDeclarationList2(
+    return VariableDeclarationListImpl(
       comment: null,
       keyword: Tokens.choose(
         AstBinaryFlags.isConst(flags),

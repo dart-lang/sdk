@@ -120,6 +120,8 @@ namespace dart {
   V(NullCastErrorSharedWithoutFPURegs)                                         \
   V(RangeErrorSharedWithFPURegs)                                               \
   V(RangeErrorSharedWithoutFPURegs)                                            \
+  V(WriteErrorSharedWithFPURegs)                                               \
+  V(WriteErrorSharedWithoutFPURegs)                                            \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
   V(DoubleToInteger)                                                           \
@@ -159,8 +161,8 @@ namespace dart {
   V(YieldAsyncStar)                                                            \
   V(ReturnAsyncStar)                                                           \
   V(InitSyncStar)                                                              \
-  V(YieldSyncStar)                                                             \
-  V(ReturnSyncStar)                                                            \
+  V(SuspendSyncStarAtStart)                                                    \
+  V(SuspendSyncStarAtYield)                                                    \
   V(AsyncExceptionHandler)                                                     \
   V(CloneSuspendState)                                                         \
   V(UnknownDartCode)

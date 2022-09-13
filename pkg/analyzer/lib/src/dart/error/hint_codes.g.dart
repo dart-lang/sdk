@@ -7,6 +7,10 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
@@ -48,6 +52,13 @@ class HintCode extends AnalyzerErrorCode {
     'CAN_BE_NULL_AFTER_NULL_AWARE',
     "The receiver uses '?.', so its value can be null.",
     correctionMessage: "Replace the '.' with a '?.' in the invocation.",
+  );
+
+  ///  No parameters.
+  static const HintCode CAST_FROM_NULL_ALWAYS_FAILS = HintCode(
+    'CAST_FROM_NULL_ALWAYS_FAILS',
+    "This cast will always throw an exception because the expression will "
+        "always evaluate to 'null'.",
   );
 
   ///  Dead code is code that is never reached, this can happen for instance if a
@@ -678,6 +689,37 @@ class HintCode extends AnalyzerErrorCode {
     "The annotation 'visibleForOverriding' can only be applied to a public "
         "instance member that can be overridden.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the member
+  static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE = HintCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete override implementation of '{0}'.",
+    correctionMessage: "Try overriding the missing member.",
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the first member
+  ///  1: the name of the second member
+  ///  2: the number of additional missing members that aren't listed
+  static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS =
+      HintCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete override implementation of '{0}', '{1}', and {2} more.",
+    correctionMessage: "Try overriding the missing members.",
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the first member
+  ///  1: the name of the second member
+  static const HintCode MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO = HintCode(
+    'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
+    "Missing concrete override implementation of '{0}' and '{1}'.",
+    correctionMessage: "Try overriding the missing members.",
+    uniqueName: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
   );
 
   ///  Generate a hint for a constructor, function or method invocation where a

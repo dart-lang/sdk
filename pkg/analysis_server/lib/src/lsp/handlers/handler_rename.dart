@@ -7,8 +7,8 @@ import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,

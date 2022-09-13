@@ -164,7 +164,7 @@ class FunctionReferenceResolver {
     // Otherwise, a 'call' method on the interface, or on an applicable
     // extension method applies.
     return type.lookUpMethod2(
-            FunctionElement.CALL_METHOD_NAME, type.element.library) ??
+            FunctionElement.CALL_METHOD_NAME, type.element2.library) ??
         _extensionResolver
             .findExtension(type, node, FunctionElement.CALL_METHOD_NAME)
             .getter;
@@ -175,7 +175,7 @@ class FunctionReferenceResolver {
     ExecutableElement element, {
     required bool implicitReceiver,
   }) {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (implicitReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.reportErrorForNode(
@@ -211,7 +211,7 @@ class FunctionReferenceResolver {
           nameNode.name,
           element.kind.displayName,
           enclosingElement.name!,
-          enclosingElement is ClassElement && enclosingElement.isMixin
+          enclosingElement is MixinElement
               ? 'mixin'
               : enclosingElement.kind.displayName,
         ],
@@ -234,7 +234,7 @@ class FunctionReferenceResolver {
       // If the type of the function is a type parameter, the tearoff is
       // disallowed, reported in [_resolveDisallowedExpression]. Use the type
       // parameter's bound here in an attempt to assign the intended types.
-      rawType = rawType.element.bound;
+      rawType = rawType.element2.bound;
     }
 
     if (rawType is FunctionType) {
@@ -777,7 +777,7 @@ class FunctionReferenceResolver {
   /// Returns the element that represents the property named [propertyName] on
   /// [classElement].
   ExecutableElement? _resolveStaticElement(
-      ClassElement classElement, SimpleIdentifier propertyName) {
+      InterfaceElement classElement, SimpleIdentifier propertyName) {
     String name = propertyName.name;
     ExecutableElement? element;
     if (propertyName.inSetterContext()) {
@@ -846,7 +846,7 @@ class FunctionReferenceResolver {
       } else if (receiverElement is TypeAliasElement) {
         var aliasedType = receiverElement.aliasedType;
         if (aliasedType is InterfaceType) {
-          var element = _resolveStaticElement(aliasedType.element, name);
+          var element = _resolveStaticElement(aliasedType.element2, name);
           name.staticElement = element;
           return element?.referenceType;
         } else {
@@ -891,7 +891,7 @@ extension on Element {
   /// Returns the 'type' of `this`, when accessed as a "reference", not
   /// immediately followed by parentheses and arguments.
   ///
-  /// For all elements that don't have a type (for example, [ExportElement]),
+  /// For all elements that don't have a type (for example, [LibraryExportElement]),
   /// `null` is returned. For [PropertyAccessorElement], the return value is
   /// returned. For all other elements, their `type` property is returned.
   DartType? get referenceType {

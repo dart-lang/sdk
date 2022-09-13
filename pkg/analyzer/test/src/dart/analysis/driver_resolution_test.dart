@@ -48,7 +48,7 @@ class AnalysisDriverResolutionTest extends PubPackageResolutionTest
 
   /// Test that [argumentList] has exactly two type items `int` and `double`.
   void assertTypeArguments(
-      TypeArgumentList argumentList, List<DartType> expectedTypes) {
+      TypeArgumentList argumentList, List<InterfaceType> expectedTypes) {
     expect(argumentList.arguments, hasLength(expectedTypes.length));
     for (int i = 0; i < expectedTypes.length; i++) {
       _assertNamedTypeSimple(argumentList.arguments[i], expectedTypes[i]);
@@ -144,7 +144,7 @@ void topLevelFunction() {}
     var myDeclaration =
         result.unit.declarations[0] as TopLevelVariableDeclaration;
     var myVariable = myDeclaration.variables.variables[0];
-    var myElement = myVariable.declaredElement as TopLevelVariableElement;
+    var myElement = myVariable.declaredElement2 as TopLevelVariableElement;
 
     void assertMyAnnotation(AnnotatedNode node) {
       Annotation annotation = node.metadata[0];
@@ -282,7 +282,7 @@ const a = 1;
 ''');
 
     // Make sure that the part knows its library.
-    contextFor(a.path).currentSession.getParsedUnit(a.path);
+    contextFor(a).currentSession.getParsedUnit(a.path);
 
     await resolveTestFile();
 
@@ -352,7 +352,7 @@ main() {
 
     var c = result.unit.declarations[0] as ClassDeclaration;
     var constructor = c.members[1] as ConstructorDeclaration;
-    ConstructorElement element = constructor.declaredElement!;
+    ConstructorElement element = constructor.declaredElement2!;
 
     var main = result.unit.declarations[1] as FunctionDeclaration;
     var statement = (main.functionExpression.body as BlockFunctionBody)
@@ -362,7 +362,7 @@ main() {
     expect(annotation.element, same(element));
 
     var identifier_1 = annotation.name as SimpleIdentifier;
-    expect(identifier_1.staticElement, same(c.declaredElement));
+    expect(identifier_1.staticElement, same(c.declaredElement2));
   }
 
   test_annotation_onVariableList_topLevelVariable() async {
@@ -383,7 +383,7 @@ class C {
     var myDeclaration =
         result.unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclaration myVariable = myDeclaration.variables.variables[0];
-    var myElement = myVariable.declaredElement as TopLevelVariableElement;
+    var myElement = myVariable.declaredElement2 as TopLevelVariableElement;
 
     var classNode = result.unit.declarations[1] as ClassDeclaration;
     var node = classNode.members[0] as MethodDeclaration;
@@ -412,12 +412,12 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
-    PrefixElement aPrefix = aImport.prefix!;
+    final aImport = unit.declaredElement!.library.libraryImports[0];
+    PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
-    ClassElement aClass = aUnitElement.getType('A')!;
+    ClassElement aClass = aUnitElement.getClass('A')!;
     var aGetter = aClass.getField('a')!.getter;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -451,12 +451,12 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
-    PrefixElement aPrefix = aImport.prefix!;
+    final aImport = unit.declaredElement!.library.libraryImports[0];
+    PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
-    ClassElement aClass = aUnitElement.getType('A')!;
+    ClassElement aClass = aUnitElement.getClass('A')!;
     ConstructorElement constructor = aClass.unnamedConstructor!;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -492,12 +492,12 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
-    PrefixElement aPrefix = aImport.prefix!;
+    final aImport = unit.declaredElement!.library.libraryImports[0];
+    PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
-    ClassElement aClass = aUnitElement.getType('A')!;
+    ClassElement aClass = aUnitElement.getClass('A')!;
     ConstructorElement constructor = aClass.getNamedConstructor('named')!;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -533,8 +533,8 @@ main() {}
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
-    PrefixElement aPrefix = aImport.prefix!;
+    final aImport = unit.declaredElement!.library.libraryImports[0];
+    PrefixElement aPrefix = aImport.prefix!.element;
     LibraryElement aLibrary = aImport.importedLibrary!;
 
     CompilationUnitElement aUnitElement = aLibrary.definingCompilationUnit;
@@ -567,7 +567,7 @@ class A {
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
-    ClassElement aClass = unitElement.getType('A')!;
+    ClassElement aClass = unitElement.getClass('A')!;
     var aGetter = aClass.getField('a')!.getter;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -597,7 +597,7 @@ class A {
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
-    ClassElement aClass = unitElement.getType('A')!;
+    ClassElement aClass = unitElement.getClass('A')!;
     ConstructorElement constructor = aClass.unnamedConstructor!;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -627,7 +627,7 @@ class A {
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
-    ClassElement aClass = unitElement.getType('A')!;
+    ClassElement aClass = unitElement.getClass('A')!;
     ConstructorElement constructor = aClass.constructors.single;
 
     Annotation annotation = unit.declarations[0].metadata.single;
@@ -661,9 +661,9 @@ class D {
 f() {}
 ''');
     await resolveTestFile();
-    var elementC = AstFinder.getClass(result.unit, 'C').declaredElement!;
+    var elementC = AstFinder.getClass(result.unit, 'C').declaredElement2!;
     var constructorC = elementC.constructors[0];
-    var elementD = AstFinder.getClass(result.unit, 'D').declaredElement!;
+    var elementD = AstFinder.getClass(result.unit, 'D').declaredElement2!;
     var constructorD = elementD.constructors[0];
     var atD = AstFinder.getTopLevelFunction(result.unit, 'f').metadata[0];
     var constC = atD.arguments!.arguments[0] as InstanceCreationExpression;
@@ -695,12 +695,12 @@ void main() {
     var declaration_1 =
         result.unit.declarations[0] as TopLevelVariableDeclaration;
     VariableDeclaration variable_1 = declaration_1.variables.variables[0];
-    var element_1 = variable_1.declaredElement as TopLevelVariableElement;
+    var element_1 = variable_1.declaredElement2 as TopLevelVariableElement;
 
     var declaration_2 =
         result.unit.declarations[1] as TopLevelVariableDeclaration;
     VariableDeclaration variable_2 = declaration_2.variables.variables[0];
-    var element_2 = variable_2.declaredElement as TopLevelVariableElement;
+    var element_2 = variable_2.declaredElement2 as TopLevelVariableElement;
 
     var main = result.unit.declarations[2] as FunctionDeclaration;
 
@@ -733,8 +733,7 @@ void main() {
     VariableElement vElement;
     {
       var statement = statements[0] as VariableDeclarationStatement;
-      vElement = statement.variables.variables[0].name.staticElement
-          as VariableElement;
+      vElement = statement.variables.variables[0].declaredElement2!;
       expect(vElement.type, typeProvider.numType);
     }
 
@@ -749,7 +748,7 @@ void main() {
       expect(target.staticType, typeProvider.numType);
 
       var intName = asExpression.type as NamedType;
-      expect(intName.name.staticElement, typeProvider.intType.element);
+      expect(intName.name.staticElement, typeProvider.intType.element2);
       expect(intName.name.staticType, isNull);
     }
   }
@@ -781,7 +780,7 @@ main() {
 
     var statement = mainStatements[0] as VariableDeclarationStatement;
     VariableDeclaration vNode = statement.variables.variables[0];
-    VariableElement vElement = vNode.declaredElement!;
+    VariableElement vElement = vNode.declaredElement2!;
     expect(vElement.type, typeProvider.intType);
 
     var value = vNode.initializer as BinaryExpression;
@@ -957,12 +956,12 @@ main() {
     await resolveTestFile();
 
     var mainDeclaration = result.unit.declarations[0] as FunctionDeclaration;
-    var mainElement = mainDeclaration.declaredElement as FunctionElement;
+    var mainElement = mainDeclaration.declaredElement2 as FunctionElement;
     var mainBody = mainDeclaration.functionExpression.body as BlockFunctionBody;
     List<Statement> mainStatements = mainBody.block.statements;
 
     var itemsStatement = mainStatements[0] as VariableDeclarationStatement;
-    var itemsElement = itemsStatement.variables.variables[0].declaredElement!;
+    var itemsElement = itemsStatement.variables.variables[0].declaredElement2!;
 
     // First closure.
     ParameterElement itemElement1;
@@ -978,7 +977,7 @@ main() {
           forInvocation.argumentList.arguments[0] as FunctionExpression;
 
       var closureElement = closure.declaredElement as FunctionElementImpl;
-      expect(closureElement.enclosingElement, same(mainElement));
+      expect(closureElement.enclosingElement3, same(mainElement));
 
       ParameterElement itemElement = closureElement.parameters[0];
       itemElement1 = itemElement;
@@ -1019,7 +1018,7 @@ main() {
           forInvocation.argumentList.arguments[0] as FunctionExpression;
 
       var closureElement = closure.declaredElement as FunctionElementImpl;
-      expect(closureElement.enclosingElement, same(mainElement));
+      expect(closureElement.enclosingElement3, same(mainElement));
 
       ParameterElement itemElement = closureElement.parameters[0];
       expect(itemElement, isNot(same(itemElement1)));
@@ -1062,7 +1061,7 @@ void foo(List<T> Function<T>() createList) {}
     assertType(closure, 'List<T> Function<T>()');
 
     var closureElement = closure.declaredElement as FunctionElementImpl;
-    expect(closureElement.enclosingElement, findElement.function('main'));
+    expect(closureElement.enclosingElement3, findElement.function('main'));
     assertType(closureElement.returnType, 'List<T>');
     expect(closureElement.parameters, isEmpty);
 
@@ -1164,7 +1163,7 @@ class C {
     var cNode = result.unit.declarations[0] as ClassDeclaration;
 
     var constructorNode = cNode.members[0] as ConstructorDeclaration;
-    ParameterElement pElement = constructorNode.declaredElement!.parameters[0];
+    ParameterElement pElement = constructorNode.declaredElement2!.parameters[0];
 
     var constructorBody = constructorNode.body as BlockFunctionBody;
     var pStatement = constructorBody.block.statements[0] as ExpressionStatement;
@@ -1186,12 +1185,12 @@ class C {
     await resolveTestFile();
 
     var cNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
     FieldElement fElement = cElement.getField('f')!;
 
     var constructorNode = cNode.members[1] as ConstructorDeclaration;
     ParameterElement pParameterElement =
-        constructorNode.declaredElement!.parameters[0];
+        constructorNode.declaredElement2!.parameters[0];
 
     {
       var initializer =
@@ -1217,7 +1216,7 @@ class B extends A {
     await resolveTestFile();
 
     var aNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement aElement = aNode.declaredElement!;
+    ClassElement aElement = aNode.declaredElement2!;
 
     var bNode = result.unit.declarations[1] as ClassDeclaration;
 
@@ -1259,7 +1258,7 @@ class C {
     await resolveTestFile();
 
     var cNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
 
     {
       var unnamedConstructor = cElement.constructors[0];
@@ -1310,7 +1309,7 @@ class B {
     expect(result.errors, isEmpty);
 
     var aNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement aElement = aNode.declaredElement!;
+    ClassElement aElement = aNode.declaredElement2!;
 
     var bNode = result.unit.declarations[1] as ClassDeclaration;
 
@@ -1318,7 +1317,7 @@ class B {
       ConstructorElement aUnnamed = aElement.constructors[0];
 
       var constructor = bNode.members[0] as ConstructorDeclaration;
-      ConstructorElement element = constructor.declaredElement!;
+      ConstructorElement element = constructor.declaredElement2!;
       expect(element.redirectedConstructor, same(aUnnamed));
 
       var constructorName = constructor.redirectedConstructor!;
@@ -1338,7 +1337,7 @@ class B {
       ConstructorElement aNamed = aElement.constructors[1];
 
       var constructor = bNode.members[1] as ConstructorDeclaration;
-      ConstructorElement element = constructor.declaredElement!;
+      ConstructorElement element = constructor.declaredElement2!;
       expect(element.redirectedConstructor, same(aNamed));
 
       var constructorName = constructor.redirectedConstructor!;
@@ -1371,11 +1370,11 @@ class B<U> {
     expect(result.errors, isEmpty);
 
     var aNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement aElement = aNode.declaredElement!;
+    ClassElement aElement = aNode.declaredElement2!;
 
     var bNode = result.unit.declarations[1] as ClassDeclaration;
     TypeParameterType uType =
-        typeParameterTypeNone(bNode.declaredElement!.typeParameters[0]);
+        typeParameterTypeNone(bNode.declaredElement2!.typeParameters[0]);
     InterfaceType auType = aElement.instantiate(
       typeArguments: [uType],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -1385,7 +1384,7 @@ class B<U> {
       ConstructorElement expectedElement = aElement.constructors[0];
 
       var constructor = bNode.members[0] as ConstructorDeclaration;
-      ConstructorElement element = constructor.declaredElement!;
+      ConstructorElement element = constructor.declaredElement2!;
 
       var actualMember = element.redirectedConstructor!;
       assertMember(actualMember, expectedElement, {'T': 'U'});
@@ -1407,7 +1406,7 @@ class B<U> {
       ConstructorElement expectedElement = aElement.constructors[1];
 
       var constructor = bNode.members[1] as ConstructorDeclaration;
-      ConstructorElement element = constructor.declaredElement!;
+      ConstructorElement element = constructor.declaredElement2!;
 
       var actualMember = element.redirectedConstructor!;
       assertMember(actualMember, expectedElement, {'T': 'U'});
@@ -1443,7 +1442,7 @@ main() {
     assertInvokeType(invocation, 'Future<dynamic> Function()');
 
     var target = invocation.target as SimpleIdentifier;
-    assertElement(target, import.prefix);
+    assertElement(target, import.prefix?.element);
     assertType(target, null);
 
     var name = invocation.methodName;
@@ -1469,7 +1468,7 @@ main() {
     assertInvokeType(invocation, 'Future<dynamic> Function()');
 
     var target = invocation.target as SimpleIdentifier;
-    assertElement(target, import.prefix);
+    assertElement(target, import.prefix?.element);
     assertType(target, null);
 
     var name = invocation.methodName;
@@ -1500,7 +1499,7 @@ main() {
     assertType(prefixed, 'Future<dynamic> Function()');
 
     var prefix = prefixed.prefix;
-    assertElement(prefix, import.prefix);
+    assertElement(prefix, import.prefix?.element);
     assertType(prefix, null);
 
     var identifier = prefixed.identifier;
@@ -1528,7 +1527,7 @@ main() async {
       assertElement(prefixed, v.getter);
       assertType(prefixed, 'int');
 
-      assertElement(prefixed.prefix, import.prefix);
+      assertElement(prefixed.prefix, import.prefix?.element);
       assertType(prefixed.prefix, null);
 
       assertElement(prefixed.identifier, v.getter);
@@ -1540,7 +1539,7 @@ main() async {
       assertElementNull(prefixed);
       assertTypeNull(prefixed);
 
-      assertElement(prefixed.prefix, import.prefix);
+      assertElement(prefixed.prefix, import.prefix?.element);
       assertType(prefixed.prefix, null);
 
       assertUnresolvedSimpleIdentifier(prefixed.identifier);
@@ -1708,7 +1707,7 @@ main(MyEnum e) {
 
     var methodElement = invocation.methodName.staticElement as MethodElement;
     expect(methodElement.name, 'toString');
-    expect(methodElement.enclosingElement, same(objectElement));
+    expect(methodElement.enclosingElement3, same(objectElement));
   }
 
   test_error_unresolvedTypeAnnotation() async {
@@ -1729,8 +1728,11 @@ main() {
     expect(namedType.typeArguments!.arguments[0].type, typeProvider.intType);
 
     VariableDeclaration vNode = statement.variables.variables[0];
+
+    // ignore: deprecated_member_use_from_same_package
     expect(vNode.name.staticType, isNull);
-    expect(vNode.declaredElement!.type, isDynamicType);
+    // ignore: deprecated_member_use_from_same_package
+    expect(vNode.declaredElement2!.type, isDynamicType);
   }
 
   test_field_context() async {
@@ -1742,11 +1744,11 @@ class C<T> {
     await resolveTestFile();
 
     var cNode = result.unit.declarations[0] as ClassDeclaration;
-    var tElement = cNode.declaredElement!.typeParameters[0];
+    var tElement = cNode.declaredElement2!.typeParameters[0];
 
     var fDeclaration = cNode.members[0] as FieldDeclaration;
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
-    var fElement = fNode.declaredElement as FieldElement;
+    var fElement = fNode.declaredElement2 as FieldElement;
     expect(
         fElement.type, typeProvider.listType(typeParameterTypeNone(tElement)));
   }
@@ -1788,11 +1790,11 @@ class A {
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
     var p = parameters[0] as FunctionTypedFormalParameter;
-    expect(p.declaredElement, same(constructor.declaredElement!.parameters[0]));
+    expect(
+        p.declaredElement, same(constructor.declaredElement2!.parameters[0]));
 
     {
-      var type =
-          (p.identifier.staticElement as ParameterElement).type as FunctionType;
+      var type = (p.declaredElement as ParameterElement).type as FunctionType;
       expect(type.returnType, typeProvider.stringType);
 
       expect(type.parameters, hasLength(1));
@@ -1804,7 +1806,6 @@ class A {
     {
       var a = p.parameters.parameters[0] as SimpleFormalParameter;
       _assertNamedTypeSimple(a.type!, typeProvider.intType);
-      expect(a.identifier!.staticType, isNull);
     }
   }
 
@@ -1822,11 +1823,11 @@ class A {
 
     var fDeclaration = clazz.members[0] as FieldDeclaration;
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
-    var fElement = fNode.declaredElement as FieldElement;
+    var fElement = fNode.declaredElement2 as FieldElement;
 
     var constructor = clazz.members[1] as ConstructorDeclaration;
 
-    var pElement = constructor.declaredElement!.parameters[0]
+    var pElement = constructor.declaredElement2!.parameters[0]
         as FieldFormalParameterElement;
     expect(pElement.field, same(fElement));
 
@@ -1834,15 +1835,11 @@ class A {
     var p = parameters[0] as FieldFormalParameter;
     expect(p.declaredElement, same(pElement));
 
-    expect(p.identifier.staticElement, same(pElement));
-    assertTypeNull(p.identifier);
-
     _assertNamedTypeSimple(p.type!, typeProvider.stringType);
 
     {
       var a = p.parameters!.parameters[0] as SimpleFormalParameter;
       _assertNamedTypeSimple(a.type!, typeProvider.intType);
-      expect(a.identifier!.staticType, isNull);
     }
   }
 
@@ -1859,21 +1856,18 @@ class A {
 
     var fDeclaration = clazz.members[0] as FieldDeclaration;
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
-    var fElement = fNode.declaredElement as FieldElement;
+    var fElement = fNode.declaredElement2 as FieldElement;
 
     var constructor = clazz.members[1] as ConstructorDeclaration;
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
-    var parameterElement = constructor.declaredElement!.parameters[0]
+    var parameterElement = constructor.declaredElement2!.parameters[0]
         as FieldFormalParameterElement;
     expect(parameterElement.field, same(fElement));
 
     var parameterNode = parameters[0] as FieldFormalParameter;
     expect(parameterNode.type, isNull);
     expect(parameterNode.declaredElement, same(parameterElement));
-
-    expect(parameterNode.identifier.staticElement, same(parameterElement));
-    assertTypeNull(parameterNode.identifier);
   }
 
   test_formalParameter_simple_fieldFormal_typed() async {
@@ -1889,21 +1883,18 @@ class A {
 
     var fDeclaration = clazz.members[0] as FieldDeclaration;
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
-    var fElement = fNode.declaredElement as FieldElement;
+    var fElement = fNode.declaredElement2 as FieldElement;
 
     var constructor = clazz.members[1] as ConstructorDeclaration;
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
-    var parameterElement = constructor.declaredElement!.parameters[0]
+    var parameterElement = constructor.declaredElement2!.parameters[0]
         as FieldFormalParameterElement;
     expect(parameterElement.field, same(fElement));
 
     var parameterNode = parameters[0] as FieldFormalParameter;
     _assertNamedTypeSimple(parameterNode.type!, typeProvider.intType);
     expect(parameterNode.declaredElement, same(parameterElement));
-
-    expect(parameterNode.identifier.staticElement, same(parameterElement));
-    assertTypeNull(parameterNode.identifier);
   }
 
   test_forwardingStub_class() async {
@@ -1919,7 +1910,7 @@ main(B b) {
     await resolveTestFile();
 
 //    var aNode = result.unit!.declarations[0] as ClassDeclaration;
-//    ClassElement eElement = aNode.declaredElement!;
+//    ClassElement eElement = aNode.declaredElement2!;
 //    MethodElement mElement = eElement.getMethod('m');
 
     List<Statement> mainStatements = _getMainStatements(result);
@@ -1992,7 +1983,7 @@ main() {
     var fType = findElement.localVar('f').type as FunctionType;
     var fTypeTypeParameter = fType.typeFormals[0];
     var fTypeParameter = fType.normalParameterTypes[0] as TypeParameterType;
-    expect(fTypeParameter.element, same(fTypeTypeParameter));
+    expect(fTypeParameter.element2, same(fTypeTypeParameter));
     var tRef = findNode.simple('T>');
     var functionTypeNode = tRef.parent!.parent!.parent as GenericFunctionType;
     var functionType = functionTypeNode.type as FunctionType;
@@ -2019,7 +2010,7 @@ main() {
     {
       var statement = mainStatements[0] as VariableDeclarationStatement;
       VariableDeclaration itemsNode = statement.variables.variables[0];
-      itemsElement = itemsNode.declaredElement!;
+      itemsElement = itemsNode.declaredElement2!;
       expect(itemsElement.type, listIntType);
     }
 
@@ -2050,7 +2041,7 @@ var b = new C.named();
     CompilationUnit unit = result.unit;
 
     var cNode = unit.declarations[0] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
     ConstructorElement defaultConstructor = cElement.constructors[0];
     ConstructorElement namedConstructor = cElement.constructors[1];
 
@@ -2103,7 +2094,7 @@ var v = new X(1, b: true, c: 3.0);
     CompilationUnit unit = result.unit;
 
     var xNode = unit.declarations[0] as ClassDeclaration;
-    ClassElement xElement = xNode.declaredElement!;
+    ClassElement xElement = xNode.declaredElement2!;
     ConstructorElement constructorElement = xElement.constructors[0];
 
     var vDeclaration = unit.declarations[1] as TopLevelVariableDeclaration;
@@ -2144,7 +2135,7 @@ var b = new C.named(2);
     CompilationUnit unit = result.unit;
 
     var cNode = unit.declarations[0] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
     ConstructorElement defaultConstructor = cElement.constructors[0];
     ConstructorElement namedConstructor = cElement.constructors[1];
 
@@ -2210,10 +2201,10 @@ main() {
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement aImport = unit.declaredElement!.library.imports[0];
+    final aImport = unit.declaredElement!.library.libraryImports[0];
     LibraryElement aLibrary = aImport.importedLibrary!;
 
-    ClassElement cElement = aLibrary.getType('C')!;
+    ClassElement cElement = aLibrary.getClass('C')!;
     ConstructorElement defaultConstructor = cElement.constructors[0];
     ConstructorElement namedConstructor = cElement.constructors[1];
 
@@ -2230,7 +2221,13 @@ main() {
 
       var constructorName = creation.constructorName;
       expect(constructorName.name, isNull);
-      expect(constructorName.staticElement, defaultConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          defaultConstructor,
+          substitution: {'T': 'int'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments, isNull);
@@ -2241,7 +2238,7 @@ main() {
 
       SimpleIdentifier typePrefix = typeIdentifier.prefix;
       expect(typePrefix.name, 'p');
-      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticElement, same(aImport.prefix?.element));
       expect(typePrefix.staticType, isNull);
 
       expect(typeIdentifier.identifier.staticElement, same(cElement));
@@ -2258,9 +2255,21 @@ main() {
       expect(creation.staticType, cTypeDouble);
 
       var constructorName = creation.constructorName;
-      expect(constructorName.name!.staticElement, namedConstructor);
+      assertElement(
+        constructorName.name!.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'dynamic'},
+        ),
+      );
       expect(constructorName.name!.staticType, isNull);
-      expect(constructorName.staticElement, namedConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'double'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments, isNull);
@@ -2271,7 +2280,7 @@ main() {
 
       SimpleIdentifier typePrefix = typeIdentifier.prefix;
       expect(typePrefix.name, 'p');
-      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticElement, same(aImport.prefix?.element));
       expect(typePrefix.staticType, isNull);
 
       expect(typeIdentifier.identifier.staticElement, same(cElement));
@@ -2288,9 +2297,21 @@ main() {
       expect(creation.staticType, cTypeBool);
 
       var constructorName = creation.constructorName;
-      expect(constructorName.name!.staticElement, namedConstructor);
+      assertElement(
+        constructorName.name!.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
       expect(constructorName.name!.staticType, isNull);
-      expect(constructorName.staticElement, namedConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments!.arguments, hasLength(1));
@@ -2303,7 +2324,7 @@ main() {
 
       SimpleIdentifier typePrefix = typeIdentifier.prefix;
       expect(typePrefix.name, 'p');
-      expect(typePrefix.staticElement, same(aImport.prefix));
+      expect(typePrefix.staticElement, same(aImport.prefix?.element));
       expect(typePrefix.staticType, isNull);
 
       expect(typeIdentifier.identifier.staticElement, same(cElement));
@@ -2328,7 +2349,7 @@ class C<T> {
     CompilationUnit unit = result.unit;
     CompilationUnitElement unitElement = unit.declaredElement!;
 
-    ClassElement cElement = unitElement.getType('C')!;
+    ClassElement cElement = unitElement.getClass('C')!;
     ConstructorElement defaultConstructor = cElement.constructors[0];
     ConstructorElement namedConstructor = cElement.constructors[1];
 
@@ -2345,7 +2366,13 @@ class C<T> {
 
       var constructorName = creation.constructorName;
       expect(constructorName.name, isNull);
-      expect(constructorName.staticElement, defaultConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          defaultConstructor,
+          substitution: {'T': 'int'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments, isNull);
@@ -2367,7 +2394,13 @@ class C<T> {
 
       var constructorName = creation.constructorName;
       expect(constructorName.name, isNull);
-      expect(constructorName.staticElement, defaultConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          defaultConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments!.arguments, hasLength(1));
@@ -2390,9 +2423,21 @@ class C<T> {
       expect(creation.staticType, cTypeDouble);
 
       var constructorName = creation.constructorName;
-      expect(constructorName.name!.staticElement, namedConstructor);
+      assertElement(
+        constructorName.name!.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'dynamic'},
+        ),
+      );
       expect(constructorName.name!.staticType, isNull);
-      expect(constructorName.staticElement, namedConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'double'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments, isNull);
@@ -2413,9 +2458,21 @@ class C<T> {
       expect(creation.staticType, cTypeBool);
 
       var constructorName = creation.constructorName;
-      expect(constructorName.name!.staticElement, namedConstructor);
+      assertElement(
+        constructorName.name!.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
       expect(constructorName.name!.staticType, isNull);
-      expect(constructorName.staticElement, namedConstructor);
+      assertElement(
+        constructorName.staticElement,
+        elementMatcher(
+          namedConstructor,
+          substitution: {'T': 'bool'},
+        ),
+      );
 
       NamedType namedType = constructorName.type;
       expect(namedType.typeArguments!.arguments, hasLength(1));
@@ -2898,7 +2955,7 @@ main() {
       findNode.namedType('a.Future'),
       futureElement,
       'Future<int>',
-      expectedPrefix: findElement.import('dart:async').prefix,
+      expectedPrefix: findElement.import('dart:async').prefix?.element,
     );
     assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
@@ -3231,7 +3288,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    ImportElement import = findNode.import('dart:math').element!;
+    final import = findNode.import('dart:math').element2!;
 
     var pRef = findNode.simple('p(a)');
     assertElement(pRef, import.prefix);
@@ -3440,14 +3497,14 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    ImportElement import = findNode.import('dart:math').element!;
+    final import = findNode.import('dart:math').element2!;
 
     var invocation = findNode.methodInvocation('p(a)');
     expect(invocation.staticType, isDynamicType);
     assertUnresolvedInvokeType(invocation.staticInvokeType!);
 
     var pRef = invocation.methodName;
-    assertElement(pRef, import.prefix);
+    assertElement(pRef, import.prefix?.element);
     assertTypeDynamic(pRef);
 
     var aRef = findNode.simple('a);');
@@ -3613,7 +3670,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    ImportElement import = findNode.import('a.dart').element!;
+    final import = findNode.import('a.dart').element2!;
     var tElement = import.importedLibrary!.publicNamespace.get('T');
 
     var prefixedName = findNode.prefixed('p.T');
@@ -3681,7 +3738,7 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    ImportElement import = findNode.import('a.dart').element!;
+    final import = findNode.import('a.dart').element2!;
     var tElement = import.importedLibrary!.publicNamespace.get('T');
 
     var prefixedName = findNode.prefixed('p.T');
@@ -3710,7 +3767,7 @@ main<T>() {
     expect(result.errors, isNotEmpty);
 
     var tRef = findNode.simple('T.U v;');
-    var tElement = findNode.typeParameter('T>()').declaredElement!;
+    var tElement = findNode.typeParameter('T>()').declaredElement2!;
     assertElement(tRef, tElement);
     assertTypeDynamic(tRef);
   }
@@ -3781,7 +3838,7 @@ void f(var a) {
     expect(target.staticType, dynamicType);
 
     var numName = isExpression.type as NamedType;
-    expect(numName.name.staticElement, typeProvider.numType.element);
+    expect(numName.name.staticElement, typeProvider.numType.element2);
     expect(numName.name.staticType, isNull);
   }
 
@@ -3801,7 +3858,7 @@ void f(var a) {
     expect(target.staticType, dynamicType);
 
     var numName = isExpression.type as NamedType;
-    expect(numName.name.staticElement, typeProvider.numType.element);
+    expect(numName.name.staticElement, typeProvider.numType.element2);
     expect(numName.name.staticType, isNull);
   }
 
@@ -3901,15 +3958,17 @@ void main() {
     var fStatement = mainStatements[0] as FunctionDeclarationStatement;
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionExpression fExpression = fNode.functionExpression;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
     expect(fElement, isNotNull);
     assertType(fElement.type, fTypeString);
 
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticType, isNull);
 
     var fReturnTypeNode = fNode.returnType as NamedType;
-    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));
     expect(fReturnTypeNode.type, doubleType);
 
     expect(fExpression.declaredElement, same(fElement));
@@ -3936,7 +3995,7 @@ void main() {
 
     var vStatement = mainStatements[1] as VariableDeclarationStatement;
     VariableDeclaration vDeclaration = vStatement.variables.variables[0];
-    expect(vDeclaration.declaredElement!.type, doubleType);
+    expect(vDeclaration.declaredElement2!.type, doubleType);
 
     var fInvocation = vDeclaration.initializer as MethodInvocation;
     expect(fInvocation.methodName.staticElement, same(fElement));
@@ -3977,7 +4036,7 @@ void main() {
     var fStatement = mainStatements[0] as FunctionDeclarationStatement;
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionExpression fExpression = fNode.functionExpression;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
 
     TypeParameterElement tElement = fElement.typeParameters[0];
     TypeParameterElement uElement = fElement.typeParameters[1];
@@ -3987,20 +4046,26 @@ void main() {
       expect(fTypeParameters, hasLength(2));
 
       TypeParameter tNode = fTypeParameters[0];
-      expect(tNode.declaredElement, same(tElement));
+      expect(tNode.declaredElement2, same(tElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(tNode.name.staticElement, same(tElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(tNode.name.staticType, typeProvider.typeType);
 
       TypeParameter uNode = fTypeParameters[1];
-      expect(uNode.declaredElement, same(uElement));
+      expect(uNode.declaredElement2, same(uElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(uNode.name.staticElement, same(uElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(uNode.name.staticType, typeProvider.typeType);
     }
 
     expect(fElement, isNotNull);
     assertType(fElement.type, 'T Function<T,U>(T, U)');
 
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticType, fElement.type);
 
     var fReturnTypeNode = fNode.returnType as NamedType;
@@ -4039,7 +4104,7 @@ void main() {
 
     var vStatement = mainStatements[1] as VariableDeclarationStatement;
     VariableDeclaration vDeclaration = vStatement.variables.variables[0];
-    expect(vDeclaration.declaredElement!.type, typeProvider.intType);
+    expect(vDeclaration.declaredElement2!.type, typeProvider.intType);
 
     var fInvocation = vDeclaration.initializer as MethodInvocation;
     expect(fInvocation.methodName.staticElement, same(fElement));
@@ -4060,15 +4125,15 @@ void main() {
 
     var fStatement = mainStatements[0] as FunctionDeclarationStatement;
     FunctionDeclaration fNode = fStatement.functionDeclaration;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
 
     assertType(
         fElement.type, 'void Function<T extends U, U, V extends U>(T, U, V)');
     var tElement = fElement.typeParameters[0];
     var uElement = fElement.typeParameters[1];
     var vElement = fElement.typeParameters[2];
-    expect((tElement.bound as TypeParameterType).element, same(uElement));
-    expect((vElement.bound as TypeParameterType).element, same(uElement));
+    expect((tElement.bound as TypeParameterType).element2, same(uElement));
+    expect((vElement.bound as TypeParameterType).element2, same(uElement));
   }
 
   test_local_function_generic_with_named_parameter() async {
@@ -4082,12 +4147,12 @@ void main() {
 
     var fStatement = mainStatements[0] as FunctionDeclarationStatement;
     FunctionDeclaration fNode = fStatement.functionDeclaration;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
 
     assertType(fElement.type, 'void Function<T>({T x})');
     var tElement = fElement.typeParameters[0];
     expect(fElement.type.typeFormals[0], same(tElement));
-    expect((fElement.type.parameters[0].type as TypeParameterType).element,
+    expect((fElement.type.parameters[0].type as TypeParameterType).element2,
         same(tElement));
   }
 
@@ -4102,12 +4167,12 @@ void main() {
 
     var fStatement = mainStatements[0] as FunctionDeclarationStatement;
     FunctionDeclaration fNode = fStatement.functionDeclaration;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
 
     assertType(fElement.type, 'void Function<T>([T])');
     var tElement = fElement.typeParameters[0];
     expect(fElement.type.typeFormals[0], same(tElement));
-    expect((fElement.type.parameters[0].type as TypeParameterType).element,
+    expect((fElement.type.parameters[0].type as TypeParameterType).element2,
         same(tElement));
   }
 
@@ -4128,15 +4193,17 @@ void main() {
     var fStatement = mainStatements[0] as FunctionDeclarationStatement;
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionExpression fExpression = fNode.functionExpression;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
     expect(fElement, isNotNull);
     assertType(fElement.type, fTypeString);
 
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticType, isNull);
 
     var fReturnTypeNode = fNode.returnType as NamedType;
-    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));
     expect(fReturnTypeNode.type, doubleType);
 
     expect(fExpression.declaredElement, same(fElement));
@@ -4191,13 +4258,15 @@ void main() {
     var fStatement = mainStatements[0] as FunctionDeclarationStatement;
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionExpression fExpression = fNode.functionExpression;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
 
     expect(fNode.returnType, isNull);
     expect(fElement, isNotNull);
     assertType(fElement.type, 'Null Function()');
 
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticType, isNull);
 
     expect(fExpression.declaredElement, same(fElement));
@@ -4220,15 +4289,17 @@ void main() {
     var fStatement = mainStatements[0] as FunctionDeclarationStatement;
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionExpression fExpression = fNode.functionExpression;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
     expect(fElement, isNotNull);
     assertType(fElement.type, fTypeString);
 
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
     expect(fNode.name.staticType, isNull);
 
     var fReturnTypeNode = fNode.returnType as NamedType;
-    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));
     expect(fReturnTypeNode.type, doubleType);
 
     expect(fExpression.declaredElement, same(fElement));
@@ -4262,7 +4333,7 @@ void main() {
     {
       var statement = mainStatements[1] as VariableDeclarationStatement;
       VariableDeclaration declaration = statement.variables.variables[0];
-      expect(declaration.declaredElement!.type, doubleType);
+      expect(declaration.declaredElement2!.type, doubleType);
 
       var invocation = declaration.initializer as MethodInvocation;
       expect(invocation.methodName.staticElement, same(fElement));
@@ -4315,7 +4386,7 @@ void main(List<String> p) {
     List<Statement> statements = _getMainStatements(result);
 
     // (int p)
-    VariableElement pElement = main.declaredElement!.parameters[0];
+    VariableElement pElement = main.declaredElement2!.parameters[0];
     expect(pElement.type, listNone(typeProvider.stringType));
 
     // p;
@@ -4346,7 +4417,7 @@ void main() {
     var fStatement = mainStatements[0] as FunctionDeclarationStatement;
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionExpression fExpression = fNode.functionExpression;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
     ParameterElement aElement = fElement.parameters[0];
     _assertSimpleParameter(
         fExpression.parameters!.parameters[0] as SimpleFormalParameter,
@@ -4369,7 +4440,7 @@ void main() {
     var gStatement = fStatements[1] as FunctionDeclarationStatement;
     FunctionDeclaration gNode = gStatement.functionDeclaration;
     FunctionExpression gExpression = gNode.functionExpression;
-    var gElement = gNode.declaredElement as FunctionElement;
+    var gElement = gNode.declaredElement2 as FunctionElement;
     ParameterElement bElement = gElement.parameters[0];
     _assertSimpleParameter(
         gExpression.parameters!.parameters[0] as SimpleFormalParameter,
@@ -4402,7 +4473,7 @@ void main() {
 
     var mainStatements = _getMainStatements(result);
     var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement!;
+    var fElement = fDeclaration.functionDeclaration.declaredElement2!;
     var tElement = fElement.typeParameters[0];
     var body = fDeclaration.functionDeclaration.functionExpression.body
         as BlockFunctionBody;
@@ -4425,7 +4496,7 @@ void main() {
 
     var mainStatements = _getMainStatements(result);
     var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement!;
+    var fElement = fDeclaration.functionDeclaration.declaredElement2!;
     var tElement = fElement.typeParameters[0];
     var body = fDeclaration.functionDeclaration.functionExpression.body
         as BlockFunctionBody;
@@ -4434,7 +4505,7 @@ void main() {
     var gTypeType = gType.type as FunctionType;
     var gTypeParameterType =
         gTypeType.namedParameterTypes['t'] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
     var gParameterType =
         ((gType.parameters.parameters[0] as DefaultFormalParameter).parameter
                 as SimpleFormalParameter)
@@ -4457,7 +4528,7 @@ void main() {
 
     var mainStatements = _getMainStatements(result);
     var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement!;
+    var fElement = fDeclaration.functionDeclaration.declaredElement2!;
     var tElement = fElement.typeParameters[0];
     var body = fDeclaration.functionDeclaration.functionExpression.body
         as BlockFunctionBody;
@@ -4466,7 +4537,7 @@ void main() {
     var gTypeType = gType.type as FunctionType;
     var gTypeParameterType =
         gTypeType.normalParameterTypes[0] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
     var gParameterType =
         (gType.parameters.parameters[0] as SimpleFormalParameter).type
             as NamedType;
@@ -4488,7 +4559,7 @@ void main() {
 
     var mainStatements = _getMainStatements(result);
     var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement!;
+    var fElement = fDeclaration.functionDeclaration.declaredElement2!;
     var tElement = fElement.typeParameters[0];
     var body = fDeclaration.functionDeclaration.functionExpression.body
         as BlockFunctionBody;
@@ -4497,7 +4568,7 @@ void main() {
     var gTypeType = gType.type as FunctionType;
     var gTypeParameterType =
         gTypeType.optionalParameterTypes[0] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
     var gParameterType =
         ((gType.parameters.parameters[0] as DefaultFormalParameter).parameter
                 as SimpleFormalParameter)
@@ -4520,7 +4591,7 @@ void main() {
 
     var mainStatements = _getMainStatements(result);
     var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement!;
+    var fElement = fDeclaration.functionDeclaration.declaredElement2!;
     var tElement = fElement.typeParameters[0];
     var body = fDeclaration.functionDeclaration.functionExpression.body
         as BlockFunctionBody;
@@ -4528,7 +4599,7 @@ void main() {
     var gType = gDeclaration.variables.type as GenericFunctionType;
     var gTypeType = gType.type as FunctionType;
     var gTypeReturnType = gTypeType.returnType as TypeParameterType;
-    expect(gTypeReturnType.element, same(tElement));
+    expect(gTypeReturnType.element2, same(tElement));
     var gReturnType = gType.returnType as NamedType;
     var tReference = gReturnType.name;
     assertElement(tReference, tElement);
@@ -4548,7 +4619,7 @@ void main() {
 
     var mainStatements = _getMainStatements(result);
     var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement!;
+    var fElement = fDeclaration.functionDeclaration.declaredElement2!;
     var tElement = fElement.typeParameters[0];
     var body = fDeclaration.functionDeclaration.functionExpression.body
         as BlockFunctionBody;
@@ -4556,7 +4627,7 @@ void main() {
     var yType = yDeclaration.variables.type as NamedType;
     var yTypeType = yType.type as InterfaceType;
     var yTypeTypeArgument = yTypeType.typeArguments[0] as TypeParameterType;
-    expect(yTypeTypeArgument.element, same(tElement));
+    expect(yTypeTypeArgument.element2, same(tElement));
     var yElementType = yType.typeArguments!.arguments[0] as NamedType;
     var tReference = yElementType.name;
     assertElement(tReference, tElement);
@@ -4576,7 +4647,7 @@ void main() {
 
     var mainStatements = _getMainStatements(result);
     var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement!;
+    var fElement = fDeclaration.functionDeclaration.declaredElement2!;
     var tElement = fElement.typeParameters[0];
     var body = fDeclaration.functionDeclaration.functionExpression.body
         as BlockFunctionBody;
@@ -4599,14 +4670,14 @@ void main() {
 ''');
     await resolveTestFile();
 
-    var tElement = findNode.typeParameter('T>(T x)').declaredElement!;
+    var tElement = findNode.typeParameter('T>(T x)').declaredElement2!;
 
     var gType = findNode.namedType('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
 
     var gTypeParameterType =
         gTypeType.namedParameterTypes['u'] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
 
     var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
@@ -4626,14 +4697,14 @@ void main() {
 ''');
     await resolveTestFile();
 
-    var tElement = findNode.typeParameter('T>(T x)').declaredElement!;
+    var tElement = findNode.typeParameter('T>(T x)').declaredElement2!;
 
     var gType = findNode.namedType('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
 
     var gTypeParameterType =
         gTypeType.normalParameterTypes[0] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
 
     var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
@@ -4653,14 +4724,14 @@ void main() {
 ''');
     await resolveTestFile();
 
-    var tElement = findNode.typeParameter('T>(T x)').declaredElement!;
+    var tElement = findNode.typeParameter('T>(T x)').declaredElement2!;
 
     var gType = findNode.namedType('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
 
     var gTypeParameterType =
         gTypeType.optionalParameterTypes[0] as TypeParameterType;
-    expect(gTypeParameterType.element, same(tElement));
+    expect(gTypeParameterType.element2, same(tElement));
 
     var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
@@ -4680,13 +4751,13 @@ void main() {
 ''');
     await resolveTestFile();
 
-    var tElement = findNode.typeParameter('T>(T x)').declaredElement!;
+    var tElement = findNode.typeParameter('T>(T x)').declaredElement2!;
 
     var gType = findNode.namedType('Producer<T>');
     var gTypeType = gType.type as FunctionType;
 
     var gTypeReturnType = gTypeType.returnType as TypeParameterType;
-    expect(gTypeReturnType.element, same(tElement));
+    expect(gTypeReturnType.element2, same(tElement));
 
     var gArgumentType = gType.typeArguments!.arguments[0] as NamedType;
     var tReference = gArgumentType.name;
@@ -4705,8 +4776,11 @@ void main() {
     InterfaceType intType = typeProvider.intType;
 
     var main = result.unit.declarations[0] as FunctionDeclaration;
-    expect(main.declaredElement, isNotNull);
+    expect(main.declaredElement2, isNotNull);
+
+    // ignore: deprecated_member_use_from_same_package
     expect(main.name.staticElement, isNotNull);
+    // ignore: deprecated_member_use_from_same_package
     expect(main.name.staticType, isNull);
 
     var body = main.functionExpression.body as BlockFunctionBody;
@@ -4717,10 +4791,11 @@ void main() {
     {
       var statement = statements[0] as VariableDeclarationStatement;
       VariableDeclaration vNode = statement.variables.variables[0];
+      // ignore: deprecated_member_use_from_same_package
       expect(vNode.name.staticType, isNull);
       expect(vNode.initializer!.staticType, intType);
 
-      vElement = vNode.name.staticElement as VariableElement;
+      vElement = vNode.declaredElement2!;
       expect(vElement, isNotNull);
       expect(vElement.type, isNotNull);
       expect(vElement.type, intType);
@@ -4753,7 +4828,7 @@ class C {
 
     var vDeclaration = cDeclaration.members[0] as FieldDeclaration;
     VariableDeclaration vNode = vDeclaration.fields.variables[0];
-    var vElement = vNode.declaredElement as FieldElement;
+    var vElement = vNode.declaredElement2 as FieldElement;
     expect(vElement.type, typeProvider.numType);
 
     var fooDeclaration = cDeclaration.members[1] as MethodDeclaration;
@@ -4790,7 +4865,7 @@ void main() {
 
     var vStatement = statements[0] as VariableDeclarationStatement;
     VariableDeclaration vNode = vStatement.variables.variables[0];
-    var vElement = vNode.declaredElement as LocalVariableElement;
+    var vElement = vNode.declaredElement2 as LocalVariableElement;
     expect(vElement.type, typeProvider.numType);
 
     var forEachStatement = statements[1] as ForStatement;
@@ -4824,7 +4899,7 @@ num v;
 
     var vDeclaration = unit.declarations[1] as TopLevelVariableDeclaration;
     VariableDeclaration vNode = vDeclaration.variables.variables[0];
-    var vElement = vNode.declaredElement as TopLevelVariableElement;
+    var vElement = vNode.declaredElement2 as TopLevelVariableElement;
     expect(vElement.type, typeProvider.numType);
 
     var forEachStatement = statements[0] as ForStatement;
@@ -4860,10 +4935,12 @@ void main() {
         forEachStatement.forLoopParts as ForEachPartsWithDeclaration;
 
     DeclaredIdentifier vNode = forEachParts.loopVariable;
-    LocalVariableElement vElement = vNode.declaredElement!;
+    LocalVariableElement vElement = vNode.declaredElement2!;
     expect(vElement.type, typeProvider.intType);
 
+    // ignore: deprecated_member_use_from_same_package
     expect(vNode.identifier.staticElement, vElement);
+    // ignore: deprecated_member_use_from_same_package
     expect(vNode.identifier.staticType, isNull);
 
     var statement = forBlock.statements[0] as ExpressionStatement;
@@ -4890,17 +4967,19 @@ void main() {
         forEachStatement.forLoopParts as ForEachPartsWithDeclaration;
 
     DeclaredIdentifier vNode = forEachParts.loopVariable;
-    LocalVariableElement vElement = vNode.declaredElement!;
+    LocalVariableElement vElement = vNode.declaredElement2!;
     expect(vElement.type, typeProvider.numType);
 
     var vNamedType = vNode.type as NamedType;
     expect(vNamedType.type, typeProvider.numType);
 
     var vTypeIdentifier = vNamedType.name as SimpleIdentifier;
-    expect(vTypeIdentifier.staticElement, typeProvider.numType.element);
+    expect(vTypeIdentifier.staticElement, typeProvider.numType.element2);
     expect(vTypeIdentifier.staticType, isNull);
 
+    // ignore: deprecated_member_use_from_same_package
     expect(vNode.identifier.staticElement, vElement);
+    // ignore: deprecated_member_use_from_same_package
     expect(vNode.identifier.staticType, isNull);
 
     var statement = forBlock.statements[0] as ExpressionStatement;
@@ -4922,11 +5001,11 @@ void main() {
     var declarationStatement = statements[0] as VariableDeclarationStatement;
 
     VariableDeclaration aNode = declarationStatement.variables.variables[0];
-    var aElement = aNode.declaredElement as LocalVariableElement;
+    var aElement = aNode.declaredElement2 as LocalVariableElement;
     expect(aElement.type, typeProvider.intType);
 
     VariableDeclaration bNode = declarationStatement.variables.variables[1];
-    var bElement = bNode.declaredElement as LocalVariableElement;
+    var bElement = bNode.declaredElement2 as LocalVariableElement;
     expect(bElement.type, typeProvider.doubleType);
   }
 
@@ -4957,7 +5036,7 @@ void main() {
     // int a;
     var aDeclaration = fStatements[0] as VariableDeclarationStatement;
     VariableElement aElement =
-        aDeclaration.variables.variables[0].declaredElement!;
+        aDeclaration.variables.variables[0].declaredElement2!;
 
     // a;
     {
@@ -4976,7 +5055,7 @@ void main() {
     // double b;
     var bDeclaration = gStatements[0] as VariableDeclarationStatement;
     VariableElement bElement =
-        bDeclaration.variables.variables[0].declaredElement!;
+        bDeclaration.variables.variables[0].declaredElement2!;
 
     // a;
     {
@@ -5060,18 +5139,20 @@ void g(C c) {
     await resolveTestFile();
     var classDeclaration = result.unit.declarations[0] as ClassDeclaration;
     var methodDeclaration = classDeclaration.members[0] as MethodDeclaration;
-    var methodElement = methodDeclaration.declaredElement as MethodElement;
+    var methodElement = methodDeclaration.declaredElement2 as MethodElement;
 
     InterfaceType doubleType = typeProvider.doubleType;
 
     expect(methodElement, isNotNull);
     assertType(methodElement.type, fTypeString);
 
+    // ignore: deprecated_member_use_from_same_package
     expect(methodDeclaration.name.staticElement, same(methodElement));
+    // ignore: deprecated_member_use_from_same_package
     expect(methodDeclaration.name.staticType, isNull);
 
     var fReturnTypeNode = methodDeclaration.returnType as NamedType;
-    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));
     expect(fReturnTypeNode.type, doubleType);
     //
     // Validate the parameters at the declaration site.
@@ -5127,7 +5208,7 @@ main() {
     expect(result.errors, isEmpty);
 
     var cNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
     MethodElement callElement = cElement.methods[0];
 
     List<Statement> statements = _getMainStatements(result);
@@ -5153,7 +5234,7 @@ f(double computation(int p)) {
     expect(result.errors, isEmpty);
 
     var main = result.unit.declarations[0] as FunctionDeclaration;
-    var mainElement = main.declaredElement as FunctionElement;
+    var mainElement = main.declaredElement2 as FunctionElement;
     ParameterElement parameter = mainElement.parameters[0];
 
     var mainBody = main.functionExpression.body as BlockFunctionBody;
@@ -5191,7 +5272,7 @@ main(B b) {
 
     var aNode = result.unit.declarations[0] as ClassDeclaration;
     var fooNode = aNode.members[0] as MethodDeclaration;
-    var fooElement = fooNode.declaredElement as MethodElement;
+    var fooElement = fooNode.declaredElement2 as MethodElement;
 
     List<Statement> mainStatements = _getMainStatements(result);
     var statement = mainStatements[0] as ExpressionStatement;
@@ -5275,7 +5356,7 @@ void foo(int a, {bool b, double c}) {}
     List<Statement> mainStatements = _getMainStatements(result);
 
     var foo = result.unit.declarations[1] as FunctionDeclaration;
-    ExecutableElement fooElement = foo.declaredElement!;
+    ExecutableElement fooElement = foo.declaredElement2!;
 
     var statement = mainStatements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
@@ -5422,9 +5503,9 @@ class C {
     List<Statement> mainStatements = _getMainStatements(result);
 
     var cNode = result.unit.declarations[1] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
     var mNode = cNode.members[0] as MethodDeclaration;
-    var mElement = mNode.declaredElement as MethodElement;
+    var mElement = mNode.declaredElement2 as MethodElement;
 
     {
       var statement = mainStatements[0] as ExpressionStatement;
@@ -5479,7 +5560,7 @@ class C<T> {
     await resolveTestFile();
 
     var cNode = result.unit.declarations[0] as ClassDeclaration;
-    TypeParameterElement tElement = cNode.declaredElement!.typeParameters[0];
+    TypeParameterElement tElement = cNode.declaredElement2!.typeParameters[0];
 
     var barNode = cNode.members[1] as MethodDeclaration;
     var barBody = barNode.body as BlockFunctionBody;
@@ -5487,7 +5568,8 @@ class C<T> {
     var fooInvocation = fooStatement.expression as MethodInvocation;
     assertInvokeType(fooInvocation, 'T Function(C<T>)');
     assertType(fooInvocation.staticType, 'T');
-    expect(fooInvocation.typeOrThrow.element, same(tElement));
+    final type = fooInvocation.typeOrThrow as TypeParameterType;
+    expect(type.element2, same(tElement));
   }
 
   test_methodInvocation_topLevelFunction() async {
@@ -5505,7 +5587,7 @@ double f(int a, String b) {}
     InterfaceType doubleType = typeProvider.doubleType;
 
     var fNode = result.unit.declarations[1] as FunctionDeclaration;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
 
     var statement = mainStatements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
@@ -5534,7 +5616,7 @@ void f<T, U>(T a, U b) {}
     List<Statement> mainStatements = _getMainStatements(result);
 
     var fNode = result.unit.declarations[1] as FunctionDeclaration;
-    var fElement = fNode.declaredElement as FunctionElement;
+    var fElement = fNode.declaredElement2 as FunctionElement;
 
     // f<bool, String>(true, 'str');
     {
@@ -5548,14 +5630,14 @@ void f<T, U>(T a, U b) {}
         var typeArgument = typeArguments[0] as NamedType;
         InterfaceType boolType = typeProvider.boolType;
         expect(typeArgument.type, boolType);
-        expect(typeArgument.name.staticElement, boolType.element);
+        expect(typeArgument.name.staticElement, boolType.element2);
         expect(typeArgument.name.staticType, boolType);
       }
       {
         var typeArgument = typeArguments[1] as NamedType;
         InterfaceType stringType = typeProvider.stringType;
         expect(typeArgument.type, stringType);
-        expect(typeArgument.name.staticElement, stringType.element);
+        expect(typeArgument.name.staticElement, stringType.element2);
         expect(typeArgument.name.staticType, stringType);
       }
 
@@ -5638,7 +5720,7 @@ const b = p.C.named(); // ref
     await resolveTestFile();
     expect(result.errors, isEmpty);
     var import = findElement.import('package:test/a.dart');
-    var c = import.importedLibrary!.getType('C')!;
+    var c = import.importedLibrary!.getClass('C')!;
 
     {
       var creation = findNode.instanceCreation('C(); // ref');
@@ -5646,7 +5728,7 @@ const b = p.C.named(); // ref
       assertType(creation, 'C');
 
       assertNamedType(creation.constructorName.type, c, 'C',
-          expectedPrefix: import.prefix);
+          expectedPrefix: import.prefix?.element);
     }
 
     {
@@ -5656,7 +5738,7 @@ const b = p.C.named(); // ref
       assertType(creation, 'C');
 
       assertNamedType(creation.constructorName.type, c, 'C',
-          expectedPrefix: import.prefix);
+          expectedPrefix: import.prefix?.element);
       assertElement(creation.constructorName.name, namedConstructor);
     }
   }
@@ -5907,14 +5989,14 @@ import 'dart:async' as my;
 my.Future<int> a;
 ''');
     await resolveTestFile();
-    ImportElement myImport = result.libraryElement.imports[0];
+    final myImport = result.libraryElement.libraryImports[0];
 
     var intRef = findNode.namedType('int> a');
     assertNamedType(intRef, intElement, 'int');
 
     var futureRef = findNode.namedType('my.Future<int> a');
     assertNamedType(futureRef, futureElement, 'Future<int>',
-        expectedPrefix: myImport.prefix);
+        expectedPrefix: myImport.prefix?.element);
   }
 
   test_postfix_increment_of_non_generator() async {
@@ -5958,7 +6040,7 @@ main() {
     VariableElement v;
     {
       var statement = mainStatements[0] as VariableDeclarationStatement;
-      v = statement.variables.variables[0].declaredElement!;
+      v = statement.variables.variables[0].declaredElement2!;
       expect(v.type, typeProvider.intType);
     }
 
@@ -6060,12 +6142,12 @@ class C {
     List<Statement> statements = _getMainStatements(result);
 
     var cDeclaration = result.unit.declarations[1] as ClassDeclaration;
-    ClassElement cElement = cDeclaration.declaredElement!;
+    ClassElement cElement = cDeclaration.declaredElement2!;
     FieldElement fElement = cElement.fields[0];
 
     var cStatement = statements[0] as VariableDeclarationStatement;
     VariableElement vElement =
-        cStatement.variables.variables[0].declaredElement!;
+        cStatement.variables.variables[0].declaredElement2!;
 
     var statement = statements[1] as ExpressionStatement;
     var prefixed = statement.expression as PrefixedIdentifier;
@@ -6095,7 +6177,7 @@ class C {
     List<Statement> statements = _getMainStatements(result);
 
     var cDeclaration = result.unit.declarations[1] as ClassDeclaration;
-    ClassElement cElement = cDeclaration.declaredElement!;
+    ClassElement cElement = cDeclaration.declaredElement2!;
     FieldElement fElement = cElement.fields[0];
 
     var statement = statements[0] as ExpressionStatement;
@@ -6120,7 +6202,7 @@ f(double computation(int p)) {
     expect(result.errors, isEmpty);
 
     var main = result.unit.declarations[0] as FunctionDeclaration;
-    var mainElement = main.declaredElement as FunctionElement;
+    var mainElement = main.declaredElement2 as FunctionElement;
     ParameterElement parameter = mainElement.parameters[0];
 
     var mainBody = main.functionExpression.body as BlockFunctionBody;
@@ -6163,8 +6245,8 @@ main() {
 //    expect(result.errors, isEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    ImportElement myImport = unitElement.library.imports[0];
-    PrefixElement myPrefix = myImport.prefix!;
+    final myImport = unitElement.library.libraryImports[0];
+    PrefixElement myPrefix = myImport.prefix!.element;
 
     var myLibrary = myImport.importedLibrary!;
     var myUnit = myLibrary.definingCompilationUnit;
@@ -6245,7 +6327,7 @@ main() {
     VariableElement v;
     {
       var statement = mainStatements[0] as VariableDeclarationStatement;
-      v = statement.variables.variables[0].declaredElement!;
+      v = statement.variables.variables[0].declaredElement2!;
       expect(v.type, typeProvider.intType);
     }
 
@@ -6291,7 +6373,7 @@ main() {
     VariableElement v;
     {
       var statement = mainStatements[0] as VariableDeclarationStatement;
-      v = statement.variables.variables[0].declaredElement!;
+      v = statement.variables.variables[0].declaredElement2!;
       expect(v.type, typeProvider.boolType);
     }
 
@@ -6325,7 +6407,7 @@ class C {
     CompilationUnit unit = result.unit;
 
     var cClassDeclaration = unit.declarations[1] as ClassDeclaration;
-    ClassElement cClassElement = cClassDeclaration.declaredElement!;
+    ClassElement cClassElement = cClassDeclaration.declaredElement2!;
     FieldElement fElement = cClassElement.getField('f')!;
 
     List<Statement> mainStatements = _getMainStatements(result);
@@ -6377,7 +6459,7 @@ class C {
     CompilationUnit unit = result.unit;
 
     var cClassDeclaration = unit.declarations[1] as ClassDeclaration;
-    ClassElement cClassElement = cClassDeclaration.declaredElement!;
+    ClassElement cClassElement = cClassDeclaration.declaredElement2!;
     FieldElement fElement = cClassElement.getField('f')!;
 
     List<Statement> mainStatements = _getMainStatements(result);
@@ -6414,7 +6496,7 @@ class C {
     CompilationUnit unit = result.unit;
 
     var cClassDeclaration = unit.declarations[1] as ClassDeclaration;
-    ClassElement cClassElement = cClassDeclaration.declaredElement!;
+    ClassElement cClassElement = cClassDeclaration.declaredElement2!;
     FieldElement fElement = cClassElement.getField('f')!;
 
     List<Statement> mainStatements = _getMainStatements(result);
@@ -6479,8 +6561,11 @@ void main() {
 ''');
 
     var main = result.unit.declarations[0] as FunctionDeclaration;
-    expect(main.declaredElement, isNotNull);
+    expect(main.declaredElement2, isNotNull);
+
+    // ignore: deprecated_member_use_from_same_package
     expect(main.name.staticElement, isNotNull);
+    // ignore: deprecated_member_use_from_same_package
     expect(main.name.staticType, isNull);
 
     var body = main.functionExpression.body as BlockFunctionBody;
@@ -6490,8 +6575,7 @@ void main() {
     VariableElement vElement;
     {
       var statement = statements[0] as VariableDeclarationStatement;
-      vElement = statement.variables.variables[0].name.staticElement
-          as VariableElement;
+      vElement = statement.variables.variables[0].declaredElement2!;
     }
 
     {
@@ -6565,10 +6649,10 @@ class B extends A {
     var aNode = result.unit.declarations[0] as ClassDeclaration;
     var bNode = result.unit.declarations[1] as ClassDeclaration;
 
-    var methodElement = aNode.members[0].declaredElement as MethodElement;
+    var methodElement = aNode.members[0].declaredElement2 as MethodElement;
     var getterElement =
-        aNode.members[1].declaredElement as PropertyAccessorElement;
-    var operatorElement = aNode.members[3].declaredElement as MethodElement;
+        aNode.members[1].declaredElement2 as PropertyAccessorElement;
+    var operatorElement = aNode.members[3].declaredElement2 as MethodElement;
 
     var testNode = bNode.members[0] as MethodDeclaration;
     var testBody = testNode.body as BlockFunctionBody;
@@ -6591,7 +6675,7 @@ class B extends A {
 
       var target = invocation.target as SuperExpression;
       expect(
-          target.staticType, interfaceTypeNone(bNode.declaredElement!)); // raw
+          target.staticType, interfaceTypeNone(bNode.declaredElement2!)); // raw
 
       expect(invocation.methodName.staticElement, same(methodElement));
     }
@@ -6613,7 +6697,7 @@ class B extends A {
 
       var target = propertyAccess.target as SuperExpression;
       expect(
-          target.staticType, interfaceTypeNone(bNode.declaredElement!)); // raw
+          target.staticType, interfaceTypeNone(bNode.declaredElement2!)); // raw
 
       expect(propertyAccess.propertyName.staticElement, same(getterElement));
       expect(propertyAccess.propertyName.staticType, typeProvider.intType);
@@ -6637,7 +6721,7 @@ class B extends A {
 
       var target = propertyAccess.target as SuperExpression;
       expect(
-          target.staticType, interfaceTypeNone(bNode.declaredElement!)); // raw
+          target.staticType, interfaceTypeNone(bNode.declaredElement2!)); // raw
 
       assertUnresolvedSimpleIdentifier(propertyAccess.propertyName);
     }
@@ -6649,7 +6733,7 @@ class B extends A {
 
       var target = binary.leftOperand as ThisExpression;
       expect(
-          target.staticType, interfaceTypeNone(bNode.declaredElement!)); // raw
+          target.staticType, interfaceTypeNone(bNode.declaredElement2!)); // raw
 
       expect(binary.staticElement, same(operatorElement));
       expect(binary.staticType, typeProvider.intType);
@@ -6679,10 +6763,10 @@ class A {
 
     var aNode = result.unit.declarations[0] as ClassDeclaration;
 
-    var methodElement = aNode.members[0].declaredElement as MethodElement;
+    var methodElement = aNode.members[0].declaredElement2 as MethodElement;
     var getterElement =
-        aNode.members[1].declaredElement as PropertyAccessorElement;
-    var operatorElement = aNode.members[3].declaredElement as MethodElement;
+        aNode.members[1].declaredElement2 as PropertyAccessorElement;
+    var operatorElement = aNode.members[3].declaredElement2 as MethodElement;
 
     var testNode = aNode.members[4] as MethodDeclaration;
     var testBody = testNode.body as BlockFunctionBody;
@@ -6780,7 +6864,7 @@ class C {
     await resolveTestFile();
 
     var cNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
 
     var constructorNode = cNode.members[1] as ConstructorDeclaration;
 
@@ -6825,17 +6909,18 @@ class D extends A<bool> with B<int> implements C<double> {}
     await resolveTestFile();
 
     var aNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement aElement = aNode.declaredElement!;
+    ClassElement aElement = aNode.declaredElement2!;
 
     var bNode = result.unit.declarations[1] as ClassDeclaration;
-    ClassElement bElement = bNode.declaredElement!;
+    ClassElement bElement = bNode.declaredElement2!;
 
     var cNode = result.unit.declarations[2] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
 
     var dNode = result.unit.declarations[3] as ClassDeclaration;
-    Element dElement = dNode.declaredElement!;
+    Element dElement = dNode.declaredElement2!;
 
+    // ignore: deprecated_member_use_from_same_package
     SimpleIdentifier dName = dNode.name;
     expect(dName.staticElement, same(dElement));
     expect(dName.staticType, isNull);
@@ -6894,17 +6979,18 @@ class D = A<bool> with B<int> implements C<double>;
     await resolveTestFile();
 
     var aNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement aElement = aNode.declaredElement!;
+    ClassElement aElement = aNode.declaredElement2!;
 
     var bNode = result.unit.declarations[1] as ClassDeclaration;
-    ClassElement bElement = bNode.declaredElement!;
+    ClassElement bElement = bNode.declaredElement2!;
 
     var cNode = result.unit.declarations[2] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
 
     var dNode = result.unit.declarations[3] as ClassTypeAlias;
-    Element dElement = dNode.declaredElement!;
+    Element dElement = dNode.declaredElement2!;
 
+    // ignore: deprecated_member_use_from_same_package
     SimpleIdentifier dName = dNode.name;
     expect(dName.staticElement, same(dElement));
     expect(dName.staticType, isNull);
@@ -6962,8 +7048,9 @@ enum MyEnum {
     await resolveTestFile();
 
     var enumNode = result.unit.declarations[0] as EnumDeclaration;
-    ClassElement enumElement = enumNode.declaredElement!;
+    final enumElement = enumNode.declaredElement2!;
 
+    // ignore: deprecated_member_use_from_same_package
     SimpleIdentifier dName = enumNode.name;
     expect(dName.staticElement, same(enumElement));
     expect(dName.staticType, isNull);
@@ -6971,16 +7058,22 @@ enum MyEnum {
     {
       var aElement = enumElement.getField('A');
       var aNode = enumNode.constants[0];
-      expect(aNode.declaredElement, same(aElement));
+      expect(aNode.declaredElement2, same(aElement));
+
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticType, isNull);
     }
 
     {
       var bElement = enumElement.getField('B');
       var bNode = enumNode.constants[1];
-      expect(bNode.declaredElement, same(bElement));
+      expect(bNode.declaredElement2, same(bElement));
+
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticType, isNull);
     }
   }
@@ -6999,42 +7092,47 @@ class C {
 
     InterfaceType doubleType = typeProvider.doubleType;
     InterfaceType intType = typeProvider.intType;
-    ClassElement doubleElement = doubleType.element;
-    ClassElement intElement = intType.element;
+    final doubleElement = doubleType.element2;
+    final intElement = intType.element2;
 
     var cNode = result.unit.declarations[0] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
 
     // The class name identifier.
+    // ignore: deprecated_member_use_from_same_package
     expect(cNode.name.staticElement, same(cElement));
+    // ignore: deprecated_member_use_from_same_package
     expect(cNode.name.staticType, isNull);
 
     // unnamed constructor
     {
       var node = cNode.members[0] as ConstructorDeclaration;
-      expect(node.declaredElement, isNotNull);
-      assertType(node.declaredElement!.type, 'C Function(int)');
+      expect(node.declaredElement2, isNotNull);
+      assertType(node.declaredElement2!.type, 'C Function(int)');
       expect(node.returnType.staticElement, same(cElement));
       expect(node.returnType.staticType, isNull);
-      expect(node.name, isNull);
+      expect(node.name2, isNull);
     }
 
     // named constructor
     {
       var node = cNode.members[1] as ConstructorDeclaration;
-      expect(node.declaredElement, isNotNull);
-      assertType(node.declaredElement!.type, 'C Function(int)');
+      expect(node.declaredElement2, isNotNull);
+      assertType(node.declaredElement2!.type, 'C Function(int)');
       expect(node.returnType.staticElement, same(cElement));
       expect(node.returnType.staticType, isNull);
-      expect(node.name!.staticElement, same(node.declaredElement));
+
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name!.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
       expect(node.name!.staticType, isNull);
     }
 
     // publicMethod()
     {
       var node = cNode.members[2] as MethodDeclaration;
-      expect(node.declaredElement, isNotNull);
-      assertType(node.declaredElement!.type, 'int Function(double)');
+      expect(node.declaredElement2, isNotNull);
+      assertType(node.declaredElement2!.type, 'int Function(double)');
 
       // method return type
       var returnType = node.returnType as NamedType;
@@ -7044,7 +7142,9 @@ class C {
       expect(returnTypeName.staticType, isNull);
 
       // method name
-      expect(node.name.staticElement, same(node.declaredElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
       expect(node.name.staticType, isNull);
 
       // method parameter
@@ -7056,17 +7156,14 @@ class C {
         var pType = pNode.type as NamedType;
         expect(pType.name.staticElement, doubleElement);
         expect(pType.name.staticType, isNull);
-
-        expect(pNode.identifier!.staticElement, pNode.declaredElement);
-        expect(pNode.identifier!.staticType, isNull);
       }
     }
 
     // publicGetter()
     {
       var node = cNode.members[3] as MethodDeclaration;
-      expect(node.declaredElement, isNotNull);
-      assertType(node.declaredElement!.type, 'int Function()');
+      expect(node.declaredElement2, isNotNull);
+      assertType(node.declaredElement2!.type, 'int Function()');
 
       // getter return type
       var returnType = node.returnType as NamedType;
@@ -7076,15 +7173,17 @@ class C {
       expect(returnTypeName.staticType, isNull);
 
       // getter name
-      expect(node.name.staticElement, same(node.declaredElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
       expect(node.name.staticType, isNull);
     }
 
     // publicSetter()
     {
       var node = cNode.members[4] as MethodDeclaration;
-      expect(node.declaredElement, isNotNull);
-      assertType(node.declaredElement!.type, 'void Function(double)');
+      expect(node.declaredElement2, isNotNull);
+      assertType(node.declaredElement2!.type, 'void Function(double)');
 
       // setter return type
       var returnType = node.returnType as NamedType;
@@ -7094,7 +7193,9 @@ class C {
       expect(returnTypeName.staticType, isNull);
 
       // setter name
-      expect(node.name.staticElement, same(node.declaredElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
       expect(node.name.staticType, isNull);
 
       // setter parameter
@@ -7106,9 +7207,6 @@ class C {
         var pType = pNode.type as NamedType;
         expect(pType.name.staticElement, doubleElement);
         expect(pType.name.staticType, isNull);
-
-        expect(pNode.identifier!.staticElement, pNode.declaredElement);
-        expect(pNode.identifier!.staticType, isNull);
       }
     }
   }
@@ -7122,14 +7220,14 @@ void set topSetter(double p) {}
 
     InterfaceType doubleType = typeProvider.doubleType;
     InterfaceType intType = typeProvider.intType;
-    ClassElement doubleElement = doubleType.element;
-    ClassElement intElement = intType.element;
+    final doubleElement = doubleType.element2;
+    final intElement = intType.element2;
 
     // topFunction()
     {
       var node = result.unit.declarations[0] as FunctionDeclaration;
-      expect(node.declaredElement, isNotNull);
-      assertType(node.declaredElement!.type, 'int Function(double)');
+      expect(node.declaredElement2, isNotNull);
+      assertType(node.declaredElement2!.type, 'int Function(double)');
 
       // function return type
       var returnType = node.returnType as NamedType;
@@ -7139,7 +7237,9 @@ void set topSetter(double p) {}
       expect(returnTypeName.staticType, isNull);
 
       // function name
-      expect(node.name.staticElement, same(node.declaredElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
       expect(node.name.staticType, isNull);
 
       // function parameter
@@ -7152,17 +7252,14 @@ void set topSetter(double p) {}
         var pType = pNode.type as NamedType;
         expect(pType.name.staticElement, doubleElement);
         expect(pType.name.staticType, isNull);
-
-        expect(pNode.identifier!.staticElement, pNode.declaredElement);
-        expect(pNode.identifier!.staticType, isNull);
       }
     }
 
     // topGetter()
     {
       var node = result.unit.declarations[1] as FunctionDeclaration;
-      expect(node.declaredElement, isNotNull);
-      assertType(node.declaredElement!.type, 'int Function()');
+      expect(node.declaredElement2, isNotNull);
+      assertType(node.declaredElement2!.type, 'int Function()');
 
       // getter return type
       var returnType = node.returnType as NamedType;
@@ -7172,15 +7269,17 @@ void set topSetter(double p) {}
       expect(returnTypeName.staticType, isNull);
 
       // getter name
-      expect(node.name.staticElement, same(node.declaredElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
       expect(node.name.staticType, isNull);
     }
 
     // topSetter()
     {
       var node = result.unit.declarations[2] as FunctionDeclaration;
-      expect(node.declaredElement, isNotNull);
-      assertType(node.declaredElement!.type, 'void Function(double)');
+      expect(node.declaredElement2, isNotNull);
+      assertType(node.declaredElement2!.type, 'void Function(double)');
 
       // setter return type
       var returnType = node.returnType as NamedType;
@@ -7190,7 +7289,9 @@ void set topSetter(double p) {}
       expect(returnTypeName.staticType, isNull);
 
       // setter name
-      expect(node.name.staticElement, same(node.declaredElement));
+      // ignore: deprecated_member_use_from_same_package
+      expect(node.name.staticElement, same(node.declaredElement2));
+      // ignore: deprecated_member_use_from_same_package
       expect(node.name.staticType, isNull);
 
       // setter parameter
@@ -7203,9 +7304,6 @@ void set topSetter(double p) {}
         var pType = pNode.type as NamedType;
         expect(pType.name.staticElement, doubleElement);
         expect(pType.name.staticType, isNull);
-
-        expect(pNode.identifier!.staticElement, pNode.declaredElement);
-        expect(pNode.identifier!.staticType, isNull);
       }
     }
   }
@@ -7224,7 +7322,7 @@ class C<T> {
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     var cNode = unit.declarations[0] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
     TypeParameterElement tElement = cElement.typeParameters[0];
     expect(cElement, same(unitElement.classes[0]));
 
@@ -7232,9 +7330,11 @@ class C<T> {
       FieldElement aElement = cElement.getField('a')!;
       var aDeclaration = cNode.members[0] as FieldDeclaration;
       VariableDeclaration aNode = aDeclaration.fields.variables[0];
-      expect(aNode.declaredElement, same(aElement));
+      expect(aNode.declaredElement2, same(aElement));
       expect(aElement.type, typeProvider.intType);
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticType, isNull);
 
       var aValue = aNode.initializer as Expression;
@@ -7251,9 +7351,11 @@ class C<T> {
       expect(typeIdentifier.staticType, isNull);
 
       VariableDeclaration bNode = bDeclaration.fields.variables[0];
-      expect(bNode.declaredElement, same(bElement));
+      expect(bNode.declaredElement2, same(bElement));
       expect(bElement.type, typeParameterTypeNone(tElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticType, isNull);
     }
   }
@@ -7270,7 +7372,7 @@ class C {
     CompilationUnit unit = result.unit;
 
     var cNode = unit.declarations[0] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
 
     var fieldDeclaration = cNode.members[0] as FieldDeclaration;
 
@@ -7278,10 +7380,12 @@ class C {
       FieldElement aElement = cElement.getField('a')!;
 
       VariableDeclaration aNode = fieldDeclaration.fields.variables[0];
-      expect(aNode.declaredElement, same(aElement));
+      expect(aNode.declaredElement2, same(aElement));
       expect(aElement.type, typeProvider.intType);
 
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticType, isNull);
 
       Expression aValue = aNode.initializer!;
@@ -7292,10 +7396,12 @@ class C {
       FieldElement bElement = cElement.getField('b')!;
 
       VariableDeclaration bNode = fieldDeclaration.fields.variables[1];
-      expect(bNode.declaredElement, same(bElement));
+      expect(bNode.declaredElement2, same(bElement));
       expect(bElement.type, typeProvider.doubleType);
 
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticType, isNull);
 
       Expression aValue = bNode.initializer!;
@@ -7317,10 +7423,12 @@ double b = 2.3;
     {
       var aDeclaration = unit.declarations[0] as TopLevelVariableDeclaration;
       VariableDeclaration aNode = aDeclaration.variables.variables[0];
-      var aElement = aNode.declaredElement as TopLevelVariableElement;
+      var aElement = aNode.declaredElement2 as TopLevelVariableElement;
       expect(aElement, same(unitElement.topLevelVariables[0]));
       expect(aElement.type, typeProvider.intType);
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticType, isNull);
 
       Expression aValue = aNode.initializer!;
@@ -7331,14 +7439,16 @@ double b = 2.3;
       var bDeclaration = unit.declarations[1] as TopLevelVariableDeclaration;
 
       VariableDeclaration bNode = bDeclaration.variables.variables[0];
-      var bElement = bNode.declaredElement as TopLevelVariableElement;
+      var bElement = bNode.declaredElement2 as TopLevelVariableElement;
       expect(bElement, same(unitElement.topLevelVariables[1]));
       expect(bElement.type, typeProvider.doubleType);
 
       var namedType = bDeclaration.variables.type as NamedType;
       _assertNamedTypeSimple(namedType, typeProvider.doubleType);
 
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticType, isNull);
 
       Expression aValue = bNode.initializer!;
@@ -7362,11 +7472,13 @@ var a = 1, b = 2.3;
 
     {
       VariableDeclaration aNode = variableDeclaration.variables.variables[0];
-      var aElement = aNode.declaredElement as TopLevelVariableElement;
+      var aElement = aNode.declaredElement2 as TopLevelVariableElement;
       expect(aElement, same(unitElement.topLevelVariables[0]));
       expect(aElement.type, typeProvider.intType);
 
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticElement, same(aElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(aNode.name.staticType, isNull);
 
       Expression aValue = aNode.initializer!;
@@ -7375,11 +7487,13 @@ var a = 1, b = 2.3;
 
     {
       VariableDeclaration bNode = variableDeclaration.variables.variables[1];
-      var bElement = bNode.declaredElement as TopLevelVariableElement;
+      var bElement = bNode.declaredElement2 as TopLevelVariableElement;
       expect(bElement, same(unitElement.topLevelVariables[1]));
       expect(bElement.type, typeProvider.doubleType);
 
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticElement, same(bElement));
+      // ignore: deprecated_member_use_from_same_package
       expect(bNode.name.staticType, isNull);
 
       Expression aValue = bNode.initializer!;
@@ -7398,18 +7512,20 @@ void main() {
 
     await resolveTestFile();
     var fDeclaration = result.unit.declarations[0] as FunctionDeclaration;
-    var fElement = fDeclaration.declaredElement as FunctionElement;
+    var fElement = fDeclaration.declaredElement2 as FunctionElement;
 
     InterfaceType doubleType = typeProvider.doubleType;
 
     expect(fElement, isNotNull);
     assertType(fElement.type, fTypeString);
 
+    // ignore: deprecated_member_use_from_same_package
     expect(fDeclaration.name.staticElement, same(fElement));
+    // ignore: deprecated_member_use_from_same_package
     expect(fDeclaration.name.staticType, isNull);
 
     var fReturnTypeNode = fDeclaration.returnType as NamedType;
-    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element2));
     expect(fReturnTypeNode.type, doubleType);
     //
     // Validate the parameters at the declaration site.
@@ -7471,7 +7587,7 @@ typedef int F<T>(bool a, T b);
     CompilationUnit unit = result.unit;
 
     var alias = unit.declarations[0] as FunctionTypeAlias;
-    TypeAliasElement aliasElement = alias.declaredElement!;
+    TypeAliasElement aliasElement = alias.declaredElement2!;
     var function = aliasElement.aliasedElement as GenericFunctionTypeElement;
     expect(aliasElement, same(findElement.typeAlias('F')));
     expect(function.returnType, typeProvider.intType);
@@ -7506,16 +7622,16 @@ class C<T extends A, U extends List<A>, V> {}
     CompilationUnitElement unitElement = unit.declaredElement!;
 
     var aNode = unit.declarations[0] as ClassDeclaration;
-    ClassElement aElement = aNode.declaredElement!;
+    ClassElement aElement = aNode.declaredElement2!;
     expect(aElement, same(unitElement.classes[0]));
 
     var cNode = unit.declarations[1] as ClassDeclaration;
-    ClassElement cElement = cNode.declaredElement!;
+    ClassElement cElement = cNode.declaredElement2!;
     expect(cElement, same(unitElement.classes[1]));
 
     {
       TypeParameter tNode = cNode.typeParameters!.typeParameters[0];
-      expect(tNode.declaredElement, same(cElement.typeParameters[0]));
+      expect(tNode.declaredElement2, same(cElement.typeParameters[0]));
 
       var bound = tNode.bound as NamedType;
       expect(bound.type, interfaceTypeNone(aElement));
@@ -7533,7 +7649,7 @@ class C<T extends A, U extends List<A>, V> {}
       );
 
       TypeParameter uNode = cNode.typeParameters!.typeParameters[1];
-      expect(uNode.declaredElement, same(cElement.typeParameters[1]));
+      expect(uNode.declaredElement2, same(cElement.typeParameters[1]));
 
       var bound = uNode.bound as NamedType;
       expect(bound.type, listOfA);
@@ -7552,7 +7668,7 @@ class C<T extends A, U extends List<A>, V> {}
 
     {
       TypeParameter vNode = cNode.typeParameters!.typeParameters[2];
-      expect(vNode.declaredElement, same(cElement.typeParameters[2]));
+      expect(vNode.declaredElement2, same(cElement.typeParameters[2]));
       expect(vNode.bound, isNull);
     }
   }
@@ -7587,13 +7703,12 @@ void main() {
       CatchClause catchClause = statement.catchClauses[0];
       expect(catchClause.exceptionType, isNull);
 
-      var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
-      var exceptionElement =
-          exceptionNode.staticElement as LocalVariableElement;
+      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.objectType);
 
-      var stackNode = catchClause.stackTraceParameter as SimpleIdentifier;
-      var stackElement = stackNode.staticElement as LocalVariableElement;
+      var stackNode = catchClause.stackTraceParameter2!;
+      var stackElement = stackNode.declaredElement!;
       expect(stackElement.type, typeProvider.stackTraceType);
 
       List<Statement> catchStatements = catchClause.body.statements;
@@ -7617,13 +7732,12 @@ void main() {
       _assertNamedTypeSimple(
           catchClause.exceptionType as NamedType, typeProvider.intType);
 
-      var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
-      var exceptionElement =
-          exceptionNode.staticElement as LocalVariableElement;
+      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.intType);
 
-      var stackNode = catchClause.stackTraceParameter as SimpleIdentifier;
-      var stackElement = stackNode.staticElement as LocalVariableElement;
+      var stackNode = catchClause.stackTraceParameter2!;
+      var stackElement = stackNode.declaredElement!;
       expect(stackElement.type, typeProvider.stackTraceType);
 
       List<Statement> catchStatements = catchClause.body.statements;
@@ -7645,11 +7759,10 @@ void main() {
       var statement = statements[2] as TryStatement;
       CatchClause catchClause = statement.catchClauses[0];
       expect(catchClause.exceptionType, isNull);
-      expect(catchClause.stackTraceParameter, isNull);
+      expect(catchClause.stackTraceParameter2, isNull);
 
-      var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
-      var exceptionElement =
-          exceptionNode.staticElement as LocalVariableElement;
+      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.objectType);
     }
 
@@ -7658,11 +7771,10 @@ void main() {
       var statement = statements[3] as TryStatement;
       CatchClause catchClause = statement.catchClauses[0];
       _assertNamedTypeSimple(catchClause.exceptionType!, typeProvider.intType);
-      expect(catchClause.stackTraceParameter, isNull);
+      expect(catchClause.stackTraceParameter2, isNull);
 
-      var exceptionNode = catchClause.exceptionParameter as SimpleIdentifier;
-      var exceptionElement =
-          exceptionNode.staticElement as LocalVariableElement;
+      var exceptionNode = catchClause.exceptionParameter2!;
+      var exceptionElement = exceptionNode.declaredElement!;
       expect(exceptionElement.type, typeProvider.intType);
     }
 
@@ -7672,8 +7784,8 @@ void main() {
       CatchClause catchClause = statement.catchClauses[0];
       _assertNamedTypeSimple(
           catchClause.exceptionType as NamedType, typeProvider.intType);
-      expect(catchClause.exceptionParameter, isNull);
-      expect(catchClause.stackTraceParameter, isNull);
+      expect(catchClause.exceptionParameter2, isNull);
+      expect(catchClause.stackTraceParameter2, isNull);
     }
   }
 
@@ -7691,7 +7803,6 @@ main() {
     expect(type.type, isDynamicType);
     var namedType = type.name;
     assertTypeNull(namedType);
-    expect(namedType.staticElement, same(typeProvider.dynamicType.element));
   }
 
   test_type_functionTypeAlias() async {
@@ -7705,7 +7816,7 @@ class C {
     await resolveTestFile();
 
     FunctionTypeAlias alias = findNode.functionTypeAlias('F<T>');
-    TypeAliasElement aliasElement = alias.declaredElement!;
+    TypeAliasElement aliasElement = alias.declaredElement2!;
 
     FieldDeclaration fDeclaration = findNode.fieldDeclaration('F<int> f');
 
@@ -7751,12 +7862,12 @@ c.A a2;
     await resolveTestFile();
     CompilationUnit unit = result.unit;
 
-    ImportElement bImport = unit.declaredElement!.library.imports[0];
-    ImportElement cImport = unit.declaredElement!.library.imports[1];
+    final bImport = unit.declaredElement!.library.libraryImports[0];
+    final cImport = unit.declaredElement!.library.libraryImports[1];
 
     LibraryElement bLibrary = bImport.importedLibrary!;
-    LibraryElement aLibrary = bLibrary.exports[0].exportedLibrary!;
-    ClassElement aClass = aLibrary.getType('A')!;
+    LibraryElement aLibrary = bLibrary.libraryExports[0].exportedLibrary!;
+    ClassElement aClass = aLibrary.getClass('A')!;
 
     {
       var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
@@ -7766,7 +7877,10 @@ c.A a2;
       expect(typeIdentifier.staticElement, aClass);
 
       expect(typeIdentifier.prefix.name, 'b');
-      expect(typeIdentifier.prefix.staticElement, same(bImport.prefix));
+      expect(
+        typeIdentifier.prefix.staticElement,
+        same(bImport.prefix?.element),
+      );
 
       expect(typeIdentifier.identifier.staticElement, aClass);
     }
@@ -7779,7 +7893,10 @@ c.A a2;
       expect(typeIdentifier.staticElement, aClass);
 
       expect(typeIdentifier.prefix.name, 'c');
-      expect(typeIdentifier.prefix.staticElement, same(cImport.prefix));
+      expect(
+        typeIdentifier.prefix.staticElement,
+        same(cImport.prefix?.element),
+      );
 
       expect(typeIdentifier.identifier.staticElement, aClass);
     }
@@ -7797,14 +7914,14 @@ typedef void F(int p);
     CompilationUnit unit = result.unit;
 
     var fNode = unit.declarations[1] as FunctionTypeAlias;
-    TypeAliasElement fElement = fNode.declaredElement!;
+    TypeAliasElement fElement = fNode.declaredElement2!;
 
     var statements = _getMainStatements(result);
 
     {
       var statement = statements[0] as ExpressionStatement;
       var identifier = statement.expression as SimpleIdentifier;
-      expect(identifier.staticElement, same(typeProvider.intType.element));
+      expect(identifier.staticElement, same(typeProvider.intType.element2));
       expect(identifier.staticType, typeProvider.typeType);
     }
 
@@ -7913,7 +8030,7 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    var foo = unitElement.library.imports[0].prefix;
+    var foo = unitElement.library.libraryImports[0].prefix?.element;
 
     List<Statement> statements = _getMainStatements(result);
     var statement = statements[0] as ExpressionStatement;
@@ -7997,8 +8114,8 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    var mathImport = unitElement.library.imports[0];
-    var foo = mathImport.prefix;
+    var mathImport = unitElement.library.libraryImports[0];
+    var foo = mathImport.prefix?.element;
 
     List<Statement> statements = _getMainStatements(result);
     var statement = statements[0] as ExpressionStatement;
@@ -8043,9 +8160,9 @@ main() {
     expect(result.errors, isNotEmpty);
 
     var unitElement = result.unit.declaredElement!;
-    var mathImport = unitElement.library.imports[0];
-    var foo = mathImport.prefix;
-    var randomElement = mathImport.importedLibrary!.getType('Random')!;
+    var mathImport = unitElement.library.libraryImports[0];
+    var foo = mathImport.prefix?.element;
+    var randomElement = mathImport.importedLibrary!.getClass('Random')!;
 
     List<Statement> statements = _getMainStatements(result);
     var statement = statements[0] as ExpressionStatement;
@@ -8530,12 +8647,12 @@ main() {
     }
   }
 
-  void _assertNamedTypeSimple(TypeAnnotation namedType, DartType type) {
+  void _assertNamedTypeSimple(TypeAnnotation namedType, InterfaceType type) {
     namedType as NamedType;
     expect(namedType.type, type);
 
     var identifier = namedType.name as SimpleIdentifier;
-    expect(identifier.staticElement, same(type.element));
+    expect(identifier.staticElement, same(type.element2));
     expect(identifier.staticType, isNull);
   }
 
@@ -8561,19 +8678,24 @@ main() {
 
     expect(node, isNotNull);
     expect(node.declaredElement, same(element));
-    expect(node.identifier!.staticElement, same(element));
 
     var namedType = node.type as NamedType?;
     if (namedType != null) {
       expect(namedType.type, type);
-      expect(namedType.name.staticElement, same(type!.element));
+      if (type is InterfaceType) {
+        expect(namedType.name.staticElement, same(type.element2));
+      } else if (type is TypeParameterType) {
+        expect(namedType.name.staticElement, same(type.element2));
+      } else {
+        throw UnimplementedError();
+      }
     }
   }
 
   List<Statement> _getMainStatements(ResolvedUnitResult result) {
     for (var declaration in result.unit.declarations) {
       if (declaration is FunctionDeclaration &&
-          declaration.name.name == 'main') {
+          declaration.name2.lexeme == 'main') {
         var body = declaration.functionExpression.body as BlockFunctionBody;
         return body.block.statements;
       }

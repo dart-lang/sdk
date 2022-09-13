@@ -6,34 +6,35 @@
 
 import 'dart:core' hide Type;
 
-import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
-import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
-import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
+import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
-import 'analysis.dart';
-import 'calls.dart';
-import 'signature_shaking.dart';
-import 'protobuf_handler.dart' show ProtobufHandler;
-import 'rta.dart' show RapidTypeAnalysis;
-import 'summary.dart';
-import 'table_selector_assigner.dart';
-import 'types.dart';
-import 'unboxing_info.dart';
-import 'utils.dart';
-import '../pragma.dart';
-import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
 import '../../metadata/procedure_attributes.dart';
 import '../../metadata/table_selector.dart';
 import '../../metadata/unboxing_info.dart';
 import '../../metadata/unreachable.dart';
+import '../devirtualization.dart' show Devirtualization;
+import '../pragma.dart';
+import 'analysis.dart';
+import 'calls.dart';
+import 'finalizable_types.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
+import 'rta.dart' show RapidTypeAnalysis;
+import 'signature_shaking.dart';
+import 'summary.dart';
+import 'table_selector_assigner.dart';
+import 'types.dart';
+import 'unboxing_info.dart';
+import 'utils.dart';
 
 const bool kDumpClassHierarchy =
     const bool.fromEnvironment('global.type.flow.dump.class.hierarchy');
@@ -43,10 +44,10 @@ const bool kDumpClassHierarchy =
 Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
     {PragmaAnnotationParser? matcher,
-    bool treeShakeSignatures: true,
-    bool treeShakeWriteOnlyFields: true,
-    bool treeShakeProtobufs: false,
-    bool useRapidTypeAnalysis: true}) {
+    bool treeShakeSignatures = true,
+    bool treeShakeWriteOnlyFields = true,
+    bool treeShakeProtobufs = false,
+    bool useRapidTypeAnalysis = true}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component, coreTypes,
           onAmbiguousSupertypes: ignoreAmbiguousSupertypes)
@@ -118,7 +119,8 @@ Component transformComponent(
 
   final transformsStopWatch = new Stopwatch()..start();
 
-  final treeShaker = new TreeShaker(component, typeFlowAnalysis,
+  final treeShaker = new TreeShaker(
+      component, typeFlowAnalysis, coreTypes, hierarchy,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
   treeShaker.transformComponent(component);
 
@@ -186,8 +188,6 @@ class MoveFieldInitializers {
       for (Constructor c in cls.constructors)
         if (!_isRedirectingConstructor(c)) c
     ];
-
-    assert(constructors.isNotEmpty || cls.isMixinDeclaration);
 
     // Move field initializers to constructors.
     // Clone AST for all constructors except the first.
@@ -337,7 +337,7 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   InferredType? _convertType(Type type,
-      {bool skipCheck: false, bool receiverNotInt: false}) {
+      {bool skipCheck = false, bool receiverNotInt = false}) {
     Class? concreteClass;
     Constant? constantValue;
     bool isInt = false;
@@ -388,7 +388,7 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   void _setInferredType(TreeNode node, Type type,
-      {bool skipCheck: false, bool receiverNotInt: false}) {
+      {bool skipCheck = false, bool receiverNotInt = false}) {
     final inferredType = _convertType(type,
         skipCheck: skipCheck, receiverNotInt: receiverNotInt);
     if (inferredType != null) {
@@ -713,14 +713,21 @@ class TreeShaker {
   final Set<Member> _usedMembers = new Set<Member>();
   final Set<Extension> _usedExtensions = new Set<Extension>();
   final Set<Typedef> _usedTypedefs = new Set<Typedef>();
+  final FinalizableTypes _finalizableTypes;
   late final FieldMorpher fieldMorpher;
   late final _TreeShakerTypeVisitor typeVisitor;
   late final _TreeShakerConstantVisitor constantVisitor;
   late final _TreeShakerPass1 _pass1;
   late final _TreeShakerPass2 _pass2;
 
-  TreeShaker(Component component, this.typeFlowAnalysis,
-      {this.treeShakeWriteOnlyFields: true}) {
+  TreeShaker(
+    Component component,
+    this.typeFlowAnalysis,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy, {
+    this.treeShakeWriteOnlyFields = true,
+  }) : _finalizableTypes = new FinalizableTypes(
+            coreTypes, typeFlowAnalysis.libraryIndex, hierarchy) {
     fieldMorpher = new FieldMorpher(this);
     typeVisitor = new _TreeShakerTypeVisitor(this);
     constantVisitor = new _TreeShakerConstantVisitor(this, typeVisitor);
@@ -749,6 +756,7 @@ class TreeShaker {
   bool isFieldSetterReachable(Field f) => typeFlowAnalysis.isFieldSetterUsed(f);
   bool isMemberReferencedFromNativeCode(Member m) =>
       typeFlowAnalysis.nativeCodeOracle.isMemberReferencedFromNativeCode(m);
+  bool isFieldFinalizable(Field f) => _finalizableTypes.isFieldFinalizable(f);
   bool isTypedefUsed(Typedef t) => _usedTypedefs.contains(t);
 
   bool retainField(Field f) =>
@@ -759,18 +767,9 @@ class TreeShaker {
                   f.initializer != null &&
                   isFieldInitializerReachable(f) &&
                   mayHaveSideEffects(f.initializer!)) ||
-              (f.isLate && f.isFinal)) ||
-      isMemberReferencedFromNativeCode(f) ||
-      _isInstanceFieldOfAllocatedEnum(f);
-
-  /// Preserve instance fields of allocated enums as VM relies on their
-  /// existence. Non-allocated enums are converted into ordinary classes during
-  /// the 2nd pass.
-  bool _isInstanceFieldOfAllocatedEnum(Field node) =>
-      !node.isStatic &&
-      node.enclosingClass != null &&
-      node.enclosingClass!.isEnum &&
-      isClassAllocated(node.enclosingClass!);
+              (f.isLate && f.isFinal) ||
+              isFieldFinalizable(f)) ||
+      isMemberReferencedFromNativeCode(f);
 
   void addClassUsedInType(Class c) {
     if (_classesUsedInType.add(c)) {

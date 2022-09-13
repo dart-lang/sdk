@@ -60,6 +60,7 @@ import 'case_expression_type_implements_equals_test.dart'
     as case_expression_type_implements_equals;
 import 'case_expression_type_is_not_switch_expression_subtype_test.dart'
     as case_expression_type_is_not_switch_expression_subtype;
+import 'cast_from_null_always_fails_test.dart' as cast_from_null_always_fails;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'class_instantiation_access_to_member_test.dart'
     as class_instantiation_access_to_member;
@@ -144,12 +145,15 @@ import 'deprecated_implements_function_test.dart'
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
+import 'duplicate_augmentation_import_test.dart'
+    as duplicate_augmentation_import;
 import 'duplicate_constructor_default_test.dart'
     as duplicate_constructor_default;
 import 'duplicate_constructor_name_test.dart' as duplicate_constructor_name;
 import 'duplicate_definition_test.dart' as duplicate_definition;
 import 'duplicate_field_formal_parameter_test.dart'
     as duplicate_field_formal_parameter;
+import 'duplicate_field_name_test.dart' as duplicate_field_name;
 import 'duplicate_hidden_name_test.dart' as duplicate_hidden_name;
 import 'duplicate_ignore_test.dart' as duplicate_ignore;
 import 'duplicate_import_test.dart' as duplicate_import;
@@ -292,6 +296,7 @@ import 'import_internal_library_test.dart' as import_internal_library;
 import 'import_of_legacy_library_into_null_safe_test.dart'
     as import_of_legacy_library_into_null_safe;
 import 'import_of_non_library_test.dart' as import_of_non_library;
+import 'import_of_not_augmentation_test.dart' as import_of_not_augmentation;
 import 'inconsistent_case_expression_types_test.dart'
     as inconsistent_case_expression_types;
 import 'inconsistent_inheritance_getter_and_method_test.dart'
@@ -348,6 +353,7 @@ import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
 import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_factory_name_not_a_class_test.dart'
     as invalid_factory_name_not_a_class;
+import 'invalid_field_name_test.dart' as invalid_field_name;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
 import 'invalid_implementation_override_test.dart'
@@ -440,6 +446,8 @@ import 'missing_enum_constant_in_switch_test.dart'
     as missing_enum_constant_in_switch;
 import 'missing_exception_value_test.dart' as missing_exception_value;
 import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
+import 'missing_override_of_must_be_overridden_test.dart'
+    as missing_override_of_must_be_overridden;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
 import 'missing_size_annotation_carray_test.dart'
@@ -838,6 +846,7 @@ main() {
     case_block_not_terminated.main();
     case_expression_type_implements_equals.main();
     case_expression_type_is_not_switch_expression_subtype.main();
+    cast_from_null_always_fails.main();
     cast_to_non_type.main();
     class_instantiation_access_to_member.main();
     concrete_class_has_enum_superinterface.main();
@@ -893,9 +902,11 @@ main() {
     deprecated_member_use.main();
     deprecated_mixin_function.main();
     division_optimization.main();
+    duplicate_augmentation_import.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
     duplicate_definition.main();
+    duplicate_field_name.main();
     duplicate_field_formal_parameter.main();
     duplicate_hidden_name.main();
     duplicate_ignore.main();
@@ -990,6 +1001,7 @@ main() {
     import_internal_library.main();
     import_of_legacy_library_into_null_safe.main();
     import_of_non_library.main();
+    import_of_not_augmentation.main();
     inconsistent_case_expression_types.main();
     inconsistent_inheritance_getter_and_method.main();
     inconsistent_inheritance.main();
@@ -1026,6 +1038,7 @@ main() {
     invalid_factory_method_impl.main();
     invalid_factory_name_not_a_class.main();
     invalid_field_type_in_struct.main();
+    invalid_field_name.main();
     invalid_immutable_annotation.main();
     invalid_implementation_override.main();
     invalid_internal_annotation.main();
@@ -1082,6 +1095,7 @@ main() {
     missing_enum_constant_in_switch.main();
     missing_exception_value.main();
     missing_field_type_in_struct.main();
+    missing_override_of_must_be_overridden.main();
     missing_required_param.main();
     missing_return.main();
     missing_size_annotation_carray.main();

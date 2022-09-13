@@ -157,7 +157,7 @@ void _reportInstantEvent(String category, String name, String argumentsAsJson) {
 }
 
 @patch
-int _getNextAsyncId() {
+int _getNextTaskId() {
   return 0;
 }
 
@@ -213,9 +213,9 @@ class _FakeUserTag implements UserTag {
       return existingTag;
     }
     // Throw an exception if we've reached the maximum number of user tags.
-    if (_instances.length == UserTag.MAX_USER_TAGS) {
+    if (_instances.length == UserTag.maxUserTags) {
       throw UnsupportedError(
-          'UserTag instance limit (${UserTag.MAX_USER_TAGS}) reached.');
+          'UserTag instance limit (${UserTag.maxUserTags}) reached.');
     }
     return _instances[label] = _FakeUserTag.real(label);
   }

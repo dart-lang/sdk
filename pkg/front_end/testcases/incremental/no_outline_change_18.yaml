@@ -9,7 +9,6 @@ type: newworld
 worlds:
   - entry: main.dart
     errors: true
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         export "lib1.dart" show x;
@@ -28,7 +27,6 @@ worlds:
     expectedLibraryCount: 3
   - entry: main.dart
     errors: true
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -41,4 +39,4 @@ worlds:
           print("exports!")
         }
     expectedLibraryCount: 3
-    expectsRebuildBodiesOnly: false # For now, libraries with errors cannot have bodies rebuild.
+    advancedInvalidation: problemsInLibrary # For now, libraries with errors cannot have bodies rebuild.

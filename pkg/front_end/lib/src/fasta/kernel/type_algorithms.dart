@@ -954,7 +954,7 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForTypeVariables(
 /// in the triplet is the context.
 List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
     TypeDeclarationBuilder declaration,
-    {bool performErrorRecovery: true}) {
+    {bool performErrorRecovery = true}) {
   List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
   if (declaration is ClassBuilder && declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables!));
@@ -1149,8 +1149,26 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   bool visitTypeParameterType(TypeParameterType node) => true;
 
   @override
+  bool visitIntersectionType(IntersectionType node) {
+    // The left-hand side of an [IntersectionType] is always a
+    // [TypeParameterType].
+    // ignore: unnecessary_type_check
+    assert(node.left is TypeParameterType);
+    return true;
+  }
+
+  @override
   bool visitTypedefType(TypedefType node) {
     return anyTypeVariables(node.typeArguments);
+  }
+
+  @override
+  bool visitRecordType(RecordType node) {
+    if (anyTypeVariables(node.positional)) return true;
+    for (NamedType namedType in node.named) {
+      if (namedType.type.accept(this)) return true;
+    }
+    return false;
   }
 }
 

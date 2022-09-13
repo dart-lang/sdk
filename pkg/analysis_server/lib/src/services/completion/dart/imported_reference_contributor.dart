@@ -18,14 +18,14 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     }
 
     // Traverse imports including dart:core
-    var imports = request.libraryElement.imports;
+    var imports = request.libraryElement.libraryImports;
     for (var importElement in imports) {
       var libraryElement = importElement.importedLibrary;
       if (libraryElement != null) {
         _buildSuggestions(
           libraryElement: libraryElement,
           namespace: importElement.namespace,
-          prefix: importElement.prefix?.name,
+          prefix: importElement.prefix?.element.name,
         );
         if (libraryElement.isDartCore &&
             request.opType.includeTypeNameSuggestions) {

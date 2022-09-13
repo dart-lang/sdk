@@ -225,9 +225,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (checkTripleShift && node.isOperator && node.name.name == '>>>') {
-      _errorReporter.reportErrorForNode(
-          HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
+    if (checkTripleShift && node.isOperator && node.name2.lexeme == '>>>') {
+      _errorReporter.reportErrorForToken(
+          HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name2);
     }
     super.visitMethodDeclaration(node);
   }
@@ -269,7 +269,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       }
       _errorReporter.reportErrorForNode(
           HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, node, [element.name]);
-    } else if (checkNnbd && element == _typeProvider.neverType.element) {
+    } else if (checkNnbd && element == _typeProvider.neverType.element2) {
       _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_NEVER, node);
     }
   }

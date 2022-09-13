@@ -5,8 +5,8 @@
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -53,7 +53,7 @@ class CanRenameResponse {
     } else if (element is ConstructorElement) {
       status = validateConstructorName(name);
       _analyzePossibleConflicts(element, status, name);
-    } else if (element is ImportElement) {
+    } else if (element is LibraryImportElement) {
       status = validateImportPrefixName(name);
     }
 
@@ -65,7 +65,7 @@ class CanRenameResponse {
 
   void _analyzePossibleConflicts(
       ConstructorElement element, RefactoringStatus result, String newName) {
-    var parentClass = element.enclosingElement;
+    var parentClass = element.enclosingElement3;
     // Check if the "newName" is the name of the enclosing class.
     if (parentClass.name == newName) {
       result.addError('The constructor should not have the same name '
@@ -84,7 +84,7 @@ class CanRenameResponse {
       var oldStateName = '${element.displayName}State';
       var library = element.library!;
       var state =
-          library.getType(oldStateName) ?? library.getType('_$oldStateName');
+          library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
       if (state != null) {
         var flutterWidgetStateNewName = '${newName}State';
         // If the State was private, ensure that it stays private.
@@ -156,7 +156,7 @@ class CheckNameResponse {
           replaceMatches.addMatch(result.path, result.matches.toList());
         }
       }
-    } else if (element is ImportElement) {
+    } else if (element is LibraryImportElement) {
       var replaceInfo = <ReplaceInfo>[];
       for (var match in matches) {
         for (var ref in match.references) {
@@ -214,29 +214,28 @@ class CheckNameResponse {
             lineInfo.getLocation(element.setter!.nameOffset),
             element.setter!.nameLength));
       }
-    } else if (element is ImportElement) {
-      var prefix = element.prefix;
+    } else if (element is LibraryImportElement) {
       var unit =
           (await canRename._fileResolver.resolve2(path: sourcePath)).unit;
-      var index = element.library.imports.indexOf(element);
+      var index = element.library.libraryImports.indexOf(element);
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
+      final prefixNode = node.prefix;
       if (newName.isEmpty) {
         // We should not get `prefix == null` because we check in
         // `checkNewName` that the new name is different.
-        if (prefix == null) {
-          return infos;
+        if (prefixNode != null) {
+          var prefixEnd = prefixNode.end;
+          infos.add(ReplaceInfo(newName, lineInfo.getLocation(node.uri.end),
+              prefixEnd - node.uri.end));
         }
-        var prefixEnd = prefix.nameOffset + prefix.nameLength;
-        infos.add(ReplaceInfo(newName, lineInfo.getLocation(node.uri.end),
-            prefixEnd - node.uri.end));
       } else {
-        if (prefix == null) {
+        if (prefixNode == null) {
           var uriEnd = node.uri.end;
           infos.add(
               ReplaceInfo(' as $newName', lineInfo.getLocation(uriEnd), 0));
         } else {
-          var offset = prefix.nameOffset;
-          var length = prefix.nameLength;
+          var offset = prefixNode.offset;
+          var length = prefixNode.length;
           infos.add(ReplaceInfo(newName, lineInfo.getLocation(offset), length));
         }
       }
@@ -255,8 +254,8 @@ class CheckNameResponse {
     var stateName = flutterState.newName;
     var match = await canRename._fileResolver.findReferences2(stateClass);
     var sourcePath = stateClass.source.fullName;
-    var location =
-        stateClass.enclosingElement.lineInfo.getLocation(stateClass.nameOffset);
+    var location = stateClass.enclosingElement3.lineInfo
+        .getLocation(stateClass.nameOffset);
     CiderSearchMatch ciderMatch;
     var searchInfo =
         CiderSearchInfo(location, stateClass.nameLength, MatchKind.DECLARATION);
@@ -298,7 +297,7 @@ class CheckNameResponse {
 
   Future<CiderReplaceMatch?> _replaceSyntheticConstructor() async {
     var element = canRename.refactoringElement.element;
-    var classElement = element.enclosingElement;
+    var classElement = element.enclosingElement3;
 
     var fileResolver = canRename._fileResolver;
     var libraryPath = classElement!.library!.source.fullName;
@@ -383,11 +382,11 @@ class CiderRenameComputer {
   }
 
   bool _canRenameElement(Element element) {
-    var enclosingElement = element.enclosingElement;
+    var enclosingElement = element.enclosingElement3;
     if (element is ConstructorElement) {
       return true;
     }
-    if (element is ImportElement) {
+    if (element is LibraryImportElement) {
       return true;
     }
     if (element is LabelElement || element is LocalElement) {

@@ -286,7 +286,7 @@ void FlowGraphTypePropagator::VisitCheckNull(CheckNullInstr* check) {
     // motion of the check may still enable valid code motion
     // of the checked code.
     if (check->ssa_temp_index() == -1) {
-      flow_graph_->AllocateSSAIndexes(check);
+      flow_graph_->AllocateSSAIndex(check);
       GrowTypes(check->ssa_temp_index() + 1);
     }
     FlowGraph::RenameDominatedUses(receiver, check, check);
@@ -370,7 +370,7 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
   auto defn = check->value()->definition();
   SetTypeOf(defn, new (zone()) CompileType(check->ComputeType()));
   if (check->ssa_temp_index() == -1) {
-    flow_graph_->AllocateSSAIndexes(check);
+    flow_graph_->AllocateSSAIndex(check);
     GrowTypes(check->ssa_temp_index() + 1);
   }
   FlowGraph::RenameDominatedUses(defn, check, check);
@@ -686,6 +686,11 @@ CompileType CompileType::Dynamic() {
                      &Object::dynamic_type());
 }
 
+CompileType CompileType::DynamicOrSentinel() {
+  return CompileType(kCanBeNull, kCanBeSentinel, kDynamicCid,
+                     &Object::dynamic_type());
+}
+
 CompileType CompileType::Null() {
   return CompileType(kCanBeNull, kCannotBeSentinel, kNullCid,
                      &Type::ZoneHandle(Type::NullType()));
@@ -770,28 +775,10 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kClosureCid;
     } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
-      Thread* thread = Thread::Current();
-      CHA& cha = thread->compiler_state().cha();
-      // Don't infer a cid from an abstract type since there can be multiple
-      // compatible classes with different cids.
-      if (!type_class.is_abstract() && !CHA::IsImplemented(type_class) &&
-          !CHA::HasSubclasses(type_class)) {
-        if (type_class.IsPrivate()) {
-          // Type of a private class cannot change through later loaded libs.
-          cid_ = type_class.id();
-        } else if (FLAG_use_cha_deopt ||
-                   thread->isolate_group()->all_classes_finalized()) {
-          if (FLAG_trace_cha) {
-            THR_Print("  **(CHA) Compile type not subclassed: %s\n",
-                      type_class.ToCString());
-          }
-          if (FLAG_use_cha_deopt) {
-            cha.AddToGuardedClasses(type_class, /*subclass_count=*/0);
-          }
-          cid_ = type_class.id();
-        } else {
-          cid_ = kDynamicCid;
-        }
+      intptr_t implementation_cid = kIllegalCid;
+      if (CHA::HasSingleConcreteImplementation(type_class,
+                                               &implementation_cid)) {
+        cid_ = implementation_cid;
       } else {
         cid_ = kDynamicCid;
       }
@@ -1280,6 +1267,11 @@ CompileType ParameterInstr::ComputeType() const {
       TraceStrongModeType(this, inferred_type);
       return *inferred_type;
     }
+  }
+
+  if (block_->IsCatchBlockEntry()) {
+    // Parameter of a catch block may correspond to a late local variable.
+    return CompileType::DynamicOrSentinel();
   }
 
   return CompileType::Dynamic();

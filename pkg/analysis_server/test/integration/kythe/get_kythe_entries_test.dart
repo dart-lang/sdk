@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +17,7 @@ void main() {
 @reflectiveTest
 class GetKytheEntriesTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_getKytheEntries() async {
-    writeFile(sourcePath('WORKSPACE'), '');
+    writeFile(sourcePath(file_paths.blazeWorkspaceMarker), '');
     var pathname = sourcePath('pkg/test.dart');
     var text = r'''
 class Foo {}

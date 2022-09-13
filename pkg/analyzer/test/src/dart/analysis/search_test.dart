@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
@@ -64,7 +65,7 @@ class ExpectedResult {
 
 @reflectiveTest
 class SearchTest extends PubPackageResolutionTest {
-  AnalysisDriver get driver => driverFor(testFilePath);
+  AnalysisDriver get driver => driverFor(testFile);
 
   CompilationUnitElement get resultUnitElement => result.unit.declaredElement!;
 
@@ -532,7 +533,8 @@ Random v2;
 
     var v1 = findElement.topVar('v1');
     var v2 = findElement.topVar('v2');
-    var randomElement = v1.type.element as ClassElement;
+    final v1Type = v1.type as InterfaceType;
+    var randomElement = v1Type.element2 as ClassElement;
     var expected = [
       _expectId(v1, SearchResultKind.REFERENCE, 'Random v1;'),
       _expectId(v2, SearchResultKind.REFERENCE, 'Random v2;'),
@@ -1118,7 +1120,7 @@ Random bar() => null;
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = testFile;
 
     await resolveFileCode(aaaFilePath, '''
 import 'dart:math' show max, pi, Random hide min;
@@ -1131,7 +1133,7 @@ main() {
 Random bar() => null;
 ''');
 
-    ImportElement element = findElement.import('dart:math');
+    final element = findElement.import('dart:math');
     var main = findElement.function('main');
     var bar = findElement.function('bar');
     var kind = SearchResultKind.REFERENCE;
@@ -1163,7 +1165,7 @@ main() {
   N4 = 0;
 }
 ''');
-    ImportElement element = findElement.import('package:test/a.dart');
+    final element = findElement.import('package:test/a.dart');
     var main = findElement.function('main');
     var kind = SearchResultKind.REFERENCE;
     var expected = [
@@ -1213,14 +1215,14 @@ main() {
     var kind = SearchResultKind.REFERENCE;
     var length = 'p.'.length;
     {
-      ImportElement element = findElement.import('dart:async');
+      final element = findElement.import('dart:async');
       var expected = [
         _expectId(main, kind, 'p.Future;', length: length),
       ];
       await _verifyReferences(element, expected);
     }
     {
-      ImportElement element = findElement.import('dart:math');
+      final element = findElement.import('dart:math');
       var expected = [
         _expectId(main, kind, 'p.Random', length: length),
       ];
@@ -1247,7 +1249,7 @@ main() {
   a.N4 = 0;
 }
 ''');
-    ImportElement element = findElement.import('package:test/a.dart');
+    final element = findElement.import('package:test/a.dart');
     var main = findElement.function('main');
     var kind = SearchResultKind.REFERENCE;
     var length = 'a.'.length;
@@ -1322,7 +1324,7 @@ part 'unitB.dart';
     newFile(partPathA, codeA);
     newFile(partPathB, codeB);
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = testFile;
 
     await resolveFileCode(libPath, '''
 library lib;
@@ -1395,7 +1397,7 @@ main() {
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = testFile;
 
     await resolveFileCode(testPath, '''
 main() {
@@ -1865,7 +1867,7 @@ main() {
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = testFile;
 
     var libPath = convertPath('$aaaPackageRootPath/lib/a.dart');
     var partPath = convertPath('$aaaPackageRootPath/lib/my_part.dart');
@@ -1978,7 +1980,7 @@ _C v1;
         ..add(name: 'aaa', rootPath: aaaPackageRootPath),
     );
 
-    pathForContextSelection = testFilePath;
+    fileForContextSelection = this.testFile;
 
     String testCode = '''
 library lib;
@@ -2125,7 +2127,7 @@ main() {
   V(); // nq
 }
 ''');
-    ImportElement importElement = findNode.import('show V').element!;
+    final importElement = findNode.import('show V').element2!;
     CompilationUnitElement impUnit =
         importElement.importedLibrary!.definingCompilationUnit;
     TopLevelVariableElement variable = impUnit.topLevelVariables[0];
@@ -2408,7 +2410,7 @@ class F {}
     var aUri = 'package:aaa/a.dart';
     var bUri = 'package:bbb/b.dart';
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 import 'package:aaa/a.dart';
 
 class T1 extends A {
@@ -2437,7 +2439,7 @@ class A {
 
     var aLibraryResult =
         await driver.getLibraryByUri(aUri) as LibraryElementResult;
-    ClassElement aClass = aLibraryResult.element.getType('A')!;
+    ClassElement aClass = aLibraryResult.element.getClass('A')!;
 
     // Search by 'type'.
     List<SubtypeResult> subtypes =
@@ -2476,14 +2478,14 @@ class A {
         ..add(name: 'bbb', rootPath: bbbPackageRootPath),
     );
 
-    newFile(testFilePath, 'class T implements List {}');
+    addTestFile('class T implements List {}');
     newFile(aaaFilePath, 'class A implements List {}');
     newFile(bbbFilePath, 'class B implements List {}');
     newFile(cccFilePath, 'class C implements List {}');
 
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
-    ClassElement listElement = coreLibResult.element.getType('List')!;
+    ClassElement listElement = coreLibResult.element.getClass('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);
@@ -2496,7 +2498,7 @@ class A {
       expect(results, not ? isNot(matcher) : matcher);
     }
 
-    assertHasResult(convertPath(testFilePath), 'T');
+    assertHasResult(testFile.path, 'T');
     assertHasResult(aaaFilePath, 'A');
     assertHasResult(bbbFilePath, 'B');
     assertHasResult(cccFilePath, 'C', not: true);

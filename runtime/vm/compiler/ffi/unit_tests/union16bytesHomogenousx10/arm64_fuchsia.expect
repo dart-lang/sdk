@@ -1,0 +1,13 @@
+M(v0 float, v1 float, v2 float, v3 float) Union(size: 16)
+M(v4 float, v5 float, v6 float, v7 float) Union(size: 16)
+S+0 Union(size: 16)
+S+16 Union(size: 16)
+S+32 Union(size: 16)
+S+48 Union(size: 16)
+S+64 Union(size: 16)
+S+80 Union(size: 16)
+S+96 Union(size: 16)
+r0 int8
+S+112 Union(size: 16)
+=>
+M(v0 float, v1 float, v2 float, v3 float) Union(size: 16)

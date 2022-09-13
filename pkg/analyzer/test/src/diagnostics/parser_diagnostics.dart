@@ -19,10 +19,12 @@ class ParserDiagnosticsTest {
     AstNode node,
     String expected, {
     bool withCheckingLinking = false,
+    bool withOffsets = false,
   }) {
     var actual = _parsedNodeText(
       node,
       withCheckingLinking: withCheckingLinking,
+      withOffsets: withOffsets,
     );
     if (actual != expected) {
       print(actual);
@@ -61,6 +63,7 @@ class ParserDiagnosticsTest {
   String _parsedNodeText(
     AstNode node, {
     required bool withCheckingLinking,
+    required bool withOffsets,
   }) {
     var buffer = StringBuffer();
     node.accept(
@@ -70,6 +73,7 @@ class ParserDiagnosticsTest {
         indent: '',
         withCheckingLinking: withCheckingLinking,
         withResolution: false,
+        withOffsets: withOffsets,
       ),
     );
     return buffer.toString();

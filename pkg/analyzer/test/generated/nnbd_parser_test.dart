@@ -390,12 +390,12 @@ class Foo {
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
     var constructor =
-        classDeclaration.getConstructor(null) as ConstructorDeclaration;
+        classDeclaration.members.whereType<ConstructorDeclaration>().single;
 
     // Object? o
     var parameter =
         constructor.parameters.parameters.single as SimpleFormalParameter;
-    expect(parameter.identifier!.name, 'o');
+    expect(parameter.name!.lexeme, 'o');
     var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
     expect(type.name.name, 'Object');
@@ -436,12 +436,12 @@ class Foo {
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
     var constructor =
-        classDeclaration.getConstructor(null) as ConstructorDeclaration;
+        classDeclaration.members.whereType<ConstructorDeclaration>().single;
 
     // Object? o
     var parameter =
         constructor.parameters.parameters.single as SimpleFormalParameter;
-    expect(parameter.identifier!.name, 'o');
+    expect(parameter.name!.lexeme, 'o');
     var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
     expect(type.name.name, 'Object');
@@ -489,12 +489,12 @@ class Foo {
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
     var constructor =
-        classDeclaration.getConstructor(null) as ConstructorDeclaration;
+        classDeclaration.members.whereType<ConstructorDeclaration>().single;
 
     // Object? o
     var parameter =
         constructor.parameters.parameters.single as SimpleFormalParameter;
-    expect(parameter.identifier!.name, 'o');
+    expect(parameter.name!.lexeme, 'o');
     var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
     expect(type.name.name, 'Object');

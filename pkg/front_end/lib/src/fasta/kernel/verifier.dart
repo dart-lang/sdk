@@ -33,7 +33,7 @@ import 'redirecting_factory_body.dart'
         isRedirectingFactoryField;
 
 List<LocatedMessage> verifyComponent(Component component, Target target,
-    {bool? isOutline, bool? afterConst, bool skipPlatform: false}) {
+    {bool? isOutline, bool? afterConst, bool skipPlatform = false}) {
   FastaVerifyingVisitor verifier = new FastaVerifyingVisitor(target,
       isOutline: isOutline, afterConst: afterConst, skipPlatform: skipPlatform);
   component.accept(verifier);
@@ -526,7 +526,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 }
 
 void verifyGetStaticType(TypeEnvironment env, Component component,
-    {bool skipPlatform: false}) {
+    {bool skipPlatform = false}) {
   component.accept(new FastaVerifyGetStaticType(env, skipPlatform));
 }
 

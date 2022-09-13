@@ -340,3 +340,151 @@ void forEachOrderedParameter(JsToElementMap elementMap, FunctionEntity function,
   }
   failedAt(function, "Unexpected function definition $definition.");
 }
+
+enum ClassKind {
+  regular,
+  closure,
+  // TODO(efortuna, johnniwinther): Record is not a class, but is
+  // masquerading as one currently for consistency with the old element model.
+  record,
+}
+
+/// Definition information for a [ClassEntity].
+abstract class ClassDefinition {
+  /// The kind of the defined class. This determines the semantics of [node].
+  ClassKind get kind;
+
+  /// The defining [ir.Node] for this class, if supported by its [kind].
+  ir.Node get node;
+
+  /// The canonical location of [cls]. This is used for sorting the classes
+  /// in the emitted code.
+  SourceSpan get location;
+
+  /// Deserializes a [ClassDefinition] object from [source].
+  factory ClassDefinition.readFromDataSource(DataSourceReader source) {
+    ClassKind kind = source.readEnum(ClassKind.values);
+    switch (kind) {
+      case ClassKind.regular:
+        return RegularClassDefinition.readFromDataSource(source);
+      case ClassKind.closure:
+        return ClosureClassDefinition.readFromDataSource(source);
+      case ClassKind.record:
+        return RecordContainerDefinition.readFromDataSource(source);
+    }
+  }
+
+  /// Serializes this [ClassDefinition] to [sink].
+  void writeToDataSink(DataSinkWriter sink);
+}
+
+/// A class directly defined by its [ir.Class] node.
+class RegularClassDefinition implements ClassDefinition {
+  /// Tag used for identifying serialized [RegularClassDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'regular-class-definition';
+
+  @override
+  final ir.Class node;
+
+  RegularClassDefinition(this.node);
+
+  factory RegularClassDefinition.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    ir.Class node = source.readClassNode();
+    source.end(tag);
+    return RegularClassDefinition(node);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(kind);
+    sink.begin(tag);
+    sink.writeClassNode(node);
+    sink.end(tag);
+  }
+
+  @override
+  SourceSpan get location => computeSourceSpanFromTreeNode(node);
+
+  @override
+  ClassKind get kind => ClassKind.regular;
+
+  @override
+  String toString() => 'RegularClassDefinition(kind:$kind,'
+      'node:$node,location:$location)';
+}
+
+class ClosureClassDefinition implements ClassDefinition {
+  /// Tag used for identifying serialized [ClosureClassDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'closure-class-definition';
+
+  @override
+  final SourceSpan location;
+
+  ClosureClassDefinition(this.location);
+
+  factory ClosureClassDefinition.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    SourceSpan location = source.readSourceSpan();
+    source.end(tag);
+    return ClosureClassDefinition(location);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(ClassKind.closure);
+    sink.begin(tag);
+    sink.writeSourceSpan(location);
+    sink.end(tag);
+  }
+
+  @override
+  ClassKind get kind => ClassKind.closure;
+
+  @override
+  ir.Node get node =>
+      throw UnsupportedError('ClosureClassDefinition.node for $location');
+
+  @override
+  String toString() => 'ClosureClassDefinition(kind:$kind,location:$location)';
+}
+
+class RecordContainerDefinition implements ClassDefinition {
+  /// Tag used for identifying serialized [RecordContainerDefinition] objects in
+  /// a debugging data stream.
+  static const String tag = 'record-definition';
+
+  @override
+  final SourceSpan location;
+
+  RecordContainerDefinition(this.location);
+
+  factory RecordContainerDefinition.readFromDataSource(
+      DataSourceReader source) {
+    source.begin(tag);
+    SourceSpan location = source.readSourceSpan();
+    source.end(tag);
+    return RecordContainerDefinition(location);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(ClassKind.record);
+    sink.begin(tag);
+    sink.writeSourceSpan(location);
+    sink.end(tag);
+  }
+
+  @override
+  ClassKind get kind => ClassKind.record;
+
+  @override
+  ir.Node get node =>
+      throw UnsupportedError('RecordContainerDefinition.node for $location');
+
+  @override
+  String toString() =>
+      'RecordContainerDefinition(kind:$kind,location:$location)';
+}

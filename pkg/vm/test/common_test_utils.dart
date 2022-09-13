@@ -95,7 +95,8 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
 /// Extra libraries apart from the main library are passed to the front-end as
 /// additional dills, which places them last in the library list, causing them
 /// to have very high (and often changing) selector IDs.
-String kernelLibraryToString(Library library, {bool removeSelectorIds: false}) {
+String kernelLibraryToString(Library library,
+    {bool removeSelectorIds = false}) {
   final StringBuffer buffer = new StringBuffer();
   final printer = new Printer(buffer, showMetadata: true);
   printer.writeLibraryFile(library);
@@ -154,8 +155,13 @@ Difference findFirstDifference(String actual, String expected) {
       i < expectedLines.length ? expectedLines[i] : '<END>');
 }
 
-void compareResultWithExpectationsFile(Uri source, String actual) {
-  final expectFile = new File(source.toFilePath() + '.expect');
+void compareResultWithExpectationsFile(
+  Uri source,
+  String actual, {
+  String expectFilePostfix = '',
+}) {
+  final expectFile =
+      new File('${source.toFilePath()}$expectFilePostfix.expect');
   final expected = expectFile.existsSync() ? expectFile.readAsStringSync() : '';
 
   if (actual != expected) {

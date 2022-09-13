@@ -37,7 +37,7 @@ class CodeReference {
   factory CodeReference.fromElement(Element element) {
     var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
     if (unitElement == null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement3;
       if (enclosingElement is LibraryElement) {
         unitElement = enclosingElement.definingCompilationUnit;
       } else {
@@ -76,7 +76,7 @@ class CodeReference {
       if (elementName != null) {
         parts.add(elementName);
       }
-      element = element.enclosingElement;
+      element = element.enclosingElement3;
     }
     if (parts.isEmpty) return null;
     return parts.reversed.join('.');
@@ -96,7 +96,7 @@ class CodeReference {
       if (nodeName != null) {
         parts.add(nodeName);
       } else if (parts.isEmpty && node is VariableDeclarationList) {
-        parts.add(node.variables.first.declaredElement!.name);
+        parts.add(node.variables.first.declaredElement2!.name);
       }
       node = node.parent;
     }
@@ -106,9 +106,9 @@ class CodeReference {
 
   static String? _computeNodeDeclarationName(AstNode node) {
     if (node is ExtensionDeclaration) {
-      return node.declaredElement?.name ?? '<unnamed extension>';
+      return node.declaredElement2?.name ?? '<unnamed extension>';
     } else if (node is Declaration) {
-      var name = node.declaredElement?.name;
+      var name = node.declaredElement2?.name;
       return name == '' ? '<unnamed>' : name;
     } else {
       return null;
@@ -285,6 +285,7 @@ enum EdgeOriginKind {
   nonNullableUsage,
   nonNullAssertion,
   nullabilityComment,
+  nullAwareAccess,
   optionalFormalParameter,
   parameterInheritance,
   quiverCheckNotNull,

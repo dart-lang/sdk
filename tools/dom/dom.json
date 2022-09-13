@@ -6737,10 +6737,10 @@
       "readyState": {},
       "referrer": {},
       "registerElement": {
-        "support_level": "untriaged"
+        "support_level": "deprecated"
       },
       "registerElement2": {
-        "support_level": "untriaged"
+        "support_level": "deprecated"
       },
       "rootElement": {
         "support_level": "untriaged"
@@ -21240,7 +21240,11 @@
   },
   "SharedArrayBuffer": {
     "members": {
+      "SharedArrayBuffer": {},
       "byteLength": {
+        "support_level": "untriaged"
+      },
+      "slice": {
         "support_level": "untriaged"
       }
     },

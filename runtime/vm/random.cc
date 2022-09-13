@@ -75,4 +75,26 @@ uint32_t Random::NextUInt32() {
   return static_cast<uint32_t>(NextState() & MASK_32);
 }
 
+static Random* global_random = nullptr;
+static Mutex* global_random_mutex = nullptr;
+
+void Random::Init() {
+  ASSERT(global_random_mutex == nullptr);
+  global_random_mutex = new Mutex(NOT_IN_PRODUCT("global_random_mutex"));
+  ASSERT(global_random == nullptr);
+  global_random = new Random();
+}
+
+void Random::Cleanup() {
+  delete global_random_mutex;
+  global_random_mutex = nullptr;
+  delete global_random;
+  global_random = nullptr;
+}
+
+uint64_t Random::GlobalNextUInt64() {
+  MutexLocker locker(global_random_mutex);
+  return global_random->NextUInt64();
+}
+
 }  // namespace dart

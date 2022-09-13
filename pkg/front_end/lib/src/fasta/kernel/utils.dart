@@ -20,6 +20,7 @@ import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../combinator.dart';
@@ -27,6 +28,22 @@ import '../configuration.dart';
 import '../identifiers.dart';
 import '../source/source_library_builder.dart';
 import 'body_builder.dart';
+
+/// The name for the synthesized field used to store information of
+/// unserializable exports in a [Library].
+///
+/// For instance, if a [Library] tries to export two declarations with the same
+/// name, the unserializable exports will map this name to the corresponding
+/// error message.
+const String unserializableExportName = '_exports#';
+
+/// Sentinel value used in unserializable exports to signal an export of
+/// 'dynamic' from 'dart:core'.
+const String exportDynamicSentinel = '<dynamic>';
+
+/// Sentinel value used in unserializable exports to signal an export of
+/// 'Never' from 'dart:core'.
+const String exportNeverSentinel = '<Never>';
 
 void printNodeOn(Node? node, StringSink sink, {NameSystem? syntheticNames}) {
   if (node == null) {
@@ -85,8 +102,8 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
 /// Serialize the libraries in [component] that match [filter].
 Uint8List serializeComponent(Component component,
     {bool Function(Library library)? filter,
-    bool includeSources: true,
-    bool includeOffsets: true}) {
+    bool includeSources = true,
+    bool includeOffsets = true}) {
   ByteSink byteSink = new ByteSink();
   BinaryPrinter printer = new BinaryPrinter(byteSink,
       libraryFilter: filter,
@@ -202,12 +219,6 @@ int compareProcedures(Procedure a, Procedure b) {
   return a.fileOffset.compareTo(b.fileOffset);
 }
 
-bool isRedirectingGenerativeConstructorImplementation(Constructor constructor) {
-  List<Initializer> initializers = constructor.initializers;
-  return initializers.length == 1 &&
-      initializers.single is RedirectingInitializer;
-}
-
 List<Combinator>? toKernelCombinators(
     List<CombinatorBuilder>? fastaCombinators) {
   if (fastaCombinators == null) {
@@ -240,5 +251,7 @@ final TypeVariableBuilder dummyTypeVariableBuilder = new TypeVariableBuilder(
     TypeVariableBuilder.noNameSentinel, null, -1, null,
     kind: TypeVariableKind.function);
 final Label dummyLabel = new Label('', -1);
+final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
+    new RecordTypeFieldBuilder(null, dummyTypeBuilder, null, -1);
 final FieldInfo dummyFieldInfo = new FieldInfo('', -1, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');

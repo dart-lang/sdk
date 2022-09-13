@@ -22,10 +22,6 @@ namespace dart {
 // Defined in vm/os_thread_win.cc
 extern bool private_flag_windows_run_tls_destructors;
 
-const char* OS::Name() {
-  return "windows";
-}
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(GetCurrentProcessId());
 }
@@ -104,13 +100,6 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
     // Return zero like V8 does.
     return 0;
   }
-}
-
-int OS::GetLocalTimeZoneAdjustmentInSeconds() {
-  // TODO(floitsch): avoid excessive calls to _tzset?
-  _tzset();
-  // Dart and Windows disagree on the sign of the bias.
-  return static_cast<int>(-_timezone);
 }
 
 int64_t OS::GetCurrentTimeMillis() {

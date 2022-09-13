@@ -297,13 +297,13 @@ class StdinException implements IOException {
 }
 
 class _StdConsumer implements StreamConsumer<List<int>> {
-  final _file;
+  final RandomAccessFile _file;
 
   _StdConsumer(int fd) : _file = _File._openStdioSync(fd);
 
   Future addStream(Stream<List<int>> stream) {
     var completer = new Completer();
-    var sub;
+    late StreamSubscription<List<int>> sub;
     sub = stream.listen((data) {
       try {
         _file.writeFromSync(data);

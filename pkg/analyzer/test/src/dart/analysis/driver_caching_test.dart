@@ -28,10 +28,8 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
   @override
   bool get retainDataForTesting => true;
 
-  String get testFilePathPlatform => convertPath(testFilePath);
-
   List<Set<String>> get _linkedCycles {
-    var driver = driverFor(testFilePath);
+    var driver = driverFor(testFile);
     return driver.testView!.libraryContext.linkedCycles;
   }
 
@@ -55,7 +53,7 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
       ),
     );
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 dynamic a = 0;
 int b = a;
 ''');
@@ -64,7 +62,7 @@ int b = a;
     assertErrorsInList(await _computeTestFileErrors(), []);
 
     // Configure `strict-casts: true`.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
         strictCasts: true,
@@ -84,8 +82,8 @@ class A {
 }
 ''');
 
-    var analysisDriver = driverFor(testFilePathPlatform);
-    analysisDriver.changeFile(testFilePathPlatform);
+    var analysisDriver = driverFor(testFile);
+    analysisDriver.changeFile(testFile.path);
     await analysisDriver.applyPendingFileChanges();
 
     await resolveTestCode(r'''
@@ -103,8 +101,8 @@ class A {
 }
 ''');
 
-    var analysisDriver = driverFor(testFilePathPlatform);
-    analysisDriver.changeFile(testFilePathPlatform);
+    var analysisDriver = driverFor(testFile);
+    analysisDriver.changeFile(testFile.path);
     await analysisDriver.applyPendingFileChanges();
 
     await resolveTestCode(r'''
@@ -122,8 +120,8 @@ class A {
 }
 ''');
 
-    var analysisDriver = driverFor(testFilePathPlatform);
-    analysisDriver.changeFile(testFilePathPlatform);
+    var analysisDriver = driverFor(testFile);
+    analysisDriver.changeFile(testFile.path);
     await analysisDriver.applyPendingFileChanges();
 
     await resolveTestCode(r'''
@@ -137,7 +135,7 @@ class A {
   test_change_field_staticFinal_hasConstConstructor_changeInitializer() async {
     useEmptyByteStore();
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -150,14 +148,14 @@ class A {
     assertType(findElement.field('f').type, 'Set<int>');
 
     // The summary for the library was linked.
-    _assertContainsLinkedCycle({testFilePath}, andClear: true);
+    _assertContainsLinkedCycle({testFile}, andClear: true);
 
     // Dispose the collection, with its driver.
     // The next analysis will recreate it.
     // We will reuse the byte store, so can reuse summaries.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 class A {
   static const a = 0;
   static const b = 1;
@@ -178,7 +176,7 @@ class A {
   test_change_functionBody() async {
     useEmptyByteStore();
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 void f() {
   print(0);
 }
@@ -188,14 +186,14 @@ void f() {
     expect(findNode.integerLiteral('0'), isNotNull);
 
     // The summary for the library was linked.
-    _assertContainsLinkedCycle({testFilePath}, andClear: true);
+    _assertContainsLinkedCycle({testFile}, andClear: true);
 
     // Dispose the collection, with its driver.
     // The next analysis will recreate it.
     // We will reuse the byte store, so can reuse summaries.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 void f() {
   print(1);
 }
@@ -216,7 +214,7 @@ void f() {
 import 'a.dart';
 ''');
 
-    var driver = driverFor(testFilePath);
+    var driver = driverFor(testFile);
 
     // Link both libraries, keep them.
     await driver.getLibraryByUri('package:test/a.dart');
@@ -283,7 +281,7 @@ import 'a.dart';
       ),
     );
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 // ignore:unused_import
 import 'package:aaa/a.dart';
 ''');
@@ -295,11 +293,11 @@ import 'package:aaa/a.dart';
     );
 
     // The summary for the library was linked.
-    _assertContainsLinkedCycle({testFilePath}, andClear: true);
+    _assertContainsLinkedCycle({testFile}, andClear: true);
 
     // We will recreate it with new pubspec.yaml content.
     // But we will reuse the byte store, so can reuse summaries.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     // Add dependency on `package:aaa`.
     writeTestPackagePubspecYamlFile(
@@ -326,7 +324,7 @@ import 'package:aaa/a.dart';
       AnalysisOptionsFileConfig(lints: []),
     );
 
-    newFile(testFilePath, r'''
+    addTestFile(r'''
 void f() {
   ![0].isEmpty;
 }
@@ -337,11 +335,11 @@ void f() {
     assertErrorsInResult([]);
 
     // The summary for the library was linked.
-    _assertContainsLinkedCycle({testFilePath}, andClear: true);
+    _assertContainsLinkedCycle({testFile}, andClear: true);
 
     // We will recreate it with new analysis options.
     // But we will reuse the byte store, so can reuse summaries.
-    disposeAnalysisContextCollection();
+    await disposeAnalysisContextCollection();
 
     // Configure to run a lint.
     writeTestPackageAnalysisOptionsFile(
@@ -372,7 +370,7 @@ class A {}
 export 'a.dart';
 ''');
 
-    final analysisContext = contextFor(macroFile.path);
+    final analysisContext = contextFor(macroFile);
 
     Future<LibraryElement> getLibrary(String uriStr) async {
       final result = await analysisContext.currentSession
@@ -383,16 +381,16 @@ export 'a.dart';
     // This macro generates `MacroA`, but not `MacroB`.
     {
       final libraryA = await getLibrary('package:test/a.dart');
-      expect(libraryA.getType('MacroA'), isNotNull);
-      expect(libraryA.getType('MacroB'), isNull);
+      expect(libraryA.getClass('MacroA'), isNotNull);
+      expect(libraryA.getClass('MacroB'), isNull);
       // This propagates transitively.
       final libraryB = await getLibrary('package:test/b.dart');
       expect(libraryB.exportNamespace.get('MacroA'), isNotNull);
       expect(libraryB.exportNamespace.get('MacroB'), isNull);
     }
 
-    _assertContainsLinkedCycle({a.path});
-    _assertContainsLinkedCycle({b.path}, andClear: true);
+    _assertContainsLinkedCycle({a});
+    _assertContainsLinkedCycle({b}, andClear: true);
 
     // The macro will generate `MacroB`.
     _newFileWithFixedNameMacro('MacroB');
@@ -404,16 +402,16 @@ export 'a.dart';
     // This macro generates `MacroB`, but not `MacroA`.
     {
       final libraryA = await getLibrary('package:test/a.dart');
-      expect(libraryA.getType('MacroA'), isNull);
-      expect(libraryA.getType('MacroB'), isNotNull);
+      expect(libraryA.getClass('MacroA'), isNull);
+      expect(libraryA.getClass('MacroB'), isNotNull);
       // This propagates transitively.
       final libraryB = await getLibrary('package:test/b.dart');
       expect(libraryB.exportNamespace.get('MacroA'), isNull);
       expect(libraryB.exportNamespace.get('MacroB'), isNotNull);
     }
 
-    _assertContainsLinkedCycle({a.path});
-    _assertContainsLinkedCycle({b.path}, andClear: true);
+    _assertContainsLinkedCycle({a});
+    _assertContainsLinkedCycle({b}, andClear: true);
   }
 
   test_macro_reanalyze_errors_changeCodeUsedByMacro_importedLibrary() async {
@@ -447,8 +445,8 @@ class A {}
 void f(MacroA a) {}
 ''');
 
-    var analysisContext = contextFor(a.path);
-    var analysisDriver = driverFor(a.path);
+    var analysisContext = contextFor(a);
+    var analysisDriver = driverFor(a);
 
     var userErrors = analysisDriver.results
         .whereType<ErrorsResult>()
@@ -505,8 +503,8 @@ class A {}
 void f(MacroA a) {}
 ''');
 
-    var analysisContext = contextFor(a.path);
-    var analysisDriver = driverFor(a.path);
+    var analysisContext = contextFor(a);
+    var analysisDriver = driverFor(a);
 
     var userErrors = analysisDriver.results
         .whereType<ErrorsResult>()
@@ -544,8 +542,8 @@ class A {}
 void f(MacroA a) {}
 ''');
 
-    var analysisContext = contextFor(user.path);
-    var analysisDriver = driverFor(user.path);
+    var analysisContext = contextFor(user);
+    var analysisDriver = driverFor(user);
 
     var userErrors = analysisDriver.results
         .whereType<ErrorsResult>()
@@ -607,7 +605,7 @@ String getClassName() => 'MacroB';
 ''');
 
     // Notify about changes.
-    var analysisContext = contextFor(a.path);
+    var analysisContext = contextFor(a);
     analysisContext.changeFile(a.path);
     await analysisContext.applyPendingFileChanges();
 
@@ -619,9 +617,9 @@ String getClassName() => 'MacroB';
     ]);
   }
 
-  void _assertContainsLinkedCycle(Set<String> expectedPosix,
+  void _assertContainsLinkedCycle(Set<File> expectedFiles,
       {bool andClear = false}) {
-    var expected = expectedPosix.map(convertPath).toSet();
+    var expected = expectedFiles.map((file) => file.path).toSet();
     expect(_linkedCycles, contains(unorderedEquals(expected)));
     if (andClear) {
       _linkedCycles.clear();
@@ -647,10 +645,9 @@ String getClassName() => 'MacroB';
   /// But this method is used to check returning errors from the cache, or
   /// recomputing when the cache key is expected to be different.
   Future<List<AnalysisError>> _computeTestFileErrors() async {
-    var testFilePathConverted = convertPath(testFilePath);
-    var errorsResult = await contextFor(testFilePathConverted)
+    var errorsResult = await contextFor(testFile)
         .currentSession
-        .getErrors(testFilePathConverted) as ErrorsResult;
+        .getErrors(testFile.path) as ErrorsResult;
     return errorsResult.errors;
   }
 

@@ -6,6 +6,8 @@
 
 #include "vm/regexp_assembler_ir.h"
 
+#include <utility>
+
 #include "platform/unicode.h"
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -426,18 +428,18 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     ICData::RebindRule rebind_rule) const {
-  InputsArray* arguments = new (Z) InputsArray(Z, 0);
-  return StaticCall(function, arguments, rebind_rule);
+  InputsArray arguments(Z, 0);
+  return StaticCall(function, std::move(arguments), rebind_rule);
 }
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     Value* arg1,
     ICData::RebindRule rebind_rule) const {
-  InputsArray* arguments = new (Z) InputsArray(Z, 1);
-  arguments->Add(arg1);
+  InputsArray arguments(Z, 1);
+  arguments.Add(arg1);
 
-  return StaticCall(function, arguments, rebind_rule);
+  return StaticCall(function, std::move(arguments), rebind_rule);
 }
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
@@ -445,41 +447,41 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     Value* arg1,
     Value* arg2,
     ICData::RebindRule rebind_rule) const {
-  InputsArray* arguments = new (Z) InputsArray(Z, 2);
-  arguments->Add(arg1);
-  arguments->Add(arg2);
+  InputsArray arguments(Z, 2);
+  arguments.Add(arg1);
+  arguments.Add(arg2);
 
-  return StaticCall(function, arguments, rebind_rule);
+  return StaticCall(function, std::move(arguments), rebind_rule);
 }
 
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
-    InputsArray* arguments,
+    InputsArray&& arguments,
     ICData::RebindRule rebind_rule) const {
   const intptr_t kTypeArgsLen = 0;
   return new (Z) StaticCallInstr(InstructionSource(), function, kTypeArgsLen,
-                                 Object::null_array(), arguments,
+                                 Object::null_array(), std::move(arguments),
                                  ic_data_array_, GetNextDeoptId(), rebind_rule);
 }
 
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     Value* arg1) const {
-  InputsArray* arguments = new (Z) InputsArray(Z, 1);
-  arguments->Add(arg1);
+  InputsArray arguments(Z, 1);
+  arguments.Add(arg1);
 
-  return InstanceCall(desc, arguments);
+  return InstanceCall(desc, std::move(arguments));
 }
 
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     Value* arg1,
     Value* arg2) const {
-  InputsArray* arguments = new (Z) InputsArray(Z, 2);
-  arguments->Add(arg1);
-  arguments->Add(arg2);
+  InputsArray arguments(Z, 2);
+  arguments.Add(arg1);
+  arguments.Add(arg2);
 
-  return InstanceCall(desc, arguments);
+  return InstanceCall(desc, std::move(arguments));
 }
 
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
@@ -487,22 +489,22 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     Value* arg1,
     Value* arg2,
     Value* arg3) const {
-  InputsArray* arguments = new (Z) InputsArray(Z, 3);
-  arguments->Add(arg1);
-  arguments->Add(arg2);
-  arguments->Add(arg3);
+  InputsArray arguments(Z, 3);
+  arguments.Add(arg1);
+  arguments.Add(arg2);
+  arguments.Add(arg3);
 
-  return InstanceCall(desc, arguments);
+  return InstanceCall(desc, std::move(arguments));
 }
 
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
-    InputsArray* arguments) const {
+    InputsArray&& arguments) const {
   const intptr_t kTypeArgsLen = 0;
   return new (Z) InstanceCallInstr(
-      InstructionSource(), desc.name, desc.token_kind, arguments, kTypeArgsLen,
-      Object::null_array(), desc.checked_argument_count, ic_data_array_,
-      GetNextDeoptId());
+      InstructionSource(), desc.name, desc.token_kind, std::move(arguments),
+      kTypeArgsLen, Object::null_array(), desc.checked_argument_count,
+      ic_data_array_, GetNextDeoptId());
 }
 
 LoadLocalInstr* IRRegExpMacroAssembler::LoadLocal(LocalVariable* local) const {
@@ -926,15 +928,9 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
 
     Definition* is_match_def;
 
-    if (unicode) {
-      is_match_def = new (Z) CaseInsensitiveCompareInstr(
-          string_value, lhs_index_value, rhs_index_value, length_value,
-          kCaseInsensitiveCompareUTF16RuntimeEntry, specialization_cid_);
-    } else {
-      is_match_def = new (Z) CaseInsensitiveCompareInstr(
-          string_value, lhs_index_value, rhs_index_value, length_value,
-          kCaseInsensitiveCompareUCS2RuntimeEntry, specialization_cid_);
-    }
+    is_match_def = new (Z) CaseInsensitiveCompareInstr(
+        string_value, lhs_index_value, rhs_index_value, length_value,
+        /*handle_surrogates=*/unicode, specialization_cid_);
 
     BranchOrBacktrack(Comparison(kNE, is_match_def, BoolConstant(true)),
                       on_no_match);

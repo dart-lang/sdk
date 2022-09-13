@@ -615,7 +615,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   ///   #array._typedDataBase, #offset, value._typedDataBase, 0, #elementSize)
   /// ```
   Expression _replaceArrayArrayElemAt(StaticInvocation node,
-      {bool setter: false}) {
+      {bool setter = false}) {
     final dartType = node.arguments.types[0];
     final elementType = arraySingleElementType(dartType as InterfaceType);
 

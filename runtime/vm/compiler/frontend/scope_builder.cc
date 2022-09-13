@@ -148,7 +148,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       helper_.ReadUntilFunctionNode();
       function_node_helper.ReadUntilExcluding(
           FunctionNodeHelper::kPositionalParameters);
-      current_function_async_marker_ = function_node_helper.async_marker_;
       // NOTE: FunctionNode is read further below the if.
 
       intptr_t pos = 0;
@@ -206,17 +205,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
       ParameterTypeCheckMode type_check_mode =
           kTypeCheckForNonDynamicallyInvokedMethod;
-      if (function.IsSyncGenClosure()) {
-        // Don't type check the parameter of sync-yielding since these calls are
-        // all synthetic and types should always match.
-        ASSERT_EQUAL(
-            function.NumParameters() - function.NumImplicitParameters(), 3);
-        ASSERT(
-            Class::Handle(
-                AbstractType::Handle(function.ParameterTypeAt(1)).type_class())
-                .ScrubbedName() == Symbols::_SyncIterator().ptr());
-        type_check_mode = kTypeCheckForStaticFunction;
-      } else if (function.is_static()) {
+      if (function.is_static()) {
         // In static functions we don't check anything.
         type_check_mode = kTypeCheckForStaticFunction;
       } else if (function.IsImplicitClosureFunction()) {
@@ -378,7 +367,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       scope_->InsertParameterAt(pos++, parsed_function_->receiver_var());
 
       // Create all positional and named parameters.
-      current_function_async_marker_ = FunctionNodeHelper::kSync;
       AddPositionalAndNamedParameters(
           pos, kTypeCheckEverythingNotCheckedInNonDynamicallyInvokedMethod,
           attrs);
@@ -403,7 +391,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // Callbacks and calls with handles need try/catch variables.
       if ((function.FfiCallbackTarget() != Function::null() ||
            function.FfiCSignatureContainsHandles())) {
-        current_function_async_marker_ = FunctionNodeHelper::kSync;
         ++depth_.try_;
         AddTryVariables();
         --depth_.try_;
@@ -575,50 +562,6 @@ void ScopeBuilder::VisitFunctionNode() {
     PositionScope scope(&helper_.reader_);
     VisitStatement();  // Read body
     first_body_token_position_ = helper_.reader_.min_position();
-  }
-
-  // Ensure that :await_jump_var, :await_ctx_var, :async_op, :is_sync and
-  // :async_future are captured.
-  if (function_node_helper.async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    {
-      LocalVariable* temp = nullptr;
-      LookupCapturedVariableByName(
-          (depth_.function_ == 0) ? &result_->yield_jump_variable : &temp,
-          Symbols::AwaitJumpVar());
-    }
-    {
-      LocalVariable* temp = nullptr;
-      LookupCapturedVariableByName(
-          (depth_.function_ == 0) ? &result_->yield_context_variable : &temp,
-          Symbols::AwaitContextVar());
-    }
-    {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::AsyncOperation(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::AsyncFuture(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    {
-      LocalVariable* temp = scope_->LookupVariable(Symbols::is_sync(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
-    {
-      LocalVariable* temp =
-          scope_->LookupVariable(Symbols::ControllerStream(), true);
-      if (temp != nullptr) {
-        scope_->CaptureVariable(temp);
-      }
-    }
   }
 
   // Mark known chained futures such as _Future::timeout()'s _future.
@@ -1296,20 +1239,8 @@ void ScopeBuilder::VisitStatement() {
     }
     case kYieldStatement: {
       helper_.ReadPosition();           // read position.
-      word flags = helper_.ReadByte();  // read flags.
+      helper_.ReadByte();               // read flags.
       VisitExpression();                // read expression.
-
-      if ((flags & kYieldStatementFlagNative) != 0) {
-        if (depth_.function_ == 0) {
-          AddSwitchVariable();
-          // Promote all currently visible local variables into the context.
-          // TODO(27590) CaptureLocalVariables promotes to many variables into
-          // the scope. Mark those variables as stack_local.
-          // TODO(27590) we don't need to promote those variables that are
-          // not used across yields.
-          scope_->CaptureLocalVariables(current_function_scope_);
-        }
-      }
       return;
     }
     case kVariableDeclaration:
@@ -1388,17 +1319,7 @@ void ScopeBuilder::VisitVariableDeclaration() {
     variable->set_late_init_offset(initializer_offset);
   }
 
-  // Lift the special async vars out of the function body scope, into the
-  // outer function declaration scope.
-  // This way we can allocate them in the outermost context at fixed indices,
-  // allowing support for async stack traces implementation to find awaiters.
-  if (name.Equals(Symbols::AwaitJumpVar()) ||
-      name.Equals(Symbols::AsyncFuture()) || name.Equals(Symbols::is_sync()) ||
-      name.Equals(Symbols::Controller())) {
-    scope_->parent()->AddVariable(variable);
-  } else {
-    scope_->AddVariable(variable);
-  }
+  scope_->AddVariable(variable);
   result_->locals.Insert(helper_.data_program_offset_ + kernel_offset_no_tag,
                          variable);
 }
@@ -1436,6 +1357,9 @@ void ScopeBuilder::VisitDartType() {
       return;
     case kTypeParameterType:
       VisitTypeParameterType();
+      return;
+    case kIntersectionType:
+      VisitIntersectionType();
       return;
     default:
       ReportUnexpectedTag("type", tag);
@@ -1526,8 +1450,11 @@ void ScopeBuilder::VisitTypeParameterType() {
       }
     }
   }
+}
 
-  helper_.SkipOptionalDartType();  // read bound bound.
+void ScopeBuilder::VisitIntersectionType() {
+  VisitDartType();         // read left.
+  helper_.SkipDartType();  // read right.
 }
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
@@ -1538,13 +1465,10 @@ void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
   LocalScope* saved_function_scope = current_function_scope_;
-  FunctionNodeHelper::AsyncMarker saved_function_async_marker =
-      current_function_async_marker_;
   DepthState saved_depth_state = depth_;
   depth_ = DepthState(depth_.function_ + 1);
   EnterScope(parent_kernel_offset);
   current_function_scope_ = scope_;
-  current_function_async_marker_ = function_node_helper.async_marker_;
   if (depth_.function_ == 1) {
     FunctionScope function_scope = {offset, scope_};
     result_->function_scopes.Add(function_scope);
@@ -1592,7 +1516,6 @@ void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
   ExitScope(function_node_helper.position_, function_node_helper.end_position_);
   depth_ = saved_depth_state;
   current_function_scope_ = saved_function_scope;
-  current_function_async_marker_ = saved_function_async_marker;
 }
 
 void ScopeBuilder::EnterScope(intptr_t kernel_offset) {
@@ -1647,13 +1570,6 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   }
   if (helper.IsCovariant()) {
     variable->set_is_explicit_covariant_parameter();
-  }
-
-  // The :sync_op and :async_op continuations are called multiple times. So we
-  // don't want the parameters from the first invocation to get stored in the
-  // context and reused on later invocations with different parameters.
-  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    variable->set_is_forced_stack();
   }
 
   const bool needs_covariant_check_in_method =
@@ -1743,23 +1659,6 @@ void ScopeBuilder::AddExceptionVariable(
     const char* prefix,
     intptr_t nesting_depth) {
   LocalVariable* v = NULL;
-
-  // If we are inside a function with yield points then Kernel transformer
-  // could have lifted some of the auxiliary exception variables into the
-  // context to preserve them across yield points because they might
-  // be needed for rethrow.
-  // Check if it did and capture such variables instead of introducing
-  // new local ones.
-  // Note: function that wrap kSyncYielding function does not contain
-  // its own try/catches.
-  if (current_function_async_marker_ == FunctionNodeHelper::kSyncYielding) {
-    ASSERT(current_function_scope_->parent() != NULL);
-    v = current_function_scope_->parent()->LocalLookupVariable(
-        GenerateName(prefix, nesting_depth - 1));
-    if (v != NULL) {
-      scope_->CaptureVariable(v);
-    }
-  }
 
   // No need to create variables for try/catch-statements inside
   // nested functions.

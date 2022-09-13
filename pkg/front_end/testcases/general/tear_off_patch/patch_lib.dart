@@ -8,12 +8,12 @@ import 'dart:_internal';
 @patch
 class Class<T> {
   @patch
-  Class({bool defaultValue: true, required T value}) {
+  Class({bool defaultValue = true, required T value}) {
     print('patch Class');
   }
 
   @patch
-  factory Class.fact({bool defaultValue: true, required T value}) =>
+  factory Class.fact({bool defaultValue = true, required T value}) =>
       new ClassImpl<T>(defaultValue: defaultValue, value: value);
 
   @patch
@@ -27,7 +27,7 @@ class Class<T> {
 @patch
 class ClassImpl<T> implements Class<T> {
   @patch
-  ClassImpl.patched({bool defaultValue: true, required T value}) {
+  ClassImpl.patched({bool defaultValue = true, required T value}) {
     print('patch ClassImpl');
   }
 }

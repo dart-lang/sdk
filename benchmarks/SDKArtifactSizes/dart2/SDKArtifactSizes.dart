@@ -21,7 +21,6 @@ const libs = <String>[
 const snapshots = <String>[
   'analysis_server',
   'dart2js',
-  'dartanalyzer',
   'dartdev',
   'dartdevc',
   'dds',

@@ -4,10 +4,8 @@
 
 part of layout;
 
-/**
- * Base class for simple recursive descent parsers.
- * Handles the lower level stuff, i.e. what a scanner/tokenizer would do.
- */
+/// Base class for simple recursive descent parsers.
+/// Handles the lower level stuff, i.e. what a scanner/tokenizer would do.
 class _Parser {
   static const WHITESPACE = ' \r\n\t';
 
@@ -124,7 +122,7 @@ class _Parser {
     return true;
   }
 
-  void _eat(String value, [bool eatWhitespace = true]) {
+  void _eat(String value) {
     if (!_maybeEat(value)) {
       _error('expected "$value"');
     }
@@ -159,7 +157,7 @@ class _Parser {
     return result;
   }
 
-  /** Eats something like a keyword. */
+  /// Eats something like a keyword. */
   String _eatWord() {
     int start = _offset;
     while (_offset < length && _isLetter(_peekChar())) {
@@ -168,7 +166,7 @@ class _Parser {
     return _src.substring(start, _offset);
   }
 
-  /** Eats an integer. */
+  /// Eats an integer. */
   int? _maybeEatInt() {
     int start = _offset;
     bool dot = false;
@@ -183,7 +181,7 @@ class _Parser {
     return int.parse(_src.substring(start, _offset));
   }
 
-  /** Eats an integer. */
+  /// Eats an integer. */
   int? _eatInt() {
     int? result = _maybeEatInt();
     if (result == null) {
@@ -192,7 +190,7 @@ class _Parser {
     return result;
   }
 
-  /** Eats something like a positive decimal: 12.345. */
+  /// Eats something like a positive decimal: 12.345. */
   num _eatDouble() {
     int start = _offset;
     bool dot = false;
@@ -217,11 +215,11 @@ class _Parser {
   }
 }
 
-/** Parses a grid template. */
+/// Parses a grid template. */
 class _GridTemplateParser extends _Parser {
   _GridTemplateParser._internal(String src) : super(src);
 
-  /** Parses the grid-rows and grid-columns CSS properties into object form. */
+  /// Parses the grid-rows and grid-columns CSS properties into object form. */
   static GridTemplate? parse(String? str) {
     if (str == null) return null;
     final p = _GridTemplateParser._internal(str);
@@ -230,7 +228,7 @@ class _GridTemplateParser extends _Parser {
     return result;
   }
 
-  /** Parses a grid-cell value. */
+  /// Parses a grid-cell value. */
   static String? parseCell(String? str) {
     if (str == null) return null;
     final p = _GridTemplateParser._internal(str);
@@ -249,18 +247,18 @@ class _GridTemplateParser extends _Parser {
     while ((row = _maybeEatString()) != null) {
       rows.add(row);
     }
-    if (rows.length == 0) {
+    if (rows.isEmpty) {
       _error('expected at least one cell, or "none"');
     }
     return GridTemplate(rows);
   }
 }
 
-/** Parses a grid-row or grid-column */
+/// Parses a grid-row or grid-column */
 class _GridItemParser extends _Parser {
   _GridItemParser._internal(String src) : super(src);
 
-  /** Parses the grid-rows and grid-columns CSS properties into object form. */
+  /// Parses the grid-rows and grid-columns CSS properties into object form. */
   static _GridLocation? parse(String? cell, GridTrackList? list) {
     if (cell == null) return null;
     final p = _GridItemParser._internal(cell);
@@ -281,7 +279,7 @@ class _GridItemParser extends _Parser {
       _error('expected row/column number or name');
     }
     int? end = _maybeParseLine(list);
-    int? span = null;
+    int? span;
     if (end != null) {
       span = end - start!;
       if (span <= 0) {
@@ -318,11 +316,9 @@ class _GridItemParser extends _Parser {
   }
 }
 
-/**
- * Parses grid-rows and grid-column properties, see:
- * [http://dev.w3.org/csswg/css3-grid-align/#grid-columns-and-rows-properties]
- * This is kept as a recursive descent parser for simplicity.
- */
+/// Parses grid-rows and grid-column properties, see:
+/// [http://dev.w3.org/csswg/css3-grid-align/#grid-columns-and-rows-properties]
+/// This is kept as a recursive descent parser for simplicity.
 // TODO(jmesserly): implement missing features from the spec. Mainly around
 // CSS units, support for all escape sequences, etc.
 class _GridTrackParser extends _Parser {
@@ -331,10 +327,10 @@ class _GridTrackParser extends _Parser {
 
   _GridTrackParser._internal(String src)
       : _tracks = <GridTrack>[],
-        _lineNames = Map<String?, int>(),
+        _lineNames = <String?, int>{},
         super(src);
 
-  /** Parses the grid-rows and grid-columns CSS properties into object form. */
+  /// Parses the grid-rows and grid-columns CSS properties into object form. */
   static GridTrackList? parse(String? str) {
     if (str == null) return null;
     final p = _GridTrackParser._internal(str);
@@ -343,12 +339,10 @@ class _GridTrackParser extends _Parser {
     return result;
   }
 
-  /**
-   * Parses the grid-row-sizing and grid-column-sizing CSS properties into
-   * object form.
-   */
+  /// Parses the grid-row-sizing and grid-column-sizing CSS properties into
+  /// object form.
   static TrackSizing parseTrackSizing(String? str) {
-    if (str == null) str = 'auto';
+    str ??= 'auto';
     final p = _GridTrackParser._internal(str);
     final result = p._parseTrackMinmax();
     p._eatEnd();
@@ -364,8 +358,8 @@ class _GridTrackParser extends _Parser {
     return GridTrackList(_tracks, _lineNames);
   }
 
-  /** Code shared by _parseTrackList and _parseTrackGroup */
-  void _parseTrackListHelper([List<GridTrack>? resultTracks = null]) {
+  /// Code shared by _parseTrackList and _parseTrackGroup */
+  void _parseTrackListHelper([List<GridTrack>? resultTracks]) {
     _maybeEatWhitespace();
     while (!endOfInput) {
       String? name;
@@ -465,9 +459,7 @@ class _GridTrackParser extends _Parser {
   }
 }
 
-/**
- * Exception thrown because the grid style properties had incorrect values.
- */
+/// Exception thrown because the grid style properties had incorrect values.
 class SyntaxErrorException implements Exception {
   final String _message;
   final int _offset;
@@ -475,6 +467,7 @@ class SyntaxErrorException implements Exception {
 
   const SyntaxErrorException(this._message, this._source, this._offset);
 
+  @override
   String toString() {
     String location;
     if (_offset < _source.length) {

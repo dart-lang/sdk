@@ -72,6 +72,11 @@ abstract class IdentifierContext {
       formalParameterDeclaration =
       const FormalParameterDeclarationIdentifierContext();
 
+  /// Identifier is a record field being declared as part of a record type
+  /// declaration.
+  static const RecordFieldDeclarationIdentifierContext recordFieldDeclaration =
+      const RecordFieldDeclarationIdentifierContext();
+
   /// Identifier is a formal parameter being declared as part of a catch block
   /// in a try/catch/finally statement.
   static const CatchParameterIdentifierContext catchParameter =
@@ -255,6 +260,12 @@ abstract class IdentifierContext {
   static const NamedArgumentReferenceIdentifierContext namedArgumentReference =
       const NamedArgumentReferenceIdentifierContext();
 
+  /// Identifier is a reference to a named record field
+  /// (e.g. `foo` in `(42, foo: 42);`.
+  static const NamedRecordFieldReferenceIdentifierContext
+      namedRecordFieldReference =
+      const NamedRecordFieldReferenceIdentifierContext();
+
   /// Identifier is a name being declared by a local variable declaration.
   static const LocalVariableDeclarationIdentifierContext
       localVariableDeclaration =
@@ -294,14 +305,14 @@ abstract class IdentifierContext {
   final Template<_MessageWithArgument<Token>> recoveryTemplate;
 
   const IdentifierContext(this._name,
-      {this.inDeclaration: false,
-      this.inLibraryOrPartOfDeclaration: false,
-      this.inSymbol: false,
-      this.isContinuation: false,
-      this.isScopeReference: false,
-      this.isBuiltInIdentifierAllowed: true,
+      {this.inDeclaration = false,
+      this.inLibraryOrPartOfDeclaration = false,
+      this.inSymbol = false,
+      this.isContinuation = false,
+      this.isScopeReference = false,
+      this.isBuiltInIdentifierAllowed = true,
       bool? allowedInConstantExpression,
-      this.recoveryTemplate: templateExpectedIdentifier})
+      this.recoveryTemplate = templateExpectedIdentifier})
       : this.allowedInConstantExpression =
             // Generally, declarations are legal in constant expressions.  A
             // continuation doesn't affect constant expressions: if what it's

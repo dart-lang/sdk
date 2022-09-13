@@ -323,7 +323,7 @@ class SourceLoader extends Loader {
       SourceLibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     return new SourceLibraryBuilder(
         importUri: importUri,
         fileUri: fileUri,
@@ -561,7 +561,7 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     LibraryBuilder libraryBuilder = _read(uri,
         fileUri: fileUri,
         origin: origin,
@@ -624,7 +624,7 @@ class SourceLoader extends Loader {
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner,
-      bool isAugmentation: false}) {
+      bool isAugmentation = false}) {
     LibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
       if (target.dillTarget.isLoaded) {
@@ -691,10 +691,10 @@ class SourceLoader extends Loader {
   @override
   FormattedMessage? addProblem(
       Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
       Severity? severity,
-      bool problemOnLibrary: false,
+      bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     return addMessage(message, charOffset, length, fileUri, severity,
         wasHandled: wasHandled,
@@ -716,9 +716,9 @@ class SourceLoader extends Loader {
   /// [wasHandled] is false.
   FormattedMessage? addMessage(Message message, int charOffset, int length,
       Uri? fileUri, Severity? severity,
-      {bool wasHandled: false,
+      {bool wasHandled = false,
       List<LocatedMessage>? context,
-      bool problemOnLibrary: false,
+      bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     assert(
         fileUri != missingUri, "Message unexpectedly reported on missing uri.");
@@ -819,7 +819,7 @@ severity: $severity
       templateSourceOutlineSummary;
 
   Future<Token> tokenize(SourceLibraryBuilder libraryBuilder,
-      {bool suppressLexicalErrors: false}) async {
+      {bool suppressLexicalErrors = false}) async {
     target.benchmarker?.beginSubdivide(BenchmarkSubdivides.tokenize);
     Uri fileUri = libraryBuilder.fileUri;
 
@@ -1289,14 +1289,10 @@ severity: $severity
     }
     ticker.logMs("Resolved parts");
 
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        library.applyPatches();
-      }
-    }
     for (SourceLibraryBuilder patchLibrary in patchLibraries) {
       _builders.remove(patchLibrary.fileUri);
       patchLibrary.origin.addPatchLibrary(patchLibrary);
+      patchLibrary.applyPatches();
     }
     _sourceLibraryBuilders = sourceLibraries;
     assert(
@@ -1351,7 +1347,10 @@ severity: $severity
         both.add(exported as SourceLibraryBuilder);
       }
       for (Export export in exported.exporters) {
-        exported.exportScope.forEach(export.addToExportScope);
+        exported.exportScope
+            .filteredNameIterator(
+                includeDuplicates: false, includeAugmentations: false)
+            .forEach(export.addToExportScope);
       }
     }
     bool wasChanged = false;
@@ -1359,7 +1358,10 @@ severity: $severity
       wasChanged = false;
       for (SourceLibraryBuilder exported in both) {
         for (Export export in exported.exporters) {
-          exported.exportScope.forEach((String name, Builder member) {
+          exported.exportScope
+              .filteredNameIterator(
+                  includeDuplicates: false, includeAugmentations: false)
+              .forEach((String name, Builder member) {
             if (export.addToExportScope(name, member)) {
               wasChanged = true;
             }
@@ -1389,17 +1391,17 @@ severity: $severity
     _builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
-      Iterator<Builder> iterator = library.iterator;
+      Iterator<Builder> iterator = library.localMembersIterator;
       while (iterator.moveNext()) {
         members.add(iterator.current);
       }
       List<String> exports = <String>[];
-      library.exportScope.forEach((String name, Builder? member) {
-        while (member != null) {
-          if (!members.contains(member)) {
-            exports.add(name);
-          }
-          member = member.next;
+      library.exportScope
+          .filteredNameIterator(
+              includeDuplicates: true, includeAugmentations: false)
+          .forEach((String name, Builder member) {
+        if (!members.contains(member)) {
+          exports.add(name);
         }
       });
       if (exports.isNotEmpty) {
@@ -1445,7 +1447,7 @@ severity: $severity
     Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      Iterator<Builder> iterator = libraryBuilder.iterator;
+      Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
       while (iterator.moveNext()) {
         Builder builder = iterator.current;
         if (builder is ClassBuilder && builder.isMacro) {
@@ -1598,7 +1600,7 @@ severity: $severity
       // TODO(johnniwinther): Handle patch libraries.
       LibraryMacroApplicationData libraryMacroApplicationData =
           new LibraryMacroApplicationData();
-      Iterator<Builder> iterator = libraryBuilder.iterator;
+      Iterator<Builder> iterator = libraryBuilder.localMembersIterator;
       while (iterator.moveNext()) {
         Builder builder = iterator.current;
         if (builder is SourceClassBuilder) {
@@ -2314,7 +2316,7 @@ severity: $severity
         ?.beginSubdivide(BenchmarkSubdivides.delayedActionPerformer);
     for (DelayedActionPerformer delayedActionPerformer
         in delayedActionPerformers) {
-      delayedActionPerformer.performDelayedActions();
+      delayedActionPerformer.performDelayedActions(allowFurtherDelays: false);
     }
     target.benchmarker?.endSubdivide();
     ticker.logMs("Build outline expressions");
@@ -2410,16 +2412,16 @@ severity: $severity
 
   Expression instantiateNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
     return target.backendTarget.instantiateNoSuchMethodError(
         coreTypes, receiver, name, arguments, offset,
         isMethod: isMethod,
@@ -2730,44 +2732,13 @@ class int extends num {}
 
 class num {}
 
-class _SyncIterable {}
-
-class _SyncIterator {
-  var _current;
-  var _yieldEachIterable;
-}
-
 class Function {}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an
 /// instance of [CoreTypes] and compile program.
 const String defaultDartAsyncSource = """
-_asyncErrorWrapperHelper(continuation) {}
-
 void _asyncStarMoveNextHelper(var stream) {}
-
-_asyncThenWrapperHelper(continuation) {}
-
-_awaitHelper(object, thenCallback, errorCallback) {}
-
-_completeOnAsyncReturn(_future, value, async_jump_var) {}
-
-_completeWithNoFutureOnAsyncReturn(_future, value, async_jump_var) {}
-
-_completeOnAsyncError(_future, e, st, async_jump_var) {}
-
-class _AsyncStarStreamController {
-  add(event) {}
-
-  addError(error, stackTrace) {}
-
-  addStream(stream) {}
-
-  close() {}
-
-  get stream => null;
-}
 
 abstract class Completer {
   factory Completer.sync() => null;

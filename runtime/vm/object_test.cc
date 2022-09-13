@@ -5358,6 +5358,91 @@ class X extends E {}
   EXPECT(class_a_sub.implements_finalizable());
 }
 
+TEST_CASE(ImplementorCid) {
+  const char* kScriptChars = R"(
+abstract class AInterface {}
+
+abstract class BInterface {}
+class BImplementation implements BInterface {}
+
+abstract class CInterface {}
+class CImplementation1 implements CInterface {}
+class CImplementation2 implements CInterface {}
+
+abstract class DInterface {}
+abstract class DSubinterface implements DInterface {}
+
+abstract class EInterface {}
+abstract class ESubinterface implements EInterface {}
+class EImplementation implements ESubinterface {}
+
+abstract class FInterface {}
+abstract class FSubinterface implements FInterface {}
+class FImplementation1 implements FSubinterface {}
+class FImplementation2 implements FSubinterface {}
+
+main() {
+  new BImplementation();
+  new CImplementation1();
+  new CImplementation2();
+  new EImplementation();
+  new FImplementation1();
+  new FImplementation2();
+}
+)";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(h_lib);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  TransitionNativeToVM transition(thread);
+  const Library& lib =
+      Library::CheckedHandle(thread->zone(), Api::UnwrapHandle(h_lib));
+  EXPECT(!lib.IsNull());
+
+  const Class& AInterface = Class::Handle(GetClass(lib, "AInterface"));
+  EXPECT_EQ(AInterface.implementor_cid(), kIllegalCid);
+
+  const Class& BInterface = Class::Handle(GetClass(lib, "BInterface"));
+  const Class& BImplementation =
+      Class::Handle(GetClass(lib, "BImplementation"));
+  EXPECT_EQ(BInterface.implementor_cid(), BImplementation.id());
+  EXPECT_EQ(BImplementation.implementor_cid(), BImplementation.id());
+
+  const Class& CInterface = Class::Handle(GetClass(lib, "CInterface"));
+  const Class& CImplementation1 =
+      Class::Handle(GetClass(lib, "CImplementation1"));
+  const Class& CImplementation2 =
+      Class::Handle(GetClass(lib, "CImplementation2"));
+  EXPECT_EQ(CInterface.implementor_cid(), kDynamicCid);
+  EXPECT_EQ(CImplementation1.implementor_cid(), CImplementation1.id());
+  EXPECT_EQ(CImplementation2.implementor_cid(), CImplementation2.id());
+
+  const Class& DInterface = Class::Handle(GetClass(lib, "DInterface"));
+  const Class& DSubinterface = Class::Handle(GetClass(lib, "DSubinterface"));
+  EXPECT_EQ(DInterface.implementor_cid(), kIllegalCid);
+  EXPECT_EQ(DSubinterface.implementor_cid(), kIllegalCid);
+
+  const Class& EInterface = Class::Handle(GetClass(lib, "EInterface"));
+  const Class& ESubinterface = Class::Handle(GetClass(lib, "ESubinterface"));
+  const Class& EImplementation =
+      Class::Handle(GetClass(lib, "EImplementation"));
+  EXPECT_EQ(EInterface.implementor_cid(), EImplementation.id());
+  EXPECT_EQ(ESubinterface.implementor_cid(), EImplementation.id());
+  EXPECT_EQ(EImplementation.implementor_cid(), EImplementation.id());
+
+  const Class& FInterface = Class::Handle(GetClass(lib, "FInterface"));
+  const Class& FSubinterface = Class::Handle(GetClass(lib, "FSubinterface"));
+  const Class& FImplementation1 =
+      Class::Handle(GetClass(lib, "FImplementation1"));
+  const Class& FImplementation2 =
+      Class::Handle(GetClass(lib, "FImplementation2"));
+  EXPECT_EQ(FInterface.implementor_cid(), kDynamicCid);
+  EXPECT_EQ(FSubinterface.implementor_cid(), kDynamicCid);
+  EXPECT_EQ(FImplementation1.implementor_cid(), FImplementation1.id());
+  EXPECT_EQ(FImplementation2.implementor_cid(), FImplementation2.id());
+}
+
 ISOLATE_UNIT_TEST_CASE(MirrorReference) {
   const MirrorReference& reference =
       MirrorReference::Handle(MirrorReference::New(Object::Handle()));
@@ -5890,7 +5975,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"_kind\":\"RegularFunction\",\"static\":false,\"const\":false,"
-        "\"implicit\":false,"
+        "\"implicit\":false,\"abstract\":false,"
         "\"_intrinsic\":false,\"_native\":false,"
         "\"location\":{\"type\":\"SourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","

@@ -7,7 +7,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         import 'libA.dart';
@@ -34,7 +33,6 @@ worlds:
         }
     expectedLibraryCount: 2
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -59,4 +57,4 @@ worlds:
 
         enum CompilationStrategy { direct, toKernel, toData, fromData }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    advancedInvalidation: bodiesOnly

@@ -6,11 +6,9 @@
 
 part of view;
 
-/**
- * Holds a number of child views.  As you switch between views, the old
- * view is pushed off to the side and the new view slides in from the other
- * side.
- */
+/// Holds a number of child views.  As you switch between views, the old
+/// view is pushed off to the side and the new view slides in from the other
+/// side.
 class ConveyorView extends CompositeView {
   // TODO(jmesserly): some places use this property to know when the slide
   // transition is finished. It would be better to have an event that fires
@@ -29,8 +27,9 @@ class ConveyorView extends CompositeView {
 
   ConveyorView()
       : animationTimer = null,
-        super('conveyor-view', true) {}
+        super('conveyor-view', true);
 
+  @override
   Element render() {
     final result = super.render();
     // TODO(rnystrom): Have to do this in render() because container doesn't
@@ -60,11 +59,11 @@ class ConveyorView extends CompositeView {
     // specified in miliseconds rather than accepting a string.
     style.transitionDuration = '${durationSeconds}s';
     final xTranslationPercent = -index * 100;
-    style.transform = 'translate3d(${xTranslationPercent}%, 0px, 0px)';
+    style.transform = 'translate3d($xTranslationPercent%, 0px, 0px)';
 
     if (animate) {
-      animationTimer = new Timer(
-          new Duration(milliseconds: ((durationSeconds * 1000).toInt())), () {
+      animationTimer =
+          Timer(Duration(milliseconds: ((durationSeconds * 1000).toInt())), () {
         _onAnimationEnd();
       });
     }
@@ -81,10 +80,9 @@ class ConveyorView extends CompositeView {
     throw "view not found";
   }
 
-  /**
-   * Adds a child view to the ConveyorView.  The views are stacked horizontally
-   * in the order they are added.
-   */
+  /// Adds a child view to the ConveyorView.  The views are stacked horizontally
+  /// in the order they are added.
+  @override
   View addChild(View view) {
     view.addClass('conveyor-item');
     view.transform = 'translate3d(${(childViews.length * 100)}%, 0, 0)';

@@ -33,8 +33,6 @@ import '../kernel/kernel_helper.dart'
         TypeDependency,
         finishConstructorPatch,
         finishProcedurePatch;
-import '../kernel/utils.dart'
-    show isRedirectingGenerativeConstructorImplementation;
 import '../messages.dart'
     show
         LocatedMessage,
@@ -51,7 +49,7 @@ import '../source/source_enum_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_member_builder.dart';
-import '../type_inference/type_inferrer.dart';
+import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_field_builder.dart';
@@ -64,6 +62,13 @@ abstract class SourceConstructorBuilder
 
   void addSuperParameterDefaultValueCloners(
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners);
+
+  /// Returns `true` if this constructor is an redirecting generative
+  /// constructor.
+  ///
+  /// It is considered redirecting if it has at least one redirecting
+  /// initializer.
+  bool get isRedirecting;
 }
 
 class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
@@ -194,8 +199,51 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   ProcedureKind? get kind => null;
 
   @override
-  bool get isRedirectingGenerativeConstructor {
-    return isRedirectingGenerativeConstructorImplementation(_constructor);
+  bool get isRedirecting {
+    for (Initializer initializer in _constructor.initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Returns `true` if this constructor, including its augmentations, is
+  /// external.
+  ///
+  /// An augmented constructor is considered external if all of the origin
+  /// and augmentation constructors are external.
+  bool get isEffectivelyExternal {
+    bool isExternal = this.isExternal;
+    if (isExternal) {
+      List<SourceConstructorBuilder>? patches = _patches;
+      if (patches != null) {
+        for (SourceConstructorBuilder patch in patches) {
+          isExternal &= patch.isExternal;
+        }
+      }
+    }
+    return isExternal;
+  }
+
+  /// Returns `true` if this constructor or any of its augmentations are
+  /// redirecting.
+  ///
+  /// An augmented constructor is considered redirecting if any of the origin
+  /// or augmentation constructors is redirecting. Since it is an error if more
+  /// than one is redirecting, only one can be redirecting in the without
+  /// errors.
+  bool get isEffectivelyRedirecting {
+    bool isRedirecting = this.isRedirecting;
+    if (!isRedirecting) {
+      List<SourceConstructorBuilder>? patches = _patches;
+      if (patches != null) {
+        for (SourceConstructorBuilder patch in patches) {
+          isRedirecting |= patch.isRedirecting;
+        }
+      }
+    }
+    return isRedirecting;
   }
 
   @override
@@ -513,7 +561,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
       bodyBuilder.parseInitializers(beginInitializers!,
           doFinishConstructor: isConst);
-      bodyBuilder.performBacklogComputations(delayedActionPerformers);
+      bodyBuilder.performBacklogComputations(
+          delayedActionPerformers: delayedActionPerformers,
+          allowFurtherDelays: false);
     }
     beginInitializers = null;
     addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
@@ -763,7 +813,11 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   /// The field can be initialized either via an initializing formal or via an
   /// entry in the constructor initializer list.
   void registerInitializedField(SourceFieldBuilder fieldBuilder) {
-    (_initializedFields ??= {}).add(fieldBuilder);
+    if (isPatch) {
+      origin.registerInitializedField(fieldBuilder);
+    } else {
+      (_initializedFields ??= {}).add(fieldBuilder);
+    }
   }
 
   /// Returns the fields registered as initialized by this constructor.
@@ -830,6 +884,16 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   @override
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
+
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in constructor.initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   void inferFormalTypes(ClassHierarchyBase hierarchy) {

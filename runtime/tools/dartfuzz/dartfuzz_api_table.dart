@@ -973,8 +973,6 @@ class DartLib {
     DartLib('Int8List.bytesPerElement', [DartType.VOID, DartType.VOID], false),
     DartLib('Isolate.beforeNextEvent', [DartType.VOID, DartType.VOID], false),
     DartLib('Isolate.immediate', [DartType.VOID, DartType.VOID], false),
-    DartLib('JsonUtf8Encoder.DEFAULT_BUFFER_SIZE',
-        [DartType.VOID, DartType.VOID], false),
     DartLib('OSError.noErrorCode', [DartType.VOID, DartType.VOID], false),
     DartLib(
         'RangeError.checkNotNegative',
@@ -1027,27 +1025,6 @@ class DartLib {
     DartLib('Uint8ClampedList.bytesPerElement', [DartType.VOID, DartType.VOID],
         false),
     DartLib('Uint8List.bytesPerElement', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.DEFAULT_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.DEFAULT_MEM_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.DEFAULT_WINDOW_BITS', [DartType.VOID, DartType.VOID],
-        false),
-    DartLib('ZLibOption.MAX_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.MAX_MEM_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.MAX_WINDOW_BITS', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.MIN_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.MIN_MEM_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.MIN_WINDOW_BITS', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.STRATEGY_DEFAULT', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.STRATEGY_FILTERED', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.STRATEGY_FIXED', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.STRATEGY_HUFFMAN_ONLY', [DartType.VOID, DartType.VOID],
-        false),
-    DartLib('ZLibOption.STRATEGY_RLE', [DartType.VOID, DartType.VOID], false),
     DartLib('ZLibOption.defaultLevel', [DartType.VOID, DartType.VOID], false),
     DartLib(
         'ZLibOption.defaultMemLevel', [DartType.VOID, DartType.VOID], false),
@@ -1806,8 +1783,6 @@ class DartLib {
     DartLib('Int8List.bytesPerElement', [DartType.VOID, DartType.VOID], false),
     DartLib('Isolate.beforeNextEvent', [DartType.VOID, DartType.VOID], false),
     DartLib('Isolate.immediate', [DartType.VOID, DartType.VOID], false),
-    DartLib('JsonUtf8Encoder.DEFAULT_BUFFER_SIZE',
-        [DartType.VOID, DartType.VOID], false),
     DartLib('OSError.noErrorCode', [DartType.VOID, DartType.VOID], false),
     DartLib(
         'RangeError.checkNotNegative',
@@ -1860,27 +1835,6 @@ class DartLib {
     DartLib('Uint8ClampedList.bytesPerElement', [DartType.VOID, DartType.VOID],
         false),
     DartLib('Uint8List.bytesPerElement', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.DEFAULT_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.DEFAULT_MEM_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.DEFAULT_WINDOW_BITS', [DartType.VOID, DartType.VOID],
-        false),
-    DartLib('ZLibOption.MAX_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.MAX_MEM_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.MAX_WINDOW_BITS', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.MIN_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.MIN_MEM_LEVEL', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.MIN_WINDOW_BITS', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.STRATEGY_DEFAULT', [DartType.VOID, DartType.VOID], false),
-    DartLib(
-        'ZLibOption.STRATEGY_FILTERED', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.STRATEGY_FIXED', [DartType.VOID, DartType.VOID], false),
-    DartLib('ZLibOption.STRATEGY_HUFFMAN_ONLY', [DartType.VOID, DartType.VOID],
-        false),
-    DartLib('ZLibOption.STRATEGY_RLE', [DartType.VOID, DartType.VOID], false),
     DartLib('ZLibOption.defaultLevel', [DartType.VOID, DartType.VOID], false),
     DartLib(
         'ZLibOption.defaultMemLevel', [DartType.VOID, DartType.VOID], false),
@@ -2121,6 +2075,8 @@ class DartLib {
     DartLib('expires', [DartType.DEPRECATED, DartType.VOID], false),
     DartLib('message', [DartType.DEPRECATED, DartType.VOID], false),
     DartLib('message', [DartType.FORMATEXCEPTION, DartType.VOID], false),
+    DartLib('message', [DartType.INTEGERDIVISIONBYZEROEXCEPTION, DartType.VOID],
+        false),
     DartLib('message', [DartType.PROVISIONAL, DartType.VOID], false),
     DartLib('message', [DartType.STATEERROR, DartType.VOID], false),
     DartLib('message', [DartType.UNIMPLEMENTEDERROR, DartType.VOID], false),

@@ -21,7 +21,7 @@ class B extends A<String> {}
 class C extends B {}
 
 void foo(dynamic a) {
-  // To prevent AssertAssignable strengthening from occuring too early we
+  // To prevent AssertAssignable strengthening from occurring too early we
   // need to hide the fact that CheckClass and AssertAssignable are performed
   // against the same SSA value. To achieve that we store a into an array and
   // then load it back. Load Forwarding would happen just before LICM and

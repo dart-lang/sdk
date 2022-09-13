@@ -129,13 +129,13 @@ class BaseTest {
 @reflectiveTest
 class ExitCodesTest extends BaseTest {
   @SkippedTest(reason: 'Fails on bots, passes locally. Do not know why.')
-  Future<void> test_bazelWorkspace_relativePath() async {
+  Future<void> test_blazeWorkspace_relativePath() async {
     // Copy to temp dir so that existing analysis options
     // in the test directory hierarchy do not interfere
     await withTempDirAsync((String tempDirPath) async {
       var dartSdkPath = path.absolute(getSdkPath());
       await recursiveCopy(
-          Directory(path.join(testDirectory, 'data', 'bazel')), tempDirPath);
+          Directory(path.join(testDirectory, 'data', 'blaze')), tempDirPath);
       var origWorkingDir = Directory.current;
       try {
         Directory.current = path.join(tempDirPath, 'proj');

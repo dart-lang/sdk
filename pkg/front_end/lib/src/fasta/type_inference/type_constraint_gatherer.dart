@@ -57,7 +57,7 @@ abstract class TypeConstraintGatherer {
     }
   }
 
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false});
+  Member? getInterfaceMember(Class class_, Name name, {bool setter = false});
 
   InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
       Library clientLibrary, CoreTypes coreTypes);
@@ -1068,7 +1068,7 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   }
 
   @override
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class class_, Name name, {bool setter = false}) {
     return environment.hierarchy
         .getInterfaceMember(class_, name, setter: setter);
   }

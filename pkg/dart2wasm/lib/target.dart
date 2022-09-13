@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show Message, LocatedMessage;
+import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/js_util_wasm_optimizer.dart';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
@@ -32,6 +35,10 @@ class WasmTarget extends Target {
   Class? _compactLinkedCustomHashSet;
   Class? _oneByteString;
   Class? _twoByteString;
+  Map<String, Class>? _nativeClasses;
+
+  @override
+  bool get enableNoSuchMethodForwarders => true;
 
   @override
   ConstantsBackend get constantsBackend => const ConstantsBackend();
@@ -47,9 +54,11 @@ class WasmTarget extends Target {
         'dart:async',
         'dart:ffi',
         'dart:_internal',
+        'dart:_http',
         'dart:_js_helper',
         'dart:typed_data',
         'dart:nativewrappers',
+        'dart:io',
         'dart:js',
         'dart:js_util',
         'dart:wasm',
@@ -81,21 +90,25 @@ class WasmTarget extends Target {
       ..parent = host;
   }
 
-  StaticInteropClassEraser _staticInteropClassEraser(
-          CoreTypes coreTypes, ReferenceFromIndex? referenceFromIndex) =>
-      StaticInteropClassEraser(coreTypes, referenceFromIndex,
-          libraryForJavaScriptObject: 'dart:_js_helper',
-          classNameOfJavaScriptObject: 'JSValue');
-
   void _performJSInteropTransformations(
+      Component component,
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> interopDependentLibraries,
+      DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex) {
+    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+    final jsInteropChecks = JsInteropChecks(
+        coreTypes,
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
+        _nativeClasses!);
     final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
-    final staticInteropClassEraser =
-        _staticInteropClassEraser(coreTypes, referenceFromIndex);
+    final staticInteropClassEraser = StaticInteropClassEraser(
+        coreTypes, referenceFromIndex,
+        libraryForJavaScriptObject: 'dart:_js_helper',
+        classNameOfJavaScriptObject: 'JSValue');
     for (Library library in interopDependentLibraries) {
+      jsInteropChecks.visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
       staticInteropClassEraser.visitLibrary(library);
     }
@@ -113,13 +126,6 @@ class WasmTarget extends Target {
   }
 
   @override
-  void performOutlineTransformations(Component component, CoreTypes coreTypes,
-      ReferenceFromIndex? referenceFromIndex) {
-    component.accept(StaticInteropStubCreator(
-        _staticInteropClassEraser(coreTypes, referenceFromIndex)));
-  }
-
-  @override
   void performModularTransformationsOnLibraries(
       Component component,
       CoreTypes coreTypes,
@@ -130,14 +136,17 @@ class WasmTarget extends Target {
       ReferenceFromIndex? referenceFromIndex,
       {void logger(String msg)?,
       ChangedStructureNotifier? changedStructureNotifier}) {
-    List<Library>? transitiveImportingJSInterop =
-        jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
-            component, Uri.parse("package:js/js.dart"));
-    if (transitiveImportingJSInterop == null) {
+    List<Library> transitiveImportingJSInterop = [
+      ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+          component, Uri.parse("package:js/js.dart")),
+      ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+          component, Uri.parse("dart:_js_annotations"))
+    ];
+    if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");
     } else {
-      _performJSInteropTransformations(coreTypes, hierarchy,
-          transitiveImportingJSInterop, referenceFromIndex);
+      _performJSInteropTransformations(component, coreTypes, hierarchy,
+          transitiveImportingJSInterop, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed JS interop classes");
     }
     transformMixins.transformLibraries(
@@ -175,25 +184,73 @@ class WasmTarget extends Target {
     wasmTrans.transformProcedure(procedure, coreTypes, hierarchy);
   }
 
+  Expression _instantiateInvocation(
+      CoreTypes coreTypes, String name, Arguments arguments) {
+    if (name.startsWith("set:")) {
+      name = name.substring(4);
+      Procedure invocationSetter = coreTypes.invocationClass.procedures
+          .firstWhere((c) => c.name.text == "setter");
+      return StaticInvocation(invocationSetter,
+          Arguments([SymbolLiteral(name), arguments.positional.single]));
+    } else if (name.startsWith("get:")) {
+      Procedure invocationGetter = coreTypes.invocationClass.procedures
+          .firstWhere((c) => c.name.text == "getter");
+      return StaticInvocation(
+          invocationGetter, Arguments([SymbolLiteral(name)]));
+    } else if (arguments.types.isEmpty) {
+      Procedure invocationMethod = coreTypes.invocationClass.procedures
+          .firstWhere((c) => c.name.text == "method");
+      return StaticInvocation(
+          invocationMethod,
+          Arguments([
+            SymbolLiteral(name),
+            ListLiteral(arguments.positional),
+            MapLiteral(List<MapLiteralEntry>.from(
+                arguments.named.map((NamedExpression arg) {
+              return MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
+            })), keyType: coreTypes.symbolNonNullableRawType)
+              ..isConst = (arguments.named.isEmpty)
+          ]));
+    } else {
+      Procedure invocationGenericMethod = coreTypes.invocationClass.procedures
+          .firstWhere((c) => c.name.text == "genericMethod");
+      return StaticInvocation(
+          invocationGenericMethod,
+          Arguments([
+            SymbolLiteral(name),
+            ListLiteral(arguments.types.map((t) => TypeLiteral(t)).toList()),
+            ListLiteral(arguments.positional),
+            MapLiteral(List<MapLiteralEntry>.from(
+                arguments.named.map((NamedExpression arg) {
+              return new MapLiteralEntry(SymbolLiteral(arg.name), arg.value);
+            })), keyType: coreTypes.symbolNonNullableRawType)
+              ..isConst = (arguments.named.isEmpty)
+          ]));
+    }
+  }
+
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
-    throw "Unsupported: instantiateInvocation";
+    return _instantiateInvocation(coreTypes, name, arguments);
   }
 
   Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
       Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
-    throw "Unsupported: instantiateNoSuchMethodError";
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
+    return ConstructorInvocation(
+        coreTypes.noSuchMethodErrorDefaultConstructor,
+        Arguments(
+            [receiver, _instantiateInvocation(coreTypes, name, arguments)]));
   }
 
   @override

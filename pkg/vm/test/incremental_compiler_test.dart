@@ -157,8 +157,8 @@ main() {
   /// If [getAllSources] is false it will ask specifically for report
   /// (and thus hits) for "lib1.dart" only.
   Future<Set<int>> collectAndCheckCoverageData(int port, bool getAllSources,
-      {bool resume: true,
-      bool onGetAllVerifyCount: true,
+      {bool resume = true,
+      bool onGetAllVerifyCount = true,
       Set<int>? coverageForLines}) async {
     RemoteVm remoteVm = new RemoteVm(port);
 

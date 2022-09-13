@@ -30,7 +30,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
-import 'package:path/src/context.dart';
+import 'package:path/path.dart';
 
 /// Context information necessary to analyze one or more libraries within an
 /// [AnalysisDriver].
@@ -89,7 +89,7 @@ class LibraryContext {
 
   /// Computes a [CompilationUnitElement] for the given library/unit pair.
   CompilationUnitElementImpl computeUnitElement(
-    LibraryFileStateKind library,
+    LibraryFileKind library,
     FileState unit,
   ) {
     var reference = elementFactory.rootReference
@@ -117,7 +117,7 @@ class LibraryContext {
 
   /// Load data required to access elements of the given [targetLibrary].
   Future<void> load({
-    required LibraryFileStateKind targetLibrary,
+    required LibraryFileKind targetLibrary,
     required OperationPerformanceImpl performance,
   }) async {
     addToLogRing('[load][targetLibrary: ${targetLibrary.file}]');

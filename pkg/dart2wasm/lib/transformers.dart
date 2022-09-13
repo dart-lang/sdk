@@ -51,10 +51,25 @@ class _WasmTransformer extends Transformer {
     return result;
   }
 
-  /// We can reuse a superclass' `_typeArguments` method if the subclass and the
-  /// superclass have the exact same type parameters in the exact same order.
+  /// Checks to see if it is safe to reuse `super._typeArguments`.
   bool canReuseSuperMethod(Class cls) {
-    Supertype supertype = cls.supertype!;
+    // We search for the first non-abstract super in [cls]'s inheritance chain
+    // to see if we can reuse its `_typeArguments` method.
+    Class classIter = cls;
+    late Supertype supertype;
+    while (classIter.supertype != null) {
+      Supertype supertypeIter = classIter.supertype!;
+      Class superclass = supertypeIter.classNode;
+      if (!superclass.isAbstract) {
+        supertype = supertypeIter;
+        break;
+      }
+      classIter = classIter.supertype!.classNode;
+    }
+
+    // We can reuse a superclass' `_typeArguments` method if the subclass and
+    // the superclass have the exact same type parameters in the exact same
+    // order.
     if (cls.typeParameters.length != supertype.typeArguments.length) {
       return false;
     }
@@ -95,8 +110,7 @@ class _WasmTransformer extends Transformer {
     return super.visitClass(cls);
   }
 
-  @override
-  TreeNode visitForInStatement(ForInStatement stmt) {
+  TreeNode _lowerForIn(ForInStatement stmt) {
     // Transform
     //
     //   for ({var/final} T <variable> in <iterable>) { ... }
@@ -111,7 +125,21 @@ class _WasmTransformer extends Transformer {
     //      }
     //    }
     //  }
-    final CoreTypes coreTypes = typeContext.typeEnvironment.coreTypes;
+    //
+    // and:
+    //
+    //   await for ({var/final} T <variable> in <stream>) { ... }
+    //
+    // Into
+    //
+    //  {
+    //    final StreamIterator<T> #forIterator = StreamIterator(<stream>);
+    //    for (; await #forIterator.moveNext() ;) {
+    //        {var/final} T variable = await #forIterator.current;
+    //        ...
+    //      }
+    //    }
+    //  }
 
     // The CFE might invoke this transformation despite the program having
     // compile-time errors. So we will not transform this [stmt] if the
@@ -125,36 +153,65 @@ class _WasmTransformer extends Transformer {
           InvalidExpression('Invalid iterable type in for-in'));
     }
 
+    final isAsync = stmt.isAsync;
+    late final Class iteratorClass;
+    late final Procedure iteratorMoveNext;
+    late final Member iteratorCurrent;
+    if (isAsync) {
+      iteratorClass = coreTypes.streamIteratorClass;
+      iteratorMoveNext = coreTypes.streamIteratorMoveNext;
+      iteratorCurrent = coreTypes.streamIteratorCurrent;
+    } else {
+      iteratorClass = coreTypes.iteratorClass;
+      iteratorMoveNext = coreTypes.iteratorMoveNext;
+      iteratorCurrent = coreTypes.iteratorGetCurrent;
+    }
+
     final DartType elementType = stmt.getElementType(typeContext);
-    final iteratorType = InterfaceType(
-        coreTypes.iteratorClass, Nullability.nonNullable, [elementType]);
+    final iteratorType =
+        InterfaceType(iteratorClass, Nullability.nonNullable, [elementType]);
+
+    late final Expression iteratorInitializer;
+    if (isAsync) {
+      iteratorInitializer = ConstructorInvocation(
+          coreTypes.streamIteratorDefaultConstructor,
+          Arguments([iterable], types: [elementType]));
+    } else {
+      iteratorInitializer = InstanceGet(
+          InstanceAccessKind.Instance, iterable, Name('iterator'),
+          interfaceTarget: coreTypes.iterableGetIterator,
+          resultType: iteratorType);
+    }
 
     final iterator = VariableDeclaration("#forIterator",
-        initializer: InstanceGet(
-            InstanceAccessKind.Instance, iterable, Name('iterator'),
-            interfaceTarget: coreTypes.iterableGetIterator,
-            resultType: iteratorType)
-          ..fileOffset = iterable.fileOffset,
+        initializer: iteratorInitializer..fileOffset = iterable.fileOffset,
         type: iteratorType)
       ..fileOffset = iterable.fileOffset;
 
     final condition = InstanceInvocation(InstanceAccessKind.Instance,
         VariableGet(iterator), Name('moveNext'), Arguments(const []),
-        interfaceTarget: coreTypes.iteratorMoveNext,
-        functionType: coreTypes.iteratorMoveNext.getterType as FunctionType)
+        interfaceTarget: iteratorMoveNext,
+        functionType: iteratorMoveNext.getterType as FunctionType)
       ..fileOffset = iterable.fileOffset;
 
     final variable = stmt.variable
       ..initializer = (InstanceGet(
           InstanceAccessKind.Instance, VariableGet(iterator), Name('current'),
-          interfaceTarget: coreTypes.iteratorGetCurrent,
-          resultType: elementType)
+          interfaceTarget: iteratorCurrent, resultType: elementType)
         ..fileOffset = stmt.bodyOffset);
 
     final Block body = Block([variable, stmt.body])
       ..fileOffset = stmt.fileOffset;
 
-    return Block([iterator, ForStatement(const [], condition, const [], body)])
-        .accept<TreeNode>(this);
+    return Block([
+      iterator,
+      ForStatement(const [], isAsync ? AwaitExpression(condition) : condition,
+          const [], body)
+    ]).accept<TreeNode>(this);
+  }
+
+  @override
+  TreeNode visitForInStatement(ForInStatement stmt) {
+    return _lowerForIn(stmt);
   }
 }

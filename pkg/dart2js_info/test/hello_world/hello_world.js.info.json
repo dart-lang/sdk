@@ -47,7 +47,7 @@
         "id": "library/dart:_js_helper::",
         "kind": "library",
         "name": "_js_helper",
-        "size": 12952,
+        "size": 12859,
         "children": [
           "class/dart:_js_helper::BoundClosure",
           "class/dart:_js_helper::Closure",
@@ -262,7 +262,7 @@
         "children": [
           "function/hello_world.dart::main"
         ],
-        "canonicalUri": "file:///usr/local/google/home/natebiggs/dart-sdk/sdk/pkg/dart2js_info/test/hello_world/hello_world.dart"
+        "canonicalUri": "file:///Users/markzipan/Projects/dart-sdk/sdk/pkg/dart2js_info/test/hello_world/hello_world.dart"
       }
     },
     "class": {
@@ -278,7 +278,8 @@
         },
         "children": [
           "field/dart:_foreign_helper::JS_CONST.code"
-        ]
+        ],
+        "supers": []
       },
       "dart:_interceptors::ArrayIterator": {
         "id": "class/dart:_interceptors::ArrayIterator",
@@ -298,7 +299,8 @@
           "function/dart:_interceptors::ArrayIterator.ArrayIterator",
           "function/dart:_interceptors::ArrayIterator.current",
           "function/dart:_interceptors::ArrayIterator.moveNext"
-        ]
+        ],
+        "supers": []
       },
       "dart:_interceptors::Interceptor": {
         "id": "class/dart:_interceptors::Interceptor",
@@ -312,7 +314,8 @@
         },
         "children": [
           "function/dart:_interceptors::Interceptor.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:_interceptors::JSArray": {
         "id": "class/dart:_interceptors::JSArray",
@@ -333,6 +336,9 @@
           "function/dart:_interceptors::JSArray.length",
           "function/dart:_interceptors::JSArray.markFixedList",
           "function/dart:_interceptors::JSArray.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor"
         ]
       },
       "dart:_interceptors::JSBool": {
@@ -347,6 +353,10 @@
         },
         "children": [
           "function/dart:_interceptors::JSBool.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor",
+          "class/dart:core::bool"
         ]
       },
       "dart:_interceptors::JSInt": {
@@ -359,7 +369,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::JSNumber"
+        ]
       },
       "dart:_interceptors::JSNull": {
         "id": "class/dart:_interceptors::JSNull",
@@ -373,6 +386,10 @@
         },
         "children": [
           "function/dart:_interceptors::JSNull.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor",
+          "class/dart:core::Null"
         ]
       },
       "dart:_interceptors::JSNumNotInt": {
@@ -385,7 +402,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::JSNumber"
+        ]
       },
       "dart:_interceptors::JSNumber": {
         "id": "class/dart:_interceptors::JSNumber",
@@ -399,6 +419,9 @@
         },
         "children": [
           "function/dart:_interceptors::JSNumber.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor"
         ]
       },
       "dart:_interceptors::JSString": {
@@ -416,6 +439,9 @@
           "function/dart:_interceptors::JSString.isEmpty",
           "function/dart:_interceptors::JSString.length",
           "function/dart:_interceptors::JSString.toString"
+        ],
+        "supers": [
+          "class/dart:_interceptors::Interceptor"
         ]
       },
       "dart:_interceptors::JSUnmodifiableArray": {
@@ -428,7 +454,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::JSArray"
+        ]
       },
       "dart:_interceptors::JavaScriptObject": {
         "id": "class/dart:_interceptors::JavaScriptObject",
@@ -440,7 +469,10 @@
         "modifiers": {
           "abstract": false
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_interceptors::Interceptor"
+        ]
       },
       "dart:_internal::LateError": {
         "id": "class/dart:_internal::LateError",
@@ -456,6 +488,9 @@
           "field/dart:_internal::LateError._message",
           "function/dart:_internal::LateError.LateError.fieldADI",
           "function/dart:_internal::LateError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:_js_helper::BoundClosure": {
@@ -482,6 +517,9 @@
           "function/dart:_js_helper::BoundClosure.receiverFieldName",
           "function/dart:_js_helper::BoundClosure.receiverOf",
           "function/dart:_js_helper::BoundClosure.toString"
+        ],
+        "supers": [
+          "class/dart:_js_helper::TearOffClosure"
         ]
       },
       "dart:_js_helper::Closure": {
@@ -504,7 +542,8 @@
           "function/dart:_js_helper::Closure.fromTearOff",
           "function/dart:_js_helper::Closure.isCsp",
           "function/dart:_js_helper::Closure.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:_js_helper::Primitives": {
         "id": "class/dart:_js_helper::Primitives",
@@ -523,7 +562,8 @@
           "function/dart:_js_helper::Primitives.objectToHumanReadableString",
           "function/dart:_js_helper::Primitives.objectTypeName",
           "function/dart:_js_helper::Primitives.stringConcatUnchecked"
-        ]
+        ],
+        "supers": []
       },
       "dart:_js_helper::RuntimeError": {
         "id": "class/dart:_js_helper::RuntimeError",
@@ -539,6 +579,9 @@
           "field/dart:_js_helper::RuntimeError.message",
           "function/dart:_js_helper::RuntimeError.RuntimeError",
           "function/dart:_js_helper::RuntimeError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:_js_helper::StaticClosure": {
@@ -554,6 +597,9 @@
         "children": [
           "function/dart:_js_helper::StaticClosure.StaticClosure",
           "function/dart:_js_helper::StaticClosure.toString"
+        ],
+        "supers": [
+          "class/dart:_js_helper::TearOffClosure"
         ]
       },
       "dart:_js_helper::TearOffClosure": {
@@ -566,7 +612,10 @@
         "modifiers": {
           "abstract": true
         },
-        "children": []
+        "children": [],
+        "supers": [
+          "class/dart:_js_helper::Closure"
+        ]
       },
       "dart:_js_shared_embedded_names::RtiUniverseFieldNames": {
         "id": "class/dart:_js_shared_embedded_names::RtiUniverseFieldNames",
@@ -584,7 +633,8 @@
           "field/dart:_js_shared_embedded_names::RtiUniverseFieldNames.sharedEmptyArray",
           "field/dart:_js_shared_embedded_names::RtiUniverseFieldNames.typeParameterVariances",
           "field/dart:_js_shared_embedded_names::RtiUniverseFieldNames.typeRules"
-        ]
+        ],
+        "supers": []
       },
       "dart:_recipe_syntax::Recipe": {
         "id": "class/dart:_recipe_syntax::Recipe",
@@ -600,7 +650,8 @@
           "function/dart:_recipe_syntax::Recipe.digitValue",
           "function/dart:_recipe_syntax::Recipe.isDigit",
           "function/dart:_recipe_syntax::Recipe.isIdentifierStart"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::Rti": {
         "id": "class/dart:_rti::Rti",
@@ -666,7 +717,8 @@
           "function/dart:_rti::Rti._setRest",
           "function/dart:_rti::Rti._setSpecializedTestResource",
           "function/dart:_rti::Rti.allocate"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::TypeRule": {
         "id": "class/dart:_rti::TypeRule",
@@ -681,7 +733,8 @@
         "children": [
           "function/dart:_rti::TypeRule.lookupSupertype",
           "function/dart:_rti::TypeRule.lookupTypeVariable"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_Error": {
         "id": "class/dart:_rti::_Error",
@@ -697,6 +750,9 @@
           "field/dart:_rti::_Error._message",
           "function/dart:_rti::_Error.compose",
           "function/dart:_rti::_Error.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:_rti::_FunctionParameters": {
@@ -721,7 +777,8 @@
           "function/dart:_rti::_FunctionParameters._setOptionalPositional",
           "function/dart:_rti::_FunctionParameters._setRequiredPositional",
           "function/dart:_rti::_FunctionParameters.allocate"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_Parser": {
         "id": "class/dart:_rti::_Parser",
@@ -761,7 +818,8 @@
           "function/dart:_rti::_Parser.toTypes",
           "function/dart:_rti::_Parser.toTypesNamed",
           "function/dart:_rti::_Parser.universe"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_Type": {
         "id": "class/dart:_rti::_Type",
@@ -775,7 +833,8 @@
         },
         "children": [
           "field/dart:_rti::_Type._rti"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_TypeError": {
         "id": "class/dart:_rti::_TypeError",
@@ -790,6 +849,9 @@
         "children": [
           "function/dart:_rti::_TypeError._TypeError.forType",
           "function/dart:_rti::_TypeError._TypeError.fromMessage"
+        ],
+        "supers": [
+          "class/dart:_rti::_Error"
         ]
       },
       "dart:_rti::_Universe": {
@@ -865,7 +927,8 @@
           "function/dart:_rti::_Universe.sharedEmptyArray",
           "function/dart:_rti::_Universe.typeParameterVariances",
           "function/dart:_rti::_Universe.typeRules"
-        ]
+        ],
+        "supers": []
       },
       "dart:_rti::_Utils": {
         "id": "class/dart:_rti::_Utils",
@@ -903,7 +966,8 @@
           "function/dart:_rti::_Utils.objectKeys",
           "function/dart:_rti::_Utils.stringLessThan",
           "function/dart:_rti::_Utils.substring"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::IterableBase": {
         "id": "class/dart:collection::IterableBase",
@@ -917,7 +981,8 @@
         },
         "children": [
           "function/dart:collection::IterableBase.iterableToFullString"
-        ]
+        ],
+        "supers": []
       },
       "dart:collection::ListBase": {
         "id": "class/dart:collection::ListBase",
@@ -931,7 +996,8 @@
         },
         "children": [
           "function/dart:collection::ListBase.listToString"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::ArgumentError": {
         "id": "class/dart:core::ArgumentError",
@@ -953,6 +1019,9 @@
           "function/dart:core::ArgumentError._errorExplanation",
           "function/dart:core::ArgumentError._errorName",
           "function/dart:core::ArgumentError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::AssertionError": {
@@ -969,6 +1038,9 @@
           "field/dart:core::AssertionError.message",
           "function/dart:core::AssertionError.AssertionError",
           "function/dart:core::AssertionError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::ConcurrentModificationError": {
@@ -985,6 +1057,9 @@
           "field/dart:core::ConcurrentModificationError.modifiedObject",
           "function/dart:core::ConcurrentModificationError.ConcurrentModificationError",
           "function/dart:core::ConcurrentModificationError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::CyclicInitializationError": {
@@ -1001,6 +1076,9 @@
           "field/dart:core::CyclicInitializationError.variableName",
           "function/dart:core::CyclicInitializationError.CyclicInitializationError",
           "function/dart:core::CyclicInitializationError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::Error": {
@@ -1017,7 +1095,8 @@
           "function/dart:core::Error._objectToString",
           "function/dart:core::Error._stringToSafeString",
           "function/dart:core::Error.safeToString"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::IndexError": {
         "id": "class/dart:core::IndexError",
@@ -1035,6 +1114,10 @@
           "function/dart:core::IndexError.IndexError",
           "function/dart:core::IndexError._errorExplanation",
           "function/dart:core::IndexError._errorName"
+        ],
+        "supers": [
+          "class/dart:core::ArgumentError",
+          "class/dart:core::RangeError"
         ]
       },
       "dart:core::Null": {
@@ -1049,7 +1132,8 @@
         },
         "children": [
           "function/dart:core::Null.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::NullThrownError": {
         "id": "class/dart:core::NullThrownError",
@@ -1064,6 +1148,9 @@
         "children": [
           "function/dart:core::NullThrownError.NullThrownError",
           "function/dart:core::NullThrownError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::Object": {
@@ -1078,7 +1165,8 @@
         },
         "children": [
           "function/dart:core::Object.toString"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::RangeError": {
         "id": "class/dart:core::RangeError",
@@ -1096,6 +1184,9 @@
           "function/dart:core::RangeError.RangeError.value",
           "function/dart:core::RangeError._errorExplanation",
           "function/dart:core::RangeError._errorName"
+        ],
+        "supers": [
+          "class/dart:core::ArgumentError"
         ]
       },
       "dart:core::StateError": {
@@ -1110,6 +1201,9 @@
         },
         "children": [
           "field/dart:core::StateError.message"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::StringBuffer": {
@@ -1132,7 +1226,8 @@
           "function/dart:core::StringBuffer.toString",
           "function/dart:core::StringBuffer.write",
           "function/dart:core::StringBuffer.writeAll"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::UnsupportedError": {
         "id": "class/dart:core::UnsupportedError",
@@ -1148,6 +1243,9 @@
           "field/dart:core::UnsupportedError.message",
           "function/dart:core::UnsupportedError.UnsupportedError",
           "function/dart:core::UnsupportedError.toString"
+        ],
+        "supers": [
+          "class/dart:core::Error"
         ]
       },
       "dart:core::_Enum": {
@@ -1163,7 +1261,8 @@
         "children": [
           "field/dart:core::_Enum._name",
           "field/dart:core::_Enum.index"
-        ]
+        ],
+        "supers": []
       },
       "dart:core::bool": {
         "id": "class/dart:core::bool",
@@ -1177,7 +1276,8 @@
         },
         "children": [
           "function/dart:core::bool.toString"
-        ]
+        ],
+        "supers": []
       }
     },
     "classType": {
@@ -2303,7 +2403,7 @@
         "id": "function/dart:_js_helper::Primitives._objectTypeNameNewRti",
         "kind": "function",
         "name": "_objectTypeNameNewRti",
-        "size": 959,
+        "size": 866,
         "outputUnit": "outputUnit/main",
         "parent": "class/dart:_js_helper::Primitives",
         "children": [],
@@ -2324,7 +2424,7 @@
         ],
         "sideEffects": "SideEffects(reads anything; writes anything)",
         "inlinedCount": 0,
-        "code": "Primitives__objectTypeNameNewRti(object) {\n      var interceptor, dispatchName, t1, $constructor, constructorName;\n      if (object instanceof A.Object)\n        return A._rtiToString(A.instanceType(object), null);\n      interceptor = J.getInterceptor$(object);\n      if (interceptor === B.Interceptor_methods || interceptor === B.JavaScriptObject_methods || false) {\n        dispatchName = B.C_JS_CONST(object);\n        t1 = dispatchName !== \"Object\" && dispatchName !== \"\";\n        if (t1)\n          return dispatchName;\n        $constructor = object.constructor;\n        if (typeof $constructor == \"function\") {\n          constructorName = $constructor.name;\n          if (typeof constructorName == \"string\")\n            t1 = constructorName !== \"Object\" && constructorName !== \"\";\n          else\n            t1 = false;\n          if (t1)\n            return constructorName;\n        }\n      }\n      return A._rtiToString(A.instanceType(object), null);\n    }",
+        "code": "Primitives__objectTypeNameNewRti(object) {\n      var interceptor, dispatchName, $constructor, constructorName;\n      if (object instanceof A.Object)\n        return A._rtiToString(A.instanceType(object), null);\n      interceptor = J.getInterceptor$(object);\n      if (interceptor === B.Interceptor_methods || interceptor === B.JavaScriptObject_methods || false) {\n        dispatchName = B.C_JS_CONST(object);\n        if (dispatchName !== \"Object\" && dispatchName !== \"\")\n          return dispatchName;\n        $constructor = object.constructor;\n        if (typeof $constructor == \"function\") {\n          constructorName = $constructor.name;\n          if (typeof constructorName == \"string\" && constructorName !== \"Object\" && constructorName !== \"\")\n            return constructorName;\n        }\n      }\n      return A._rtiToString(A.instanceType(object), null);\n    }",
         "type": "String Function(Object?)",
         "functionKind": 0
       },
@@ -28711,7 +28811,7 @@
       "id": "outputUnit/main",
       "kind": "outputUnit",
       "name": "main",
-      "size": 90362,
+      "size": 90293,
       "filename": "hello_world.js",
       "imports": []
     }
@@ -28721,11 +28821,12 @@
   "dump_minor_version": 1,
   "program": {
     "entrypoint": "function/hello_world.dart::main",
-    "size": 90362,
+    "size": 90293,
+    "ramUsage": "195.313 MB",
     "dart2jsVersion": null,
-    "compilationMoment": "2022-05-26 21:08:43.608041",
-    "compilationDuration": 3177312,
-    "toJsonDuration": 3000,
+    "compilationMoment": "2022-07-14 17:35:15.006337",
+    "compilationDuration": 1289072,
+    "toJsonDuration": 2000,
     "dumpInfoDuration": 0,
     "noSuchMethodEnabled": false,
     "isRuntimeTypeUsed": false,

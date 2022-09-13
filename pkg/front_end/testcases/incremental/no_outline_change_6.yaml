@@ -7,7 +7,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     errors: true
     sources:
       main.dart: |
@@ -35,7 +34,6 @@ worlds:
         }
     expectedLibraryCount: 2
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     errors: true
     worldType: updated
     expectInitializeFromDill: false
@@ -61,9 +59,8 @@ worlds:
 
         enum CompilationStrategy { direct, toKernel, toData, fromData }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: false # For now, libraries with errors cannot have bodies rebuild.
+    advancedInvalidation: problemsInLibrary # For now, libraries with errors cannot have bodies rebuild.
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -88,4 +85,4 @@ worlds:
 
         enum CompilationStrategy { direct, toKernel, toData, fromData }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: false # For now, libraries with errors cannot have bodies rebuild.
+    advancedInvalidation: problemsInLibrary # For now, libraries with errors cannot have bodies rebuild.

@@ -328,7 +328,7 @@ class Token {
 
   Token? next;
 
-  Token(this.charOffset, this.text, {this.isIdentifier: false});
+  Token(this.charOffset, this.text, {this.isIdentifier = false});
 
   bool get isEof => text == null;
 }

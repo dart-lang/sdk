@@ -161,6 +161,15 @@ class UnsupportedError {
 }
 
 @patch
+@pragma("vm:entry-point")
+class StateError {
+  @pragma("vm:entry-point")
+  static _throwNew(String msg) {
+    throw new StateError(msg);
+  }
+}
+
+@patch
 class CyclicInitializationError {
   static _throwNew(String variableName) {
     throw new CyclicInitializationError(variableName);

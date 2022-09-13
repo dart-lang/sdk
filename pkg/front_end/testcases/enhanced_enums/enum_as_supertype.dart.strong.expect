@@ -25,7 +25,7 @@ abstract class _EA&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasCons
 }
 class EA extends self::_EA&_Enum&A /*isEnum*/  {
   static const field core::List<self::EA> values = #C4;
-  static const field self::EA element = #C3;
+  enum-element static const field self::EA element = #C3;
   const constructor •(core::int #index, core::String #name) → self::EA
     : super self::_EA&_Enum&A::•(#index, #name)
     ;
@@ -48,7 +48,7 @@ abstract class _EB&_Enum&B = core::_Enum with self::B /*isAnonymousMixin,hasCons
 }
 class EB extends self::_EB&_Enum&B /*isEnum*/  {
   static const field core::List<self::EB> values = #C6;
-  static const field self::EB element = #C5;
+  enum-element static const field self::EB element = #C5;
   const constructor •(core::int #index, core::String #name) → self::EB
     : super self::_EB&_Enum&B::•(#index, #name)
     ;
@@ -68,7 +68,7 @@ abstract class _EM&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasCons
 }
 class EM extends self::_EM&_Enum&M /*isEnum*/  {
   static const field core::List<self::EM> values = #C8;
-  static const field self::EM element = #C7;
+  enum-element static const field self::EM element = #C7;
   const constructor •(core::int #index, core::String #name) → self::EM
     : super self::_EM&_Enum&M::•(#index, #name)
     ;
@@ -88,7 +88,7 @@ abstract class _EN&_Enum&N = core::_Enum with self::N /*isAnonymousMixin,hasCons
 }
 class EN extends self::_EN&_Enum&N /*isEnum*/  {
   static const field core::List<self::EN> values = #C10;
-  static const field self::EN element = #C9;
+  enum-element static const field self::EN element = #C9;
   const constructor •(core::int #index, core::String #name) → self::EN
     : super self::_EN&_Enum&N::•(#index, #name)
     ;
@@ -125,8 +125,8 @@ Constructor coverage from constants:
 org-dartlang-testcase:///enum_as_supertype.dart:
 - EA. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
 - _EA&_Enum&A. (from org-dartlang-testcase:///enum_as_supertype.dart:9:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - EB. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
 - _EB&_Enum&B. (from org-dartlang-testcase:///enum_as_supertype.dart:15:6)
 - EM. (from org-dartlang-testcase:///enum_as_supertype.dart:21:6)

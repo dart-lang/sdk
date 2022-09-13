@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -787,7 +787,7 @@ class PromoteToNonNullTest extends AbstractTypeSystemTest {
     required DartType? promotedBound,
   }) {
     var actual = typeSystem.promoteToNonNull(type) as TypeParameterTypeImpl;
-    expect(actual.element, same(element));
+    expect(actual.element2, same(element));
     expect(actual.promotedBound, promotedBound);
     expect(actual.nullabilitySuffix, NullabilitySuffix.none);
   }

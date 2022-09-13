@@ -60,7 +60,7 @@ class JRecordField extends JField implements JRecordFieldInterface {
 
   JRecordField(String name, this.box, {required bool isConst})
       : super(box.container.library as JLibrary, box.container as JClass,
-            Name(name, box.container.library),
+            Name(name, box.container.library.canonicalUri),
             isStatic: false, isAssignable: true, isConst: isConst);
 
   factory JRecordField.readFromDataSource(DataSourceReader source) {
@@ -163,7 +163,7 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
       : this.internal(
             containingClass.closureClassEntity.library,
             containingClass.closureClassEntity as JClosureClass,
-            Name(name, containingClass.closureClassEntity.library),
+            Name(name, containingClass.closureClassEntity.library.canonicalUri),
             declaredName,
             isAssignable: isAssignable,
             isConst: isConst);
@@ -183,7 +183,7 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
     bool isAssignable = source.readBool();
     source.end(tag);
     return JClosureField.internal(
-        cls.library, cls, Name(name, cls.library), declaredName,
+        cls.library, cls, Name(name, cls.library.canonicalUri), declaredName,
         isAssignable: isAssignable, isConst: isConst);
   }
 

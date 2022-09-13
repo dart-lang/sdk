@@ -118,15 +118,23 @@ class CompletionTarget {
   /// otherwise this is `null`.
   ParameterElement? _parameterElement;
 
-  /// The enclosing [ClassElement], or `null` if not in a class.
-  late final ClassElement? enclosingClassElement = containingNode
-      .thisOrAncestorOfType<ClassOrMixinDeclaration>()
-      ?.declaredElement;
+  /// The enclosing [InterfaceElement], or `null` if not in a class.
+  late final InterfaceElement? enclosingInterfaceElement = () {
+    final unitMember =
+        containingNode.thisOrAncestorOfType<CompilationUnitMember>();
+    if (unitMember is ClassDeclaration) {
+      return unitMember.declaredElement2;
+    } else if (unitMember is MixinDeclaration) {
+      return unitMember.declaredElement2;
+    } else {
+      return null;
+    }
+  }();
 
   /// The enclosing [ExtensionElement], or `null` if not in an extension.
   late final ExtensionElement? enclosingExtensionElement = containingNode
       .thisOrAncestorOfType<ExtensionDeclaration>()
-      ?.declaredElement;
+      ?.declaredElement2;
 
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
   /// the [entryPoint].
@@ -166,8 +174,19 @@ class CompletionTarget {
             // Try to replace with a comment token.
             var commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
-              return CompletionTarget._(
-                  offset, containingNode, commentToken, true);
+              // TODO(scheglov) This is duplicate of the code below.
+              // If the preceding comment is dartdoc token, then update
+              // the containing node to be the dartdoc comment.
+              // Otherwise completion is not required.
+              var docComment =
+                  _getContainingDocComment(containingNode, commentToken);
+              if (docComment != null) {
+                return CompletionTarget._(
+                    offset, docComment, commentToken, false);
+              } else {
+                return CompletionTarget._(
+                    offset, entryPoint, commentToken, true);
+              }
             }
             // Target found.
             return CompletionTarget._(offset, containingNode, entity, false);

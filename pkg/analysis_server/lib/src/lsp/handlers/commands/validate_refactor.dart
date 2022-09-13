@@ -42,13 +42,10 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
       final refactoring = await getRefactoring(
           RefactoringKind(kind), result, offset, length, options);
       return refactoring.mapResult((refactoring) async {
-        // If the token we were given is not cancellable, replace it with one that
-        // is for the rest of this request, as a future refactor may need to cancel
-        // this request.
-        // The original token should be kept and also checked for cancellation.
-        final cancelableToken = cancellationToken is CancelableToken
-            ? cancellationToken
-            : CancelableToken();
+        // If the token we were given is not cancelable, wrap it with one that
+        // is for the rest of this request as a future refactor may need to
+        // cancel this request.
+        final cancelableToken = cancellationToken.asCancelable();
         manager.begin(cancelableToken);
 
         try {

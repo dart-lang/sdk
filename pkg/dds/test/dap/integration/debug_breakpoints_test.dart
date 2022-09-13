@@ -390,7 +390,7 @@ void main(List<String> args) async {
       final breakpointLine = lineWith(testFile, breakpointMarker);
       final stepLine = lineWith(testFile, stepMarker);
 
-      // Start with debugSdkLibraryes _enabled_ and hit the breakpoint.
+      // Start with debugSdkLibraries _enabled_ and hit the breakpoint.
       final stop = await client.hitBreakpoint(
         testFile,
         breakpointLine,

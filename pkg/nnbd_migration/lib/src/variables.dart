@@ -49,7 +49,7 @@ class Variables {
   final _decoratedElementTypes = <Element?, DecoratedType?>{};
 
   final _decoratedDirectSupertypes =
-      <ClassElement, Map<ClassElement, DecoratedType?>>{};
+      <InterfaceElement, Map<InterfaceElement, DecoratedType?>>{};
 
   final _decoratedTypeAnnotations = <Source?, Map<int, DecoratedType>>{};
 
@@ -75,8 +75,8 @@ class Variables {
 
   /// Given a [class_], gets the decorated type information for the superclasses
   /// it directly implements/extends/etc.
-  Map<ClassElement, DecoratedType?> decoratedDirectSupertypes(
-      ClassElement class_) {
+  Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes(
+      InterfaceElement class_) {
     return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
   }
@@ -125,7 +125,7 @@ class Variables {
   /// nullabilities.
   DecoratedType? decoratedTypeParameterBound(TypeParameterElement typeParameter,
       {bool allowNullUnparentedBounds = false}) {
-    var enclosingElement = typeParameter.enclosingElement;
+    var enclosingElement = typeParameter.enclosingElement3;
     var decoratedType =
         DecoratedTypeParameterBounds.current!.get(typeParameter);
     if (enclosingElement == null) {
@@ -203,11 +203,11 @@ class Variables {
     (_conditionalDiscards[source] ??= {})[node.offset] = conditionalDiscard;
   }
 
-  /// Associates a [class_] with decorated type information for the superclasses
+  /// Associates a [interface] with decorated type information for the superclasses
   /// it directly implements/extends/etc.
-  void recordDecoratedDirectSupertypes(ClassElement class_,
-      Map<ClassElement, DecoratedType?> decoratedDirectSupertypes) {
-    _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
+  void recordDecoratedDirectSupertypes(InterfaceElement interface,
+      Map<InterfaceElement, DecoratedType?> decoratedDirectSupertypes) {
+    _decoratedDirectSupertypes[interface] = decoratedDirectSupertypes;
   }
 
   /// Associates decorated type information with the given [element].
@@ -341,7 +341,7 @@ class Variables {
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
-        element: type.element,
+        element2: type.element2,
         typeArguments: [
           for (var arg in decoratedType.typeArguments) toFinalType(arg!)
         ],
@@ -349,7 +349,7 @@ class Variables {
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
-        element: type.element,
+        element: type.element2,
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
@@ -417,12 +417,12 @@ class Variables {
 
   /// Creates an entry [_decoratedDirectSupertypes] for an already-migrated
   /// class.
-  Map<ClassElement, DecoratedType> _decorateDirectSupertypes(
-      ClassElement class_) {
-    var result = <ClassElement, DecoratedType>{};
+  Map<InterfaceElement, DecoratedType> _decorateDirectSupertypes(
+      InterfaceElement class_) {
+    var result = <InterfaceElement, DecoratedType>{};
     for (var decoratedSupertype
         in _alreadyMigratedCodeDecorator.getImmediateSupertypes(class_)) {
-      var class_ = (decoratedSupertype.type as InterfaceType).element;
+      var class_ = (decoratedSupertype.type as InterfaceType).element2;
       result[class_] = decoratedSupertype;
     }
     return result;
@@ -431,7 +431,7 @@ class Variables {
   bool _isLoadLibraryElement(Element element) =>
       element.isSynthetic &&
       element is FunctionElement &&
-      element.enclosingElement is LibraryElement &&
+      element.enclosingElement3 is LibraryElement &&
       element.name == 'loadLibrary';
 
   /// Inverts the logic of [uniqueIdentifierForSpan], producing an (offset, end)

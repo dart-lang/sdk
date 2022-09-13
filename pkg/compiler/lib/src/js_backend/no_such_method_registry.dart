@@ -11,6 +11,7 @@ import '../elements/entities.dart';
 import '../inferrer/types.dart' show GlobalTypeInferenceResults;
 import '../kernel/no_such_method_resolver.dart';
 import '../serialization/serialization.dart';
+import 'no_such_method_registry_interfaces.dart' as interfaces;
 
 /// [NoSuchMethodRegistry] and [NoSuchMethodData] categorizes `noSuchMethod`
 /// implementations.
@@ -169,7 +170,7 @@ class NoSuchMethodRegistry {
 ///
 /// Post inference collected category `D` methods are into subcategories `D1`
 /// and `D2`.
-class NoSuchMethodData {
+class NoSuchMethodData implements interfaces.NoSuchMethodData {
   /// Tag used for identifying serialized [NoSuchMethodData] objects in a
   /// debugging data stream.
   static const String tag = 'no-such-method-data';
@@ -266,6 +267,7 @@ class NoSuchMethodData {
   /// Returns [true] if the given element is a complex [noSuchMethod]
   /// implementation. An implementation is complex if it falls into
   /// category D, as described above.
+  @override
   bool isComplex(FunctionEntity element) {
     assert(element.name == Identifiers.noSuchMethod_);
     return _otherImpls.contains(element);

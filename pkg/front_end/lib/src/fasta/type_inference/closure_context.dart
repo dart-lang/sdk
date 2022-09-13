@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-part of 'type_inferrer.dart';
+import 'package:kernel/ast.dart';
+import 'package:kernel/src/future_value_type.dart';
+import 'package:kernel/type_environment.dart';
+
+import '../fasta_codes.dart';
+import '../kernel/invalid_type.dart';
+import 'inference_results.dart';
+import 'inference_visitor_base.dart';
+import 'type_demotion.dart';
+import 'type_schema.dart' show UnknownType;
 
 /// Keeps track of information about the innermost function or closure being
 /// inferred.

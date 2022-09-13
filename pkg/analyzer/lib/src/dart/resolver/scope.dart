@@ -27,10 +27,10 @@ class BlockScope {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
-          yield variables[j].declaredElement!;
+          yield variables[j].declaredElement2!;
         }
       } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.declaredElement!;
+        yield statement.functionDeclaration.declaredElement2!;
       }
     }
   }
@@ -135,7 +135,7 @@ class Namespace {
 class NamespaceBuilder {
   /// Create a namespace representing the export namespace of the given
   /// [element].
-  Namespace createExportNamespaceForDirective(ExportElement element) {
+  Namespace createExportNamespaceForDirective(LibraryExportElement element) {
     var exportedLibrary = element.exportedLibrary;
     if (exportedLibrary == null) {
       //
@@ -158,18 +158,13 @@ class NamespaceBuilder {
 
   /// Create a namespace representing the import namespace of the given
   /// [element].
-  Namespace createImportNamespaceForDirective(ImportElement element) {
-    var importedLibrary = element.importedLibrary;
-    if (importedLibrary == null) {
-      //
-      // The imported library will be null if the URI does not reference a valid
-      // library.
-      //
-      return Namespace.EMPTY;
-    }
+  Namespace createImportNamespaceForDirective({
+    required LibraryElement importedLibrary,
+    required List<NamespaceCombinator> combinators,
+    required PrefixElement? prefix,
+  }) {
     Map<String, Element> exportedNames = _getExportMapping(importedLibrary);
-    exportedNames = _applyCombinators(exportedNames, element.combinators);
-    var prefix = element.prefix;
+    exportedNames = _applyCombinators(exportedNames, combinators);
     if (prefix != null) {
       return PrefixedNamespace(prefix.name, exportedNames);
     }
@@ -190,7 +185,7 @@ class NamespaceBuilder {
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
       definedNames['dynamic'] = DynamicElementImpl.instance;
-      definedNames['Never'] = NeverTypeImpl.instance.element;
+      definedNames['Never'] = NeverTypeImpl.instance.element2;
     }
 
     return Namespace(definedNames);
@@ -216,7 +211,7 @@ class NamespaceBuilder {
     for (ClassElement element in compilationUnit.classes) {
       _addIfPublic(definedNames, element);
     }
-    for (ClassElement element in compilationUnit.enums) {
+    for (final element in compilationUnit.enums2) {
       _addIfPublic(definedNames, element);
     }
     for (ExtensionElement element in compilationUnit.extensions) {
@@ -225,7 +220,7 @@ class NamespaceBuilder {
     for (FunctionElement element in compilationUnit.functions) {
       _addIfPublic(definedNames, element);
     }
-    for (ClassElement element in compilationUnit.mixins) {
+    for (final element in compilationUnit.mixins2) {
       _addIfPublic(definedNames, element);
     }
     for (TypeAliasElement element in compilationUnit.typeAliases) {

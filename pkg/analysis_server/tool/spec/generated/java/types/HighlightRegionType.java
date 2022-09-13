@@ -119,6 +119,8 @@ public class HighlightRegionType {
 
   public static final String LITERAL_MAP = "LITERAL_MAP";
 
+  public static final String LITERAL_RECORD = "LITERAL_RECORD";
+
   public static final String LITERAL_STRING = "LITERAL_STRING";
 
   public static final String LOCAL_FUNCTION_DECLARATION = "LOCAL_FUNCTION_DECLARATION";

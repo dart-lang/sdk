@@ -564,7 +564,7 @@ class GenericInferrer {
       return;
     }
     if (errorNode is ConstructorName &&
-        !(errorNode.type.type as InterfaceType).element.hasOptionalTypeArgs) {
+        !(errorNode.type.type as InterfaceType).element2.hasOptionalTypeArgs) {
       String constructorName = errorNode.name == null
           ? errorNode.type.name.name
           : '${errorNode.type}.${errorNode.name}';
@@ -592,7 +592,7 @@ class GenericInferrer {
         if (element is VariableElement) {
           // For variable elements, we check their type and possible alias type.
           var type = element.type;
-          var typeElement = type.element;
+          final typeElement = type is InterfaceType ? type.element2 : null;
           if (typeElement != null && typeElement.hasOptionalTypeArgs) {
             return;
           }

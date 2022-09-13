@@ -26,7 +26,7 @@ import '../builder/type_alias_builder.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
 import '../type_inference/inference_visitor.dart';
-import '../type_inference/type_inferrer.dart';
+import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 
 int getExtensionTypeParameterCount(Arguments arguments) {
@@ -356,7 +356,7 @@ class SwitchCaseImpl extends SwitchCase {
 
   SwitchCaseImpl(
       List<Expression> expressions, List<int> expressionOffsets, Statement body,
-      {bool isDefault: false, required this.hasLabel})
+      {bool isDefault = false, required this.hasLabel})
       // ignore: unnecessary_null_comparison
       : assert(hasLabel != null),
         super(expressions, expressionOffsets, body, isDefault: isDefault);
@@ -418,6 +418,7 @@ enum InternalExpressionKind {
   IfNullSuperIndexSet,
   IndexGet,
   IndexSet,
+  InternalRecordLiteral,
   LoadLibraryTearOff,
   LocalPostIncDec,
   MethodInvocation,
@@ -778,7 +779,7 @@ class FactoryConstructorInvocation extends StaticInvocation
   bool hasBeenInferred = false;
 
   FactoryConstructorInvocation(Procedure target, Arguments arguments,
-      {bool isConst: false})
+      {bool isConst = false})
       : super(target, arguments, isConst: isConst);
 
   @override
@@ -818,7 +819,7 @@ class TypeAliasedConstructorInvocation extends ConstructorInvocation
 
   TypeAliasedConstructorInvocation(
       this.typeAliasBuilder, Constructor target, Arguments arguments,
-      {bool isConst: false})
+      {bool isConst = false})
       : super(target, arguments, isConst: isConst);
 
   @override
@@ -858,7 +859,7 @@ class TypeAliasedFactoryInvocation extends StaticInvocation
 
   TypeAliasedFactoryInvocation(
       this.typeAliasBuilder, Procedure target, Arguments arguments,
-      {bool isConst: false})
+      {bool isConst = false})
       : super(target, arguments, isConst: isConst);
 
   @override
@@ -1018,7 +1019,7 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
   IntJudgment(int value, this.literal) : super(value);
 
-  double? asDouble({bool negated: false}) {
+  double? asDouble({bool negated = false}) {
     if (value == 0 && negated) {
       return -0.0;
     }
@@ -1056,7 +1057,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
 
   ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
 
-  double? asDouble({bool negated: false}) {
+  double? asDouble({bool negated = false}) {
     BigInt? intValue = BigInt.tryParse(negated ? '-${literal}' : literal);
     if (intValue == null) {
       return null;
@@ -1069,7 +1070,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
         : null;
   }
 
-  int? asInt64({bool negated: false}) {
+  int? asInt64({bool negated = false}) {
     return int.tryParse(negated ? '-${literal}' : literal);
   }
 
@@ -1560,19 +1561,19 @@ class VariableDeclarationImpl extends VariableDeclaration {
   bool isStaticLate;
 
   VariableDeclarationImpl(String? name,
-      {this.forSyntheticToken: false,
-      bool hasDeclaredInitializer: false,
+      {this.forSyntheticToken = false,
+      bool hasDeclaredInitializer = false,
       Expression? initializer,
       DartType? type,
-      bool isFinal: false,
-      bool isConst: false,
-      bool isInitializingFormal: false,
-      bool isCovariantByDeclaration: false,
-      bool isLocalFunction: false,
-      bool isLate: false,
-      bool isRequired: false,
-      bool isLowered: false,
-      this.isStaticLate: false})
+      bool isFinal = false,
+      bool isConst = false,
+      bool isInitializingFormal = false,
+      bool isCovariantByDeclaration = false,
+      bool isLocalFunction = false,
+      bool isLate = false,
+      bool isRequired = false,
+      bool isLowered = false,
+      this.isStaticLate = false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
         super(name,
@@ -4939,5 +4940,64 @@ class AugmentSuperSet extends InternalExpression {
   void toTextInternal(AstPrinter printer) {
     printer.write('augment super = ');
     printer.writeExpression(value);
+  }
+}
+
+class InternalRecordLiteral extends InternalExpression {
+  final List<Expression> positional;
+  final List<NamedExpression> named;
+  final Map<String, NamedExpression>? namedElements;
+  final List<Object /*Expression|NamedExpression*/ > originalElementOrder;
+
+  InternalRecordLiteral(this.positional, this.named, this.namedElements,
+      this.originalElementOrder);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitInternalRecordLiteral(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.InternalRecordLiteral;
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported("${transformChildren}.accept on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  String toString() {
+    return "InternalRecordLiteral(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('(');
+    String comma = '';
+    for (Object element in originalElementOrder) {
+      printer.write(comma);
+      if (element is NamedExpression) {
+        printer.write(element.name);
+        printer.write(': ');
+        printer.writeExpression(element.value);
+      } else {
+        printer.writeExpression(element as Expression);
+      }
+      comma = ', ';
+    }
+    printer.write(')');
   }
 }

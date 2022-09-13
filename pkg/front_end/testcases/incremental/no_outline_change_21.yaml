@@ -10,7 +10,6 @@ type: newworld
 worlds:
   - entry: main.dart
     errors: true
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         class A1 {
@@ -24,7 +23,6 @@ worlds:
     expectedLibraryCount: 1
   - entry: main.dart
     errors: true
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -40,4 +38,4 @@ worlds:
           A1.foo2(){}
         }
     expectedLibraryCount: 1
-    expectsRebuildBodiesOnly: false
+    advancedInvalidation: problemsInLibrary

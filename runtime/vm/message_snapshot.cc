@@ -562,8 +562,9 @@ class ClassMessageDeserializationCluster
 
   void ReadNodes(MessageDeserializer* d) {
     auto* class_table = d->isolate_group()->class_table();
-    String& str = String::Handle(d->zone());
+    String& uri = String::Handle(d->zone());
     Library& lib = Library::Handle(d->zone());
+    String& name = String::Handle(d->zone());
     Class& cls = Class::Handle(d->zone());
     intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
@@ -571,16 +572,20 @@ class ClassMessageDeserializationCluster
       if (cid != 0) {
         cls = class_table->At(cid);
       } else {
-        str = String::New(d->ReadAscii());  // Library URI.
-        lib = Library::LookupLibrary(d->thread(), str);
-        RELEASE_ASSERT(!lib.IsNull());
-        str = String::New(d->ReadAscii());  // Class name.
-        if (str.Equals(Symbols::TopLevel())) {
+        uri = String::New(d->ReadAscii());   // Library URI.
+        name = String::New(d->ReadAscii());  // Class name.
+        lib = Library::LookupLibrary(d->thread(), uri);
+        if (UNLIKELY(lib.IsNull())) {
+          FATAL("Not found: %s %s\n", uri.ToCString(), name.ToCString());
+        }
+        if (name.Equals(Symbols::TopLevel())) {
           cls = lib.toplevel_class();
         } else {
-          cls = lib.LookupClass(str);
+          cls = lib.LookupClass(name);
         }
-        RELEASE_ASSERT(!cls.IsNull());
+        if (UNLIKELY(cls.IsNull())) {
+          FATAL("Not found: %s %s\n", uri.ToCString(), name.ToCString());
+        }
         cls.EnsureIsFinalized(d->thread());
       }
       d->AssignRef(cls.ptr());
@@ -762,25 +767,36 @@ class FunctionMessageDeserializationCluster
 
   void ReadNodes(MessageDeserializer* d) {
     const intptr_t count = d->ReadUnsigned();
-    String& str = String::Handle(d->zone());
+    String& uri = String::Handle(d->zone());
     Library& lib = Library::Handle(d->zone());
+    String& cname = String::Handle(d->zone());
     Class& cls = Class::Handle(d->zone());
+    String& fname = String::Handle(d->zone());
     Function& func = Function::Handle(d->zone());
     for (intptr_t i = 0; i < count; i++) {
-      str = String::New(d->ReadAscii());  // Library URI.
-      lib = Library::LookupLibrary(d->thread(), str);
-      RELEASE_ASSERT(!lib.IsNull());
-      str = String::New(d->ReadAscii());  // Class name.
-      if (str.Equals(Symbols::TopLevel())) {
+      uri = String::New(d->ReadAscii());    // Library URI.
+      cname = String::New(d->ReadAscii());  // Class name.
+      fname = String::New(d->ReadAscii());  // Function name.
+      lib = Library::LookupLibrary(d->thread(), uri);
+      if (UNLIKELY(lib.IsNull())) {
+        FATAL("Not found: %s %s %s", uri.ToCString(), cname.ToCString(),
+              fname.ToCString());
+      }
+      if (cname.Equals(Symbols::TopLevel())) {
         cls = lib.toplevel_class();
       } else {
-        cls = lib.LookupClass(str);
+        cls = lib.LookupClass(cname);
       }
-      RELEASE_ASSERT(!cls.IsNull());
+      if (UNLIKELY(cls.IsNull())) {
+        FATAL("Not found: %s %s %s", uri.ToCString(), cname.ToCString(),
+              fname.ToCString());
+      }
       cls.EnsureIsFinalized(d->thread());
-      str = String::New(d->ReadAscii());  // Function name.
-      func = cls.LookupStaticFunction(str);
-      RELEASE_ASSERT(!func.IsNull());
+      func = cls.LookupStaticFunction(fname);
+      if (UNLIKELY(func.IsNull())) {
+        FATAL("Not found: %s %s %s", uri.ToCString(), cname.ToCString(),
+              fname.ToCString());
+      }
       d->AssignRef(func.ptr());
     }
   }
@@ -3463,7 +3479,9 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
       (cid == kByteBufferCid)) {
     return new (Z) InstanceMessageSerializationCluster(is_canonical, cid);
   }
-  if (IsTypedDataViewClassId(cid) || cid == kByteDataViewCid) {
+  if (IsTypedDataViewClassId(cid) || cid == kByteDataViewCid ||
+      IsUnmodifiableTypedDataViewClassId(cid) ||
+      cid == kUnmodifiableByteDataViewCid) {
     return new (Z) TypedDataViewMessageSerializationCluster(Z, cid);
   }
   if (IsExternalTypedDataClassId(cid)) {
@@ -3552,7 +3570,9 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
       (cid == kByteBufferCid)) {
     return new (Z) InstanceMessageDeserializationCluster(is_canonical);
   }
-  if (IsTypedDataViewClassId(cid) || cid == kByteDataViewCid) {
+  if (IsTypedDataViewClassId(cid) || cid == kByteDataViewCid ||
+      IsUnmodifiableTypedDataViewClassId(cid) ||
+      cid == kUnmodifiableByteDataViewCid) {
     ASSERT(!is_canonical);
     return new (Z) TypedDataViewMessageDeserializationCluster(cid);
   }
@@ -3851,8 +3871,7 @@ Dart_CObject* ApiMessageDeserializer::Deserialize() {
   return ReadRef();
 }
 
-std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
-                                      bool same_group,
+std::unique_ptr<Message> WriteMessage(bool same_group,
                                       const Object& obj,
                                       Dart_Port dest_port,
                                       Message::Priority priority) {
@@ -3867,7 +3886,7 @@ std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
   }
 
   Thread* thread = Thread::Current();
-  MessageSerializer serializer(thread, can_send_any_object);
+  MessageSerializer serializer(thread, /*can_send_any_object=*/false);
 
   volatile bool has_exception = false;
   {

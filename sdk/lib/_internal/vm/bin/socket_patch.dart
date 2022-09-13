@@ -8,7 +8,7 @@
 class RawServerSocket {
   @patch
   static Future<RawServerSocket> bind(address, int port,
-      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+      {int backlog = 0, bool v6Only = false, bool shared = false}) {
     return _RawServerSocket.bind(address, port, backlog, v6Only, shared);
   }
 }
@@ -80,7 +80,7 @@ class InternetAddress {
 
   @patch
   static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type: InternetAddressType.any}) {
+      {InternetAddressType type = InternetAddressType.any}) {
     return _NativeSocket.lookup(host, type: type);
   }
 
@@ -105,9 +105,9 @@ class NetworkInterface {
 
   @patch
   static Future<List<NetworkInterface>> list(
-      {bool includeLoopback: false,
-      bool includeLinkLocal: false,
-      InternetAddressType type: InternetAddressType.any}) {
+      {bool includeLoopback = false,
+      bool includeLinkLocal = false,
+      InternetAddressType type = InternetAddressType.any}) {
     return _NativeSocket.listInterfaces(
         includeLoopback: includeLoopback,
         includeLinkLocal: includeLinkLocal,
@@ -481,7 +481,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // Only used for UDP sockets.
   bool _availableDatagram = false;
 
-  // The number of incoming connnections for Listening socket.
+  // The number of incoming connections for Listening socket.
   int connections = 0;
 
   // The count of received event from eventhandler.
@@ -499,7 +499,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   Object? owner;
 
   static Future<List<InternetAddress>> lookup(String host,
-      {InternetAddressType type: InternetAddressType.any}) {
+      {InternetAddressType type = InternetAddressType.any}) {
     return _IOService._dispatch(_IOService.socketLookup, [host, type._value])
         .then((response) {
       if (isErrorResponse(response)) {
@@ -514,7 +514,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Stream<List<InternetAddress>> lookupAsStream(String host,
-      {InternetAddressType type: InternetAddressType.any}) {
+      {InternetAddressType type = InternetAddressType.any}) {
     final controller = StreamController<List<InternetAddress>>();
     controller.onListen = () {
       lookup(host, type: type).then((list) {
@@ -536,9 +536,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<List<NetworkInterface>> listInterfaces(
-      {bool includeLoopback: false,
-      bool includeLinkLocal: false,
-      InternetAddressType type: InternetAddressType.any}) {
+      {bool includeLoopback = false,
+      bool includeLinkLocal = false,
+      InternetAddressType type = InternetAddressType.any}) {
     return _IOService._dispatch(_IOService.socketListInterfaces, [type._value])
         .then((response) {
       if (isErrorResponse(response)) {
@@ -749,8 +749,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                 "Address family not supported by protocol family, "
                 // ...and then add some details.
                 "sourceAddress.type must be ${InternetAddressType.unix} but was "
-                "${source.type}",
-                address: address);
+                "${source.type}", address: address);
           }
           connectionResult = socket.nativeCreateUnixDomainBindConnect(
               address.address, source.address, _Namespace._namespace);
@@ -1334,7 +1333,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
   }
 
-  void issueWriteEvent({bool delayed: true}) {
+  void issueWriteEvent({bool delayed = true}) {
     if (writeEventIssued) return;
     if (!writeAvailable) return;
     void issue() {
@@ -1448,7 +1447,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     eventHandlers[destroyedEvent] = destroyed;
   }
 
-  void setListening({bool read: true, bool write: true}) {
+  void setListening({bool read = true, bool write = true}) {
     sendReadEvents = read;
     sendWriteEvents = write;
     if (read) issueReadEvent();
@@ -1993,7 +1992,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
 class ServerSocket {
   @patch
   static Future<ServerSocket> _bind(address, int port,
-      {int backlog: 0, bool v6Only: false, bool shared: false}) {
+      {int backlog = 0, bool v6Only = false, bool shared = false}) {
     return _ServerSocket.bind(address, port, backlog, v6Only, shared);
   }
 }
@@ -2389,7 +2388,7 @@ class _Socket extends Stream<Uint8List> implements Socket {
 class RawDatagramSocket {
   @patch
   static Future<RawDatagramSocket> bind(host, int port,
-      {bool reuseAddress: true, bool reusePort: false, int ttl: 1}) {
+      {bool reuseAddress = true, bool reusePort = false, int ttl = 1}) {
     return _RawDatagramSocket.bind(host, port, reuseAddress, reusePort, ttl);
   }
 }

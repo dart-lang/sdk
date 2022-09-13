@@ -9,7 +9,8 @@ import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/type_system_test.dart';
+import '../../../generated/type_system_base.dart';
+import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +19,14 @@ main() {
 }
 
 @reflectiveTest
-class NullabilityEliminatorTest extends AbstractTypeSystemTest {
+class NullabilityEliminatorTest extends AbstractTypeSystemTest
+    with StringTypes {
+  @override
+  void setUp() {
+    super.setUp();
+    defineStringTypes();
+  }
+
   test_dynamicType() {
     _verifySame(typeProvider.dynamicType);
   }
@@ -312,6 +320,61 @@ class NullabilityEliminatorTest extends AbstractTypeSystemTest {
     _verify(listStar(neverNone), listStar(nullStar));
   }
 
+  test_recordType_fromAlias() {
+    var T = typeParameter('T');
+    var A = typeAlias(
+      name: 'A',
+      typeParameters: [T],
+      aliasedType: recordTypeNone(
+        positionalTypes: [
+          typeParameterTypeNone(T),
+        ],
+      ),
+    );
+
+    var input = A.instantiate(
+      typeArguments: [intNone],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    expect(_typeToString(input), '(int)');
+
+    var result = NullabilityEliminator.perform(typeProvider, input);
+    expect(_typeToString(result), '(int*)*');
+    _assertInstantiatedAlias(result, A, 'int*');
+  }
+
+  test_recordType_named() {
+    final expected = '({int* f1})*';
+
+    _verify2('({int f1})', expected);
+    _verify2('({int? f1})', expected);
+    _verify2('({int* f1})', expected);
+
+    _verify2('({int f1})?', expected);
+    _verify2('({int? f1})?', expected);
+    _verify2('({int* f1})?', expected);
+
+    _verify2('({int f1})*', expected);
+    _verify2('({int? f1})*', expected);
+    _verifySame(typeOfString(expected));
+  }
+
+  test_recordType_positional() {
+    final expected = '(int*)*';
+
+    _verify2('(int)', expected);
+    _verify2('(int?)', expected);
+    _verify2('(int*)', expected);
+
+    _verify2('(int)?', expected);
+    _verify2('(int?)?', expected);
+    _verify2('(int*)?', expected);
+
+    _verify2('(int)*', expected);
+    _verify2('(int?)*', expected);
+    _verifySame(typeOfString(expected));
+  }
+
   test_typeParameterType() {
     var T = typeParameter('T');
     _verify(
@@ -346,6 +409,10 @@ class NullabilityEliminatorTest extends AbstractTypeSystemTest {
     var result = NullabilityEliminator.perform(typeProvider, input);
     expect(result, isNot(same(input)));
     expect(result, expected);
+  }
+
+  void _verify2(String input, String expected) {
+    _verify(typeOfString(input), typeOfString(expected));
   }
 
   void _verifySame(DartType input) {

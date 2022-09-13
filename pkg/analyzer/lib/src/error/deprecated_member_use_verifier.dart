@@ -35,7 +35,7 @@ class DeprecatedMemberUseVerifier {
   }
 
   void exportDirective(ExportDirective node) {
-    _checkForDeprecated(node.uriElement, node);
+    _checkForDeprecated(node.element2?.exportedLibrary, node);
   }
 
   void functionExpressionInvocation(FunctionExpressionInvocation node) {
@@ -47,7 +47,7 @@ class DeprecatedMemberUseVerifier {
   }
 
   void importDirective(ImportDirective node) {
-    _checkForDeprecated(node.uriElement, node);
+    _checkForDeprecated(node.element2?.importedLibrary, node);
   }
 
   void indexExpression(IndexExpression node) {
@@ -169,7 +169,7 @@ class DeprecatedMemberUseVerifier {
       // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
-      displayName = element.enclosingElement.displayName;
+      displayName = element.enclosingElement3.displayName;
       if (element.displayName.isNotEmpty) {
         displayName = "$displayName.${element.displayName}";
       }
@@ -178,7 +178,7 @@ class DeprecatedMemberUseVerifier {
     } else if (node is MethodInvocation &&
         displayName == FunctionElement.CALL_METHOD_NAME) {
       var invokeType = node.staticInvokeType as InterfaceType;
-      var invokeClass = invokeType.element;
+      var invokeClass = invokeType.element2;
       displayName = "${invokeClass.name}.${element.displayName}";
     }
     var library = element is LibraryElement ? element : element.library;
@@ -268,11 +268,11 @@ class DeprecatedMemberUseVerifier {
   /// Return `true` if [element] is a [ParameterElement] declared in [node].
   static bool _isLocalParameter(Element? element, AstNode? node) {
     if (element is ParameterElement) {
-      var definingFunction = element.enclosingElement as ExecutableElement;
+      var definingFunction = element.enclosingElement3 as ExecutableElement;
 
       for (; node != null; node = node.parent) {
         if (node is ConstructorDeclaration) {
-          if (node.declaredElement == definingFunction) {
+          if (node.declaredElement2 == definingFunction) {
             return true;
           }
         } else if (node is FunctionExpression) {
@@ -280,7 +280,7 @@ class DeprecatedMemberUseVerifier {
             return true;
           }
         } else if (node is MethodDeclaration) {
-          if (node.declaredElement == definingFunction) {
+          if (node.declaredElement2 == definingFunction) {
             return true;
           }
         }

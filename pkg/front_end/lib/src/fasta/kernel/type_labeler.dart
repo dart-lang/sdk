@@ -175,6 +175,11 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
+  void visitIntersectionType(IntersectionType node) {
+    return node.left.accept(this);
+  }
+
+  @override
   void visitFunctionType(FunctionType node) {
     node.returnType.accept(this);
     result.add(" Function");
@@ -286,6 +291,31 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
+  void visitRecordType(RecordType node) {
+    result.add("(");
+    bool first = true;
+    for (int i = 0; i < node.positional.length; i++) {
+      if (!first) result.add(", ");
+      node.positional[i].accept(this);
+      first = false;
+    }
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) result.add(", ");
+      result.add("{");
+      first = true;
+      for (int i = 0; i < node.named.length; i++) {
+        if (!first) result.add(", ");
+        node.named[i].type.accept(this);
+        result.add(" ${node.named[i].name}");
+        first = false;
+      }
+      result.add("}");
+    }
+    result.add(")");
+    addNullability(node.nullability);
+  }
+
+  @override
   void defaultConstant(Constant node) {}
 
   @override
@@ -381,6 +411,30 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       first = false;
     }
     result.add("}");
+  }
+
+  @override
+  void visitRecordConstant(RecordConstant node) {
+    result.add("(");
+    bool first = true;
+    for (Constant field in node.positional) {
+      if (!first) result.add(", ");
+      field.accept(this);
+      first = false;
+    }
+    if (node.named.isNotEmpty) {
+      if (node.positional.isNotEmpty) result.add(", ");
+      result.add("{");
+      first = true;
+      for (ConstantRecordNamedField namedField in node.named) {
+        if (!first) result.add(", ");
+        result.add("${namedField.name}: ");
+        namedField.value.accept(this);
+        first = false;
+      }
+      result.add("}");
+    }
+    result.add(")");
   }
 
   @override

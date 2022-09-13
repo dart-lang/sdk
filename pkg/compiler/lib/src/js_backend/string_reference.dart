@@ -10,7 +10,7 @@
 ///     foo1() => 'A very long string';
 ///
 /// might be compiled to something like the following, where StringReference1 is
-/// assocatied with the string `'A very long string'`.
+/// associated with the string `'A very long string'`.
 ///
 ///     foo1: function() {
 ///       return StringReference1;
@@ -77,7 +77,7 @@ class StringReferencePolicy {
   // (hot, cold, execute-once, etc).
   static const int shortestSharedLength = 40;
 
-  // TODO(sra): Add policy for huge non-shared strings, strings occuring in
+  // TODO(sra): Add policy for huge non-shared strings, strings occurring in
   // run-once code, etc. Maybe make policy settings assignable for testing or
   // command-line configuration.
 }

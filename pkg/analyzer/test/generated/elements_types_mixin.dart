@@ -33,17 +33,17 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType get doubleNone {
-    var element = typeProvider.doubleType.element;
+    var element = typeProvider.doubleType.element2;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get doubleQuestion {
-    var element = typeProvider.doubleType.element;
+    var element = typeProvider.doubleType.element2;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get doubleStar {
-    var element = typeProvider.doubleType.element;
+    var element = typeProvider.doubleType.element2;
     return interfaceTypeStar(element);
   }
 
@@ -52,32 +52,32 @@ mixin ElementsTypesMixin {
   DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 
   InterfaceType get functionNone {
-    var element = typeProvider.functionType.element;
+    var element = typeProvider.functionType.element2;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get functionQuestion {
-    var element = typeProvider.functionType.element;
+    var element = typeProvider.functionType.element2;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get functionStar {
-    var element = typeProvider.functionType.element;
+    var element = typeProvider.functionType.element2;
     return interfaceTypeStar(element);
   }
 
   InterfaceType get intNone {
-    var element = typeProvider.intType.element;
+    var element = typeProvider.intType.element2;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get intQuestion {
-    var element = typeProvider.intType.element;
+    var element = typeProvider.intType.element2;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get intStar {
-    var element = typeProvider.intType.element;
+    var element = typeProvider.intType.element2;
     return interfaceTypeStar(element);
   }
 
@@ -88,62 +88,67 @@ mixin ElementsTypesMixin {
   NeverTypeImpl get neverStar => NeverTypeImpl.instanceLegacy;
 
   InterfaceTypeImpl get nullNone {
-    var element = typeProvider.nullType.element;
+    var element = typeProvider.nullType.element2;
     return interfaceTypeNone(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullQuestion {
-    var element = typeProvider.nullType.element;
+    var element = typeProvider.nullType.element2;
     return interfaceTypeQuestion(element) as InterfaceTypeImpl;
   }
 
   InterfaceTypeImpl get nullStar {
-    var element = typeProvider.nullType.element;
+    var element = typeProvider.nullType.element2;
     return interfaceTypeStar(element) as InterfaceTypeImpl;
   }
 
   InterfaceType get numNone {
-    var element = typeProvider.numType.element;
+    var element = typeProvider.numType.element2;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get numQuestion {
-    var element = typeProvider.numType.element;
+    var element = typeProvider.numType.element2;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get numStar {
-    var element = typeProvider.numType.element;
+    var element = typeProvider.numType.element2;
     return interfaceTypeStar(element);
   }
 
   InterfaceType get objectNone {
-    var element = typeProvider.objectType.element;
+    var element = typeProvider.objectType.element2;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get objectQuestion {
-    var element = typeProvider.objectType.element;
+    var element = typeProvider.objectType.element2;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get objectStar {
-    var element = typeProvider.objectType.element;
+    var element = typeProvider.objectType.element2;
     return interfaceTypeStar(element);
   }
 
+  InterfaceType get recordNone {
+    var element = typeProvider.recordElement;
+    return interfaceTypeNone(element);
+  }
+
   InterfaceType get stringNone {
-    var element = typeProvider.stringType.element;
+    var element = typeProvider.stringType.element2;
     return interfaceTypeNone(element);
   }
 
   InterfaceType get stringQuestion {
-    var element = typeProvider.stringType.element;
+    var element = typeProvider.stringType.element2;
     return interfaceTypeQuestion(element);
   }
 
   InterfaceType get stringStar {
-    var element = typeProvider.stringType.element;
+    var element = typeProvider.stringType.element2;
     return interfaceTypeStar(element);
   }
 
@@ -174,7 +179,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableNone(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable')!;
+    var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -183,7 +188,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableQuestion(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable')!;
+    var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -192,7 +197,7 @@ mixin ElementsTypesMixin {
 
   InterfaceType comparableStar(DartType type) {
     var coreLibrary = typeProvider.intElement.library;
-    var element = coreLibrary.getType('Comparable')!;
+    var element = coreLibrary.getClass('Comparable')!;
     return element.instantiate(
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.star,
@@ -311,7 +316,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType interfaceTypeNone(
-    ClassElement element, {
+    InterfaceElement element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -321,7 +326,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType interfaceTypeQuestion(
-    ClassElement element, {
+    InterfaceElement element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -331,7 +336,7 @@ mixin ElementsTypesMixin {
   }
 
   InterfaceType interfaceTypeStar(
-    ClassElement element, {
+    InterfaceElement element, {
     List<DartType> typeArguments = const [],
   }) {
     return element.instantiate(
@@ -551,6 +556,60 @@ mixin ElementsTypesMixin {
       element: element,
       nullabilitySuffix: NullabilitySuffix.star,
       promotedBound: promotedBound,
+    );
+  }
+
+  RecordTypeImpl recordType({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return RecordTypeImpl(
+      positionalFields: positionalTypes.map((type) {
+        return RecordTypePositionalFieldImpl(
+          type: type,
+        );
+      }).toList(),
+      namedFields: namedTypes.entries.map((entry) {
+        return RecordTypeNamedFieldImpl(
+          name: entry.key,
+          type: entry.value,
+        );
+      }).toList(),
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  RecordTypeImpl recordTypeNone({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+  }) {
+    return recordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  RecordTypeImpl recordTypeQuestion({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+  }) {
+    return recordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  RecordTypeImpl recordTypeStar({
+    List<DartType> positionalTypes = const [],
+    Map<String, DartType> namedTypes = const {},
+  }) {
+    return recordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 

@@ -18,6 +18,8 @@ abstract class TypeVisitor<R> {
 
   R visitNeverType(NeverType type);
 
+  R visitRecordType(RecordType type);
+
   R visitTypeParameterType(TypeParameterType type);
 
   R visitVoidType(VoidType type);
@@ -36,6 +38,8 @@ abstract class TypeVisitorWithArgument<R, A> {
   R visitInterfaceType(InterfaceType type, A argument);
 
   R visitNeverType(NeverType type, A argument);
+
+  R visitRecordType(RecordType type, A argument);
 
   R visitTypeParameterType(TypeParameterType type, A argument);
 

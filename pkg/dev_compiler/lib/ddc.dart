@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Command line entry point for Dart Development Compiler (dartdevc), used to
 /// compile a collection of dart libraries into a single JS module
 
@@ -21,7 +19,7 @@ import 'src/kernel/expression_compiler_worker.dart';
 ///
 /// [sendPort] may be passed in when started in an isolate. If provided, it is
 /// used for bazel worker communication instead of stdin/stdout.
-Future internalMain(List<String> args, [SendPort sendPort]) async {
+Future internalMain(List<String> args, [SendPort? sendPort]) async {
   // Always returns a new modifiable list.
   var parsedArgs = ParsedArguments.from(args);
 
@@ -51,7 +49,7 @@ class _CompilerWorker extends AsyncWorkerLoop {
 
   /// Keeps track of our last compilation result so it can potentially be
   /// re-used in a worker.
-  CompilerResult lastResult;
+  CompilerResult? lastResult;
 
   /// Performs each individual work request.
   @override
@@ -74,7 +72,7 @@ class _CompilerWorker extends AsyncWorkerLoop {
       output.writeln(message.toString());
     }));
     return WorkResponse()
-      ..exitCode = lastResult.success ? 0 : 1
+      ..exitCode = lastResult!.success ? 0 : 1
       ..output = output.toString();
   }
 }
@@ -87,12 +85,12 @@ Future runBatch(ParsedArguments batchArgs) async {
 
   print('>>> BATCH START');
 
-  String line;
-  CompilerResult result;
+  String? line;
+  CompilerResult? result;
 
   while ((line = stdin.readLineSync(encoding: utf8))?.isNotEmpty == true) {
     totalTests++;
-    var args = batchArgs.merge(line.split(RegExp(r'\s+')));
+    var args = batchArgs.merge(line!.split(RegExp(r'\s+')));
 
     String outcome;
     try {

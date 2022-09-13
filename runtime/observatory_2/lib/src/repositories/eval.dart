@@ -6,7 +6,7 @@ part of repositories;
 
 class EvalRepository extends M.EvalRepository {
   Future<M.ObjectRef> evaluate(M.IsolateRef i, M.ObjectRef o, String e,
-      {bool disableBreakpoints: false}) async {
+      {bool disableBreakpoints = false}) async {
     S.Isolate isolate = i as S.Isolate;
     S.ServiceObject object = o as S.HeapObject;
     assert(isolate != null);

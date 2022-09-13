@@ -28,11 +28,13 @@ import 'package:analyzer/dart/element/element.dart'
         ClassMemberElement,
         CompilationUnitElement,
         Element,
+        EnumElement,
         ExecutableElement,
         ExtensionElement,
         FieldElement,
         FunctionElement,
         LocalVariableElement,
+        MixinElement,
         ParameterElement,
         PrefixElement,
         TypeParameterElement,
@@ -1699,7 +1701,7 @@ class CompletionResult {
     var entity = expectedCompletion.syntacticEntity;
     var element = _getElement(entity);
     if (element != null) {
-      var parent = element.enclosingElement;
+      var parent = element.enclosingElement3;
       if (parent is ClassElement || parent is ExtensionElement) {
         if (_isStatic(element)) {
           return CompletionGroup.staticMember;
@@ -1711,12 +1713,12 @@ class CompletionResult {
           element is! ExtensionElement) {
         return CompletionGroup.topLevelMember;
       }
-      if (element is ClassElement) {
-        if (element.isEnum) {
-          return CompletionGroup.enumElement;
-        } else if (element.isMixin) {
-          return CompletionGroup.mixinElement;
-        }
+
+      if (element is EnumElement) {
+        return CompletionGroup.enumElement;
+      } else if (element is MixinElement) {
+        return CompletionGroup.mixinElement;
+      } else if (element is ClassElement) {
         if (entity is SimpleIdentifier &&
             entity.parent is NamedType &&
             entity.parent!.parent is ConstructorName &&

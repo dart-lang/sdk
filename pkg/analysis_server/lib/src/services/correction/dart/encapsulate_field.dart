@@ -40,37 +40,42 @@ class EncapsulateField extends CorrectionProducer {
       return;
     }
     var field = fields.first;
-    var nameNode = field.name;
-    var fieldElement = field.declaredElement as FieldElement;
+    var nameToken = field.name2;
+    var fieldElement = field.declaredElement2 as FieldElement;
     // should have a public name
-    var name = nameNode.name;
+    var name = nameToken.lexeme;
     if (Identifier.isPrivateName(name)) {
       return;
     }
     // should be on the name
-    if (nameNode != node) {
+    if (nameToken != token) {
       return;
     }
 
     // Should be in a class or mixin.
-    if (fieldDeclaration.parent is! ClassOrMixinDeclaration) {
+    List<ClassMember> classMembers;
+    final parent = fieldDeclaration.parent;
+    if (parent is ClassDeclaration) {
+      classMembers = parent.members;
+    } else if (parent is MixinDeclaration) {
+      classMembers = parent.members;
+    } else {
       return;
     }
-    var classDeclaration = fieldDeclaration.parent as ClassOrMixinDeclaration;
 
     await builder.addDartFileEdit(file, (builder) {
       // rename field
-      builder.addSimpleReplacement(range.node(nameNode), '_$name');
+      builder.addSimpleReplacement(range.token(nameToken), '_$name');
       // update references in constructors
-      for (var member in classDeclaration.members) {
+      for (var member in classMembers) {
         if (member is ConstructorDeclaration) {
           for (var parameter in member.parameters.parameters) {
-            var identifier = parameter.identifier;
+            var identifier = parameter.name;
             var parameterElement = parameter.declaredElement;
             if (identifier != null &&
                 parameterElement is FieldFormalParameterElement &&
                 parameterElement.field == fieldElement) {
-              builder.addSimpleReplacement(range.node(identifier), '_$name');
+              builder.addSimpleReplacement(range.token(identifier), '_$name');
             }
           }
         }

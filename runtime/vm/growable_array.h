@@ -29,6 +29,11 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
   GrowableArray()
       : BaseGrowableArray<T, ValueObject, Zone>(
             ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
+
+  GrowableArray(GrowableArray&& other) = default;
+  GrowableArray& operator=(GrowableArray&& other) = default;
+  ~GrowableArray() = default;
+  DISALLOW_COPY_AND_ASSIGN(GrowableArray);
 };
 
 template <typename T>
@@ -44,6 +49,11 @@ class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated, Zone> {
   ZoneGrowableArray()
       : BaseGrowableArray<T, ZoneAllocated, Zone>(
             ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
+
+  ZoneGrowableArray(ZoneGrowableArray&& other) = default;
+  ZoneGrowableArray& operator=(ZoneGrowableArray&& other) = default;
+  ~ZoneGrowableArray() = default;
+  DISALLOW_COPY_AND_ASSIGN(ZoneGrowableArray);
 };
 
 // T must be a Handle type.

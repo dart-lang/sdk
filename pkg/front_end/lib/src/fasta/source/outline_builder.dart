@@ -23,16 +23,19 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart'
     show AsyncMarker, InvalidType, Nullability, ProcedureKind, Variance;
 
+import '../../api_prototype/experimental_flags.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
+import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../combinator.dart' show CombinatorBuilder;
@@ -1454,6 +1457,19 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endTopLevelMethod(Token beginToken, Token? getOrSet, Token endToken) {
     debugEvent("endTopLevelMethod");
+    assert(checkState(beginToken, [
+      ValueKinds.MethodBody,
+      ValueKinds.AsyncMarker,
+      ValueKinds.FormalListOrNull,
+      /* formalsOffset */ ValueKinds.Integer,
+      ValueKinds.TypeVariableListOrNull,
+      /* charOffset */ ValueKinds.Integer,
+      ValueKinds.NameOrParserRecovery,
+      ValueKinds.TypeBuilderOrNull,
+      /* modifiers */ ValueKinds.Integer,
+      ValueKinds.MetadataListOrNull,
+    ]));
+
     MethodBody kind = pop() as MethodBody;
     AsyncMarker asyncModifier = pop() as AsyncMarker;
     List<FormalParameterBuilder>? formals =
@@ -2007,6 +2023,13 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("NamedArgument");
     pop(); // Named argument offset.
     pop(); // Named argument name.
+  }
+
+  @override
+  void handleNamedRecordField(Token colon) {
+    debugEvent("NamedRecordField");
+    pop(); // Named record field offset.
+    pop(); // Named record field name.
   }
 
   @override
@@ -2571,6 +2594,89 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.functionType, "#function_type",
         hasMembers: false);
+  }
+
+  @override
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    debugEvent("RecordType");
+    assert(checkState(leftBracket, [
+      if (hasNamedFields) ValueKinds.RecordTypeFieldBuilderListOrNull,
+      ...repeatedKinds(ValueKinds.RecordTypeFieldBuilder,
+          hasNamedFields ? count - 1 : count),
+    ]));
+
+    if (!libraryFeatures.records.isEnabled) {
+      addProblem(
+          templateExperimentNotEnabledOffByDefault
+              .withArguments(ExperimentalFlag.records.name),
+          leftBracket.offset,
+          noLength);
+    }
+
+    if (!libraryBuilder.isNonNullableByDefault) {
+      reportErrorIfNullableType(questionMark);
+    }
+
+    List<RecordTypeFieldBuilder>? namedFields;
+    if (hasNamedFields) {
+      namedFields =
+          pop(NullValue.RecordTypeFieldList) as List<RecordTypeFieldBuilder>?;
+    }
+    List<RecordTypeFieldBuilder>? positionalFields =
+        const FixedNullableList<RecordTypeFieldBuilder>().popNonNullable(stack,
+            hasNamedFields ? count - 1 : count, dummyRecordTypeFieldBuilder);
+
+    push(new RecordTypeBuilder(
+      positionalFields,
+      namedFields,
+      questionMark != null
+          ? libraryBuilder.nullableBuilder
+          : libraryBuilder.nonNullableBuilder,
+      uri,
+      leftBracket.charOffset,
+    ));
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    assert(checkState(null, [
+      /* name offset */ ValueKinds.Integer,
+      unionOfKinds([
+        ValueKinds.NameOrNullIdentifier,
+        ValueKinds.ParserRecovery,
+      ]),
+      unionOfKinds([
+        ValueKinds.TypeBuilder,
+        ValueKinds.ParserRecovery,
+      ]),
+      ValueKinds.MetadataListOrNull,
+    ]));
+
+    // Offset of name of field (or next token if there's no name).
+    int nameOffset = pop() as int;
+    Object? name = pop(NullValue.Identifier);
+    Object? type = pop();
+    List<MetadataBuilder>? metadata =
+        pop(NullValue.Metadata) as List<MetadataBuilder>?;
+    push(new RecordTypeFieldBuilder(
+        metadata,
+        type is ParserRecovery
+            ? new InvalidTypeBuilder(uri, type.charOffset)
+            : type as TypeBuilder,
+        name is String ? name : null,
+        name is String ? nameOffset : -1));
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    assert(checkState(leftBracket, [
+      ...repeatedKinds(ValueKinds.RecordTypeFieldBuilder, count),
+    ]));
+    List<RecordTypeFieldBuilder>? fields =
+        const FixedNullableList<RecordTypeFieldBuilder>()
+            .popNonNullable(stack, count, dummyRecordTypeFieldBuilder);
+    push(fields ?? NullValue.RecordTypeFieldList);
   }
 
   @override
@@ -3436,7 +3542,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage>? context}) {
+      {bool wasHandled = false, List<LocatedMessage>? context}) {
     libraryBuilder.addProblem(message, charOffset, length, uri,
         wasHandled: wasHandled, context: context);
   }

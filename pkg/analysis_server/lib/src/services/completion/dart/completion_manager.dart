@@ -225,6 +225,12 @@ class DartCompletionManager {
         kinds.add(protocol.ElementKind.SETTER);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
       }
+      if (opType.includeAnnotationSuggestions) {
+        kinds.add(protocol.ElementKind.CONSTRUCTOR);
+        // Top-level properties.
+        kinds.add(protocol.ElementKind.GETTER);
+        kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
+      }
     }
   }
 
@@ -251,9 +257,9 @@ class DartCompletionManager {
 
     var type = request.contextType;
     if (type is InterfaceType) {
-      var element = type.element;
+      var element = type.element2;
       var tag = '${element.librarySource.uri}::${element.name}';
-      if (element.isEnum) {
+      if (element is EnumElement) {
         includedSuggestionRelevanceTags.add(
           IncludedSuggestionRelevanceTag(
             tag,
@@ -478,17 +484,26 @@ class DartCompletionRequest {
       }
     }
 
+    /// TODO(scheglov) Can we make it better?
+    String fromToken(Token token) {
+      final lexeme = token.lexeme;
+      if (offset >= token.offset && offset < token.end) {
+        return lexeme.substring(0, offset - token.offset);
+      } else if (offset == token.end) {
+        return lexeme;
+      }
+      return '';
+    }
+
     while (entity is AstNode) {
       if (entity is SimpleIdentifier) {
-        var identifier = entity.name;
-        if (offset >= entity.offset && offset < entity.end) {
-          return identifier.substring(0, offset - entity.offset);
-        } else if (offset == entity.end) {
-          return identifier;
-        }
+        return fromToken(entity.token);
       }
       var children = entity.childEntities;
       entity = children.isEmpty ? null : children.first;
+      if (entity is Token) {
+        return fromToken(entity);
+      }
     }
     return '';
   }

@@ -113,6 +113,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 
   @override
+  DartType visitIntersectionType(ir.IntersectionType node) {
+    return node.left.accept(this);
+  }
+
+  @override
   DartType visitFunctionType(ir.FunctionType node) {
     int index = 0;
     List<FunctionTypeVariable>? typeVariables;
@@ -289,6 +294,11 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
         elementMap.getDartType(node.valueType));
     return constant_system.createMap(
         elementMap.commonElements, type, keys, values);
+  }
+
+  @override
+  ConstantValue visitRecordConstant(ir.RecordConstant node) {
+    return defaultConstant(node);
   }
 
   @override

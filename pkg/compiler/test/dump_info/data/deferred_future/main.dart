@@ -110,7 +110,7 @@
   "id": "outputUnit/1",
   "kind": "outputUnit",
   "name": "1",
-  "size": 870,
+  "size": 895,
   "filename": "out_1.part.js",
   "imports": [
     "lib1"
@@ -125,7 +125,7 @@
 }]
 */
 
-/*canary.library:
+/*canary.library: 
  constant=[
   {
   "id": "constant/B.C_A = new A.A();\n",

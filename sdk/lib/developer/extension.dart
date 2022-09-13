@@ -46,22 +46,6 @@ class ServiceExtensionResponse {
   }
 
   /// Invalid method parameter(s) error code.
-  @deprecated
-  static const kInvalidParams = invalidParams;
-
-  /// Generic extension error code.
-  @deprecated
-  static const kExtensionError = extensionError;
-
-  /// Maximum extension provided error code.
-  @deprecated
-  static const kExtensionErrorMax = extensionErrorMax;
-
-  /// Minimum extension provided error code.
-  @deprecated
-  static const kExtensionErrorMin = extensionErrorMin;
-
-  /// Invalid method parameter(s) error code.
   static const invalidParams = -32602;
 
   /// Generic extension error code.

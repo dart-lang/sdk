@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -36,22 +37,23 @@ class CreateConstructor extends CorrectionProducer {
       if (node is SimpleIdentifier) {
         var parent = node.parent;
         if (parent is ConstructorName) {
-          await _proposeFromConstructorName(builder, node, parent);
+          await _proposeFromConstructorName(builder, node.token, parent);
           return;
         }
       }
       var parent = node.thisOrAncestorOfType<EnumConstantDeclaration>();
       if (parent != null) {
-        await _proposeFromEnumConstantDeclaration(builder, parent.name, parent);
+        await _proposeFromEnumConstantDeclaration(
+            builder, parent.name2, parent);
       }
     }
   }
 
-  Future<void> _proposeFromConstructorName(ChangeBuilder builder,
-      SimpleIdentifier name, ConstructorName constructorName) async {
+  Future<void> _proposeFromConstructorName(ChangeBuilder builder, Token name,
+      ConstructorName constructorName) async {
     InstanceCreationExpression? instanceCreation;
     _constructorName = constructorName.toSource();
-    if (constructorName.name == name) {
+    if (constructorName.name?.token == name) {
       var grandParent = constructorName.parent;
       // Type.name
       if (grandParent is InstanceCreationExpression) {
@@ -75,7 +77,7 @@ class CreateConstructor extends CorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetElement = targetType.element;
+    var targetElement = targetType.element2;
     var targetResult = await sessionHelper.getElementDeclaration(targetElement);
     if (targetResult == null) {
       return;
@@ -101,13 +103,13 @@ class CreateConstructor extends CorrectionProducer {
         constructorName: name, argumentList: instanceCreation.argumentList);
   }
 
-  Future<void> _proposeFromEnumConstantDeclaration(ChangeBuilder builder,
-      SimpleIdentifier name, EnumConstantDeclaration parent) async {
+  Future<void> _proposeFromEnumConstantDeclaration(
+      ChangeBuilder builder, Token name, EnumConstantDeclaration parent) async {
     var grandParent = parent.parent;
     if (grandParent is! EnumDeclaration) {
       return;
     }
-    var targetElement = grandParent.declaredElement;
+    var targetElement = grandParent.declaredElement2;
     if (targetElement == null) {
       return;
     }
@@ -137,7 +139,7 @@ class CreateConstructor extends CorrectionProducer {
 
     var arguments = parent.arguments;
     _constructorName =
-        '${targetNode.name}${arguments?.constructorSelector ?? ''}';
+        '${targetNode.name2.lexeme}${arguments?.constructorSelector ?? ''}';
 
     await _write(
       builder,
@@ -145,7 +147,7 @@ class CreateConstructor extends CorrectionProducer {
       targetElement,
       targetLocation,
       isConst: true,
-      constructorName: arguments?.constructorSelector?.name,
+      constructorName: arguments?.constructorSelector?.name.token,
       argumentList: arguments?.argumentList,
     );
   }
@@ -163,7 +165,7 @@ class CreateConstructor extends CorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetElement = constructorElement.enclosingElement;
+    var targetElement = constructorElement.enclosingElement3;
     var targetResult = await sessionHelper.getElementDeclaration(targetElement);
     if (targetResult == null) {
       return;
@@ -199,10 +201,10 @@ class CreateConstructor extends CorrectionProducer {
 
   Future<void> _write(
     ChangeBuilder builder,
-    SimpleIdentifier name,
-    ClassElement targetElement,
+    Token name,
+    InterfaceElement targetElement,
     InsertionLocation targetLocation, {
-    SimpleIdentifier? constructorName,
+    Token? constructorName,
     bool isConst = false,
     ArgumentList? argumentList,
   }) async {
@@ -213,12 +215,12 @@ class CreateConstructor extends CorrectionProducer {
         builder.writeConstructorDeclaration(targetElement.name,
             isConst: isConst,
             argumentList: argumentList,
-            constructorName: constructorName,
+            constructorName: constructorName?.lexeme,
             constructorNameGroupName: 'NAME');
         builder.write(targetLocation.suffix);
       });
       if (targetFile == file) {
-        builder.addLinkedPosition(range.node(name), 'NAME');
+        builder.addLinkedPosition(range.token(name), 'NAME');
       }
     });
   }

@@ -4,14 +4,12 @@
 
 part of layout;
 
-/**
- * Implements a grid-based layout system based on:
- * [http://dev.w3.org/csswg/css3-grid-align/]
- *
- * This layout is designed to support animations and work on browsers that
- * don't support grid natively. As such, we implement it on top of absolute
- * positioning.
- */
+/// Implements a grid-based layout system based on:
+/// [http://dev.w3.org/csswg/css3-grid-align/]
+///
+/// This layout is designed to support animations and work on browsers that
+/// don't support grid natively. As such, we implement it on top of absolute
+/// positioning.
 // TODO(jmesserly): the DOM integration still needs work:
 //  - The grid assumes it is absolutely positioned in its container.
 //    Because of that, the grid doesn't work right unless it has at least one
@@ -43,31 +41,27 @@ part of layout;
 //  - Optimize for the case of no content sized tracks
 //  - Optimize for the "incremental update" cases
 class GridLayout extends ViewLayout {
-  /** Configuration parameters defined in CSS. */
+  /// Configuration parameters defined in CSS. */
   final GridTrackList? rows;
   final GridTrackList? columns;
   final GridTemplate? template;
 
-  /** The default sizing for new rows. */
+  /// The default sizing for new rows. */
   final TrackSizing rowSizing;
 
-  /** The default sizing for new columns. */
+  /// The default sizing for new columns. */
   final TrackSizing columnSizing;
 
-  /**
-   * This stores the grid's size during a layout.
-   * Used for rows/columns with % or fr units.
-   */
+  /// This stores the grid's size during a layout.
+  /// Used for rows/columns with % or fr units.
   int? _gridWidth, _gridHeight;
 
-  /**
-   * During a layout, this stores all row/column size information.
-   * Because grid-items can implicitly specify their own rows/columns, we can't
-   * compute this until we know the set of items.
-   */
+  /// During a layout, this stores all row/column size information.
+  /// Because grid-items can implicitly specify their own rows/columns, we can't
+  /// compute this until we know the set of items.
   late List<GridTrack> _rowTracks, _columnTracks;
 
-  /** During a layout, tracks which dimension we're processing. */
+  /// During a layout, tracks which dimension we're processing. */
   Dimension? _dimension;
 
   GridLayout(Positionable view)
@@ -83,9 +77,12 @@ class GridLayout extends ViewLayout {
     _columnTracks = columns?.tracks ?? [];
   }
 
+  @override
   int? get currentWidth => _gridWidth;
+  @override
   int? get currentHeight => _gridHeight;
 
+  @override
   void cacheExistingBrowserLayout() {
     // We don't need to do anything as we don't rely on the _cachedViewRect
     // when the grid layout is used.
@@ -93,14 +90,15 @@ class GridLayout extends ViewLayout {
 
   // TODO(jacobr): cleanup this method so that it returns a Future
   // rather than taking a Completer as an argument.
-  /** The main entry point for layout computation. */
+  /// The main entry point for layout computation. */
+  @override
   void measureLayout(Future<Size> size, Completer<bool>? changed) {
     _ensureAllTracks();
     size.then((value) {
       _gridWidth = value.width as int?;
       _gridHeight = value.height as int?;
 
-      if (_rowTracks.length > 0 && _columnTracks.length > 0) {
+      if (_rowTracks.isNotEmpty && _columnTracks.isNotEmpty) {
         _measureTracks();
         _setBoundsOfChildren();
         if (changed != null) {
@@ -110,10 +108,8 @@ class GridLayout extends ViewLayout {
     });
   }
 
-  /**
-   * The top level measurement function.
-   * [http://dev.w3.org/csswg/css3-grid-align/#calculating-size-of-grid-tracks]
-   */
+  /// The top level measurement function.
+  /// [http://dev.w3.org/csswg/css3-grid-align/#calculating-size-of-grid-tracks]
   void _measureTracks() {
     // Resolve logical width, then height. Width comes first so we can use
     // the width when determining the content-sized height.
@@ -137,14 +133,12 @@ class GridLayout extends ViewLayout {
     return Math.max(0, remaining);
   }
 
-  /**
-   * This is the core Grid Track sizing algorithm. It is run for Grid columns
-   * and Grid rows. The goal of the function is to ensure:
-   *   1. That each Grid Track satisfies its minSizing
-   *   2. That each Grid Track grows from the breadth which satisfied its
-   *      minSizing to a breadth which satifies its
-   *      maxSizing, subject to RemainingSpace.
-   */
+  /// This is the core Grid Track sizing algorithm. It is run for Grid columns
+  /// and Grid rows. The goal of the function is to ensure:
+  ///   1. That each Grid Track satisfies its minSizing
+  ///   2. That each Grid Track grows from the breadth which satisfied its
+  ///      minSizing to a breadth which satifies its
+  ///      maxSizing, subject to RemainingSpace.
   // Note: spec does not correctly doc all the parameters to this function.
   void _computeUsedBreadthOfTracks(List<GridTrack> tracks) {
     // TODO(jmesserly): as a performance optimization we could cache this
@@ -161,12 +155,12 @@ class GridLayout extends ViewLayout {
     }
 
     // 2. Resolve content-based MinTrackSizingFunctions
-    final USED_BREADTH = const _UsedBreadthAccumulator();
-    final MAX_BREADTH = const _MaxBreadthAccumulator();
+    final USEDBREADTH = const _UsedBreadthAccumulator();
+    final MAXBREADTH = const _MaxBreadthAccumulator();
 
-    _distributeSpaceBySpanCount(items, ContentSizeMode.MIN, USED_BREADTH);
+    _distributeSpaceBySpanCount(items, ContentSizeMode.MIN, USEDBREADTH);
 
-    _distributeSpaceBySpanCount(items, ContentSizeMode.MAX, USED_BREADTH);
+    _distributeSpaceBySpanCount(items, ContentSizeMode.MAX, USEDBREADTH);
 
     // 3. Ensure that maxBreadth is as big as usedBreadth for each track
     for (final t in tracks) {
@@ -176,16 +170,16 @@ class GridLayout extends ViewLayout {
     }
 
     // 4. Resolve content-based MaxTrackSizingFunctions
-    _distributeSpaceBySpanCount(items, ContentSizeMode.MIN, MAX_BREADTH);
+    _distributeSpaceBySpanCount(items, ContentSizeMode.MIN, MAXBREADTH);
 
-    _distributeSpaceBySpanCount(items, ContentSizeMode.MAX, MAX_BREADTH);
+    _distributeSpaceBySpanCount(items, ContentSizeMode.MAX, MAXBREADTH);
 
     // 5. Grow all Grid Tracks in GridTracks from their usedBreadth up to their
     //    maxBreadth value until RemainingSpace is exhausted.
     // Note: it's not spec'd what to pass as the accumulator, but usedBreadth
     // seems right.
     _distributeSpaceToTracks(
-        tracks, _getRemainingSpace(tracks), USED_BREADTH, false);
+        tracks, _getRemainingSpace(tracks), USEDBREADTH, false);
 
     // Spec wording is confusing about which direction this assignment happens,
     // but this is the way that makes sense.
@@ -203,10 +197,8 @@ class GridLayout extends ViewLayout {
     _computeTrackPositions(tracks);
   }
 
-  /**
-   * Final steps to finish positioning tracks. Takes the track size and uses
-   * it to get start and end positions. Also rounds the positions to integers.
-   */
+  /// Final steps to finish positioning tracks. Takes the track size and uses
+  /// it to get start and end positions. Also rounds the positions to integers.
   void _computeTrackPositions(List<GridTrack> tracks) {
     // Compute start positions of tracks, as well as the final position
 
@@ -238,14 +230,12 @@ class GridLayout extends ViewLayout {
     }
   }
 
-  /**
-   * This method computes a '1fr' value, referred to as the
-   * tempBreadth, for a set of Grid Tracks. The value computed
-   * will ensure that when the tempBreadth is multiplied by the
-   * fractions associated with tracks, that the UsedBreadths of tracks
-   * will increase by an amount equal to the maximum of zero and the specified
-   * freeSpace less the sum of the current UsedBreadths.
-   */
+  /// This method computes a '1fr' value, referred to as the
+  /// tempBreadth, for a set of Grid Tracks. The value computed
+  /// will ensure that when the tempBreadth is multiplied by the
+  /// fractions associated with tracks, that the UsedBreadths of tracks
+  /// will increase by an amount equal to the maximum of zero and the specified
+  /// freeSpace less the sum of the current UsedBreadths.
   num _calcNormalizedFractionBreadth(List<GridTrack> tracks) {
     final fractionTracks = tracks.where((t) => t.maxSizing.isFraction).toList();
 
@@ -279,11 +269,9 @@ class GridLayout extends ViewLayout {
     return spaceNeededFromFractionTracks / accumulatedFractions;
   }
 
-  /**
-   * Ensures that for each Grid Track in tracks, a value will be
-   * computed, updatedBreadth, that represents the Grid Track's share of
-   * freeSpace.
-   */
+  /// Ensures that for each Grid Track in tracks, a value will be
+  /// computed, updatedBreadth, that represents the Grid Track's share of
+  /// freeSpace.
   void _distributeSpaceToTracks(List<GridTrack?> tracks, num? freeSpace,
       _BreadthAccumulator breadth, bool ignoreMaxBreadth) {
     // TODO(jmesserly): in some cases it would be safe to sort the passed in
@@ -321,14 +309,12 @@ class GridLayout extends ViewLayout {
     }
   }
 
-  /**
-   * This function prioritizes the distribution of space driven by Grid Items
-   * in content-sized Grid Tracks by the Grid Item's spanCount. That is, Grid
-   * Items having a lower spanCount have an opportunity to increase the size of
-   * the Grid Tracks they cover before those with larger SpanCounts.
-   *
-   * Note: items are assumed to be already sorted in increasing span count
-   */
+  /// This function prioritizes the distribution of space driven by Grid Items
+  /// in content-sized Grid Tracks by the Grid Item's spanCount. That is, Grid
+  /// Items having a lower spanCount have an opportunity to increase the size of
+  /// the Grid Tracks they cover before those with larger SpanCounts.
+  ///
+  /// Note: items are assumed to be already sorted in increasing span count
   void _distributeSpaceBySpanCount(List<ViewLayout> items,
       ContentSizeMode sizeMode, _BreadthAccumulator breadth) {
     items = items
@@ -366,10 +352,8 @@ class GridLayout extends ViewLayout {
     }
   }
 
-  /**
-   * Returns true if we have an appropriate content sized dimension, and don't
-   * cross a fractional track.
-   */
+  /// Returns true if we have an appropriate content sized dimension, and don't
+  /// cross a fractional track.
   static bool _hasContentSizedTracks(Iterable<GridTrack?> tracks,
       ContentSizeMode sizeMode, _BreadthAccumulator breadth) {
     for (final t in tracks) {
@@ -383,7 +367,7 @@ class GridLayout extends ViewLayout {
     return false;
   }
 
-  /** Ensures that the numbered track exists. */
+  /// Ensures that the numbered track exists. */
   void _ensureTrack(
       List<GridTrack> tracks, TrackSizing sizing, int start, int span) {
     // Start is 1-based. Make it 0-based.
@@ -402,13 +386,11 @@ class GridLayout extends ViewLayout {
     }
   }
 
-  /**
-   * Scans children creating GridLayoutParams as needed, and creates all of the
-   * rows and columns that we will need.
-   *
-   * Note: this can potentially create new qrows/columns, so this needs to be
-   * run before the track sizing algorithm.
-   */
+  /// Scans children creating GridLayoutParams as needed, and creates all of the
+  /// rows and columns that we will need.
+  ///
+  /// Note: this can potentially create new qrows/columns, so this needs to be
+  /// run before the track sizing algorithm.
   void _ensureAllTracks() {
     final items = view.childViews.map((view_) => view_.layout);
 
@@ -423,9 +405,7 @@ class GridLayout extends ViewLayout {
     }
   }
 
-  /**
-   * Given the track sizes that were computed, position children in the grid.
-   */
+  /// Given the track sizes that were computed, position children in the grid.
   void _setBoundsOfChildren() {
     final items = view.childViews.map((view_) => view_.layout);
 
@@ -453,6 +433,7 @@ class GridLayout extends ViewLayout {
     } else if (_dimension == Dimension.HEIGHT) {
       return _gridHeight;
     }
+    return null;
   }
 
   _GridLocation _getTrackLocationX(GridLayoutParams childLayout) {
@@ -475,7 +456,7 @@ class GridLayout extends ViewLayout {
     return _GridLocation(start, end - start);
   }
 
-  /** Gets the tracks that this item crosses. */
+  /// Gets the tracks that this item crosses. */
   // TODO(jmesserly): might be better to return an iterable
   List<GridTrack?> _getTracks(ViewLayout item) {
     GridLayoutParams? childLayout = item.layoutParams as GridLayoutParams?;

@@ -28,10 +28,6 @@
   },
   "org-dartlang-sdk:///lib/html/dart2js/html_dart2js.dart": {
     "Dynamic access of 'style'.": 1,
-    "Dynamic invocation of 'remove'.": 2,
-    "Dynamic update to 'dart.dom.html::_innerHtml'.": 1,
-    "Dynamic access of 'firstChild'.": 2,
-    "Dynamic access of 'tagName'.": 2,
     "Dynamic invocation of 'call'.": 2,
     "Dynamic invocation of 'dart.dom.html::_initKeyboardEvent'.": 1,
     "Dynamic access of 'attributes'.": 1,
@@ -44,9 +40,6 @@
   },
   "org-dartlang-sdk:///lib/html/html_common/conversions.dart": {
     "Dynamic invocation of '[]='.": 1
-  },
-  "org-dartlang-sdk:///lib/html/html_common/filtered_element_list.dart": {
-    "Dynamic invocation of 'remove'.": 1
   },
   "org-dartlang-sdk:///lib/io/directory_impl.dart": {
     "Dynamic invocation of '[]'.": 10
@@ -69,12 +62,6 @@
   "org-dartlang-sdk:///lib/io/link.dart": {
     "Dynamic invocation of '[]'.": 3
   },
-  "org-dartlang-sdk:///lib/io/platform_impl.dart": {
-    "Dynamic invocation of 'indexOf'.": 1,
-    "Dynamic invocation of '>'.": 1,
-    "Dynamic invocation of 'substring'.": 2,
-    "Dynamic invocation of '+'.": 1
-  },
   "org-dartlang-sdk:///lib/io/secure_server_socket.dart": {
     "Dynamic update to 'dart.io::_owner'.": 1
   },
@@ -85,22 +72,11 @@
     "Dynamic update to 'dart.io::_owner'.": 1,
     "Dynamic access of 'length'.": 1
   },
-  "org-dartlang-sdk:///lib/io/stdio.dart": {
-    "Dynamic invocation of 'writeFromSync'.": 1,
-    "Dynamic invocation of 'cancel'.": 1,
-    "Dynamic invocation of 'closeSync'.": 1
-  },
   "org-dartlang-sdk:///lib/io/common.dart": {
     "Dynamic invocation of '[]'.": 3
   },
   "org-dartlang-sdk:///lib/_internal/js_runtime/lib/js_patch.dart": {
     "Dynamic invocation of '[]'.": 1
-  },
-  "org-dartlang-sdk:///lib/svg/dart2js/svg_dart2js.dart": {
-    "Dynamic invocation of 'createFragment'.": 1,
-    "Dynamic access of 'nodes'.": 1,
-    "Dynamic invocation of 'where'.": 1,
-    "Dynamic access of 'single'.": 1
   },
   "org-dartlang-sdk:///lib/core/errors.dart": {
     "Dynamic access of 'length'.": 2

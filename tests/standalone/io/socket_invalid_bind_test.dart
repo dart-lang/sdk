@@ -23,7 +23,7 @@ void main() {
     asyncEnd();
   });
 
-  // Bind to an unavaliable IP-address.
+  // Bind to an unavailable IP-address.
   asyncStart();
   ServerSocket.bind("8.8.8.8", 0).then((_) {
     Expect.fail("Failure expected");

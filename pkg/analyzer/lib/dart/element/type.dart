@@ -22,6 +22,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
+import 'package:meta/meta.dart';
 
 /// The type associated with elements in the element model.
 ///
@@ -44,7 +45,12 @@ abstract class DartType {
   /// the type has not, or cannot, be associated with an element. The former
   /// case will occur if the element model is not yet complete; the latter case
   /// will occur if this object represents an undefined type.
+  @Deprecated('Use element2 instead')
   Element? get element;
+
+  /// Return the element representing the declaration of this type, or `null`
+  /// if the type is not associated with an element.
+  Element? get element2;
 
   /// Return `true` if this type represents the bottom type.
   bool get isBottom;
@@ -105,6 +111,10 @@ abstract class DartType {
   /// dart:core library.
   bool get isDartCoreObject;
 
+  /// Return `true` if this type represents the type 'Record' defined in the
+  /// dart:core library.
+  bool get isDartCoreRecord;
+
   /// Returns `true` if this type represents the type 'Set' defined in the
   /// dart:core library.
   bool get isDartCoreSet;
@@ -155,7 +165,7 @@ abstract class DartType {
   ///
   /// For a [TypeParameterType] with a bound (declared or promoted), returns
   /// the interface implemented by the bound.
-  InterfaceType? asInstanceOf(ClassElement element);
+  InterfaceType? asInstanceOf(InterfaceElement element);
 
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
@@ -200,6 +210,13 @@ abstract class DynamicType implements DartType {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionType implements DartType {
+  @Deprecated('Use element2 instead')
+  @override
+  Null get element;
+
+  @override
+  Null get element2;
+
   /// Return a map from the names of named parameters to the types of the named
   /// parameters of this type of function. The entries in the map will be
   /// iterated in the same order as the order in which the named parameters were
@@ -277,8 +294,12 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return a list containing all of the constructors declared in this type.
   List<ConstructorElement> get constructors;
 
+  @Deprecated('Use element2 instead')
   @override
   ClassElement get element;
+
+  @override
+  InterfaceElement get element2;
 
   /// Return a list containing all of the interfaces that are implemented by
   /// this interface. Note that this is <b>not</b>, in general, equivalent to
@@ -415,6 +436,49 @@ abstract class ParameterizedType implements DartType {
   List<DartType> get typeArguments;
 }
 
+/// The type of a record literal or a record type annotation.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordType implements DartType {
+  @Deprecated('Use element2 instead')
+  @override
+  Null get element;
+
+  @override
+  Null get element2;
+
+  /// The named fields (might be empty).
+  List<RecordTypeNamedField> get namedFields;
+
+  /// The positional fields (might be empty).
+  List<RecordTypePositionalField> get positionalFields;
+}
+
+/// A field in a [RecordType].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeField {
+  /// The type of the field.
+  DartType get type;
+}
+
+/// A named field in a [RecordType].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypeNamedField implements RecordTypeField {
+  /// The name of the field.
+  String get name;
+}
+
+/// A positional field in a [RecordType].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RecordTypePositionalField implements RecordTypeField {}
+
 /// The type introduced by a type parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -430,10 +494,21 @@ abstract class TypeParameterType implements DartType {
   /// Always consult the bound if that could be relevant.
   ElementLocation get definition;
 
+  @Deprecated('Use element2 instead')
   @override
   TypeParameterElement get element;
+
+  @override
+  TypeParameterElement get element2;
 }
 
 /// The special type `void` is used to indicate that the value of an
 /// expression is meaningless, and intended to be discarded.
-abstract class VoidType implements DartType {}
+abstract class VoidType implements DartType {
+  @Deprecated('Use element2 instead')
+  @override
+  Null get element;
+
+  @override
+  Null get element2;
+}

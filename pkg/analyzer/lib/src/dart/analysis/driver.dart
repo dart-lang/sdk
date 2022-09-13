@@ -85,7 +85,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 229;
+  static const int DATA_VERSION = 239;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -167,7 +167,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The mapping from the files for which analysis was requested using
   /// [getResolvedLibrary] to the [Completer]s to report the result.
   final _requestedLibraries =
-      <LibraryFileStateKind, List<Completer<ResolvedLibraryResult>>>{};
+      <LibraryFileKind, List<Completer<ResolvedLibraryResult>>>{};
 
   /// The queue of requests for completion.
   final List<_ResolveForCompletionRequest> _resolveForCompletionRequests = [];
@@ -196,6 +196,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// [getUnitElement] to the [Completer]s to report the result.
   final _unitElementRequestedFiles =
       <String, List<Completer<SomeUnitElementResult>>>{};
+
+  /// The list of dispose requests, added in [dispose2], almost always empty.
+  /// We expect that at most one is added, at the very end of the life cycle.
+  final List<Completer<void>> _disposeRequests = [];
 
   /// The controller for the [results] stream.
   final _resultController = StreamController<Object>();
@@ -397,6 +401,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   @override
   AnalysisDriverPriority get workPriority {
+    if (_disposeRequests.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
+    }
     if (_resolveForCompletionRequests.isNotEmpty) {
       return AnalysisDriverPriority.completion;
     }
@@ -581,10 +588,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return _discoverAvailableFilesTask!.completer.future;
   }
 
+  @Deprecated('Use dispose2() instead')
   @override
   void dispose() {
     _scheduler.remove(this);
     clearLibraryContext();
+  }
+
+  @override
+  Future<void> dispose2() async {
+    final completer = Completer<void>();
+    _disposeRequests.add(completer);
+    _scheduler.notify(this);
+    return completer.future;
   }
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
@@ -669,7 +685,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     FileState file = _fsState.getFileForPath(path);
     return FileResultImpl(
-        currentSession, path, file.uri, file.lineInfo, file.isPart);
+      session: currentSession,
+      path: path,
+      uri: file.uri,
+      lineInfo: file.lineInfo,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
+    );
   }
 
   /// Return the [FileResult] for the Dart file with the given [path].
@@ -712,10 +735,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         }
 
         final kind = file.kind;
-        if (kind is LibraryFileStateKind) {
-        } else if (kind is AugmentationFileStateKind) {
+        if (kind is LibraryFileKind) {
+        } else if (kind is AugmentationFileKind) {
           return NotLibraryButAugmentationResult();
-        } else if (kind is PartFileStateKind) {
+        } else if (kind is PartFileKind) {
           return NotLibraryButPartResult();
         } else {
           throw UnimplementedError('(${kind.runtimeType}) $kind');
@@ -767,10 +790,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     final file = _fsState.getFileForPath(path);
     final kind = file.kind;
-    if (kind is LibraryFileStateKind) {
-    } else if (kind is AugmentationFileStateKind) {
+    if (kind is LibraryFileKind) {
+    } else if (kind is AugmentationFileKind) {
       return NotLibraryButAugmentationResult();
-    } else if (kind is PartFileStateKind) {
+    } else if (kind is PartFileKind) {
       return NotLibraryButPartResult();
     } else {
       throw UnimplementedError('(${kind.runtimeType}) $kind');
@@ -786,7 +809,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       units.add(unitResult);
     }
 
-    return ParsedLibraryResultImpl(currentSession, units);
+    return ParsedLibraryResultImpl(
+      session: currentSession,
+      units: units,
+    );
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
@@ -830,16 +856,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     final file = _fsState.getFileForPath(path);
     final kind = file.kind;
-    if (kind is LibraryFileStateKind) {
+    if (kind is LibraryFileKind) {
       final completer = Completer<ResolvedLibraryResult>();
       _requestedLibraries
           .putIfAbsent(kind, () => <Completer<ResolvedLibraryResult>>[])
           .add(completer);
       _scheduler.notify(this);
       return completer.future;
-    } else if (kind is AugmentationFileStateKind) {
+    } else if (kind is AugmentationFileKind) {
       return NotLibraryButAugmentationResult();
-    } else if (kind is PartFileStateKind) {
+    } else if (kind is PartFileKind) {
       return NotLibraryButPartResult();
     } else {
       throw UnimplementedError('(${kind.runtimeType}) $kind');
@@ -1000,8 +1026,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fsState.getFileForPath(path);
     RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
-    return ParsedUnitResultImpl(currentSession, file.path, file.uri,
-        file.content, file.lineInfo, file.isPart, unit, listener.errors);
+    return ParsedUnitResultImpl(
+      session: currentSession,
+      path: file.path,
+      uri: file.uri,
+      content: file.content,
+      lineInfo: file.lineInfo,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
+      unit: unit,
+      errors: listener.errors,
+    );
   }
 
   /// Return a [ParsedUnitResult] for the file with the given [path].
@@ -1383,7 +1419,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the newly computed resolution result of the library with the
   /// given [path].
   Future<ResolvedLibraryResultImpl> _computeResolvedLibrary(
-    LibraryFileStateKind library,
+    LibraryFileKind library,
   ) async {
     final path = library.file.path;
     return _logger.runAsync('Compute resolved library $path', () async {
@@ -1407,23 +1443,25 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         var unitFile = unitResult.file;
         resolvedUnits.add(
           ResolvedUnitResultImpl(
-            currentSession,
-            unitFile.path,
-            unitFile.uri,
-            unitFile.exists,
-            unitFile.content,
-            unitFile.lineInfo,
-            unitFile.isPart,
-            unitResult.unit,
-            unitResult.errors,
+            session: currentSession,
+            path: unitFile.path,
+            uri: unitFile.uri,
+            exists: unitFile.exists,
+            content: unitFile.content,
+            lineInfo: unitFile.lineInfo,
+            isAugmentation: unitFile.kind is AugmentationFileKind,
+            isLibrary: unitFile.kind is LibraryFileKind,
+            isPart: unitFile.kind is PartFileKind,
+            unit: unitResult.unit,
+            errors: unitResult.errors,
           ),
         );
       }
 
       return ResolvedLibraryResultImpl(
-        currentSession,
-        resolvedUnits.first.libraryElement,
-        resolvedUnits,
+        session: currentSession,
+        element: resolvedUnits.first.libraryElement,
+        units: resolvedUnits,
       );
     });
   }
@@ -1443,12 +1481,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       );
       var element = libraryContext.computeUnitElement(library, file);
       return UnitElementResultImpl(
-        currentSession,
-        path,
-        file.uri,
-        file.lineInfo,
-        file.isPart,
-        element,
+        session: currentSession,
+        path: path,
+        uri: file.uri,
+        lineInfo: file.lineInfo,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
+        element: element,
       );
     });
   }
@@ -1516,7 +1556,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     _fsState.getFileForUri(Uri.parse('dart:core')).map(
       (file) {
-        final kind = file?.kind as LibraryFileStateKind;
+        final kind = file?.kind as LibraryFileKind;
         kind.discoverReferencedFiles();
       },
       (externalLibrary) {},
@@ -1581,25 +1621,29 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var index = unit.index!;
     if (content != null && resolvedUnit != null) {
       var resolvedUnitResult = ResolvedUnitResultImpl(
-        currentSession,
-        file.path,
-        file.uri,
-        file.exists,
-        content,
-        file.lineInfo,
-        file.isPart,
-        resolvedUnit,
-        errors,
+        session: currentSession,
+        path: file.path,
+        uri: file.uri,
+        exists: file.exists,
+        content: content,
+        lineInfo: file.lineInfo,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
+        unit: resolvedUnit,
+        errors: errors,
       );
       return AnalysisResult.unit(signature, resolvedUnitResult, index);
     } else {
       var errorsResult = ErrorsResultImpl(
-        currentSession,
-        file.path,
-        file.uri,
-        file.lineInfo,
-        file.isPart,
-        errors,
+        session: currentSession,
+        path: file.path,
+        uri: file.uri,
+        lineInfo: file.lineInfo,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
+        errors: errors,
       );
       return AnalysisResult.errors(signature, errorsResult, index);
     }
@@ -1625,8 +1669,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// Return the signature that identifies fully resolved results for the [file]
   /// in the [library], e.g. element model, errors, index, etc.
-  String _getResolvedUnitSignature(
-      LibraryFileStateKind library, FileState file) {
+  String _getResolvedUnitSignature(LibraryFileKind library, FileState file) {
     ApiSignature signature = ApiSignature();
     signature.addUint32List(_saltForResolution);
     signature.addString(library.file.uriStr);
@@ -1649,18 +1692,31 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return _resourceProvider.pathContext.isAbsolute(path);
   }
 
+  Future<void> _maybeDispose() async {
+    if (_disposeRequests.isNotEmpty) {
+      _scheduler.remove(this);
+      clearLibraryContext();
+
+      for (final completer in _disposeRequests.toList()) {
+        completer.complete();
+      }
+    }
+  }
+
   /// We detected that one of the required `dart` libraries is missing.
   /// Return the empty analysis result with the error.
   AnalysisResult _newMissingDartLibraryResult(
       FileState file, String missingUri) {
     // TODO(scheglov) Find a better way to report this.
     var errorsResult = ErrorsResultImpl(
-      currentSession,
-      file.path,
-      file.uri,
-      file.lineInfo,
-      file.isPart,
-      [
+      session: currentSession,
+      path: file.path,
+      uri: file.uri,
+      lineInfo: file.lineInfo,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
+      errors: [
         AnalysisError(file.source, 0, 0,
             CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])
       ],
@@ -1682,7 +1738,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // TODO(scheglov) Eventually list of `LibraryOrAugmentationFileKind`.
     for (final file in affected) {
       final kind = file.kind;
-      if (kind is LibraryFileStateKind) {
+      if (kind is LibraryFileKind) {
         kind.invalidateLibraryCycle();
       }
       accumulatedAffected.add(file.path);
@@ -1807,7 +1863,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .toBuffer();
   }
 
-  String? _storeExceptionContext(String path, LibraryFileStateKind library,
+  String? _storeExceptionContext(String path, LibraryFileKind library,
       Object exception, StackTrace stackTrace) {
     if (allowedNumberOfContextsToWrite <= 0) {
       return null;
@@ -1908,7 +1964,11 @@ abstract class AnalysisDriverGeneric {
   void addFile(String path);
 
   /// Notify the driver that the client is going to stop using it.
+  @Deprecated('Use dispose2() instead')
   void dispose();
+
+  /// Notify the driver that the client is going to stop using it.
+  Future<void> dispose2();
 
   /// Perform a single chunk of work and produce [results].
   Future<void> performWork();
@@ -2054,6 +2114,12 @@ class AnalysisDriverScheduler {
       }
 
       await _hasWork.signal;
+
+      for (final driver in _drivers.toList()) {
+        if (driver is AnalysisDriver) {
+          await driver._maybeDispose();
+        }
+      }
 
       for (var driver in _drivers) {
         if (driver is AnalysisDriver) {

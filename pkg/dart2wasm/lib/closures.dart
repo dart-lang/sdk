@@ -102,6 +102,8 @@ class Closures {
 
   Translator get translator => codeGen.translator;
 
+  w.Module get m => translator.m;
+
   late final w.ValueType typeType =
       translator.classInfo[translator.typeClass]!.nullableType;
 
@@ -128,7 +130,7 @@ class Closures {
     // Make struct definitions
     for (Context context in contexts.values) {
       if (!context.isEmpty) {
-        context.struct = translator.structType("<context>");
+        context.struct = m.addStructType("<context>");
       }
     }
 
@@ -170,6 +172,8 @@ class CaptureFinder extends RecursiveVisitor {
   CaptureFinder(this.closures, this.member);
 
   Translator get translator => closures.translator;
+
+  w.Module get m => translator.m;
 
   @override
   void visitAssertStatement(AssertStatement node) {}
@@ -233,8 +237,21 @@ class CaptureFinder extends RecursiveVisitor {
   }
 
   @override
+  void visitSuperPropertyGet(SuperPropertyGet node) {
+    _visitThis();
+    super.visitSuperPropertyGet(node);
+  }
+
+  @override
+  void visitSuperPropertySet(SuperPropertySet node) {
+    _visitThis();
+    super.visitSuperPropertySet(node);
+  }
+
+  @override
   void visitTypeParameterType(TypeParameterType node) {
-    if (node.parameter.parent == member.enclosingClass) {
+    if (node.parameter.parent != null &&
+        node.parameter.parent == member.enclosingClass) {
       _visitThis();
     } else if (node.parameter.parent is FunctionNode) {
       _visitVariableUse(node.parameter);
@@ -254,8 +271,7 @@ class CaptureFinder extends RecursiveVisitor {
     }
     int parameterCount = node.requiredParameterCount;
     w.FunctionType type = translator.closureFunctionType(parameterCount);
-    w.DefinedFunction function =
-        translator.m.addFunction(type, "$member (closure)");
+    w.DefinedFunction function = m.addFunction(type, "$member (closure)");
     closures.lambdas[node] = Lambda(node, function);
 
     depth++;

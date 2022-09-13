@@ -54,10 +54,10 @@ void main(List<String> args) {
 const String kernelMarker = 'kernel.';
 
 Future testAnnotatedCode(String code,
-    {bool printJs: false,
-    bool writeJs: false,
-    bool verbose: false,
-    bool inlineData: false}) async {
+    {bool printJs = false,
+    bool writeJs = false,
+    bool verbose = false,
+    bool inlineData = false}) async {
   Test test = processTestCode(code, [kernelMarker]);
   print(test.code);
   print('---from kernel------------------------------------------------------');
@@ -69,11 +69,11 @@ Future testAnnotatedCode(String code,
 }
 
 Future runTest(Test test, String config,
-    {bool printJs: false,
-    bool writeJs: false,
-    bool verbose: false,
-    bool inlineData: false,
-    List<String> options: const <String>[]}) async {
+    {bool printJs = false,
+    bool writeJs = false,
+    bool verbose = false,
+    bool inlineData = false,
+    List<String> options = const <String>[]}) async {
   List<LineException> testAfterExceptions = <LineException>[];
   if (config == kernelMarker) {
     for (LineException exception in afterExceptions) {

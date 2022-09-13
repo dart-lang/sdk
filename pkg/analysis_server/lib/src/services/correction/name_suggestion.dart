@@ -34,7 +34,7 @@ List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
     // If we're in a build() method, use 'build' as the name prefix.
     var method = assignedExpression?.thisOrAncestorOfType<MethodDeclaration>();
     if (method != null) {
-      var enclosingName = method.name.name;
+      var enclosingName = method.name2.lexeme;
       if (enclosingName.startsWith('build')) {
         prefix = 'build';
       }
@@ -66,7 +66,7 @@ List<String> getVariableNameSuggestionsForExpression(DartType? expectedType,
     } else if (expectedType.isDartCoreString) {
       _addSingleCharacterName(excluded, res, 0x73);
     } else if (expectedType is InterfaceType) {
-      var className = expectedType.element.name;
+      var className = expectedType.element2.name;
       _addAll(excluded, res, getCamelWordCombinations(className));
     }
   }

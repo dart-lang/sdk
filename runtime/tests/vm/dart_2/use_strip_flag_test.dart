@@ -8,7 +8,7 @@
 // ELF and assembly output. This test is currently very weak, in that it just
 // checks that the stripped version is strictly smaller than the unstripped one.
 
-// OtherResources=use_dwarf_stack_traces_flag_program.dart
+// OtherResources=use_save_debugging_info_flag_program.dart
 
 import "dart:io";
 
@@ -36,8 +36,9 @@ main(List<String> args) async {
 
   await withTempDir('strip-flag-test', (String tempDir) async {
     final cwDir = path.dirname(Platform.script.toFilePath());
-    // We can just reuse the program for the use_dwarf_stack_traces test.
-    final script = path.join(cwDir, 'use_dwarf_stack_traces_flag_program.dart');
+    // We can just reuse the program for the use_save_debugging_info_flag test.
+    final script =
+        path.join(cwDir, 'use_save_debugging_info_flag_program.dart');
     final scriptDill = path.join(tempDir, 'flag_program.dill');
 
     // Compile script to Kernel IR.

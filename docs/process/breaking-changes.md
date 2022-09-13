@@ -78,7 +78,7 @@ to a change being released in a dev channel release.
 
   * Clear steps for mitigating the change.
 
-* Email Dart Announce (`announce@dartlang.org`):
+* Email [Dart Announce][] (`announce@dartlang.org`):
 
   * Subject: 'Breaking change [bug ID]: [short summary]'
 
@@ -168,3 +168,4 @@ quickly rectify their program to either not be affected by the breaking change,
 or in some other way offer the originator a clear timeline for when the breaking
 change can be landed.
 
+[Dart Announce]: https://groups.google.com/a/dartlang.org/g/announce

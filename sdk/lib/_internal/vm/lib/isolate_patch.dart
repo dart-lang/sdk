@@ -590,7 +590,7 @@ class Isolate {
   }
 
   @patch
-  void kill({int priority: beforeNextEvent}) {
+  void kill({int priority = beforeNextEvent}) {
     var msg = new List<Object?>.filled(4, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _KILL
@@ -601,7 +601,7 @@ class Isolate {
 
   @patch
   void ping(SendPort responsePort,
-      {Object? response, int priority: immediate}) {
+      {Object? response, int priority = immediate}) {
     var msg = new List<Object?>.filled(5, null)
       ..[0] = 0 // Make room for OOM message type.
       ..[1] = _PING

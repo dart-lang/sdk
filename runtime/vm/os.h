@@ -19,7 +19,7 @@ class Zone;
 class OS {
  public:
   // Returns the name of the given OS. For example "linux".
-  static const char* Name();
+  static const char* Name() { return kHostOperatingSystemName; }
 
   // Returns the current process id.
   static intptr_t ProcessId();
@@ -33,11 +33,6 @@ class OS {
   // instant.
   // For example 3600 for CET, and 7200 for CEST.
   static int GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch);
-
-  // Returns the difference in seconds between local time and UTC when no
-  // daylight saving is active.
-  // For example 3600 in CET and CEST.
-  static int GetLocalTimeZoneAdjustmentInSeconds();
 
   // Returns the current time in milliseconds measured
   // from midnight January 1, 1970 UTC.

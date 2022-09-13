@@ -9,7 +9,7 @@ class _FilterImpl extends NativeFieldWrapperClass1 implements RawZLibFilter {
   external void process(List<int> data, int start, int end);
 
   @pragma("vm:external-name", "Filter_Processed")
-  external List<int>? processed({bool flush: true, bool end: false});
+  external List<int>? processed({bool flush = true, bool end = false});
 }
 
 class _ZLibInflateFilter extends _FilterImpl {

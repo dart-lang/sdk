@@ -301,6 +301,9 @@ class RangeBoundary : public ValueObject {
 
   int64_t SmiLowerBound() const { return LowerBound(kRangeBoundarySmi); }
 
+  void Write(FlowGraphSerializer* s) const;
+  explicit RangeBoundary(FlowGraphDeserializer* d);
+
  private:
   RangeBoundary(Kind kind, int64_t value, int64_t offset)
       : kind_(kind), value_(value), offset_(offset) {}
@@ -535,6 +538,9 @@ class Range : public ZoneAllocated {
                        const Range* right_range,
                        Definition* left_defn,
                        Range* result);
+
+  void Write(FlowGraphSerializer* s) const;
+  explicit Range(FlowGraphDeserializer* d);
 
  private:
   RangeBoundary min_;

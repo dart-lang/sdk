@@ -63,8 +63,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_JoinSuccessors) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StoreInstanceFieldInstr* store1 = nullptr;
-  StoreInstanceFieldInstr* store2 = nullptr;
+  StoreFieldInstr* store1 = nullptr;
+  StoreFieldInstr* store2 = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch({
@@ -73,9 +73,9 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_JoinSuccessors) {
       kMoveGlob,
       kMatchAndMoveBranchTrue,
       kMoveGlob,
-      {kMatchAndMoveStoreInstanceField, &store1},
+      {kMatchAndMoveStoreField, &store1},
       kMoveGlob,
-      {kMatchAndMoveStoreInstanceField, &store2},
+      {kMatchAndMoveStoreField, &store2},
   }));
 
   EXPECT(store1->ShouldEmitStoreBarrier() == false);
@@ -123,7 +123,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_AtLeastOnce) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StoreInstanceFieldInstr* store = nullptr;
+  StoreFieldInstr* store = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch({
@@ -132,7 +132,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_AtLeastOnce) {
       kMoveGlob,
       kMatchAndMoveGoto,
       kMoveGlob,
-      {kMatchAndMoveStoreInstanceField, &store},
+      {kMatchAndMoveStoreField, &store},
   }));
 
   EXPECT(store->ShouldEmitStoreBarrier() == true);
@@ -190,7 +190,7 @@ static void TestWBEForArrays(int length) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StoreInstanceFieldInstr* store_into_c = nullptr;
+  StoreFieldInstr* store_into_c = nullptr;
   StoreIndexedInstr* store_into_array_before_loop = nullptr;
   StoreIndexedInstr* store_into_array_after_loop = nullptr;
 
@@ -203,7 +203,7 @@ static void TestWBEForArrays(int length) {
       kMoveGlob,
       kMatchAndMoveBranchTrue,
       kMoveGlob,
-      {kMatchAndMoveStoreInstanceField, &store_into_c},
+      {kMatchAndMoveStoreField, &store_into_c},
       kMoveGlob,
       kMatchAndMoveGoto,
       kMoveGlob,
@@ -302,16 +302,16 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_LoadLateField) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StoreInstanceFieldInstr* store1 = nullptr;
-  StoreInstanceFieldInstr* store2 = nullptr;
+  StoreFieldInstr* store1 = nullptr;
+  StoreFieldInstr* store2 = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch(
       {
           kMatchAndMoveAllocateObject,
           kMatchAndMoveLoadField,
-          {kMatchAndMoveStoreInstanceField, &store1},
-          {kMatchAndMoveStoreInstanceField, &store2},
+          {kMatchAndMoveStoreField, &store1},
+          {kMatchAndMoveStoreField, &store2},
       },
       kMoveGlob));
 
@@ -353,16 +353,16 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_LoadLateStaticField) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StoreInstanceFieldInstr* store1 = nullptr;
-  StoreInstanceFieldInstr* store2 = nullptr;
+  StoreFieldInstr* store1 = nullptr;
+  StoreFieldInstr* store2 = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch(
       {
           kMatchAndMoveAllocateObject,
           kMatchAndMoveLoadStaticField,
-          {kMatchAndMoveStoreInstanceField, &store1},
-          {kMatchAndMoveStoreInstanceField, &store2},
+          {kMatchAndMoveStoreField, &store1},
+          {kMatchAndMoveStoreField, &store2},
       },
       kMoveGlob));
 

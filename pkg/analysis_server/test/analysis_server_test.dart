@@ -5,9 +5,9 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/noop_analytics.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -37,7 +37,7 @@ class AnalysisServerTest with ResourceProviderMixin {
   );
 
   late MockServerChannel channel;
-  late AnalysisServer server;
+  late LegacyAnalysisServer server;
 
   /// Test that having multiple analysis contexts analyze the same file doesn't
   /// cause that file to receive duplicate notifications when it's modified.
@@ -95,7 +95,7 @@ class AnalysisServerTest with ResourceProviderMixin {
       root: sdkRoot,
     );
 
-    server = AnalysisServer(
+    server = LegacyAnalysisServer(
         channel,
         resourceProvider,
         AnalysisServerOptions(),

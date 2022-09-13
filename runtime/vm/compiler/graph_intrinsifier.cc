@@ -673,8 +673,8 @@ bool GraphIntrinsifier::Build_Float64x2Add(FlowGraph* flow_graph) {
   return BuildSimdOp(flow_graph, kFloat64x2Cid, Token::kADD);
 }
 
-static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
-                                  MethodRecognizer::Kind kind) {
+static bool BuildFloat32x4Get(FlowGraph* flow_graph,
+                              MethodRecognizer::Kind kind) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles() ||
       !FlowGraphCompiler::SupportsUnboxedSimd128()) {
     return false;
@@ -702,24 +702,20 @@ static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,
   return true;
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleX(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleX);
+bool GraphIntrinsifier::Build_Float32x4GetX(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetX);
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleY(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleY);
+bool GraphIntrinsifier::Build_Float32x4GetY(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetY);
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleZ(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleZ);
+bool GraphIntrinsifier::Build_Float32x4GetZ(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetZ);
 }
 
-bool GraphIntrinsifier::Build_Float32x4ShuffleW(FlowGraph* flow_graph) {
-  return BuildFloat32x4Shuffle(flow_graph,
-                               MethodRecognizer::kFloat32x4ShuffleW);
+bool GraphIntrinsifier::Build_Float32x4GetW(FlowGraph* flow_graph) {
+  return BuildFloat32x4Get(flow_graph, MethodRecognizer::kFloat32x4GetW);
 }
 
 static bool BuildLoadField(FlowGraph* flow_graph, const Slot& field) {
@@ -876,7 +872,7 @@ bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   builder.AddInstruction(new CheckClassInstr(new Value(data), DeoptId::kNone,
                                              *value_check, builder.Source()));
 
-  builder.AddInstruction(new StoreInstanceFieldInstr(
+  builder.AddInstruction(new StoreFieldInstr(
       Slot::GrowableObjectArray_data(), new Value(growable_array),
       new Value(data), kEmitStoreBarrier, builder.Source()));
   // Return null.
@@ -898,7 +894,7 @@ bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
 
   builder.AddInstruction(
       new CheckSmiInstr(new Value(length), DeoptId::kNone, builder.Source()));
-  builder.AddInstruction(new StoreInstanceFieldInstr(
+  builder.AddInstruction(new StoreFieldInstr(
       Slot::GrowableObjectArray_length(), new Value(growable_array),
       new Value(length), kNoStoreBarrier, builder.Source()));
   Definition* null_def = builder.AddNullDefinition();
@@ -1109,7 +1105,7 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
                               /*is_checked=*/true);
   }
 
-  builder.AddInstruction(new (zone) StoreInstanceFieldInstr(
+  builder.AddInstruction(new (zone) StoreFieldInstr(
       slot, new (zone) Value(receiver), new (zone) Value(value), barrier_mode,
       builder.Source()));
 

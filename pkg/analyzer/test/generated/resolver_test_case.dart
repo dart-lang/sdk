@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -87,13 +88,13 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _checkResolved(node, node.element, (node) => node is ExportElement);
+    _checkResolved(node, node.element2, (node) => node is LibraryExportElement);
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
-    if (node.declaredElement is LibraryElement) {
+    if (node.declaredElement2 is LibraryElement) {
       _wrongTypedNodes.add(node);
     }
   }
@@ -110,7 +111,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the
     // names are not defined.
-    _checkResolved(node, node.element, (node) => node is ImportElement);
+    _checkResolved(node, node.element2, (node) => node is LibraryImportElement);
     var prefix = node.prefix;
     if (prefix == null) {
       return;
@@ -135,7 +136,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    _checkResolved(node, node.element, (node) => node is LibraryElement);
+    _checkResolved(node, node.element2, (node) => node is LibraryElement);
   }
 
   @override
@@ -146,12 +147,12 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitPartDirective(PartDirective node) {
     _checkResolved(
-        node, node.element, (node) => node is CompilationUnitElement);
+        node, node.element2, (node) => node is CompilationUnitElement);
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    _checkResolved(node, node.element, (node) => node is LibraryElement);
+    _checkResolved(node, node.element2, (node) => node is LibraryElement);
   }
 
   @override
@@ -209,6 +210,10 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == "void") {
+      return;
+    }
+
+    if (node is DeclaredSimpleIdentifier) {
       return;
     }
 

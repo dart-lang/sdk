@@ -780,6 +780,7 @@ degenerate
 degrade
 delay
 delayed
+delays
 delegate
 delegates
 delegation
@@ -1102,6 +1103,7 @@ exempt
 exercise
 exhaustive
 exist
+existent
 existing
 exists
 exit
@@ -2563,6 +2565,7 @@ reserved
 reset
 resets
 resolution
+resolutions
 resolve
 resolved
 resolver

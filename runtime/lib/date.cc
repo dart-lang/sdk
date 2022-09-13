@@ -36,11 +36,6 @@ DEFINE_NATIVE_ENTRY(DateTime_timeZoneOffsetInSeconds, 0, 1) {
   return Integer::New(offset);
 }
 
-DEFINE_NATIVE_ENTRY(DateTime_localTimeZoneAdjustmentInSeconds, 0, 0) {
-  int adjustment = OS::GetLocalTimeZoneAdjustmentInSeconds();
-  return Integer::New(adjustment);
-}
-
 DEFINE_NATIVE_ENTRY(DateTime_currentTimeMicros, 0, 0) {
   return Integer::New(OS::GetCurrentTimeMicros());
 }

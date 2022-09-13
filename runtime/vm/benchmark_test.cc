@@ -517,8 +517,8 @@ BENCHMARK(SerializeNull) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     std::unique_ptr<Message> message =
-        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                     null_object, ILLEGAL_PORT, Message::kNormalPriority);
+        WriteMessage(/* same_group */ false, null_object, ILLEGAL_PORT,
+                     Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());
@@ -538,8 +538,8 @@ BENCHMARK(SerializeSmi) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     std::unique_ptr<Message> message =
-        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                     smi_object, ILLEGAL_PORT, Message::kNormalPriority);
+        WriteMessage(/* same_group */ false, smi_object, ILLEGAL_PORT,
+                     Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());
@@ -560,9 +560,9 @@ BENCHMARK(SimpleMessage) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    std::unique_ptr<Message> message = WriteMessage(
-        /* can_send_any_object */ true, /* same_group */ false, array_object,
-        ILLEGAL_PORT, Message::kNormalPriority);
+    std::unique_ptr<Message> message =
+        WriteMessage(/* same_group */ false, array_object, ILLEGAL_PORT,
+                     Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());
@@ -592,9 +592,8 @@ BENCHMARK(LargeMap) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    std::unique_ptr<Message> message =
-        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
-                     map, ILLEGAL_PORT, Message::kNormalPriority);
+    std::unique_ptr<Message> message = WriteMessage(
+        /* same_group */ false, map, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());

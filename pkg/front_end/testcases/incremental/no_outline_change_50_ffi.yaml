@@ -8,7 +8,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         import "dart:ffi";
@@ -36,7 +35,6 @@ worlds:
     expectedLibraryCount: 4
 
   - entry: main.dart
-    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:
@@ -56,4 +54,4 @@ worlds:
     # The FFI transformation have to update the size and position of containers
     # (i.e. other structs with this Struct inside), so rebuilding only the
     # changed library doesn't work.
-    expectsRebuildBodiesOnly: false
+    advancedInvalidation: importsFfiClass

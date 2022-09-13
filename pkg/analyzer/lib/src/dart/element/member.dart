@@ -32,13 +32,27 @@ class ConstructorMember extends ExecutableMember
             const <TypeParameterElement>[]);
 
   @override
+  ConstructorAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   ConstructorElement get declaration => super.declaration as ConstructorElement;
 
   @override
   String get displayName => declaration.displayName;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
-  ClassElement get enclosingElement => declaration.enclosingElement;
+  ClassElement get enclosingElement => declaration.enclosingElement2;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  ClassElement get enclosingElement2 => declaration.enclosingElement2;
+
+  @override
+  InterfaceElement get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   bool get isConst => declaration.isConst;
@@ -327,13 +341,27 @@ class FieldMember extends VariableMember implements FieldElement {
   );
 
   @override
+  FieldAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   FieldElement get declaration => super.declaration as FieldElement;
 
   @override
   String get displayName => declaration.displayName;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
-  Element get enclosingElement => declaration.enclosingElement;
+  Element get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement3;
+
+  @override
+  Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   PropertyAccessorElement? get getter {
@@ -422,8 +450,16 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   @override
   FunctionElement get declaration => super.declaration as FunctionElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
-  Element get enclosingElement => declaration.enclosingElement;
+  Element get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement3;
+
+  @override
+  Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   bool get isDartCoreIdentical => declaration.isDartCoreIdentical;
@@ -460,7 +496,8 @@ abstract class Member implements Element {
   Member(this._typeProvider, this._declaration, this._substitution,
       this.isLegacy) {
     if (_declaration is Member) {
-      throw StateError('Members must be created from a declarations.');
+      throw StateError('Members must be created from a declaration, but is '
+          '(${_declaration.runtimeType}) "$_declaration".');
     }
     if (_typeProvider == null && isLegacy) {
       throw StateError(
@@ -480,8 +517,16 @@ abstract class Member implements Element {
   @override
   String? get documentationComment => _declaration.documentationComment;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
-  Element? get enclosingElement => _declaration.enclosingElement;
+  Element? get enclosingElement => _declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element? get enclosingElement2 => _declaration.enclosingElement3;
+
+  @override
+  Element? get enclosingElement3 => _declaration.enclosingElement3;
 
   @override
   bool get hasAlwaysThrows => _declaration.hasAlwaysThrows;
@@ -509,6 +554,9 @@ abstract class Member implements Element {
 
   @override
   bool get hasLiteral => _declaration.hasLiteral;
+
+  @override
+  bool get hasMustBeOverridden => _declaration.hasMustBeOverridden;
 
   @override
   bool get hasMustCallSuper => _declaration.hasMustCallSuper;
@@ -759,10 +807,24 @@ class MethodMember extends ExecutableMember implements MethodElement {
   );
 
   @override
-  MethodElement get declaration => super.declaration as MethodElement;
+  MethodAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
 
   @override
-  Element get enclosingElement => declaration.enclosingElement;
+  MethodElement get declaration => super.declaration as MethodElement;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement3;
+
+  @override
+  Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   String get name => declaration.name;
@@ -845,8 +907,16 @@ class ParameterMember extends VariableMember
   @override
   String? get defaultValueCode => declaration.defaultValueCode;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
-  Element? get enclosingElement => declaration.enclosingElement;
+  Element? get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element? get enclosingElement2 => declaration.enclosingElement3;
+
+  @override
+  Element? get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -957,6 +1027,12 @@ class PropertyAccessorMember extends ExecutableMember
   );
 
   @override
+  PropertyAccessorAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   PropertyAccessorElement? get correspondingGetter {
     var baseGetter = declaration.correspondingGetter;
     if (baseGetter == null) {
@@ -980,8 +1056,16 @@ class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorElement get declaration =>
       super.declaration as PropertyAccessorElement;
 
+  @Deprecated('Use enclosingElement3 instead')
   @override
-  Element get enclosingElement => declaration.enclosingElement;
+  Element get enclosingElement => declaration.enclosingElement3;
+
+  @Deprecated('Use enclosingElement3 instead')
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement3;
+
+  @override
+  Element get enclosingElement3 => declaration.enclosingElement3;
 
   @override
   bool get isGetter => declaration.isGetter;

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.58
+# Dart VM Service Protocol 3.61
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.58_ of the Dart VM Service Protocol. This
+This document describes of _version 3.61_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1997,7 +1997,7 @@ class CpuSamples extends Response {
   int pid;
 
   // A list of functions seen in the relevant samples. These references can be
-  // looked up using the indicies provided in a `CpuSample` `stack` to determine
+  // looked up using the indices provided in a `CpuSample` `stack` to determine
   // which function was on the stack.
   ProfileFunction[] functions;
 
@@ -2039,7 +2039,7 @@ class CpuSamplesEvent {
   int pid;
 
   // A list of references to functions seen in the relevant samples. These references can
-  // be looked up using the indicies provided in a `CpuSample` `stack` to determine
+  // be looked up using the indices provided in a `CpuSample` `stack` to determine
   // which function was on the stack.
   (@Object|NativeFunction)[] functions;
 
@@ -2225,6 +2225,12 @@ class Event extends Response {
   //
   // This is provided for the Inspect event.
   @Instance inspectee [optional];
+
+  // The garbage collection (GC) operation performed.
+  //
+  // This is provided for the event kinds:
+  //   GC
+  string gcType [optional];
 
   // The RPC name of the extension that was added.
   //
@@ -2596,6 +2602,9 @@ class @Function extends @Object {
   // Is this function implicitly defined (e.g., implicit getter/setter)?
   bool implicit;
 
+  // Is this function an abstract method?
+  bool abstract;
+
   // The location of this function in the source code.
   //
   // Note: this may not agree with the location of `owner` if this is a function
@@ -2627,6 +2636,9 @@ class Function extends Object {
 
   // Is this function implicitly defined (e.g., implicit getter/setter)?
   bool implicit;
+
+  // Is this function an abstract method?
+  bool abstract;
 
   // The location of this function in the source code.
   //
@@ -3162,6 +3174,9 @@ class @Isolate extends Response {
   // Specifies whether the isolate was spawned by the VM or embedder for
   // internal use. If `false`, this isolate is likely running user code.
   bool isSystemIsolate;
+
+  // The id of the isolate group that this isolate belongs to.
+  string isolateGroupId;
 }
 ```
 
@@ -3182,6 +3197,9 @@ class Isolate extends Response {
   // Specifies whether the isolate was spawned by the VM or embedder for
   // internal use. If `false`, this isolate is likely running user code.
   bool isSystemIsolate;
+
+  // The id of the isolate group that this isolate belongs to.
+  string isolateGroupId;
 
   // The list of isolate flags provided to this isolate. See Dart_IsolateFlags
   // in dart_api.h for the list of accepted isolate flags.
@@ -4372,5 +4390,8 @@ version | comments
 3.56 | Added optional `line` and `column` properties to `SourceLocation`. Added a new `SourceReportKind`, `BranchCoverage`, which reports branch level coverage information.
 3.57 | Added optional `libraryFilters` parameter to `getSourceReport` RPC.
 3.58 | Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
+3.59 | Added `abstract` property to `@Function` and `Function`.
+3.60 | Added `gcType` property to `Event`.
+3.61 | Added `isolateGroupId` property to `@Isolate` and `Isolate`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

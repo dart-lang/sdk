@@ -262,11 +262,12 @@ void f() {
 
     // Send an edit request immediately after the refactor request.
     final req1 = executeCodeAction(codeAction);
-    await replaceFile(100, mainFileUri, 'new test content');
+    final req2 = replaceFile(100, mainFileUri, 'new test content');
 
     // Expect the first to fail because of the modified content.
     await expectLater(
         req1, throwsA(isResponseError(ErrorCodes.ContentModified)));
+    await req2;
   }
 
   Future<void> test_filtersCorrectly() async {
@@ -676,9 +677,11 @@ void foo(int arg) {}
 class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
   final extractWidgetTitle = 'Extract Widget';
 
-  /// Nullability suffix expected in this test class.
-  String get expectedNullableSuffix => '?';
-
+  String get expectedNewWidgetConstructorDeclaration => '''
+const NewWidget({
+    super.key,
+  });
+''';
   @override
   void setUp() {
     super.setUp();
@@ -727,10 +730,7 @@ class MyWidget extends StatelessWidget {
 }
 
 class NewWidget extends StatelessWidget {
-  const NewWidget({
-    Key$expectedNullableSuffix key,
-  }) : super(key: key);
-
+  $expectedNewWidgetConstructorDeclaration
   @override
   Widget build(BuildContext context) {
     return new Column(
@@ -775,7 +775,11 @@ void f() {}
 class ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest
     extends ExtractWidgetRefactorCodeActionsTest {
   @override
-  String get expectedNullableSuffix => '';
+  String get expectedNewWidgetConstructorDeclaration => '''
+const NewWidget({
+    Key key,
+  }) : super(key: key);
+''';
 
   @override
   String get testPackageLanguageVersion => '2.9';

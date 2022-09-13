@@ -1,3 +1,7 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
 // @dart = 2.9
 import 'dart:async' show StreamController;
 import 'dart:convert' show utf8, LineSplitter;
@@ -13,7 +17,7 @@ import 'package:front_end/src/api_prototype/language_version.dart'
 import 'package:front_end/src/api_unstable/vm.dart'
     show CompilerOptions, NnbdMode, StandardFileSystem;
 
-import 'package:frontend_server/frontend_server.dart';
+import 'package:frontend_server/starter.dart';
 
 main(List<String> args) async {
   String flutterDir;
@@ -44,7 +48,7 @@ Future<NnbdMode> _getNNBDMode(Uri script, Uri packageConfigUri) async {
 }
 
 Future compileTests(String flutterDir, String flutterPlatformDir, Logger logger,
-    {String filter, int shards: 1, int shard: 0}) async {
+    {String filter, int shards = 1, int shard = 0}) async {
   if (flutterDir == null || !(new Directory(flutterDir).existsSync())) {
     throw "Didn't get a valid flutter directory to work with.";
   }

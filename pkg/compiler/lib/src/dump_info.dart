@@ -14,18 +14,21 @@ import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 
 import '../compiler_api.dart' as api;
 import 'common.dart';
 import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
+import 'common/ram_usage.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'dump_info_javascript_monitor.dart';
 import 'elements/entities.dart';
 import 'elements/entity_utils.dart' as entity_utils;
+import 'elements/names.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
@@ -183,11 +186,47 @@ class ElementInfoCollector {
     return classTypeInfo;
   }
 
+  /// Returns all immediately extended, implemented, or mixed-in types of
+  /// [clazz].
+  List<ClassEntity> getImmediateSupers(ClassEntity clazz) {
+    final superclass =
+        environment.getSuperClass(clazz, skipUnnamedMixinApplications: true);
+    // Ignore 'Object' to reduce overhead.
+    return [
+      if (superclass != null &&
+          superclass != closedWorld.commonElements.objectClass)
+        superclass,
+      ...closedWorld.dartTypes
+          .getInterfaces(clazz)
+          .map((i) => i.element)
+          .where((cls) => cls != null),
+    ];
+  }
+
   ClassInfo visitClass(ClassEntity clazz) {
-    // Omit class if it is not needed.
-    ClassInfo classInfo = ClassInfo(
+    // True if [info] can be safely removed from the output.
+    bool filterClassInfo(ClassInfo info) =>
+        !compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
+        info.fields.isEmpty &&
+        info.functions.isEmpty;
+
+    ClassInfo classInfo = state.entityToInfo[clazz];
+    if (classInfo != null) {
+      return filterClassInfo(classInfo) ? null : classInfo;
+    }
+    final supers = <ClassInfo>[];
+    getImmediateSupers(clazz).forEach((superInterface) {
+      final superclass =
+          environment.lookupClass(superInterface.library, superInterface.name);
+      if (superclass == null) return;
+      final classInfo = visitClass(superclass);
+      if (classInfo == null) return;
+      supers.add(classInfo);
+    });
+    classInfo = ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
+        supers: supers,
         outputUnit: _unitInfoForClass(clazz));
     state.entityToInfo[clazz] = classInfo;
 
@@ -228,9 +267,7 @@ class ElementInfoCollector {
 
     classInfo.size = size;
 
-    if (!compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
-        classInfo.fields.isEmpty &&
-        classInfo.functions.isEmpty) {
+    if (filterClassInfo(classInfo)) {
       return null;
     }
 
@@ -245,8 +282,8 @@ class ElementInfoCollector {
         size: dumpInfoTask.sizeOf(element));
     state.entityToInfo[element] = closureInfo;
 
-    FunctionEntity callMethod = closedWorld.elementEnvironment
-        .lookupClassMember(element, Identifiers.call);
+    FunctionEntity callMethod =
+        closedWorld.elementEnvironment.lookupClassMember(element, Names.call);
 
     FunctionInfo functionInfo = visitFunction(callMethod);
     if (functionInfo == null) return null;
@@ -416,11 +453,13 @@ class KernelInfoCollector {
   final JClosedWorld closedWorld;
   final DumpInfoTask dumpInfoTask;
   final state = DumpInfoStateData();
+  final ir.CoreTypes coreTypes;
 
   JElementEnvironment get environment => closedWorld.elementEnvironment;
 
   KernelInfoCollector(
-      this.component, this.compiler, this.dumpInfoTask, this.closedWorld);
+      this.component, this.compiler, this.dumpInfoTask, this.closedWorld)
+      : this.coreTypes = ir.CoreTypes(component);
 
   void run() {
     // TODO(markzipan): Add CFE constants to `state.info.constants`.
@@ -505,17 +544,39 @@ class KernelInfoCollector {
   }
 
   ClassInfo visitClass(ir.Class clazz, {ClassEntity classEntity}) {
-    // Omit class if it is not needed.
-    ClassInfo classInfo = ClassInfo(
-        name: clazz.name, isAbstract: clazz.isAbstract, outputUnit: null);
+    if (state.entityToInfo[classEntity] != null)
+      return state.entityToInfo[classEntity];
+
+    final supers = <ClassInfo>[];
+    clazz.supers.forEach((supertype) {
+      final superclass = supertype.classNode;
+      // Ignore 'Object' to reduce overhead.
+      if (superclass == coreTypes.objectClass) {
+        return;
+      }
+      final superclassLibrary =
+          environment.lookupLibrary(superclass.enclosingLibrary.importUri);
+      final superclassEntity =
+          environment.lookupClass(superclassLibrary, superclass.name);
+      if (superclassEntity == null) return;
+      ClassInfo classInfo =
+          visitClass(superclass, classEntity: superclassEntity);
+      if (classInfo != null) supers.add(classInfo);
+    });
+
+    ClassInfo classInfo = ClassInfo.fromKernel(
+        name: clazz.name, isAbstract: clazz.isAbstract, supers: supers);
+    state.entityToInfo[classEntity] = classInfo;
 
     clazz.members.forEach((ir.Member member) {
       final isSetter = member is ir.Procedure && member.isSetter;
       // clazz.members includes constructors
-      MemberEntity memberEntity = environment.lookupLocalClassMember(
-              classEntity, member.name.text,
-              setter: isSetter) ??
-          environment.lookupConstructor(classEntity, member.name.text);
+      final name = Name(member.name.text,
+          member.name.isPrivate ? member.name.library.importUri : null,
+          isSetter: isSetter);
+      MemberEntity memberEntity =
+          environment.lookupLocalClassMember(classEntity, name) ??
+              environment.lookupConstructor(classEntity, member.name.text);
       if (memberEntity == null) return;
 
       if (member.function != null) {
@@ -643,7 +704,7 @@ class KernelInfoCollector {
       final closureInfo = ClosureInfo.fromKernel(name: value.disambiguatedName);
 
       FunctionEntity callMethod = closedWorld.elementEnvironment
-          .lookupClassMember(closureClassEntity, Identifiers.call);
+          .lookupClassMember(closureClassEntity, Names.call);
       final functionInfo = visitFunction(key.function,
           functionEntity: callMethod, localFunctionInfo: value);
 
@@ -860,6 +921,17 @@ class DumpInfoAnnotator {
     final kClassInfo = kClassInfos.first;
     kernelInfo.state.entityToInfo[clazz] = kClassInfo;
 
+    /// Add synthetically injected superclasses like `Interceptor` and
+    /// `LegacyJavaScriptObject`.
+    final syntheticSuperclass = closedWorld.commonElements
+        .getDefaultSuperclass(clazz, closedWorld.nativeData);
+    if (syntheticSuperclass != closedWorld.commonElements.objectClass) {
+      final classInfo = kernelInfo.state.entityToInfo[syntheticSuperclass];
+      if (classInfo != null) {
+        kClassInfo.supers.add(classInfo);
+      }
+    }
+
     int size = dumpInfoTask.sizeOf(clazz);
     final disambiguatedMemberName = '$parentName/${clazz.name}';
     environment.forEachLocalClassMember(clazz, (member) {
@@ -924,8 +996,8 @@ class DumpInfoAnnotator {
     kClosureInfo.outputUnit = _unitInfoForClass(element);
     kClosureInfo.size = dumpInfoTask.sizeOf(element);
 
-    FunctionEntity callMethod = closedWorld.elementEnvironment
-        .lookupClassMember(element, Identifiers.call);
+    FunctionEntity callMethod =
+        closedWorld.elementEnvironment.lookupClassMember(element, Names.call);
 
     final functionInfo =
         visitFunction(callMethod, disambiguatedElementName, isClosure: true);
@@ -1234,30 +1306,32 @@ class DumpInfoTask extends CompilerTask
     return code.map((ast) => _nodeData[ast]).toList();
   }
 
-  DumpInfoStateData dumpInfo(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+  Future<DumpInfoStateData> dumpInfo(JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults) async {
     DumpInfoStateData dumpInfoState;
-    measure(() {
+    await measure(() async {
       ElementInfoCollector elementInfoCollector = ElementInfoCollector(
           compiler, this, closedWorld, globalInferenceResults)
         ..run();
 
-      dumpInfoState = buildDumpInfoData(closedWorld, elementInfoCollector);
+      dumpInfoState =
+          await buildDumpInfoData(closedWorld, elementInfoCollector);
       if (useBinaryFormat) {
         dumpInfoBinary(dumpInfoState.info);
       } else {
         dumpInfoJson(dumpInfoState.info);
       }
+      return;
     });
     return dumpInfoState;
   }
 
-  DumpInfoStateData dumpInfoNew(
+  Future<DumpInfoStateData> dumpInfoNew(
       ir.Component component,
       JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+      GlobalTypeInferenceResults globalInferenceResults) async {
     DumpInfoStateData dumpInfoState;
-    measure(() {
+    await measure(() async {
       KernelInfoCollector kernelInfoCollector =
           KernelInfoCollector(component, compiler, this, closedWorld)..run();
 
@@ -1265,7 +1339,8 @@ class DumpInfoTask extends CompilerTask
           globalInferenceResults)
         ..run();
 
-      dumpInfoState = buildDumpInfoDataNew(closedWorld, kernelInfoCollector);
+      dumpInfoState =
+          await buildDumpInfoDataNew(closedWorld, kernelInfoCollector);
       TreeShakingInfoVisitor().filter(dumpInfoState.info);
 
       if (useBinaryFormat) {
@@ -1308,8 +1383,8 @@ class DumpInfoTask extends CompilerTask
     });
   }
 
-  DumpInfoStateData buildDumpInfoData(
-      JClosedWorld closedWorld, ElementInfoCollector infoCollector) {
+  Future<DumpInfoStateData> buildDumpInfoData(
+      JClosedWorld closedWorld, ElementInfoCollector infoCollector) async {
     Stopwatch stopwatch = Stopwatch();
     stopwatch.start();
 
@@ -1371,6 +1446,7 @@ class DumpInfoTask extends CompilerTask
         entrypoint: infoCollector
             .state.entityToInfo[closedWorld.elementEnvironment.mainFunction],
         size: _programSize,
+        ramUsage: await currentHeapCapacityInMb(),
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: DateTime.now(),
@@ -1387,8 +1463,8 @@ class DumpInfoTask extends CompilerTask
     return result;
   }
 
-  DumpInfoStateData buildDumpInfoDataNew(
-      JClosedWorld closedWorld, KernelInfoCollector infoCollector) {
+  Future<DumpInfoStateData> buildDumpInfoDataNew(
+      JClosedWorld closedWorld, KernelInfoCollector infoCollector) async {
     Stopwatch stopwatch = Stopwatch();
     stopwatch.start();
 
@@ -1453,6 +1529,7 @@ class DumpInfoTask extends CompilerTask
         entrypoint: infoCollector
             .state.entityToInfo[closedWorld.elementEnvironment.mainFunction],
         size: _programSize,
+        ramUsage: await currentHeapCapacityInMb(),
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: DateTime.now(),
@@ -1641,9 +1718,11 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
   visitClass(ClassInfo info) {
     info.functions = filterDeadInfo<FunctionInfo>(info.functions);
     info.fields = filterDeadInfo<FieldInfo>(info.fields);
+    info.supers = filterDeadInfo<ClassInfo>(info.supers);
 
     info.functions.forEach(visitFunction);
     info.fields.forEach(visitField);
+    info.supers.forEach(visitClass);
   }
 
   @override
@@ -1678,6 +1757,7 @@ class TreeShakingInfoVisitor extends InfoVisitor<void> {
 
 /// Returns a fully resolved name for [info] for disambiguation.
 String fullyResolvedNameForInfo(BasicInfo info) {
+  if (info == null) return '';
   var name = info.name;
   var currentInfo = info;
   while (currentInfo.parent != null) {

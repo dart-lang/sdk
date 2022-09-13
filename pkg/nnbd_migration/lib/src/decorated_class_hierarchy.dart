@@ -21,7 +21,7 @@ class DecoratedClassHierarchy {
 
   /// Cache for speeding up the computation of
   /// [_getGenericSupertypeDecorations].
-  final Map<ClassElement, Map<ClassElement, DecoratedType>>
+  final Map<InterfaceElement, Map<InterfaceElement, DecoratedType>>
       _genericSupertypeDecorations = {};
 
   DecoratedClassHierarchy(this._variables, this._graph);
@@ -30,10 +30,10 @@ class DecoratedClassHierarchy {
   ///
   /// If the [type] is a [TypeParameterType], it will be resolved against its
   /// bound.
-  DecoratedType asInstanceOf(DecoratedType type, ClassElement? superclass) {
+  DecoratedType asInstanceOf(DecoratedType type, InterfaceElement? superclass) {
     type = _getInterfaceType(type);
     var typeType = type.type as InterfaceType;
-    var class_ = typeType.element;
+    var class_ = typeType.element2;
     if (class_ == superclass) return type;
     var result = getDecoratedSupertype(class_, superclass!);
     if (result.typeArguments.isNotEmpty && type.typeArguments.isNotEmpty) {
@@ -52,7 +52,7 @@ class DecoratedClassHierarchy {
   /// because the relationship between a class and its superclass is not
   /// nullable.
   DecoratedType getDecoratedSupertype(
-      ClassElement class_, ClassElement superclass) {
+      InterfaceElement class_, InterfaceElement superclass) {
     assert(!(class_.library.isDartCore && class_.name == 'Null'));
     if (superclass.typeParameters.isEmpty) {
       return DecoratedType(
@@ -69,8 +69,8 @@ class DecoratedClassHierarchy {
 
   /// Computes a map whose keys are all the superclasses of [class_], and whose
   /// values indicate how [class_] implements each superclass.
-  Map<ClassElement, DecoratedType> _getGenericSupertypeDecorations(
-      ClassElement class_) {
+  Map<InterfaceElement, DecoratedType> _getGenericSupertypeDecorations(
+      InterfaceElement class_) {
     var decorations = _genericSupertypeDecorations[class_];
     if (decorations == null) {
       // Call ourselves recursively to compute how each of [class_]'s direct
@@ -86,7 +86,7 @@ class DecoratedClassHierarchy {
         // this specific [superclass].
         Map<TypeParameterElement, DecoratedType?> substitution = {};
         for (int i = 0; i < supertype.typeArguments.length; i++) {
-          substitution[supertype.element.typeParameters[i]] =
+          substitution[supertype.element2.typeParameters[i]] =
               decoratedSupertype.typeArguments[i];
         }
         // Apply that substitution to the relation between [superclass] and
@@ -114,8 +114,8 @@ class DecoratedClassHierarchy {
 
     if (typeType is TypeParameterType) {
       final innerType = _getInterfaceType(
-          _variables!.decoratedTypeParameterBound(typeType.element)!);
-      return type.substitute({typeType.element: innerType});
+          _variables!.decoratedTypeParameterBound(typeType.element2)!);
+      return type.substitute({typeType.element2: innerType});
     }
 
     throw ArgumentError('$type is an unexpected type');

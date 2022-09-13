@@ -122,7 +122,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// patch are searched before searching the interface members in the origin
   /// class.
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
-      {bool isSetter: false, bool isSuper: false});
+      {bool isSetter = false, bool isSuper = false});
 
   /// Calls [f] for each constructor declared in this class.
   void forEachConstructor(void Function(String, MemberBuilder) f);
@@ -196,7 +196,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   Builder? findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
-      {bool isSetter: false}) {
+      {bool isSetter = false}) {
     if (accessingLibrary.nameOriginBuilder.origin !=
             libraryBuilder.nameOriginBuilder.origin &&
         name.startsWith("_")) {
@@ -231,13 +231,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void forEach(void f(String name, Builder builder)) {
-    scope.forEach(f);
-  }
-
-  @override
   Builder? lookupLocalMember(String name,
-      {bool setter: false, bool required: false}) {
+      {bool setter = false, bool required = false}) {
     Builder? builder = scope.lookupLocalMember(name, setter: setter);
     if (builder == null && isPatch) {
       builder = origin.scope.lookupLocalMember(name, setter: setter);
@@ -390,7 +385,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
-      {bool isSetter: false, bool isSuper: false}) {
+      {bool isSetter = false, bool isSuper = false}) {
     Class? instanceClass = cls;
     if (isPatch) {
       assert(identical(instanceClass, origin.cls),

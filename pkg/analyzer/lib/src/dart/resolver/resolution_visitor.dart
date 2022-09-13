@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
+import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_walker.dart';
@@ -64,6 +65,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   final ErrorReporter _errorReporter;
   final AstRewriter _astRewriter;
   final NamedTypeResolver _namedTypeResolver;
+  final RecordTypeAnnotationResolver _recordTypeResolver;
 
   /// This index is incremented every time we visit a [LibraryDirective].
   /// There is just one [LibraryElement], so we can support only one node.
@@ -110,6 +112,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       errorReporter,
     );
 
+    final recordTypeResolver = RecordTypeAnnotationResolver(
+      typeProvider: typeProvider,
+      errorReporter: errorReporter,
+    );
+
     return ResolutionVisitor._(
       libraryElement,
       typeProvider,
@@ -118,6 +125,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       errorReporter,
       AstRewriter(errorReporter, typeProvider),
       namedTypeResolver,
+      recordTypeResolver,
       nameScope,
       elementWalker,
       ElementHolder(unitElement),
@@ -132,6 +140,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._errorReporter,
     this._astRewriter,
     this._namedTypeResolver,
+    this._recordTypeResolver,
     this._nameScope,
     this._elementWalker,
     this._elementHolder,
@@ -146,6 +155,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
     _withElementWalker(null, () {
       super.visitAnnotation(node);
+    });
+  }
+
+  @override
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    final element = node.element2;
+    if (element is AugmentationImportElementImpl) {
+      _setOrCreateMetadataElements(element, node.metadata);
+    }
+
+    _withElementWalker(null, () {
+      super.visitAugmentationImportDirective(node);
     });
   }
 
@@ -169,16 +190,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     exceptionTypeNode?.accept(this);
 
     _withNameScope(() {
-      var exceptionNode = node.exceptionParameter;
+      var exceptionNode = node.exceptionParameter2;
       if (exceptionNode != null) {
         var element = LocalVariableElementImpl(
-          exceptionNode.name,
-          exceptionNode.offset,
+          exceptionNode.name.lexeme,
+          exceptionNode.name.offset,
         );
         _elementHolder.enclose(element);
         _define(element);
 
-        exceptionNode.staticElement = element;
+        exceptionNode.declaredElement = element;
+        exceptionNode.nameNode.staticElement = element;
 
         element.isFinal = true;
         if (exceptionTypeNode == null) {
@@ -186,31 +208,38 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           var type =
               _isNonNullableByDefault ? _typeProvider.objectType : _dynamicType;
           element.type = type;
-          exceptionNode.staticType = type;
+          exceptionNode.nameNode.staticType = type;
         } else {
           element.type = exceptionTypeNode.typeOrThrow;
-          exceptionNode.staticType = exceptionTypeNode.type;
+          exceptionNode.nameNode.staticType = exceptionTypeNode.type;
         }
 
-        _setCodeRange(element, exceptionNode);
+        element.setCodeRange(
+          exceptionNode.name.offset,
+          exceptionNode.name.length,
+        );
       }
 
-      var stackTraceNode = node.stackTraceParameter;
+      var stackTraceNode = node.stackTraceParameter2;
       if (stackTraceNode != null) {
         var element = LocalVariableElementImpl(
-          stackTraceNode.name,
-          stackTraceNode.offset,
+          stackTraceNode.name.lexeme,
+          stackTraceNode.name.offset,
         );
         _elementHolder.enclose(element);
         _define(element);
 
-        stackTraceNode.staticElement = element;
+        stackTraceNode.declaredElement = element;
+        stackTraceNode.nameNode.staticElement = element;
 
         element.isFinal = true;
         element.type = _typeProvider.stackTraceType;
-        stackTraceNode.staticType = _typeProvider.stackTraceType;
+        stackTraceNode.nameNode.staticType = _typeProvider.stackTraceType;
 
-        _setCodeRange(element, stackTraceNode);
+        element.setCodeRange(
+          stackTraceNode.name.offset,
+          stackTraceNode.name.length,
+        );
       }
 
       node.body.accept(this);
@@ -220,7 +249,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
-    node.name.staticElement = element;
+    node.declaredElement2 = element;
     _namedTypeResolver.enclosingClass = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -255,7 +284,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
-    node.name.staticElement = element;
+    node.declaredElement2 = element;
     _namedTypeResolver.enclosingClass = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -282,8 +311,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElementImpl element = _elementWalker!.getConstructor();
-    (node as ConstructorDeclarationImpl).declaredElement = element;
-    node.name?.staticElement = element;
+    (node as ConstructorDeclarationImpl).declaredElement2 = element;
+    node.declaredElement2 = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -310,10 +339,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(covariant DeclaredIdentifierImpl node) {
-    var nameNode = node.identifier;
-    var element = LocalVariableElementImpl(nameNode.name, nameNode.offset);
+    var nameToken = node.name;
+    var element = LocalVariableElementImpl(nameToken.lexeme, nameToken.offset);
     _elementHolder.enclose(element);
-    nameNode.staticElement = element;
+    node.declaredElement2 = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -334,14 +363,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
     var normalParameter = node.parameter;
-    var nameNode = normalParameter.identifier;
+    var nameToken = normalParameter.name;
 
     ParameterElementImpl element;
     if (_elementWalker != null) {
       element = _elementWalker!.getParameter();
     } else {
-      var name = nameNode?.name ?? '';
-      var nameOffset = nameNode?.offset ?? -1;
+      var name = nameToken?.lexeme ?? '';
+      var nameOffset = nameToken?.offset ?? -1;
       if (node.parameter is FieldFormalParameter) {
         // Only for recovery, this should not happen in valid code.
         element = DefaultFieldFormalParameterElementImpl(
@@ -369,10 +398,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (normalParameter is SimpleFormalParameterImpl) {
-      normalParameter.declaredElement = element;
-    }
-    nameNode?.staticElement = element;
+    normalParameter.declaredElement = element;
+    node.declaredElement = element;
 
     normalParameter.accept(this);
 
@@ -389,8 +416,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(
       covariant EnumConstantDeclarationImpl node) {
-    var element = _elementWalker!.getVariable();
-    node.name.staticElement = element;
+    var element = _elementWalker!.getVariable() as ConstFieldElementImpl;
+    node.declaredElement2 = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -407,7 +434,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     EnumElementImpl element = _elementWalker!.getEnum();
-    node.name.staticElement = element;
+    node.declaredElement2 = element;
     _namedTypeResolver.enclosingClass = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -432,8 +459,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    var element = node.element;
-    if (element is ExportElementImpl) {
+    var element = node.element2;
+    if (element is LibraryExportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
 
@@ -445,8 +472,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var element = _elementWalker!.getExtension();
-    (node as ExtensionDeclarationImpl).declaredElement = element;
-    node.name?.staticElement = element;
+    (node as ExtensionDeclarationImpl).declaredElement2 = element;
+    node.declaredElement2 = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -469,15 +496,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement as FieldFormalParameterElementImpl;
     } else {
-      var nameNode = node.identifier;
+      var nameToken = node.name;
       if (_elementWalker != null) {
         element =
             _elementWalker!.getParameter() as FieldFormalParameterElementImpl;
       } else {
         // Only for recovery, this should not happen in valid code.
         element = FieldFormalParameterElementImpl(
-          name: nameNode.name,
-          nameOffset: nameNode.offset,
+          name: nameToken.lexeme,
+          nameOffset: nameToken.offset,
           parameterKind: node.kind,
         );
         _elementHolder.enclose(element);
@@ -486,7 +513,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = node.isFinal;
         _setCodeRange(element, node);
       }
-      nameNode.staticElement = element;
+      node.declaredElement = element;
     }
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -528,9 +555,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element = node.isGetter || node.isSetter
           ? _elementWalker!.getAccessor()
           : _elementWalker!.getFunction();
-      node.name.staticElement = element;
+      node.declaredElement2 = element;
     } else {
-      element = node.declaredElement as ExecutableElementImpl;
+      element = node.declaredElement2 as ExecutableElementImpl;
 
       _setCodeRange(element, node);
       setElementDocumentationComment(element, node);
@@ -628,7 +655,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     var element = _elementWalker!.getTypedef();
-    node.name.staticElement = element;
+    node.declaredElement2 = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -650,13 +677,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement as ParameterElementImpl;
     } else {
-      var nameNode = node.identifier;
+      var nameToken = node.name;
       if (_elementWalker != null) {
         element = _elementWalker!.getParameter();
       } else {
         element = ParameterElementImpl(
-          name: nameNode.name,
-          nameOffset: nameNode.offset,
+          name: nameToken.lexeme,
+          nameOffset: nameToken.offset,
           parameterKind: node.kind,
         );
         _elementHolder.addParameter(element);
@@ -665,7 +692,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = node.isFinal;
         _setCodeRange(element, node);
       }
-      nameNode.staticElement = element;
+      node.declaredElement = element;
     }
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -742,7 +769,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     var element = _elementWalker!.getTypedef();
-    node.name.staticElement = element;
+    node.declaredElement2 = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -757,8 +784,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var element = node.element;
-    if (element is ImportElementImpl) {
+    var element = node.element2;
+    if (element is LibraryImportElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
 
@@ -815,9 +842,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    final element = node.element2;
+    if (element is LibraryOrAugmentationElementImpl) {
+      _setOrCreateMetadataElements(element, node.metadata);
+    }
+
+    _withElementWalker(null, () {
+      super.visitLibraryAugmentationDirective(node);
+    });
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     ++_libraryDirectiveIndex;
-    var element = node.element;
+    var element = node.element2;
     if (element is LibraryElementImpl && _libraryDirectiveIndex == 1) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
@@ -832,7 +871,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     ExecutableElementImpl element = node.isGetter || node.isSetter
         ? _elementWalker!.getAccessor()
         : _elementWalker!.getFunction();
-    node.name.staticElement = element;
+    node.declaredElement2 = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -855,7 +894,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(covariant MethodInvocationImpl node) {
     var newNode = _astRewriter.methodInvocation(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
@@ -867,7 +906,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var element = _elementWalker!.getMixin();
-    node.name.staticElement = element;
+    node.declaredElement2 = element as MixinElementImpl;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -900,8 +939,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    var element = node.element;
-    if (element is CompilationUnitElementImpl) {
+    var element = node.element2;
+    if (element is PartElementImpl) {
       _setOrCreateMetadataElements(element, node.metadata);
     }
 
@@ -918,7 +957,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     var newNode = _astRewriter.prefixedIdentifier(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
@@ -928,7 +967,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
+  void visitPropertyAccess(covariant PropertyAccessImpl node) {
     var newNode = _astRewriter.propertyAccess(_nameScope, node);
     if (newNode != node) {
       return newNode.accept(this);
@@ -938,19 +977,25 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
+    node.visitChildren(this);
+    _recordTypeResolver.resolve(node);
+  }
+
+  @override
   void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     ParameterElementImpl element;
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement as ParameterElementImpl;
     } else {
-      var nameNode = node.identifier;
+      var nameToken = node.name;
       if (_elementWalker != null) {
         element = _elementWalker!.getParameter();
       } else {
-        if (nameNode != null) {
+        if (nameToken != null) {
           element = ParameterElementImpl(
-            name: nameNode.name,
-            nameOffset: nameNode.offset,
+            name: nameToken.lexeme,
+            nameOffset: nameToken.offset,
             parameterKind: node.kind,
           );
         } else {
@@ -971,7 +1016,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         }
         node.declaredElement = element;
       }
-      nameNode?.staticElement = element;
       node.declaredElement = element;
     }
 
@@ -989,15 +1033,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (node.parent is DefaultFormalParameter) {
       element = node.declaredElement as SuperFormalParameterElementImpl;
     } else {
-      var nameNode = node.identifier;
+      var nameToken = node.name;
       if (_elementWalker != null) {
         element =
             _elementWalker!.getParameter() as SuperFormalParameterElementImpl;
       } else {
         // Only for recovery, this should not happen in valid code.
         element = SuperFormalParameterElementImpl(
-          name: nameNode.name,
-          nameOffset: nameNode.offset,
+          name: nameToken.lexeme,
+          nameOffset: nameToken.offset,
           parameterKind: node.kind,
         );
         _elementHolder.enclose(element);
@@ -1006,7 +1050,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = node.isFinal;
         _setCodeRange(element, node);
       }
-      nameNode.staticElement = element;
+      node.declaredElement = element;
     }
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -1060,7 +1104,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    var element = node.declaredElement as TypeParameterElementImpl;
+    var element = node.declaredElement2 as TypeParameterElementImpl;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -1080,9 +1124,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     VariableElementImpl element;
     if (_elementWalker != null) {
       element = _elementWalker!.getVariable();
-      node.name.staticElement = element;
+      node.declaredElement2 = element;
     } else {
-      var localElement = node.declaredElement as LocalVariableElementImpl;
+      var localElement = node.declaredElement2 as LocalVariableElementImpl;
       element = localElement;
 
       var varList = node.parent as VariableDeclarationList;
@@ -1124,7 +1168,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variables = node.variables;
     for (var i = 0; i < variables.length; i++) {
       var variable = variables[i];
-      var element = variable.declaredElement as ElementImpl;
+      var element = variable.declaredElement2 as ElementImpl;
       _setOrCreateMetadataElements(element, annotations, visitNodes: false);
 
       var offset = (i == 0 ? node.parent! : variable).offset;
@@ -1164,9 +1208,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _buildLocalFunctionElement(
       covariant FunctionDeclarationStatementImpl statement) {
     var node = statement.functionDeclaration;
-    var nameNode = node.name;
-    var element = FunctionElementImpl(nameNode.name, nameNode.offset);
-    nameNode.staticElement = element;
+    var nameToken = node.name2;
+    var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
+    node.declaredElement2 = element;
     _define(element);
     _elementHolder.enclose(element);
   }
@@ -1177,21 +1221,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var isLate = variableList.isLate;
     for (var variable in variableList.variables) {
       variable as VariableDeclarationImpl;
-      var variableName = variable.name;
+      var nameToken = variable.name2;
 
       LocalVariableElementImpl element;
       if (isConst && variable.initializer != null) {
         element = ConstLocalVariableElementImpl(
-          variableName.name,
-          variableName.offset,
+          nameToken.lexeme,
+          nameToken.offset,
         );
       } else {
         element = LocalVariableElementImpl(
-          variableName.name,
-          variableName.offset,
+          nameToken.lexeme,
+          nameToken.offset,
         );
       }
-      variableName.staticElement = element;
+      variable.declaredElement2 = element;
       _elementHolder.enclose(element);
       _define(element);
 
@@ -1209,18 +1253,20 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     for (var typeParameter in typeParameterList.typeParameters) {
       typeParameter as TypeParameterImpl;
-      var name = typeParameter.name;
+      var name = typeParameter.name2;
 
       TypeParameterElementImpl element;
       if (_elementWalker != null) {
         element = _elementWalker!.getTypeParameter();
       } else {
-        element = TypeParameterElementImpl(name.name, name.offset);
+        element = TypeParameterElementImpl(name.lexeme, name.offset);
         _elementHolder.addTypeParameter(element);
 
         _setCodeRange(element, typeParameter);
       }
-      name.staticElement = element;
+      typeParameter.declaredElement2 = element;
+      // ignore: deprecated_member_use_from_same_package
+      typeParameter.name.staticElement = element;
       _define(element);
       _setOrCreateMetadataElements(element, typeParameter.metadata);
     }
@@ -1317,8 +1363,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
-      ClassElement element = type.element;
-      if (element.isEnum || element.isMixin && asClass) {
+      final element = type.element2;
+      if (element is EnumElement || element is MixinElement && asClass) {
         _errorReporter.reportErrorForNode(errorCode, namedType);
         return;
       }

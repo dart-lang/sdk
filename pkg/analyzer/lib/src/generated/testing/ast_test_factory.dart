@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 /// The class `AstTestFactory` defines utility methods that can be used to
@@ -30,22 +29,6 @@ import 'package:meta/meta.dart';
 /// rather than 'integerLiteral'.
 @internal
 class AstTestFactory {
-  static AnnotationImpl annotation(Identifier name) => astFactory.annotation(
-      atSign: TokenFactory.tokenFromType(TokenType.AT), name: name);
-
-  static AnnotationImpl annotation2(Identifier name,
-          SimpleIdentifier? constructorName, ArgumentList arguments,
-          {TypeArgumentList? typeArguments}) =>
-      astFactory.annotation(
-          atSign: TokenFactory.tokenFromType(TokenType.AT),
-          name: name,
-          typeArguments: typeArguments,
-          period: constructorName == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.PERIOD),
-          constructorName: constructorName,
-          arguments: arguments);
-
   static ArgumentListImpl argumentList(
           [List<Expression> arguments = const []]) =>
       ArgumentListImpl(
@@ -61,72 +44,6 @@ class AstTestFactory {
         operator: TokenFactory.tokenFromType(operator),
         rightHandSide: rightHandSide as ExpressionImpl,
       );
-
-  static BlockFunctionBodyImpl asyncBlockFunctionBody(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-          null,
-          block(statements));
-
-  static ExpressionFunctionBodyImpl asyncExpressionFunctionBody(
-          Expression expression) =>
-      astFactory.expressionFunctionBody2(
-        keyword:
-            TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-        star: null,
-        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
-        expression: expression,
-        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-      );
-
-  static BlockFunctionBodyImpl asyncGeneratorBlockFunctionBody(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-          TokenFactory.tokenFromType(TokenType.STAR),
-          block(statements));
-
-  static ExpressionFunctionBodyImpl asyncGeneratorExpressionFunctionBody(
-          Expression expression) =>
-      astFactory.expressionFunctionBody2(
-        keyword:
-            TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-        star: TokenFactory.tokenFromType(TokenType.STAR),
-        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
-        expression: expression,
-        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-      );
-
-  static BlockImpl block([List<Statement> statements = const []]) =>
-      astFactory.block(
-          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          statements,
-          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static BlockFunctionBodyImpl blockFunctionBody(Block block) =>
-      astFactory.blockFunctionBody(null, null, block);
-
-  static BlockFunctionBodyImpl blockFunctionBody2(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(null, null, block(statements));
-
-  static BooleanLiteralImpl booleanLiteral(
-          bool value) =>
-      astFactory.booleanLiteral(
-          value
-              ? TokenFactory.tokenFromKeyword(Keyword.TRUE)
-              : TokenFactory.tokenFromKeyword(Keyword.FALSE),
-          value);
-
-  static BreakStatementImpl breakStatement() => astFactory.breakStatement(
-      TokenFactory.tokenFromKeyword(Keyword.BREAK),
-      null,
-      TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static BreakStatementImpl breakStatement2(String label) =>
-      astFactory.breakStatement(TokenFactory.tokenFromKeyword(Keyword.BREAK),
-          identifier3(label), TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static IndexExpressionImpl cascadedIndexExpression(Expression index) =>
       astFactory.indexExpressionForCascade2(
@@ -152,55 +69,6 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD),
           identifier3(propertyName));
 
-  static CascadeExpressionImpl cascadeExpression(Expression target,
-      [List<Expression> cascadeSections = const []]) {
-    var cascade = astFactory.cascadeExpression(target, cascadeSections);
-    cascade.target.endToken.next = cascadeSections.first.beginToken;
-    return cascade;
-  }
-
-  static CatchClauseImpl catchClause(String exceptionParameter,
-          [List<Statement> statements = const []]) =>
-      catchClause5(null, exceptionParameter, null, statements);
-
-  static CatchClauseImpl catchClause2(
-          String exceptionParameter, String stackTraceParameter,
-          [List<Statement> statements = const []]) =>
-      catchClause5(null, exceptionParameter, stackTraceParameter, statements);
-
-  static CatchClauseImpl catchClause3(TypeAnnotation exceptionType,
-          [List<Statement> statements = const []]) =>
-      catchClause5(exceptionType, null, null, statements);
-
-  static CatchClauseImpl catchClause4(
-          TypeAnnotation exceptionType, String exceptionParameter,
-          [List<Statement> statements = const []]) =>
-      catchClause5(exceptionType, exceptionParameter, null, statements);
-
-  static CatchClauseImpl catchClause5(TypeAnnotation? exceptionType,
-          String? exceptionParameter, String? stackTraceParameter,
-          [List<Statement> statements = const []]) =>
-      astFactory.catchClause(
-          exceptionType == null
-              ? null
-              : TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "on"),
-          exceptionType,
-          exceptionParameter == null
-              ? null
-              : TokenFactory.tokenFromKeyword(Keyword.CATCH),
-          exceptionParameter == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          exceptionParameter == null ? null : identifier3(exceptionParameter),
-          stackTraceParameter == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.COMMA),
-          stackTraceParameter == null ? null : identifier3(stackTraceParameter),
-          exceptionParameter == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          block(statements));
-
   static ClassDeclarationImpl classDeclaration(
           Keyword? abstractKeyword,
           String name,
@@ -211,23 +79,25 @@ class AstTestFactory {
           {List<ClassMember> members = const [],
           bool isMacro = false,
           bool isAugmentation = false}) =>
-      astFactory.classDeclaration(
-          null,
-          null,
-          abstractKeyword == null
+      ClassDeclarationImpl(
+          comment: null,
+          metadata: null,
+          abstractKeyword: abstractKeyword == null
               ? null
               : TokenFactory.tokenFromKeyword(abstractKeyword),
-          isMacro ? TokenFactory.tokenFromString('macro') : null,
-          isAugmentation ? TokenFactory.tokenFromString('augment') : null,
-          TokenFactory.tokenFromKeyword(Keyword.CLASS),
-          identifier3(name),
-          typeParameters,
-          extendsClause,
-          withClause,
-          implementsClause,
-          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          members,
-          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+          macroKeyword: isMacro ? TokenFactory.tokenFromString('macro') : null,
+          augmentKeyword:
+              isAugmentation ? TokenFactory.tokenFromString('augment') : null,
+          classKeyword: TokenFactory.tokenFromKeyword(Keyword.CLASS),
+          name: identifier3(name),
+          typeParameters: typeParameters as TypeParameterListImpl?,
+          extendsClause: extendsClause as ExtendsClauseImpl?,
+          withClause: withClause as WithClauseImpl?,
+          implementsClause: implementsClause as ImplementsClauseImpl?,
+          leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          members: members,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static ClassTypeAliasImpl classTypeAlias(
           String name,
@@ -238,22 +108,24 @@ class AstTestFactory {
           ImplementsClause? implementsClause,
           {bool isMacro = false,
           bool isAugmentation = false}) =>
-      astFactory.classTypeAlias(
-          null,
-          null,
-          TokenFactory.tokenFromKeyword(Keyword.CLASS),
-          identifier3(name),
-          typeParameters,
-          TokenFactory.tokenFromType(TokenType.EQ),
-          abstractKeyword == null
-              ? null
-              : TokenFactory.tokenFromKeyword(abstractKeyword),
-          isMacro ? TokenFactory.tokenFromString('macro') : null,
-          isAugmentation ? TokenFactory.tokenFromString('augment') : null,
-          superclass,
-          withClause,
-          implementsClause,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      ClassTypeAliasImpl(
+        comment: null,
+        metadata: null,
+        typedefKeyword: TokenFactory.tokenFromKeyword(Keyword.CLASS),
+        name: identifier3(name),
+        typeParameters: typeParameters as TypeParameterListImpl?,
+        equals: TokenFactory.tokenFromType(TokenType.EQ),
+        abstractKeyword: abstractKeyword == null
+            ? null
+            : TokenFactory.tokenFromKeyword(abstractKeyword),
+        macroKeyword: isMacro ? TokenFactory.tokenFromString('macro') : null,
+        augmentKeyword:
+            isAugmentation ? TokenFactory.tokenFromString('augment') : null,
+        superclass: superclass as NamedTypeImpl,
+        withClause: withClause as WithClauseImpl,
+        implementsClause: implementsClause as ImplementsClauseImpl?,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static CompilationUnitImpl compilationUnit() =>
       compilationUnit8(null, [], []);
@@ -309,36 +181,31 @@ class AstTestFactory {
           featureSet: featureSet,
           lineInfo: LineInfo.fromContent(''));
 
-  static ConditionalExpressionImpl conditionalExpression(Expression condition,
-          Expression thenExpression, Expression elseExpression) =>
-      astFactory.conditionalExpression(
-          condition,
-          TokenFactory.tokenFromType(TokenType.QUESTION),
-          thenExpression,
-          TokenFactory.tokenFromType(TokenType.COLON),
-          elseExpression);
-
   static ConstructorDeclarationImpl constructorDeclaration(
           Identifier returnType,
           String? name,
           FormalParameterList parameters,
           List<ConstructorInitializer> initializers) =>
-      astFactory.constructorDeclaration(
-          null,
-          null,
-          TokenFactory.tokenFromKeyword(Keyword.EXTERNAL),
-          null,
-          null,
-          returnType,
-          name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
-          name == null ? null : identifier3(name),
-          parameters,
-          initializers.isEmpty
-              ? null
-              : TokenFactory.tokenFromType(TokenType.PERIOD),
-          initializers,
-          null,
-          emptyFunctionBody());
+      ConstructorDeclarationImpl(
+        comment: null,
+        metadata: null,
+        externalKeyword: TokenFactory.tokenFromKeyword(Keyword.EXTERNAL),
+        constKeyword: null,
+        factoryKeyword: null,
+        returnType: returnType as IdentifierImpl,
+        period:
+            name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
+        name: name == null ? null : identifier3(name),
+        parameters: parameters as FormalParameterListImpl,
+        separator: initializers.isEmpty
+            ? null
+            : TokenFactory.tokenFromType(TokenType.PERIOD),
+        initializers: initializers,
+        redirectedConstructor: null,
+        body: EmptyFunctionBodyImpl(
+          semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+        ),
+      );
 
   static ConstructorDeclarationImpl constructorDeclaration2(
           Keyword? constKeyword,
@@ -348,49 +215,28 @@ class AstTestFactory {
           FormalParameterList parameters,
           List<ConstructorInitializer> initializers,
           FunctionBody body) =>
-      astFactory.constructorDeclaration(
-          null,
-          null,
-          null,
-          constKeyword == null
-              ? null
-              : TokenFactory.tokenFromKeyword(constKeyword),
-          factoryKeyword == null
-              ? null
-              : TokenFactory.tokenFromKeyword(factoryKeyword),
-          returnType,
-          name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
-          name == null ? null : identifier3(name),
-          parameters,
-          initializers.isEmpty
-              ? null
-              : TokenFactory.tokenFromType(TokenType.PERIOD),
-          initializers,
-          null,
-          body);
-
-  static ConstructorFieldInitializerImpl constructorFieldInitializer(
-          bool prefixedWithThis, String fieldName, Expression expression) =>
-      astFactory.constructorFieldInitializer(
-          prefixedWithThis ? TokenFactory.tokenFromKeyword(Keyword.THIS) : null,
-          prefixedWithThis
-              ? TokenFactory.tokenFromType(TokenType.PERIOD)
-              : null,
-          identifier3(fieldName),
-          TokenFactory.tokenFromType(TokenType.EQ),
-          expression);
-
-  static ConstructorNameImpl constructorName(NamedType type, String? name) =>
-      astFactory.constructorName(
-          type,
-          name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
-          name == null ? null : identifier3(name));
-
-  static ContinueStatementImpl continueStatement([String? label]) =>
-      astFactory.continueStatement(
-          TokenFactory.tokenFromKeyword(Keyword.CONTINUE),
-          label == null ? null : identifier3(label),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      ConstructorDeclarationImpl(
+        comment: null,
+        metadata: null,
+        externalKeyword: null,
+        constKeyword: constKeyword == null
+            ? null
+            : TokenFactory.tokenFromKeyword(constKeyword),
+        factoryKeyword: factoryKeyword == null
+            ? null
+            : TokenFactory.tokenFromKeyword(factoryKeyword),
+        returnType: returnType as IdentifierImpl,
+        period:
+            name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
+        name: name == null ? null : identifier3(name),
+        parameters: parameters as FormalParameterListImpl,
+        separator: initializers.isEmpty
+            ? null
+            : TokenFactory.tokenFromType(TokenType.PERIOD),
+        initializers: initializers,
+        redirectedConstructor: null,
+        body: body as FunctionBodyImpl,
+      );
 
   static DeclaredIdentifierImpl declaredIdentifier(
           Keyword keyword, String identifier) =>
@@ -398,12 +244,14 @@ class AstTestFactory {
 
   static DeclaredIdentifierImpl declaredIdentifier2(
           Keyword? keyword, TypeAnnotation? type, String identifier) =>
-      astFactory.declaredIdentifier(
-          null,
-          null,
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          type,
-          identifier3(identifier));
+      DeclaredIdentifierImpl(
+        comment: null,
+        metadata: null,
+        keyword:
+            keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+        type: type as TypeAnnotationImpl?,
+        identifier: identifier3(identifier),
+      );
 
   static DeclaredIdentifierImpl declaredIdentifier3(String identifier) =>
       declaredIdentifier2(Keyword.VAR, null, identifier);
@@ -417,50 +265,22 @@ class AstTestFactory {
     return astFactory.documentationComment(tokens, references);
   }
 
-  static DoStatementImpl doStatement(Statement body, Expression condition) =>
-      astFactory.doStatement(
-          TokenFactory.tokenFromKeyword(Keyword.DO),
-          body,
-          TokenFactory.tokenFromKeyword(Keyword.WHILE),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          condition,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static DoubleLiteralImpl doubleLiteral(double value) => astFactory
-      .doubleLiteral(TokenFactory.tokenFromString(value.toString()), value);
-
-  static EmptyFunctionBodyImpl emptyFunctionBody() => astFactory
-      .emptyFunctionBody(TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static EmptyStatementImpl emptyStatement() => astFactory
-      .emptyStatement(TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
   static ExportDirectiveImpl exportDirective(
           List<Annotation> metadata, String uri,
           [List<Combinator> combinators = const []]) =>
-      astFactory.exportDirective(
-          null,
-          metadata,
-          TokenFactory.tokenFromKeyword(Keyword.EXPORT),
-          string2(uri),
-          null,
-          combinators,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      ExportDirectiveImpl(
+        comment: null,
+        metadata: metadata,
+        exportKeyword: TokenFactory.tokenFromKeyword(Keyword.EXPORT),
+        uri: string2(uri),
+        configurations: null,
+        combinators: combinators,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static ExportDirectiveImpl exportDirective2(String uri,
           [List<Combinator> combinators = const []]) =>
       exportDirective([], uri, combinators);
-
-  static ExpressionFunctionBodyImpl expressionFunctionBody(
-          Expression expression) =>
-      astFactory.expressionFunctionBody2(
-        keyword: null,
-        star: null,
-        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
-        expression: expression,
-        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
-      );
 
   static ExpressionStatementImpl expressionStatement(Expression expression) =>
       astFactory.expressionStatement(
@@ -477,23 +297,23 @@ class AstTestFactory {
           ShowClause? showClause,
           HideClause? hideClause,
           List<ClassMember> members = const []}) =>
-      astFactory.extensionDeclaration(
-          comment: null,
-          metadata: null,
-          extensionKeyword: TokenFactory.tokenFromKeyword(Keyword.EXTENSION),
-          typeKeyword: isExtensionTypeDeclaration
-              ? TokenFactory.tokenFromString('type')
-              : null,
-          name: identifier3(name),
-          typeParameters: typeParameters,
-          onKeyword: TokenFactory.tokenFromKeyword(Keyword.ON),
-          extendedType: extendedType,
-          showClause: showClause,
-          hideClause: hideClause,
-          leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          members: members,
-          rightBracket:
-              TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+      ExtensionDeclarationImpl(
+        comment: null,
+        metadata: null,
+        extensionKeyword: TokenFactory.tokenFromKeyword(Keyword.EXTENSION),
+        typeKeyword: isExtensionTypeDeclaration
+            ? TokenFactory.tokenFromString('type')
+            : null,
+        name: identifier3(name),
+        typeParameters: typeParameters as TypeParameterListImpl?,
+        onKeyword: TokenFactory.tokenFromKeyword(Keyword.ON),
+        extendedType: extendedType as TypeAnnotationImpl,
+        showClause: showClause as ShowClauseImpl?,
+        hideClause: hideClause as HideClauseImpl?,
+        leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+        members: members,
+        rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
+      );
 
   static ExtensionOverrideImpl extensionOverride(
           {required Identifier extensionName,
@@ -507,17 +327,20 @@ class AstTestFactory {
   static FieldDeclarationImpl fieldDeclaration(bool isStatic, Keyword? keyword,
           TypeAnnotation? type, List<VariableDeclaration> variables,
           {bool isAbstract = false, bool isExternal = false}) =>
-      astFactory.fieldDeclaration2(
-          abstractKeyword: isAbstract
-              ? TokenFactory.tokenFromKeyword(Keyword.ABSTRACT)
-              : null,
-          externalKeyword: isExternal
-              ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL)
-              : null,
-          staticKeyword:
-              isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
-          fieldList: variableDeclarationList(keyword, type, variables),
-          semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      FieldDeclarationImpl(
+        comment: null,
+        metadata: null,
+        augmentKeyword: null,
+        covariantKeyword: null,
+        abstractKeyword:
+            isAbstract ? TokenFactory.tokenFromKeyword(Keyword.ABSTRACT) : null,
+        externalKeyword:
+            isExternal ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL) : null,
+        staticKeyword:
+            isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
+        fieldList: variableDeclarationList(keyword, type, variables),
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static FieldDeclarationImpl fieldDeclaration2(bool isStatic, Keyword? keyword,
           List<VariableDeclaration> variables) =>
@@ -609,15 +432,17 @@ class AstTestFactory {
           Keyword? keyword,
           String name,
           FunctionExpression functionExpression) =>
-      astFactory.functionDeclaration(
-          null,
-          null,
-          null,
-          null,
-          type,
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          identifier3(name),
-          functionExpression);
+      FunctionDeclarationImpl(
+        comment: null,
+        metadata: null,
+        augmentKeyword: null,
+        externalKeyword: null,
+        returnType: type as TypeAnnotationImpl?,
+        propertyKeyword:
+            keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+        name: identifier3(name),
+        functionExpression: functionExpression as FunctionExpressionImpl,
+      );
 
   static FunctionDeclarationStatementImpl functionDeclarationStatement(
           TypeAnnotation? type,
@@ -626,9 +451,6 @@ class AstTestFactory {
           FunctionExpression functionExpression) =>
       astFactory.functionDeclarationStatement(
           functionDeclaration(type, keyword, name, functionExpression));
-
-  static FunctionExpressionImpl functionExpression() => astFactory
-      .functionExpression(null, formalParameterList(), blockFunctionBody2());
 
   static FunctionExpressionImpl functionExpression2(
           FormalParameterList parameters, FunctionBody body) =>
@@ -670,15 +492,16 @@ class AstTestFactory {
 
   static GenericTypeAliasImpl genericTypeAlias(String name,
           TypeParameterList typeParameters, GenericFunctionType functionType) =>
-      astFactory.genericTypeAlias(
-          null,
-          null,
-          TokenFactory.tokenFromKeyword(Keyword.TYPEDEF),
-          identifier3(name),
-          typeParameters,
-          TokenFactory.tokenFromType(TokenType.EQ),
-          functionType,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      GenericTypeAliasImpl(
+        comment: null,
+        metadata: null,
+        typedefKeyword: TokenFactory.tokenFromKeyword(Keyword.TYPEDEF),
+        name: identifier3(name),
+        typeParameters: typeParameters as TypeParameterListImpl,
+        equals: TokenFactory.tokenFromType(TokenType.EQ),
+        type: functionType as GenericFunctionTypeImpl,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static HideClauseImpl hideClause(List<ShowHideClauseElement> elements) =>
       astFactory.hideClause(
@@ -758,17 +581,21 @@ class AstTestFactory {
   static ImportDirectiveImpl importDirective(List<Annotation> metadata,
           String uri, bool isDeferred, String? prefix,
           [List<Combinator> combinators = const []]) =>
-      astFactory.importDirective(
-          null,
-          metadata,
-          TokenFactory.tokenFromKeyword(Keyword.IMPORT),
-          string2(uri),
-          null,
-          !isDeferred ? null : TokenFactory.tokenFromKeyword(Keyword.DEFERRED),
-          prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS),
-          prefix == null ? null : identifier3(prefix),
-          combinators,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      ImportDirectiveImpl(
+        comment: null,
+        metadata: metadata,
+        importKeyword: TokenFactory.tokenFromKeyword(Keyword.IMPORT),
+        uri: string2(uri),
+        configurations: null,
+        deferredKeyword: !isDeferred
+            ? null
+            : TokenFactory.tokenFromKeyword(Keyword.DEFERRED),
+        asKeyword:
+            prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS),
+        prefix: prefix == null ? null : identifier3(prefix),
+        combinators: combinators,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static ImportDirectiveImpl importDirective2(
           String uri, bool isDeferred, String prefix,
@@ -818,24 +645,6 @@ class AstTestFactory {
           name,
           argumentList(arguments));
 
-  static InstanceCreationExpressionImpl instanceCreationExpression2(
-          Keyword? keyword, NamedType type,
-          [List<Expression> arguments = const []]) =>
-      instanceCreationExpression3(keyword, type, null, arguments);
-
-  static InstanceCreationExpressionImpl instanceCreationExpression3(
-          Keyword? keyword, NamedType type, String? identifier,
-          [List<Expression> arguments = const []]) =>
-      instanceCreationExpression(
-          keyword,
-          astFactory.constructorName(
-              type,
-              identifier == null
-                  ? null
-                  : TokenFactory.tokenFromType(TokenType.PERIOD),
-              identifier == null ? null : identifier3(identifier)),
-          arguments);
-
   static IntegerLiteralImpl integer(int value) => astFactory.integerLiteral(
       TokenFactory.tokenFromTypeAndString(TokenType.INT, value.toString()),
       value);
@@ -879,12 +688,13 @@ class AstTestFactory {
 
   static LibraryDirectiveImpl libraryDirective(
           List<Annotation> metadata, LibraryIdentifier libraryName) =>
-      astFactory.libraryDirective(
-          null,
-          metadata,
-          TokenFactory.tokenFromKeyword(Keyword.LIBRARY),
-          libraryName,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      LibraryDirectiveImpl(
+        comment: null,
+        metadata: metadata,
+        libraryKeyword: TokenFactory.tokenFromKeyword(Keyword.LIBRARY),
+        name: libraryName as LibraryIdentifierImpl,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static LibraryDirectiveImpl libraryDirective2(String libraryName) =>
       libraryDirective(<Annotation>[], libraryIdentifier2([libraryName]));
@@ -934,18 +744,24 @@ class AstTestFactory {
           Keyword? operator,
           SimpleIdentifier name,
           FormalParameterList? parameters) =>
-      astFactory.methodDeclaration(
-          null,
-          null,
-          TokenFactory.tokenFromKeyword(Keyword.EXTERNAL),
-          modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
-          returnType,
-          property == null ? null : TokenFactory.tokenFromKeyword(property),
-          operator == null ? null : TokenFactory.tokenFromKeyword(operator),
-          name,
-          null,
-          parameters,
-          emptyFunctionBody());
+      MethodDeclarationImpl(
+        comment: null,
+        metadata: null,
+        externalKeyword: TokenFactory.tokenFromKeyword(Keyword.EXTERNAL),
+        modifierKeyword:
+            modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
+        returnType: returnType as TypeAnnotationImpl?,
+        propertyKeyword:
+            property == null ? null : TokenFactory.tokenFromKeyword(property),
+        operatorKeyword:
+            operator == null ? null : TokenFactory.tokenFromKeyword(operator),
+        name: name as SimpleIdentifierImpl,
+        typeParameters: null,
+        parameters: parameters as FormalParameterListImpl?,
+        body: EmptyFunctionBodyImpl(
+          semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+        ),
+      );
 
   static MethodDeclarationImpl methodDeclaration2(
           Keyword? modifier,
@@ -955,18 +771,22 @@ class AstTestFactory {
           SimpleIdentifier name,
           FormalParameterList? parameters,
           FunctionBody body) =>
-      astFactory.methodDeclaration(
-          null,
-          null,
-          null,
-          modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
-          returnType,
-          property == null ? null : TokenFactory.tokenFromKeyword(property),
-          operator == null ? null : TokenFactory.tokenFromKeyword(operator),
-          name,
-          null,
-          parameters,
-          body);
+      MethodDeclarationImpl(
+        comment: null,
+        metadata: null,
+        externalKeyword: null,
+        modifierKeyword:
+            modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
+        returnType: returnType as TypeAnnotationImpl?,
+        propertyKeyword:
+            property == null ? null : TokenFactory.tokenFromKeyword(property),
+        operatorKeyword:
+            operator == null ? null : TokenFactory.tokenFromKeyword(operator),
+        name: name as SimpleIdentifierImpl,
+        typeParameters: null,
+        parameters: parameters as FormalParameterListImpl?,
+        body: body as FunctionBodyImpl,
+      );
 
   static MethodDeclarationImpl methodDeclaration3(
           Keyword? modifier,
@@ -977,18 +797,22 @@ class AstTestFactory {
           TypeParameterList? typeParameters,
           FormalParameterList? parameters,
           FunctionBody body) =>
-      astFactory.methodDeclaration(
-          null,
-          null,
-          null,
-          modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
-          returnType,
-          property == null ? null : TokenFactory.tokenFromKeyword(property),
-          operator == null ? null : TokenFactory.tokenFromKeyword(operator),
-          name,
-          typeParameters,
-          parameters,
-          body);
+      MethodDeclarationImpl(
+        comment: null,
+        metadata: null,
+        externalKeyword: null,
+        modifierKeyword:
+            modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
+        returnType: returnType as TypeAnnotationImpl?,
+        propertyKeyword:
+            property == null ? null : TokenFactory.tokenFromKeyword(property),
+        operatorKeyword:
+            operator == null ? null : TokenFactory.tokenFromKeyword(operator),
+        name: name as SimpleIdentifierImpl,
+        typeParameters: typeParameters as TypeParameterListImpl?,
+        parameters: parameters as FormalParameterListImpl?,
+        body: body as FunctionBodyImpl,
+      );
 
   static MethodDeclarationImpl methodDeclaration4(
           {bool external = false,
@@ -999,18 +823,23 @@ class AstTestFactory {
           required String name,
           FormalParameterList? parameters,
           required FunctionBody body}) =>
-      astFactory.methodDeclaration(
-          null,
-          null,
-          external ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL) : null,
-          modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
-          returnType,
-          property == null ? null : TokenFactory.tokenFromKeyword(property),
-          operator ? TokenFactory.tokenFromKeyword(Keyword.OPERATOR) : null,
-          identifier3(name),
-          null,
-          parameters,
-          body);
+      MethodDeclarationImpl(
+        comment: null,
+        metadata: null,
+        externalKeyword:
+            external ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL) : null,
+        modifierKeyword:
+            modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
+        returnType: returnType as TypeAnnotationImpl?,
+        propertyKeyword:
+            property == null ? null : TokenFactory.tokenFromKeyword(property),
+        operatorKeyword:
+            operator ? TokenFactory.tokenFromKeyword(Keyword.OPERATOR) : null,
+        name: identifier3(name),
+        typeParameters: null,
+        parameters: parameters as FormalParameterListImpl?,
+        body: body as FunctionBodyImpl,
+      );
 
   static MethodInvocationImpl methodInvocation(
           Expression? target, String methodName,
@@ -1045,16 +874,6 @@ class AstTestFactory {
   static NamedExpressionImpl namedExpression2(
           String label, Expression expression) =>
       namedExpression(label2(label), expression);
-
-  static DefaultFormalParameterImpl namedFormalParameter(
-          NormalFormalParameter parameter, Expression? expression) =>
-      astFactory.defaultFormalParameter(
-          parameter,
-          ParameterKind.NAMED,
-          expression == null
-              ? null
-              : TokenFactory.tokenFromType(TokenType.COLON),
-          expression);
 
   /// Create a type name whose name has been resolved to the given [element] and
   /// whose type has been resolved to the type of the given element.
@@ -1114,12 +933,13 @@ class AstTestFactory {
 
   static PartDirectiveImpl partDirective(
           List<Annotation> metadata, String url) =>
-      astFactory.partDirective(
-          null,
-          metadata,
-          TokenFactory.tokenFromKeyword(Keyword.PART),
-          string2(url),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      PartDirectiveImpl(
+        comment: null,
+        metadata: metadata,
+        partKeyword: TokenFactory.tokenFromKeyword(Keyword.PART),
+        uri: string2(url),
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static PartDirectiveImpl partDirective2(String url) =>
       partDirective(<Annotation>[], url);
@@ -1129,22 +949,15 @@ class AstTestFactory {
 
   static PartOfDirectiveImpl partOfDirective2(
           List<Annotation> metadata, LibraryIdentifier libraryName) =>
-      astFactory.partOfDirective(
-          null,
-          metadata,
-          TokenFactory.tokenFromKeyword(Keyword.PART),
-          TokenFactory.tokenFromString("of"),
-          null,
-          libraryName,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static DefaultFormalParameterImpl positionalFormalParameter(
-          NormalFormalParameter parameter, Expression? expression) =>
-      astFactory.defaultFormalParameter(
-          parameter,
-          ParameterKind.POSITIONAL,
-          expression == null ? null : TokenFactory.tokenFromType(TokenType.EQ),
-          expression);
+      PartOfDirectiveImpl(
+        comment: null,
+        metadata: metadata,
+        partKeyword: TokenFactory.tokenFromKeyword(Keyword.PART),
+        ofKeyword: TokenFactory.tokenFromString("of"),
+        uri: null,
+        libraryName: libraryName as LibraryIdentifierImpl,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static PostfixExpressionImpl postfixExpression(
           Expression expression, TokenType operator) =>
@@ -1344,20 +1157,6 @@ class AstTestFactory {
         TokenFactory.tokenFromType(TokenType.HASH), identifierList);
   }
 
-  static BlockFunctionBodyImpl syncBlockFunctionBody(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"),
-          null,
-          block(statements));
-
-  static BlockFunctionBodyImpl syncGeneratorBlockFunctionBody(
-          [List<Statement> statements = const []]) =>
-      astFactory.blockFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"),
-          TokenFactory.tokenFromType(TokenType.STAR),
-          block(statements));
-
   static ThisExpressionImpl thisExpression() =>
       astFactory.thisExpression(TokenFactory.tokenFromKeyword(Keyword.THIS));
 
@@ -1369,23 +1168,25 @@ class AstTestFactory {
           Keyword? keyword,
           TypeAnnotation? type,
           List<VariableDeclaration> variables) =>
-      astFactory.topLevelVariableDeclaration(
-          null,
-          null,
-          variableDeclarationList(keyword, type, variables),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      TopLevelVariableDeclarationImpl(
+        comment: null,
+        metadata: null,
+        externalKeyword: null,
+        variableList: variableDeclarationList(keyword, type, variables),
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static TopLevelVariableDeclarationImpl topLevelVariableDeclaration2(
           Keyword? keyword, List<VariableDeclaration> variables,
           {bool isExternal = false}) =>
-      astFactory.topLevelVariableDeclaration(
-          null,
-          null,
-          variableDeclarationList(keyword, null, variables),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON),
-          externalKeyword: isExternal
-              ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL)
-              : null);
+      TopLevelVariableDeclarationImpl(
+        comment: null,
+        metadata: null,
+        variableList: variableDeclarationList(keyword, null, variables),
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+        externalKeyword:
+            isExternal ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL) : null,
+      );
 
   static TryStatementImpl tryStatement(Block body, Block finallyClause) =>
       tryStatement3(body, <CatchClause>[], finallyClause);
@@ -1407,15 +1208,16 @@ class AstTestFactory {
 
   static FunctionTypeAliasImpl typeAlias(TypeAnnotation returnType, String name,
           TypeParameterList? typeParameters, FormalParameterList parameters) =>
-      astFactory.functionTypeAlias(
-          null,
-          null,
-          TokenFactory.tokenFromKeyword(Keyword.TYPEDEF),
-          returnType,
-          identifier3(name),
-          typeParameters,
-          parameters,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      FunctionTypeAliasImpl(
+        comment: null,
+        metadata: null,
+        typedefKeyword: TokenFactory.tokenFromKeyword(Keyword.TYPEDEF),
+        returnType: returnType as TypeAnnotationImpl,
+        name: identifier3(name),
+        typeParameters: typeParameters as TypeParameterListImpl?,
+        parameters: parameters as FormalParameterListImpl,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static TypeArgumentList? typeArgumentList(List<TypeAnnotation>? types) {
     if (types == null || types.isEmpty) {
@@ -1429,23 +1231,34 @@ class AstTestFactory {
         types, TokenFactory.tokenFromType(TokenType.GT));
   }
 
-  static TypeParameterImpl typeParameter(String name) =>
-      astFactory.typeParameter(null, null, identifier3(name), null, null);
+  static TypeParameterImpl typeParameter(String name) => TypeParameterImpl(
+        comment: null,
+        metadata: null,
+        name: identifier3(name),
+        extendsKeyword: null,
+        bound: null,
+      );
 
   static TypeParameterImpl typeParameter2(String name, TypeAnnotation bound) =>
-      astFactory.typeParameter(null, null, identifier3(name),
-          TokenFactory.tokenFromKeyword(Keyword.EXTENDS), bound);
+      TypeParameterImpl(
+        comment: null,
+        metadata: null,
+        name: identifier3(name),
+        extendsKeyword: TokenFactory.tokenFromKeyword(Keyword.EXTENDS),
+        bound: bound as TypeAnnotationImpl,
+      );
 
   static TypeParameterImpl typeParameter3(String name, String varianceLexeme) =>
       // TODO (kallentu) : Clean up AstFactoryImpl casting once variance is
       // added to the interface.
-      astFactory.typeParameter2(
-          comment: null,
-          metadata: null,
-          name: identifier3(name),
-          extendsKeyword: null,
-          bound: null,
-          varianceKeyword: TokenFactory.tokenFromString(varianceLexeme));
+      TypeParameterImpl(
+        comment: null,
+        metadata: null,
+        name: identifier3(name),
+        extendsKeyword: null,
+        bound: null,
+        varianceKeyword: TokenFactory.tokenFromString(varianceLexeme),
+      );
 
   static TypeParameterList? typeParameterList([List<String>? typeNames]) {
     if (typeNames == null || typeNames.isEmpty) {
@@ -1467,21 +1280,31 @@ class AstTestFactory {
   }
 
   static VariableDeclarationImpl variableDeclaration(String name) =>
-      astFactory.variableDeclaration(identifier3(name), null, null);
+      VariableDeclarationImpl(
+        name: identifier3(name),
+        equals: null,
+        initializer: null,
+      );
 
   static VariableDeclarationImpl variableDeclaration2(
           String name, Expression initializer) =>
-      astFactory.variableDeclaration(identifier3(name),
-          TokenFactory.tokenFromType(TokenType.EQ), initializer);
+      VariableDeclarationImpl(
+        name: identifier3(name),
+        equals: TokenFactory.tokenFromType(TokenType.EQ),
+        initializer: initializer as ExpressionImpl,
+      );
 
   static VariableDeclarationListImpl variableDeclarationList(Keyword? keyword,
           TypeAnnotation? type, List<VariableDeclaration> variables) =>
-      astFactory.variableDeclarationList(
-          null,
-          null,
-          keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
-          type,
-          variables);
+      VariableDeclarationListImpl(
+        comment: null,
+        metadata: null,
+        lateKeyword: null,
+        keyword:
+            keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+        type: type as TypeAnnotationImpl?,
+        variables: variables,
+      );
 
   static VariableDeclarationListImpl variableDeclarationList2(
           Keyword? keyword, List<VariableDeclaration> variables) =>

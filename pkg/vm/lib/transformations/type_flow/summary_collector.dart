@@ -363,17 +363,6 @@ class _VariablesInfoCollector extends RecursiveVisitor {
     final function = node.function;
     function.accept(this);
 
-    if (function.asyncMarker == AsyncMarker.SyncYielding) {
-      // Mark parameters of synthetic async_op closures as captured
-      // to make sure their updates at yield points are taken into account.
-      for (var v in function.positionalParameters) {
-        _captureVariable(v);
-      }
-      for (var v in function.namedParameters) {
-        _captureVariable(v);
-      }
-    }
-
     activeStatements = savedActiveStatements;
     numVariablesAtActiveStatements = savedNumVariablesAtActiveStatements;
     numVariablesAtFunctionEntry = savedNumVariablesAtFunctionEntry;
@@ -603,7 +592,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Summary createSummary(Member member,
-      {fieldSummaryType: FieldSummaryType.kInitializer}) {
+      {fieldSummaryType = FieldSummaryType.kInitializer}) {
     final String summaryName =
         "${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""}";
     debugPrint("===== $summaryName =====");
@@ -742,7 +731,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       if (member is Constructor) {
         // Make sure instance field initializers are visited.
         for (var f in member.enclosingClass.members) {
-          if ((f is Field) && !f.isStatic && (f.initializer != null)) {
+          if ((f is Field) &&
+              !f.isStatic &&
+              !f.isLate &&
+              (f.initializer != null)) {
             _entryPointsListener.addRawCall(
                 new DirectSelector(f, callKind: CallKind.FieldInitializer));
           }
@@ -892,7 +884,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   Args<TypeExpr> _visitArguments(TypeExpr? receiver, Arguments arguments,
-      {bool passTypeArguments: false}) {
+      {bool passTypeArguments = false}) {
     final List<TypeExpr> args = <TypeExpr>[];
     if (passTypeArguments) {
       for (var type in arguments.types) {
@@ -925,7 +917,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   Parameter _declareParameter(
       String name, DartType? type, Expression? initializer,
-      {bool isReceiver: false}) {
+      {bool isReceiver = false}) {
     Type? staticType;
     if (type != null) {
       staticType = _typesBuilder.fromStaticType(type, !isReceiver);

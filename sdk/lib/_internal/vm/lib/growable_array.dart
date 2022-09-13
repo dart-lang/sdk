@@ -506,7 +506,7 @@ class _GrowableList<T> extends ListBase<T> {
     return new ListIterator<T>(this);
   }
 
-  List<T> toList({bool growable: true}) {
+  List<T> toList({bool growable = true}) {
     // TODO(sra): We should be able to replace the following with:
     //
     //     return growable

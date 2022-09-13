@@ -23,7 +23,7 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
       List<ElementKind>? expectedKinds,
       List<String>? expectedUris}) {
     var node = findNode.any(search);
-    var matchers = ElementMatcher.matchersForNode(node);
+    var matchers = ElementMatcher.matchersForNode(node, node.beginToken);
     expect(matchers, hasLength(1));
     var matcher = matchers[0];
     if (expectedUris != null) {

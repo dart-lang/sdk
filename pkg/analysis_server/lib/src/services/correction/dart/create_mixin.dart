@@ -69,8 +69,9 @@ class CreateMixin extends CorrectionProducer {
       filePath = file;
       prefix = '$eol$eol';
     } else {
-      for (var import in libraryElement.imports) {
-        if (prefixElement is PrefixElement && import.prefix == prefixElement) {
+      for (var import in libraryElement.libraryImports) {
+        if (prefixElement is PrefixElement &&
+            import.prefix?.element == prefixElement) {
           var library = import.importedLibrary;
           if (library != null) {
             targetUnit = library.definingCompilationUnit;

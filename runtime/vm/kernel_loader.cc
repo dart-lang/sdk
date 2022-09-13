@@ -2038,50 +2038,23 @@ void KernelLoader::LoadProcedure(const Library& library,
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
   if (function_node_helper.async_marker_ == FunctionNodeHelper::kAsync) {
     function.set_modifier(UntaggedFunction::kAsync);
-    function.set_is_debuggable(true);
     function.set_is_inlinable(false);
-    function.set_is_visible(true);
-    ASSERT(function.IsCompactAsyncFunction());
+    ASSERT(function.IsAsyncFunction());
   } else if (function_node_helper.async_marker_ ==
              FunctionNodeHelper::kAsyncStar) {
     function.set_modifier(UntaggedFunction::kAsyncGen);
-    function.set_is_debuggable(true);
     function.set_is_inlinable(false);
-    function.set_is_visible(true);
-    ASSERT(function.IsCompactAsyncStarFunction());
+    ASSERT(function.IsAsyncGenerator());
   } else if (function_node_helper.async_marker_ ==
              FunctionNodeHelper::kSyncStar) {
     function.set_modifier(UntaggedFunction::kSyncGen);
-    function.set_is_debuggable(true);
     function.set_is_inlinable(false);
-    function.set_is_visible(true);
-    ASSERT(function.IsCompactSyncStarFunction());
+    ASSERT(function.IsSyncGenerator());
   } else {
     ASSERT(function_node_helper.async_marker_ == FunctionNodeHelper::kSync);
-    function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
-                               FunctionNodeHelper::kSync);
-    switch (function_node_helper.dart_async_marker_) {
-      case FunctionNodeHelper::kSyncStar:
-        function.set_modifier(UntaggedFunction::kSyncGen);
-        function.set_is_visible(false);
-        break;
-      case FunctionNodeHelper::kAsync:
-        function.set_modifier(UntaggedFunction::kAsync);
-        function.set_is_inlinable(false);
-        function.set_is_visible(false);
-        break;
-      case FunctionNodeHelper::kAsyncStar:
-        function.set_modifier(UntaggedFunction::kAsyncGen);
-        function.set_is_inlinable(false);
-        function.set_is_visible(false);
-        break;
-      default:
-        // no special modifier
-        break;
-    }
-    ASSERT(!function.IsCompactAsyncFunction());
-    ASSERT(!function.IsCompactAsyncStarFunction());
-    ASSERT(!function.IsCompactSyncStarFunction());
+    ASSERT(!function.IsAsyncFunction());
+    ASSERT(!function.IsAsyncGenerator());
+    ASSERT(!function.IsSyncGenerator());
   }
 
   if (!native_name.IsNull()) {
@@ -2221,7 +2194,7 @@ ObjectPtr KernelLoader::GenerateFieldAccessors(const Class& klass,
         return converter.SimpleValue().ptr();
       } else {
         // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
-        // heuristics. See JitCallSpecializer::VisitStoreInstanceField for more
+        // heuristics. See JitCallSpecializer::VisitStoreField for more
         // details.
         field.RecordStore(converter.SimpleValue());
         if (!converter.SimpleValue().IsNull() &&

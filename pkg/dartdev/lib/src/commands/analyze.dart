@@ -255,7 +255,7 @@ class AnalyzeCommand extends DartdevCommand {
       if (!file.existsSync()) {
         usageException("The file doesn't exist: $path");
       }
-      return file;
+      return file.absolute;
     } else {
       return null;
     }

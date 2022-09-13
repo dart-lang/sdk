@@ -51,12 +51,8 @@ class ConvertClassToEnum extends CorrectionProducer {
       // the class.
       return;
     }
-    var node = this.node;
-    if (node is! SimpleIdentifier) {
-      return;
-    }
     var parent = node.parent;
-    if (parent is ClassDeclaration && parent.name == node) {
+    if (parent is ClassDeclaration && parent.name2 == token) {
       var description = _EnumDescription.fromClass(parent);
       if (description != null) {
         await builder.addDartFileEdit(file, (builder) {
@@ -80,7 +76,7 @@ class _BaseVisitor extends RecursiveAstVisitor<void> {
     var constructorElement = node.constructorName.staticElement;
     return constructorElement != null &&
         !constructorElement.isFactory &&
-        constructorElement.enclosingElement == classElement;
+        constructorElement.enclosingElement3 == classElement;
   }
 }
 
@@ -309,7 +305,7 @@ class _EnumDescription {
       return null;
     }
     var constructor = constructors[0];
-    var name = constructor.name?.name;
+    var name = constructor.name2?.lexeme;
     if (name != null && name != 'new') {
       return null;
     }
@@ -351,7 +347,7 @@ class _EnumDescription {
   /// description of the conversion work to be done. Otherwise, return `null`.
   static _EnumDescription? fromClass(ClassDeclaration node) {
     // The class must be a concrete class.
-    var classElement = node.declaredElement;
+    var classElement = node.declaredElement2;
     if (classElement == null || classElement.isAbstract) {
       return null;
     }
@@ -520,7 +516,7 @@ class _EnumDescription {
     var constructors = _Constructors();
     for (var member in classDeclaration.members) {
       if (member is ConstructorDeclaration) {
-        var constructor = member.declaredElement;
+        var constructor = member.declaredElement2;
         if (constructor is ConstructorElement) {
           if (!classElement.isPrivate && !constructor.isPrivate) {
             // Public constructor in public enum.
@@ -554,7 +550,7 @@ class _EnumDescription {
         var fields = fieldList.variables;
         if (member.isStatic) {
           for (var field in fields) {
-            var fieldElement = field.declaredElement;
+            var fieldElement = field.declaredElement2;
             if (fieldElement is FieldElement) {
               var fieldType = fieldElement.type;
               // The field can be converted to be an enum constant if it
@@ -564,14 +560,14 @@ class _EnumDescription {
               //   class.
               if (fieldElement.isConst &&
                   fieldType is InterfaceType &&
-                  fieldType.element == classElement) {
+                  fieldType.element2 == classElement) {
                 var initializer = field.initializer;
                 if (initializer is InstanceCreationExpression) {
                   var constructorElement =
                       initializer.constructorName.staticElement;
                   if (constructorElement != null &&
                       !constructorElement.isFactory &&
-                      constructorElement.enclosingElement == classElement) {
+                      constructorElement.enclosingElement3 == classElement) {
                     var fieldValue = fieldElement.computeConstantValue();
                     if (fieldValue != null) {
                       if (fieldList.variables.length != 1) {
@@ -601,7 +597,7 @@ class _EnumDescription {
               // Non-final instance field.
               return null;
             }
-            var fieldElement = field.declaredElement;
+            var fieldElement = field.declaredElement2;
             if (fieldElement is FieldElement) {
               var fieldType = fieldElement.type;
               if (fieldElement.name == 'index' && fieldType.isDartCoreInt) {
@@ -634,7 +630,8 @@ class _EnumDescription {
   static bool _validateMethods(ClassDeclaration classDeclaration) {
     for (var member in classDeclaration.members) {
       if (member is MethodDeclaration) {
-        if (member.name.name == '==' || member.name.name == 'hashCode') {
+        final name = member.name2.lexeme;
+        if (name == '==' || name == 'hashCode') {
           return false;
         }
       }
@@ -700,7 +697,7 @@ class _Field {
       this.fieldDeclaration);
 
   /// Return the name of the field.
-  String get name => declaration.name.name;
+  String get name => declaration.name2.lexeme;
 }
 
 /// A representation of all the fields of interest in the class being converted.
@@ -726,18 +723,18 @@ class _NonEnumVisitor extends _BaseVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement;
+    var element = node.declaredElement2;
     if (element == null) {
       throw _CannotConvertException('Unresolved');
     }
     if (element != classElement) {
-      if (element.supertype?.element == classElement) {
+      if (element.supertype?.element2 == classElement) {
         throw _CannotConvertException('Class is extended');
       } else if (element.interfaces
-          .map((e) => e.element)
+          .map((e) => e.element2)
           .contains(classElement)) {
         throw _CannotConvertException('Class is implemented');
-      } else if (element.mixins.map((e) => e.element).contains(classElement)) {
+      } else if (element.mixins.map((e) => e.element2).contains(classElement)) {
         // This case won't occur unless there's an error in the source code, but
         // it's easier to check for the condition than it is to check for the
         // diagnostic.

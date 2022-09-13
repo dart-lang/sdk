@@ -23,14 +23,14 @@ class DefaultValueResolver {
     for (var unitElement in _libraryElement.units.impl) {
       _UnitContext(unitElement)
         ..forEach(unitElement.classes, _class)
-        ..forEach(unitElement.enums, _class)
+        ..forEach(unitElement.enums2, _class)
         ..forEach(unitElement.extensions, _extension)
         ..forEach(unitElement.functions, _executable)
-        ..forEach(unitElement.mixins, _class);
+        ..forEach(unitElement.mixins2, _class);
     }
   }
 
-  void _class(_UnitContext context, ClassElement element) {
+  void _class(_UnitContext context, InterfaceElement element) {
     _ClassContext(context, element)
       ..forEach(element.constructors, _constructor)
       ..forEach(element.methods, _executable);
@@ -92,7 +92,7 @@ class _ClassContext extends _Context {
   final _UnitContext unitContext;
 
   @override
-  final ClassElement classElement;
+  final InterfaceElement classElement;
 
   _ClassContext(this.unitContext, this.classElement);
 
@@ -103,7 +103,7 @@ class _ClassContext extends _Context {
 }
 
 abstract class _Context {
-  ClassElement? get classElement => null;
+  InterfaceElement? get classElement => null;
 
   CompilationUnitElementImpl get unitElement;
 }
@@ -120,7 +120,9 @@ class _ExecutableContext extends _Context {
   });
 
   @override
-  ClassElement? get classElement => enclosingContext.classElement;
+  InterfaceElement? get classElement {
+    return enclosingContext.classElement;
+  }
 
   @override
   CompilationUnitElementImpl get unitElement {

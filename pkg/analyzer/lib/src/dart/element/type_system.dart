@@ -318,7 +318,7 @@ class TypeSystemImpl implements TypeSystem {
   List<InterfaceType> gatherMixinSupertypeConstraintsForInference(
       ClassElement mixinElement) {
     List<InterfaceType> candidates;
-    if (mixinElement.isMixin) {
+    if (mixinElement is MixinElement) {
       candidates = mixinElement.superclassConstraints;
     } else {
       final supertype = mixinElement.supertype;
@@ -332,7 +332,7 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
     return candidates
-        .where((type) => type.element.typeParameters.isNotEmpty)
+        .where((type) => type.element2.typeParameters.isNotEmpty)
         .toList();
   }
 
@@ -345,7 +345,7 @@ class TypeSystemImpl implements TypeSystem {
   FunctionType? getCallMethodType(DartType t) {
     if (t is InterfaceType) {
       return t
-          .lookUpMethod2(FunctionElement.CALL_METHOD_NAME, t.element.library)
+          .lookUpMethod2(FunctionElement.CALL_METHOD_NAME, t.element2.library)
           ?.type;
     }
     return null;
@@ -372,7 +372,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       visitedTypes.add(type);
       if (type is TypeParameterType) {
-        var element = type.element;
+        var element = type.element2;
         if ((candidates == null || candidates.contains(element)) &&
             !boundTypeParameters.contains(element)) {
           parameters ??= <TypeParameterElement>[];
@@ -502,6 +502,20 @@ class TypeSystemImpl implements TypeSystem {
     return inferrer.upwardsInfer();
   }
 
+  @override
+  InterfaceType instantiateInterfaceToBounds({
+    required InterfaceElement element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    final typeParameters = element.typeParameters;
+    final typeArguments = _defaultTypeArguments(typeParameters);
+    final type = element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+    return toLegacyTypeIfOptOut(type) as InterfaceType;
+  }
+
   /// Given a [DartType] [type], if [type] is an uninstantiated
   /// parameterized type then instantiate the parameters to their
   /// bounds. See the issue for the algorithm description.
@@ -517,6 +531,7 @@ class TypeSystemImpl implements TypeSystem {
     return instantiateType(type, arguments);
   }
 
+  @Deprecated('Use instantiateInterface/TypeAliasToBounds() instead')
   @override
   DartType instantiateToBounds2({
     ClassElement? classElement,
@@ -524,23 +539,15 @@ class TypeSystemImpl implements TypeSystem {
     required NullabilitySuffix nullabilitySuffix,
   }) {
     if (classElement != null) {
-      var typeParameters = classElement.typeParameters;
-      var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = classElement.instantiate(
-        typeArguments: typeArguments,
+      return instantiateInterfaceToBounds(
+        element: classElement,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyTypeIfOptOut(type) as InterfaceType;
-      return type;
     } else if (typeAliasElement != null) {
-      var typeParameters = typeAliasElement.typeParameters;
-      var typeArguments = _defaultTypeArguments(typeParameters);
-      var type = typeAliasElement.instantiate(
-        typeArguments: typeArguments,
+      return instantiateTypeAliasToBounds(
+        element: typeAliasElement,
         nullabilitySuffix: nullabilitySuffix,
       );
-      type = toLegacyTypeIfOptOut(type);
-      return type;
     } else {
       throw ArgumentError('Missing element');
     }
@@ -555,13 +562,27 @@ class TypeSystemImpl implements TypeSystem {
       return type.instantiate(typeArguments);
     } else if (type is InterfaceTypeImpl) {
       // TODO(scheglov) Use `ClassElement.instantiate()`, don't use raw types.
-      return type.element.instantiate(
+      return type.element2.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: type.nullabilitySuffix,
       );
     } else {
       return type;
     }
+  }
+
+  @override
+  DartType instantiateTypeAliasToBounds({
+    required TypeAliasElement element,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    final typeParameters = element.typeParameters;
+    final typeArguments = _defaultTypeArguments(typeParameters);
+    final type = element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+    return toLegacyTypeIfOptOut(type);
   }
 
   /// Given uninstantiated [typeFormals], instantiate them to their bounds.
@@ -719,7 +740,7 @@ class TypeSystemImpl implements TypeSystem {
         return result;
       }
 
-      T = type.element.bound;
+      T = type.element2.bound;
       if (T != null) {
         var result = isBottom(T);
         assert(type.isBottom == result);
@@ -741,7 +762,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element.bound;
+      var bound = type.element2.bound;
       if (bound != null && isDynamicBounded(bound)) {
         return true;
       }
@@ -777,7 +798,7 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     if (type is TypeParameterTypeImpl) {
-      var bound = type.element.bound;
+      var bound = type.element2.bound;
       if (bound != null && isFunctionBounded(bound)) {
         return true;
       }
@@ -863,8 +884,8 @@ class TypeSystemImpl implements TypeSystem {
       // is anything except none by this point.
       assert(T_nullability == NullabilitySuffix.none);
       assert(S_nullability == NullabilitySuffix.none);
-      var T_element = T.element;
-      var S_element = S.element;
+      var T_element = T.element2;
+      var S_element = S.element2;
 
       // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
       var T_promotedBound = T.promotedBound;
@@ -1005,7 +1026,7 @@ class TypeSystemImpl implements TypeSystem {
     } else if (type is InterfaceType && type.isDartAsyncFutureOr) {
       return isNonNullable(type.typeArguments[0]);
     } else if (type is TypeParameterType) {
-      var bound = type.element.bound;
+      var bound = type.element2.bound;
       return bound != null && isNonNullable(bound);
     }
     return true;
@@ -1292,7 +1313,7 @@ class TypeSystemImpl implements TypeSystem {
     if (type.isDartCoreNull) return NeverTypeImpl.instance;
 
     if (type is TypeParameterTypeImpl) {
-      var element = type.element;
+      var element = type.element2;
 
       // NonNull(X & T) = X & NonNull(T)
       if (type.promotedBound != null) {
@@ -1476,7 +1497,7 @@ class TypeSystemImpl implements TypeSystem {
         return resolveToBound(promotedBound);
       }
 
-      final bound = type.element.bound;
+      final bound = type.element2.bound;
       if (bound == null) {
         return isNonNullableByDefault ? objectQuestion : objectStar;
       }
@@ -1571,7 +1592,7 @@ class TypeSystemImpl implements TypeSystem {
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
       if (isSubtypeOf(to, from.bound)) {
-        var declaration = from.element.declaration;
+        var declaration = from.element2.declaration;
         return TypeParameterTypeImpl(
           element: declaration,
           nullabilitySuffix: _promotedTypeParameterTypeNullability(
@@ -1595,7 +1616,7 @@ class TypeSystemImpl implements TypeSystem {
     if (type is FunctionType) {
       return type.typeFormals;
     } else if (type is InterfaceType) {
-      return type.element.typeParameters;
+      return type.element2.typeParameters;
     } else {
       return const <TypeParameterElement>[];
     }
@@ -1696,7 +1717,7 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement is ExtensionElement) {
+    if (methodElement.enclosingElement3 is ExtensionElement) {
       return currentType;
     }
 
@@ -1800,7 +1821,7 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement is ExtensionElement) {
+    if (methodElement.enclosingElement3 is ExtensionElement) {
       return currentType;
     }
 

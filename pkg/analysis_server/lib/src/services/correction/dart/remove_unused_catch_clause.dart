@@ -24,7 +24,12 @@ class RemoveUnusedCatchClause extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var catchClause = node.parent;
+    final exceptionParameter = node.parent;
+    if (exceptionParameter is! CatchClauseParameter) {
+      return;
+    }
+
+    final catchClause = exceptionParameter.parent;
     if (catchClause is! CatchClause) {
       return;
     }
@@ -34,7 +39,7 @@ class RemoveUnusedCatchClause extends CorrectionProducer {
       return;
     }
 
-    if (catchClause.exceptionParameter == node) {
+    if (catchClause.exceptionParameter2 == exceptionParameter) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(catchKeyword, catchClause.body));
       });

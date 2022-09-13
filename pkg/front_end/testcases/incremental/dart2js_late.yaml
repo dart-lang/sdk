@@ -27,5 +27,5 @@ worlds:
     invalidate:
       - late_statics.dart
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: false
+    advancedInvalidation: bodiesOnly
 

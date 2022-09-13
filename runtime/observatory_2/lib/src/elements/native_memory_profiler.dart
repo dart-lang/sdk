@@ -132,7 +132,7 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
     children = content;
   }
 
-  Future _request({bool forceFetch: false}) async {
+  Future _request({bool forceFetch = false}) async {
     if (forceFetch) {
       for (M.Isolate isolate in _vm.isolates) {
         await isolate.collectAllGarbage();

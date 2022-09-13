@@ -29,39 +29,39 @@ class Class {
   }
 
   @pragma('dart2js:noInline')
-  instanceNamed1(a, {b: 42, c: 87, d: 735}) {
+  instanceNamed1(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed1($a,b:$b,c:$c,d:$d)');
     /*5:Class.instanceNamed1*/ instanceNamed2(1, b: 2);
   }
 
   @pragma('dart2js:noInline')
-  instanceNamed2(a, {b: 42, c: 87, d: 735}) {
+  instanceNamed2(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed2($a,b:$b,c:$c,d:$d)');
     /*6:Class.instanceNamed2*/ instanceNamed3(3, c: 123);
   }
 
   @pragma('dart2js:noInline')
-  instanceNamed3(a, {b: 42, c: 87, d: 735}) {
+  instanceNamed3(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed3($a,b:$b,c:$c,d:$d)');
     /*7:Class.instanceNamed3*/ instanceNamed4(4, c: 45, b: 76);
   }
 
   @pragma('dart2js:noInline')
-  instanceNamed4(a, {b: 42, c: 87, d: 735}) {
+  instanceNamed4(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed4($a,b:$b,c:$c,d:$d)');
     /*8:Class.instanceNamed4*/ instanceNamed5(5, c: 6, b: 7, d: 8);
   }
 
   @pragma('dart2js:noInline')
-  instanceNamed5(a, {b: 42, c: 87, d: 735}) {
+  instanceNamed5(a, {b = 42, c = 87, d = 735}) {
     print('instanceNamed5($a,b:$b,c:$c,d:$d)');
     /*12:Class.instanceNamed5[function-entry$0].local*/ local([e = 42]) {
       print('instanceNamed5.local($e)');
       /*13:Class.instanceNamed5.local*/ throw '>ExceptionMarker<';
     }
 
-    var anonymous = /*10:Class.instanceNamed5[function-entry$0].<anonymous function>*/ (
-        {f: 87}) {
+    var anonymous = /*10:Class.instanceNamed5[function-entry$0].<anonymous function>*/
+        ({f = 87}) {
       print('instanceNamed5.<anonymous(f:$f)');
       /*11:Class.instanceNamed5.<anonymous function>*/ local();
     };

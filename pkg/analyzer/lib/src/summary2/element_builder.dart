@@ -12,23 +12,22 @@ import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
-import 'package:analyzer/src/util/uri.dart';
 import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
   final LibraryBuilder _libraryBuilder;
+  final LibraryOrAugmentationElementImpl _container;
   final CompilationUnitElementImpl _unitElement;
 
-  final _exports = <ExportElement>[];
-  final _imports = <ImportElement>[];
   var _isFirstLibraryDirective = true;
-  var _hasCoreImport = false;
+  var _augmentationDirectiveIndex = 0;
+  var _exportDirectiveIndex = 0;
+  var _importDirectiveIndex = 0;
   var _partDirectiveIndex = 0;
 
   _EnclosingContext _enclosingContext;
@@ -36,13 +35,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   ElementBuilder({
     required LibraryBuilder libraryBuilder,
+    required LibraryOrAugmentationElementImpl container,
     required Reference unitReference,
     required CompilationUnitElementImpl unitElement,
   })  : _libraryBuilder = libraryBuilder,
+        _container = container,
         _unitElement = unitElement,
         _enclosingContext = _EnclosingContext(unitReference, unitElement);
-
-  LibraryElementImpl get _libraryElement => _libraryBuilder.element;
 
   Linker get _linker => _libraryBuilder.linker;
 
@@ -50,61 +49,56 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.classes = _enclosingContext.classes;
-    _unitElement.enums = _enclosingContext.enums;
+    _unitElement.enums2 = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
-    _unitElement.mixins = _enclosingContext.mixins;
+    _unitElement.mixins2 = _enclosingContext.mixins;
     _unitElement.topLevelVariables = _enclosingContext.properties
         .whereType<TopLevelVariableElementImpl>()
         .toList();
     _unitElement.typeAliases = _enclosingContext.typeAliases;
   }
 
-  /// Build exports and imports, metadata into [_libraryElement].
+  /// Build exports and imports, metadata into [_container].
   void buildLibraryElementChildren(CompilationUnit unit) {
     unit.directives.accept(this);
-
-    _libraryElement.exports = _exports;
-
-    if (!_hasCoreImport) {
-      final dartCore = _linker.elementFactory.dartCoreElement;
-      _imports.add(
-        ImportElementImpl(-1)
-          ..importedLibrary = dartCore
-          ..isSynthetic = true
-          ..uri = 'dart:core',
-      );
-    }
-    _libraryElement.imports = _imports;
 
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
       var firstDirective = unit.directives.firstOrNull;
       if (firstDirective != null) {
-        _libraryElement.documentationComment = getCommentNodeRawText(
+        _container.documentationComment = getCommentNodeRawText(
           firstDirective.documentationComment,
         );
-        var firstDirectiveMetadata = firstDirective.element?.metadata;
+        var firstDirectiveMetadata = firstDirective.element2?.metadata;
         if (firstDirectiveMetadata != null) {
-          _libraryElement.metadata = firstDirectiveMetadata;
+          _container.metadata = firstDirectiveMetadata;
         }
       }
     }
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.name;
+  void visitAugmentationImportDirective(AugmentationImportDirective node) {
+    final index = _augmentationDirectiveIndex++;
+    final element = _container.augmentationImports[index];
+    element as AugmentationImportElementImpl;
+    element.metadata = _buildAnnotations(node.metadata);
+  }
 
-    var element = ClassElementImpl(name, nameNode.offset);
-    element.isAbstract = node.isAbstract;
+  @override
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+    var nameToken = node.name2;
+    var name = nameToken.lexeme;
+
+    var element = ClassElementImpl(name, nameToken.offset);
+    element.isAbstract = node.abstractKeyword != null;
     element.isMacro = node.macroKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement2 = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
@@ -122,23 +116,23 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.extendsClause?.accept(this);
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
-    _buildClassOrMixin(node);
+    _buildClass(node);
   }
 
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.name;
+    var nameToken = node.name2;
+    var name = nameToken.lexeme;
 
-    var element = ClassElementImpl(name, nameNode.offset);
-    element.isAbstract = node.isAbstract;
+    var element = ClassElementImpl(name, nameToken.offset);
+    element.isAbstract = node.abstractKeyword != null;
     element.isMacro = node.macroKeyword != null;
     element.isMixinApplication = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement2 = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
@@ -162,8 +156,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitConstructorDeclaration(
     covariant ConstructorDeclarationImpl node,
   ) {
-    var nameNode = node.name ?? node.returnType;
-    var name = node.name?.name ?? '';
+    var nameNode = node.name2 ?? node.returnType;
+    var name = node.name2?.lexeme ?? '';
     if (name == 'new') {
       // A constructor declared as `C.new` is unnamed, and is modeled as such.
       name = '';
@@ -184,7 +178,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.constantInitializers = node.initializers;
     }
 
-    node.declaredElement = element;
+    node.declaredElement2 = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addConstructor(element);
@@ -202,8 +196,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.name;
+    var nameNode = node.name2;
+    var name = nameNode.lexeme;
     var nameOffset = nameNode.offset;
 
     var element = EnumElementImpl(name, nameOffset);
@@ -211,7 +205,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement2 = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addEnum(name, element);
@@ -228,8 +222,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var valuesElements = <Expression>[];
     for (var i = 0; i < constants.length; ++i) {
       var constant = constants[i];
-      var name = constant.name.name;
-      var field = ConstFieldElementImpl(name, constant.name.offset)
+      var name = constant.name2.lexeme;
+      var field = ConstFieldElementImpl(name, constant.name2.offset)
         ..hasImplicitType = true
         ..hasInitializer = true
         ..isConst = true
@@ -248,15 +242,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       var initializer = astFactory.instanceCreationExpression(
         null,
-        astFactory.constructorName(
-          astFactory.namedType(
+        ConstructorNameImpl(
+          type: astFactory.namedType(
             name: astFactory.simpleIdentifier(
               StringToken(TokenType.STRING, element.name, -1),
             ),
             typeArguments: constant.arguments?.typeArguments,
           ),
-          constructorName != null ? Tokens.period() : null,
-          constructorName != null
+          period: constructorName != null ? Tokens.period() : null,
+          name: constructorName != null
               ? astFactory.simpleIdentifier(
                   StringToken(TokenType.STRING, constructorName, -1),
                 )
@@ -271,14 +265,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         ),
       );
 
-      var variableDeclaration = astFactory.variableDeclaration(
-        astFactory.simpleIdentifier(
+      var variableDeclaration = VariableDeclarationImpl(
+        name: astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, name, -1),
         ),
-        Tokens.eq(),
-        initializer,
+        equals: Tokens.eq(),
+        initializer: initializer,
       );
-      astFactory.variableDeclarationList2(
+      VariableDeclarationListImpl(
+        comment: null,
+        metadata: null,
+        lateKeyword: null,
+        keyword: null,
+        type: null,
         variables: [variableDeclaration],
       );
       _linker.elementNodes[field] = variableDeclaration;
@@ -309,12 +308,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
       valuesField.constantInitializer = initializer;
 
-      var variableDeclaration = astFactory.variableDeclaration(
-        astFactory.simpleIdentifier(
+      var variableDeclaration = VariableDeclarationImpl(
+        name: astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, 'values', -1),
         ),
-        Tokens.eq(),
-        initializer,
+        equals: Tokens.eq(),
+        initializer: initializer,
       );
       valuesTypeNode = astFactory.namedType(
         name: astFactory.simpleIdentifier(
@@ -332,7 +331,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           Tokens.gt(),
         ),
       );
-      astFactory.variableDeclarationList2(
+      VariableDeclarationListImpl(
+        comment: null,
+        metadata: null,
+        lateKeyword: null,
         keyword: Tokens.const_(),
         variables: [variableDeclaration],
         type: valuesTypeNode,
@@ -381,20 +383,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
-    var element = ExportElementImpl(node.exportKeyword.offset);
-    element.combinators = _buildCombinators(node.combinators);
-
-    try {
-      element.exportedLibrary = _selectLibrary(node);
-    } on ArgumentError {
-      // TODO(scheglov) Remove this when using `ExportDirectiveState`.
-    }
-
-    element.metadata = _buildAnnotations(node.metadata);
-    element.uri = node.uri.stringValue;
-
-    node.element = element;
-    _exports.add(element);
+    final index = _exportDirectiveIndex++;
+    final exportElement = _container.libraryExports[index];
+    exportElement as LibraryExportElementImpl;
+    exportElement.metadata = _buildAnnotations(node.metadata);
+    node.element = exportElement;
   }
 
   @override
@@ -404,16 +397,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    var nodeName = node.name;
-    var name = nodeName?.name;
-    var nameOffset = nodeName?.offset ?? -1;
+    var nameToken = node.name2;
+    var name = nameToken?.lexeme;
+    var nameOffset = nameToken?.offset ?? -1;
 
     var element = ExtensionElementImpl(name, nameOffset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement = element;
+    node.declaredElement2 = element;
     _linker.elementNodes[element] = node;
 
     var refName = name ?? '${_nextUnnamedExtensionId++}';
@@ -452,9 +445,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.fields.variables) {
-      var nameNode = variable.name as SimpleIdentifierImpl;
-      var name = nameNode.name;
-      var nameOffset = nameNode.offset;
+      variable as VariableDeclarationImpl;
+      var nameToken = variable.name2;
+      var name = nameToken.lexeme;
+      var nameOffset = nameToken.offset;
 
       FieldElementImpl element;
       if (_shouldBeConstField(node)) {
@@ -484,7 +478,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _enclosingContext.addNonSyntheticField(element);
 
       _linker.elementNodes[element] = variable;
-      nameNode.staticElement = element;
+      variable.declaredElement2 = element;
     }
     _buildType(node.fields.type);
   }
@@ -493,9 +487,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitFieldFormalParameter(
     covariant FieldFormalParameterImpl node,
   ) {
-    var nameNode = node.identifier;
-    var name = nameNode.name;
-    var nameOffset = nameNode.offset;
+    var nameToken = node.name;
+    var name = nameToken.lexeme;
+    var nameOffset = nameToken.offset;
 
     ParameterElementImpl element;
     var parent = node.parent;
@@ -520,7 +514,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement = element;
 
     // TODO(scheglov) check that we don't set reference for parameters
     var fakeReference = Reference.root();
@@ -549,9 +543,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.name;
-    var nameOffset = nameNode.offset;
+    var nameToken = node.name2;
+    var name = nameToken.lexeme;
+    var nameOffset = nameToken.offset;
 
     var functionExpression = node.functionExpression;
     var body = functionExpression.body;
@@ -591,7 +585,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(executableElement, node);
     _setDocumentation(executableElement, node);
 
-    nameNode.staticElement = executableElement;
+    node.declaredElement2 = executableElement;
     _linker.elementNodes[executableElement] = node;
 
     _buildExecutableElementChildren(
@@ -612,16 +606,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.name;
+    var nameToken = node.name2;
+    var name = nameToken.lexeme;
 
-    var element = TypeAliasElementImpl(name, nameNode.offset);
+    var element = TypeAliasElementImpl(name, nameToken.offset);
     element.isFunctionTypeAliasBased = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement2 = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
@@ -635,7 +629,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     });
 
     var aliasedElement = GenericFunctionTypeElementImpl.forOffset(
-      node.name.offset,
+      nameToken.offset,
     );
     aliasedElement.parameters = holder.parameters;
 
@@ -647,9 +641,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitFunctionTypedFormalParameter(
     covariant FunctionTypedFormalParameterImpl node,
   ) {
-    var nameNode = node.identifier;
-    var name = nameNode.name;
-    var nameOffset = nameNode.offset;
+    var nameToken = node.name;
+    var name = nameToken.lexeme;
+    var nameOffset = nameToken.offset;
 
     ParameterElementImpl element;
     var parent = node.parent;
@@ -673,7 +667,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
     _enclosingContext.addParameter(name, element);
 
@@ -721,15 +715,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.name;
+    var nameToken = node.name2;
+    var name = nameToken.lexeme;
 
-    var element = TypeAliasElementImpl(name, nameNode.offset);
+    var element = TypeAliasElementImpl(name, nameToken.offset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement2 = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
@@ -757,58 +751,35 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
-    var uriStr = node.uri.stringValue;
+    final index = _importDirectiveIndex++;
+    final importElement = _container.libraryImports[index];
+    importElement as LibraryImportElementImpl;
+    importElement.metadata = _buildAnnotations(node.metadata);
+    node.element = importElement;
+  }
 
-    var element = ImportElementImpl(node.importKeyword.offset);
-    element.combinators = _buildCombinators(node.combinators);
-
-    try {
-      element.importedLibrary = _selectLibrary(node);
-    } on ArgumentError {
-      // TODO(scheglov) Remove this when using `ImportDirectiveState`.
-    }
-
-    element.isDeferred = node.deferredKeyword != null;
-    element.metadata = _buildAnnotations(node.metadata);
-    element.uri = uriStr;
-
-    var prefixNode = node.prefix;
-    if (prefixNode != null) {
-      element.prefix = PrefixElementImpl(
-        prefixNode.name,
-        prefixNode.offset,
-        reference: _libraryBuilder.reference
-            .getChild('@prefix')
-            .getChild(prefixNode.name),
-      );
-    }
-
-    node.element = element;
-
-    _imports.add(element);
-
-    if (uriStr == 'dart:core') {
-      _hasCoreImport = true;
-    }
+  @override
+  void visitLibraryAugmentationDirective(LibraryAugmentationDirective node) {
+    _container.metadata = _buildAnnotations(node.metadata);
   }
 
   @override
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
-      node.element = _libraryElement;
-      _libraryElement.documentationComment = getCommentNodeRawText(
+      node.element = _container;
+      _container.documentationComment = getCommentNodeRawText(
         node.documentationComment,
       );
-      _libraryElement.metadata = _buildAnnotations(node.metadata);
+      _container.metadata = _buildAnnotations(node.metadata);
     }
   }
 
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.name;
-    var nameOffset = nameNode.offset;
+    var nameToken = node.name2;
+    var name = nameToken.lexeme;
+    var nameOffset = nameToken.offset;
 
     Reference reference;
     ExecutableElementImpl executableElement;
@@ -865,7 +836,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(executableElement, node);
     _setDocumentation(executableElement, node);
 
-    nameNode.staticElement = executableElement;
+    node.declaredElement2 = executableElement;
     _linker.elementNodes[executableElement] = node;
 
     _buildExecutableElementChildren(
@@ -880,15 +851,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.name;
+    var nameToken = node.name2;
+    var name = nameToken.lexeme;
 
-    var element = MixinElementImpl(name, nameNode.offset);
+    var element = MixinElementImpl(name, nameToken.offset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement2 = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addMixin(name, element);
@@ -905,7 +876,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
-    _buildClassOrMixin(node);
+    _buildMixin(node);
   }
 
   @override
@@ -920,24 +891,57 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitPartDirective(PartDirective node) {
-    final index = _partDirectiveIndex++;
-    final partElement = _libraryElement.parts2[index];
-    partElement as PartElementImpl;
-    partElement.metadata = _buildAnnotations(node.metadata);
+    final libraryElement = _container;
+    if (libraryElement is LibraryElementImpl) {
+      final index = _partDirectiveIndex++;
+      final partElement = libraryElement.parts2[index];
+      partElement as PartElementImpl;
+      partElement.metadata = _buildAnnotations(node.metadata);
+    }
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    _libraryElement.hasPartOfDirective = true;
+    final libraryElement = _container;
+    if (libraryElement is LibraryElementImpl) {
+      libraryElement.hasPartOfDirective = true;
+    }
+  }
+
+  @override
+  void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    node.positionalFields.accept(this);
+    node.namedFields?.accept(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    node.type.accept(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationNamedFields(
+    RecordTypeAnnotationNamedFields node,
+  ) {
+    node.fields.accept(this);
+  }
+
+  @override
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    node.type.accept(this);
   }
 
   @override
   void visitSimpleFormalParameter(
     covariant SimpleFormalParameterImpl node,
   ) {
-    var nameNode = node.identifier;
-    var name = nameNode?.name ?? '';
-    var nameOffset = nameNode?.offset ?? -1;
+    var nameToken = node.name;
+    var name = nameToken?.lexeme ?? '';
+    var nameOffset = nameToken?.offset ?? -1;
 
     ParameterElementImpl element;
     var parent = node.parent;
@@ -966,7 +970,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
 
     node.declaredElement = element;
-    nameNode?.staticElement = element;
 
     _buildType(node.type);
   }
@@ -975,9 +978,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitSuperFormalParameter(
     covariant SuperFormalParameterImpl node,
   ) {
-    var nameNode = node.identifier;
-    var name = nameNode.name;
-    var nameOffset = nameNode.offset;
+    var nameToken = node.name;
+    var name = nameToken.lexeme;
+    var nameOffset = nameToken.offset;
 
     SuperFormalParameterElementImpl element;
     var parent = node.parent;
@@ -1002,7 +1005,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement = element;
 
     // TODO(scheglov) check that we don't set reference for parameters
     var fakeReference = Reference.root();
@@ -1032,9 +1035,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.variables.variables) {
-      var nameNode = variable.name as SimpleIdentifierImpl;
-      var name = nameNode.name;
-      var nameOffset = nameNode.offset;
+      variable as VariableDeclarationImpl;
+      var nameToken = variable.name2;
+      var name = nameToken.lexeme;
+      var nameOffset = nameToken.offset;
 
       TopLevelVariableElementImpl element;
       if (node.variables.isConst) {
@@ -1061,7 +1065,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       _linker.elementNodes[element] = variable;
       _enclosingContext.addTopLevelVariable(name, element);
-      nameNode.staticElement = element;
+      variable.declaredElement2 = element;
 
       var getter = element.getter;
       if (getter is PropertyAccessorElementImpl) {
@@ -1086,14 +1090,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
-    var nameNode = node.name;
-    var name = nameNode.name;
+    var nameToken = node.name2;
+    var name = nameToken.lexeme;
 
-    var element = TypeParameterElementImpl(name, nameNode.offset);
+    var element = TypeParameterElementImpl(name, nameToken.offset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 
-    nameNode.staticElement = element;
+    node.declaredElement2 = element;
     _linker.elementNodes[element] = node;
     _enclosingContext.addTypeParameter(name, element);
 
@@ -1114,8 +1118,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     return _buildAnnotationsWithUnit(_unitElement, nodeList);
   }
 
-  void _buildClassOrMixin(ClassOrMixinDeclaration node) {
-    var element = node.declaredElement as ClassElementImpl;
+  void _buildClass(ClassDeclaration node) {
+    var element = node.declaredElement2 as ClassElementImpl;
     var hasConstConstructor = node.members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
@@ -1126,7 +1130,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    if (node is ClassDeclaration && holder.constructors.isEmpty) {
+    if (holder.constructors.isEmpty) {
       holder.addConstructor(
         ConstructorElementImpl('', -1)..isSynthetic = true,
       );
@@ -1159,6 +1163,26 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     });
   }
 
+  void _buildMixin(MixinDeclaration node) {
+    var element = node.declaredElement2 as MixinElementImpl;
+    var hasConstConstructor = node.members.any((e) {
+      return e is ConstructorDeclaration && e.constKeyword != null;
+    });
+    // TODO(scheglov) don't create a duplicate
+    var holder = _EnclosingContext(element.reference!, element,
+        hasConstConstructor: hasConstConstructor);
+    _withEnclosing(holder, () {
+      _visitPropertyFirst<FieldDeclaration>(node.members);
+    });
+
+    element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
+    element.fields = holder.properties.whereType<FieldElement>().toList();
+    element.methods = holder.methods;
+
+    _resolveConstructorFieldFormals(element);
+  }
+
   void _buildSyntheticVariable({
     required String name,
     required PropertyAccessorElementImpl accessorElement,
@@ -1166,27 +1190,32 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var enclosingRef = _enclosingContext.reference;
     var enclosingElement = _enclosingContext.element;
 
-    PropertyInducingElementImpl? property;
+    bool canUseExisting(PropertyInducingElement property) {
+      return property.isSynthetic ||
+          accessorElement.isSetter && property.setter == null;
+    }
+
+    final PropertyInducingElementImpl property;
     if (enclosingElement is CompilationUnitElement) {
-      var containerRef = enclosingRef.getChild('@variable');
-      var propertyRef = containerRef.getChild(name);
-      property = propertyRef.element as PropertyInducingElementImpl?;
-      if (property == null) {
-        var variable = TopLevelVariableElementImpl(name, -1);
-        variable.isSynthetic = true;
+      final reference = enclosingRef.getChild('@variable').getChild(name);
+      final existing = reference.element;
+      if (existing is TopLevelVariableElementImpl && canUseExisting(existing)) {
+        property = existing;
+      } else {
+        final variable = property = TopLevelVariableElementImpl(name, -1)
+          ..isSynthetic = true;
         _enclosingContext.addTopLevelVariable(name, variable);
-        property = variable;
       }
     } else {
-      var containerRef = enclosingRef.getChild('@field');
-      var propertyRef = containerRef.getChild(name);
-      property = propertyRef.element as PropertyInducingElementImpl?;
-      if (property == null) {
-        var field = FieldElementImpl(name, -1);
-        field.isSynthetic = true;
-        field.isStatic = accessorElement.isStatic;
+      final reference = enclosingRef.getChild('@field').getChild(name);
+      final existing = reference.element;
+      if (existing is FieldElementImpl && canUseExisting(existing)) {
+        property = existing;
+      } else {
+        final field = property = FieldElementImpl(name, -1)
+          ..isStatic = accessorElement.isStatic
+          ..isSynthetic = true;
         _enclosingContext.addField(name, field);
-        property = field;
       }
     }
 
@@ -1211,51 +1240,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         }
       }
     }
-  }
-
-  Uri? _selectAbsoluteUri(NamespaceDirective directive) {
-    var relativeUriStr = _selectRelativeUri(
-      directive.configurations,
-      directive.uri.stringValue,
-    );
-    if (relativeUriStr == null) {
-      return null;
-    }
-
-    Uri relativeUri;
-    try {
-      relativeUri = Uri.parse(relativeUriStr);
-    } on FormatException {
-      return null;
-    }
-
-    var absoluteUri = resolveRelativeUri(_libraryBuilder.uri, relativeUri);
-
-    var sourceFactory = _linker.analysisContext.sourceFactory;
-    return rewriteToCanonicalUri(sourceFactory, absoluteUri);
-  }
-
-  LibraryElement? _selectLibrary(NamespaceDirective node) {
-    var uri = _selectAbsoluteUri(node);
-    if (uri == null) {
-      return null;
-    } else {
-      return _linker.elementFactory.libraryOfUri(uri);
-    }
-  }
-
-  String? _selectRelativeUri(
-    List<Configuration> configurations,
-    String? defaultUri,
-  ) {
-    for (var configuration in configurations) {
-      var name = configuration.name.components.join('.');
-      var value = configuration.value?.stringValue ?? 'true';
-      if (_linker.declaredVariables.get(name) == value) {
-        return configuration.uri.stringValue;
-      }
-    }
-    return defaultUri;
   }
 
   bool _shouldBeConstField(FieldDeclaration node) {
@@ -1314,24 +1298,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       annotations.add(element);
     }
     return annotations;
-  }
-
-  static List<NamespaceCombinator> _buildCombinators(
-    List<Combinator> combinators,
-  ) {
-    return combinators.map((node) {
-      if (node is HideCombinator) {
-        return HideElementCombinatorImpl()
-          ..hiddenNames = node.hiddenNames.nameList;
-      }
-      if (node is ShowCombinator) {
-        return ShowElementCombinatorImpl()
-          ..offset = node.keyword.offset
-          ..end = node.end
-          ..shownNames = node.shownNames.nameList;
-      }
-      throw UnimplementedError('${node.runtimeType}');
-    }).toList();
   }
 
   static void _setCodeRange(ElementImpl element, AstNode node) {
@@ -1493,11 +1459,5 @@ class _EnclosingContext {
     element.reference = reference;
     this.element.encloseElement(element);
     return reference;
-  }
-}
-
-extension on Iterable<SimpleIdentifier> {
-  List<String> get nameList {
-    return map((e) => e.name).toList();
   }
 }

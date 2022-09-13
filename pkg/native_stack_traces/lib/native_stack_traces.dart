@@ -9,4 +9,10 @@ export 'src/convert.dart'
         DwarfStackTraceDecoder,
         StackTraceHeader;
 export 'src/dwarf.dart'
-    show CallInfo, DartCallInfo, StubCallInfo, Dwarf, PCOffset;
+    show
+        CallInfo,
+        DartCallInfo,
+        Dwarf,
+        InstructionsSection,
+        PCOffset,
+        StubCallInfo;

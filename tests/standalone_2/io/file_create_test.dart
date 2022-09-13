@@ -23,6 +23,29 @@ testCreate() async {
   await tmp.delete(recursive: true);
 }
 
+testExclusiveCreate() async {
+  Directory tmp = await Directory.systemTemp.createTemp('file_test_create');
+  Expect.isTrue(await tmp.exists());
+  String filePath = "${tmp.path}/foo";
+  File file = new File(filePath);
+  Expect.isFalse(await file.exists());
+  File createdFile = await file.create(exclusive: true);
+  Expect.equals(file, createdFile);
+  Expect.isTrue(await createdFile.exists());
+  Expect.throws(
+      () => file.createSync(exclusive: true), (e) => e is FileSystemException);
+  bool createFailed = false;
+  try {
+    await file.create(exclusive: true);
+  } catch (e) {
+    Expect.isTrue(e is FileSystemException);
+    createFailed = true;
+  } finally {
+    Expect.isTrue(createFailed);
+  }
+  await tmp.delete(recursive: true);
+}
+
 testBadCreate() async {
   Directory tmp = await Directory.systemTemp.createTemp('file_test_create');
   Expect.isTrue(await tmp.exists());
@@ -42,5 +65,6 @@ testBadCreate() async {
 
 main() async {
   await testCreate();
+  await testExclusiveCreate();
   await testBadCreate();
 }

@@ -169,7 +169,7 @@ class GlobalTypeInferenceTask extends CompilerTask {
 
   GlobalTypeInferenceResults resultsForTesting;
 
-  Metrics _metrics;
+  Metrics _metrics = Metrics.none();
 
   GlobalTypeInferenceTask(Compiler compiler)
       : compiler = compiler,
@@ -189,7 +189,6 @@ class GlobalTypeInferenceTask extends CompilerTask {
       if (compiler.disableTypeInference) {
         results =
             TrivialGlobalTypeInferenceResults(closedWorld, globalLocalsMap);
-        _metrics = Metrics.none();
       } else {
         typesInferrerInternal ??= compiler.backendStrategy.createTypesInferrer(
             closedWorld, globalLocalsMap, inferredDataBuilder);

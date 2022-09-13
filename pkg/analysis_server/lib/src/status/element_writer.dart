@@ -39,10 +39,9 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     properties['nameOffset'] = element.nameOffset;
     if (element is ClassElement) {
       properties['hasNonFinalField'] = element.hasNonFinalField;
-      properties['hasStaticMember'] = element.hasStaticMember;
       properties['interfaces'] = element.interfaces;
       properties['isAbstract'] = element.isAbstract;
-      properties['isEnum'] = element.isEnum;
+      properties['isEnum'] = element is EnumElement;
       properties['isMixinApplication'] = element.isMixinApplication;
       properties['isValidMixin'] = element.isValidMixin;
       properties['mixins'] = element.mixins;
@@ -82,9 +81,9 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is ExportElement) {
+    if (element is LibraryExportElement) {
       properties['combinators'] = element.combinators;
-      properties['library'] = element.library;
+      properties['library'] = element.exportedLibrary;
     }
     if (element is FieldElement) {
       properties['isEnumConstant'] = element.isEnumConstant;
@@ -99,10 +98,10 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
-    if (element is ImportElement) {
+    if (element is LibraryImportElement) {
       properties['combinators'] = element.combinators;
-      properties['isDeferred'] = element.isDeferred;
-      properties['library'] = element.library;
+      properties['isDeferred'] = element.prefix is DeferredImportElementPrefix;
+      properties['library'] = element.importedLibrary;
     }
     if (element is LibraryElement) {
       properties['definingCompilationUnit'] = element.definingCompilationUnit;

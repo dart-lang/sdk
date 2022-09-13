@@ -17,8 +17,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/basic.dart';
-import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -167,21 +168,21 @@ environment:
     expect(context.sdkRoot, sdkRoot);
   }
 
-  void test_sourceFactory_bazelWorkspace() {
+  void test_sourceFactory_blazeWorkspace() {
     var projectPath = convertPath('/workspace/my/module');
-    newFile('/workspace/WORKSPACE', '');
-    newFolder('/workspace/bazel-bin');
-    newFolder('/workspace/bazel-genfiles');
+    newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
+    newFolder('/workspace/blaze-bin');
+    newFolder('/workspace/blaze-genfiles');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    expect(analysisContext.contextRoot.workspace, isA<BazelWorkspace>());
+    expect(analysisContext.contextRoot.workspace, isA<BlazeWorkspace>());
 
     expect(
       analysisContext.uriResolvers,
       unorderedEquals([
         isA<DartUriResolver>(),
-        isA<BazelPackageUriResolver>(),
-        isA<BazelFileUriResolver>(),
+        isA<BlazePackageUriResolver>(),
+        isA<BlazeFileUriResolver>(),
       ]),
     );
   }

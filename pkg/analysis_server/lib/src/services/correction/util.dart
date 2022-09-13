@@ -7,7 +7,6 @@ import 'dart:math';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -220,7 +219,7 @@ String getElementKindName(Element element) {
 String getElementQualifiedName(Element element) {
   var kind = element.kind;
   if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
-    return '${element.enclosingElement!.displayName}.${element.displayName}';
+    return '${element.enclosingElement3!.displayName}.${element.displayName}';
   } else if (kind == ElementKind.LIBRARY) {
     // Libraries may not have names, so use a path relative to the context root.
     final session = element.session!;
@@ -233,11 +232,6 @@ String getElementQualifiedName(Element element) {
     return element.displayName;
   }
 }
-
-/// If the given [node] is in a class, enum or mixin declaration, return the
-/// declared [ClassElement]. Otherwise return `null`.
-ClassElement? getEnclosingClassElement(AstNode node) =>
-    node.thisOrAncestorOfType<ClassOrMixinDeclaration>()?.declaredElement;
 
 /// Returns a class or an unit member enclosing the given [input].
 AstNode? getEnclosingClassOrUnitMember(AstNode input) {
@@ -261,13 +255,13 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
 ExecutableElement? getEnclosingExecutableElement(AstNode input) {
   for (var node in input.withParents) {
     if (node is FunctionDeclaration) {
-      return node.declaredElement;
+      return node.declaredElement2;
     }
     if (node is ConstructorDeclaration) {
-      return node.declaredElement;
+      return node.declaredElement2;
     }
     if (node is MethodDeclaration) {
-      return node.declaredElement;
+      return node.declaredElement2;
     }
   }
   return null;
@@ -288,11 +282,6 @@ AstNode? getEnclosingExecutableNode(AstNode input) {
   }
   return null;
 }
-
-/// If the given [node] is in an extension, return the declared
-/// [ExtensionElement]. Otherwise return `null`.
-ExtensionElement? getEnclosingExtensionElement(AstNode node) =>
-    node.thisOrAncestorOfType<ExtensionDeclaration>()?.declaredElement;
 
 /// Returns [getExpressionPrecedence] for the parent of [node], or
 /// ASSIGNMENT_PRECEDENCE if the parent node is a [ParenthesizedExpression].
@@ -326,8 +315,8 @@ Precedence getExpressionPrecedence(AstNode node) {
   return Precedence.none;
 }
 
-/// Returns the namespace of the given [ImportElement].
-Map<String, Element> getImportNamespace(ImportElement imp) {
+/// Returns the namespace of the given [LibraryImportElement].
+Map<String, Element> getImportNamespace(LibraryImportElement imp) {
   return imp.namespace.definedNames;
 }
 
@@ -477,7 +466,7 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
     return true;
   }
   return node.parent is VariableDeclaration &&
-      (node.parent as VariableDeclaration).name == node;
+      (node.parent as VariableDeclaration).name2 == node.token;
 }
 
 /// Return `true` if the given [node] is the name of a [NamedExpression].
@@ -531,7 +520,7 @@ class CorrectionUtils {
 
   /// The [ClassElement] the generated code is inserted to, so we can decide if
   /// a type parameter may or may not be used.
-  ClassElement? targetClassElement;
+  InterfaceElement? targetClassElement;
 
   ExecutableElement? targetExecutableElement;
 
@@ -915,7 +904,7 @@ class CorrectionUtils {
     if (type is InterfaceType) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: type.element,
+        element: type.element2,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: type.typeArguments,
       );
@@ -926,7 +915,7 @@ class CorrectionUtils {
     }
 
     if (type is TypeParameterType) {
-      var element = type.element;
+      var element = type.element2;
       if (_isTypeParameterVisible(element)) {
         return element.name;
       } else {
@@ -1069,8 +1058,8 @@ class CorrectionUtils {
 
   InsertionLocation? prepareNewConstructorLocation(
       AnalysisSession session, ClassDeclaration classDeclaration) {
-    final sortConstructorsFirst = session.analysisContext.analysisOptions
-        .isLintEnabled(LintNames.sort_constructors_first);
+    final sortConstructorsFirst = session
+        .analysisContext.analysisOptions.codeStyleOptions.sortConstructorsFirst;
     // If sort_constructors_first is enabled, don't skip over the fields.
     final shouldSkip = sortConstructorsFirst
         ? (member) => member is ConstructorDeclaration
@@ -1215,8 +1204,8 @@ class CorrectionUtils {
 
   /// Return the import element used to import given [element] into the library.
   /// May be `null` if was not imported, i.e. declared in the same library.
-  ImportElement? _getImportElement(Element element) {
-    for (var imp in _library.imports) {
+  LibraryImportElement? _getImportElement(Element element) {
+    for (var imp in _library.libraryImports) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;
@@ -1226,27 +1215,33 @@ class CorrectionUtils {
   }
 
   Token? _getLeftBracket(CompilationUnitMember declaration) {
-    if (declaration is ClassOrMixinDeclaration) {
+    if (declaration is ClassDeclaration) {
       return declaration.leftBracket;
     } else if (declaration is ExtensionDeclaration) {
+      return declaration.leftBracket;
+    } else if (declaration is MixinDeclaration) {
       return declaration.leftBracket;
     }
     return null;
   }
 
   List<ClassMember>? _getMembers(CompilationUnitMember declaration) {
-    if (declaration is ClassOrMixinDeclaration) {
+    if (declaration is ClassDeclaration) {
       return declaration.members;
     } else if (declaration is ExtensionDeclaration) {
+      return declaration.members;
+    } else if (declaration is MixinDeclaration) {
       return declaration.members;
     }
     return null;
   }
 
   Token? _getRightBracket(CompilationUnitMember declaration) {
-    if (declaration is ClassOrMixinDeclaration) {
+    if (declaration is ClassDeclaration) {
       return declaration.rightBracket;
     } else if (declaration is ExtensionDeclaration) {
+      return declaration.rightBracket;
+    } else if (declaration is MixinDeclaration) {
       return declaration.rightBracket;
     }
     return null;
@@ -1270,7 +1265,7 @@ class CorrectionUtils {
       // ensure import
       var importElement = _getImportElement(element);
       if (importElement != null) {
-        var prefix = importElement.prefix;
+        var prefix = importElement.prefix?.element;
         if (prefix != null) {
           sb.write(prefix.displayName);
           sb.write('.');
@@ -1380,7 +1375,7 @@ class CorrectionUtils {
   /// Checks if [element] is visible in [targetExecutableElement] or
   /// [targetClassElement].
   bool _isTypeParameterVisible(TypeParameterElement element) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement3;
     return identical(enclosing, targetExecutableElement) ||
         identical(enclosing, targetClassElement);
   }

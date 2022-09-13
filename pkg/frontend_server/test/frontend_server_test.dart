@@ -1,3 +1,7 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE.md file.
+
 // @dart = 2.9
 // ignore_for_file: empty_catches
 
@@ -10,6 +14,7 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:frontend_server/frontend_server.dart';
+import 'package:frontend_server/starter.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
@@ -524,23 +529,11 @@ void main() async {
         '--packages=${packageConfig.path}',
       ];
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile ${file.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         if (count == 0) {
@@ -548,33 +541,15 @@ void main() async {
           expect(result.errorsCount, equals(0));
           expect(dillFile.existsSync(), equals(true));
           expect(result.filename, dillFile.path);
-          streamController.add('accept\n'.codeUnits);
-
-          // 'compile-expression <boundarykey>
-          // expression
-          // definitions (one per line)
-          // ...
-          // <boundarykey>
-          // type-definitions (one per line)
-          // ...
-          // <boundarykey>
-          // <libraryUri: String>
-          // <klass: String>
-          // <isStatic: true|false>
-          outputParser.expectSources = false;
-          streamController.add(
-              'compile-expression abc\n2+2\nabc\nabc\n${file.uri}\n\n\n'
-                  .codeUnits);
+          frontendServer.accept();
+          frontendServer.compileExpression('2+2', file.uri, isStatic: null);
           count += 1;
         } else if (count == 1) {
           expect(result.errorsCount, isNull);
           // Previous request should have failed because isStatic was blank
           expect(compiledResult.status, isNull);
 
-          outputParser.expectSources = false;
-          streamController.add(
-              'compile-expression abc\n2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
-                  .codeUnits);
+          frontendServer.compileExpression('2+2', file.uri, isStatic: false);
           count += 1;
         } else if (count == 2) {
           expect(result.errorsCount, equals(0));
@@ -584,19 +559,20 @@ void main() async {
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
 
-          streamController.add('compile foo.bar\n'.codeUnits);
+          frontendServer.compile('foo.bar');
           count += 1;
         } else {
           expect(count, 3);
           // Third request is to 'compile' non-existent file, that should fail.
           expect(result.errorsCount, greaterThan(0));
 
-          streamController.add('quit\n'.codeUnits);
+          frontendServer.quit();
         }
       });
 
       expect(await result, 0);
       expect(count, 3);
+      frontendServer.close();
     });
 
     test('mixed compile expression commands with non-web target', () async {
@@ -614,23 +590,11 @@ void main() async {
       var library = 'package:hello/foo.dart';
       var module = 'packages/hello/foo.dart';
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile ${file.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         if (count == 0) {
@@ -638,23 +602,9 @@ void main() async {
           expect(result.errorsCount, equals(0));
           expect(dillFile.existsSync(), equals(true));
           expect(result.filename, dillFile.path);
-          streamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
 
-          // 'compile-expression <boundarykey>
-          // expression
-          // definitions (one per line)
-          // ...
-          // <boundarykey>
-          // type-definitions (one per line)
-          // ...
-          // <boundarykey>
-          // <libraryUri: String>
-          // <klass: String>
-          // <isStatic: true|false>
-          outputParser.expectSources = false;
-          streamController.add('compile-expression abc\n'
-                  '2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
-              .codeUnits);
+          frontendServer.compileExpression('2+2', file.uri, isStatic: false);
           count += 1;
         } else if (count == 1) {
           expect(result.errorsCount, equals(0));
@@ -664,22 +614,7 @@ void main() async {
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
 
-          // 'compile-expression-to-js <boundarykey>
-          // libraryUri
-          // line
-          // column
-          // jsModules (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // jsFrameValues (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // moduleName
-          // expression
-          outputParser.expectSources = false;
-          streamController.add('compile-expression-to-js abc\n'
-                  '$library\n1\n1\nabc\nabc\n$module\n\n'
-              .codeUnits);
+          frontendServer.compileExpressionToJs('', library, 1, 1, module);
           count += 1;
         } else if (count == 2) {
           // Third request is to 'compile-expression-to-js' that fails
@@ -687,10 +622,7 @@ void main() async {
           expect(result.errorsCount, isNull);
           expect(compiledResult.status, isNull);
 
-          outputParser.expectSources = false;
-          streamController.add('compile-expression abc\n'
-                  '2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
-              .codeUnits);
+          frontendServer.compileExpression('2+2', file.uri, isStatic: false);
           count += 1;
         } else if (count == 3) {
           expect(result.errorsCount, equals(0));
@@ -700,12 +632,13 @@ void main() async {
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
 
-          streamController.add('quit\n'.codeUnits);
+          frontendServer.quit();
         }
       });
 
       expect(await result, 0);
       expect(count, 3);
+      frontendServer.close();
     });
 
     test('compiler reports correct sources added', () async {
@@ -724,47 +657,31 @@ void main() async {
         '--output-dill=${dillFile.path}'
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      final Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${mainFile.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      final Future<int> result = frontendServer.open(args);
+      frontendServer.compile(mainFile.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         compiledResult.expectNoErrors();
         if (count == 0) {
           expect(compiledResult.sources.length, equals(1));
           expect(compiledResult.sources, contains('+${mainFile.uri}'));
 
-          inputStreamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
           mainFile
               .writeAsStringSync("import 'lib.dart';  main() => print(foo);\n");
-          inputStreamController.add('recompile ${mainFile.path} abc\n'
-                  '${mainFile.uri}\n'
-                  'abc\n'
-              .codeUnits);
+          frontendServer.recompile(mainFile.uri, entryPoint: mainFile.path);
           count += 1;
         } else if (count == 1) {
           expect(compiledResult.sources.length, equals(1));
           expect(compiledResult.sources, contains('+${libFile.uri}'));
-          inputStreamController.add('accept\n'.codeUnits);
-          inputStreamController.add('quit\n'.codeUnits);
+          frontendServer.accept();
+          frontendServer.quit();
         }
       });
 
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     }, timeout: Timeout.factor(100));
 
     test('compiler reports correct sources removed', () async {
@@ -783,47 +700,31 @@ void main() async {
         '--output-dill=${dillFile.path}'
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      final Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${mainFile.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      final Future<int> result = frontendServer.open(args);
+      frontendServer.compile(mainFile.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         compiledResult.expectNoErrors();
         if (count == 0) {
           expect(compiledResult.sources.length, equals(2));
           expect(compiledResult.sources,
               allOf(contains('+${mainFile.uri}'), contains('+${libFile.uri}')));
 
-          inputStreamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
           mainFile.writeAsStringSync("main() => print('foo');\n");
-          inputStreamController.add('recompile ${mainFile.path} abc\n'
-                  '${mainFile.uri}\n'
-                  'abc\n'
-              .codeUnits);
+          frontendServer.recompile(mainFile.uri, entryPoint: mainFile.path);
           count += 1;
         } else if (count == 1) {
           expect(compiledResult.sources.length, equals(1));
           expect(compiledResult.sources, contains('-${libFile.uri}'));
-          inputStreamController.add('accept\n'.codeUnits);
-          inputStreamController.add('quit\n'.codeUnits);
+          frontendServer.accept();
+          frontendServer.quit();
         }
       });
 
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     }, timeout: Timeout.factor(100));
 
     test('compile expression when delta is rejected', () async {
@@ -840,24 +741,11 @@ void main() async {
         '--output-dill=${dillFile.path}'
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      final Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      final Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         if (count == 0) {
@@ -865,30 +753,9 @@ void main() async {
           expect(result.errorsCount, 0);
           expect(dillFile.existsSync(), equals(true));
           expect(result.filename, dillFile.path);
-          inputStreamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
 
-          // 'compile-expression <boundarykey>
-          // expression
-          // definitions (one per line)
-          // ...
-          // <boundarykey>
-          // type-definitions (one per line)
-          // ...
-          // <boundarykey>
-          // <libraryUri: String>
-          // <klass: String>
-          // <isStatic: true|false>
-          outputParser.expectSources = false;
-          inputStreamController.add('''
-compile-expression abc
-main1
-abc
-abc
-${file.uri}
-
-true
-'''
-              .codeUnits);
+          frontendServer.compileExpression('main1', file.uri, isStatic: true);
           count += 1;
         } else if (count == 1) {
           // Second request was to 'compile-expression', which resulted in
@@ -899,36 +766,29 @@ true
           expect(outputFile.lengthSync(), isPositive);
 
           file.writeAsStringSync("import 'lib.dart'; main() => foo();\n");
-          inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.uri}\n'
-                  'abc\n'
-              .codeUnits);
+          frontendServer.recompile(file.uri, entryPoint: file.path);
 
           count += 1;
         } else if (count == 2) {
           // Third request was to recompile the script after renaming a function.
           expect(result.errorsCount, 0);
-          outputParser.expectSources = false;
-          inputStreamController.add('reject\n'.codeUnits);
+          frontendServer.reject();
           count += 1;
         } else if (count == 3) {
           // Fourth request was to reject the compilation results.
-          outputParser.expectSources = false;
-          inputStreamController.add(
-              'compile-expression abc\nmain1\nabc\nabc\n${file.uri}\n\ntrue\n'
-                  .codeUnits);
+          frontendServer.compileExpression('main1', file.uri, isStatic: true);
           count += 1;
         } else {
           expect(count, 4);
           // Fifth request was to 'compile-expression' that references original
           // function, which should still be successful.
           expect(result.errorsCount, 0);
-          inputStreamController.add('quit\n'.codeUnits);
+          frontendServer.quit();
         }
       });
 
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     }, timeout: Timeout.factor(100));
 
     test('recompile request keeps incremental output dill filename', () async {
@@ -943,36 +803,20 @@ true
         '--output-dill=${dillFile.path}'
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         if (count == 0) {
           // First request is to 'compile', which results in full kernel file.
           expect(dillFile.existsSync(), equals(true));
           compiledResult.expectNoErrors(filename: dillFile.path);
           count += 1;
-          inputStreamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
           var file2 = File('${tempDir.path}/bar.dart')..createSync();
           file2.writeAsStringSync("main() {}\n");
-          inputStreamController.add('recompile ${file2.path} abc\n'
-                  '${file2.uri}\n'
-                  'abc\n'
-              .codeUnits);
+          frontendServer.recompile(file2.uri, entryPoint: file2.path);
         } else {
           expect(count, 1);
           // Second request is to 'recompile', which results in incremental
@@ -980,11 +824,12 @@ true
           var dillIncFile = File('${dillFile.path}.incremental.dill');
           compiledResult.expectNoErrors(filename: dillIncFile.path);
           expect(dillIncFile.existsSync(), equals(true));
-          inputStreamController.add('quit\n'.codeUnits);
+          frontendServer.accept();
+          frontendServer.quit();
         }
       });
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     });
 
     test(
@@ -1038,30 +883,17 @@ class BarState extends State<FizzWidget> {}
         '--packages=${config.path}',
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         if (count == 0) {
           // First request is to 'compile', which results in full kernel file.
           expect(dillFile.existsSync(), equals(true));
           compiledResult.expectNoErrors(filename: dillFile.path);
           count += 1;
-          inputStreamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
           file.writeAsStringSync("""
 import "package:flutter/src/widgets/framework.dart";
 
@@ -1075,10 +907,7 @@ class FizzWidget extends StatefulWidget {}
 
 class BarState extends State<FizzWidget> {}
 """);
-          inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.uri}\n'
-                  'abc\n'
-              .codeUnits);
+          frontendServer.recompile(file.uri, entryPoint: file.path);
         } else if (count == 1) {
           expect(count, 1);
           // Second request is to 'recompile', which results in incremental
@@ -1091,7 +920,7 @@ class BarState extends State<FizzWidget> {}
           expect(widgetCacheFile.existsSync(), equals(true));
           expect(widgetCacheFile.readAsStringSync(), 'FooWidget');
           count += 1;
-          inputStreamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
 
           file.writeAsStringSync("""
 import "package:flutter/src/widgets/framework.dart";
@@ -1108,10 +937,7 @@ class FizzWidget extends StatefulWidget {
 
 class BarState extends State<FizzWidget> {}
 """);
-          inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.uri}\n'
-                  'abc\n'
-              .codeUnits);
+          frontendServer.recompile(file.uri, entryPoint: file.path);
         } else if (count == 2) {
           // Second request is to 'recompile', which results in incremental
           // kernel file and invalidation of StatelessWidget.
@@ -1123,7 +949,7 @@ class BarState extends State<FizzWidget> {}
           expect(widgetCacheFile.existsSync(), equals(true));
           expect(widgetCacheFile.readAsStringSync(), 'FizzWidget');
           count += 1;
-          inputStreamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
 
           file.writeAsStringSync("""
 import "package:flutter/src/widgets/framework.dart";
@@ -1142,10 +968,7 @@ class BarState extends State<FizzWidget> {
   // Added.
 }
 """);
-          inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.uri}\n'
-                  'abc\n'
-              .codeUnits);
+          frontendServer.recompile(file.uri, entryPoint: file.path);
         } else if (count == 3) {
           // Third request is to 'recompile', which results in incremental
           // kernel file and invalidation of State class.
@@ -1157,7 +980,7 @@ class BarState extends State<FizzWidget> {
           expect(widgetCacheFile.existsSync(), equals(true));
           expect(widgetCacheFile.readAsStringSync(), 'FizzWidget');
           count += 1;
-          inputStreamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
 
           file.writeAsStringSync("""
 import "package:flutter/src/widgets/framework.dart";
@@ -1178,10 +1001,7 @@ class BarState extends State<FizzWidget> {
   // Added.
 }
 """);
-          inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.uri}\n'
-                  'abc\n'
-              .codeUnits);
+          frontendServer.recompile(file.uri, entryPoint: file.path);
         } else if (count == 4) {
           // Fourth request is to 'recompile', which results in incremental
           // kernel file and no widget cache
@@ -1191,11 +1011,12 @@ class BarState extends State<FizzWidget> {
           compiledResult.expectNoErrors(filename: dillIncFile.path);
           expect(dillIncFile.existsSync(), equals(true));
           expect(widgetCacheFile.existsSync(), equals(false));
-          inputStreamController.add('quit\n'.codeUnits);
+          frontendServer.accept();
+          frontendServer.quit();
         }
       });
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     });
 
     test('unsafe-package-serialization', () async {
@@ -1257,23 +1078,11 @@ class BarState extends State<FizzWidget> {
         '--no-incremental-serialization',
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         switch (count) {
@@ -1282,18 +1091,16 @@ class BarState extends State<FizzWidget> {
             expect(result.filename, dillFile.path);
             expect(result.errorsCount, 0);
             count += 1;
-            inputStreamController.add('accept\n'.codeUnits);
-            inputStreamController.add('reset\n'.codeUnits);
+            frontendServer.accept();
+            frontendServer.reset();
 
-            inputStreamController.add('recompile ${fileB.path} abc\n'
-                    '${fileB.uri}\n'
-                    'abc\n'
-                .codeUnits);
+            frontendServer.recompile(fileB.uri, entryPoint: fileB.path);
             break;
           case 1:
             expect(result.filename, dillFile.path);
             expect(result.errorsCount, 0);
-            inputStreamController.add('quit\n'.codeUnits);
+            frontendServer.accept();
+            frontendServer.quit();
 
             // Loadable.
             Component component = loadComponentFromBinary(dillFile.path);
@@ -1314,7 +1121,7 @@ class BarState extends State<FizzWidget> {
         }
       });
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     });
 
     test('incremental-serialization', () async {
@@ -1391,23 +1198,11 @@ class BarState extends State<FizzWidget> {
         '--incremental-serialization',
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         switch (count) {
@@ -1416,18 +1211,16 @@ class BarState extends State<FizzWidget> {
             expect(result.filename, dillFile.path);
             expect(result.errorsCount, 0);
             count += 1;
-            inputStreamController.add('accept\n'.codeUnits);
-            inputStreamController.add('reset\n'.codeUnits);
+            frontendServer.accept();
+            frontendServer.reset();
 
-            inputStreamController.add('recompile ${fileB.path} abc\n'
-                    '${fileB.uri}\n'
-                    'abc\n'
-                .codeUnits);
+            frontendServer.recompile(fileB.uri, entryPoint: fileB.path);
             break;
           case 1:
             expect(result.filename, dillFile.path);
             expect(result.errorsCount, 0);
-            inputStreamController.add('quit\n'.codeUnits);
+            frontendServer.accept();
+            frontendServer.quit();
 
             // Loadable.
             Component component = loadComponentFromBinary(dillFile.path);
@@ -1448,7 +1241,7 @@ class BarState extends State<FizzWidget> {
         }
       });
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     });
 
     test('incremental-serialization with reject', () async {
@@ -1479,23 +1272,11 @@ class BarState extends State<FizzWidget> {
         '--incremental-serialization',
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${file.path}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         switch (count) {
@@ -1518,16 +1299,12 @@ class BarState extends State<FizzWidget> {
             file.writeAsStringSync("pkgA() {} pkgA_2() {}");
 
             count += 1;
-            outputParser.expectSources = false;
-            inputStreamController.add('reject\n'.codeUnits);
+            frontendServer.reject();
             break;
           case 1:
             count += 1;
-            inputStreamController.add('reset\n'.codeUnits);
-            inputStreamController.add('recompile ${file.path} abc\n'
-                    '${file.uri}\n'
-                    'abc\n'
-                .codeUnits);
+            frontendServer.reset();
+            frontendServer.recompile(file.uri, entryPoint: file.path);
             break;
           case 2:
             expect(dillFile.existsSync(), equals(true));
@@ -1548,17 +1325,15 @@ class BarState extends State<FizzWidget> {
             file.writeAsStringSync("pkgA() {} pkgA_2() {} pkgA_3() {}");
 
             count += 1;
-            inputStreamController.add('accept\n'.codeUnits);
-            inputStreamController.add('reset\n'.codeUnits);
-            inputStreamController.add('recompile ${file.path} abc\n'
-                    '${file.uri}\n'
-                    'abc\n'
-                .codeUnits);
+            frontendServer.accept();
+            frontendServer.reset();
+            frontendServer.recompile(file.uri, entryPoint: file.path);
             break;
           case 3:
             expect(result.filename, dillFile.path);
             expect(result.errorsCount, 0);
-            inputStreamController.add('quit\n'.codeUnits);
+            frontendServer.accept();
+            frontendServer.quit();
 
             // Loadable.
             Component component = loadComponentFromBinary(dillFile.path);
@@ -1573,7 +1348,7 @@ class BarState extends State<FizzWidget> {
         }
       });
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     });
 
     test('compile and recompile report non-zero error count', () async {
@@ -1588,24 +1363,11 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}'
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${file.uri}\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.uri.toString());
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         switch (count) {
@@ -1614,37 +1376,33 @@ class BarState extends State<FizzWidget> {
             expect(result.filename, dillFile.path);
             expect(result.errorsCount, 2);
             count += 1;
-            inputStreamController.add('accept\n'.codeUnits);
+            frontendServer.accept();
             var file2 = File('${tempDir.path}/bar.dart')..createSync();
             file2.writeAsStringSync("main() { baz(); }\n");
-            inputStreamController.add('recompile ${file2.uri} abc\n'
-                    '${file2.uri}\n'
-                    'abc\n'
-                .codeUnits);
+            frontendServer.recompile(file2.uri,
+                entryPoint: file2.uri.toString());
             break;
           case 1:
             var dillIncFile = File('${dillFile.path}.incremental.dill');
             expect(result.filename, dillIncFile.path);
             expect(result.errorsCount, 1);
             count += 1;
-            inputStreamController.add('accept\n'.codeUnits);
+            frontendServer.accept();
             var file2 = File('${tempDir.path}/bar.dart')..createSync();
             file2.writeAsStringSync("main() { }\n");
-            inputStreamController.add('recompile ${file2.uri} abc\n'
-                    '${file2.uri}\n'
-                    'abc\n'
-                .codeUnits);
+            frontendServer.recompile(file2.uri,
+                entryPoint: file2.uri.toString());
             break;
           case 2:
             var dillIncFile = File('${dillFile.path}.incremental.dill');
             expect(result.filename, dillIncFile.path);
             expect(result.errorsCount, 0);
             expect(dillIncFile.existsSync(), equals(true));
-            inputStreamController.add('quit\n'.codeUnits);
+            frontendServer.quit();
         }
       });
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     });
 
     test('compile and recompile with MultiRootFileSystem', () async {
@@ -1694,23 +1452,10 @@ class BarState extends State<FizzWidget> {
         '--output-dill=${dillFile.path}'
       ];
 
-      final StreamController<List<int>> inputStreamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: inputStreamController.stream, output: ioSink);
-      inputStreamController.add('compile ${src1.uri}\n'.codeUnits);
-      receivedResults.stream.listen((Result compiledResult) {
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(src1.uri.toString());
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         expect(dillFile.existsSync(), equals(true));
@@ -1725,10 +1470,10 @@ class BarState extends State<FizzWidget> {
                 .where((lib) => srcUris.contains(lib.fileUri))
                 .length,
             srcUris.length);
-        inputStreamController.add('quit\n'.codeUnits);
+        frontendServer.quit();
       });
       expect(await result, 0);
-      inputStreamController.close();
+      frontendServer.close();
     });
 
     group('http uris', () {
@@ -2147,23 +1892,11 @@ void main(List<String> arguments, SendPort sendPort) {
         '--packages=${packages.path}',
       ];
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile $library\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(library);
       var count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         count++;
@@ -2171,18 +1904,19 @@ void main(List<String> arguments, SendPort sendPort) {
           // First request is to 'compile', which results in full JavaScript
           expect(result.errorsCount, equals(0));
           expect(result.filename, dillFile.path);
-          streamController.add('accept\n'.codeUnits);
-          streamController.add('compile foo.bar\n'.codeUnits);
+          frontendServer.accept();
+          frontendServer.compile('foo.bar');
         } else {
           expect(count, 2);
           // Second request is to 'compile' non-existent file, that should fail.
           expect(result.errorsCount, greaterThan(0));
-          streamController.add('quit\n'.codeUnits);
+          frontendServer.quit();
         }
       });
 
       expect(await result, 0);
       expect(count, 2);
+      frontendServer.close();
     }, skip: 'https://github.com/dart-lang/sdk/issues/43959');
 
     test('compile to JavaScript with no metadata', () async {
@@ -2227,23 +1961,11 @@ void main(List<String> arguments, SendPort sendPort) {
         '--packages=${packageConfig.path}',
       ];
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile $library\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(library);
       var count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         count++;
@@ -2255,13 +1977,13 @@ void main(List<String> arguments, SendPort sendPort) {
         expect(sourceMapsFile.existsSync(), equals(true));
         expect(metadataFile.existsSync(), equals(false));
         expect(result.filename, dillFile.path);
-        streamController.add('accept\n'.codeUnits);
-        outputParser.expectSources = false;
-        streamController.add('quit\n'.codeUnits);
+        frontendServer.accept();
+        frontendServer.quit();
       });
 
       expect(await result, 0);
       expect(count, 1);
+      frontendServer.close();
     });
 
     test('compile to JavaScript with metadata', () async {
@@ -2309,23 +2031,11 @@ void main(List<String> arguments, SendPort sendPort) {
         '--emit-debug-symbols',
       ];
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile $library\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(library);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         count++;
@@ -2337,13 +2047,226 @@ void main(List<String> arguments, SendPort sendPort) {
         expect(metadataFile.existsSync(), equals(true));
         expect(symbolsFile.existsSync(), equals(true));
         expect(result.filename, dillFile.path);
-        streamController.add('accept\n'.codeUnits);
-        outputParser.expectSources = false;
-        streamController.add('quit\n'.codeUnits);
+        frontendServer.accept();
+        frontendServer.quit();
       });
 
       expect(await result, 0);
       expect(count, 1);
+      frontendServer.close();
+    });
+
+    // This test exercises what happens when a change occurs with a single
+    // module of a multi-module compilation.
+    test('recompile to JavaScript with in-body change', () async {
+      // Five libraries, a to e, in two modules, {a, b} and {c, d, e}:
+      //    (a <-> b) -> (c <-> d <-> e)
+      // In body changes are performed on d and e. With advanced invalidation,
+      // not currently enabled, only the module {c, d, e} will be recompiled.
+      File('${tempDir.path}/a.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'b.dart';
+main() {
+  b();
+}
+a() => "<<a>>";
+""");
+      File('${tempDir.path}/b.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'a.dart';
+import 'c.dart';
+b() {
+  a();
+  "<<b>>";
+  c();
+}
+""");
+      File('${tempDir.path}/c.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'd.dart';
+c() {
+  "<<c>>";
+  d();
+}
+""");
+      var fileD = File('${tempDir.path}/d.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'e.dart';
+d() {
+  "<<d>>";
+  e();
+}
+""");
+      var fileE = File('${tempDir.path}/e.dart')
+        ..createSync()
+        ..writeAsStringSync("""
+import 'c.dart';
+e() {
+  c();
+  "<<e>>";
+}
+""");
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "a",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+
+      var entryPoint = 'package:a/a.dart';
+
+      var dillFile = File('${tempDir.path}/app.dill');
+      var sourceFile = File('${dillFile.path}.sources');
+      var manifestFile = File('${dillFile.path}.json');
+      var sourceMapsFile = File('${dillFile.path}.map');
+      var metadataFile = File('${dillFile.path}.metadata');
+      var symbolsFile = File('${dillFile.path}.symbols');
+
+      expect(dillFile.existsSync(), false);
+      expect(sourceFile.existsSync(), false);
+      expect(manifestFile.existsSync(), false);
+      expect(sourceMapsFile.existsSync(), false);
+      expect(metadataFile.existsSync(), false);
+      expect(symbolsFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${packageConfig.path}',
+        '--emit-debug-symbols',
+      ];
+
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(entryPoint);
+      int count = 0;
+      frontendServer.listen((Result compiledResult) {
+        switch (count) {
+          case 0:
+            CompilationResult result =
+                CompilationResult.parse(compiledResult.status);
+            expect(result.errorsCount, equals(0));
+            expect(result.filename, dillFile.path);
+            expect(sourceFile.existsSync(), equals(true));
+
+            var source = sourceFile.readAsStringSync();
+            // Split on the comment at the end of each module.
+            var jsModules =
+                source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+
+            expect(jsModules[0], contains('<<a>>'));
+            expect(jsModules[0], contains('<<b>>'));
+            expect(jsModules[0], not(contains('<<c>>')));
+            expect(jsModules[0], not(contains('<<d>>')));
+            expect(jsModules[0], not(contains('<<e>>')));
+
+            expect(jsModules[1], not(contains('<<a>>')));
+            expect(jsModules[1], not(contains('<<b>>')));
+            expect(jsModules[1], contains('<<c>>'));
+            expect(jsModules[1], contains('<<d>>'));
+            expect(jsModules[1], contains('<<e>>'));
+
+            frontendServer.accept();
+
+            fileD.writeAsStringSync("""
+import 'e.dart';
+d() {
+  "<<d1>>";
+  "<<d2>>";
+  e();
+}
+""");
+            // Trigger a recompile that invalidates 'd.dart'. The entry point
+            // uri (a.dart) is passed explicitly.
+            frontendServer.recompile(fileD.uri, entryPoint: entryPoint);
+            break;
+          case 1:
+            CompilationResult result =
+                CompilationResult.parse(compiledResult.status);
+            expect(result.errorsCount, equals(0));
+            expect(result.filename, '${dillFile.path}.incremental.dill');
+            File incrementalSourceFile =
+                File('${dillFile.path}.incremental.dill.sources');
+            expect(incrementalSourceFile.existsSync(), equals(true));
+
+            var source = incrementalSourceFile.readAsStringSync();
+            // Split on the comment at the end of each module.
+            var jsModules =
+                source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+
+            expect(jsModules[0], not(contains('<<a>>')));
+            expect(jsModules[0], not(contains('<<b>>')));
+            expect(jsModules[0], contains('<<c>>'));
+            expect(jsModules[0], not(contains('<<d>>')));
+            expect(jsModules[0], contains('<<d1>>'));
+            expect(jsModules[0], contains('<<d2>>'));
+            expect(jsModules[0], contains('<<e>>'));
+
+            frontendServer.accept();
+
+            fileE.writeAsStringSync("""
+import 'c.dart';
+e() {
+  c();
+  "<<e1>>";
+  "<<e2>>";
+}
+""");
+            // Trigger a recompile that invalidates 'd.dart'. The entry point
+            // uri (a.dart) is omitted.
+            frontendServer.recompile(fileE.uri);
+            break;
+          case 2:
+            CompilationResult result =
+                CompilationResult.parse(compiledResult.status);
+            expect(result.errorsCount, equals(0));
+            expect(result.filename, '${dillFile.path}.incremental.dill');
+            File incrementalSourceFile =
+                File('${dillFile.path}.incremental.dill.sources');
+            expect(incrementalSourceFile.existsSync(), equals(true));
+
+            var source = incrementalSourceFile.readAsStringSync();
+            // Split on the comment at the end of each module.
+            var jsModules =
+                source.split(RegExp("\/\/# sourceMappingURL=.*\.map"));
+
+            expect(jsModules[0], not(contains('<<a>>')));
+            expect(jsModules[0], not(contains('<<b>>')));
+            expect(jsModules[0], contains('<<c>>'));
+            expect(jsModules[0], not(contains('<<d>>')));
+            expect(jsModules[0], contains('<<d1>>'));
+            expect(jsModules[0], contains('<<d2>>'));
+            expect(jsModules[0], not(contains('<<e>>')));
+            expect(jsModules[0], contains('<<e1>>'));
+            expect(jsModules[0], contains('<<e2>>'));
+
+            frontendServer.accept();
+            frontendServer.quit();
+            break;
+          default:
+            break;
+        }
+        count++;
+      });
+
+      expect(await result, 0);
+      expect(count, 3);
+      frontendServer.close();
     });
 
     test('compile to JavaScript all modules with unsound null safety',
@@ -2385,24 +2308,12 @@ void main(List<String> arguments, SendPort sendPort) {
         '--packages=${packageConfig.path}'
       ];
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile $library\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(library);
       var count = 0;
       var expectationCompleter = Completer<bool>();
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         count++;
@@ -2421,15 +2332,15 @@ void main(List<String> arguments, SendPort sendPort) {
             jsModules[0], contains('dart._checkModuleNullSafetyMode(false);'));
         expect(
             jsModules[1], contains('dart._checkModuleNullSafetyMode(false);'));
-        streamController.add('accept\n'.codeUnits);
-        outputParser.expectSources = false;
-        streamController.add('quit\n'.codeUnits);
+        frontendServer.accept();
+        frontendServer.quit();
         expectationCompleter.complete(true);
       });
 
       await expectationCompleter.future;
       expect(await result, 0);
       expect(count, 1);
+      frontendServer.close();
     }, timeout: Timeout.none);
 
     test('compile to JavaScript, all modules with sound null safety', () async {
@@ -2469,24 +2380,12 @@ void main(List<String> arguments, SendPort sendPort) {
         '--packages=${packageConfig.path}',
       ];
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile $library\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(library);
       var count = 0;
       var expectationCompleter = Completer<bool>();
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         count++;
@@ -2505,15 +2404,15 @@ void main(List<String> arguments, SendPort sendPort) {
             jsModules[0], contains('dart._checkModuleNullSafetyMode(true);'));
         expect(
             jsModules[1], contains('dart._checkModuleNullSafetyMode(true);'));
-        streamController.add('accept\n'.codeUnits);
-        outputParser.expectSources = false;
-        streamController.add('quit\n'.codeUnits);
+        frontendServer.accept();
+        frontendServer.quit();
         expectationCompleter.complete(true);
       });
 
       await expectationCompleter.future;
       expect(await result, 0);
       expect(count, 1);
+      frontendServer.close();
     });
 
     test('compile expression to Javascript', () async {
@@ -2553,23 +2452,11 @@ void main(List<String> arguments, SendPort sendPort) {
         '--packages=${packageConfig.path}',
       ];
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile $library\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(library);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         if (count == 0) {
@@ -2579,24 +2466,9 @@ void main(List<String> arguments, SendPort sendPort) {
           expect(manifestFile.existsSync(), equals(true));
           expect(sourceMapsFile.existsSync(), equals(true));
           expect(result.filename, dillFile.path);
-          streamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
 
-          // 'compile-expression-to-js <boundarykey>
-          // libraryUri
-          // line
-          // column
-          // jsModules (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // jsFrameValues (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // moduleName
-          // expression
-          outputParser.expectSources = false;
-          streamController.add('compile-expression-to-js abc\n'
-                  '$library\n2\n1\nabc\nabc\n$module\n\n'
-              .codeUnits);
+          frontendServer.compileExpressionToJs('', library, 2, 1, module);
           count += 1;
         } else if (count == 1) {
           // Second request is to 'compile-expression-to-js' that fails
@@ -2606,10 +2478,7 @@ void main(List<String> arguments, SendPort sendPort) {
             return status.endsWith(' 1');
           });
 
-          outputParser.expectSources = false;
-          streamController.add('compile-expression-to-js abc\n'
-                  '$library\n2\n1\nabc\nabc\n$module\n2+2\n'
-              .codeUnits);
+          frontendServer.compileExpressionToJs('2+2', library, 2, 1, module);
           count += 1;
         } else if (count == 2) {
           expect(result.errorsCount, equals(0));
@@ -2619,14 +2488,14 @@ void main(List<String> arguments, SendPort sendPort) {
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
 
-          streamController.add('compile foo.bar\n'.codeUnits);
+          frontendServer.compile('foo.bar');
           count += 1;
         } else {
           expect(count, 3);
           // Fourth request is to 'compile' non-existent file, that should fail.
           expect(result.errorsCount, greaterThan(0));
 
-          streamController.add('quit\n'.codeUnits);
+          frontendServer.quit();
         }
       });
 
@@ -2673,23 +2542,11 @@ void main(List<String> arguments, SendPort sendPort) {
         '--packages=${packageConfig.path}',
       ];
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile $library\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(library);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         if (count == 0) {
@@ -2705,25 +2562,14 @@ void main(List<String> arguments, SendPort sendPort) {
           // literal.
           expect(compiledOutput, contains('print(true);'));
 
-          streamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
 
-          // 'compile-expression-to-js <boundarykey>
-          // libraryUri
-          // line
-          // column
-          // jsModules (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // jsFrameValues (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // moduleName
-          // expression
-          outputParser.expectSources = false;
-          streamController.add('compile-expression-to-js abc\n'
-                  '$library\n2\n1\nabc\nabc\n$module\n'
-                  'const bool.fromEnvironment("dart.library.html")\n'
-              .codeUnits);
+          frontendServer.compileExpressionToJs(
+              'const bool.fromEnvironment("dart.library.html")',
+              library,
+              2,
+              1,
+              module);
           count += 1;
         } else {
           expect(count, 1);
@@ -2734,13 +2580,13 @@ void main(List<String> arguments, SendPort sendPort) {
           // The constant environment variable should be inlined as a boolean
           // literal.
           expect(resultFile.readAsStringSync(), contains('return true;'));
-          outputParser.expectSources = false;
           count += 1;
-          streamController.add('quit\n'.codeUnits);
+          frontendServer.quit();
         }
       });
       expect(await result, 0);
       expect(count, 2);
+      frontendServer.close();
     });
 
     test('mixed compile expression commands with web target', () async {
@@ -2779,23 +2625,11 @@ void main(List<String> arguments, SendPort sendPort) {
         '--packages=${packageConfig.path}',
       ];
 
-      final StreamController<List<int>> streamController =
-          StreamController<List<int>>();
-      final StreamController<List<int>> stdoutStreamController =
-          StreamController<List<int>>();
-      final IOSink ioSink = IOSink(stdoutStreamController.sink);
-      StreamController<Result> receivedResults = StreamController<Result>();
-      final outputParser = OutputParser(receivedResults);
-      stdoutStreamController.stream
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(outputParser.listener);
-
-      Future<int> result =
-          starter(args, input: streamController.stream, output: ioSink);
-      streamController.add('compile $library\n'.codeUnits);
+      final frontendServer = FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(library);
       int count = 0;
-      receivedResults.stream.listen((Result compiledResult) {
+      frontendServer.listen((Result compiledResult) {
         CompilationResult result =
             CompilationResult.parse(compiledResult.status);
         if (count == 0) {
@@ -2805,24 +2639,9 @@ void main(List<String> arguments, SendPort sendPort) {
           expect(manifestFile.existsSync(), equals(true));
           expect(sourceMapsFile.existsSync(), equals(true));
           expect(result.filename, dillFile.path);
-          streamController.add('accept\n'.codeUnits);
+          frontendServer.accept();
 
-          // 'compile-expression-to-js <boundarykey>
-          // libraryUri
-          // line
-          // column
-          // jsModules (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // jsFrameValues (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // moduleName
-          // expression
-          outputParser.expectSources = false;
-          streamController.add('compile-expression-to-js abc\n'
-                  '$library\n2\n1\nabc\nabc\n$module\n2+2\n'
-              .codeUnits);
+          frontendServer.compileExpressionToJs('2+2', library, 2, 1, module);
           count += 1;
         } else if (count == 1) {
           expect(result.errorsCount, equals(0));
@@ -2832,21 +2651,7 @@ void main(List<String> arguments, SendPort sendPort) {
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
 
-          // 'compile-expression <boundarykey>
-          // expression
-          // definitions (one per line)
-          // ...
-          // <boundarykey>
-          // type-definitions (one per line)
-          // ...
-          // <boundarykey>
-          // <libraryUri: String>
-          // <klass: String>
-          // <isStatic: true|false>
-          outputParser.expectSources = false;
-          streamController.add('compile-expression abc\n'
-                  '2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
-              .codeUnits);
+          frontendServer.compileExpression('2+2', file.uri, isStatic: false);
           count += 1;
         } else if (count == 2) {
           expect(result.errorsCount, equals(0));
@@ -2856,10 +2661,7 @@ void main(List<String> arguments, SendPort sendPort) {
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
 
-          outputParser.expectSources = false;
-          streamController.add('compile-expression-to-js abc\n'
-                  '$library\n2\n1\nabc\nabc\n$module\n2+2\n'
-              .codeUnits);
+          frontendServer.compileExpressionToJs('2+2', library, 2, 1, module);
           count += 1;
         } else if (count == 3) {
           expect(result.errorsCount, equals(0));
@@ -2869,12 +2671,13 @@ void main(List<String> arguments, SendPort sendPort) {
           expect(outputFile.existsSync(), equals(true));
           expect(outputFile.lengthSync(), isPositive);
 
-          streamController.add('quit\n'.codeUnits);
+          frontendServer.quit();
         }
       });
 
       expect(await result, 0);
       expect(count, 3);
+      frontendServer.close();
     });
 
     test('compile "package:"-file', () async {
@@ -2975,24 +2778,11 @@ void main(List<String> arguments, SendPort sendPort) {
       List<List<int>> compiledKernels = <List<int>>[];
       for (int serverCloses = 0; serverCloses < 2; ++serverCloses) {
         print("Restart #$serverCloses");
-        final StreamController<List<int>> inputStreamController =
-            StreamController<List<int>>();
-        final StreamController<List<int>> stdoutStreamController =
-            StreamController<List<int>>();
-        final IOSink ioSink = IOSink(stdoutStreamController.sink);
-        StreamController<Result> receivedResults = StreamController<Result>();
-
-        final outputParser = OutputParser(receivedResults);
-        stdoutStreamController.stream
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .listen(outputParser.listener);
-
-        Future<int> result =
-            starter(args, input: inputStreamController.stream, output: ioSink);
-        inputStreamController.add('compile ${dart2js.path}\n'.codeUnits);
+        final frontendServer = FrontendServer();
+        Future<int> result = frontendServer.open(args);
+        frontendServer.compile(dart2js.path);
         int count = 0;
-        receivedResults.stream.listen((Result compiledResult) {
+        frontendServer.listen((Result compiledResult) {
           CompilationResult result =
               CompilationResult.parse(compiledResult.status);
           String outputFilename = result.filename;
@@ -3038,11 +2828,10 @@ void main(List<String> arguments, SendPort sendPort) {
             count += 1;
 
             // Restart with no changes
-            inputStreamController.add('accept\n'.codeUnits);
-            inputStreamController.add('reset\n'.codeUnits);
-            inputStreamController.add('recompile ${dart2js.path} x$count\n'
-                    'x$count\n'
-                .codeUnits);
+            frontendServer.accept();
+            frontendServer.reset();
+            frontendServer.recompile(null,
+                entryPoint: dart2js.path, boundaryKey: 'x$count');
           } else if (count == 1) {
             // Restart. Expect full kernel file.
             expect(dillFile.existsSync(), equals(true));
@@ -3064,10 +2853,9 @@ void main(List<String> arguments, SendPort sendPort) {
             count += 1;
 
             // Reload with no changes
-            inputStreamController.add('accept\n'.codeUnits);
-            inputStreamController.add('recompile ${dart2js.path} x$count\n'
-                    'x$count\n'
-                .codeUnits);
+            frontendServer.accept();
+            frontendServer.recompile(null,
+                entryPoint: dart2js.path, boundaryKey: 'x$count');
           } else if (count == 2) {
             // Partial file. Expect to be empty.
             expect(incrementalDillFile.existsSync(), equals(true));
@@ -3081,11 +2869,9 @@ void main(List<String> arguments, SendPort sendPort) {
             count += 1;
 
             // Reload with 1 change
-            inputStreamController.add('accept\n'.codeUnits);
-            inputStreamController.add('recompile ${dart2js.path} x$count\n'
-                    '${dart2jsOtherFile.uri}\n'
-                    'x$count\n'
-                .codeUnits);
+            frontendServer.accept();
+            frontendServer.recompile(dart2jsOtherFile.uri,
+                entryPoint: dart2js.path, boundaryKey: 'x$count');
           } else if (count == 3) {
             // Partial file. Expect to not be empty.
             expect(incrementalDillFile.existsSync(), equals(true));
@@ -3101,11 +2887,11 @@ void main(List<String> arguments, SendPort sendPort) {
 
             count += 1;
 
-            inputStreamController.add('quit\n'.codeUnits);
+            frontendServer.quit();
           }
         });
         expect(await result, 0);
-        inputStreamController.close();
+        frontendServer.close();
       }
     }, timeout: Timeout.factor(8));
 
@@ -3264,9 +3050,195 @@ class Result {
 
 class _MockedBinaryPrinter extends Mock implements BinaryPrinter {}
 
-class _MockedBinaryPrinterFactory extends Mock implements BinaryPrinterFactory {
-}
+class _MockedBinaryPrinterFactory extends Mock
+    implements BinaryPrinterFactory {}
 
 class _MockedCompiler extends Mock implements CompilerInterface {}
 
 class _MockedIncrementalCompiler extends Mock implements IncrementalCompiler {}
+
+/// Creates a matcher for the negation of [matcher].
+Matcher not(Matcher matcher) => NotMatcher(matcher);
+
+class NotMatcher extends Matcher {
+  final Matcher matcher;
+
+  const NotMatcher(this.matcher);
+
+  @override
+  Description describe(Description description) =>
+      matcher.describe(description.add('not '));
+
+  @override
+  bool matches(item, Map matchState) {
+    return !matcher.matches(item, matchState);
+  }
+}
+
+/// Wrapper for the frontend server communication.
+class FrontendServer {
+  final StreamController<List<int>> inputStreamController;
+  final StreamController<List<int>> stdoutStreamController;
+  final IOSink ioSink;
+  final StreamController<Result> receivedResults;
+  final OutputParser outputParser;
+
+  factory FrontendServer() {
+    final StreamController<List<int>> inputStreamController =
+        StreamController<List<int>>();
+    final StreamController<List<int>> stdoutStreamController =
+        StreamController<List<int>>();
+    final IOSink ioSink = IOSink(stdoutStreamController.sink);
+    StreamController<Result> receivedResults = StreamController<Result>();
+    final outputParser = OutputParser(receivedResults);
+    stdoutStreamController.stream
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen(outputParser.listener);
+    return new FrontendServer._internal(inputStreamController,
+        stdoutStreamController, ioSink, receivedResults, outputParser);
+  }
+
+  FrontendServer._internal(
+      this.inputStreamController,
+      this.stdoutStreamController,
+      this.ioSink,
+      this.receivedResults,
+      this.outputParser);
+
+  /// Sets up the front end server using the provided commandline arguments
+  /// [args].
+  Future<int> open(List<String> args) =>
+      starter(args, input: inputStreamController.stream, output: ioSink);
+
+  /// Closes the listener stream.
+  void close() => inputStreamController.close();
+
+  /// Sets up [f] to be called for each [Result] received from the frontend
+  /// server.
+  void listen(void Function(Result) f) => receivedResults.stream.listen(f);
+
+  /// Accepts the last compilation delta.
+  void accept() {
+    outputParser.expectSources = false;
+    inputStreamController.add('accept\n'.codeUnits);
+  }
+
+  /// Rejects the last compilation delta.
+  void reject() {
+    outputParser.expectSources = false;
+    inputStreamController.add('reject\n'.codeUnits);
+  }
+
+  /// Resets the incremental compiler.
+  void reset() {
+    outputParser.expectSources = false;
+    inputStreamController.add('reset\n'.codeUnits);
+  }
+
+  /// Terminates the frontend server.
+  void quit() {
+    outputParser.expectSources = false;
+    inputStreamController.add('quit\n'.codeUnits);
+  }
+
+  /// Compiles the program from entry point [path].
+  // TODO(johnniwinther): Use (required) named arguments.
+  void compile(String path) {
+    outputParser.expectSources = true;
+    inputStreamController.add('compile ${path}\n'.codeUnits);
+  }
+
+  /// Recompiles the program.
+  ///
+  /// [invalidatedUri] and [invalidatedUris] define which libraries that
+  /// need recompilation.
+  ///
+  /// [entryPoint] defines the program entry-point. If not provided, the
+  /// original entry point is used.
+  ///
+  /// [boundaryKey] is used as the boundary-key in the communication with the
+  /// frontend server.
+  // TODO(johnniwinther): Use (required) named arguments.
+  void recompile(Uri invalidatedUri,
+      {String boundaryKey = 'abc',
+      List<Uri> invalidatedUris,
+      String entryPoint}) {
+    invalidatedUris ??= [if (invalidatedUri != null) invalidatedUri];
+    outputParser.expectSources = true;
+    inputStreamController.add('recompile '
+            '${entryPoint != null ? '${entryPoint} ' : ''}'
+            '${boundaryKey}\n'
+            '${invalidatedUris.map((uri) => '$uri\n').join()}'
+            '${boundaryKey}\n'
+        .codeUnits);
+  }
+
+  /// Compiles the [expression] as if it occurs in [library].
+  ///
+  /// If [className] is provided, [expression] is compiled as if it occurs in
+  /// the class of that name.
+  ///
+  /// If [isStatic] is `true`, the expression is compiled in the static scope
+  /// of [className]. If [className] is `null`, this must be `false`.
+  ///
+  /// [boundaryKey] is used as the boundary-key in the communication with the
+  /// frontend server.
+  // TODO(johnniwinther): Use (required) named arguments.
+  void compileExpression(String expression, Uri library,
+      {String boundaryKey = 'abc', String className = '', bool isStatic}) {
+    // 'compile-expression <boundarykey>
+    // expression
+    // definitions (one per line)
+    // ...
+    // <boundarykey>
+    // type-definitions (one per line)
+    // ...
+    // <boundarykey>
+    // <libraryUri: String>
+    // <klass: String>
+    // <isStatic: true|false>
+    outputParser.expectSources = false;
+    inputStreamController.add('compile-expression ${boundaryKey}\n'
+            '${expression}\n'
+            '${boundaryKey}\n'
+            '${boundaryKey}\n'
+            '${library}\n'
+            '${className}\n'
+            '${isStatic != null ? '$isStatic' : ''}\n'
+        .codeUnits);
+  }
+
+  /// Compiles the [expression] to JavaScript as if it occurs in [line] and
+  /// [column] of [library].
+  ///
+  /// [boundaryKey] is used as the boundary-key in the communication with the
+  /// frontend server.
+  // TODO(johnniwinther): Use (required) named arguments.
+  void compileExpressionToJs(String expression, String libraryUri, int line,
+      int column, String moduleName,
+      {String boundaryKey = 'abc'}) {
+    // 'compile-expression-to-js <boundarykey>
+    // libraryUri
+    // line
+    // column
+    // jsModules (one k-v pair per line)
+    // ...
+    // <boundarykey>
+    // jsFrameValues (one k-v pair per line)
+    // ...
+    // <boundarykey>
+    // moduleName
+    // expression
+    outputParser.expectSources = false;
+    inputStreamController.add('compile-expression-to-js ${boundaryKey}\n'
+            '${libraryUri}\n'
+            '${line}\n'
+            '${column}\n'
+            '${boundaryKey}\n'
+            '${boundaryKey}\n'
+            '${moduleName}\n'
+            '${expression}\n'
+        .codeUnits);
+  }
+}

@@ -9,7 +9,7 @@ library js_backend.runtime_types;
 import '../common.dart';
 import '../common/elements.dart'
     show ElementEnvironment, JCommonElements, JElementEnvironment;
-import '../common/names.dart' show Identifiers;
+import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -769,7 +769,7 @@ ClassFunctionType _computeFunctionType(
   if (cls.isClosure) {
     // Use signature function if available.
     signatureFunction =
-        elementEnvironment.lookupLocalClassMember(cls, Identifiers.signature);
+        elementEnvironment.lookupLocalClassMember(cls, Names.signature);
     if (signatureFunction == null) {
       // In Dart 2, a closure only needs its function type if it has a
       // signature function.
@@ -780,7 +780,7 @@ ClassFunctionType _computeFunctionType(
     return null;
   }
   MemberEntity call =
-      elementEnvironment.lookupLocalClassMember(cls, Identifiers.call);
+      elementEnvironment.lookupLocalClassMember(cls, Names.call);
   if (call != null && call.isFunction) {
     FunctionEntity callFunction = call;
     FunctionType callType = elementEnvironment.getFunctionType(callFunction);

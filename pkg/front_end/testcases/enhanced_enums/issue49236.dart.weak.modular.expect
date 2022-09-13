@@ -29,7 +29,7 @@ abstract class _E1&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasCons
 }
 class E1 extends self::_E1&_Enum&M /*isEnum*/  {
   static const field core::List<self::E1> values = #C4;
-  static const field self::E1 element = #C3;
+  enum-element static const field self::E1 element = #C3;
   const constructor •(core::int #index, core::String #name) → self::E1
     : super self::_E1&_Enum&M::•(#index, #name)
     ;
@@ -45,7 +45,7 @@ abstract class _E2&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasCons
 }
 class E2 extends self::_E2&_Enum&M /*isEnum*/  {
   static const field core::List<self::E2> values = #C6;
-  static const field self::E2 element = #C5;
+  enum-element static const field self::E2 element = #C5;
   const constructor •(core::int #index, core::String #name) → self::E2
     : super self::_E2&_Enum&M::•(#index, #name)
     ;
@@ -54,7 +54,7 @@ class E2 extends self::_E2&_Enum&M /*isEnum*/  {
 }
 class E3 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E3> values = #C8;
-  static const field self::E3 element = #C7;
+  enum-element static const field self::E3 element = #C7;
   const constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
@@ -63,7 +63,7 @@ class E3 extends core::_Enum /*isEnum*/  {
 }
 class E4 extends core::_Enum implements self::B /*isEnum*/  {
   static const field core::List<self::E4> values = #C10;
-  static const field self::E4 element = #C9;
+  enum-element static const field self::E4 element = #C9;
   const constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
@@ -72,7 +72,7 @@ class E4 extends core::_Enum implements self::B /*isEnum*/  {
 }
 class E5 extends core::_Enum implements self::B /*isEnum*/  {
   static const field core::List<self::E5> values = #C12;
-  static const field self::E5 element = #C11;
+  enum-element static const field self::E5 element = #C11;
   const constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;
@@ -88,7 +88,7 @@ abstract class _E6&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasCons
 }
 class E6 extends self::_E6&_Enum&A /*isEnum*/  {
   static const field core::List<self::E6> values = #C14;
-  static const field self::E6 element = #C13;
+  enum-element static const field self::E6 element = #C13;
   const constructor •(core::int #index, core::String #name) → self::E6
     : super self::_E6&_Enum&A::•(#index, #name)
     ;
@@ -104,7 +104,7 @@ abstract class _E7&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasCons
 }
 class E7 extends self::_E7&_Enum&A /*isEnum*/  {
   static const field core::List<self::E7> values = #C16;
-  static const field self::E7 element = #C15;
+  enum-element static const field self::E7 element = #C15;
   const constructor •(core::int #index, core::String #name) → self::E7
     : super self::_E7&_Enum&A::•(#index, #name)
     ;
@@ -150,8 +150,8 @@ Constructor coverage from constants:
 org-dartlang-testcase:///issue49236.dart:
 - E1. (from org-dartlang-testcase:///issue49236.dart:17:6)
 - _E1&_Enum&M. (from org-dartlang-testcase:///issue49236.dart:17:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:103:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - E2. (from org-dartlang-testcase:///issue49236.dart:21:6)
 - _E2&_Enum&M. (from org-dartlang-testcase:///issue49236.dart:21:6)
 - E3. (from org-dartlang-testcase:///issue49236.dart:27:6)

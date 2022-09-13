@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -31,7 +31,7 @@ import 'package:yaml/yaml.dart';
 
 /// The handler for the `edit.getFixes` request.
 class EditGetFixesHandler extends LegacyHandler
-    with RequestHandlerMixin<AnalysisServer> {
+    with RequestHandlerMixin<LegacyAnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   EditGetFixesHandler(super.server, super.request, super.cancellationToken);
@@ -130,7 +130,15 @@ class EditGetFixesHandler extends LegacyHandler
         fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
         var result = engine.ErrorsResultImpl(
-            session, file, Uri.file(file), lineInfo, false, errors);
+          session: session,
+          path: file,
+          uri: Uri.file(file),
+          lineInfo: lineInfo,
+          isAugmentation: false,
+          isLibrary: true,
+          isPart: false,
+          errors: errors,
+        );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -230,7 +238,15 @@ error.errorCode: ${error.errorCode}
         fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
         var result = engine.ErrorsResultImpl(
-            session, file, Uri.file(file), lineInfo, false, errors);
+          session: session,
+          path: file,
+          uri: Uri.file(file),
+          lineInfo: lineInfo,
+          isAugmentation: false,
+          isLibrary: true,
+          isPart: false,
+          errors: errors,
+        );
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);

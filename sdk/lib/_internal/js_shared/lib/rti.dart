@@ -841,7 +841,7 @@ bool _installSpecializedIsTest(Object? object) {
   }
 
   // `o is T*` generally behaves like `o is T`.
-  // The exeptions are `Object*` (handled above) and `Never*`
+  // The exceptions are `Object*` (handled above) and `Never*`
   //
   //   `null is Never`  --> `false`
   //   `null is Never*` --> `true`
@@ -2224,7 +2224,7 @@ class _Universe {
 ///   ToType(Rti): Same Rti
 ///
 ///
-/// Notes on enviroments and indexing.
+/// Notes on environments and indexing.
 ///
 /// To avoid creating a binding Rti for a single function type parameter, the
 /// type is passed without creating a 1-tuple object. This means that the
@@ -2304,7 +2304,7 @@ class _Parser {
 
   // Field accessors for the parser.
   static Object universe(Object? parser) => JS('', '#.u', parser);
-  static Rti environment(Object? parser) => JS('Rti', '#.e', parser);
+  static Rti? environment(Object? parser) => JS('Rti|Null', '#.e', parser);
   static String recipe(Object? parser) => JS('String', '#.r', parser);
   static Object stack(Object? parser) => JS('', '#.s', parser);
   static int position(Object? parser) => JS('int', '#.p', parser);
@@ -2479,7 +2479,7 @@ class _Parser {
       push(
           stack,
           _Universe.evalTypeVariable(
-              universe(parser), environment(parser), string));
+              universe(parser), environment(parser)!, string));
     } else {
       push(stack, string);
     }
@@ -2588,19 +2588,19 @@ class _Parser {
 
   /// Coerce a stack item into an Rti object. Strings are converted to interface
   /// types, integers are looked up in the type environment.
-  static Rti toType(Object? universe, Rti environment, Object? item) {
+  static Rti toType(Object? universe, Rti? environment, Object? item) {
     if (_Utils.isString(item)) {
       String name = _Utils.asString(item);
       return _Universe._lookupInterfaceRti(
           universe, name, _Universe.sharedEmptyArray(universe));
     } else if (_Utils.isNum(item)) {
-      return _Parser.indexToType(universe, environment, _Utils.asInt(item));
+      return _Parser.indexToType(universe, environment!, _Utils.asInt(item));
     } else {
       return _Utils.asRti(item);
     }
   }
 
-  static void toTypes(Object? universe, Rti environment, Object? items) {
+  static void toTypes(Object? universe, Rti? environment, Object? items) {
     int length = _Utils.arrayLength(items);
     for (int i = 0; i < length; i++) {
       var item = _Utils.arrayAt(items, i);
@@ -2609,7 +2609,7 @@ class _Parser {
     }
   }
 
-  static void toTypesNamed(Object? universe, Rti environment, Object? items) {
+  static void toTypesNamed(Object? universe, Rti? environment, Object? items) {
     int length = _Utils.arrayLength(items);
     assert(_Utils.isMultipleOf(length, 3));
     for (int i = 2; i < length; i += 3) {

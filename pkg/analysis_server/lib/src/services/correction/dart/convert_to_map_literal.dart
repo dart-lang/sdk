@@ -45,7 +45,7 @@ class ConvertToMapLiteral extends CorrectionProducer {
         creation.constructorName.name != null ||
         creation.argumentList.arguments.isNotEmpty ||
         type is! InterfaceType ||
-        !_isMapClass(type.element)) {
+        !_isMapClass(type.element2)) {
       return;
     }
     //
@@ -67,7 +67,7 @@ class ConvertToMapLiteral extends CorrectionProducer {
 
   /// Return `true` if the [element] represents either the class `Map` or
   /// `LinkedHashMap`.
-  bool _isMapClass(ClassElement element) =>
+  bool _isMapClass(InterfaceElement element) =>
       element == typeProvider.mapElement ||
       (element.name == 'LinkedHashMap' &&
           element.library.name == 'dart.collection');

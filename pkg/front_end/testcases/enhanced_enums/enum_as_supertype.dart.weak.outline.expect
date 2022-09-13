@@ -24,7 +24,7 @@ abstract class _EA&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasCons
 }
 class EA extends self::_EA&_Enum&A /*isEnum*/  {
   static const field core::List<self::EA> values = const <self::EA>[self::EA::element];
-  static const field self::EA element = const self::EA::•(0, "element");
+  enum-element static const field self::EA element = const self::EA::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::EA
     ;
   method toString() → core::String
@@ -45,7 +45,7 @@ abstract class _EB&_Enum&B = core::_Enum with self::B /*isAnonymousMixin,hasCons
 }
 class EB extends self::_EB&_Enum&B /*isEnum*/  {
   static const field core::List<self::EB> values = const <self::EB>[self::EB::element];
-  static const field self::EB element = const self::EB::•(0, "element");
+  enum-element static const field self::EB element = const self::EB::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::EB
     ;
   method toString() → core::String
@@ -64,7 +64,7 @@ abstract class _EM&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasCons
 }
 class EM extends self::_EM&_Enum&M /*isEnum*/  {
   static const field core::List<self::EM> values = const <self::EM>[self::EM::element];
-  static const field self::EM element = const self::EM::•(0, "element");
+  enum-element static const field self::EM element = const self::EM::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::EM
     ;
   method toString() → core::String
@@ -83,7 +83,7 @@ abstract class _EN&_Enum&N = core::_Enum with self::N /*isAnonymousMixin,hasCons
 }
 class EN extends self::_EN&_Enum&N /*isEnum*/  {
   static const field core::List<self::EN> values = const <self::EN>[self::EN::element];
-  static const field self::EN element = const self::EN::•(0, "element");
+  enum-element static const field self::EN element = const self::EN::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::EN
     ;
   method toString() → core::String

@@ -15,7 +15,7 @@ import '../../type_inference/standard_bounds.dart'
     show TypeSchemaStandardBounds;
 import '../../type_inference/type_constraint_gatherer.dart'
     show TypeConstraintGatherer;
-import '../../type_inference/type_inferrer.dart' show MixinInferrer;
+import '../../type_inference/mixin_inferrer.dart' show MixinInferrer;
 import '../../type_inference/type_schema_environment.dart' show TypeConstraint;
 import 'hierarchy_builder.dart';
 
@@ -68,7 +68,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class class_, Name name, {bool setter = false}) {
     return null;
   }
 

@@ -192,6 +192,7 @@ class TestConfiguration {
   bool get usesFasta {
     var fastaCompilers = const [
       Compiler.appJitk,
+      Compiler.dartdevc,
       Compiler.dartdevk,
       Compiler.dartk,
       Compiler.dartkp,

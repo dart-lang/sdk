@@ -389,7 +389,7 @@ class B = Object with A {}''', codes:
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.childEntities.first as ClassDeclaration;
     expect(classDecl, isNotNull);
-    expect(classDecl.name.name, 'foo');
+    expect(classDecl.name2.lexeme, 'foo');
   }
 
   void test_equalityExpression_missing_LHS() {
@@ -500,7 +500,7 @@ class B = Object with A {}''', codes:
     NodeList<VariableDeclaration> vars =
         (fieldDecl as FieldDeclaration).fields.variables;
     expect(vars, hasLength(1));
-    expect(vars[0].name.name, "v");
+    expect(vars[0].name2.lexeme, "v");
   }
 
   void test_functionExpression_named() {
@@ -660,7 +660,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     NodeList<VariableDeclaration> variables =
         (member as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    SimpleIdentifier name = variables[0].name;
+    final name = variables[0].name2;
     expect(name.isSynthetic, isFalse);
   }
 
@@ -676,7 +676,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     NodeList<VariableDeclaration> variables =
         (member as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    SimpleIdentifier name = variables[0].name;
+    final name = variables[0].name2;
     expect(name.isSynthetic, isTrue);
   }
 
@@ -692,7 +692,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     NodeList<VariableDeclaration> variables =
         (member as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    SimpleIdentifier name = variables[0].name;
+    final name = variables[0].name2;
     expect(name.isSynthetic, isTrue);
   }
 
@@ -708,7 +708,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     NodeList<VariableDeclaration> variables =
         (member as TopLevelVariableDeclaration).variables.variables;
     expect(variables, hasLength(1));
-    SimpleIdentifier name = variables[0].name;
+    final name = variables[0].name2;
     expect(name.isSynthetic, isTrue);
   }
 
@@ -734,7 +734,7 @@ class C {
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
-    expect(field.name.isSynthetic, isTrue);
+    expect(field.name2.isSynthetic, isTrue);
   }
 
   void test_incompleteField_final() {
@@ -759,7 +759,7 @@ class C {
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
-    expect(field.name.isSynthetic, isTrue);
+    expect(field.name2.isSynthetic, isTrue);
   }
 
   void test_incompleteField_static() {
@@ -785,7 +785,7 @@ class C {
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
-    expect(field.name.isSynthetic, isFalse);
+    expect(field.name2.isSynthetic, isFalse);
   }
 
   void test_incompleteField_static2() {
@@ -808,7 +808,7 @@ class C {
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
-    expect(field.name.isSynthetic, isFalse);
+    expect(field.name2.isSynthetic, isFalse);
   }
 
   void test_incompleteField_type() {
@@ -834,7 +834,7 @@ class C {
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
     expect(type, isNull);
-    expect(field.name.name, 'A');
+    expect(field.name2.lexeme, 'A');
   }
 
   void test_incompleteField_var() {
@@ -859,7 +859,7 @@ class C {
     NodeList<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
-    expect(field.name.isSynthetic, isTrue);
+    expect(field.name2.isSynthetic, isTrue);
   }
 
   void test_incompleteForEach() {
@@ -964,7 +964,7 @@ class C {
     List<VariableDeclaration> fields = fieldList.variables;
     expect(fields, hasLength(1));
     VariableDeclaration field = fields[0];
-    expect(field.name.name, 'f');
+    expect(field.name2.lexeme, 'f');
 // validate the type
     var typeArguments = (fieldList.type as NamedType).typeArguments!;
     expect(typeArguments.arguments, hasLength(1));
@@ -1056,7 +1056,7 @@ class C {
     var fields = classDecl.members.first as FieldDeclaration;
     expect(fields.fields.variables, hasLength(1));
     VariableDeclaration field = fields.fields.variables.first;
-    expect(field.name.name, 'g');
+    expect(field.name2.lexeme, 'g');
   }
 
   void test_invalidTypeParameters_super() {
@@ -1099,7 +1099,7 @@ class C {
     ]);
     var declaration = unit.declarations[0] as ClassDeclaration;
     var method = declaration.members[0] as ConstructorDeclaration;
-    expect(method.name!.name, 'named');
+    expect(method.name2!.lexeme, 'named');
     expect(method.parameters, isNotNull);
   }
 
@@ -1110,7 +1110,7 @@ class C {
         ]);
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
-    expect(constructor.name!.name, 'named');
+    expect(constructor.name2!.lexeme, 'named');
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, hasLength(0));
   }
@@ -1121,7 +1121,7 @@ class C {
     ]);
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
-    expect(constructor.name, isNull);
+    expect(constructor.name2, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, hasLength(0));
   }
@@ -1132,7 +1132,7 @@ class C {
     ]);
     var declaration = unit.declarations[0] as ClassDeclaration;
     var constructor = declaration.members[0] as ConstructorDeclaration;
-    expect(constructor.name!.name, 'named');
+    expect(constructor.name2!.lexeme, 'named');
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, hasLength(0));
   }
@@ -1145,7 +1145,7 @@ class C {
     ]);
     var declaration = unit.declarations[0] as ClassDeclaration;
     var method = declaration.members[0] as ConstructorDeclaration;
-    expect(method.name!.name, 'named');
+    expect(method.name2!.lexeme, 'named');
     expect(method.parameters, isNotNull);
     expect(method.parameters.parameters, hasLength(0));
   }
@@ -1284,7 +1284,7 @@ class C {
     expect(members[0], isMethodDeclaration);
     ClassMember member = members[1];
     expect(member, isMethodDeclaration);
-    expect((member as MethodDeclaration).name.name, "foo");
+    expect((member as MethodDeclaration).name2.lexeme, "foo");
   }
 
   void test_missingIdentifier_afterAnnotation() {
@@ -1309,7 +1309,7 @@ class C {
       expect(variables, hasLength(1));
       VariableDeclaration variable = variables[0];
       expect(variableList.type.toString(), expectedTypeName);
-      expect(variable.name.name, expectedName);
+      expect(variable.name2.lexeme, expectedName);
       if (expectedSemicolon.isEmpty) {
         expect(declaration.semicolon.isSynthetic, isTrue);
       } else {

@@ -9,12 +9,6 @@
 
 import "package:expect/expect.dart";
 
-class BadInherit
-  extends Null //    //# 01: compile-time error
-  implements Null // //# 02: compile-time error
-  extends Object with Null // //# 03: compile-time error
-{}
-
 class EqualsNotCalled {
   int get hashCode => throw "And don't warn!";
   bool operator ==(Object other) {
@@ -54,8 +48,6 @@ void main() {
 }
 
 void test() {
-  new BadInherit(); // Make sure class is referenced.
-
   int foo(var obj) {
     Expect.equals(null, obj);
   }

@@ -19,8 +19,9 @@ import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
 import 'model.dart';
+import 'interfaces.dart' as interfaces;
 
-class NativeEmitter {
+class NativeEmitter implements interfaces.NativeEmitter {
   final CodeEmitterTask _emitterTask;
   final JClosedWorld _closedWorld;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
@@ -29,8 +30,10 @@ class NativeEmitter {
   bool hasNativeClasses = false;
 
   // Caches the native subtypes of a native class.
+  @override
   Map<ClassEntity, List<ClassEntity>> subtypes = {};
 
+  @override
   // Caches the direct native subtypes of a native class.
   Map<ClassEntity, List<ClassEntity>> directSubtypes = {};
 

@@ -28,9 +28,9 @@ void main() {
 
 testClasses(String import1, String import2) async {
   test(String mainSource,
-      {List<String> directlyInstantiated: const <String>[],
-      List<String> abstractlyInstantiated: const <String>[],
-      List<String> indirectlyInstantiated: const <String>[]}) async {
+      {List<String> directlyInstantiated = const <String>[],
+      List<String> abstractlyInstantiated = const <String>[],
+      List<String> indirectlyInstantiated = const <String>[]}) async {
     String mainFile = 'sdk/tests/web_2/native/main.dart';
     Uri entryPoint = Uri.parse('memory:$mainFile');
     CompilationResult result =

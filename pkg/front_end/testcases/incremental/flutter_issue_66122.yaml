@@ -6,7 +6,7 @@
 # https://github.com/flutter/flutter/issues/66122
 
 type: newworld
-target: DDC
+target: dartdevc
 trackWidgetCreation: true
 worlds:
   - entry: main.dart
@@ -62,3 +62,4 @@ worlds:
       - main.dart
     expectInitializeFromDill: false
     expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly

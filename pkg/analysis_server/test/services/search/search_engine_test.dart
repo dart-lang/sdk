@@ -363,7 +363,7 @@ int t;
 
     var coreLibResult = await driverFor(testFilePath)
         .getLibraryByUri('dart:core') as LibraryElementResult;
-    var intElement = coreLibResult.element.getType('int')!;
+    var intElement = coreLibResult.element.getClass('int')!;
 
     var matches = await searchEngine.searchReferences(intElement);
 
@@ -585,8 +585,14 @@ class B extends A {}
     }
   }
 
-  static void _assertContainsClass(Set<ClassElement> subtypes, String name) {
-    expect(subtypes, contains(predicate((ClassElement e) => e.name == name)));
+  static void _assertContainsClass(
+      Set<InterfaceElement> subtypes, String name) {
+    expect(
+      subtypes,
+      contains(
+        predicate((InterfaceElement e) => e.name == name),
+      ),
+    );
   }
 }
 

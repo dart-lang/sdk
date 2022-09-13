@@ -31,12 +31,18 @@ Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
 }
 
 DeclarationKind? _getSearchElementKind(Element element) {
+  if (element is EnumElement) {
+    return DeclarationKind.ENUM;
+  }
+
+  if (element is MixinElement) {
+    return DeclarationKind.MIXIN;
+  }
+
   if (element is ClassElement) {
-    if (element.isEnum) {
-      return DeclarationKind.ENUM;
+    if (element.isMixinApplication) {
+      return DeclarationKind.CLASS_TYPE_ALIAS;
     }
-    if (element.isMixin) return DeclarationKind.MIXIN;
-    if (element.isMixinApplication) return DeclarationKind.CLASS_TYPE_ALIAS;
     return DeclarationKind.CLASS;
   }
 
@@ -130,13 +136,13 @@ enum DeclarationKind {
 class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
-  final ImportElement importElement;
+  final LibraryImportElement importElement;
   final CompilationUnitElement enclosingUnitElement;
 
   late final Set<Element> importedElements;
 
   ImportElementReferencesVisitor(
-      ImportElement element, this.enclosingUnitElement)
+      LibraryImportElement element, this.enclosingUnitElement)
       : importElement = element {
     importedElements = element.namespace.definedNames.values.toSet();
   }
@@ -153,7 +159,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     if (importElement.prefix != null) {
-      if (node.staticElement == importElement.prefix) {
+      if (node.staticElement == importElement.prefix?.element) {
         var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
           var element = parent.writeOrReadElement?.declaration;
@@ -206,7 +212,7 @@ class Search {
       }
     }
 
-    void addElements(ClassElement element) {
+    void addElements(InterfaceElement element) {
       element.accessors.forEach(addElement);
       element.fields.forEach(addElement);
       element.methods.forEach(addElement);
@@ -218,8 +224,8 @@ class Search {
         var unitResult = await _driver.getUnitElement(file);
         if (unitResult is UnitElementResult) {
           unitResult.element.classes.forEach(addElements);
-          unitResult.element.enums.forEach(addElements);
-          unitResult.element.mixins.forEach(addElements);
+          unitResult.element.enums2.forEach(addElements);
+          unitResult.element.mixins2.forEach(addElements);
         }
       }
     }
@@ -257,12 +263,12 @@ class Search {
     } else if (element is PropertyInducingElement) {
       return _searchReferences_Field(element, searchedFiles);
     } else if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
-      if (element.enclosingElement is ExecutableElement) {
+      if (element.enclosingElement3 is ExecutableElement) {
         return _searchReferences_Local(
             element, (n) => n is Block, searchedFiles);
       }
       return _searchReferences_Function(element, searchedFiles);
-    } else if (element is ImportElement) {
+    } else if (element is LibraryImportElement) {
       return _searchReferences_Import(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
@@ -286,7 +292,7 @@ class Search {
   /// [Search] object, so should be only searched by it to avoid duplicate
   /// results; and updated to take ownership if the file is not owned yet.
   Future<List<SearchResult>> subTypes(
-      ClassElement? type, SearchedFiles searchedFiles) async {
+      InterfaceElement? type, SearchedFiles searchedFiles) async {
     if (type == null) {
       return const <SearchResult>[];
     }
@@ -301,7 +307,7 @@ class Search {
 
   /// Return direct [SubtypeResult]s for either the [type] or [subtype].
   Future<List<SubtypeResult>> subtypes(SearchedFiles searchedFiles,
-      {ClassElement? type, SubtypeResult? subtype}) async {
+      {InterfaceElement? type, SubtypeResult? subtype}) async {
     String name;
     String id;
     if (type != null) {
@@ -351,10 +357,10 @@ class Search {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
         unitElement.classes.forEach(addElement);
-        unitElement.enums.forEach(addElement);
+        unitElement.enums2.forEach(addElement);
         unitElement.extensions.forEach(addElement);
         unitElement.functions.forEach(addElement);
-        unitElement.mixins.forEach(addElement);
+        unitElement.mixins2.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
         unitElement.typeAliases.forEach(addElement);
       }
@@ -405,7 +411,7 @@ class Search {
     // Prepare the element name.
     String name = element.displayName;
     if (element is ConstructorElement) {
-      name = element.enclosingElement.displayName;
+      name = element.enclosingElement3.displayName;
     }
 
     // Prepare the list of files that reference the element name.
@@ -416,7 +422,7 @@ class Search {
       if (searchedFiles.add(libraryPath, this)) {
         final libraryFile = _driver.fsState.getFileForPath(libraryPath);
         final libraryKind = libraryFile.kind;
-        if (libraryKind is LibraryFileStateKind) {
+        if (libraryKind is LibraryFileKind) {
           for (final file in libraryKind.files) {
             if (file.path == path || file.referencedNames.contains(name)) {
               files.add(file.path);
@@ -556,7 +562,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Import(
-      ImportElement element, SearchedFiles searchedFiles) async {
+      LibraryImportElement element, SearchedFiles searchedFiles) async {
     String path = element.source.fullName;
     if (!searchedFiles.add(path, this)) {
       return const <SearchResult>[];
@@ -590,7 +596,7 @@ class Search {
       if (unitResult is ResolvedUnitResult) {
         CompilationUnit unit = unitResult.unit;
         for (Directive directive in unit.directives) {
-          if (directive is PartOfDirective && directive.element == element) {
+          if (directive is PartOfDirective && directive.element2 == element) {
             results.add(
               SearchResult._(
                 unit.declaredElement!,
@@ -654,7 +660,7 @@ class Search {
     ));
     if (parameter.isNamed ||
         parameter.isOptionalPositional ||
-        parameter.enclosingElement is ConstructorElement) {
+        parameter.enclosingElement3 is ConstructorElement) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;
@@ -881,7 +887,7 @@ class _FindDeclarations {
     }
   }
 
-  void _addClasses(FileState file, List<ClassElement> elements) {
+  void _addClasses(FileState file, List<InterfaceElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       _addDeclaration(file, element, element.name);
@@ -914,18 +920,16 @@ class _FindDeclarations {
       return;
     }
 
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement3;
 
     String? className;
     String? mixinName;
-    if (enclosing is ClassElement) {
-      if (enclosing.isEnum) {
-        // skip
-      } else if (enclosing.isMixin) {
-        mixinName = enclosing.name;
-      } else {
-        className = enclosing.name;
-      }
+    if (enclosing is EnumElement) {
+      // skip
+    } else if (enclosing is MixinElement) {
+      mixinName = enclosing.name;
+    } else if (enclosing is ClassElement) {
+      className = enclosing.name;
     }
 
     var kind = _getSearchElementKind(element);
@@ -1012,8 +1016,8 @@ class _FindDeclarations {
       var element = elements[i];
       _addAccessors(file, element.accessors);
       _addClasses(file, element.classes);
-      _addClasses(file, element.enums);
-      _addClasses(file, element.mixins);
+      _addClasses(file, element.enums2);
+      _addClasses(file, element.mixins2);
       _addExtensions(file, element.extensions);
       _addFunctions(file, element.functions);
       _addTypeAliases(file, element.typeAliases);

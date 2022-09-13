@@ -182,6 +182,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitCatchClause(CatchClause node) => visitNode(node);
 
   @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) => visitNode(node);
+
+  @override
   R? visitClassDeclaration(ClassDeclaration node) =>
       visitNamedCompilationUnitMember(node);
 
@@ -515,6 +518,30 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitPropertyAccess(PropertyAccess node) => visitExpression(node);
 
   @override
+  R? visitRecordLiteral(RecordLiteral node) => visitLiteral(node);
+
+  @override
+  R? visitRecordTypeAnnotation(RecordTypeAnnotation node) =>
+      visitTypeAnnotation(node);
+
+  R? visitRecordTypeAnnotationField(RecordTypeAnnotationField node) =>
+      visitNode(node);
+
+  @override
+  R? visitRecordTypeAnnotationNamedField(RecordTypeAnnotationNamedField node) =>
+      visitRecordTypeAnnotationField(node);
+
+  @override
+  R? visitRecordTypeAnnotationNamedFields(
+          RecordTypeAnnotationNamedFields node) =>
+      visitNode(node);
+
+  @override
+  R? visitRecordTypeAnnotationPositionalField(
+          RecordTypeAnnotationPositionalField node) =>
+      visitRecordTypeAnnotationField(node);
+
+  @override
   R? visitRedirectingConstructorInvocation(
           RedirectingConstructorInvocation node) =>
       visitConstructorInitializer(node);
@@ -751,6 +778,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitCatchClause(CatchClause node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) {
     node.visitChildren(this);
     return null;
   }
@@ -1254,6 +1287,38 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitRecordLiteral(RecordLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitRecordTypeAnnotationNamedField(RecordTypeAnnotationNamedField node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitRecordTypeAnnotationNamedFields(
+      RecordTypeAnnotationNamedFields node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitRecordTypeAnnotationPositionalField(
+      RecordTypeAnnotationPositionalField node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     node.visitChildren(this);
@@ -1518,6 +1583,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitCatchClause(CatchClause node) => null;
 
   @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) => null;
+
+  @override
   R? visitClassDeclaration(ClassDeclaration node) => null;
 
   @override
@@ -1772,6 +1840,26 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitPropertyAccess(PropertyAccess node) => null;
 
   @override
+  R? visitRecordLiteral(RecordLiteral node) => null;
+
+  @override
+  R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => null;
+
+  @override
+  R? visitRecordTypeAnnotationNamedField(RecordTypeAnnotationNamedField node) =>
+      null;
+
+  @override
+  R? visitRecordTypeAnnotationNamedFields(
+          RecordTypeAnnotationNamedFields node) =>
+      null;
+
+  @override
+  R? visitRecordTypeAnnotationPositionalField(
+          RecordTypeAnnotationPositionalField node) =>
+      null;
+
+  @override
   R? visitRedirectingConstructorInvocation(
           RedirectingConstructorInvocation node) =>
       null;
@@ -1936,6 +2024,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitCatchClause(CatchClause node) => _throw(node);
+
+  @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) => _throw(node);
 
   @override
   R? visitClassDeclaration(ClassDeclaration node) => _throw(node);
@@ -2197,6 +2288,26 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitPropertyAccess(PropertyAccess node) => _throw(node);
 
   @override
+  R? visitRecordLiteral(RecordLiteral node) => _throw(node);
+
+  @override
+  R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => _throw(node);
+
+  @override
+  R? visitRecordTypeAnnotationNamedField(RecordTypeAnnotationNamedField node) =>
+      _throw(node);
+
+  @override
+  R? visitRecordTypeAnnotationNamedFields(
+          RecordTypeAnnotationNamedFields node) =>
+      _throw(node);
+
+  @override
+  R? visitRecordTypeAnnotationPositionalField(
+          RecordTypeAnnotationPositionalField node) =>
+      _throw(node);
+
+  @override
   R? visitRedirectingConstructorInvocation(
           RedirectingConstructorInvocation node) =>
       _throw(node);
@@ -2447,6 +2558,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitCatchClause(CatchClause node) {
     stopwatch.start();
     T? result = _baseVisitor.visitCatchClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitCatchClauseParameter(CatchClauseParameter node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCatchClauseParameter(node);
     stopwatch.stop();
     return result;
   }
@@ -3116,6 +3235,48 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitRecordLiteral(RecordLiteral node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRecordLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitRecordTypeAnnotation(RecordTypeAnnotation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRecordTypeAnnotation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitRecordTypeAnnotationNamedField(RecordTypeAnnotationNamedField node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRecordTypeAnnotationNamedField(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitRecordTypeAnnotationNamedFields(
+      RecordTypeAnnotationNamedFields node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRecordTypeAnnotationNamedFields(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitRecordTypeAnnotationPositionalField(
+      RecordTypeAnnotationPositionalField node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRecordTypeAnnotationPositionalField(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     stopwatch.start();
@@ -3454,6 +3615,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitCatchClause(CatchClause node) => visitNode(node);
 
   @override
+  R? visitCatchClauseParameter(CatchClauseParameter node) => visitNode(node);
+
+  @override
   R? visitClassDeclaration(ClassDeclaration node) => visitNode(node);
 
   @override
@@ -3723,6 +3887,26 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPropertyAccess(PropertyAccess node) => visitNode(node);
+
+  @override
+  R? visitRecordLiteral(RecordLiteral node) => visitNode(node);
+
+  @override
+  R? visitRecordTypeAnnotation(RecordTypeAnnotation node) => visitNode(node);
+
+  @override
+  R? visitRecordTypeAnnotationNamedField(RecordTypeAnnotationNamedField node) =>
+      visitNode(node);
+
+  @override
+  R? visitRecordTypeAnnotationNamedFields(
+          RecordTypeAnnotationNamedFields node) =>
+      visitNode(node);
+
+  @override
+  R? visitRecordTypeAnnotationPositionalField(
+          RecordTypeAnnotationPositionalField node) =>
+      visitNode(node);
 
   @override
   R? visitRedirectingConstructorInvocation(

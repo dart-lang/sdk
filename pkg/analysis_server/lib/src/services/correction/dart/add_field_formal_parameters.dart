@@ -28,7 +28,7 @@ class AddFieldFormalParameters extends CorrectionProducer {
       return;
     }
 
-    var superType = classNode.declaredElement!.supertype;
+    var superType = classNode.declaredElement2!.supertype;
     if (superType == null) {
       return;
     }

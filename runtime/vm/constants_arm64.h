@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 #include "vm/constants_base.h"
 
@@ -367,7 +368,8 @@ struct DoubleToIntegerStubABI {
   static const Register kResultReg = R0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub, YieldSyncStarStub).
+// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = R0;
   static const Register kTempReg = R1;
@@ -401,7 +403,7 @@ struct ResumeStubABI {
 };
 
 // ABI for ReturnStub (ReturnAsyncStub, ReturnAsyncNotFutureStub,
-// ReturnAsyncStarStub, ReturnSyncStarStub).
+// ReturnAsyncStarStub).
 struct ReturnStubABI {
   static const Register kSuspendStateReg = R2;
 };
@@ -475,12 +477,13 @@ const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
 
-const intptr_t kReservedCpuRegisters = R(SPREG) |  // Dart SP
-                                       R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
-                                       R(THR) | R(LR) | R(HEAP_BITS) |
-                                       R(NULL_REG) | R(R31) |  // C++ SP
-                                       R(R18) | R(DISPATCH_TABLE_REG);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 13;
+const RegList kReservedCpuRegisters = R(SPREG) |  // Dart SP
+                                      R(FPREG) | R(TMP) | R(TMP2) | R(PP) |
+                                      R(THR) | R(LR) | R(HEAP_BITS) |
+                                      R(NULL_REG) | R(R31) |  // C++ SP
+                                      R(R18) | R(DISPATCH_TABLE_REG);
+constexpr intptr_t kNumberOfReservedCpuRegisters =
+    Utils::CountOneBits32(kReservedCpuRegisters);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;

@@ -9,5 +9,5 @@ library swarm;
 import 'swarmlib.dart';
 
 void main() {
-  new Swarm().run();
+  Swarm().run();
 }

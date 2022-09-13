@@ -103,7 +103,7 @@ class AssignmentCheckerTest extends Object
     }
     return DecoratedType(
       InterfaceTypeImpl(
-        element: _myListOfListClass!,
+        element2: _myListOfListClass!,
         typeArguments: [elementType.type!],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
@@ -169,7 +169,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(
-        t2.positionalParameters![0]!.node, t1.positionalParameters![0]!.node,
+        t2.positionalParameters![0].node, t1.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -186,7 +186,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(
-        t2.positionalParameters![0]!.node, t1.positionalParameters![0]!.node,
+        t2.positionalParameters![0].node, t1.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -196,7 +196,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(
-        t2.positionalParameters![0]!.node, t1.positionalParameters![0]!.node,
+        t2.positionalParameters![0].node, t1.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -576,25 +576,25 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
   /// representation is [text], or `null` if the expression has no
   /// [ExpressionChecks] associated with it.
   ExpressionChecksOrigin? checkExpression(String text) {
-    return variables!.checkExpression(findNode.expression(text));
+    return variables.checkExpression(findNode.expression(text));
   }
 
   /// Gets the [DecoratedType] associated with the expression whose text
   /// representation is [text], or `null` if the expression has no
   /// [DecoratedType] associated with it.
   DecoratedType? decoratedExpressionType(String text) {
-    return variables!.decoratedExpressionType(findNode.expression(text));
+    return variables.decoratedExpressionType(findNode.expression(text));
   }
 
   bool hasNullCheckHint(Expression expression) =>
-      variables!.getNullCheckHint(testSource, expression) != null;
+      variables.getNullCheckHint(testSource, expression) != null;
 
   Future<void> test_already_migrated_field() async {
     await analyze('''
 double f() => double.nan;
 ''');
-    var nanElement = typeProvider.doubleType.element.getField('nan')!;
-    assertEdge(variables!.decoratedElementType(nanElement).node,
+    var nanElement = typeProvider.doubleElement.getField('nan')!;
+    assertEdge(variables.decoratedElementType(nanElement).node,
         decoratedTypeAnnotation('double f').node,
         hard: false);
   }
@@ -658,7 +658,7 @@ void f(Object o) {
         hard: true);
     assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
     expect(
-        variables!.wasUnnecessaryCast(testSource, findNode.as_('o as')), false);
+        variables.wasUnnecessaryCast(testSource, findNode.as_('o as')), false);
   }
 
   Future<void> test_as_int_null_ok() async {
@@ -687,7 +687,7 @@ void f(int i) {
         hard: true);
     assertEdge(decoratedTypeAnnotation('int)').node, never, hard: true);
     expect(
-        variables!.wasUnnecessaryCast(testSource, findNode.as_('i as')), true);
+        variables.wasUnnecessaryCast(testSource, findNode.as_('i as')), true);
   }
 
   Future<void> test_as_side_cast() async {
@@ -2033,8 +2033,8 @@ class D = C with M;
 D f(MyList<int>/*2*/ x) => D(x);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables!.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertEdge(decoratedTypeAnnotation('MyList<int>/*2*/').node,
         constructorParameterType.node,
         hard: true);
@@ -2057,8 +2057,8 @@ mixin M {}
 class D<U> = C<U> with M;
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables!.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertUnion(
         constructorParameterType.node, decoratedTypeAnnotation('T t').node);
   }
@@ -2074,7 +2074,7 @@ class D = C with M;
 D f(int/*2*/ i) => D(i: i);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables!.decoratedElementType(syntheticConstructor);
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
     var constructorParameterType = constructorType.namedParameters!['i']!;
     assertEdge(
         decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
@@ -2094,8 +2094,8 @@ class D = C with M;
 D f(int/*2*/ i) => D(i);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables!.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertEdge(
         decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
         hard: true);
@@ -2114,8 +2114,8 @@ class D = C with M;
 D f(int/*2*/ i) => D(i);
 ''');
     var syntheticConstructor = findElement.unnamedConstructor('D');
-    var constructorType = variables!.decoratedElementType(syntheticConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertEdge(
         decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
         hard: true);
@@ -2151,7 +2151,7 @@ int f(bool b, int i, int j) {
         decoratedTypeAnnotation('int y').node,
         hard: false, guards: [guard]);
     var conditionalDiscard =
-        variables!.conditionalDiscard(findNode.conditionalExpression('!='))!;
+        variables.conditionalDiscard(findNode.conditionalExpression('!='))!;
     expect(conditionalDiscard, isNotNull);
     expect(conditionalDiscard.trueGuard, isNull);
     expect(conditionalDiscard.falseGuard, same(guard));
@@ -2185,9 +2185,9 @@ void f(bool b, void Function(int) x, void Function(int) y) {
     var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(resultType.node!, xType.node, yType.node);
     assertGLB(
-        resultType.positionalParameters![0]!.node,
-        xType.positionalParameters![0]!.node,
-        yType.positionalParameters![0]!.node);
+        resultType.positionalParameters![0].node,
+        xType.positionalParameters![0].node,
+        yType.positionalParameters![0].node);
   }
 
   Future<void>
@@ -2204,13 +2204,13 @@ void f(bool b, void Function(int, int) x, void Function(int, int) y) {
     var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(resultType.node!, xType.node, yType.node);
     assertGLB(
-        resultType.positionalParameters![0]!.node,
-        xType.positionalParameters![0]!.node,
-        yType.positionalParameters![0]!.node);
+        resultType.positionalParameters![0].node,
+        xType.positionalParameters![0].node,
+        yType.positionalParameters![0].node);
     assertGLB(
-        resultType.positionalParameters![1]!.node,
-        xType.positionalParameters![1]!.node,
-        yType.positionalParameters![1]!.node);
+        resultType.positionalParameters![1].node,
+        xType.positionalParameters![1].node,
+        yType.positionalParameters![1].node);
   }
 
   Future<void>
@@ -2227,9 +2227,9 @@ void f(bool b, void Function([int]) x, void Function([int]) y) {
     var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(resultType.node!, xType.node, yType.node);
     assertGLB(
-        resultType.positionalParameters![0]!.node,
-        xType.positionalParameters![0]!.node,
-        yType.positionalParameters![0]!.node);
+        resultType.positionalParameters![0].node,
+        xType.positionalParameters![0].node,
+        yType.positionalParameters![0].node);
   }
 
   Future<void> test_conditionalExpression_functionTyped_returnType() async {
@@ -2458,9 +2458,9 @@ void f(bool b, void Function(Null p) x, void Function(List<int> p) y) {
     var resultType = decoratedExpressionType('(b ?')!;
     assertLUB(resultType.node!, xType.node, yType.node);
     assertGLB(
-        resultType.positionalParameters![0]!.node,
-        xType.positionalParameters![0]!.node,
-        yType.positionalParameters![0]!.node);
+        resultType.positionalParameters![0].node,
+        xType.positionalParameters![0].node,
+        yType.positionalParameters![0].node);
   }
 
   Future<void> test_conditionalExpression_parameterType() async {
@@ -2563,7 +2563,7 @@ T f<T>(bool b, T t) {
         decoratedTypeAnnotation('int y').node,
         hard: false, guards: [guard]);
     var conditionalDiscard =
-        variables!.conditionalDiscard(findNode.conditionalExpression('=='))!;
+        variables.conditionalDiscard(findNode.conditionalExpression('=='))!;
     expect(conditionalDiscard, isNotNull);
     expect(conditionalDiscard.trueGuard, same(guard));
     expect(conditionalDiscard.falseGuard, isNull);
@@ -2676,8 +2676,8 @@ class D extends C {
 ''');
 
     var namedConstructor = findElement.constructor('named', of: 'C');
-    var constructorType = variables!.decoratedElementType(namedConstructor);
-    var constructorParameterType = constructorType.positionalParameters![0]!;
+    var constructorType = variables.decoratedElementType(namedConstructor);
+    var constructorParameterType = constructorType.positionalParameters![0];
     assertEdge(
         decoratedTypeAnnotation('int j').node, constructorParameterType.node,
         hard: true);
@@ -2724,7 +2724,7 @@ class C<T, U> {
 }
 ''');
     var constructor = findElement.unnamedConstructor('C');
-    var constructorDecoratedType = variables!.decoratedElementType(constructor);
+    var constructorDecoratedType = variables.decoratedElementType(constructor);
     _assertType(constructorDecoratedType.type!, 'C<T, U> Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
@@ -2743,7 +2743,7 @@ class C<T, U> {
 class C<T, U> {}
 ''');
     var constructor = findElement.unnamedConstructor('C');
-    var constructorDecoratedType = variables!.decoratedElementType(constructor);
+    var constructorDecoratedType = variables.decoratedElementType(constructor);
     _assertType(constructorDecoratedType.type!, 'C<T, U> Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
@@ -2764,7 +2764,7 @@ class C {
 }
 ''');
     var constructorDecoratedType =
-        variables!.decoratedElementType(findElement.unnamedConstructor('C'));
+        variables.decoratedElementType(findElement.unnamedConstructor('C'));
     _assertType(constructorDecoratedType.type!, 'C Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
@@ -2777,7 +2777,7 @@ class C {
 class C {}
 ''');
     var constructorDecoratedType =
-        variables!.decoratedElementType(findElement.unnamedConstructor('C'));
+        variables.decoratedElementType(findElement.unnamedConstructor('C'));
     _assertType(constructorDecoratedType.type!, 'C Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
@@ -3170,8 +3170,8 @@ class C {
   var x = f();
 }
 ''');
-    var xType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+    var xType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -3182,15 +3182,15 @@ class C {
   C(int this.f(int i, {int j}));
 }
 ''');
-    var ctorParamType = variables!
+    var ctorParamType = variables
         .decoratedElementType(findElement.unnamedConstructor('C'))
-        .positionalParameters![0]!;
-    var fieldType = variables!.decoratedElementType(findElement.field('f'));
+        .positionalParameters![0];
+    var fieldType = variables.decoratedElementType(findElement.field('f'));
     assertEdge(ctorParamType.node, fieldType.node, hard: true);
     assertEdge(ctorParamType.returnType!.node, fieldType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(fieldType.positionalParameters![0]!.node,
-        ctorParamType.positionalParameters![0]!.node,
+    assertEdge(fieldType.positionalParameters![0].node,
+        ctorParamType.positionalParameters![0].node,
         hard: false, checkable: false);
     assertEdge(fieldType.namedParameters!['j']!.node,
         ctorParamType.namedParameters!['j']!.node,
@@ -3217,7 +3217,7 @@ class C {
 }
 ''');
     var decoratedConstructorParamType =
-        decoratedConstructorDeclaration('named').positionalParameters![0]!;
+        decoratedConstructorDeclaration('named').positionalParameters![0];
     assertEdge(decoratedConstructorParamType.node,
         decoratedTypeAnnotation('int i').node,
         hard: true);
@@ -3237,7 +3237,7 @@ int firstEven(Iterable<int> x)
     // nullable, we need a synthetic edge to ensure that the return type of
     // `firstEven` is nullable.
     var closureReturnType = decoratedExpressionType('() => null')!.returnType!;
-    var firstWhereReturnType = variables!
+    var firstWhereReturnType = variables
         .decoratedExpressionType(findNode.methodInvocation('firstWhere'))!;
     assertEdge(closureReturnType.node, firstWhereReturnType.node, hard: false);
 
@@ -3245,7 +3245,7 @@ int firstEven(Iterable<int> x)
     // of `firstWhere`, to account for the normal data flow (when the element is
     // found).
     var typeParameterType = decoratedTypeAnnotation('int>');
-    var firstWhereType = variables!.decoratedElementType(findNode
+    var firstWhereType = variables.decoratedElementType(findNode
         .methodInvocation('firstWhere')
         .methodName
         .staticElement!
@@ -3665,7 +3665,7 @@ void test() {
 }
 ''');
 
-    var parameter = variables!.decoratedElementType(
+    var parameter = variables.decoratedElementType(
         findNode.functionTypedFormalParameter('void g()').declaredElement!);
     assertNullCheck(checkExpression('null')!,
         assertEdge(inSet(alwaysPlus), parameter.node, hard: false));
@@ -3679,7 +3679,7 @@ void h() {
   f();
 }
 ''');
-    var parameter = variables!.decoratedElementType(
+    var parameter = variables.decoratedElementType(
         findNode.functionTypedFormalParameter('void g()').declaredElement!);
     expect(getEdges(always, parameter.node), isNotEmpty);
   }
@@ -4675,8 +4675,8 @@ main() {
   var x = f();
 }
 ''');
-    var xType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+    var xType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -4700,8 +4700,8 @@ class C extends B {
   void f/*C*/(x) {}
 }
 ''');
-    var bReturnType = decoratedMethodType('f/*B*/').positionalParameters![0]!;
-    var cReturnType = decoratedMethodType('f/*C*/').positionalParameters![0]!;
+    var bReturnType = decoratedMethodType('f/*B*/').positionalParameters![0];
+    var cReturnType = decoratedMethodType('f/*C*/').positionalParameters![0];
     assertEdge(bReturnType.node, cReturnType.node, hard: true);
   }
 
@@ -5047,9 +5047,9 @@ String f(int i) => i.toString();
     await analyze('''
 String f(void Function() g) => g.toString();
 ''');
-    var toStringReturnType = variables!
+    var toStringReturnType = variables
         .decoratedElementType(
-            typeProvider.objectType.element.getMethod('toString')!)
+            typeProvider.objectType.element2.getMethod('toString')!)
         .returnType!;
     assertEdge(
         toStringReturnType.node, decoratedTypeAnnotation('String f').node,
@@ -5091,9 +5091,9 @@ void f(List<int> x, int i) {
         decoratedTypeAnnotation('List<int>').typeArguments[0]!.node;
     var addMethod =
         findNode.methodInvocation('x.add').methodName.staticElement!;
-    var nullable_t = variables!
+    var nullable_t = variables
         .decoratedElementType(addMethod.declaration!)
-        .positionalParameters![0]!
+        .positionalParameters![0]
         .node;
     assertEdge(nullable_t, never, hard: true, checkable: false);
     var check_i = checkExpression('i/*check*/')!;
@@ -5460,10 +5460,10 @@ class Derived extends Base {
   void f(void g(int i)/*2*/) {}
 }
 ''');
-    var p1 = variables!.decoratedElementType(findNode
+    var p1 = variables.decoratedElementType(findNode
         .functionTypedFormalParameter('void g(int i)/*1*/')
         .declaredElement!);
-    var p2 = variables!.decoratedElementType(findNode
+    var p2 = variables.decoratedElementType(findNode
         .functionTypedFormalParameter('void g(int i)/*2*/')
         .declaredElement!);
     assertEdge(p1.node, p2.node, hard: false, checkable: false);
@@ -6611,13 +6611,13 @@ abstract class C {
 }
 int Function(int) g(C c) => c.f;
 ''');
-    var fType = variables!.decoratedElementType(findElement.method('f'));
+    var fType = variables.decoratedElementType(findElement.method('f'));
     var gReturnType =
-        variables!.decoratedElementType(findElement.function('g')).returnType!;
+        variables.decoratedElementType(findElement.function('g')).returnType!;
     assertEdge(fType.returnType!.node, gReturnType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(gReturnType.positionalParameters![0]!.node,
-        fType.positionalParameters![0]!.node,
+    assertEdge(gReturnType.positionalParameters![0].node,
+        fType.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -6937,9 +6937,9 @@ int f(int i) => i.hashCode;
 
   Future<void> test_propertyAccess_object_property_on_function_type() async {
     await analyze('int f(void Function() g) => g.hashCode;');
-    var hashCodeReturnType = variables!
+    var hashCodeReturnType = variables
         .decoratedElementType(
-            typeProvider.objectType.element.getGetter('hashCode')!)
+            typeProvider.objectType.element2.getGetter('hashCode')!)
         .returnType!;
     assertEdge(hashCodeReturnType.node, decoratedTypeAnnotation('int f').node,
         hard: false);
@@ -7704,13 +7704,13 @@ main() {
 int f(int i) => 0;
 int Function(int) g() => f;
 ''');
-    var fType = variables!.decoratedElementType(findElement.function('f'));
+    var fType = variables.decoratedElementType(findElement.function('f'));
     var gReturnType =
-        variables!.decoratedElementType(findElement.function('g')).returnType!;
+        variables.decoratedElementType(findElement.function('g')).returnType!;
     assertEdge(fType.returnType!.node, gReturnType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(gReturnType.positionalParameters![0]!.node,
-        fType.positionalParameters![0]!.node,
+    assertEdge(gReturnType.positionalParameters![0].node,
+        fType.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -7721,13 +7721,13 @@ abstract class C {
   int Function(int) g() => f;
 }
 ''');
-    var fType = variables!.decoratedElementType(findElement.method('f'));
+    var fType = variables.decoratedElementType(findElement.method('f'));
     var gReturnType =
-        variables!.decoratedElementType(findElement.method('g')).returnType!;
+        variables.decoratedElementType(findElement.method('g')).returnType!;
     assertEdge(fType.returnType!.node, gReturnType.returnType!.node,
         hard: false, checkable: false);
-    assertEdge(gReturnType.positionalParameters![0]!.node,
-        fType.positionalParameters![0]!.node,
+    assertEdge(gReturnType.positionalParameters![0].node,
+        fType.positionalParameters![0].node,
         hard: false, checkable: false);
   }
 
@@ -8026,8 +8026,8 @@ double get myPi => pi;
 int f() => 1;
 var x = f();
 ''');
-    var xType =
-        variables!.decoratedElementType(findNode.simple('x').staticElement!);
+    var xType = variables.decoratedElementType(
+        findNode.variableDeclaration('x').declaredElement2!);
     assertEdge(decoratedTypeAnnotation('int').node, xType.node, hard: false);
   }
 
@@ -8120,7 +8120,7 @@ void f(Point<int> x) {}
     var pointClass =
         findNode.namedType('Point').name.staticElement as ClassElement;
     var pointBound =
-        variables!.decoratedTypeParameterBound(pointClass.typeParameters[0])!;
+        variables.decoratedTypeParameterBound(pointClass.typeParameters[0])!;
     _assertType(pointBound.type!, 'num');
     assertEdge(decoratedTypeAnnotation('int>').node, pointBound.node,
         hard: true);
@@ -8132,7 +8132,7 @@ void f(List<int> x) {}
 ''');
     var listClass = typeProvider.listElement;
     var listBound =
-        variables!.decoratedTypeParameterBound(listClass.typeParameters[0])!;
+        variables.decoratedTypeParameterBound(listClass.typeParameters[0])!;
     _assertType(listBound.type!, 'dynamic');
     assertEdge(decoratedTypeAnnotation('int>').node, listBound.node,
         hard: true);
@@ -8254,8 +8254,8 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
   late AssignmentCheckerTest assignmentCheckerTest;
 
   @override
-  DecoratedType asInstanceOf(DecoratedType type, ClassElement? superclass) {
-    var class_ = (type.type as InterfaceType).element;
+  DecoratedType asInstanceOf(DecoratedType type, InterfaceElement? superclass) {
+    var class_ = (type.type as InterfaceType).element2;
     if (class_ == superclass) return type;
     if (superclass!.name == 'Object') {
       return DecoratedType(
@@ -8296,7 +8296,7 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
 
   @override
   DecoratedType getDecoratedSupertype(
-      ClassElement class_, ClassElement superclass) {
+      InterfaceElement class_, InterfaceElement superclass) {
     throw UnimplementedError('TODO(paulberry)');
   }
 }

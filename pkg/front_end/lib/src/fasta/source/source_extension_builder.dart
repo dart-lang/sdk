@@ -39,6 +39,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   SourceExtensionBuilder? _origin;
   SourceExtensionBuilder? patchForTesting;
 
+  MergedClassMemberScope? _mergedScope;
+
   @override
   final List<TypeVariableBuilder>? typeParameters;
 
@@ -78,6 +80,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
 
+  // TODO(johnniwinther): Add merged scope for extensions.
+  MergedClassMemberScope get mergedScope => _mergedScope ??= isPatch
+      ? origin.mergedScope
+      : throw new UnimplementedError("SourceExtensionBuilder.mergedScope");
+
   @override
   Extension get extension => isPatch ? origin._extension : _extension;
 
@@ -102,43 +109,40 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     ClassBuilder objectClassBuilder =
         coreLibrary.lookupLocalMember('Object', required: true) as ClassBuilder;
 
-    void buildBuilders(String name, Builder? declaration) {
-      while (declaration != null) {
-        Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
-        Builder? objectSetter =
-            objectClassBuilder.lookupLocalMember(name, setter: true);
-        if (objectGetter != null && !objectGetter.isStatic ||
-            objectSetter != null && !objectSetter.isStatic) {
-          addProblem(
-              templateExtensionMemberConflictsWithObjectMember
-                  .withArguments(name),
-              declaration.charOffset,
-              name.length);
-        }
-        if (declaration.parent != this) {
-          if (fileUri != declaration.parent!.fileUri) {
-            unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
-                fileUri);
-          } else {
-            unexpected(fullNameForErrors, declaration.parent!.fullNameForErrors,
-                charOffset, fileUri);
-          }
-        } else if (declaration is SourceMemberBuilder) {
-          SourceMemberBuilder memberBuilder = declaration;
-          memberBuilder
-              .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
-            _buildMember(memberBuilder, member, memberKind,
-                addMembersToLibrary: addMembersToLibrary);
-          });
+    void buildBuilders(String name, Builder declaration) {
+      Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
+      Builder? objectSetter =
+          objectClassBuilder.lookupLocalMember(name, setter: true);
+      if (objectGetter != null && !objectGetter.isStatic ||
+          objectSetter != null && !objectSetter.isStatic) {
+        addProblem(
+            templateExtensionMemberConflictsWithObjectMember
+                .withArguments(name),
+            declaration.charOffset,
+            name.length);
+      }
+      if (declaration.parent != this) {
+        if (fileUri != declaration.parent!.fileUri) {
+          unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
+              fileUri);
         } else {
-          unhandled("${declaration.runtimeType}", "buildBuilders",
-              declaration.charOffset, declaration.fileUri);
+          unexpected(fullNameForErrors, declaration.parent!.fullNameForErrors,
+              charOffset, fileUri);
         }
-        declaration = declaration.next;
+      } else if (declaration is SourceMemberBuilder) {
+        SourceMemberBuilder memberBuilder = declaration;
+        memberBuilder
+            .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
+          _buildMember(memberBuilder, member, memberKind,
+              addMembersToLibrary: addMembersToLibrary);
+        });
+      } else {
+        unhandled("${declaration.runtimeType}", "buildBuilders",
+            declaration.charOffset, declaration.fileUri);
       }
     }
 
-    scope.forEach(buildBuilders);
+    scope.unfilteredNameIterator.forEach(buildBuilders);
 
     return _extension;
   }
@@ -237,17 +241,15 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    scope.forEach((String name, Builder? declaration) {
-      while (declaration != null) {
-        if (declaration is SourceMemberBuilder) {
-          count +=
-              declaration.buildBodyNodes((Member member, BuiltMemberKind kind) {
-            _buildMember(declaration as SourceMemberBuilder, member, kind,
-                addMembersToLibrary: addMembersToLibrary);
-          });
-        }
-        declaration = declaration.next;
-      }
+    scope
+        .filteredIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true)
+        .forEach((SourceMemberBuilder declaration) {
+      count +=
+          declaration.buildBodyNodes((Member member, BuiltMemberKind kind) {
+        _buildMember(declaration, member, kind,
+            addMembersToLibrary: addMembersToLibrary);
+      });
     });
     return count;
   }
@@ -287,13 +289,15 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       }
     }
 
-    void build(String ignore, Builder declaration) {
-      SourceMemberBuilder member = declaration as SourceMemberBuilder;
+    void build(SourceMemberBuilder member) {
       member.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
     }
 
-    scope.forEach(build);
+    scope
+        .filteredIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true)
+        .forEach(build);
   }
 }
 

@@ -158,6 +158,9 @@
   },
   "wasm": {
     "libraries": {
+      "_http": {
+        "uri": "_http/http.dart"
+      },
       "_internal": {
         "uri": "internal/internal.dart",
         "patches": [
@@ -165,15 +168,21 @@
           "_internal/wasm/lib/class_id.dart",
           "_internal/wasm/lib/patch.dart",
           "_internal/wasm/lib/print_patch.dart",
-          "_internal/vm/lib/symbol_patch.dart"
+          "_internal/wasm/lib/symbol_patch.dart"
         ]
+      },
+      "_js_annotations": {
+        "uri": "js/_js_annotations.dart"
       },
       "_js_helper": {
         "uri": "_internal/wasm/lib/js_helper.dart"
       },
       "async": {
         "uri": "async/async.dart",
-        "patches": "_internal/wasm/lib/timer_patch.dart"
+        "patches": [
+          "_internal/wasm/lib/async_patch.dart",
+          "_internal/wasm/lib/timer_patch.dart"
+        ]
       },
       "collection": {
         "uri": "collection/collection.dart",
@@ -192,6 +201,7 @@
         "patches": [
           "_internal/wasm/lib/core_patch.dart",
           "_internal/vm/lib/array_patch.dart",
+          "_internal/vm/lib/bigint_patch.dart",
           "_internal/wasm/lib/bool.dart",
           "_internal/vm/lib/bool_patch.dart",
           "_internal/wasm/lib/date_patch.dart",
@@ -207,10 +217,13 @@
           "_internal/vm/lib/null_patch.dart",
           "_internal/vm/lib/map_patch.dart",
           "_internal/wasm/lib/object_patch.dart",
+          "_internal/wasm/lib/regexp_patch.dart",
           "_internal/wasm/lib/stack_trace_patch.dart",
+          "_internal/wasm/lib/stopwatch_patch.dart",
           "_internal/wasm/lib/string_buffer_patch.dart",
           "_internal/wasm/lib/string_patch.dart",
-          "_internal/wasm/lib/type.dart"
+          "_internal/wasm/lib/type.dart",
+          "_internal/wasm/lib/uri_patch.dart"
         ]
       },
       "developer": {
@@ -231,6 +244,11 @@
       },
       "nativewrappers": {
         "uri": "html/dartium/nativewrappers.dart"
+      },
+      "io": {
+        "uri": "io/io.dart",
+        "patches": "_internal/wasm/lib/io_patch.dart",
+        "supported": false
       },
       "isolate": {
         "uri": "isolate/isolate.dart"

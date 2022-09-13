@@ -37,17 +37,17 @@ String _commonTestPath(bool soundNullSafety) {
 /// If [check] is provided, it is executed on the code for [entry] before
 /// returning.
 Future<String> compile(String code,
-    {String entry: 'main',
+    {String entry = 'main',
     String methodName,
-    bool enableTypeAssertions: false,
-    bool minify: false,
-    bool disableInlining: true,
-    bool disableTypeInference: true,
-    bool omitImplicitChecks: true,
-    bool enableVariance: false,
+    bool enableTypeAssertions = false,
+    bool minify = false,
+    bool disableInlining = true,
+    bool disableTypeInference = true,
+    bool omitImplicitChecks = true,
+    bool enableVariance = false,
     void check(String generatedEntry),
-    bool returnAll: false,
-    bool soundNullSafety: false}) async {
+    bool returnAll = false,
+    bool soundNullSafety = false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
   List<String> options = <String>[];
   if (disableTypeInference) {
@@ -109,9 +109,9 @@ Future<String> compile(String code,
 }
 
 Future<String> compileAll(String code,
-    {bool disableInlining: true,
-    bool minify: false,
-    bool soundNullSafety: false,
+    {bool disableInlining = true,
+    bool minify = false,
+    bool soundNullSafety = false,
     int expectedErrors,
     int expectedWarnings}) async {
   OutputCollector outputCollector = new OutputCollector();

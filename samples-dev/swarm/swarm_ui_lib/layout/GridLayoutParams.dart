@@ -4,23 +4,22 @@
 
 part of layout;
 
-/**
- * Caches the layout parameters that were specified in CSS during a layout
- * computation. These values are immutable during a layout.
- */
+/// Caches the layout parameters that were specified in CSS during a layout
+/// computation. These values are immutable during a layout.
 // TODO(jmesserly): I would like all fields to be final, but it's too painful
 // to do this right now in Dart. If I create a factory constructor, then I need
 // to create locals, and pass all parameters to the real constructor. Each
 // field ends up being mentioned 4 times instead of just twice.
 class GridLayoutParams extends LayoutParams {
-  /** The coordinates of this item in the grid. */
+  /// The coordinates of this item in the grid. */
   int? row;
   int? column;
   int? rowSpan;
   int? columnSpan;
+  @override
   int? layer;
 
-  /** Alignment within its box */
+  /// Alignment within its box */
   GridItemAlignment rowAlign;
   GridItemAlignment columnAlign;
 
@@ -89,16 +88,16 @@ class GridLayoutParams extends LayoutParams {
       columnSpan = rect.columnSpan;
     } else {
       // Apply default row, column span values.
-      if (rowSpan == null) rowSpan = 1;
-      if (columnSpan == null) columnSpan = 1;
+      rowSpan ??= 1;
+      columnSpan ??= 1;
 
       if (row == null && column == null) {
-        throw UnsupportedError('grid-flow is not implemented' +
+        throw UnsupportedError('grid-flow is not implemented'
             ' so at least one row or one column must be defined');
       }
 
-      if (row == null) row = 1;
-      if (column == null) column = 1;
+      row ??= 1;
+      column ??= 1;
     }
 
     assert(row! > 0 && rowSpan! > 0 && column! > 0 && columnSpan! > 0);

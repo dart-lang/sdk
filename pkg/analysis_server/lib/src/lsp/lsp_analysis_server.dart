@@ -6,12 +6,12 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
@@ -26,10 +26,11 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -55,7 +56,7 @@ import 'package:watcher/watcher.dart';
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
 /// that listens on a [CommunicationChannel] for LSP messages and processes
 /// them.
-class LspAnalysisServer extends AbstractAnalysisServer {
+class LspAnalysisServer extends AnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? _clientCapabilities;
 
@@ -113,12 +114,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   int contextBuilds = 0;
 
   /// The subscription to the stream of incoming messages from the client.
-  late StreamSubscription<void> _channelSubscription;
+  late final StreamSubscription<void> _channelSubscription;
 
   /// A completer that tracks in-progress analysis context rebuilds.
   ///
   /// Starts completed and will be replaced each time a context rebuild starts.
   Completer<void> _analysisContextRebuildCompleter = Completer()..complete();
+
+  /// An optional manager to handle file systems which may not always be
+  /// available.
+  final DetachableFileSystemManager? detachableFileSystemManager;
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -133,8 +138,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     http.Client? httpClient,
     ProcessRunner? processRunner,
     DiagnosticServer? diagnosticServer,
+    this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
-    bool enableBazelWatcher = false,
+    bool enableBlazeWatcher = false,
   }) : super(
           options,
           sdkManager,
@@ -146,7 +152,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           httpClient,
           processRunner,
           LspNotificationManager(channel, baseResourceProvider.pathContext),
-          enableBazelWatcher: enableBazelWatcher,
+          enableBlazeWatcher: enableBlazeWatcher,
         ) {
     notificationManager.server = this;
     messageHandler = UninitializedStateMessageHandler(this);
@@ -272,7 +278,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
     // Client config can affect capabilities, so this should only be done after
     // we have the initial/updated config.
-    capabilitiesComputer.performDynamicRegistration();
+    // Don't await this because it involves sending requests to the client (for
+    // config) that should not stop/delay initialization.
+    unawaited(capabilitiesComputer.performDynamicRegistration());
   }
 
   /// Return a [LineInfo] for the file with the given [path].
@@ -432,7 +440,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     _channelSubscription.pause(completer.future);
 
     try {
-      // `await` here is imported to ensure `finally` doesn't execute until
+      // `await` here is important to ensure `finally` doesn't execute until
       // `operation()` completes (`whenComplete` is not available on
       // `FutureOr`).
       return await operation();
@@ -489,10 +497,33 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void onOverlayCreated(String path, String content) {
+    final currentFile = resourceProvider.getFile(path);
+    String? currentContent;
+
+    try {
+      currentContent = currentFile.readAsStringSync();
+    } on FileSystemException {
+      // It's possible we're creating an overlay for a file that doesn't yet
+      // exist on disk so must handle missing file exceptions. Checking for
+      // exists first would introduce a race.
+    }
+
     resourceProvider.setOverlay(path,
         content: content, modificationStamp: overlayModificationStamp++);
 
-    _afterOverlayChanged(path, plugin.AddContentOverlay(content));
+    // If the overlay is exactly the same as the previous content we can skip
+    // notifying drivers which avoids re-analyzing the same content.
+    if (content != currentContent) {
+      _afterOverlayChanged(path, plugin.AddContentOverlay(content));
+
+      // If the file did not exist, and is "overlay only", it still should be
+      // analyzed. Add it to driver to which it should have been added.
+      contextManager.getDriverFor(path)?.addFile(path);
+    } else {
+      // If we skip the work above, we still need to ensure plugins are notified
+      // of the new overlay (which usually happens in `_afterOverlayChanged`).
+      _notifyPluginsOverlayChanged(path, plugin.AddContentOverlay(content));
+    }
   }
 
   void onOverlayDestroyed(String path) {
@@ -721,6 +752,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   Future<void> shutdown() {
     super.shutdown();
 
+    detachableFileSystemManager?.dispose();
+
     // Defer closing the channel so that the shutdown response can be sent and
     // logged.
     Future(() {
@@ -762,9 +795,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     for (var driver in driverMap.values) {
       driver.changeFile(path);
     }
-    pluginManager.setAnalysisUpdateContentParams(
-      plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
-    );
+    _notifyPluginsOverlayChanged(path, changeForPlugins);
 
     notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
@@ -824,6 +855,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
   }
 
+  void _notifyPluginsOverlayChanged(
+      String path, plugin.HasToJson changeForPlugins) {
+    pluginManager.setAnalysisUpdateContentParams(
+      plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
+    );
+  }
+
   void _onPluginsChanged() {
     capabilitiesComputer.performDynamicRegistration();
   }
@@ -850,10 +888,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
     final completer = _analysisContextRebuildCompleter = Completer();
     try {
+      var includedPathsList = includedPaths.toList();
+      var excludedPathsList = excludedPaths.toList();
       notificationManager.setAnalysisRoots(
-          includedPaths.toList(), excludedPaths.toList());
-      await contextManager.setRoots(
-          includedPaths.toList(), excludedPaths.toList());
+          includedPathsList, excludedPathsList);
+      if (detachableFileSystemManager != null) {
+        detachableFileSystemManager?.setAnalysisRoots(
+            null, includedPathsList, excludedPathsList);
+      } else {
+        await contextManager.setRoots(includedPathsList, excludedPathsList);
+      }
     } finally {
       completer.complete();
     }
@@ -887,20 +931,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
 class LspInitializationOptions {
   final bool onlyAnalyzeProjectsWithOpenFiles;
-  final bool previewNotImportedCompletions;
   final bool suggestFromUnimportedLibraries;
   final bool closingLabels;
   final bool outline;
   final bool flutterOutline;
-  final int? notImportedCompletionBudgetMilliseconds;
+  final int? completionBudgetMilliseconds;
 
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
-        // Undocumented preview flag to allow easy testing of not imported
-        // completion contributor.
-        previewNotImportedCompletions =
-            options != null && options['previewNotImportedCompletions'] == true,
         // suggestFromUnimportedLibraries defaults to true, so must be
         // explicitly passed as false to disable.
         suggestFromUnimportedLibraries = options == null ||
@@ -908,8 +947,8 @@ class LspInitializationOptions {
         closingLabels = options != null && options['closingLabels'] == true,
         outline = options != null && options['outline'] == true,
         flutterOutline = options != null && options['flutterOutline'] == true,
-        notImportedCompletionBudgetMilliseconds = options != null
-            ? options['notImportedCompletionBudgetMilliseconds'] as int?
+        completionBudgetMilliseconds = options != null
+            ? options['completionBudgetMilliseconds'] as int?
             : null;
 }
 

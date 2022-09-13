@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
@@ -27,7 +27,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 /// The handler for the `completion.getSuggestions2` request.
 class CompletionGetSuggestions2Handler extends CompletionHandler
-    with RequestHandlerMixin<AnalysisServer> {
+    with RequestHandlerMixin<LegacyAnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   CompletionGetSuggestions2Handler(
@@ -147,7 +147,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     }
 
     var performance = OperationPerformanceImpl('<root>');
-    performance.runAsync(
+    await performance.runAsync(
       'request',
       (performance) async {
         var resolvedUnit = await performance.runAsync(

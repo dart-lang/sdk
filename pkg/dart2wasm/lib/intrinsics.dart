@@ -131,7 +131,7 @@ class Intrinsifier {
       w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
       codeGen.wrap(receiver, w.RefType.any(nullable: false));
       b.br_on_non_data(fail);
-      translator.ref_test(b, translator.topInfo);
+      b.ref_test(translator.topInfo.struct);
       b.br(succeed);
       b.end(); // fail
       b.drop();
@@ -150,6 +150,18 @@ class Intrinsifier {
       b.array_len(arrayType);
       b.i64_extend_i32_u();
       return w.NumType.i64;
+    }
+
+    // WasmTable.size
+    if (cls == translator.wasmTableClass) {
+      if (receiver is! StaticGet || receiver.target is! Field) {
+        throw "Table size not directly on a static field"
+            " at ${node.location}";
+      }
+      w.Table table = translator.getTable(receiver.target as Field)!;
+      assert(name == "size");
+      b.table_size(table);
+      return w.NumType.i32;
     }
 
     // int.bitlength
@@ -335,13 +347,12 @@ class Intrinsifier {
     }
 
     // WasmAnyRef.toObject
-    if (cls == translator.wasmAnyRefClass) {
-      assert(name == "toObject");
+    if (cls == translator.wasmAnyRefClass && name == "toObject") {
       w.Label succeed = b.block(const [], [translator.topInfo.nonNullableType]);
       w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
       codeGen.wrap(receiver, w.RefType.any(nullable: false));
       b.br_on_non_data(fail);
-      translator.br_on_cast(b, succeed, translator.topInfo);
+      b.br_on_cast(succeed, translator.topInfo.struct);
       b.end(); // fail
       codeGen.throwWasmRefError("a Dart object");
       b.end(); // succeed
@@ -444,6 +455,25 @@ class Intrinsifier {
           assert(name == "toDouble");
           codeGen.wrap(receiver, w.NumType.f64);
           return w.NumType.f64;
+      }
+    }
+
+    // WasmTable.[] and WasmTable.[]=
+    if (cls == translator.wasmTableClass) {
+      if (receiver is! StaticGet || receiver.target is! Field) {
+        throw "Table indexing not directly on a static field"
+            " at ${node.location}";
+      }
+      w.Table table = translator.getTable(receiver.target as Field)!;
+      codeGen.wrap(node.arguments.positional[0], w.NumType.i32);
+      if (name == '[]') {
+        b.table_get(table);
+        return table.type;
+      } else {
+        assert(name == '[]=');
+        codeGen.wrap(node.arguments.positional[1], table.type);
+        b.table_set(table);
+        return codeGen.voidMarker;
       }
     }
 
@@ -562,7 +592,8 @@ class Intrinsifier {
     if (className != null) {
       List<String> libAndClass = className.split("#");
       Class cls = translator.libraries
-          .firstWhere((l) => l.name == libAndClass[0])
+          .firstWhere(
+              (l) => l.name == libAndClass[0] && l.importUri.scheme == 'dart')
           .classes
           .firstWhere((c) => c.name == libAndClass[1]);
       int classId = translator.classInfo[cls]!.classId;
@@ -578,6 +609,15 @@ class Intrinsifier {
       return w.NumType.i32;
     }
 
+    if (target.enclosingLibrary.name == "dart.core" &&
+        target.name.text == "_isIntrinsified") {
+      // This is part of the VM's [BigInt] implementation. We just return false.
+      // TODO(joshualitt): Can we find another way to reuse this patch file
+      // without hardcoding this case?
+      b.i32_const(0);
+      return w.NumType.i32;
+    }
+
     return null;
   }
 
@@ -587,6 +627,25 @@ class Intrinsifier {
     b.struct_get(info.struct, FieldIndex.classId);
     b.i64_extend_i32_u();
     return w.NumType.i64;
+  }
+
+  w.ValueType changeListClassID(StaticInvocation node, Class newClass) {
+    ClassInfo receiverInfo = translator.classInfo[translator.listBaseClass]!;
+    codeGen.wrap(
+        node.arguments.positional.single, receiverInfo.nonNullableType);
+    w.Local receiverLocal =
+        codeGen.function.addLocal(receiverInfo.nonNullableType);
+    b.local_tee(receiverLocal);
+    // We ignore the type argument and just update the classID of the
+    // receiver.
+    // TODO(joshualitt): If the amount of free space is significant, it
+    // might be worth doing a copy here.
+    ClassInfo newInfo = translator.classInfo[newClass]!;
+    ClassInfo topInfo = translator.topInfo;
+    b.i32_const(newInfo.classId);
+    b.struct_set(topInfo.struct, FieldIndex.classId);
+    b.local_get(receiverLocal);
+    return newInfo.nonNullableType;
   }
 
   w.ValueType? generateStaticIntrinsic(StaticInvocation node) {
@@ -651,6 +710,8 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSupers(b);
         case "_getTypeRulesSubstitutions":
           return translator.types.makeTypeRulesSubstitutions(b);
+        case "_getTypeNames":
+          return translator.types.makeTypeNames(b);
         case "_getInterfaceTypeRuntimeType":
           Expression object = node.arguments.positional[0];
           Expression typeArguments = node.arguments.positional[1];
@@ -661,7 +722,7 @@ class Intrinsifier {
           b.i32_const(0);
           getID(object);
           codeGen.wrap(typeArguments, translator.types.typeListExpectedType);
-          translator.struct_new(b, info);
+          b.struct_new(info.struct);
           return info.nonNullableType;
       }
     }
@@ -671,10 +732,10 @@ class Intrinsifier {
       switch (name) {
         case "unsafeCast":
         case "unsafeCastOpaque":
-          w.ValueType targetType =
-              translator.translateType(node.arguments.types.single);
           Expression operand = node.arguments.positional.single;
-          return codeGen.wrap(operand, targetType);
+          // Just evaluate the operand and let the context convert it to the
+          // expected type.
+          return codeGen.wrap(operand, typeOfExp(operand));
         case "_nativeEffect":
           // Ignore argument
           return translator.voidMarker;
@@ -688,8 +749,8 @@ class Intrinsifier {
           b.i32_const(initialIdentityHash);
           codeGen.wrap(length, w.NumType.i64);
           b.i32_wrap_i64();
-          translator.array_new_default(b, arrayType);
-          translator.struct_new(b, info);
+          b.array_new_default(arrayType);
+          b.struct_new(info.struct);
           return info.nonNullableType;
         case "writeIntoOneByteString":
           ClassInfo info = translator.classInfo[translator.oneByteStringClass]!;
@@ -719,8 +780,8 @@ class Intrinsifier {
           b.i32_const(initialIdentityHash);
           codeGen.wrap(length, w.NumType.i64);
           b.i32_wrap_i64();
-          translator.array_new_default(b, arrayType);
-          translator.struct_new(b, info);
+          b.array_new_default(arrayType);
+          b.struct_new(info.struct);
           return info.nonNullableType;
         case "writeIntoTwoByteString":
           ClassInfo info = translator.classInfo[translator.twoByteStringClass]!;
@@ -762,6 +823,10 @@ class Intrinsifier {
           return w.NumType.f64;
         case "getID":
           return getID(node.arguments.positional.single);
+        case "makeListFixedLength":
+          return changeListClassID(node, translator.fixedLengthListClass);
+        case "makeFixedListUnmodifiable":
+          return changeListClassID(node, translator.immutableListClass);
       }
     }
 
@@ -890,27 +955,17 @@ class Intrinsifier {
             translator.arrayTypeForDartType(node.arguments.types.single);
         codeGen.wrap(length, w.NumType.i64);
         b.i32_wrap_i64();
-        translator.array_new_default(b, arrayType);
+        b.array_new_default(arrayType);
         return w.RefType.def(arrayType, nullable: false);
       }
 
       // (WasmFuncRef|WasmFunction).fromRef constructors
-      if ((cls == translator.wasmFuncRefClass ||
-              cls == translator.wasmFunctionClass) &&
-          name == "fromRef") {
+      if (cls == translator.wasmFunctionClass && name == "fromFuncRef") {
         Expression ref = node.arguments.positional[0];
         w.RefType resultType = typeOfExp(node) as w.RefType;
         w.Label succeed = b.block(const [], [resultType]);
-        w.Label fail =
-            b.block(const [], const [w.RefType.any(nullable: false)]);
-        codeGen.wrap(ref, w.RefType.any(nullable: false));
-        b.br_on_non_func(fail);
-        if (cls == translator.wasmFunctionClass) {
-          assert(resultType.heapType is w.FunctionType);
-          translator.br_on_cast_fail(b, fail, resultType.heapType);
-        }
-        b.br(succeed);
-        b.end(); // fail
+        codeGen.wrap(ref, w.RefType.func(nullable: false));
+        b.br_on_cast(succeed, resultType.heapType as w.FunctionType);
         codeGen.throwWasmRefError("a function with the expected signature");
         b.end(); // succeed
         return resultType;
@@ -956,6 +1011,29 @@ class Intrinsifier {
       }
     }
 
+    // dart:wasm static functions
+    if (node.target.enclosingLibrary.name == "dart.wasm") {
+      Expression value = node.arguments.positional.single;
+      switch (name) {
+        case "_externalizeNonNullable":
+          codeGen.wrap(value, w.RefType.any(nullable: false));
+          b.extern_externalize();
+          return w.RefType.extern(nullable: false);
+        case "_externalizeNullable":
+          codeGen.wrap(value, w.RefType.any(nullable: true));
+          b.extern_externalize();
+          return w.RefType.extern(nullable: true);
+        case "_internalizeNonNullable":
+          codeGen.wrap(value, w.RefType.extern(nullable: false));
+          b.extern_internalize();
+          return w.RefType.any(nullable: false);
+        case "_internalizeNullable":
+          codeGen.wrap(value, w.RefType.extern(nullable: true));
+          b.extern_internalize();
+          return w.RefType.any(nullable: true);
+      }
+    }
+
     return null;
   }
 
@@ -969,6 +1047,60 @@ class Intrinsifier {
       // Pointer, whose representation is the same.
       codeGen.wrap(node.arguments.positional.single, w.NumType.i32);
       return w.NumType.i32;
+    }
+
+    return null;
+  }
+
+  w.ValueType? generateFunctionCallIntrinsic(FunctionInvocation node) {
+    Expression receiver = node.receiver;
+
+    if (receiver is InstanceGet &&
+        receiver.interfaceTarget == translator.wasmFunctionCall) {
+      // Receiver is a WasmFunction
+      assert(receiver.name.text == "call");
+      w.RefType receiverType =
+          translator.translateType(dartTypeOf(receiver.receiver)) as w.RefType;
+      w.Local temp = codeGen.addLocal(receiverType);
+      codeGen.wrap(receiver.receiver, receiverType);
+      b.local_set(temp);
+      w.FunctionType functionType = receiverType.heapType as w.FunctionType;
+      assert(node.arguments.positional.length == functionType.inputs.length);
+      for (int i = 0; i < node.arguments.positional.length; i++) {
+        codeGen.wrap(node.arguments.positional[i], functionType.inputs[i]);
+      }
+      b.local_get(temp);
+      b.call_ref();
+      return translator.outputOrVoid(functionType.outputs);
+    }
+
+    if (receiver is InstanceInvocation &&
+        receiver.interfaceTarget == translator.wasmTableCallIndirect) {
+      // Receiver is a WasmTable.callIndirect
+      assert(receiver.name.text == "callIndirect");
+      Expression tableExp = receiver.receiver;
+      if (tableExp is! StaticGet || tableExp.target is! Field) {
+        throw "Table callIndirect not directly on a static field"
+            " at ${node.location}";
+      }
+      w.Table table = translator.getTable(tableExp.target as Field)!;
+      InterfaceType wasmFunctionType = InterfaceType(
+          translator.wasmFunctionClass,
+          Nullability.nonNullable,
+          [receiver.arguments.types.single]);
+      w.RefType receiverType =
+          translator.translateType(wasmFunctionType) as w.RefType;
+      w.Local tableIndex = codeGen.addLocal(w.NumType.i32);
+      codeGen.wrap(receiver.arguments.positional.single, w.NumType.i32);
+      b.local_set(tableIndex);
+      w.FunctionType functionType = receiverType.heapType as w.FunctionType;
+      assert(node.arguments.positional.length == functionType.inputs.length);
+      for (int i = 0; i < node.arguments.positional.length; i++) {
+        codeGen.wrap(node.arguments.positional[i], functionType.inputs[i]);
+      }
+      b.local_get(tableIndex);
+      b.call_indirect(functionType, table);
+      return translator.outputOrVoid(functionType.outputs);
     }
 
     return null;
@@ -1021,11 +1153,11 @@ class Intrinsifier {
       b.i32_eq();
       b.if_();
       b.local_get(first);
-      translator.ref_cast(b, boolInfo);
+      b.ref_cast(boolInfo.struct);
       b.struct_get(boolInfo.struct, FieldIndex.boxValue);
       w.Label bothBool = b.block(const [], [boolInfo.nullableType]);
       b.local_get(second);
-      translator.br_on_cast(b, bothBool, boolInfo);
+      b.br_on_cast(bothBool, boolInfo.struct);
       b.i32_const(0);
       b.return_();
       b.end();
@@ -1040,11 +1172,11 @@ class Intrinsifier {
       b.i32_eq();
       b.if_();
       b.local_get(first);
-      translator.ref_cast(b, intInfo);
+      b.ref_cast(intInfo.struct);
       b.struct_get(intInfo.struct, FieldIndex.boxValue);
       w.Label bothInt = b.block(const [], [intInfo.nullableType]);
       b.local_get(second);
-      translator.br_on_cast(b, bothInt, intInfo);
+      b.br_on_cast(bothInt, intInfo.struct);
       b.i32_const(0);
       b.return_();
       b.end();
@@ -1059,12 +1191,12 @@ class Intrinsifier {
       b.i32_eq();
       b.if_();
       b.local_get(first);
-      translator.ref_cast(b, doubleInfo);
+      b.ref_cast(doubleInfo.struct);
       b.struct_get(doubleInfo.struct, FieldIndex.boxValue);
       b.i64_reinterpret_f64();
       w.Label bothDouble = b.block(const [], [doubleInfo.nullableType]);
       b.local_get(second);
-      translator.br_on_cast(b, bothDouble, doubleInfo);
+      b.br_on_cast(bothDouble, doubleInfo.struct);
       b.i32_const(0);
       b.return_();
       b.end();
@@ -1093,7 +1225,7 @@ class Intrinsifier {
         TypeParameter typeParameter = cls.typeParameters[i];
         int typeParameterIndex = translator.typeParameterIndex[typeParameter]!;
         b.local_get(object);
-        translator.ref_cast(b, classInfo);
+        b.ref_cast(classInfo.struct);
         b.struct_get(classInfo.struct, typeParameterIndex);
       });
       return true;
@@ -1127,8 +1259,8 @@ class Intrinsifier {
             b.i64_shl();
           }
           b.i32_wrap_i64();
-          translator.array_new_default(b, arrayType);
-          translator.struct_new(b, info);
+          b.array_new_default(arrayType);
+          b.struct_new(info.struct);
           return true;
         }
 
@@ -1149,7 +1281,7 @@ class Intrinsifier {
           b.local_get(buffer);
           b.local_get(offsetInBytes);
           b.i32_wrap_i64();
-          translator.struct_new(b, info);
+          b.struct_new(info.struct);
           return true;
         }
       }
@@ -1164,7 +1296,12 @@ class Intrinsifier {
         Class cls = member.enclosingClass!;
         ClassInfo info = translator.classInfo[cls]!;
         b.local_get(paramLocals[0]);
-        translator.ref_cast(b, info);
+        b.ref_cast(info.struct);
+        // TODO(joshualitt): Because we currently merge getters to support
+        // dynamic calls, the return types of `.length` and `.offsetInBytes` can
+        // change. Should we decide to stop merging getters, we should remove
+        // the conversions below.
+        w.ValueType outputType = function.type.outputs.single;
         switch (name) {
           case "length":
             assert(cls == translator.typedListBaseClass ||
@@ -1175,6 +1312,7 @@ class Intrinsifier {
               b.struct_get(info.struct, FieldIndex.byteDataViewLength);
             }
             b.i64_extend_i32_u();
+            translator.convertType(function, intType, outputType);
             return true;
           case "offsetInBytes":
             assert(cls == translator.typedListViewClass ||
@@ -1185,6 +1323,7 @@ class Intrinsifier {
               b.struct_get(info.struct, FieldIndex.byteDataViewOffsetInBytes);
             }
             b.i64_extend_i32_u();
+            translator.convertType(function, intType, outputType);
             return true;
           case "_typedData":
             assert(cls == translator.typedListViewClass ||
@@ -1198,6 +1337,22 @@ class Intrinsifier {
         }
         throw "Unrecognized typed data getter: ${cls.name}.$name";
       }
+    }
+
+    // _asyncBridge2
+    if (member.enclosingLibrary.name == "dart.async" &&
+        name == "_asyncBridge2") {
+      w.Local args = paramLocals[0];
+      w.Local stack = paramLocals[1];
+      const int stubFieldIndex = 0;
+
+      b.local_get(args);
+      b.local_get(stack);
+      b.local_get(args);
+      b.ref_cast(translator.functions.asyncStubBaseStruct);
+      b.struct_get(translator.functions.asyncStubBaseStruct, stubFieldIndex);
+      b.call_ref();
+      return true;
     }
 
     // int members
@@ -1237,7 +1392,7 @@ class Intrinsifier {
           ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
           w.Label intArg = b.block(const [], [intInfo.nonNullableType]);
           b.local_get(function.locals[1]);
-          translator.br_on_cast(b, intArg, intInfo);
+          b.br_on_cast(intArg, intInfo.struct);
           // double argument
           b.drop();
           b.local_get(function.locals[0]);

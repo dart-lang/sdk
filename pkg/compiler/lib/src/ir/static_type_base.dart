@@ -26,6 +26,14 @@ class ThisInterfaceType extends ir.InterfaceType {
       ? ThisInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
 
+  /// We rely on the [ir.InterfaceType] implementation of [hashCode]. Collisions
+  /// should be infrequent enough.
+  @override
+  bool operator ==(Object other) {
+    if (other is! ThisInterfaceType) return false;
+    return super == other;
+  }
+
   @override
   String toString() => 'this:${super.toString()}';
 }
@@ -40,6 +48,14 @@ class ExactInterfaceType extends ir.InterfaceType {
   static from(ir.InterfaceType? type) => type != null
       ? ExactInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
+
+  /// We rely on the [ir.InterfaceType] implementation of [hashCode]. Collisions
+  /// should be infrequent enough.
+  @override
+  bool operator ==(Object other) {
+    if (other is! ExactInterfaceType) return false;
+    return super == other;
+  }
 
   @override
   String toString() => 'exact:${super.toString()}';

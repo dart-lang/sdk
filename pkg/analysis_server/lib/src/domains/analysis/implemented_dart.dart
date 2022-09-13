@@ -21,17 +21,17 @@ class ImplementedComputer {
     for (var element in unitElement.classes) {
       await _computeForClassElement(element);
     }
-    for (var element in unitElement.enums) {
+    for (var element in unitElement.enums2) {
       await _computeForClassElement(element);
     }
-    for (var element in unitElement.mixins) {
+    for (var element in unitElement.mixins2) {
       await _computeForClassElement(element);
     }
   }
 
-  void _addImplementedClass(ClassElement type) {
-    var offset = type.nameOffset;
-    var length = type.nameLength;
+  void _addImplementedClass(InterfaceElement element) {
+    var offset = element.nameOffset;
+    var length = element.nameLength;
     classes.add(protocol.ImplementedClass(offset, length));
   }
 
@@ -50,9 +50,9 @@ class ImplementedComputer {
     }
   }
 
-  Future<void> _computeForClassElement(ClassElement element) async {
+  Future<void> _computeForClassElement(InterfaceElement element) async {
     // Always include Object and its members.
-    if (element.supertype == null && !element.isMixin) {
+    if (element is ClassElement && element.isDartCoreObject) {
       _addImplementedClass(element);
       element.accessors.forEach(_addImplementedMember);
       element.fields.forEach(_addImplementedMember);

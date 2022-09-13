@@ -175,6 +175,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
 class _CodegenMetrics extends MetricsBase {
   int countHIf = 0;
   int countHIfConstant = 0;
+  int countHIsTest = 0;
+  int countHIsTestSimple = 0;
+  int countHIsLateSentinel = 0;
+  int countHGetLength = 0;
+  int countHIndex = 0;
+  int countHFieldGet = 0;
+  int countSingleTargetInstanceCalls = 0;
   final countHInterceptor = CountMetric('count.HInterceptor');
   final countHInterceptorGet = CountMetric('count.HInterceptor.getInterceptor');
   final countHInterceptorOneshot = CountMetric('count.HInterceptor.oneShot');
@@ -193,6 +200,14 @@ class _CodegenMetrics extends MetricsBase {
   Iterable<Metric> get secondary => [
         CountMetric('count.HIf')..add(countHIf),
         CountMetric('count.HIf.constant')..add(countHIfConstant),
+        CountMetric('count.HIsTest')..add(countHIsTest),
+        CountMetric('count.HIsTestSimple')..add(countHIsTestSimple),
+        CountMetric('count.HIsLateSentinel')..add(countHIsLateSentinel),
+        CountMetric('count.HGetLength')..add(countHGetLength),
+        CountMetric('count.HIndex')..add(countHIndex),
+        CountMetric('count.HFieldGet')..add(countHFieldGet),
+        CountMetric('count.SingleTargetInstance')
+          ..add(countSingleTargetInstanceCalls),
         countHInterceptor,
         countHInterceptorGet,
         countHInterceptorConditionalConstant,
@@ -1884,6 +1899,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
+    _updateInvokeMetrics(node);
     use(node.receiver);
     js.Expression object = pop();
     String methodName;
@@ -2074,8 +2090,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  void _updateInvokeMetrics(HInvokeDynamic node) {
+    if (node.element != null) _metrics.countSingleTargetInstanceCalls++;
+  }
+
   @override
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
+    _updateInvokeMetrics(node);
     use(node.receiver);
     js.Name name = _namer.invocationName(node.selector);
     push(js
@@ -2086,6 +2107,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
+    _updateInvokeMetrics(node);
     use(node.receiver);
     js.Name name = _namer.invocationName(node.selector);
     push(js
@@ -2260,6 +2282,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitFieldGet(HFieldGet node) {
+    _metrics.countHFieldGet++;
     use(node.receiver);
     push(_loadField(pop(), node.element, node.sourceInformation));
   }
@@ -2281,6 +2304,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitGetLength(HGetLength node) {
+    _metrics.countHGetLength++;
     use(node.receiver);
     push(js.PropertyAccess.field(pop(), 'length')
         .withSourceInformation(node.sourceInformation));
@@ -2908,6 +2932,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   void visitIndex(HIndex node) {
+    _metrics.countHIndex++;
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.index);
@@ -3119,6 +3144,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitIsTest(HIsTest node) {
+    _metrics.countHIsTest++;
     _registry.registerTypeUse(TypeUse.isCheck(node.dartType));
 
     use(node.typeInput);
@@ -3135,6 +3161,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitIsTestSimple(HIsTestSimple node) {
+    _metrics.countHIsTestSimple++;
     _emitIsTestSimple(node);
   }
 
@@ -3400,6 +3427,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   @override
-  visitIsLateSentinel(HIsLateSentinel node) =>
-      _emitIsLateSentinel(node.inputs.single, node.sourceInformation);
+  visitIsLateSentinel(HIsLateSentinel node) {
+    _metrics.countHIsLateSentinel;
+    _emitIsLateSentinel(node.inputs.single, node.sourceInformation);
+  }
 }

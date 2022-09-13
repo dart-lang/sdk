@@ -35,12 +35,11 @@ DEFINE_FLAG(int,
   } while (false)
 
 // Returns true for the "optimized out" and "null" constant.
-// Such constants reside outside the IR in the sense that
-// succ/pred/block links are not maintained.
-static bool IsSpecialConstant(Definition* def) {
+// Such constants may have a lot of uses and checking them could be too slow.
+static bool IsCommonConstant(Definition* def) {
   if (auto c = def->AsConstant()) {
     return c->value().ptr() == Symbols::OptimizedOut().ptr() ||
-           c->value().ptr() == Object::ZoneHandle().ptr();
+           c->value().ptr() == Object::null();
   }
   return false;
 }
@@ -231,13 +230,13 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
       ASSERT1(
           def->IsConstant() || def->IsParameter() || def->IsSpecialParameter(),
           def);
-      // Special constants reside outside the IR.
-      if (IsSpecialConstant(def)) continue;
       // Make sure block lookup agrees.
       ASSERT1(def->GetBlock() == entry, def);
       // Initial definitions are partially linked into graph.
       ASSERT1(def->next() == nullptr, def);
       ASSERT1(def->previous() == entry, def);
+      // Skip common constants as checking them could be slow.
+      if (IsCommonConstant(def)) continue;
       // Visit the initial definition as instruction.
       VisitInstruction(def);
     }
@@ -399,11 +398,18 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     ASSERT1(def->previous() == nullptr, def);
   } else if (def->IsConstant() || def->IsParameter() ||
              def->IsSpecialParameter()) {
-    // Special constants reside outside the IR.
-    if (IsSpecialConstant(def)) return;
     // Initial definitions are partially linked into graph, but some
     // constants are fully linked into graph (so no next() assert).
     ASSERT1(def->previous() != nullptr, def);
+    // Skip checks below for common constants as checking them could be slow.
+    if (IsCommonConstant(def)) return;
+  } else if (def->IsMaterializeObject()) {
+    // Materializations can be both linked into graph and detached.
+    if (def->next() != nullptr) {
+      ASSERT1(def->previous() != nullptr, def);
+    } else {
+      ASSERT1(def->previous() == nullptr, def);
+    }
   } else {
     // Others are fully linked into graph.
     ASSERT1(def->next() != nullptr, def);
@@ -451,8 +457,17 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     // BlockEntry instructions have environments attached to them but
     // have no reliable way to verify if they are still in the graph.
     ASSERT1(is_env, instruction);
-    ASSERT1(instruction->next() != nullptr, instruction);
+    ASSERT1(instruction->IsGraphEntry() || instruction->next() != nullptr,
+            instruction);
     ASSERT2(DefDominatesUse(def, instruction), def, instruction);
+  } else if (instruction->IsMaterializeObject()) {
+    // Materializations can be both linked into graph and detached.
+    if (instruction->next() != nullptr) {
+      ASSERT1(instruction->previous() != nullptr, instruction);
+      ASSERT2(DefDominatesUse(def, instruction), def, instruction);
+    } else {
+      ASSERT1(instruction->previous() == nullptr, instruction);
+    }
   } else {
     // Others are fully linked into graph.
     ASSERT1(IsControlFlow(instruction) || instruction->next() != nullptr,

@@ -7,7 +7,7 @@
 
 part of swarmlib;
 
-/** The top-level collection of all sections for a user. */
+/// The top-level collection of all sections for a user. */
 // TODO(jimhug): This is known as UserData in the server model.
 class Sections extends IterableBase<Section> {
   final List<Section> _sections;
@@ -16,6 +16,7 @@ class Sections extends IterableBase<Section> {
 
   operator [](int i) => _sections[i];
 
+  @override
   int get length => _sections.length;
 
   List<String> get sectionTitles => _sections.map((s) => s.title).toList();
@@ -24,15 +25,14 @@ class Sections extends IterableBase<Section> {
     // TODO(jimhug): http://b/issue?id=5351067
   }
 
-  /**
-   * Find the Section object that has a given title.
-   * This is used to integrate well with [ConveyorView].
-   */
+  /// Find the Section object that has a given title.
+  /// This is used to integrate well with [ConveyorView].
   Section findSection(String name) {
     return CollectionUtils.find(_sections, (sect) => sect.title == name);
   }
 
   // TODO(jimhug): Track down callers!
+  @override
   Iterator<Section> get iterator => _sections.iterator;
 
   // TODO(jimhug): Better support for switching between local dev and server.
@@ -47,19 +47,19 @@ class Sections extends IterableBase<Section> {
   }
 
   // This method is exposed for tests.
-  static void initializeFromData(String data, void callback(Sections sects)) {
-    final decoder = new Decoder(data);
+  static void initializeFromData(String data, void Function(Sections sects) callback) {
+    final decoder = Decoder(data);
     int nSections = decoder.readInt();
-    final sections = new List<Section>();
+    final sections = <Section>[];
 
     for (int i = 0; i < nSections; i++) {
       sections.add(Section.decode(decoder));
     }
-    callback(new Sections(sections));
+    callback(Sections(sections));
   }
 
   static void initializeFromUrl(
-      bool useCannedData, void callback(Sections sections)) {
+      bool useCannedData, void Function(Sections sections) callback) {
     if (Sections.runningFromFile || useCannedData) {
       initializeFromData(CannedData.data['user.data'], callback);
     } else {
@@ -79,9 +79,7 @@ class Sections extends IterableBase<Section> {
     return CollectionUtils.find(_sections, (section) => section.id == id);
   }
 
-  /**
-   * Given the name of a section, find its index in the set.
-   */
+  /// Given the name of a section, find its index in the set.
   int findSectionIndex(String name) {
     for (int i = 0; i < _sections.length; i++) {
       if (name == _sections[i].title) {
@@ -94,10 +92,11 @@ class Sections extends IterableBase<Section> {
   List<Section> get sections => _sections;
 
   // TODO(jmesserly): this should be a property
+  @override
   bool get isEmpty => length == 0;
 }
 
-/** A collection of data sources representing a page in the UI. */
+/// A collection of data sources representing a page in the UI. */
 class Section {
   final String id;
   final String title;
@@ -117,11 +116,11 @@ class Section {
     final sectionTitle = decoder.readString();
 
     final nSources = decoder.readInt();
-    final feeds = new ObservableList<Feed>();
+    final feeds = ObservableList<Feed>();
     for (int j = 0; j < nSources; j++) {
       feeds.add(Feed.decode(decoder));
     }
-    return new Section(sectionId, sectionTitle, feeds);
+    return Section(sectionId, sectionTitle, feeds);
   }
 
   Feed findFeed(String id_) {
@@ -129,7 +128,7 @@ class Section {
   }
 }
 
-/** Provider of a news feed. */
+/// Provider of a news feed. */
 class Feed {
   String id;
   final String title;
@@ -138,15 +137,15 @@ class Feed {
   ObservableList<Article> articles;
   ObservableValue<bool> error; // TODO(jimhug): Check if dead code.
 
-  Feed(this.id, this.title, this.iconUrl, {this.description: ''})
-      : articles = new ObservableList<Article>(),
-        error = new ObservableValue<bool>(false);
+  Feed(this.id, this.title, this.iconUrl, {this.description = ''})
+      : articles = ObservableList<Article>(),
+        error = ObservableValue<bool>(false);
 
   static Feed decode(Decoder decoder) {
     final sourceId = decoder.readString();
     final sourceTitle = decoder.readString();
     final sourceIcon = decoder.readString();
-    final feed = new Feed(sourceId, sourceTitle, sourceIcon);
+    final feed = Feed(sourceId, sourceTitle, sourceIcon);
     final nItems = decoder.readInt();
 
     for (int i = 0; i < nItems; i++) {
@@ -162,7 +161,7 @@ class Feed {
   void refresh() {}
 }
 
-/** A single article or posting to display. */
+/// A single article or posting to display. */
 class Article {
   final String id;
   DateTime date;
@@ -179,9 +178,9 @@ class Article {
 
   Article(this.dataSource, this.id, this.date, this.title, this.author,
       this.srcUrl, this.hasThumbnail, this.textBody,
-      {htmlBody: null, bool unread: true, this.error: false})
-      : unread = new ObservableValue<bool>(unread),
-        this._htmlBody = htmlBody;
+      {htmlBody, bool unread = true, this.error = false})
+      : unread = ObservableValue<bool>(unread),
+        _htmlBody = htmlBody;
 
   String get htmlBody {
     _ensureLoaded();
@@ -198,7 +197,7 @@ class Article {
   String get thumbUrl {
     if (!hasThumbnail) return null;
 
-    var home;
+    String home;
     if (Sections.runningFromFile) {
       home = 'http://dart.googleplex.com';
     } else {
@@ -221,7 +220,7 @@ class Article {
       _htmlBody = CannedData.data[name];
     } else {
       // TODO(jimhug): Remove this truly evil synchronoush xhr.
-      final req = new HttpRequest();
+      final req = HttpRequest();
       req.open('GET', 'data/$name', async: false);
       req.send();
       _htmlBody = req.responseText;
@@ -236,9 +235,9 @@ class Article {
     final author = decoder.readString();
     final dateInSeconds = decoder.readInt();
     final snippet = decoder.readString();
-    final date = new DateTime.fromMillisecondsSinceEpoch(dateInSeconds * 1000,
+    final date = DateTime.fromMillisecondsSinceEpoch(dateInSeconds * 1000,
         isUtc: true);
-    return new Article(
+    return Article(
         source, id, date, title, author, srcUrl, hasThumbnail, snippet);
   }
 }

@@ -11,17 +11,17 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddSwitchCaseBreakBulkTest);
+    defineReflectiveTests(AddSwitchCaseBreakMultiTest);
     defineReflectiveTests(AddSwitchCaseBreakTest);
   });
 }
 
 @reflectiveTest
-class AddSwitchCaseBreakBulkTest extends FixProcessorTest {
+class AddSwitchCaseBreakMultiTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_SWITCH_CASE_BREAK_MULTI;
 
-  Future<void> test_add_break_bulk() async {
+  Future<void> test_singleFile() async {
     await resolveTestCode('''
 void f(int i) {
   switch(i) {

@@ -315,7 +315,7 @@ abstract class ServiceObject implements M.ObjectRef {
 
   Future<ServiceObject> _inProgressReload;
 
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) {
     Map params = {
       'objectId': id,
       'count': count,
@@ -325,7 +325,7 @@ abstract class ServiceObject implements M.ObjectRef {
 
   /// Reload [this]. Returns a future which completes to [this] or
   /// an exception.
-  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
+  Future<ServiceObject> reload({int count = kDefaultFieldLimit}) {
     // TODO(turnidge): Checking for a null id should be part of the
     // "immutable" check.
     bool hasId = (id != null) && (id != '');
@@ -934,7 +934,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     }
   }
 
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
       // Isolate types up to date.
@@ -1363,7 +1363,7 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
   }
 
   @override
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) {
     Map params = {
       'isolateGroupId': id,
     };
@@ -1581,7 +1581,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> getObject(String objectId,
-      {bool reload: true, int count: kDefaultFieldLimit}) {
+      {bool reload = true, int count = kDefaultFieldLimit}) {
     assert(objectId != null && objectId != '');
     var obj = _cache[objectId];
     if (obj != null) {
@@ -1604,7 +1604,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return response['scripts'].cast<Script>();
   }
 
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) async {
     return invokeRpcNoUpgrade('getIsolate', {});
   }
 
@@ -1923,7 +1923,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future<ServiceObject> eval(ServiceObject target, String expression,
       {Map<String, ServiceObject> scope,
-      bool disableBreakpoints: false}) async {
+      bool disableBreakpoints = false}) async {
     Map params = {
       'targetId': target.id,
       'expression': expression,
@@ -1958,7 +1958,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future<ServiceObject> evalFrame(int frameIndex, String expression,
       {Map<String, ServiceObject> scope,
-      bool disableBreakpoints: false}) async {
+      bool disableBreakpoints = false}) async {
     Map params = {
       'frameIndex': frameIndex,
       'expression': expression,
@@ -2557,7 +2557,7 @@ class Library extends HeapObject implements M.Library {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
+      {Map<String, ServiceObject> scope, bool disableBreakpoints = false}) {
     return isolate.eval(this, expression,
         scope: scope, disableBreakpoints: disableBreakpoints);
   }
@@ -2706,7 +2706,7 @@ class Class extends HeapObject implements M.Class {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope, disableBreakpoints: false}) {
+      {Map<String, ServiceObject> scope, disableBreakpoints = false}) {
     return isolate.eval(this, expression,
         scope: scope, disableBreakpoints: disableBreakpoints);
   }
@@ -3079,7 +3079,7 @@ class Instance extends HeapObject implements M.Instance {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
+      {Map<String, ServiceObject> scope, bool disableBreakpoints = false}) {
     return isolate.eval(this, expression,
         scope: scope, disableBreakpoints: disableBreakpoints);
   }
@@ -4309,7 +4309,7 @@ class Code extends HeapObject implements M.Code {
 
   /// Reload [this]. Returns a future which completes to [this] or an
   /// exception.
-  Future<ServiceObject> reload({int count: kDefaultFieldLimit}) {
+  Future<ServiceObject> reload({int count = kDefaultFieldLimit}) {
     assert(kind != null);
     if (isDartCode) {
       // We only reload Dart code.
@@ -4568,7 +4568,7 @@ class ServiceMetric extends ServiceObject implements M.Metric {
 
   bool get immutable => false;
 
-  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) {
+  Future<Map> _fetchDirect({int count = kDefaultFieldLimit}) {
     assert(owner is Isolate);
     return isolate.invokeRpcNoUpgrade('_getIsolateMetric', {'metricId': id});
   }

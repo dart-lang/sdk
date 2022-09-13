@@ -22,7 +22,7 @@ class B {
 // This field will be reset before snapshot is written.
 final field = (() => 'value')();
 
-dynamic bar(dynamic o, {bool loadField: false}) {
+dynamic bar(dynamic o, {bool loadField = false}) {
   o.foo();
   // Create loop to trigger loop invariant code motion. We are testing that
   // field load can't be hoisted above field initialization.

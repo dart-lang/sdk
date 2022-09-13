@@ -864,6 +864,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove arguments in file',
   );
+  static const REMOVE_ASSERTION = FixKind(
+    'dart.fix.remove.assertion',
+    DartFixKindPriority.DEFAULT,
+    'Remove the assertion',
+  );
   static const REMOVE_ASSIGNMENT = FixKind(
     'dart.fix.remove.assignment',
     DartFixKindPriority.DEFAULT,
@@ -913,6 +918,11 @@ class DartFixKind {
     'dart.fix.remove.deadCode',
     DartFixKindPriority.DEFAULT,
     'Remove dead code',
+  );
+  static const REMOVE_DEFAULT_VALUE = FixKind(
+    'dart.fix.remove.defaultValue',
+    DartFixKindPriority.DEFAULT,
+    "Remove the default value",
   );
   static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE = FixKind(
     'dart.fix.remove.deprecatedNewInCommentReference',
@@ -1082,6 +1092,11 @@ class DartFixKind {
     'dart.fix.remove.questionMark.multi',
     DartFixKindPriority.IN_FILE,
     'Remove unnecessary question marks in file',
+  );
+  static const REMOVE_REQUIRED = FixKind(
+    'dart.fix.remove.required',
+    DartFixKindPriority.DEFAULT,
+    "Remove 'required'",
   );
   static const REMOVE_RETURNED_VALUE = FixKind(
     'dart.fix.remove.returnedValue',

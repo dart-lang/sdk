@@ -4,20 +4,16 @@
 
 part of utilslib;
 
-/**
- * A parsed URI, inspired by:
- * https://github.com/google/closure-library/blob/master/closure/goog/uri/uri.js
- */
+/// A parsed URI, inspired by:
+/// https://github.com/google/closure-library/blob/master/closure/goog/uri/uri.js
 class SwarmUri {
-  /**
-   * Parses a URL query string into a map. Because you can have multiple values
-   * for the same parameter name, each parameter name maps to a list of
-   * values. For example, '?a=b&c=d&a=e' would be parsed as
-   * [{'a':['b','e'],'c':['d']}].
-   */
+  /// Parses a URL query string into a map. Because you can have multiple values
+  /// for the same parameter name, each parameter name maps to a list of
+  /// values. For example, '?a=b&c=d&a=e' would be parsed as
+  /// [{'a':['b','e'],'c':['d']}].
   // TODO(jmesserly): consolidate with Uri.parse(...)
   static Map<String, List<String>> parseQuery(String queryString) {
-    final queryParams = Map<String, List<String>>();
+    final queryParams = <String, List<String>>{};
     if (queryString.startsWith('?')) {
       final params = queryString.substring(1, queryString.length).split('&');
       for (final param in params) {
@@ -41,9 +37,7 @@ class SwarmUri {
     return queryParams;
   }
 
-  /**
-   * Percent-encodes a string for use as a query parameter in a URI.
-   */
+  /// Percent-encodes a string for use as a query parameter in a URI.
   // TODO(rnystrom): Get rid of this when the real encodeURIComponent()
   // function is available within Dart.
   static String? encodeComponent(String? component) {
@@ -60,10 +54,8 @@ class SwarmUri {
         .replaceAll(' ', '%20');
   }
 
-  /**
-   * Decodes a string used a query parameter by replacing percent-encoded
-   * sequences with their original characters.
-   */
+  /// Decodes a string used a query parameter by replacing percent-encoded
+  /// sequences with their original characters.
   // TODO(jmesserly): replace this with a better implementation
   static String? decodeComponent(String? component) {
     if (component == null) return component;

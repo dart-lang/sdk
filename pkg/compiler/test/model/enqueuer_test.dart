@@ -194,7 +194,7 @@ main() {}
     ClassEntity cls = elementEnvironment.lookupClass(
         elementEnvironment.mainLibrary, className);
     Selector selector = new Selector.call(
-        new Name(methodName, elementEnvironment.mainLibrary),
+        new Name(methodName, elementEnvironment.mainLibrary.canonicalUri),
         CallStructure.NO_ARGS);
     WorldImpact impact = new WorldImpactBuilderImpl()
       ..registerDynamicUse(

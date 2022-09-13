@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
-import 'package:collection/src/iterable_extensions.dart';
+import 'package:collection/collection.dart';
 
 /// Helper for finding elements declared in the resolved [unit].
 class FindElement extends _FindElementBase {
@@ -18,10 +18,10 @@ class FindElement extends _FindElementBase {
   @override
   CompilationUnitElement get unitElement => unit.declaredElement!;
 
-  ExportElement export(String targetUri) {
-    ExportElement? result;
+  LibraryExportElement export(String targetUri) {
+    LibraryExportElement? result;
 
-    for (var export in libraryElement.exports) {
+    for (var export in libraryElement.libraryExports) {
       var exportedUri = export.exportedLibrary?.source.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
@@ -50,10 +50,10 @@ class FindElement extends _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ImportElement import(String targetUri, {bool mustBeUnique = true}) {
-    ImportElement? importElement;
+  LibraryImportElement import(String targetUri, {bool mustBeUnique = true}) {
+    LibraryImportElement? importElement;
 
-    for (var import in libraryElement.imports) {
+    for (var import in libraryElement.libraryImports) {
       var importedUri = import.importedLibrary?.source.uri.toString();
       if (importedUri == targetUri) {
         if (importElement == null) {
@@ -104,7 +104,7 @@ class FindElement extends _FindElementBase {
 
     unit.accept(FunctionAstVisitor(
       functionDeclarationStatement: (node) {
-        var element = node.functionDeclaration.declaredElement;
+        var element = node.functionDeclaration.declaredElement2;
         if (element is FunctionElement && element.name == name) {
           if (result != null) {
             throw StateError('Not unique: $name');
@@ -133,16 +133,14 @@ class FindElement extends _FindElementBase {
     }
 
     unit.accept(FunctionAstVisitor(
-      declaredIdentifier: (node) {
+      catchClauseParameter: (node) {
         updateResult(node.declaredElement!);
       },
-      simpleIdentifier: (node) {
-        if (node.parent is CatchClause) {
-          updateResult(node.staticElement!);
-        }
+      declaredIdentifier: (node) {
+        updateResult(node.declaredElement2!);
       },
       variableDeclaration: (node) {
-        updateResult(node.declaredElement!);
+        updateResult(node.declaredElement2!);
       },
     ));
 
@@ -173,7 +171,7 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    void findInClasses(List<ClassElement> classes) {
+    void findInClasses(List<InterfaceElement> classes) {
       for (var class_ in classes) {
         findInExecutables(class_.accessors);
         findInExecutables(class_.constructors);
@@ -185,8 +183,8 @@ class FindElement extends _FindElementBase {
     findInExecutables(unitElement.functions);
 
     findInClasses(unitElement.classes);
-    findInClasses(unitElement.enums);
-    findInClasses(unitElement.mixins);
+    findInClasses(unitElement.enums2);
+    findInClasses(unitElement.mixins2);
 
     for (var extension_ in unitElement.extensions) {
       findInExecutables(extension_.accessors);
@@ -243,10 +241,10 @@ class FindElement extends _FindElementBase {
   }
 
   PrefixElement prefix(String name) {
-    for (var import_ in libraryElement.imports) {
-      var prefix = import_.prefix;
-      if (prefix?.name == name) {
-        return prefix!;
+    for (var import_ in libraryElement.libraryImports) {
+      var prefix = import_.prefix?.element;
+      if (prefix != null && prefix.name == name) {
+        return prefix;
       }
     }
     throw StateError('Not found: $name');
@@ -266,7 +264,7 @@ class FindElement extends _FindElementBase {
       }
     }
 
-    void findInClass(ClassElement class_) {
+    void findInClass(InterfaceElement class_) {
       findIn(class_.typeParameters);
       for (var method in class_.methods) {
         findIn(method.typeParameters);
@@ -290,7 +288,7 @@ class FindElement extends _FindElementBase {
       findInClass(class_);
     }
 
-    for (var enum_ in unitElement.enums) {
+    for (var enum_ in unitElement.enums2) {
       findInClass(enum_);
     }
 
@@ -298,7 +296,7 @@ class FindElement extends _FindElementBase {
       findIn(extension_.typeParameters);
     }
 
-    for (var mixin in unitElement.mixins) {
+    for (var mixin in unitElement.mixins2) {
       findInClass(mixin);
     }
 
@@ -311,13 +309,13 @@ class FindElement extends _FindElementBase {
 
 /// Helper for searching imported elements.
 class ImportFindElement extends _FindElementBase {
-  final ImportElement import;
+  final LibraryImportElement import;
 
   ImportFindElement(this.import);
 
   LibraryElement get importedLibrary => import.importedLibrary!;
 
-  PrefixElement? get prefix => import.prefix;
+  PrefixElement? get prefix => import.prefix?.element;
 
   @override
   CompilationUnitElement get unitElement {
@@ -344,13 +342,13 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ClassElement classOrMixin(String name) {
+  InterfaceElement classOrMixin(String name) {
     for (var class_ in unitElement.classes) {
       if (class_.name == name) {
         return class_;
       }
     }
-    for (var mixin in unitElement.mixins) {
+    for (var mixin in unitElement.mixins2) {
       if (mixin.name == name) {
         return mixin;
       }
@@ -380,7 +378,7 @@ abstract class _FindElementBase {
       }
     }
 
-    for (var enum_ in unitElement.enums) {
+    for (var enum_ in unitElement.enums2) {
       if (of == null || enum_.name == of) {
         findIn(enum_.constructors);
       }
@@ -392,8 +390,8 @@ abstract class _FindElementBase {
     throw StateError('Not found: $name');
   }
 
-  ClassElement enum_(String name) {
-    for (var enum_ in unitElement.enums) {
+  EnumElement enum_(String name) {
+    for (var enum_ in unitElement.enums2) {
       if (enum_.name == name) {
         return enum_;
       }
@@ -434,8 +432,8 @@ abstract class _FindElementBase {
     );
   }
 
-  ClassElement mixin(String name) {
-    for (var mixin in unitElement.mixins) {
+  MixinElement mixin(String name) {
+    for (var mixin in unitElement.mixins2) {
       if (mixin.name == name) {
         return mixin;
       }
@@ -518,7 +516,7 @@ abstract class _FindElementBase {
 
   T _findInClassesLike<T extends Element>({
     required String? className,
-    required T? Function(ClassElement element) fromClass,
+    required T? Function(InterfaceElement element) fromClass,
     required T? Function(ExtensionElement element) fromExtension,
   }) {
     bool filter(Element element) {
@@ -527,8 +525,8 @@ abstract class _FindElementBase {
 
     var classes = [
       ...unitElement.classes,
-      ...unitElement.enums,
-      ...unitElement.mixins,
+      ...unitElement.enums2,
+      ...unitElement.mixins2,
     ];
 
     var results = [

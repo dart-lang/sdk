@@ -59,10 +59,10 @@ part 'test.dart';
 
     var directives = resolvedUnit.unit.directives;
 
-    var imports = request.libraryElement.imports;
+    var imports = request.libraryElement.libraryImports;
     expect(imports, hasLength(directives.length + 1));
 
-    ImportElement importNamed(String expectedUri) {
+    LibraryImportElement importNamed(String expectedUri) {
       var uriList = <String>[];
       for (var importElement in imports) {
         var uri = importElement.importedLibrary!.source.uri.toString();

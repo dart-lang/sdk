@@ -3356,7 +3356,7 @@ MethodInvocation
           base: root::@parameter::t
           substitution: {T: S*}
         staticElement: self::@function::f::@parameter::s
-        staticType: S* & int*
+        staticType: (S & int*)*
     rightParenthesis: )
   staticInvokeType: void Function(S*)*
   staticType: void

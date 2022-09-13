@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method method() → dynamic {
+  (0, "").$0{core::int};
+  (0, "").$1{core::String};
+  (0, {a: "", b: true}).$0{core::int};
+  (0, {a: "", b: true}).a{core::String};
+  (0, {a: "", b: true}).b{core::bool};
+}

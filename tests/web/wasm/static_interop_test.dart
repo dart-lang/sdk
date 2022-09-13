@@ -108,6 +108,9 @@ void setDartObjectPropertyTest() {
 @JS()
 external String get foo;
 
+@JS()
+external String? get blu;
+
 @JS('')
 external void set baz(String);
 
@@ -122,18 +125,15 @@ void topLevelMethodsTest() {
     globalThis.foo = 'bar';
     globalThis.baz = null;
     globalThis.boo = {
-      'bar': {
-        'bam': 'jam'
-      }
+      'bar': 'jam'
     }
-    globalThis.bar = {
-      'fooBar': function(string) {
-        return string + ' ' + globalThis.baz;
-      }
+    globalThis.bar = function(string) {
+      return string + ' ' + globalThis.baz;
     }
   ''');
 
   Expect.equals(foo, 'bar');
+  Expect.equals(blu, null);
   Expect.equals(bam, 'jam');
   baz = 'world!';
   Expect.equals(fooBar('hello'), 'hello world!');

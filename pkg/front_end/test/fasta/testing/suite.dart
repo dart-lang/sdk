@@ -265,10 +265,10 @@ class FolderOptions {
       this.forceStaticFieldLowering,
       this.forceNoExplicitGetterCalls,
       this.forceConstructorTearOffLowering,
-      this.nnbdAgnosticMode: false,
-      this.defines: const {},
-      this.noVerify: false,
-      this.target: "vm",
+      this.nnbdAgnosticMode = false,
+      this.defines = const {},
+      this.noVerify = false,
+      this.target = "vm",
       // can be null
       this.overwriteCurrentSdkVersion})
       // ignore: unnecessary_null_comparison
@@ -1790,6 +1790,31 @@ class Strategy extends EquivalenceStrategy {
     return _isMixinOrCloneReference(visitor, node.interfaceTargetReference,
         other.interfaceTargetReference, 'interfaceTargetReference');
   }
+
+  @override
+  bool checkLibrary_problemsAsJson(
+      EquivalenceVisitor visitor, Library node, Library other) {
+    List<String>? a = node.problemsAsJson;
+    if (a != null) {
+      a = a.map(_rewriteJsonMap).toList();
+    }
+    List<String>? b = other.problemsAsJson;
+    if (b != null) {
+      b = b.map(_rewriteJsonMap).toList();
+    }
+    return visitor.checkLists(a, b, visitor.checkValues, 'problemsAsJson');
+  }
+
+  String _rewriteJsonMap(String s) {
+    // Several things can change, e.g.
+    // * unserializableExports (when from dill) causes the message code to
+    //   become "unspecified" from usage of `templateUnspecified`)
+    // * Order of things (and for instance which line it's reported on) can
+    //   change depending on order, e.g. duplicate names in exports upon
+    //   recompile of one of the exported libraries.
+    Map<String, dynamic> decoded = jsonDecode(s);
+    return decoded["uri"];
+  }
 }
 
 class FuzzAstVisitorSorterChunk {
@@ -2174,7 +2199,7 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
 
 Set<Uri> createUserLibrariesImportUriSet(
     Component component, UriTranslator uriTranslator,
-    {Set<Library> excludedLibraries: const {}}) {
+    {Set<Library> excludedLibraries = const {}}) {
   Set<Uri> knownUris =
       component.libraries.map((Library library) => library.importUri).toSet();
   Set<Uri> userLibraries = component.libraries
@@ -2221,7 +2246,7 @@ CompileMode compileModeFromName(String? name) {
 class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
   final CompileMode compileMode;
 
-  const Outline(this.compileMode, {this.updateComments: false});
+  const Outline(this.compileMode, {this.updateComments = false});
 
   final bool updateComments;
 

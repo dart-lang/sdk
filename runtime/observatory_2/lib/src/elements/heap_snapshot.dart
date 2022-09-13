@@ -457,7 +457,7 @@ class MergedDominatorDiff {
     for (var i = 0; i < worklist.length; i++) {
       worklist[i]._computeChildren(worklist);
     }
-    // Compute area botton-up.
+    // Compute area bottom-up.
     for (var i = worklist.length - 1; i >= 0; i--) {
       worklist[i]._computeArea();
     }
@@ -690,7 +690,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   }
 
   static List<Element> _createStatusMessage(String message,
-      {String description: '', double progress: 0.0}) {
+      {String description = '', double progress = 0.0}) {
     return [
       new DivElement()
         ..classes = ['content-centered-big']

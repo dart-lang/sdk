@@ -21,8 +21,8 @@ worlds:
         }
     expectedLibraryCount: 2
     errors: true
+
   - entry: main.dart
-    worldTypex: updated
     invalidate:
       - b.dart
     sources:
@@ -41,3 +41,4 @@ worlds:
         }
     expectedLibraryCount: 2
     errors: true
+    advancedInvalidation: bodiesOnly

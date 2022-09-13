@@ -46,6 +46,7 @@ worlds:
         }
     expectedLibraryCount: 4
     incrementalSerializationDoesWork: true
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -63,6 +64,8 @@ worlds:
       # It would be a weird bundling up if including package2 here.
       - package:package2/lib2.dart
       - package:package2/lib3.dart
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -77,6 +80,8 @@ worlds:
     expectedLibraryCount: 2
     incrementalSerializationDoesWork: true
     brandNewIncrementalSerializationAllowDifferent: true
+    advancedInvalidation: outlineChange
+
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -95,3 +100,4 @@ worlds:
         }
     expectedLibraryCount: 2
     incrementalSerializationDoesWork: true
+    advancedInvalidation: outlineChange

@@ -91,10 +91,6 @@ int Platform::NumberOfProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-const char* Platform::OperatingSystem() {
-  return "linux";
-}
-
 const char* Platform::OperatingSystemVersion() {
   struct utsname info;
   int ret = uname(&info);

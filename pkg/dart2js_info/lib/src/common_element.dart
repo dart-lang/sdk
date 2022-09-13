@@ -7,7 +7,7 @@ class CommonElement {
 
   CommonElement(this.oldInfo, this.newInfo);
 
-  get name => longName(oldInfo, useLibraryUri: true);
+  String get name => longName(oldInfo, useLibraryUri: true);
 }
 
 List<CommonElement> findCommonalities(AllInfo oldInfo, AllInfo newInfo) {
@@ -31,27 +31,27 @@ class _InfoCommonElementFinder extends InfoVisitor<void> {
   }
 
   @override
-  visitAll(AllInfo info) {
+  void visitAll(AllInfo info) {
     throw StateError('should not run common on AllInfo');
   }
 
   @override
-  visitProgram(ProgramInfo info) {
+  void visitProgram(ProgramInfo info) {
     throw StateError('should not run common on ProgramInfo');
   }
 
   @override
-  visitOutput(OutputUnitInfo info) {
+  void visitOutput(OutputUnitInfo info) {
     throw StateError('should not run common on OutputUnitInfo');
   }
 
   @override
-  visitConstant(ConstantInfo info) {
+  void visitConstant(ConstantInfo info) {
     throw StateError('should not run common on ConstantInfo');
   }
 
   @override
-  visitLibrary(LibraryInfo info) {
+  void visitLibrary(LibraryInfo info) {
     var other = _other as LibraryInfo;
     commonElements.add(CommonElement(info, other));
     _commonList(info.topLevelVariables, other.topLevelVariables);
@@ -60,7 +60,7 @@ class _InfoCommonElementFinder extends InfoVisitor<void> {
   }
 
   @override
-  visitClass(ClassInfo info) {
+  void visitClass(ClassInfo info) {
     var other = _other as ClassInfo;
     commonElements.add(CommonElement(info, other));
     _commonList(info.fields, other.fields);
@@ -68,34 +68,34 @@ class _InfoCommonElementFinder extends InfoVisitor<void> {
   }
 
   @override
-  visitClassType(ClassTypeInfo info) {
+  void visitClassType(ClassTypeInfo info) {
     var other = _other as ClassInfo;
     commonElements.add(CommonElement(info, other));
   }
 
   @override
-  visitClosure(ClosureInfo info) {
+  void visitClosure(ClosureInfo info) {
     var other = _other as ClosureInfo;
     commonElements.add(CommonElement(info, other));
     _commonList([info.function], [other.function]);
   }
 
   @override
-  visitField(FieldInfo info) {
+  void visitField(FieldInfo info) {
     var other = _other as FieldInfo;
     commonElements.add(CommonElement(info, other));
     _commonList(info.closures, other.closures);
   }
 
   @override
-  visitFunction(FunctionInfo info) {
+  void visitFunction(FunctionInfo info) {
     var other = _other as FunctionInfo;
     commonElements.add(CommonElement(info, other));
     _commonList(info.closures, other.closures);
   }
 
   @override
-  visitTypedef(TypedefInfo info) {
+  void visitTypedef(TypedefInfo info) {
     var other = _other as ClassInfo;
     commonElements.add(CommonElement(info, other));
   }

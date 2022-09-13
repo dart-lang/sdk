@@ -56,15 +56,15 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// refers to it.
   final Map<LibraryElement?, String?> _importPrefixes = {};
 
-  final bool? _warnOnWeakCode;
+  final bool _warnOnWeakCode;
 
   FixAggregator._(this.planner, this._changes, this._warnOnWeakCode,
       CompilationUnitElement compilationUnitElement) {
-    for (var importElement in compilationUnitElement.library.imports) {
+    for (var importElement in compilationUnitElement.library.libraryImports) {
       // TODO(paulberry): the `??=` should ensure that if there are two imports,
       // one prefixed and one not, we prefer the prefix.  Test this.
       _importPrefixes[importElement.importedLibrary] ??=
-          importElement.prefix?.name;
+          importElement.prefix?.element.name;
     }
   }
 
@@ -134,7 +134,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     String suffix =
         type.nullabilitySuffix == NullabilitySuffix.question ? '?' : '';
     if (type is InterfaceType) {
-      var name = elementToCode(type.element);
+      var name = elementToCode(type.element2);
       var typeArguments = type.typeArguments;
       if (typeArguments.isEmpty) {
         return '$name$suffix';
@@ -198,7 +198,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// Runs the [FixAggregator] on a [unit] and returns the resulting edits.
   static Map<int?, List<AtomicEdit>>? run(CompilationUnit unit,
       String? sourceText, Map<AstNode?, NodeChange> changes,
-      {bool? removeViaComments = false, bool? warnOnWeakCode = false}) {
+      {bool? removeViaComments = false, bool warnOnWeakCode = false}) {
     var planner = EditPlanner(unit.lineInfo, sourceText,
         removeViaComments: removeViaComments);
     var aggregator = FixAggregator._(
@@ -251,8 +251,7 @@ class IntroduceThenChange extends ExpressionChange {
   /// The change that should be made to the value the future completes with.
   final ExpressionChange innerChange;
 
-  IntroduceThenChange(DartType resultType, this.innerChange)
-      : super(resultType);
+  IntroduceThenChange(super.resultType, this.innerChange);
 
   @override
   NullabilityFixDescription get description =>
@@ -439,7 +438,7 @@ class NodeChangeForAssignment
   NodeProducingEditPlan _apply(
       AssignmentExpression node, FixAggregator aggregator) {
     var lhsPlan = aggregator.planForNode(node.leftHandSide);
-    if (isWeakNullAware && !aggregator._warnOnWeakCode!) {
+    if (isWeakNullAware && !aggregator._warnOnWeakCode) {
       // Just keep the LHS
       return aggregator.planner.extract(node, lhsPlan as NodeProducingEditPlan,
           infoAfter: AtomicEditInfo(
@@ -461,7 +460,7 @@ class NodeChangeForAssignment
     var operatorPlan = super._makeOperatorPlan(aggregator, node, operator);
     if (operatorPlan != null) return operatorPlan;
     if (isWeakNullAware) {
-      assert(aggregator._warnOnWeakCode!);
+      assert(aggregator._warnOnWeakCode);
       return aggregator.planner.informativeMessageForToken(node, operator,
           info: AtomicEditInfo(
               NullabilityFixDescription
@@ -607,7 +606,7 @@ class NodeChangeForCompilationUnit extends NodeChange<CompilationUnit> {
   /// an existing [directive].
   bool _shouldImportGoBefore(String newImportUri, Directive directive) {
     if (directive is ImportDirective) {
-      return newImportUri.compareTo(directive.uriContent!) < 0;
+      return newImportUri.compareTo(directive.uri.stringValue!) < 0;
     } else if (directive is LibraryDirective) {
       // Library directives must come before imports.
       return false;
@@ -641,7 +640,7 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
   EditPlan? _applyConditional(N node, FixAggregator aggregator,
       AstNode conditionNode, AstNode thenNode, AstNode? elseNode) {
     if (conditionValue == null) return null;
-    if (aggregator._warnOnWeakCode!) {
+    if (aggregator._warnOnWeakCode) {
       var conditionPlan = aggregator.innerPlanForNode(conditionNode);
       var info = AtomicEditInfo(
           conditionValue!
@@ -1025,12 +1024,12 @@ mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
   /// Otherwise returns `null`.
   EditPlan? _applyNullAware(N node, FixAggregator aggregator) {
     if (!removeNullAwareness) return null;
-    var description = aggregator._warnOnWeakCode!
+    var description = aggregator._warnOnWeakCode
         ? NullabilityFixDescription.nullAwarenessUnnecessaryInStrongMode
         : NullabilityFixDescription.removeNullAwareness;
     return aggregator.planner.removeNullAwareness(node,
         info: AtomicEditInfo(description, const {}),
-        isInformative: aggregator._warnOnWeakCode!);
+        isInformative: aggregator._warnOnWeakCode);
   }
 }
 
@@ -1181,7 +1180,7 @@ class NodeChangeForSimpleFormalParameter
           AtomicEditInfo(NullabilityFixDescription.addType(typeText), {});
       // Skip past the offset of any metadata, a potential `final` keyword, and
       // a potential `covariant` keyword.
-      var offset = node.type?.offset ?? node.identifier!.offset;
+      var offset = node.type?.offset ?? node.name!.offset;
       return aggregator.planner.passThrough(node, innerPlans: [
         aggregator.planner.insertText(node, offset,
             [AtomicEdit.insert(typeText, info: info), AtomicEdit.insert(' ')]),
@@ -1346,7 +1345,7 @@ class NodeChangeForVariableDeclarationList
 /// [ExpressionChange] describing the addition of a comment explaining that a
 /// literal `null` could not be migrated.
 class NoValidMigrationChange extends ExpressionChange {
-  NoValidMigrationChange(DartType resultType) : super(resultType);
+  NoValidMigrationChange(super.resultType);
 
   @override
   NullabilityFixDescription get description =>
@@ -1372,7 +1371,7 @@ class NullCheckChange extends ExpressionChange {
   /// The hint that is causing this `!` to be added, if any.
   final HintComment? hint;
 
-  NullCheckChange(DartType resultType, {this.hint}) : super(resultType);
+  NullCheckChange(super.resultType, {this.hint});
 
   @override
   NullabilityFixDescription get description =>

@@ -868,7 +868,7 @@ void f() {
 }
 ''');
     var oNode = explicitTypeNullability[findNode.typeAnnotation('Object')];
-    var eNode = implicitType[findNode.simple('e)')]!.node;
+    var eNode = implicitType[findNode.catchClauseParameter('e)')]!.node;
     expect(
         edges.where((e) => e.sourceNode == eNode && e.destinationNode == oNode),
         hasLength(1));
@@ -883,7 +883,7 @@ void f() {
 }
 ''');
     var oNode = explicitTypeNullability[findNode.typeAnnotation('Object')];
-    var stNode = implicitType[findNode.simple('st)')]!.node;
+    var stNode = implicitType[findNode.catchClauseParameter('st)')]!.node;
     expect(
         edges
             .where((e) => e.sourceNode == stNode && e.destinationNode == oNode),

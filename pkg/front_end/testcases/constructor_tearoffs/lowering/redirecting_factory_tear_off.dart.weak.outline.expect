@@ -133,7 +133,7 @@ Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tea
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:53:7 -> ConstructorTearOffConstant(Class4.)
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:60:7 -> ConstructorTearOffConstant(Class5.)
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:68:7 -> ConstructorTearOffConstant(Class6.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:82:7 -> ConstructorTearOffConstant(Class7b.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:91:7 -> ConstructorTearOffConstant(Class8b.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:91:7 -> ConstructorTearOffConstant(Class8b.fact)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:81:7 -> ConstructorTearOffConstant(Class7b.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:90:7 -> ConstructorTearOffConstant(Class8b.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:90:7 -> ConstructorTearOffConstant(Class8b.fact)
 Extra constant evaluation: evaluated: 66, effectively constant: 9

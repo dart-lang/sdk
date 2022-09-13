@@ -65,10 +65,10 @@ class CreateMethod extends CorrectionProducer {
     }
     final classDecl = memberDecl.thisOrAncestorOfType<ClassDeclaration>();
     if (classDecl != null) {
-      final classElement = classDecl.declaredElement!;
+      final classElement = classDecl.declaredElement2!;
 
       var missingEquals = memberDecl is FieldDeclaration ||
-          (memberDecl as MethodDeclaration).name.name == 'hashCode';
+          (memberDecl as MethodDeclaration).name2.lexeme == 'hashCode';
       ExecutableElement? element;
       if (missingEquals) {
         _memberName = '==';
@@ -156,7 +156,11 @@ class CreateMethod extends CorrectionProducer {
         return;
       }
       // prepare target ClassDeclaration
-      targetNode = await getClassOrMixinDeclaration(targetClassElement);
+      if (targetClassElement is MixinElement) {
+        targetNode = await getMixinDeclaration(targetClassElement);
+      } else if (targetClassElement is ClassElement) {
+        targetNode = await getClassDeclaration(targetClassElement);
+      }
       if (targetNode == null) {
         return;
       }

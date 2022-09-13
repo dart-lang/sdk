@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server_abstract.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
@@ -24,10 +24,10 @@ export 'package:analyzer/src/utilities/cancellation.dart';
 
 /// Converts an iterable using the provided function and skipping over any
 /// null values.
-Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
+Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   // TODO(dantup): Now this is used outside of handlers, is there somewhere
   // better to put it, and/or a better name for it?
-  return items.map(converter).where((item) => item != null);
+  return items.map(converter).where((item) => item != null).cast<T>();
 }
 
 abstract class CommandHandler<P, R> with Handler<P, R> {
@@ -127,7 +127,7 @@ mixin Handler<P, R> {
   }
 }
 
-mixin LspPluginRequestHandlerMixin<T extends AbstractAnalysisServer>
+mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
     on RequestHandlerMixin<T> {
   Future<List<Response>> requestFromPlugins(
     String path,

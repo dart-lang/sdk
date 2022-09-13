@@ -139,8 +139,26 @@ class NormalizeHelper {
 
     // NORM(C<T0, ..., Tn>) = C<R0, ..., Rn> where Ri is NORM(Ti)
     if (T is InterfaceType) {
-      return T.element.instantiate(
+      return T.element2.instantiate(
         typeArguments: T.typeArguments.map(_normalize).toList(),
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+
+    // NORM(Record(T0, ..., Tn)) = Record(R0, ..., Rn) where Ri is NORM(Ti)
+    if (T is RecordTypeImpl) {
+      return RecordTypeImpl(
+        positionalFields: T.positionalFields.map((field) {
+          return RecordTypePositionalFieldImpl(
+            type: _normalize(field.type),
+          );
+        }).toList(),
+        namedFields: T.namedFields.map((field) {
+          return RecordTypeNamedFieldImpl(
+            name: field.name,
+            type: _normalize(field.type),
+          );
+        }).toList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }
@@ -235,7 +253,7 @@ class NormalizeHelper {
   /// NORM(X & T)
   /// NORM(X extends T)
   DartType _typeParameterType(TypeParameterTypeImpl T) {
-    var element = T.element;
+    var element = T.element2;
 
     // NORM(X & T)
     var promotedBound = T.promotedBound;
@@ -286,7 +304,7 @@ class NormalizeHelper {
     // * if S is X then X
     if (S is TypeParameterType &&
         S.nullabilitySuffix == NullabilitySuffix.none &&
-        S.element == X.declaration) {
+        S.element2 == X.declaration) {
       return X.declaration.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );

@@ -33,6 +33,7 @@ worlds:
           b();
         }
     expectedLibraryCount: 1
+    advancedInvalidation: outlineChange
   - entry: main.dart
     errors: true
     checkInvalidatedFiles: false
@@ -47,6 +48,8 @@ worlds:
           b();
         }
     expectedLibraryCount: 1
+    advancedInvalidation: problemsInLibrary
+
   - entry: main.dart
     errors: true
     checkInvalidatedFiles: false
@@ -61,3 +64,4 @@ worlds:
           b();
         }
     expectedLibraryCount: 1
+    advancedInvalidation: problemsInLibrary

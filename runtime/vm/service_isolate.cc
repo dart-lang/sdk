@@ -113,8 +113,7 @@ void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
       sp, VM_SERVICE_SERVER_INFO_MESSAGE_ID, false /* ignored */,
       Bool::Handle() /* ignored */));
   ASSERT(!message.IsNull());
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                    /* same_group */ false, message, port_,
+  PortMap::PostMessage(WriteMessage(/* same_group */ false, message, port_,
                                     Message::kNormalPriority));
 }
 
@@ -124,8 +123,7 @@ void ServiceIsolate::ControlWebServer(const SendPort& sp,
   const Array& message = Array::Handle(MakeServerControlMessage(
       sp, VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID, enable, silenceOutput));
   ASSERT(!message.IsNull());
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                    /* same_group */ false, message, port_,
+  PortMap::PostMessage(WriteMessage(/* same_group */ false, message, port_,
                                     Message::kNormalPriority));
 }
 

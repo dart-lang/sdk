@@ -67,7 +67,7 @@ class Tracer {
   // The start time for the current request.
   Stopwatch _time;
 
-  // A list of all tracing events for thre current request.
+  // A list of all tracing events for the current request.
   List<TraceEvent> events = <TraceEvent>[];
 
   Tracer() {
@@ -89,7 +89,7 @@ class Tracer {
     events.clear();
   }
 
-  TraceEvent trace(String message, {Map map: null}) {
+  TraceEvent trace(String message, {Map map = null}) {
     var event = new TraceEvent.msg(_time.elapsedMicroseconds, message, map);
     events.add(event);
     return event;

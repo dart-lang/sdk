@@ -6,7 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -19,7 +18,7 @@ class AssignToLocalVariable extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
 
   String get _declarationKeyword {
-    if (_isLintEnabled(LintNames.prefer_final_locals)) {
+    if (codeStyleOptions.makeLocalsFinal) {
       return 'final';
     } else {
       return 'var';
@@ -58,7 +57,7 @@ class AssignToLocalVariable extends CorrectionProducer {
     var excluded = <String>{};
     var scopedNameFinder = ScopedNameFinder(offset);
     expression.accept(scopedNameFinder);
-    excluded.addAll(scopedNameFinder.locals.keys.toSet());
+    excluded.addAll(scopedNameFinder.locals);
     var suggestions =
         getVariableNameSuggestionsForExpression(type, expression, excluded);
 
@@ -73,11 +72,6 @@ class AssignToLocalVariable extends CorrectionProducer {
         });
       });
     }
-  }
-
-  bool _isLintEnabled(String name) {
-    var analysisOptions = unit.declaredElement?.context.analysisOptions;
-    return analysisOptions?.isLintEnabled(name) ?? false;
   }
 
   /// Return `true` if the given [statement] resulted from a recovery case that

@@ -15,6 +15,7 @@ import "dart:_internal"
         EfficientLengthIterable,
         FixedLengthListMixin,
         IterableElementError,
+        jsonEncode,
         ListIterator,
         Lists,
         mix64,
@@ -29,6 +30,10 @@ import "dart:_internal"
         writeIntoOneByteString,
         writeIntoTwoByteString;
 
+import "dart:_internal" as _internal show Symbol;
+
+import 'dart:_js_helper' show JSSyntaxRegExp, quoteStringForRegExp;
+
 import "dart:collection"
     show
         HashMap,
@@ -42,6 +47,8 @@ import "dart:collection"
         UnmodifiableMapBase,
         UnmodifiableMapView;
 
+import 'dart:convert' show Encoding, utf8;
+
 import 'dart:math' show Random;
 
 import "dart:typed_data"
@@ -50,3 +57,6 @@ import "dart:typed_data"
 import 'dart:wasm';
 
 typedef _Smi = int; // For compatibility with VM patch files
+
+String _symbolToString(Symbol s) =>
+    _internal.Symbol.getName(s as _internal.Symbol);

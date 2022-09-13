@@ -49,12 +49,12 @@ abstract class SearchEngine {
   /// If the [type] has subtypes, return the set of names of members which these
   /// subtypes declare, possibly empty.  If the [type] does not have subtypes,
   /// return `null`.
-  Future<Set<String>?> membersOfSubtypes(ClassElement type);
+  Future<Set<String>?> membersOfSubtypes(InterfaceElement type);
 
   /// Returns all subtypes of the given [type].
   ///
-  /// [type] - the [ClassElement] being subtyped by the found matches.
-  Future<Set<ClassElement>> searchAllSubtypes(ClassElement type);
+  /// [type] - the [InterfaceElement] being subtyped by the found matches.
+  Future<Set<InterfaceElement>> searchAllSubtypes(InterfaceElement type);
 
   /// Returns declarations of class members with the given name.
   ///
@@ -75,7 +75,7 @@ abstract class SearchEngine {
   /// Returns direct subtypes of the given [type].
   ///
   /// [type] - the [ClassElement] being subtyped by the found matches.
-  Future<List<SearchMatch>> searchSubtypes(ClassElement type);
+  Future<List<SearchMatch>> searchSubtypes(InterfaceElement type);
 
   /// Returns all the top-level declarations matching the given pattern.
   ///
@@ -87,9 +87,7 @@ abstract class SearchEngine {
 /// Instances of the class [SearchMatch] represent a match found by
 /// [SearchEngine].
 abstract class SearchMatch {
-  /// Return the [Element] containing the match. Can return `null` if the unit
-  /// does not exist, or its element was invalidated, or the element cannot be
-  /// found, etc.
+  /// Return the [Element] containing the match.
   Element get element;
 
   /// The absolute path of the file containing the match.

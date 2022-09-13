@@ -4,11 +4,9 @@
 
 part of base;
 
-/**
- * Embedded DSL for generating DOM elements.
- */
+/// Embedded DSL for generating DOM elements.
 class Dom {
-  static void ready(void f()) {
+  static void ready(void Function() f) {
     if (document.readyState == 'interactive' ||
         document.readyState == 'complete') {
       Timer.run(f);
@@ -20,7 +18,7 @@ class Dom {
     }
   }
 
-  /** Adds the given <style> text to the page. */
+  /// Adds the given <style> text to the page. */
   static void addStyle(String cssText) {
     var style = Element.tag('style') as StyleElement;
     style.type = 'text/css';

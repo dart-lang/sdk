@@ -12,7 +12,7 @@ import 'ast_model.dart';
 /// the Dart formatter. Use this during development to support incomplete
 /// generation.
 String generateVisitor(AstModel astModel, VisitorStrategy strategy,
-    {bool format: true}) {
+    {bool format = true}) {
   StringBuffer sb = new StringBuffer();
   strategy.generateHeader(astModel, sb);
 

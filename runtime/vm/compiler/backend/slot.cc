@@ -268,7 +268,8 @@ bool Slot::IsImmutableLengthSlot() const {
 // Note: should only be called with cids of array-like classes.
 const Slot& Slot::GetLengthFieldForArrayCid(intptr_t array_cid) {
   if (IsExternalTypedDataClassId(array_cid) || IsTypedDataClassId(array_cid) ||
-      IsTypedDataViewClassId(array_cid)) {
+      IsTypedDataViewClassId(array_cid) ||
+      IsUnmodifiableTypedDataViewClassId(array_cid)) {
     return GetNativeSlot(Kind::kTypedDataBase_length);
   }
   switch (array_cid) {
@@ -301,48 +302,60 @@ const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
   const intptr_t offset =
       compiler::target::Class::TypeArgumentsFieldOffset(cls);
   ASSERT(offset != Class::kNoTypeArguments);
-  return SlotCache::Instance(thread).Canonicalize(
-      Slot(Kind::kTypeArguments,
-           IsImmutableBit::encode(true) |
-               IsCompressedBit::encode(
-                   compiler::target::Class::HasCompressedPointers(cls)),
-           kTypeArgumentsCid, offset, ":type_arguments",
-           /*static_type=*/nullptr, kTagged));
+  return GetCanonicalSlot(
+      thread, Kind::kTypeArguments,
+      IsImmutableBit::encode(true) |
+          IsCompressedBit::encode(
+              compiler::target::Class::HasCompressedPointers(cls)),
+      kTypeArgumentsCid, offset, ":type_arguments",
+      /*static_type=*/nullptr, kTagged);
 }
 
 const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
                                             const LocalVariable& variable) {
   ASSERT(variable.is_captured());
-  return SlotCache::Instance(thread).Canonicalize(
-      Slot(Kind::kCapturedVariable,
-           IsImmutableBit::encode(variable.is_final() && !variable.is_late()) |
-               IsNullableBit::encode(true) |
-               IsCompressedBit::encode(Context::ContainsCompressedPointers()) |
-               IsSentinelVisibleBit::encode(variable.is_late()),
-           kDynamicCid,
-           compiler::target::Context::variable_offset(variable.index().value()),
-           &variable.name(), &variable.type(), kTagged));
+  return GetCanonicalSlot(
+      thread, Kind::kCapturedVariable,
+      IsImmutableBit::encode(variable.is_final() && !variable.is_late()) |
+          IsNullableBit::encode(true) |
+          IsCompressedBit::encode(Context::ContainsCompressedPointers()) |
+          IsSentinelVisibleBit::encode(variable.is_late()),
+      kDynamicCid,
+      compiler::target::Context::variable_offset(variable.index().value()),
+      &variable.name(), &variable.type(), kTagged);
 }
 
 const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
   const intptr_t offset =
       compiler::target::TypeArguments::type_at_offset(index);
-  const Slot& slot = Slot(
-      Kind::kTypeArgumentsIndex,
+  return GetCanonicalSlot(
+      thread, Kind::kTypeArgumentsIndex,
       IsImmutableBit::encode(true) |
           IsCompressedBit::encode(TypeArguments::ContainsCompressedPointers()),
       kDynamicCid, offset, ":argument", /*static_type=*/nullptr, kTagged);
-  return SlotCache::Instance(thread).Canonicalize(slot);
 }
 
 const Slot& Slot::GetArrayElementSlot(Thread* thread,
                                       intptr_t offset_in_bytes) {
-  const Slot& slot =
-      Slot(Kind::kArrayElement,
-           IsNullableBit::encode(true) |
-               IsCompressedBit::encode(Array::ContainsCompressedPointers()),
-           kDynamicCid, offset_in_bytes, ":array_element",
-           /*static_type=*/nullptr, kTagged);
+  return GetCanonicalSlot(
+      thread, Kind::kArrayElement,
+      IsNullableBit::encode(true) |
+          IsCompressedBit::encode(Array::ContainsCompressedPointers()),
+      kDynamicCid, offset_in_bytes, ":array_element",
+      /*static_type=*/nullptr, kTagged);
+}
+
+const Slot& Slot::GetCanonicalSlot(Thread* thread,
+                                   Slot::Kind kind,
+                                   int8_t flags,
+                                   ClassIdTagType cid,
+                                   intptr_t offset_in_bytes,
+                                   const void* data,
+                                   const AbstractType* static_type,
+                                   Representation representation,
+                                   const FieldGuardState& field_guard_state) {
+  const Slot& slot = Slot(kind, flags, cid, offset_in_bytes, data, static_type,
+                          representation, field_guard_state);
   return SlotCache::Instance(thread).Canonicalize(slot);
 }
 
@@ -455,8 +468,8 @@ const Slot& Slot::Get(const Field& field,
   }
 
   Class& owner = Class::Handle(zone, field.Owner());
-  const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
-      Kind::kDartField,
+  const Slot& slot = GetCanonicalSlot(
+      thread, Kind::kDartField,
       IsImmutableBit::encode((field.is_final() && !field.is_late()) ||
                              field.is_const()) |
           IsNullableBit::encode(is_nullable) |
@@ -466,7 +479,7 @@ const Slot& Slot::Get(const Field& field,
           IsSentinelVisibleBit::encode(field.is_late() && field.is_final() &&
                                        !field.has_initializer()),
       nullable_cid, compiler::target::Field::OffsetOf(field), &field, &type,
-      rep, field_guard_state));
+      rep, field_guard_state);
 
   // If properties of this slot were based on the guarded state make sure
   // to add the field to the list of guarded fields. Note that during background

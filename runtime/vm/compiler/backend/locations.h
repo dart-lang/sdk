@@ -21,6 +21,8 @@ namespace dart {
 class BaseTextBuffer;
 class ConstantInstr;
 class Definition;
+class FlowGraphDeserializer;
+class FlowGraphSerializer;
 class PairLocation;
 class Value;
 
@@ -65,6 +67,19 @@ enum Representation {
 #undef DECLARE_REPRESENTATION
       kNumRepresentations
 };
+
+static const intptr_t kMaxLocationCount = 2;
+
+inline intptr_t LocationCount(Representation rep) {
+  switch (rep) {
+    case kPairOfTagged:
+      return 2;
+    case kUnboxedInt64:
+      return compiler::target::kWordSize == 8 ? 1 : 2;
+    default:
+      return 1;
+  }
+}
 
 struct RepresentationUtils : AllStatic {
   // Whether the representation is for a type of unboxed integer.
@@ -417,8 +432,8 @@ class Location : public ValueObject {
 
   Location Copy() const;
 
-  static Location read(uword value) { return Location(value); }
-  uword write() const { return value_; }
+  void Write(FlowGraphSerializer* s) const;
+  static Location Read(FlowGraphDeserializer* d);
 
  private:
   explicit Location(uword value) : value_(value) {}
@@ -559,8 +574,7 @@ class RegisterSet : public ValueObject {
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
 
-  explicit RegisterSet(uintptr_t cpu_register_mask,
-                       uintptr_t fpu_register_mask = 0)
+  explicit RegisterSet(uintptr_t cpu_register_mask, uintptr_t fpu_register_mask)
       : RegisterSet() {
     AddTaggedRegisters(cpu_register_mask, fpu_register_mask);
   }
@@ -704,6 +718,9 @@ class RegisterSet : public ValueObject {
     untagged_cpu_registers_.Clear();
   }
 
+  void Write(FlowGraphSerializer* s) const;
+  explicit RegisterSet(FlowGraphDeserializer* d);
+
  private:
   SmallSet<Register> cpu_registers_;
   SmallSet<Register> untagged_cpu_registers_;
@@ -821,6 +838,9 @@ class LocationSummary : public ZoneAllocated {
   void DiscoverWritableInputs();
   void CheckWritableInputs();
 #endif
+
+  void Write(FlowGraphSerializer* s) const;
+  explicit LocationSummary(FlowGraphDeserializer* d);
 
  private:
   BitmapBuilder& EnsureStackBitmap() {

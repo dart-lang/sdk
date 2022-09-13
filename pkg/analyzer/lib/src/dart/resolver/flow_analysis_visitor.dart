@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -280,7 +282,7 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        flow!.declare(variable.declaredElement as PromotableElement,
+        flow!.declare(variable.declaredElement2 as PromotableElement,
             variable.initializer != null);
       }
     }
@@ -375,7 +377,9 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
   }
 }
 
-class TypeSystemOperations extends Operations<PromotableElement, DartType> {
+class TypeSystemOperations
+    with TypeOperations<DartType>
+    implements Operations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
 
   TypeSystemOperations(this.typeSystem);
@@ -466,12 +470,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     for (var identifier in [
-      node.exceptionParameter,
-      node.stackTraceParameter
+      node.exceptionParameter2,
+      node.stackTraceParameter2,
     ]) {
       if (identifier != null) {
-        assignedVariables
-            .declare(identifier.staticElement as PromotableElement);
+        assignedVariables.declare(identifier.declaredElement!);
       }
     }
     super.visitCatchClause(node);
@@ -628,7 +631,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    var declaredElement = node.declaredElement as PromotableElement;
+    var declaredElement = node.declaredElement2 as PromotableElement;
     assignedVariables.declare(declaredElement);
     if (declaredElement.isLate && node.initializer != null) {
       assignedVariables.beginNode();
@@ -679,7 +682,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
           assignedVariables.write(element);
         }
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
-        var variable = forLoopParts.loopVariable.declaredElement!;
+        var variable = forLoopParts.loopVariable.declaredElement2!;
         assignedVariables.declare(variable);
       } else {
         throw StateError('Unrecognized for loop parts');

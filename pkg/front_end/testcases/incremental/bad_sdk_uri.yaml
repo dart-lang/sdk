@@ -30,6 +30,7 @@ worlds:
           void bMethod() {}
         }
     expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly
 
   - entry: main.dart
     badSdk: true
@@ -56,3 +57,4 @@ worlds:
           void bMethod() {}
         }
     expectedLibraryCount: 2
+    advancedInvalidation: noDirectlyInvalidated

@@ -1375,6 +1375,44 @@ class Listener implements UnescapeErrorListener {
     logEvent("NoName");
   }
 
+  void beginRecordType(Token leftBracket) {}
+
+  /// Handle the end of a record type declaration.
+  ///
+  /// Substructures:
+  /// - RecordTypeEntry*
+  /// - RecordTypeNamedFields?
+  ///
+  /// Notice that [count] is:
+  /// - the number of RecordTypeEntries if [hasNamedFields] is `false`, or
+  /// - the number of RecordTypeEntries + 1 if [hasNamedFields] is `true`.
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    logEvent("RecordType");
+  }
+
+  void beginRecordTypeEntry() {}
+
+  /// Handle the end of the record type entries.
+  ///
+  /// Substructures:
+  /// - metadata
+  /// - type
+  /// - identifier
+  void endRecordTypeEntry() {
+    logEvent("RecordTypeEntry");
+  }
+
+  void beginRecordTypeNamedFields(Token leftBracket) {}
+
+  /// Handle the end of the record type named fields.
+  ///
+  /// Substructures:
+  /// - RecordTypeEntry*
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    logEvent("RecordTypeNamedFields");
+  }
+
   void beginFunctionType(Token beginToken) {}
 
   /// Handle the end of a generic function type declaration.
@@ -1692,6 +1730,10 @@ class Listener implements UnescapeErrorListener {
     logEvent("NamedArgument");
   }
 
+  void handleNamedRecordField(Token colon) {
+    logEvent("NamedRecordField");
+  }
+
   void beginNewExpression(Token token) {}
 
   void endNewExpression(Token token) {
@@ -1746,10 +1788,19 @@ class Listener implements UnescapeErrorListener {
     logEvent("ParenthesizedCondition");
   }
 
-  /// Handle a parenthesized expression.
+  /// Starts a parenthesized expression or a record literal. Will be ended with
+  /// either [endParenthesizedExpression] or [endRecordLiteral].
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {}
+
+  /// Ends a record literal with [count] entries.
+  void endRecordLiteral(Token token, int count) {
+    logEvent("RecordLiteral");
+  }
+
+  /// End a parenthesized expression.
   /// These may be within the condition expression of a control structure
   /// but will not be the condition of a control structure.
-  void handleParenthesizedExpression(Token token) {
+  void endParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
   }
 

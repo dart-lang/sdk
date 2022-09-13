@@ -38,9 +38,7 @@ class CompletionResolveHandler
   ) async {
     final resolutionInfo = params.data;
 
-    if (resolutionInfo is DartSuggestionSetCompletionItemResolutionInfo) {
-      return resolveDartSuggestionSetCompletion(params, resolutionInfo, token);
-    } else if (resolutionInfo is DartNotImportedCompletionResolutionInfo) {
+    if (resolutionInfo is DartNotImportedCompletionResolutionInfo) {
       return resolveDartNotImportedCompletion(params, resolutionInfo, token);
     } else if (resolutionInfo is PubPackageCompletionItemResolutionInfo) {
       return resolvePubPackageCompletion(params, resolutionInfo, token);
@@ -195,35 +193,6 @@ class CompletionResolveHandler
       token,
       file: data.file,
       libraryUri: Uri.parse(data.libraryUri),
-    );
-  }
-
-  Future<ErrorOr<CompletionItem>> resolveDartSuggestionSetCompletion(
-    CompletionItem item,
-    DartSuggestionSetCompletionItemResolutionInfo data,
-    CancellationToken token,
-  ) async {
-    final clientCapabilities = server.clientCapabilities;
-    if (clientCapabilities == null) {
-      // This should not happen unless a client misbehaves.
-      return serverNotInitializedError;
-    }
-
-    var library = server.declarationsTracker?.getLibrary(data.libId);
-    if (library == null) {
-      return error(
-        ErrorCodes.InvalidParams,
-        'Library ID is not valid: ${data.libId}',
-        data.libId.toString(),
-      );
-    }
-
-    return resolveDartCompletion(
-      item,
-      clientCapabilities,
-      token,
-      file: data.file,
-      libraryUri: library.uri,
     );
   }
 

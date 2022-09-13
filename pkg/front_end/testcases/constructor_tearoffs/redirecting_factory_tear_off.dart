@@ -71,8 +71,7 @@ class Class6 {
   final int field3;
 
   Class6._(this.field1, {this.field2, required this.field3});
-  factory Class6(int field1, {int? field2, required int field3}) =
-      Class6._;
+  factory Class6(int field1, {int? field2, required int field3}) = Class6._;
 }
 
 class Class7a implements Class7b {
@@ -116,7 +115,6 @@ testArgs() {
   };
   dynamic f4b = Class4.new;
   throws(() => f4b(42, 87));
-
 
   var f5a = Class5.new;
   var c5a = f5a(42);
@@ -180,7 +178,7 @@ expect(expected, actual) {
   if (expected != actual) throw 'Expected $expected, actual $actual';
 }
 
-throws(Function() f, {bool inSoundModeOnly: false}) {
+throws(Function() f, {bool inSoundModeOnly = false}) {
   try {
     f();
   } catch (e) {

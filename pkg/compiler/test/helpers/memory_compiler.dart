@@ -56,17 +56,14 @@ class MultiDiagnostics implements api.CompilerDiagnostics {
 
 api.CompilerDiagnostics createCompilerDiagnostics(
     api.CompilerDiagnostics diagnostics, SourceFileProvider provider,
-    {bool showDiagnostics: true, bool verbose: false}) {
+    {bool showDiagnostics = true, bool verbose = false}) {
   api.CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
     if (diagnostics == null) {
-      handler = new FormattingDiagnosticHandler(provider)
-        ..verbose = verbose
-        ..autoReadFileUri = true;
+      handler = new FormattingDiagnosticHandler(provider)..verbose = verbose;
     } else {
       var formattingHandler = new FormattingDiagnosticHandler(provider)
-        ..verbose = verbose
-        ..autoReadFileUri = true;
+        ..verbose = verbose;
       handler = new MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else if (diagnostics == null) {
@@ -82,16 +79,16 @@ fe.InitializedCompilerState kernelInitializedCompilerState;
 /// contents or string file name to binary file contents (hence the `dynamic`
 /// type for the second parameter).
 Future<api.CompilationResult> runCompiler(
-    {Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
+    {Map<String, dynamic> memorySourceFiles = const <String, dynamic>{},
     Uri entryPoint,
     api.CompilerDiagnostics diagnosticHandler,
     api.CompilerOutput outputProvider,
-    List<String> options: const <String>[],
-    bool showDiagnostics: true,
+    List<String> options = const <String>[],
+    bool showDiagnostics = true,
     Uri librariesSpecificationUri,
     Uri packageConfig,
     void beforeRun(Compiler compiler),
-    bool unsafeToTouchSourceFiles: false}) async {
+    bool unsafeToTouchSourceFiles = false}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
   }
@@ -117,14 +114,14 @@ Future<api.CompilationResult> runCompiler(
 
 Compiler compilerFor(
     {Uri entryPoint,
-    Map<String, dynamic> memorySourceFiles: const <String, dynamic>{},
+    Map<String, dynamic> memorySourceFiles = const <String, dynamic>{},
     api.CompilerDiagnostics diagnosticHandler,
     api.CompilerOutput outputProvider,
-    List<String> options: const <String>[],
-    bool showDiagnostics: true,
+    List<String> options = const <String>[],
+    bool showDiagnostics = true,
     Uri librariesSpecificationUri,
     Uri packageConfig,
-    bool unsafeToTouchSourceFiles: false}) {
+    bool unsafeToTouchSourceFiles = false}) {
   retainDataForTesting = true;
   librariesSpecificationUri ??= sdkLibrariesSpecificationUri;
 

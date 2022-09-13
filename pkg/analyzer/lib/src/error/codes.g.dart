@@ -7,6 +7,10 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
+// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
+// code, as they match names declared in the source configuration files.
+// ignore_for_file: constant_identifier_names
+
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
@@ -1073,6 +1077,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the URI of the duplicate augmentation
+  static const CompileTimeErrorCode DUPLICATE_AUGMENTATION_IMPORT =
+      CompileTimeErrorCode(
+    'DUPLICATE_AUGMENTATION_IMPORT',
+    "The library already contains an augmentation with the URI '{0}'.",
+    correctionMessage:
+        "Try removing all except one of the duplicated augmentation "
+        "directives.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(
@@ -1113,6 +1128,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing one of the parameters, or using different fields.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the duplicated name
+  static const CompileTimeErrorCode DUPLICATE_FIELD_NAME = CompileTimeErrorCode(
+    'DUPLICATE_FIELD_NAME',
+    "The field name '{0}' is already used in this record.",
+    correctionMessage: "Try renaming the field.",
   );
 
   ///  Parameters:
@@ -1890,6 +1913,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the URI of the imported file
+  static const CompileTimeErrorCode IMPORT_OF_NOT_AUGMENTATION =
+      CompileTimeErrorCode(
+    'IMPORT_OF_NOT_AUGMENTATION',
+    "The imported file '{0}' isn't an augmentation of this library.",
+    correctionMessage:
+        "Try adding a 'library augment' directive referencing this library to "
+        "the imported file.",
+  );
+
   ///  13.9 Switch: It is a compile-time error if values of the expressions
   ///  <i>e<sub>k</sub></i> are not instances of the same class <i>C</i>, for all
   ///  <i>1 &lt;= k &lt;= n</i>.
@@ -2245,6 +2279,34 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The name of a factory constructor must be the same as the name of the "
         "immediately enclosing class.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode INVALID_FIELD_NAME_FROM_OBJECT =
+      CompileTimeErrorCode(
+    'INVALID_FIELD_NAME',
+    "Record field names can't be the same as a member from 'Object'.",
+    correctionMessage: "Try using a different name for the field.",
+    uniqueName: 'INVALID_FIELD_NAME_FROM_OBJECT',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode INVALID_FIELD_NAME_POSITIONAL =
+      CompileTimeErrorCode(
+    'INVALID_FIELD_NAME',
+    "Record field names can't be a dollar sign followed by digits because "
+        "those are used to access positional fields.",
+    correctionMessage: "Try using a different name for the field.",
+    uniqueName: 'INVALID_FIELD_NAME_POSITIONAL',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode INVALID_FIELD_NAME_PRIVATE =
+      CompileTimeErrorCode(
+    'INVALID_FIELD_NAME',
+    "Record field names can't be private.",
+    correctionMessage: "Try removing the leading underscore.",
+    uniqueName: 'INVALID_FIELD_NAME_PRIVATE',
   );
 
   ///  Parameters:
@@ -4612,7 +4674,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'URI_DOES_NOT_EXIST',
     "Target of URI doesn't exist: '{0}'.",
     correctionMessage:
-        "Try creating the file referenced by the URI, or Try using a URI for a "
+        "Try creating the file referenced by the URI, or try using a URI for a "
         "file that does exist.",
     hasPublishedDocs: true,
   );

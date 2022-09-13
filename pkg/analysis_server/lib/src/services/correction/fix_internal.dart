@@ -109,6 +109,7 @@ import 'package:analysis_server/src/services/correction/dart/qualify_reference.d
 import 'package:analysis_server/src/services/correction/dart/remove_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
@@ -116,6 +117,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_constructor_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_default_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_deprecated_new_in_comment_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
@@ -134,6 +136,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_parameters_i
 import 'package:analysis_server/src/services/correction/dart/remove_parentheses_in_getter_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_required.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
@@ -385,7 +388,7 @@ class FixProcessor extends BaseProcessor {
       ConvertForEachToForLoop.new,
     ],
     LintNames.avoid_init_to_null: [
-      RemoveInitializer.new,
+      RemoveInitializer.bulkFixable,
     ],
     LintNames.avoid_null_checks_in_equality_operators: [
       RemoveComparison.new,
@@ -862,6 +865,17 @@ class FixProcessor extends BaseProcessor {
   /// those diagnostics. The generators used for lint rules are in the
   /// [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
+    CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER: [
+      RemoveAbstract.new,
+      RemoveInitializer.new,
+    ],
+    CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER: [
+      RemoveAbstract.new,
+      RemoveInitializer.new,
+    ],
+    CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR: [
+      RemoveAssertion.new,
+    ],
     CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
       MakeFieldNotFinal.new,
       AddLate.new,
@@ -908,6 +922,10 @@ class FixProcessor extends BaseProcessor {
       ConvertToListLiteral.new,
       ReplaceWithFilled.new,
     ],
+    CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER: [
+      RemoveDefaultValue.new,
+      RemoveRequired.new,
+    ],
     CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [
       ConvertIntoBlockBody.new,
     ],
@@ -952,6 +970,7 @@ class FixProcessor extends BaseProcessor {
       CreateClass.new,
     ],
     CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
+      ChangeTo.field,
       CreateField.new,
     ],
     CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
@@ -1062,7 +1081,7 @@ class FixProcessor extends BaseProcessor {
       ReplaceReturnType.new,
     ],
     CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
-      ChangeTo.formalParameter,
+      ChangeTo.superFormalParameter,
     ],
     CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
       AddSwitchCaseBreak.new,
@@ -1379,7 +1398,7 @@ class FixProcessor extends BaseProcessor {
       RemoveNameFromCombinator.new,
     ],
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
-      RemoveAbstract.new,
+      RemoveAbstract.bulkFixable,
     ],
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.new,

@@ -107,6 +107,9 @@ class Heap {
 
   void NotifyIdle(int64_t deadline);
 
+  Dart_PerformanceMode mode() const { return mode_; }
+  Dart_PerformanceMode SetMode(Dart_PerformanceMode mode);
+
   // Collect a single generation.
   void CollectGarbage(Thread* thread, GCType type, GCReason reason);
 
@@ -125,6 +128,7 @@ class Heap {
   void CollectAllGarbage(GCReason reason = GCReason::kFull,
                          bool compact = false);
 
+  void CheckCatchUp(Thread* thread);
   void CheckConcurrentMarking(Thread* thread, GCReason reason, intptr_t size);
   void StartConcurrentMarking(Thread* thread, GCReason reason);
   void WaitForMarkerTasks(Thread* thread);
@@ -361,6 +365,8 @@ class Heap {
 
   // GC stats collection.
   GCStats stats_;
+
+  RelaxedAtomic<Dart_PerformanceMode> mode_ = {Dart_PerformanceMode_Default};
 
   // This heap is in read-only mode: No allocation is allowed.
   bool read_only_;

@@ -517,8 +517,9 @@ public interface AnalysisServer {
    *        difference is that in test mode the fix processor will look for a configuration file that
    *        can modify the content of the data file used to compute the fixes when data-driven fixes
    *        are being considered. If this field is omitted the flag defaults to false.
+   * @param codes A list of diagnostic codes to be fixed.
    */
-  public void edit_bulkFixes(List<String> included, boolean inTestMode, BulkFixesConsumer consumer);
+  public void edit_bulkFixes(List<String> included, boolean inTestMode, List<String> codes, BulkFixesConsumer consumer);
 
   /**
    * {@code edit.format}

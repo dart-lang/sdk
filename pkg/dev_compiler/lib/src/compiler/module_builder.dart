@@ -298,7 +298,7 @@ class DdcModuleBuilder extends _ModuleBuilder {
       resultModule,
       SharedCompiler.metricsLocationID
     ]);
-    return Program(<ModuleItem>[moduleDef]);
+    return Program(<ModuleItem>[...module.header, moduleDef]);
   }
 }
 
@@ -345,7 +345,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
       }
     }
 
-    return Program(statements);
+    return Program(<ModuleItem>[...module.header, ...statements]);
   }
 }
 
@@ -455,7 +455,7 @@ class AmdModuleBuilder extends _ModuleBuilder {
     var block = js.statement(
         'define(#, #);', [ArrayInitializer(dependencies), resultModule]);
 
-    return Program([block]);
+    return Program([...module.header, block]);
   }
 }
 

@@ -42,7 +42,7 @@ class IntroduceLocalCastType extends CorrectionProducer {
     var excluded = <String>{};
     var scopedNameFinder = ScopedNameFinder(offset);
     isExpression.accept(scopedNameFinder);
-    excluded.addAll(scopedNameFinder.locals.keys.toSet());
+    excluded.addAll(scopedNameFinder.locals);
     // name(s)
     var suggestions =
         getVariableNameSuggestionsForExpression(castType, null, excluded);

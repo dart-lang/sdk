@@ -338,7 +338,7 @@ PostfixExpression
   operand: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
-    staticType: T? & num?
+    staticType: (T & num?)?
   operator: !
   staticElement: <null>
   staticType: T & num

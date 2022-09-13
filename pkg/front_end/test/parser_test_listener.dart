@@ -1987,6 +1987,52 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginRecordType(Token leftBracket) {
+    seen(leftBracket);
+    doPrint('beginRecordType(' '$leftBracket)');
+    indent++;
+  }
+
+  @override
+  void endRecordType(
+      Token leftBracket, Token? questionMark, int count, bool hasNamedFields) {
+    indent--;
+    seen(leftBracket);
+    seen(questionMark);
+    doPrint('endRecordType('
+        '$leftBracket, '
+        '$questionMark, '
+        '$count, '
+        '$hasNamedFields)');
+  }
+
+  @override
+  void beginRecordTypeEntry() {
+    doPrint('beginRecordTypeEntry()');
+    indent++;
+  }
+
+  @override
+  void endRecordTypeEntry() {
+    indent--;
+    doPrint('endRecordTypeEntry()');
+  }
+
+  @override
+  void beginRecordTypeNamedFields(Token leftBracket) {
+    seen(leftBracket);
+    doPrint('beginRecordTypeNamedFields(' '$leftBracket)');
+    indent++;
+  }
+
+  @override
+  void endRecordTypeNamedFields(int count, Token leftBracket) {
+    indent--;
+    seen(leftBracket);
+    doPrint('endRecordTypeNamedFields(' '$count, ' '$leftBracket)');
+  }
+
+  @override
   void beginFunctionType(Token beginToken) {
     seen(beginToken);
     doPrint('beginFunctionType(' '$beginToken)');
@@ -2452,6 +2498,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNamedRecordField(Token colon) {
+    seen(colon);
+    doPrint('handleNamedRecordField(' '$colon)');
+  }
+
+  @override
   void beginNewExpression(Token token) {
     seen(token);
     doPrint('beginNewExpression(' '$token)');
@@ -2529,9 +2581,24 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleParenthesizedExpression(Token token) {
+  void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     seen(token);
-    doPrint('handleParenthesizedExpression(' '$token)');
+    doPrint('beginParenthesizedExpressionOrRecordLiteral(' '$token)');
+    indent++;
+  }
+
+  @override
+  void endRecordLiteral(Token token, int count) {
+    indent--;
+    seen(token);
+    doPrint('endRecordLiteral(' '$token, ' '$count)');
+  }
+
+  @override
+  void endParenthesizedExpression(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endParenthesizedExpression(' '$token)');
   }
 
   @override

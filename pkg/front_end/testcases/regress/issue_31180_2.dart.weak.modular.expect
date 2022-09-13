@@ -1,7 +1,8 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:_internal" as _in;
 
 static method bad() → dynamic {
-  return let final has-declared-initializer dynamic #t1 = null in #t1 == null ?{dynamic} null : #t1{dynamic}.[](1);
+  return let final has-declared-initializer Null #t1 = null in #t1 == null ?{Null} null : let final Never #t2 = (let final Never #t3 = #t1{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[](1) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
 }
 static method main() → dynamic {}

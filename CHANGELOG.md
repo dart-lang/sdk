@@ -2,18 +2,99 @@
 
 ### Language
 
+- **Breaking change** [#49635][]: Flag additional code as unreachable due to
+  types `Null` and `Never`.  Several unusual constructs that lead to unreachable
+  code are now recognized by flow analysis:
+
+  - Control flow after an expression of the form `e ?? other` or `e ??= other`,
+    where `e` has static type `Null` and `other` has static type `Never`, is
+    considered unreachable.
+
+  - Control flow predicated on an expression of the form `e is Never` evaluating
+    to `true` is considered unreachable.
+
+  - Control flow predicated on an expression of the form `e is! Never`
+    evaluating to `false` is considered unreachable.
+
+  - Control flow on the RHS of a null-aware access such as `e?.property...`,
+    `e?.property = ...` or `e?.method(...)`, where `e` has static type `Null`,
+    is considered unreachable (Note: this can arise in the presence of extension
+    methods).
+
+  Previously, these behaviors only took effect if `e` was a reference to a local
+  variable.
+
+[#49635]: https://github.com/dart-lang/sdk/issues/49635
+
 ### Libraries
 
-### `dart:developer`
+#### `dart:convert`
 
-- Deprecates `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
+- **Breaking change** [#34233][]: The previously deprecated API
+  [`DEFAULT_BUFFER_SIZE`][] in [`JsonUtf8Encoder`] has been removed.
+
+[#34233]: https://github.com/dart-lang/sdk/issues/34233
+[`DEFAULT_BUFFER_SIZE`]: https://api.dart.dev/stable/2.17.6/dart-convert/JsonUtf8Encoder/DEFAULT_BUFFER_SIZE-constant.html
+
+#### `dart:developer`
+
+- **Breaking change** [#34233][]: The previously deprecated APIs
+  `kInvalidParams`, `kExtensionError`, `kExtensionErrorMax`, and
+  `kExtensionErrorMin` in [`ServiceExtensionResponse`][] have been removed. They
+  have been replaced by `invalidParams`, `extensionError`, `extensionErrorMax`,
+  and `extensionErrorMin`.
+
+[#34233]: https://github.com/dart-lang/sdk/issues/34233
+[`ServiceExtensionResponse`]: https://api.dart.dev/stable/2.17.6/dart-developer/ServiceExtensionResponse-class.html#constants
+
+- Deprecated `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
+
+#### `dart:mirrors`
+
+- **Breaking change** [#34233][]: The APIs [`MirrorsUsed`][] and [`Comment`][]
+  have been removed. `MirrorsUsed` was experimental and deprecated; `Comment`
+  was previously used internally in dart2js. Both are no longer functional.
+
+[#34233]: https://github.com/dart-lang/sdk/issues/34233
+[`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
+[`Comment`]: https://api.dart.dev/stable/dart-mirrors/Comment-class.html
+
+#### `dart:html`
+
+- Deprecated `registerElement` and `registerElement2` in `Document` and
+  `HtmlDocument`. These APIs were based on the deprecated Web Components v0.5
+  specification and are not supported by browsers today. These APIs are expected
+  to be deleted in a future release. See the related breaking change
+  request [#49536](https://github.com/dart-lang/sdk/issues/49536).
+
+### `dart:io`
+ - **Breaking change** [#49647][]: `File.create` now takes new optional
+   `exclusive` `bool` parameter, and when it is `true` the operation
+   will fail if target file already exists.
+
+#### `dart:isolate`
+
+- Add `Isolate.run` to run a function in a new isolate.
 
 ### Tools
 
 #### Linter
 
-Updated the Linter to `1.26.0`, which includes changes that
+Updated the Linter to `1.27.0`, which includes changes that
 
+- fix `avoid_redundant_argument_values` when referencing required
+  parameters in legacy libraries.
+- improve performance for `use_late_for_private_fields_and_variables`.
+- add new lint: `use_string_in_part_of_directives`.
+- fix `use_super_parameters` false positives with repeated super
+  parameter references.
+- update `use_late_for_private_fields_and_variables` to handle enums.
+- fix `prefer_contains` false positives when a start index is non-zero.
+- improve `noop_primitive_operations` to catch `.toString()`
+  in string interpolations.
+- update `public_member_api_docs` to report diagnostics on extension
+  names (instead of bodies).
+- add miscellaneous documentation improvements.
 - add new lint: `combinators_ordering`.
 - fix `use_colored_box` and `use_decorated_box` to not over-report on containers without
   a child.
@@ -26,6 +107,28 @@ Updated the Linter to `1.26.0`, which includes changes that
   non-final variable.
 - fix`use_build_context_synchronously` to handle `await`s in `if` conditions.
 
+#### Pub
+
+- Remove remaining support for `.packages` files. The flag
+  `--legacy-packages-file` is no longer supported.
+- Support a new field `funding` in pubspec.yaml.
+
+#### dart2js
+
+- **Breaking change** [49473](https://github.com/dart-lang/sdk/issues/49473):
+  dart2js no longer supports HTTP URIs as inputs.
+
+### Core libraries
+
+#### `dart:io`
+
+- **Breaking Change** [#49305](https://github.com/dart-lang/sdk/issues/49305):
+  Disallow negative or hexadecimal content-length headers.
+
+#### `dart:html`
+
+- Add constructor and `slice` to `SharedArrayBuffer`.
+
 ## 2.18.0
 
 ### Language
@@ -36,12 +139,11 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 [language version]: https://dart.dev/guides/language/evolution
 
--  **[Enhanced type inference for generic invocations with function
-   literals][]**: Invocations of generic methods/constructors that supply
-   function literal arguments now have improved type inference.  This primarily
-   affects the `Iterable.fold` method.  For example, in previous versions of
-   Dart, the compiler would fail to infer an appropriate type for the parameter
-   `a`:
+-  **[Enhanced type inference for generic invocations with function literals][]**:
+   Invocations of generic methods/constructors that supply function literal
+   arguments now have improved type inference. This primarily affects the
+   `Iterable.fold` method. For example, in previous versions of Dart, the
+   compiler would fail to infer an appropriate type for the parameter `a`:
 
    ```dart
    void main() {
@@ -74,6 +176,7 @@ them, you must set the lower bound on the SDK constraint for your package to
          (a, b) => a == null || a < b ? b : a);
    }
    ```
+[Enhanced type inference for generic invocations with function literals]: https://github.com/dart-lang/language/issues/731
 
 - **Breaking Change** [#48167](https://github.com/dart-lang/sdk/issues/48167):
   Mixin of classes that don't extend `Object` is no longer supported:
@@ -178,7 +281,8 @@ both in JIT and AOT modes. This also affects Flutter except Flutter Web.
 Besides smaller code size and better performance of async methods,
 the new implementation carries a few subtle changes in behavior:
 
-- If `async` method returns before reaching the first `await`, it now returns a completed Future.
+- If `async` method returns before reaching the first `await`, it now
+  returns a completed Future.
   Previously `async` methods completed resulting Future in separate microtasks.
 
 - Stack traces no longer have duplicate entries for `async` methods.
@@ -191,9 +295,34 @@ the new implementation carries a few subtle changes in behavior:
   variables in `async`/`async*`/`sync*` methods, which means that unused
   objects stored in local variables in such methods might be garbage
   collected earlier than they were before
-  (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983) for details).
+  (see issue [#36983](https://github.com/dart-lang/sdk/issues/36983)
+  for details).
 
 ### Tools
+
+#### General
+
+- **Breaking Change** [#48272](https://github.com/dart-lang/sdk/issues/48272):
+  The `.packages` file has been fully discontinued. Historically when the
+  commands `dart pub get` or `flutter pub get` are executed, pub resolved all
+  dependencies, and installs those dependencies to the local pub cache. It
+  furthermore created a mapping from each used package to their location on the
+  local file system, and wrote that into two files:
+
+    * `.dart_tool/package_config.json`
+    * `.packages` (deprecated in Dart 2.8.0)
+
+  As of Dart 2.18.0, the `.packages` is now fully desupported, and all tools
+  distributed in, and based on, the Dart SDK no longer support it, and thus
+  solely use the `.dart_tool/package_config.json` file. If you've run `dart pub
+  get` or `flutter pub get` with any Dart SDK from the past few years you
+  already have a `.dart_tool/package_config.json` and thus should not be
+  impacted. You can delete any old `.packages` files.
+
+  If you have any third-party tools that for historical reasons depend on a
+  `.packages` we will support the ability to generate a `.packages` by passing
+  the flag `--legacy-packages-file` to `dart pub get`. This support will be
+  removed in a following stable release.
 
 #### Dart command line
 
@@ -239,19 +368,26 @@ Updated the Linter to `1.25.0`, which includes changes that
 
 #### Pub
 
-* Breaking: `dart pub get` and `dart pub upgrade` no longer creates the
-  [deprecated](https://github.com/dart-lang/sdk/issues/47431) `.packages` file.
-  It can still be created with the `--legacy-packages-file` flag.
+* `dart pub get` and `dart pub upgrade` no longer create the
+  `.packages` file. For details, see breaking change #48272 above.
 * `dart pub outdated` now shows which of your dependencies are discontinued.
 * `dart pub publish` will now list all the files it is about to publish.
+
+## 2.17.7 - 2022-08-24
+
+This is a patch release that:
+
+- fixes a crash in the debugger (issue [#49209][]).
+
+[#49209]: https://github.com/dart-lang/sdk/issues/49209
 
 ## 2.17.6 - 2022-07-13
 
 This is a patch release that:
 
-- Improves code completion for Flutter (issue [#49054][]).
-- Fixes a crash on ARM (issue [#106510][]).
-- Fixes a compiler crash with Finalizable parameters (issue [#49402][]).
+- improves code completion for Flutter (issue [#49054][]).
+- fixes a crash on ARM (issue [#106510][]).
+- fixes a compiler crash with Finalizable parameters (issue [#49402][]).
 
 [#49054]: https://github.com/dart-lang/sdk/issues/49054
 [#106510]: https://github.com/flutter/flutter/issues/106510
@@ -259,10 +395,11 @@ This is a patch release that:
 
 ## 2.17.5 - 2022-06-22
 
-This is a patch release that fixes:
+This is a patch release that:
 
-- Improve analysis of enums and switch (issue [#49188]).
-- Fix compiler crash when initializing Finalizable objects (issue [#49075]).
+- improves analysis of enums and switch (issue [#49188][]).
+- fixes a compiler crash when initializing Finalizable objects
+  (issue [#49075][]).
 
 [#49188]: https://github.com/dart-lang/sdk/issues/49188
 [#49075]: https://github.com/dart-lang/sdk/issues/49075
@@ -294,139 +431,6 @@ This is a patch release that fixes:
 [#49010]: https://github.com/dart-lang/sdk/issues/49010
 
 ## 2.17.0 - 2022-05-11
-
-### Language
-
-The following features are new in the Dart 2.17 [language version][]. To use
-them, you must set the lower bound on the SDK constraint for your package to
-2.17 or greater (`sdk: '>=2.17.0 <3.0.0'`).
-
-[language version]: https://dart.dev/guides/language/evolution
-
--   **[Enhanced enums with members][]**: Enum declarations can now define
-    members including fields, constructors, methods, getters, etc. For example:
-
-    ```dart
-    enum Water {
-      frozen(32),
-      lukewarm(100),
-      boiling(212);
-
-      final int tempInFahrenheit;
-      const Water(this.tempInFahrenheit);
-
-      @override
-      String toString() => "The $name water is $tempInFahrenheit F.";
-    }
-    ```
-
-    Constructors must be `const` since enum values are always constants. If the
-    constructor takes arguments, they are passed when the enum value is
-    declared.
-
-    The above enum can be used like so:
-
-    ```dart
-    void main() {
-      print(Water.frozen); // prints "The frozen water is 32 F."
-    }
-    ```
-
-[enhanced enums with members]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/enhanced-enums/feature-specification.md
-
--   **[Super parameters][]**: When extending a class whose constructor takes
-    parameters, the subclass constructor needs to provide arguments for them.
-    Often, these are passed as parameters to the subclass constructor, which
-    then forwards them to the superclass constructor. This is verbose because
-    the subclass constructor must list the name and type of each parameter in
-    its parameter list, and then explicitly forward each one as an argument to
-    the superclass constructor.
-
-    [@roy-sianez][] suggested [allowing `super.`][super dot] before a subclass
-    constructor parameter to implicitly forward it to the corresponding
-    superclass constructor parameter. Applying this feature to Flutter
-    eliminated [nearly 2,000 lines of code][flutter super]. For example, before:
-
-    ```dart
-    class CupertinoPage<T> extends Page<T> {
-      const CupertinoPage({
-        required this.child,
-        this.maintainState = true,
-        this.title,
-        this.fullscreenDialog = false,
-        LocalKey? key,
-        String? name,
-        Object? arguments,
-        String? restorationId,
-      }) : super(
-            key: key,
-            name: name,
-            arguments: arguments,
-            restorationId: restorationId,
-          );
-
-      // ...
-    }
-    ```
-
-    And using super parameters:
-
-    ```dart
-    class CupertinoPage<T> extends Page<T> {
-      const CupertinoPage({
-        required this.child,
-        this.maintainState = true,
-        this.title,
-        this.fullscreenDialog = false,
-        super.key,
-        super.name,
-        super.arguments,
-        super.restorationId,
-      });
-
-      // ...
-    }
-    ```
-
-    From our analysis, over 90% of explicit superclass constructor calls can be
-    completely eliminated, using `super.` parameters instead.
-
-[super parameters]: https://github.com/dart-lang/language/blob/master/working/1855%20-%20super%20parameters/proposal.md
-[@roy-sianez]: https://github.com/roy-sianez
-[super dot]: https://github.com/dart-lang/language/issues/1855
-[flutter super]: https://github.com/flutter/flutter/pull/100905/files
-
--   **[Named args everywhere][]**: In a function call, Dart requires positional
-    arguments to appear before named arguments. This can be frustrating for
-    arguments like collection literals and function expressions that look best
-    as the last argument in the argument list but are positional, like the
-    `test()` function in the [test package][]:
-
-    ```dart
-    main() {
-      test('A test description', () {
-        // Very long function body here...
-      }, skip: true);
-    }
-    ```
-
-    It would be better if the `skip` argument appeared at the top of the call
-    to `test()` so that it wasn't easily overlooked, but since it's named and
-    the test body argument is positional, `skip` must be placed at the end.
-
-    Dart 2.17 removes this restriction. Named arguments can be freely
-    interleaved with positional arguments, allowing code like:
-
-    ```dart
-    main() {
-      test(skip: true, 'A test description', () {
-        // Very long function body here...
-      });
-    }
-    ```
-
-[named args everywhere]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/named-arguments-anywhere/feature-specification.md
-[test package]: https://pub.dev/packages/test
 
 ### Language
 
@@ -771,11 +775,6 @@ Flutter apps (issue [flutter/flutter#97301][]).
   The `Platform.packageRoot` API has been removed. It had been marked deprecated
   in 2018, as it doesn't work with any Dart 2.x release.
 - Add optional `sourcePort` parameter to `Socket.connect`, `Socket.startConnect`, `RawSocket.connect` and `RawSocket.startConnect`
-
-- **Breaking Change** [#45410](https://github.com/dart-lang/sdk/issues/45410):
-  `HttpClient` no longer transmits some headers (i.e. `authorization`,
-  `www-authenticate`, `cookie`, `cookie2`) when processing redirects to
-  a different domain.
 
 #### `dart:isolate`
 

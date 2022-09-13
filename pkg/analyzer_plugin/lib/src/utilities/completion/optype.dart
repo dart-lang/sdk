@@ -33,6 +33,11 @@ class OpType {
   /// have a non-[void] return type should be suggested.
   bool includeReturnValueSuggestions = false;
 
+  /// Indicates whether top-level fields and const constructors that are valid
+  /// annotations should be suggested. This is a subset of
+  /// [includeReturnValueSuggestions].
+  bool includeAnnotationSuggestions = false;
+
   /// Indicates whether named arguments should be suggested.
   bool includeNamedArgumentSuggestions = false;
 
@@ -75,6 +80,11 @@ class OpType {
       return optype;
     }
 
+    // Don't suggest anything in comments.
+    if (target.entity is CommentToken) {
+      return optype;
+    }
+
     var targetNode = target.containingNode;
     targetNode.accept(_OpTypeAstVisitor(optype, target.entity, offset));
 
@@ -107,6 +117,7 @@ class OpType {
     return !isPrefixed &&
         (includeReturnValueSuggestions ||
             includeTypeNameSuggestions ||
+            includeAnnotationSuggestions ||
             includeVoidReturnSuggestions ||
             includeConstructorSuggestions);
   }
@@ -152,17 +163,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     if (identical(entity, node.name)) {
       optype.completionLocation = 'Annotation_name';
-      optype.includeTypeNameSuggestions = true;
-      optype.includeReturnValueSuggestions = true;
+      optype.includeAnnotationSuggestions = true;
     } else if (identical(entity, node.constructorName)) {
       // There is no location for the constructor name because only named
       // constructors are valid.
-      // TODO(brianwilkerson) The following looks wrong. I think we want to set
-      //  includeConstructorSuggestions = true, but not type names or return
-      //  values. On the other hand, I can't construct a test case that reaches
-      //  this point, so perhaps we should just remove this branch.
-      optype.includeTypeNameSuggestions = true;
-      optype.includeReturnValueSuggestions = true;
+      optype.includeAnnotationSuggestions = true;
       optype.isPrefixed = true;
     }
   }
@@ -356,7 +361,20 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // Make suggestions in the body of the class declaration
-    if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+    final entity = this.entity;
+    final isMember = node.members.contains(entity);
+    final isClosingBrace = identical(entity, node.rightBracket);
+    final isAnnotation = isClosingBrace &&
+        entity is Token &&
+        _isPotentialAnnotation(entity.previous);
+
+    // Annotations being typed before a closing brace will not be parsed as
+    // annotations (and not be handled by `visitAnnotation`) so need special
+    // handling.
+    if (isAnnotation) {
+      optype.completionLocation = 'Annotation_name';
+      optype.includeAnnotationSuggestions = true;
+    } else if (isMember || isClosingBrace) {
       optype.completionLocation = 'ClassDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }
@@ -466,7 +484,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    var identifier = node.identifier;
+    var identifier = node.name;
     if (identifier == entity &&
         offset < identifier.offset &&
         node.type == null) {
@@ -551,7 +569,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
           }
         }
       } else if (parent is MethodDeclaration) {
-        type = parent.declaredElement?.returnType;
+        type = parent.declaredElement2?.returnType;
         if (type != null && type.isVoid) {
           optype.includeVoidReturnSuggestions = true;
         }
@@ -610,7 +628,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       // class A { static late ^ }
       if (node.staticKeyword != null &&
           variables.length == 1 &&
-          variables[0].name.name == 'late') {
+          variables[0].name2.lexeme == 'late') {
         optype.completionLocation = 'FieldDeclaration_static_late';
         optype.includeTypeNameSuggestions = true;
         return;
@@ -619,7 +637,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (node.staticKeyword == null &&
           offset <= node.semicolon.offset &&
           variables.length == 1 &&
-          variables[0].name.name == 'static') {
+          variables[0].name2.lexeme == 'static') {
         optype.completionLocation = 'FieldDeclaration_static';
         optype.includeTypeNameSuggestions = true;
         return;
@@ -645,7 +663,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    if (entity == node.identifier) {
+    if (entity == node.name) {
       optype.isPrefixed = true;
     } else {
       optype.includeReturnValueSuggestions = true;
@@ -788,7 +806,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name) && node.returnType == null) {
+        identical(entity, node.name2) && node.returnType == null) {
       optype.completionLocation = 'FunctionDeclaration_returnType';
       optype.includeTypeNameSuggestions = true;
     }
@@ -803,7 +821,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name) && node.returnType == null) {
+        identical(entity, node.name2) && node.returnType == null) {
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -930,7 +948,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name) && node.returnType == null) {
+        identical(entity, node.name2) && node.returnType == null) {
       optype.completionLocation = 'MethodDeclaration_returnType';
     }
     // TODO(brianwilkerson) In visitFunctionDeclaration, this is conditional. It
@@ -1035,7 +1053,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNormalFormalParameter(NormalFormalParameter node) {
-    if (node.identifier != entity) {
+    if (node.name != entity) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -1153,7 +1171,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = node.type;
-    var name = node.identifier;
+    var name = node.name;
 
     // "(Type^)" is parsed as a parameter with the _name_ "Type".
     if (type == null &&
@@ -1172,7 +1190,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
     // If "(Type ^)", then include parameter names.
     if (type == null && name != null && name.end < offset) {
-      var nextToken = name.token.next;
+      var nextToken = name.next;
       if (nextToken != null && offset <= nextToken.offset) {
         optype.includeVarNameSuggestions = true;
         return;
@@ -1416,6 +1434,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     return false;
+  }
+
+  /// Checks whether [token] is potentially an identifier for an annotation.
+  bool _isPotentialAnnotation(Token? token) {
+    // For this token to be a potential annotation, it must be prefixed by an @.
+    return token!.previous!.type == TokenType.AT;
   }
 
   static bool _isParameterOfGenericFunctionType(FormalParameter node) {

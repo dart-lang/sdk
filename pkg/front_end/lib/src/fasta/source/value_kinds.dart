@@ -18,6 +18,7 @@ import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
 import '../builder/mixin_application_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
+import '../builder/record_type_builder.dart' as type;
 import '../builder/type_variable_builder.dart' as type;
 
 import '../identifiers.dart' as type;
@@ -45,6 +46,8 @@ class ValueKinds {
       const SingleValueKind<type.Arguments>(NullValue.Arguments);
   static const ValueKind AsyncMarker =
       const SingleValueKind<type.AsyncMarker>();
+  static const ValueKind AsyncModifier =
+      const SingleValueKind<type.AsyncMarker>();
   static const ValueKind Bool = const SingleValueKind<bool>();
   static const ValueKind ConstantContext =
       const SingleValueKind<type.ConstantContext>();
@@ -53,12 +56,6 @@ class ValueKinds {
       const SingleValueKind<type.Expression>(NullValue.Expression);
   static const ValueKind FieldInitializerOrNull =
       const SingleValueKind<type.Expression>(NullValue.FieldInitializer);
-  static const ValueKind Identifier = const SingleValueKind<type.Identifier>();
-  static const ValueKind IdentifierOrNull =
-      const SingleValueKind<type.Identifier>(NullValue.Identifier);
-  static const ValueKind Integer = const SingleValueKind<int>();
-  static const ValueKind AsyncModifier =
-      const SingleValueKind<type.AsyncMarker>();
   static const ValueKind FormalParameters =
       const SingleValueKind<type.FormalParameters>();
   static const ValueKind FormalList =
@@ -67,8 +64,12 @@ class ValueKinds {
       const SingleValueKind<List<type.FormalParameterBuilder>>(
           NullValue.FormalParameters);
   static const ValueKind Generator = const SingleValueKind<type.Generator>();
+  static const ValueKind Identifier = const SingleValueKind<type.Identifier>();
+  static const ValueKind IdentifierOrNull =
+      const SingleValueKind<type.Identifier>(NullValue.Identifier);
   static const ValueKind Initializer =
       const SingleValueKind<type.Initializer>();
+  static const ValueKind Integer = const SingleValueKind<int>();
   static const ValueKind MethodBody = const SingleValueKind<type.MethodBody>();
   static const ValueKind MixinApplicationBuilder =
       const SingleValueKind<type.MixinApplicationBuilder>();
@@ -80,10 +81,16 @@ class ValueKinds {
   static const ValueKind ModifiersOrNull =
       const SingleValueKind<List<type.Modifier>>(NullValue.Modifiers);
   static const ValueKind Name = const SingleValueKind<String>();
+  static const ValueKind NamedExpression =
+      const SingleValueKind<type.NamedExpression>();
   static const ValueKind NameListOrNull =
       const SingleValueKind<List<String>>(NullValue.IdentifierList);
   static const ValueKind NameOrNull =
       const SingleValueKind<String>(NullValue.Name);
+  // TODO(johnniwinther): Remove this. We shouldn't use NullValue.Identifier
+  // for String names.
+  static const ValueKind NameOrNullIdentifier =
+      const SingleValueKind<String>(NullValue.Identifier);
   static const ValueKind NameOrOperator =
       const UnionValueKind([Name, Operator]);
   static const ValueKind NameOrQualifiedNameOrOperator =
@@ -102,6 +109,11 @@ class ValueKinds {
       const SingleValueKind<type.ProblemBuilder>();
   static const ValueKind QualifiedName =
       const SingleValueKind<type.QualifiedName>();
+  static const ValueKind RecordTypeFieldBuilder =
+      const SingleValueKind<type.RecordTypeFieldBuilder>();
+  static const ValueKind RecordTypeFieldBuilderListOrNull =
+      const SingleValueKind<List<type.RecordTypeFieldBuilder>>(
+          NullValue.RecordTypeFieldList);
   static const ValueKind Scope = const SingleValueKind<type.Scope>();
   static const ValueKind Selector = const SingleValueKind<type.Selector>();
   static const ValueKind SwitchScopeOrNull =

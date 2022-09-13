@@ -82,8 +82,8 @@ def HostCpuForArch(arch):
     # - using a host architecture with a different word size (supports only AOT and only 32-bit target on 64-bit host)
     if arch in ['ia32']:
         candidates = ['x86']
-    elif arch in ['x64', 'x64c']:
-        candidates = ['x64']
+    elif arch in ['x64', 'x64c', 'simx64', 'simx64c']:
+        candidates = ['x64', 'arm64']
     elif arch in ['arm', 'simarm']:
         candidates = ['arm', 'x86', 'riscv32', 'arm64', 'x64', 'riscv64']
     elif arch in ['arm64', 'arm64c', 'simarm64', 'simarm64c']:
@@ -124,7 +124,7 @@ def TargetCpuForArch(arch, target_os):
     # Simulators
     if arch in ['simarm_x64', 'simriscv32_x64']:
         return 'x64'
-    elif arch in ['simarm_arm64', 'simriscv32_arm64']:
+    elif arch in ['simarm_arm64', 'simriscv32_arm64', 'simx64', 'simx64c']:
         return 'arm64'
     elif arch in ['simarm_riscv64', 'simriscv32_riscv64']:
         return 'riscv64'
@@ -149,7 +149,7 @@ def TargetCpuForArch(arch, target_os):
 def DartTargetCpuForArch(arch):
     if arch in ['ia32']:
         return 'ia32'
-    if arch in ['x64', 'x64c']:
+    if arch in ['x64', 'x64c', 'simx64', 'simx64c']:
         return 'x64'
     if arch in [
             'arm', 'simarm', 'simarm_x64', 'arm_x64', 'simarm_arm64',

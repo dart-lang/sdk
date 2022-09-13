@@ -6,33 +6,27 @@ part of layout;
 
 // This file has classes representing the grid tracks and grid template
 
-/**
- * The data structure representing the grid-rows or grid-columns
- * properties.
- */
+/// The data structure representing the grid-rows or grid-columns
+/// properties.
 class GridTrackList {
-  /** The set of tracks defined in CSS via grid-rows and grid-columns */
+  /// The set of tracks defined in CSS via grid-rows and grid-columns */
   final List<GridTrack> tracks;
 
-  /**
-   * Maps edge names to the corresponding track. Depending on whether the index
-   * is used as a start or end, it might be interpreted exclusively or
-   * inclusively.
-   */
+  /// Maps edge names to the corresponding track. Depending on whether the index
+  /// is used as a start or end, it might be interpreted exclusively or
+  /// inclusively.
   final Map<String?, int> lineNames;
 
-  GridTrackList(this.tracks, this.lineNames) {}
+  GridTrackList(this.tracks, this.lineNames);
 }
 
-/** Represents a row or a column. */
+/// Represents a row or a column. */
 class GridTrack {
-  /**
-   * The start position of this track. Equal to the sum of previous track's
-   * usedBreadth.
-   */
+  /// The start position of this track. Equal to the sum of previous track's
+  /// usedBreadth.
   late num start;
 
-  /** The final computed breadth of this track. */
+  /// The final computed breadth of this track. */
   late num usedBreadth;
 
   // Fields used internally by the sizing algorithm
@@ -42,18 +36,16 @@ class GridTrack {
 
   final TrackSizing sizing;
 
-  GridTrack(this.sizing) {}
+  GridTrack(this.sizing);
 
-  /**
-   * Support for the feature that repeats rows and columns, e.g.
-   * [:grid-columns: 10px ("content" 250px 10px)[4]:]
-   */
+  /// Support for the feature that repeats rows and columns, e.g.
+  /// [:grid-columns: 10px ("content" 250px 10px)[4]:]
   GridTrack clone() => GridTrack(sizing.clone());
 
-  /** The min sizing function for the track. */
+  /// The min sizing function for the track. */
   SizingFunction get minSizing => sizing.min;
 
-  /** The min sizing function for the track. */
+  /// The min sizing function for the track. */
   SizingFunction get maxSizing => sizing.max;
 
   num get end => start + usedBreadth;
@@ -61,14 +53,14 @@ class GridTrack {
   bool get isFractional => minSizing.isFraction || maxSizing.isFraction;
 }
 
-/** Represents the grid-row-align or grid-column-align. */
+/// Represents the grid-row-align or grid-column-align. */
 class GridItemAlignment {
   // TODO(jmesserly): should this be stored as an int for performance?
   final String value;
 
   // 'start' | 'end' | 'center' | 'stretch'
   GridItemAlignment.fromString(String? value)
-      : this.value = (value == null) ? 'stretch' : value {
+      : value = (value == null) ? 'stretch' : value {
     switch (this.value) {
       case 'start':
       case 'end':
@@ -98,10 +90,8 @@ class GridItemAlignment {
   }
 }
 
-/**
- * Represents a grid-template. Used in conjunction with a grid-cell to
- * place cells in the grid, without needing to specify the exact row/column.
- */
+/// Represents a grid-template. Used in conjunction with a grid-cell to
+/// place cells in the grid, without needing to specify the exact row/column.
 class GridTemplate {
   final Map<int, _GridTemplateRect> _rects;
   final int _numRows;
@@ -112,7 +102,7 @@ class GridTemplate {
     _buildRects(rows);
   }
 
-  /** Scans the template strings and computes bounds for each one. */
+  /// Scans the template strings and computes bounds for each one. */
   void _buildRects(List<String?> templateRows) {
     for (int r = 0; r < templateRows.length; r++) {
       String row = templateRows[r]!;
@@ -133,9 +123,7 @@ class GridTemplate {
     }
   }
 
-  /**
-   * Looks up the given cell in the template, and returns the rect.
-   */
+  /// Looks up the given cell in the template, and returns the rect.
   _GridTemplateRect lookupCell(String cell) {
     if (cell.length != 1) {
       throw UnsupportedError(
@@ -150,13 +138,13 @@ class GridTemplate {
   }
 }
 
-/** Used by GridTemplate to track a single cell's bounds. */
+/// Used by GridTemplate to track a single cell's bounds. */
 class _GridTemplateRect {
   int row, column, rowSpan, columnSpan, _count, _char;
   _GridTemplateRect(this._char, this.row, this.column)
       : rowSpan = 1,
         columnSpan = 1,
-        _count = 1 {}
+        _count = 1;
 
   void add(int r, int c) {
     assert(r >= row && c >= column);
@@ -177,13 +165,11 @@ class _GridTemplateRect {
   }
 }
 
-/**
- * Used to return a row/column and span during parsing of grid-row and
- * grid-column during parsing.
- */
+/// Used to return a row/column and span during parsing of grid-row and
+/// grid-column during parsing.
 class _GridLocation {
   final int? start, length;
-  _GridLocation(this.start, this.length) {}
+  _GridLocation(this.start, this.length);
 
   int get end => start! + length!;
 }

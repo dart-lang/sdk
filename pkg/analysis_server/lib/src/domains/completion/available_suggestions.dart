@@ -97,7 +97,7 @@ protocol.Notification createExistingImportsNotification(
   var uniqueElements = _UniqueImportedElements();
   var existingImports = <protocol.ExistingImport>[];
 
-  var importElementList = resolvedUnit.libraryElement.imports;
+  var importElementList = resolvedUnit.libraryElement.libraryImports;
   for (var import in importElementList) {
     var importedLibrary = import.importedLibrary;
     if (importedLibrary == null) continue;

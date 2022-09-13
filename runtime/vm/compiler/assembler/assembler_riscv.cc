@@ -125,8 +125,8 @@ intptr_t MicroAssembler::UpdateFarOffset(intptr_t branch_position,
   ASSERT(jr_instr.funct3() == F3_0);
   ASSERT(jr_instr.rs1() == FAR_TMP);
   intptr_t old_offset = auipc_instr.utype_imm() + jr_instr.itype_imm();
-  intx_t lo = new_offset << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (new_offset - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(new_offset);
+  intx_t hi = ImmHi(new_offset);
   if (!IsUTypeImm(hi)) {
     FATAL("Jump/branch distance exceeds 2GB!");
   }
@@ -1711,8 +1711,8 @@ void MicroAssembler::EmitBranch(Register rs1,
     const intptr_t kFarBranchLength = 12;
     EmitBType(kFarBranchLength, rs2, rs1, InvertFunct3(func), BRANCH);
     offset = label->Position() - Position();
-    intx_t lo = offset << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (offset - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (!IsUTypeImm(hi)) {
       FATAL("Branch distance exceeds 2GB!");
     }
@@ -1753,8 +1753,8 @@ void MicroAssembler::EmitBranch(Register rs1,
       const intptr_t kFarBranchLength = 12;
       EmitBType(kFarBranchLength, rs2, rs1, InvertFunct3(func), BRANCH);
       offset = label->link_far(Position());
-      intx_t lo = offset << (XLEN - 12) >> (XLEN - 12);
-      intx_t hi = (offset - lo) << (XLEN - 32) >> (XLEN - 32);
+      intx_t lo = ImmLo(offset);
+      intx_t hi = ImmHi(offset);
       if (!IsUTypeImm(hi)) {
         FATAL("Branch distance exceeds 2GB!");
       }
@@ -1779,8 +1779,8 @@ void MicroAssembler::EmitJump(Register rd,
       EmitJType(offset, rd, JAL);
       return;
     }
-    intx_t lo = offset << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (offset - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (!IsUTypeImm(hi)) {
       FATAL("Jump distance exceeds 2GB!");
     }
@@ -1804,8 +1804,8 @@ void MicroAssembler::EmitJump(Register rd,
       EmitJType(offset, rd, JAL);
     } else {
       offset = label->link_far(Position());
-      intx_t lo = offset << (XLEN - 12) >> (XLEN - 12);
-      intx_t hi = (offset - lo) << (XLEN - 32) >> (XLEN - 32);
+      intx_t lo = ImmLo(offset);
+      intx_t hi = ImmHi(offset);
       if (!IsUTypeImm(hi)) {
         FATAL("Jump distance exceeds 2GB!");
       }
@@ -2799,9 +2799,8 @@ void Assembler::LoadFromOffset(Register dest,
                                OperandSize sz) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2858,9 +2857,8 @@ void Assembler::LoadIndexedCompressed(Register dest,
 void Assembler::LoadSFromOffset(FRegister dest, Register base, int32_t offset) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2876,9 +2874,8 @@ void Assembler::LoadSFromOffset(FRegister dest, Register base, int32_t offset) {
 void Assembler::LoadDFromOffset(FRegister dest, Register base, int32_t offset) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2912,9 +2909,8 @@ void Assembler::StoreToOffset(Register src,
                               OperandSize sz) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2946,9 +2942,8 @@ void Assembler::StoreToOffset(Register src,
 void Assembler::StoreSToOffset(FRegister src, Register base, int32_t offset) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -2964,9 +2959,8 @@ void Assembler::StoreSToOffset(FRegister src, Register base, int32_t offset) {
 void Assembler::StoreDToOffset(FRegister src, Register base, int32_t offset) {
   ASSERT(base != TMP2);
   if (!IsITypeImm(offset)) {
-    intx_t imm = offset;
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-    intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+    intx_t lo = ImmLo(offset);
+    intx_t hi = ImmHi(offset);
     if (hi == 0) {
       UNREACHABLE();
     } else {
@@ -3322,7 +3316,7 @@ void Assembler::LoadImmediate(Register reg, intx_t imm) {
       return;
     }
 
-    intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
+    intx_t lo = ImmLo(imm);
     intx_t hi = imm - lo;
     shift = Utils::CountTrailingZeros64(hi);
     ASSERT(shift != 0);
@@ -3335,8 +3329,8 @@ void Assembler::LoadImmediate(Register reg, intx_t imm) {
   }
 #endif
 
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(imm);
+  intx_t hi = ImmHi(imm);
   if (hi == 0) {
     addi(reg, ZR, lo);
   } else {
@@ -3382,9 +3376,8 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
   ASSERT(dst != pp);
   const uint32_t offset = target::ObjectPool::element_offset(index);
   // PP is untagged.
-  intx_t imm = offset;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(offset);
+  intx_t hi = ImmHi(offset);
   if (hi == 0) {
     lx(dst, Address(pp, lo));
   } else {
@@ -3645,8 +3638,8 @@ void Assembler::CheckCodePointer() {
   const intptr_t entry_offset =
       CodeSize() + target::Instructions::HeaderSize() - kHeapObjectTag;
   intx_t imm = -entry_offset;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(imm);
+  intx_t hi = ImmHi(imm);
   auipc(TMP, hi);
   addi(TMP, TMP, lo);
   lx(TMP2, FieldAddress(CODE_REG, target::Code::instructions_offset()));
@@ -4130,9 +4123,8 @@ void Assembler::CopyMemoryWords(Register src,
 
 void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
   // JAL only has a +/- 1MB range. AUIPC+JALR has a +/- 2GB range.
-  intx_t imm = offset_into_target;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(offset_into_target);
+  intx_t hi = ImmHi(offset_into_target);
   auipc(RA, hi);
   jalr_fixed(RA, RA, lo);
 }
@@ -4140,9 +4132,8 @@ void Assembler::GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target) {
 void Assembler::GenerateUnRelocatedPcRelativeTailCall(
     intptr_t offset_into_target) {
   // J only has a +/- 1MB range. AUIPC+JR has a +/- 2GB range.
-  intx_t imm = offset_into_target;
-  intx_t lo = imm << (XLEN - 12) >> (XLEN - 12);
-  intx_t hi = (imm - lo) << (XLEN - 32) >> (XLEN - 32);
+  intx_t lo = ImmLo(offset_into_target);
+  intx_t hi = ImmHi(offset_into_target);
   auipc(TMP, hi);
   jalr_fixed(ZR, TMP, lo);
 }

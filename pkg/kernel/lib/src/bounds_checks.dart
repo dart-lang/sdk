@@ -467,7 +467,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
   }
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
-    if (argument is TypeParameterType && argument.promotedBound != null) {
+    if (argument is IntersectionType) {
       // TODO(cstefantsova): Consider recognizing this case with a flag on the
       // issue object.
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
@@ -642,6 +642,16 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
     }
   }
 
+  @override
+  DartType? visitIntersectionType(IntersectionType node, int variance) {
+    // Types such as X & Never are bottom types.
+    if (isBottom(node) && flipBottom(variance)) {
+      return topType;
+    } else {
+      return null;
+    }
+  }
+
   // TypedefTypes receive special treatment because the variance of their
   // arguments' positions depend on the opt-in status of the library.
   @override
@@ -711,6 +721,13 @@ class VarianceCalculator
   int visitTypeParameterType(TypeParameterType node,
       Map<TypeParameter, Map<DartType, int>> computedVariances) {
     if (node.parameter == typeParameter) return Variance.covariant;
+    return Variance.unrelated;
+  }
+
+  @override
+  int visitIntersectionType(IntersectionType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    if (node.left.parameter == typeParameter) return Variance.covariant;
     return Variance.unrelated;
   }
 
@@ -810,6 +827,25 @@ class VarianceCalculator
               Variance.contravariant,
               computeVariance(typeParameter, namedType.type,
                   computedVariances: computedVariances)));
+    }
+    return result;
+  }
+
+  @override
+  int visitRecordType(RecordType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    int result = Variance.unrelated;
+    for (DartType positionalType in node.positional) {
+      result = Variance.meet(
+          result,
+          computeVariance(typeParameter, positionalType,
+              computedVariances: computedVariances));
+    }
+    for (NamedType namedType in node.named) {
+      result = Variance.meet(
+          result,
+          computeVariance(typeParameter, namedType.type,
+              computedVariances: computedVariances));
     }
     return result;
   }

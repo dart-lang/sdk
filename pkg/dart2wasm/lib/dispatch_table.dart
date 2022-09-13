@@ -5,6 +5,7 @@
 import 'dart:math';
 
 import 'package:dart2wasm/class_info.dart';
+import 'package:dart2wasm/dynamic_dispatch.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/translator.dart';
@@ -31,18 +32,20 @@ class SelectorInfo {
 
   late final List<int> classIds;
   late final int targetCount;
-  bool forced = false;
+  final bool calledDynamically;
   Reference? singularTarget;
   int? offset;
 
+  w.Module get m => translator.m;
+
   String get name => paramInfo.member.name.text;
 
-  bool get alive => callCount > 0 && targetCount > 1 || forced;
+  bool get alive => callCount > 0 && targetCount > 1 || calledDynamically;
 
   int get sortWeight => classIds.length * 10 + callCount;
 
   SelectorInfo(this.translator, this.id, this.callCount, this.tornOff,
-      this.paramInfo, this.returnCount);
+      this.paramInfo, this.returnCount, this.calledDynamically);
 
   /// Compute the signature for the functions implementing members targeted by
   /// this selector.
@@ -121,7 +124,7 @@ class SelectorInfo {
     });
 
     List<w.ValueType> typeParameters = List.filled(paramInfo.typeParamCount,
-        translator.classInfo[translator.typeClass]!.nullableType);
+        translator.classInfo[translator.typeClass]!.nonNullableType);
     List<w.ValueType> inputs = List.generate(
         inputSets.length,
         (i) => translator.typeForInfo(
@@ -135,8 +138,53 @@ class SelectorInfo {
         outputSets.length,
         (i) => translator.typeForInfo(
             upperBound(outputSets[i]), outputNullable[i]) as w.ValueType);
-    return translator.functionType(
+    return m.addFunctionType(
         [inputs[0], ...typeParameters, ...inputs.sublist(1)], outputs);
+  }
+
+  // Returns a bool indicating whether or not a given selector can be applied to
+  // a given [Arguments] object. This only checks the argument counts / names,
+  // not their types.
+  bool canApply(Expression dynamicExpression) {
+    if (dynamicExpression is DynamicGet || dynamicExpression is DynamicSet) {
+      // Dynamic get or set can always apply.
+      return true;
+    } else if (dynamicExpression is DynamicInvocation) {
+      Procedure member = paramInfo.member as Procedure;
+      Arguments arguments = dynamicExpression.arguments;
+      FunctionNode function = member.function;
+      if (arguments.types.isNotEmpty &&
+          arguments.types.length != function.typeParameters.length) {
+        return false;
+      }
+
+      if (arguments.positional.length < function.requiredParameterCount ||
+          arguments.positional.length > function.positionalParameters.length) {
+        return false;
+      }
+
+      Set<String> namedParameters = {};
+      Set<String> requiredNamedParameters = {};
+      for (VariableDeclaration v in function.namedParameters) {
+        if (v.isRequired) {
+          requiredNamedParameters.add(v.name!);
+        } else {
+          namedParameters.add(v.name!);
+        }
+      }
+
+      int requiredFound = 0;
+      for (NamedExpression namedArgument in arguments.named) {
+        bool found = requiredNamedParameters.contains(namedArgument.name);
+        if (found) {
+          requiredFound++;
+        } else if (!namedParameters.contains(namedArgument.name)) {
+          return false;
+        }
+      }
+      return requiredFound == requiredNamedParameters.length;
+    }
+    throw '"canApply" should only be used for procedures';
   }
 }
 
@@ -147,8 +195,13 @@ class DispatchTable {
   final Map<TreeNode, ProcedureAttributesMetadata> procedureAttributeMetadata;
 
   final Map<int, SelectorInfo> selectorInfo = {};
-  final Map<String, int> dynamicGets = {};
+  final Map<String, List<SelectorInfo>> dynamicGets = {};
+  final Map<String, List<SelectorInfo>> dynamicSets = {};
+  final Map<String, List<SelectorInfo>> dynamicMethods = {};
   late final List<Reference?> table;
+  late final w.DefinedTable wasmTable;
+
+  w.Module get m => translator.m;
 
   DispatchTable(this.translator)
       : selectorMetadata =
@@ -164,6 +217,7 @@ class DispatchTable {
   SelectorInfo selectorForTarget(Reference target) {
     Member member = target.asMember;
     bool isGetter = target.isGetter || target.isTearOffReference;
+    bool isSetter = target.isSetter;
     ProcedureAttributesMetadata metadata = procedureAttributeMetadata[member]!;
     int selectorId = isGetter
         ? metadata.getterSelectorId
@@ -173,11 +227,14 @@ class DispatchTable {
             member is Procedure && member.function.returnType is! VoidType
         ? 1
         : 0;
-    bool calledDynamically = isGetter && metadata.getterCalledDynamically;
-    if (calledDynamically) {
-      // Merge all same-named getter selectors that are called dynamically.
-      selectorId = dynamicGets.putIfAbsent(member.name.text, () => selectorId);
-    }
+
+    DynamicSelectorType selectorType = isGetter
+        ? DynamicSelectorType.getter
+        : isSetter
+            ? DynamicSelectorType.setter
+            : DynamicSelectorType.method;
+    bool calledDynamically = translator.dynamics
+        .maybeCalledDynamically(member, metadata, selectorType);
     var selector = selectorInfo.putIfAbsent(
         selectorId,
         () => SelectorInfo(
@@ -186,15 +243,34 @@ class DispatchTable {
             selectorMetadata[selectorId].callCount,
             selectorMetadata[selectorId].tornOff,
             paramInfo,
-            returnCount)
-          ..forced = calledDynamically);
+            returnCount,
+            calledDynamically));
     selector.paramInfo.merge(paramInfo);
     selector.returnCount = max(selector.returnCount, returnCount);
+    if (calledDynamically) {
+      if (isGetter) {
+        (dynamicGets[member.name.text] ??= []).add(selector);
+      } else if (isSetter) {
+        (dynamicSets[member.name.text] ??= []).add(selector);
+      } else {
+        (dynamicMethods[member.name.text] ??= []).add(selector);
+      }
+    }
     return selector;
   }
 
-  SelectorInfo selectorForDynamicName(String name) {
-    return selectorInfo[dynamicGets[name]!]!;
+  /// Returns a possibly null list of [SelectorInfo]s for a given dynamic
+  /// call.
+  Iterable<SelectorInfo>? selectorsForDynamicNode(Expression node) {
+    if (node is DynamicGet) {
+      return dynamicGets[node.name.text];
+    } else if (node is DynamicSet) {
+      return dynamicSets[node.name.text];
+    } else if (node is DynamicInvocation) {
+      return dynamicMethods[node.name.text];
+    } else {
+      throw 'Dynamic invocation of $node not supported';
+    }
   }
 
   void build() {
@@ -292,11 +368,11 @@ class DispatchTable {
         firstAvailable++;
       }
     }
+
+    wasmTable = m.addTable(w.RefType.func(nullable: true), table.length);
   }
 
   void output() {
-    w.Module m = translator.m;
-    w.DefinedTable wasmTable = m.addTable(w.RefType.func(), table.length);
     for (int i = 0; i < table.length; i++) {
       Reference? target = table[i];
       if (target != null) {

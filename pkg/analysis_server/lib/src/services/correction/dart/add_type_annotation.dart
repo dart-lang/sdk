@@ -104,7 +104,7 @@ class AddTypeAnnotation extends CorrectionProducer {
       var targetClassDeclaration =
           target.thisOrAncestorOfType<ClassDeclaration>();
       if (targetClassDeclaration != null) {
-        utils.targetClassElement = targetClassDeclaration.declaredElement;
+        utils.targetClassElement = targetClassDeclaration.declaredElement2;
       }
     }
   }
@@ -115,12 +115,12 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (declaredIdentifier.type != null) {
       return;
     }
-    var type = declaredIdentifier.declaredElement!.type;
+    var type = declaredIdentifier.declaredElement2!.type;
     if (type is! InterfaceType && type is! FunctionType) {
       return;
     }
     await _applyChange(builder, declaredIdentifier.keyword,
-        declaredIdentifier.identifier.offset, type);
+        declaredIdentifier.name.offset, type);
   }
 
   Future<void> _forSimpleFormalParameter(ChangeBuilder builder,
@@ -150,7 +150,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     final variables = declarationList.variables;
     final variable = variables[0];
     // Ensure that the selection is not after the name of the variable.
-    if (selectionOffset > variable.name.end) {
+    if (selectionOffset > variable.name2.end) {
       return;
     }
     // Ensure that there is an initializer to get the type from.
@@ -183,7 +183,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (statement is! VariableDeclarationStatement || block is! Block) {
       return null;
     }
-    var element = variable.declaredElement;
+    var element = variable.declaredElement2;
     if (element is! LocalVariableElement) {
       return null;
     }

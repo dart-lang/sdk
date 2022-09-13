@@ -234,26 +234,27 @@ class NamedTypeResolver with ScopeHelpers {
       }
     }
 
-    if (element is ClassElement) {
+    if (element is InterfaceElement) {
       if (identical(node, withClause_namedType)) {
         for (var mixin in enclosingClass!.mixins) {
-          if (mixin.element == element) {
+          if (mixin.element2 == element) {
             return mixin;
           }
         }
       }
 
-      if (identical(node, redirectedConstructor_namedType)) {
+      if (element is ClassElement &&
+          identical(node, redirectedConstructor_namedType)) {
         return _inferRedirectedConstructor(element);
       }
 
-      return typeSystem.instantiateToBounds2(
-        classElement: element,
+      return typeSystem.instantiateInterfaceToBounds(
+        element: element,
         nullabilitySuffix: nullability,
       );
     } else if (element is TypeAliasElement) {
-      var type = typeSystem.instantiateToBounds2(
-        typeAliasElement: element,
+      var type = typeSystem.instantiateTypeAliasToBounds(
+        element: element,
         nullabilitySuffix: nullability,
       );
       return _verifyTypeAliasForContext(node, element, type);
@@ -568,7 +569,7 @@ class _ErrorHelper {
 
     if (element is LocalVariableElement ||
         (element is FunctionElement &&
-            element.enclosingElement is ExecutableElement)) {
+            element.enclosingElement3 is ExecutableElement)) {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,

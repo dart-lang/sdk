@@ -244,12 +244,12 @@ class _File extends FileSystemEntity implements File {
 
   File get absolute => new File(_absolutePath);
 
-  Future<File> create({bool recursive = false}) {
+  Future<File> create({bool recursive = false, bool exclusive = false}) {
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
-        .then((_) =>
-            _dispatchWithNamespace(_IOService.fileCreate, [null, _rawPath]))
+        .then((_) => _dispatchWithNamespace(
+            _IOService.fileCreate, [null, _rawPath, exclusive]))
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot create file", path);
@@ -258,18 +258,19 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  external static _create(_Namespace namespace, Uint8List rawPath);
+  external static _create(
+      _Namespace namespace, Uint8List rawPath, bool exclusive);
 
   external static _createLink(
       _Namespace namespace, Uint8List rawPath, String target);
 
   external static _linkTarget(_Namespace namespace, Uint8List rawPath);
 
-  void createSync({bool recursive = false}) {
+  void createSync({bool recursive = false, bool exclusive = false}) {
     if (recursive) {
       parent.createSync(recursive: true);
     }
-    var result = _create(_Namespace._namespace, _rawPath);
+    var result = _create(_Namespace._namespace, _rawPath, exclusive);
     throwIfError(result, "Cannot create file", path);
   }
 

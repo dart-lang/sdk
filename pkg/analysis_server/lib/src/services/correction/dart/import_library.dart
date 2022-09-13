@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -164,7 +163,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // is, then we can check the extension elements without needing to perform
     // additional analysis.
     var foundImport = false;
-    for (var imp in libraryElement.imports) {
+    for (var imp in libraryElement.libraryImports) {
       // prepare element
       var importedLibrary = imp.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {
@@ -220,7 +219,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         _ImportAbsoluteLibrary(fixKind, library),
       ]);
     }
-    if (isLintEnabled(LintNames.prefer_relative_imports)) {
+    if (codeStyleOptions.useRelativeUris) {
       return Stream.fromIterable([
         _ImportRelativeLibrary(fixKind, library),
         _ImportAbsoluteLibrary(fixKind, library),
@@ -244,7 +243,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
     var alreadyImportedWithPrefix = <LibraryElement>{};
-    for (var imp in libraryElement.imports) {
+    for (var imp in libraryElement.libraryImports) {
       // prepare element
       var libraryElement = imp.importedLibrary;
       if (libraryElement == null) {
@@ -261,7 +260,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       // may be apply prefix
-      var prefix = imp.prefix;
+      var prefix = imp.prefix?.element;
       if (prefix != null) {
         yield _ImportLibraryPrefix(libraryElement, prefix);
         continue;
@@ -356,10 +355,12 @@ class ImportLibrary extends MultiCorrectionProducer {
     // `this`.
     DartType? enclosingThisType(AstNode node) {
       var parent = node.parent;
-      if (parent is ClassOrMixinDeclaration) {
-        return parent.declaredElement?.thisType;
+      if (parent is ClassDeclaration) {
+        return parent.declaredElement2?.thisType;
       } else if (parent is ExtensionDeclaration) {
         return parent.extendedType.type;
+      } else if (parent is MixinDeclaration) {
+        return parent.declaredElement2?.thisType;
       } else {
         return null;
       }

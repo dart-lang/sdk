@@ -190,7 +190,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       ),
     );
     _writeOptionalNode(node.type);
-    _writeDeclarationName(node.identifier);
+    _writeDeclarationName(node.name);
     _storeDeclaration(node);
   }
 
@@ -434,7 +434,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       }
     }
 
-    // TODO(scheglov) Dont write type, AKA separate true `int` and `double`?
+    // TODO(scheglov) Don't write type, AKA separate true `int` and `double`?
     _storeExpression(node);
   }
 
@@ -628,6 +628,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _writeByte(Tag.RecordLiteral);
+    _writeByte(
+      AstBinaryFlags.encode(
+        isConst: node.constKeyword != null,
+      ),
+    );
+    _writeNodeList(node.fields);
+    _storeExpression(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     _writeByte(Tag.RedirectingConstructorInvocation);
@@ -764,7 +776,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     _writeByte(Tag.TypeParameter);
-    _writeDeclarationName(node.name);
+    _writeDeclarationName(node.name2);
     _writeOptionalNode(node.bound);
     _storeDeclaration(node);
   }
@@ -836,7 +848,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }) {
     _writeByte(
       AstBinaryFlags.encode(
-        hasName: node.identifier != null,
+        hasName: node.name != null,
         hasQuestion: hasQuestion,
         isConst: keyword?.type == Keyword.CONST,
         isCovariant: node.covariantKeyword != null,
@@ -847,8 +859,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     );
 
     _writeNodeList(node.metadata);
-    if (node.identifier != null) {
-      _writeDeclarationName(node.identifier!);
+    if (node.name != null) {
+      _writeDeclarationName(node.name!);
     }
     _storeFormalParameter(node);
   }
@@ -858,7 +870,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       f();
     } else {
       var elements = node.typeParameters
-          .map((typeParameter) => typeParameter.declaredElement!)
+          .map((typeParameter) => typeParameter.declaredElement2!)
           .toList();
       _sink.localElements.withElements(elements, () {
         f();
@@ -875,8 +887,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _sink.addByte(byte);
   }
 
-  void _writeDeclarationName(SimpleIdentifier node) {
-    _writeStringReference(node.name);
+  void _writeDeclarationName(Token token) {
+    _writeStringReference(token.lexeme);
   }
 
   _writeDouble(double value) {

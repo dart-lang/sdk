@@ -71,6 +71,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           declaredVariables: declaredVariables,
           isNonNullableByDefault:
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
+          configuration: ConstantEvaluationConfiguration(),
         );
 
   @override
@@ -132,7 +133,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       _validateConstantArguments(argumentList);
     }
 
-    var element = node.declaredElement as ConstFieldElementImpl;
+    var element = node.declaredElement2 as ConstFieldElementImpl;
     var result = element.evaluationResult;
     if (result != null) {
       _reportErrors(result.errors, null);
@@ -290,7 +291,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer;
     if (initializer != null && (node.isConst || node.isFinal)) {
-      var element = node.declaredElement as VariableElementImpl;
+      var element = node.declaredElement2 as VariableElementImpl;
       var result = element.evaluationResult;
       if (result == null) {
         // Variables marked "const" should have had their values computed by
@@ -369,11 +370,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
     // prepare ClassElement
     if (type is InterfaceType) {
-      var element = type.element;
+      var element = type.element2;
       // lookup for ==
       var method = element.lookUpConcreteMethod("==", _currentLibrary);
       if (method == null ||
-          (method.enclosingElement as ClassElement).isDartCoreObject) {
+          (method.enclosingElement3 as ClassElement).isDartCoreObject) {
         return false;
       }
       // there is == that we don't like
@@ -576,7 +577,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration variableDeclaration
             in member.fields.variables) {
-          if (isEnumDeclaration && variableDeclaration.name.name == 'values') {
+          if (isEnumDeclaration &&
+              variableDeclaration.name2.lexeme == 'values') {
             continue;
           }
           var initializer = variableDeclaration.initializer;
@@ -597,7 +599,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                   CompileTimeErrorCode
                       .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
                   constKeyword,
-                  [variableDeclaration.name.name]);
+                  [variableDeclaration.name2.lexeme]);
             }
           }
         }
@@ -1088,8 +1090,8 @@ extension on Expression {
           if (declarationListParent is FieldDeclaration &&
               !declarationListParent.isStatic) {
             var container = declarationListParent.parent;
-            if (container is ClassOrMixinDeclaration) {
-              var enclosingClass = container.declaredElement;
+            if (container is ClassDeclaration) {
+              var enclosingClass = container.declaredElement2;
               if (enclosingClass != null) {
                 // A field initializer of a class with at least one generative
                 // const constructor does not constitute a constant context, but

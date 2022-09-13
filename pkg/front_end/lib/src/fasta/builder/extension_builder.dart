@@ -43,7 +43,7 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   // member lookup to avoid reporting that the member doesn't exist when it is
   // duplicate.
   Builder? lookupLocalMemberByName(Name name,
-      {bool setter: false, bool required: false});
+      {bool setter = false, bool required = false});
 
   /// Calls [f] for each member declared in this extension.
   void forEach(void f(String name, Builder builder));
@@ -59,7 +59,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   @override
   Builder? findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
-      {bool isSetter: false}) {
+      {bool isSetter = false}) {
     if (accessingLibrary.nameOriginBuilder.origin !=
             libraryBuilder.nameOriginBuilder.origin &&
         name.startsWith("_")) {
@@ -160,7 +160,10 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   void forEach(void f(String name, Builder builder)) {
-    scope.forEach(f);
+    scope
+        .filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: false)
+        .forEach(f);
   }
 
   @override
@@ -171,7 +174,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   Builder? lookupLocalMember(String name,
-      {bool setter: false, bool required: false}) {
+      {bool setter = false, bool required = false}) {
     // TODO(johnniwinther): Support patching on extensions.
     Builder? builder = scope.lookupLocalMember(name, setter: setter);
     if (required && builder == null) {
@@ -186,7 +189,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   Builder? lookupLocalMemberByName(Name name,
-      {bool setter: false, bool required: false}) {
+      {bool setter = false, bool required = false}) {
     Builder? builder =
         lookupLocalMember(name.text, setter: setter, required: required);
     if (builder == null && setter) {

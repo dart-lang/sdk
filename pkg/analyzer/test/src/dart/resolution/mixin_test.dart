@@ -32,7 +32,7 @@ mixin M {
     assertElementName(gElement, 'g', offset: 20);
 
     var gNode = findNode.methodDeclaration('g =>');
-    assertElement(gNode.name, gElement);
+    expect(gNode.declaredElement2, same(gElement));
 
     var fields = element.fields;
     expect(fields, hasLength(1));
@@ -55,7 +55,7 @@ mixin M {
     assertElementName(fooElement, 'foo', offset: 17);
 
     var fooNode = findNode.methodDeclaration('foo()');
-    assertElement(fooNode.name, fooElement);
+    expect(fooNode.declaredElement2, same(fooElement));
   }
 
   test_accessor_setter() async {
@@ -74,7 +74,7 @@ mixin M {
     assertElementName(sElement, 's=', offset: 21);
 
     var gNode = findNode.methodDeclaration('s(int _)');
-    assertElement(gNode.name, sElement);
+    expect(gNode.declaredElement2, same(sElement));
 
     var fields = element.fields;
     expect(fields, hasLength(1));
@@ -137,7 +137,9 @@ mixin M {}
 
     expect(element.supertype, isNull);
     expect(element.isAbstract, isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(element.isEnum, isFalse);
+    // ignore: deprecated_member_use_from_same_package
     expect(element.isMixin, isTrue);
     expect(element.isMixinApplication, isFalse);
     expect(element.thisType.isDartCoreObject, isFalse);
@@ -206,7 +208,7 @@ mixin M<T> {
     assertEnclosingElement(tElement, element);
 
     var tNode = findNode.typeParameter('T> {');
-    assertElement(tNode.name, tElement);
+    assertElement(tNode.declaredElement2, tElement);
 
     var fields = element.fields;
     expect(fields, hasLength(1));
@@ -216,7 +218,7 @@ mixin M<T> {
     assertEnclosingElement(fElement, element);
 
     var fNode = findNode.variableDeclaration('f;');
-    assertElement(fNode.name, fElement);
+    assertElement(fNode.declaredElement2, fElement);
 
     assertNamedType(findNode.namedType('T f'), tElement, 'T');
 

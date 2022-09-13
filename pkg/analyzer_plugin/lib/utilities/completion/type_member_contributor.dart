@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -105,9 +106,9 @@ class TypeMemberContributor implements CompletionContributor {
       // the most likely completion is a super expression with same name
       var containingMethod =
           expression.thisOrAncestorOfType<MethodDeclaration>();
-      var id = containingMethod?.name;
+      var id = containingMethod?.name2;
       if (id != null) {
-        containingMethodName = id.name;
+        containingMethodName = id.lexeme;
       }
     }
     if (type == null || type.isDynamic) {
@@ -139,7 +140,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       // no type
       finished();
     }
@@ -147,7 +148,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       // no type
       finished();
     }
@@ -158,7 +159,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    if (varDecl.name.name == targetName) {
+    if (varDecl.name2.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
     }
@@ -166,7 +167,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
@@ -177,7 +178,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
@@ -188,7 +189,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var typeName = declaration.functionType?.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
@@ -206,17 +207,20 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeAnnotation? type) {
-    if (name.name == targetName) {
-      var element = name.staticElement as VariableElement;
-      typeFound = element.type;
+  void declaredLocalVar(
+    Token name,
+    TypeAnnotation? type,
+    LocalVariableElement declaredElement,
+  ) {
+    if (name.lexeme == targetName) {
+      typeFound = declaredElement.type;
       finished();
     }
   }
 
   @override
   void declaredMethod(MethodDeclaration declaration) {
-    if (declaration.name.name == targetName) {
+    if (declaration.name2.lexeme == targetName) {
       var typeName = declaration.returnType;
       if (typeName != null) {
         typeFound = typeName.type;
@@ -226,8 +230,8 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeAnnotation? type) {
-    if (name.name == targetName) {
+  void declaredParam(Token name, Element? element, TypeAnnotation? type) {
+    if (name.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
     }
@@ -236,7 +240,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
-    if (varDecl.name.name == targetName) {
+    if (varDecl.name2.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
     }
@@ -411,11 +415,11 @@ class _SuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     var result = <InterfaceType>[];
-    Set<ClassElement> classesSeen = HashSet<ClassElement>();
+    final classesSeen = <InterfaceElement>{};
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element)) {
+      if (!classesSeen.add(nextType.element2)) {
         // Class had already been seen, so ignore this type.
         continue;
       }

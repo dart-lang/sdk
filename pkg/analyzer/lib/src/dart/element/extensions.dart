@@ -16,21 +16,21 @@ extension ElementAnnotationExtensions on ElementAnnotation {
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
     final element = this.element;
-    ClassElement? classElement;
+    InterfaceElement? interfaceElement;
     if (element is PropertyAccessorElement) {
       if (element.isGetter) {
         var type = element.returnType;
         if (type is InterfaceType) {
-          classElement = type.element;
+          interfaceElement = type.element2;
         }
       }
     } else if (element is ConstructorElement) {
-      classElement = element.enclosingElement;
+      interfaceElement = element.enclosingElement3;
     }
-    if (classElement == null) {
+    if (interfaceElement == null) {
       return const <TargetKind>{};
     }
-    for (var annotation in classElement.metadata) {
+    for (var annotation in interfaceElement.metadata) {
       if (annotation.isTarget) {
         var value = annotation.computeConstantValue()!;
         var kinds = <TargetKind>{};
@@ -41,7 +41,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
           // may have been compiled with a different version of pkg:meta.
           var index = kindObject.getField('index')!.toIntValue()!;
           var targetKindClass =
-              (kindObject.type as InterfaceType).element as EnumElementImpl;
+              (kindObject.type as InterfaceType).element2 as EnumElementImpl;
           // Instead, map constants to their TargetKind by comparing getter
           // names.
           var getter = targetKindClass.constants[index];
@@ -68,21 +68,21 @@ extension ElementExtension on Element {
       return true;
     }
 
-    var ancestor = enclosingElement;
+    var ancestor = enclosingElement3;
     if (ancestor is ClassElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement3;
     } else if (ancestor is ExtensionElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement3;
     }
 
     return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement2.hasDoNotStore;
+        ancestor.enclosingElement3.hasDoNotStore;
   }
 
   /// Return `true` if this element is an instance member of a class or mixin.
@@ -94,7 +94,7 @@ extension ElementExtension on Element {
   /// [PropertyAccessorElement]s.
   bool get isInstanceMember {
     var this_ = this;
-    var enclosing = this_.enclosingElement;
+    var enclosing = this_.enclosingElement3;
     if (enclosing is ClassElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
@@ -105,7 +105,7 @@ extension ElementExtension on Element {
 
 extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
-    return this is ConstructorElement && enclosingElement is EnumElementImpl;
+    return this is ConstructorElement && enclosingElement3 is EnumElementImpl;
   }
 }
 
@@ -122,5 +122,16 @@ extension ParameterElementExtensions on ParameterElement {
       // ignore: deprecated_member_use_from_same_package
       kind ?? parameterKind,
     )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
+  }
+}
+
+extension RecordTypeExtension on RecordType {
+  RecordTypeNamedField? namedField(String name) {
+    for (final field in namedFields) {
+      if (field.name == name) {
+        return field;
+      }
+    }
+    return null;
   }
 }

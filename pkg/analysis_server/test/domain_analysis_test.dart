@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -19,14 +20,14 @@ import 'mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisDomainBazelTest);
+    defineReflectiveTests(AnalysisDomainBlazeTest);
     defineReflectiveTests(AnalysisDomainPubTest);
     defineReflectiveTests(SetSubscriptionsTest);
   });
 }
 
 @reflectiveTest
-class AnalysisDomainBazelTest extends _AnalysisDomainTest {
+class AnalysisDomainBlazeTest extends _AnalysisDomainTest {
   String get myPackageLibPath => '$myPackageRootPath/lib';
 
   String get myPackageRootPath => '$workspaceRootPath/dart/my';
@@ -36,12 +37,12 @@ class AnalysisDomainBazelTest extends _AnalysisDomainTest {
   @override
   void setUp() {
     super.setUp();
-    newFile('$workspaceRootPath/WORKSPACE', '');
+    newFile('$workspaceRootPath/${file_paths.blazeWorkspaceMarker}', '');
   }
 
   Future<void> test_fileSystem_changeFile_buildFile() async {
     // This BUILD file does not enable null safety.
-    newBazelBuildFile(myPackageRootPath, '');
+    newBlazeBuildFile(myPackageRootPath, '');
 
     newFile(myPackageTestFilePath, '''
 void f(int? a) {}
@@ -54,11 +55,11 @@ void f(int? a) {}
     assertHasErrors(myPackageTestFilePath);
 
     // Enable null safety.
-    newBazelBuildFile(myPackageRootPath, '''
+    newBlazeBuildFile(myPackageRootPath, '''
 dart_package(null_safety = True)
 ''');
 
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
     // We have null safety enabled, so no errors.
@@ -1458,7 +1459,7 @@ void f(A a) {}
   /// Repeat a few times, eventually there will be no work to do.
   Future<void> _waitAnalysisComplete() async {
     for (var i = 0; i < 128; i++) {
-      pumpEventQueue();
+      await pumpEventQueue();
       await server.onAnalysisComplete;
     }
   }

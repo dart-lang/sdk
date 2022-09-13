@@ -109,8 +109,8 @@ class TypeConstraintGatherer {
     var P_nullability = P.nullabilitySuffix;
     if (P is TypeParameterType &&
         P_nullability == NullabilitySuffix.none &&
-        _typeParameters.contains(P.element)) {
-      _addUpper(P.element, Q);
+        _typeParameters.contains(P.element2)) {
+      _addUpper(P.element2, Q);
       return true;
     }
 
@@ -119,8 +119,8 @@ class TypeConstraintGatherer {
     var Q_nullability = Q.nullabilitySuffix;
     if (Q is TypeParameterType &&
         Q_nullability == NullabilitySuffix.none &&
-        _typeParameters.contains(Q.element)) {
-      _addLower(Q.element, P);
+        _typeParameters.contains(Q.element2)) {
+      _addLower(Q.element2, P);
       return true;
     }
 
@@ -308,7 +308,7 @@ class TypeConstraintGatherer {
     // Note: we have already eliminated the case that `X` is a variable in `L`.
     if (P_nullability == NullabilitySuffix.none && P is TypeParameterTypeImpl) {
       var rewind = _constraints.length;
-      var B = P.promotedBound ?? P.element.bound;
+      var B = P.promotedBound ?? P.element2.bound;
       if (B != null && trySubtypeMatch(B, Q, leftSchema)) {
         return true;
       }
@@ -329,6 +329,10 @@ class TypeConstraintGatherer {
 
     if (P is FunctionType && Q is FunctionType) {
       return _functionType(P, Q, leftSchema);
+    }
+
+    if (P is RecordTypeImpl && Q is RecordTypeImpl) {
+      return _recordType(P, Q, leftSchema);
     }
 
     return false;
@@ -543,7 +547,7 @@ class TypeConstraintGatherer {
     // holds under constraints `C0 + ... + Ck`:
     //   If `Mi` is a subtype match for `Ni` with respect to L under
     //   constraints `Ci`.
-    if (P.element == Q.element) {
+    if (P.element2 == Q.element2) {
       if (!_interfaceType_arguments(P, Q, leftSchema)) {
         return false;
       }
@@ -555,10 +559,10 @@ class TypeConstraintGatherer {
     //   If `C1<B0, ..., Bj>` is a superinterface of `C0<M0, ..., Mk>` and
     //   `C1<B0, ..., Bj>` is a subtype match for `C1<N0, ..., Nj>` with
     //   respect to `L` under constraints `C`.
-    var C0 = P.element;
-    var C1 = Q.element;
+    var C0 = P.element2;
+    var C1 = Q.element2;
     for (var interface in C0.allSupertypes) {
-      if (interface.element == C1) {
+      if (interface.element2 == C1) {
         var substitution = Substitution.fromInterfaceType(P);
         return _interfaceType_arguments(
           substitution.substituteType(interface) as InterfaceType,
@@ -578,13 +582,13 @@ class TypeConstraintGatherer {
     InterfaceType Q,
     bool leftSchema,
   ) {
-    assert(P.element == Q.element);
+    assert(P.element2 == Q.element2);
 
     var rewind = _constraints.length;
 
     for (var i = 0; i < P.typeArguments.length; i++) {
       var variance =
-          (P.element.typeParameters[i] as TypeParameterElementImpl).variance;
+          (P.element2.typeParameters[i] as TypeParameterElementImpl).variance;
       var M = P.typeArguments[i];
       var N = Q.typeArguments[i];
       if ((variance.isCovariant || variance.isInvariant) &&
@@ -594,6 +598,58 @@ class TypeConstraintGatherer {
       }
       if ((variance.isContravariant || variance.isInvariant) &&
           !trySubtypeMatch(N, M, leftSchema)) {
+        _constraints.length = rewind;
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// If `P` is `(M0, ..., Mk)` and `Q` is `(N0, ..., Nk)`, then the match
+  /// holds under constraints `C0 + ... + Ck`:
+  ///   If `Mi` is a subtype match for `Ni` with respect to L under
+  ///   constraints `Ci`.
+  bool _recordType(RecordTypeImpl P, RecordTypeImpl Q, bool leftSchema) {
+    if (P.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    if (Q.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    }
+
+    final positionalP = P.positionalFields;
+    final positionalQ = Q.positionalFields;
+    if (positionalP.length != positionalQ.length) {
+      return false;
+    }
+
+    final namedP = P.namedFields;
+    final namedQ = Q.namedFields;
+    if (namedP.length != namedQ.length) {
+      return false;
+    }
+
+    final rewind = _constraints.length;
+
+    for (var i = 0; i < positionalP.length; i++) {
+      final fieldP = positionalP[i];
+      final fieldQ = positionalQ[i];
+      if (!trySubtypeMatch(fieldP.type, fieldQ.type, leftSchema)) {
+        _constraints.length = rewind;
+        return false;
+      }
+    }
+
+    for (var i = 0; i < namedP.length; i++) {
+      final fieldP = namedP[i];
+      final fieldQ = namedQ[i];
+      if (fieldP.name != fieldQ.name) {
+        _constraints.length = rewind;
+        return false;
+      }
+      if (!trySubtypeMatch(fieldP.type, fieldQ.type, leftSchema)) {
         _constraints.length = rewind;
         return false;
       }

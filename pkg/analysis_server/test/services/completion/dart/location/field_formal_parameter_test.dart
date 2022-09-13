@@ -31,7 +31,7 @@ class FieldFormalParameterTest2 extends AbstractCompletionDriverTest
 
 mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
   Future<void> test_class_replacement_left() async {
-    _checkContainers(
+    await _checkContainers(
       declarations: 'var field = 0;',
       constructorParameters: 'this.f^',
       validator: (response) {
@@ -48,7 +48,7 @@ mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_class_replacement_right() async {
-    _checkContainers(
+    await _checkContainers(
       declarations: 'var field = 0;',
       constructorParameters: 'this.^f',
       validator: (response) {
@@ -105,7 +105,7 @@ class B extends A {
   }
 
   Future<void> test_class_suggestions_onlyNotSpecified_optionalNamed() async {
-    _checkContainers(
+    await _checkContainers(
       declarations: 'final int x; final int y;',
       constructorParameters: '{this.x, this.^}',
       validator: (response) {
@@ -123,7 +123,7 @@ class B extends A {
 
   Future<void>
       test_class_suggestions_onlyNotSpecified_requiredPositional() async {
-    _checkContainers(
+    await _checkContainers(
       declarations: 'final int x; final int y;',
       constructorParameters: 'this.x, this.^',
       validator: (response) {

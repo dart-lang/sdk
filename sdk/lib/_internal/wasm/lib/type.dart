@@ -48,6 +48,7 @@ abstract class _Type implements Type {
 
 @pragma("wasm:entry-point")
 class _NeverType extends _Type {
+  @pragma("wasm:entry-point")
   const _NeverType() : super(false);
 
   @override
@@ -63,6 +64,7 @@ class _NeverType extends _Type {
 
 @pragma("wasm:entry-point")
 class _DynamicType extends _Type {
+  @pragma("wasm:entry-point")
   const _DynamicType() : super(true);
 
   @override
@@ -77,6 +79,7 @@ class _DynamicType extends _Type {
 
 @pragma("wasm:entry-point")
 class _VoidType extends _Type {
+  @pragma("wasm:entry-point")
   const _VoidType() : super(true);
 
   @override
@@ -91,6 +94,7 @@ class _VoidType extends _Type {
 
 @pragma("wasm:entry-point")
 class _NullType extends _Type {
+  @pragma("wasm:entry-point")
   const _NullType() : super(true);
 
   @override
@@ -110,6 +114,7 @@ class _NullType extends _Type {
 class _InterfaceTypeParameterType extends _Type {
   final int environmentIndex;
 
+  @pragma("wasm:entry-point")
   const _InterfaceTypeParameterType(super.isNullable, this.environmentIndex);
 
   @override
@@ -121,7 +126,7 @@ class _InterfaceTypeParameterType extends _Type {
       throw 'Type parameter should have been substituted already.';
 
   @override
-  String toString() => '$environmentIndex';
+  String toString() => 'T$environmentIndex';
 }
 
 @pragma("wasm:entry-point")
@@ -140,7 +145,7 @@ class _GenericFunctionTypeParameterType extends _Type {
       throw 'Type parameter should have been substituted already.';
 
   @override
-  String toString() => '$environmentIndex';
+  String toString() => 'G$environmentIndex';
 }
 
 @pragma("wasm:entry-point")
@@ -151,7 +156,7 @@ class _FutureOrType extends _Type {
   const _FutureOrType(bool isNullable, this.typeArgument) : super(isNullable);
 
   _InterfaceType get asFuture =>
-      _InterfaceType(ClassID.cidFuture, isNullable, [typeArgument]);
+      _InterfaceType(ClassID.cid_Future, isNullable, [typeArgument]);
 
   @override
   _Type get _asNonNullable {
@@ -231,8 +236,7 @@ class _InterfaceType extends _Type {
   @override
   String toString() {
     StringBuffer s = StringBuffer();
-    s.write("Interface");
-    s.write(classId);
+    s.write(_getTypeNames()[classId]);
     if (typeArguments.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
@@ -364,8 +368,8 @@ class _FunctionType extends _Type {
 }
 
 // TODO(joshualitt): Implement. This should probably extend _FunctionType.
-@pragma("wasm:entry-point")
 class _GenericFunctionType extends _Type {
+  @pragma("wasm:entry-point")
   const _GenericFunctionType(bool isNullable) : super(isNullable);
 
   @override
@@ -380,6 +384,7 @@ class _GenericFunctionType extends _Type {
 
 external List<List<int>> _getTypeRulesSupers();
 external List<List<List<_Type>>> _getTypeRulesSubstitutions();
+external List<String> _getTypeNames();
 
 class _Environment {
   List<List<_Type>> scopes = [];
@@ -450,7 +455,8 @@ class _TypeUniverse {
   }
 
   bool isFunctionType(_Type t) =>
-      isSpecificInterfaceType(t, ClassID.cidFunction);
+      isSpecificInterfaceType(t, ClassID.cidFunction) ||
+      isSpecificInterfaceType(t, ClassID.cid_Function);
 
   bool areTypeArgumentsSubtypes(List<_Type> sArgs, _Environment? sEnv,
       List<_Type> tArgs, _Environment? tEnv) {
@@ -484,13 +490,22 @@ class _TypeUniverse {
 
     List<_Type> substitutions = typeRulesSubstitutions[sId][sSuperIndexOfT];
 
+    // If we have empty type arguments then create a list of dynamic type
+    // arguments.
+    List<_Type> sTypeArguments = s.typeArguments;
+    if (substitutions.isNotEmpty && sTypeArguments.isEmpty) {
+      sTypeArguments = List<_Type>.generate(
+          substitutions.length, (int index) => const _DynamicType(),
+          growable: false);
+    }
+
     // If [sEnv] is null, then create a new environment. Otherwise, we are doing
     // a recursive type check, so extend the existing environment with [s]'s
     // type arguments.
     if (sEnv == null) {
-      sEnv = _Environment.from(s.typeArguments);
+      sEnv = _Environment.from(sTypeArguments);
     } else {
-      sEnv.push(s.typeArguments);
+      sEnv.push(sTypeArguments);
     }
     bool result =
         areTypeArgumentsSubtypes(substitutions, sEnv, t.typeArguments, tEnv);
@@ -562,6 +577,7 @@ class _TypeUniverse {
     }
     while (sIndex < sNamedLength) {
       if (sNamed[sIndex].isRequired) return false;
+      sIndex++;
     }
     return true;
   }
@@ -606,7 +622,7 @@ class _TypeUniverse {
       if (!isSubtype(sFutureOr.typeArgument, sEnv, t, tEnv)) {
         return false;
       }
-      return _isSubtype(sFutureOr.asFuture, t);
+      return isSubtype(sFutureOr.asFuture, sEnv, t, tEnv);
     }
 
     // Left Nullable:
@@ -640,6 +656,12 @@ class _TypeUniverse {
 
     // Function Type / Function:
     if ((s.isFunction || s.isGenericFunction) && isFunctionType(t)) {
+      return true;
+    }
+
+    // TODO(joshualitt): This is not correct, but it is necessary until we fully
+    // implement RTI for FunctionTypes.
+    if (isFunctionType(s) && (t.isFunction || t.isGenericFunction)) {
       return true;
     }
 

@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
@@ -101,9 +102,7 @@ class BundleWriter {
     _sink._writeStringReference(libraryElement.name);
     _writeFeatureSet(libraryElement.featureSet);
     _writeLanguageVersion(libraryElement.languageVersion);
-    _resolutionSink._writeAnnotationList(libraryElement.metadata);
-    _writeList(libraryElement.imports, _writeImportElement);
-    _writeList(libraryElement.exports, _writeExportElement);
+    _writeLibraryOrAugmentationElement(libraryElement);
     for (final partElement in libraryElement.parts2) {
       _resolutionSink._writeAnnotationList(partElement.metadata);
     }
@@ -121,6 +120,21 @@ class BundleWriter {
         classMembersOffsets: _classMembersLengths,
       ),
     );
+  }
+
+  void _writeAugmentationElement(LibraryAugmentationElement augmentation) {
+    augmentation as LibraryAugmentationElementImpl;
+    _writeUnitElement(augmentation.definingCompilationUnit);
+    // The offset where resolution for the augmentation starts.
+    // We need it to skip resolution information from the unit.
+    _sink.writeUInt30(_resolutionSink.offset);
+    _writeLibraryOrAugmentationElement(augmentation);
+  }
+
+  void _writeAugmentationImportElement(AugmentationImportElement element) {
+    element as AugmentationImportElementImpl;
+    _resolutionSink._writeAnnotationList(element.metadata);
+    _writeDirectiveUri(element.uri);
   }
 
   void _writeClassElement(ClassElement element) {
@@ -189,9 +203,13 @@ class BundleWriter {
       _sink._writeStringReference('${element.source.uri}');
     }
 
-    if (element is DirectiveUriWithLibrary) {
-      // TODO(scheglov) implement
-      throw UnimplementedError();
+    if (element is DirectiveUriWithAugmentationImpl) {
+      _sink.writeByte(DirectiveUriKind.withAugmentation.index);
+      writeWithSource(element);
+      _writeAugmentationElement(element.augmentation);
+    } else if (element is DirectiveUriWithLibrary) {
+      _sink.writeByte(DirectiveUriKind.withLibrary.index);
+      writeWithSource(element);
     } else if (element is DirectiveUriWithUnit) {
       _sink.writeByte(DirectiveUriKind.withUnit.index);
       writeWithSource(element);
@@ -210,7 +228,7 @@ class BundleWriter {
     }
   }
 
-  void _writeEnumElement(ClassElement element) {
+  void _writeEnumElement(EnumElement element) {
     element as EnumElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
@@ -247,18 +265,23 @@ class BundleWriter {
       } else if (exported is ExportedReferenceExported) {
         _sink.writeByte(1);
         _sink.writeUInt30(index);
-        _sink.writeUint30List(exported.indexes);
+        _sink.writeList(exported.locations, _writeExportLocation);
       } else {
         throw UnimplementedError('(${exported.runtimeType}) $exported');
       }
     });
   }
 
-  void _writeExportElement(ExportElement element) {
-    _sink._writeOptionalStringReference(element.uri);
-    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+  void _writeExportElement(LibraryExportElement element) {
+    element as LibraryExportElementImpl;
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeElement(element.exportedLibrary);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeDirectiveUri(element.uri);
+  }
+
+  void _writeExportLocation(ExportLocation location) {
+    _sink.writeUInt30(location.containerIndex);
+    _sink.writeUInt30(location.exportIndex);
   }
 
   void _writeExtensionElement(ExtensionElement element) {
@@ -317,14 +340,25 @@ class BundleWriter {
     });
   }
 
-  void _writeImportElement(ImportElement element) {
-    element as ImportElementImpl;
-    ImportElementFlags.write(_sink, element);
-    _sink._writeOptionalStringReference(element.uri);
-    _sink._writeOptionalStringReference(element.prefix?.name);
-    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+  void _writeImportElement(LibraryImportElement element) {
+    element as LibraryImportElementImpl;
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeElement(element.importedLibrary);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeImportElementPrefix(element.prefix);
+    _writeDirectiveUri(element.uri);
+    LibraryImportElementFlags.write(_sink, element);
+  }
+
+  void _writeImportElementPrefix(ImportElementPrefix? prefix) {
+    if (prefix is DeferredImportElementPrefix) {
+      _sink.writeByte(ImportElementPrefixKind.isDeferred.index);
+      _sink._writeStringReference(prefix.element.name);
+    } else if (prefix is ImportElementPrefix) {
+      _sink.writeByte(ImportElementPrefixKind.isNotDeferred.index);
+      _sink._writeStringReference(prefix.element.name);
+    } else {
+      _sink.writeByte(ImportElementPrefixKind.isNull.index);
+    }
   }
 
   void _writeLanguageVersion(LibraryLanguageVersion version) {
@@ -339,6 +373,18 @@ class BundleWriter {
     } else {
       _sink.writeBool(false);
     }
+  }
+
+  void _writeLibraryOrAugmentationElement(
+    LibraryOrAugmentationElementImpl container,
+  ) {
+    _resolutionSink._writeAnnotationList(container.metadata);
+    _writeList(container.libraryImports, _writeImportElement);
+    _writeList(container.libraryExports, _writeExportElement);
+    _writeList(
+      container.augmentationImports,
+      _writeAugmentationImportElement,
+    );
   }
 
   void _writeList<T>(List<T> elements, void Function(T) writeElement) {
@@ -363,7 +409,7 @@ class BundleWriter {
     });
   }
 
-  void _writeMixinElement(ClassElement element) {
+  void _writeMixinElement(MixinElement element) {
     element as MixinElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
 
@@ -500,10 +546,10 @@ class BundleWriter {
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
     _writeList(unitElement.classes, _writeClassElement);
-    _writeList(unitElement.enums, _writeEnumElement);
+    _writeList(unitElement.enums2, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
     _writeList(unitElement.functions, _writeFunctionElement);
-    _writeList(unitElement.mixins, _writeMixinElement);
+    _writeList(unitElement.mixins2, _writeMixinElement);
     _writeList(unitElement.typeAliases, _writeTypeAliasElement);
 
     _writeList(
@@ -613,11 +659,11 @@ class ResolutionSink extends _SummaryDataWriter {
           writeByte(Tag.InterfaceType_noTypeArguments_star);
         }
         // TODO(scheglov) Write raw
-        writeElement(type.element);
+        writeElement(type.element2);
       } else {
         writeByte(Tag.InterfaceType);
         // TODO(scheglov) Write raw
-        writeElement(type.element);
+        writeElement(type.element2);
         writeUInt30(typeArguments.length);
         for (var i = 0; i < typeArguments.length; ++i) {
           writeType(typeArguments[i]);
@@ -629,9 +675,12 @@ class ResolutionSink extends _SummaryDataWriter {
       writeByte(Tag.NeverType);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
+    } else if (type is RecordTypeImpl) {
+      _writeRecordType(type);
+      _writeTypeAliasElementArguments(type);
     } else if (type is TypeParameterType) {
       writeByte(Tag.TypeParameterType);
-      writeElement(type.element);
+      writeElement(type.element2);
       _writeNullabilitySuffix(type.nullabilitySuffix);
       _writeTypeAliasElementArguments(type);
     } else if (type is VoidType) {
@@ -758,6 +807,21 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
+  void _writeRecordType(RecordTypeImpl type) {
+    writeByte(Tag.RecordType);
+
+    writeList<RecordTypePositionalField>(type.positionalFields, (field) {
+      writeType(field.type);
+    });
+
+    writeList<RecordTypeNamedField>(type.namedFields, (field) {
+      _writeStringReference(field.name);
+      writeType(field.type);
+    });
+
+    _writeNullabilitySuffix(type.nullabilitySuffix);
+  }
+
   void _writeTypeAliasElementArguments(DartType type) {
     var alias = type.alias;
     _writeElement(alias?.element);
@@ -802,7 +866,7 @@ class ResolutionSink extends _SummaryDataWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement;
+    var enclosing = declaration.enclosingElement3;
     if (enclosing is TypeParameterizedElement) {
       if (enclosing is! ClassElement && enclosing is! ExtensionElement) {
         return const <DartType>[];

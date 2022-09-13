@@ -45,7 +45,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// code that is removed.
   final bool? removeViaComments;
 
-  final bool? warnOnWeakCode;
+  final bool warnOnWeakCode;
 
   final _decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
 
@@ -78,7 +78,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       {bool? permissive = false,
       NullabilityMigrationInstrumentation? instrumentation,
       bool? removeViaComments = false,
-      bool? warnOnWeakCode = true})
+      bool warnOnWeakCode = true})
       : this._(
           listener,
           NullabilityGraph(instrumentation: instrumentation),
@@ -223,7 +223,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       unit.accept(EdgeBuilder(
           result.typeProvider,
           result.typeSystem,
-          _variables,
+          _variables!,
           _graph,
           unit.declaredElement!.source,
           _permissive! ? listener : null,

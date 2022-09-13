@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
@@ -21,11 +22,11 @@ void computeSimplyBounded(Linker linker) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
-      for (var element in unit.enums) {
+      for (var element in unit.enums2) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
-      for (var element in unit.mixins) {
+      for (var element in unit.mixins2) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
@@ -39,20 +40,23 @@ void computeSimplyBounded(Linker linker) {
   for (var node in nodes) {
     walker.walk(node);
     var node2 = node._node;
-    if (node2 is ClassOrMixinDeclaration) {
-      var element = node2.declaredElement as ClassElementImpl;
+    if (node2 is ClassDeclaration) {
+      var element = node2.declaredElement2 as ClassElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is ClassTypeAlias) {
-      var element = node2.declaredElement as ClassElementImpl;
+      var element = node2.declaredElement2 as ClassElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is EnumDeclaration) {
-      var element = node2.declaredElement as EnumElementImpl;
+      var element = node2.declaredElement2 as EnumElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is GenericTypeAlias) {
-      var element = node2.declaredElement as TypeAliasElementImpl;
+      var element = node2.declaredElement2 as TypeAliasElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is FunctionTypeAlias) {
-      var element = node2.declaredElement as TypeAliasElementImpl;
+      var element = node2.declaredElement2 as TypeAliasElementImpl;
+      element.isSimplyBounded = node.isSimplyBounded;
+    } else if (node2 is MixinDeclaration) {
+      var element = node2.declaredElement2 as MixinElementImpl;
       element.isSimplyBounded = node.isSimplyBounded;
     } else {
       throw UnimplementedError('${node2.runtimeType}');
@@ -302,6 +306,15 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
       collector.visitParameters(type.parameters);
       for (var type in collector.types) {
         if (!_visitType(dependencies, type, allowTypeParameters)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (type is RecordTypeAnnotation) {
+      for (final field in type.fields) {
+        if (!_visitType(dependencies, field.type, allowTypeParameters)) {
           return false;
         }
       }

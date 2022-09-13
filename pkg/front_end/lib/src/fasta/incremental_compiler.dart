@@ -281,8 +281,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints,
-      bool fullComponent: false,
-      bool trackNeededDillLibraries: false}) async {
+      bool fullComponent = false,
+      bool trackNeededDillLibraries = false}) async {
     while (_currentlyCompiling != null) {
       await _currentlyCompiling!.future;
     }
@@ -529,8 +529,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return new IncrementalCompilerResult(result,
           classHierarchy: currentKernelTarget.loader.hierarchy,
           coreTypes: currentKernelTarget.loader.coreTypes,
-          neededDillLibraries: neededDillLibraries,
-          referenceFromIndex: currentKernelTarget.loader.referenceFromIndex);
+          neededDillLibraries: neededDillLibraries);
     });
   }
 
@@ -818,7 +817,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       replacementMap[entry.key] = childReplacementMap;
       replacementSettersMap[entry.key] = childReplacementSettersMap;
       for (LibraryBuilder builder in builders) {
-        NameIterator iterator = builder.nameIterator;
+        NameIterator iterator = builder.localMembersNameIterator;
         while (iterator.moveNext()) {
           Builder childBuilder = iterator.current;
           String name = iterator.name;
@@ -928,7 +927,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           builder.importScope
               .patchUpScope(replacementMap, replacementSettersMap);
 
-          Iterator<Builder> iterator = builder.iterator;
+          // TODO(johnniwinther): Should this include non-local (i.e. injected)
+          // members?
+          Iterator<Builder> iterator = builder.localMembersIterator;
           while (iterator.moveNext()) {
             Builder childBuilder = iterator.current;
             if (childBuilder is SourceClassBuilder) {
@@ -1178,21 +1179,39 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     if (!context
         .options.globalFeatures.alternativeInvalidationStrategy.isEnabled) {
+      recorderForTesting?.recordAdvancedInvalidationResult(
+          AdvancedInvalidationResult.disabled);
       return null;
     }
-    if (_modulesToLoad != null) return null;
-    if (reusedResult.directlyInvalidated.isEmpty) return null;
-    if (reusedResult.invalidatedBecauseOfPackageUpdate) return null;
+    if (_modulesToLoad != null) {
+      recorderForTesting?.recordAdvancedInvalidationResult(
+          AdvancedInvalidationResult.modulesToLoad);
+      return null;
+    }
+    if (reusedResult.directlyInvalidated.isEmpty) {
+      recorderForTesting?.recordAdvancedInvalidationResult(
+          AdvancedInvalidationResult.noDirectlyInvalidated);
+      return null;
+    }
+    if (reusedResult.invalidatedBecauseOfPackageUpdate) {
+      recorderForTesting?.recordAdvancedInvalidationResult(
+          AdvancedInvalidationResult.packageUpdate);
+      return null;
+    }
 
     if (enableMacros) {
       /// TODO(johnniwinther): Add a [hasMacro] property to [LibraryBuilder].
       for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-        Iterator<Builder> iterator = builder.iterator;
+        // TODO(johnniwinther): Should this include non-local (i.e. injected)
+        // members?
+        Iterator<Builder> iterator = builder.localMembersIterator;
         while (iterator.moveNext()) {
           Builder childBuilder = iterator.current;
           if (childBuilder is ClassBuilder && childBuilder.isMacro) {
             // Changes to a library with macro classes can affect any class that
             // depends on it.
+            recorderForTesting?.recordAdvancedInvalidationResult(
+                AdvancedInvalidationResult.macroChange);
             return null;
           }
         }
@@ -1204,14 +1223,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     for (LibraryBuilder builder in reusedResult.directlyInvalidated) {
       if (builder.library.problemsAsJson != null) {
         assert(builder.library.problemsAsJson!.isNotEmpty);
+        recorderForTesting?.recordAdvancedInvalidationResult(
+            AdvancedInvalidationResult.problemsInLibrary);
         return null;
-      }
-      Iterator<Builder> iterator = builder.iterator;
-      while (iterator.moveNext()) {
-        Builder childBuilder = iterator.current;
-        if (childBuilder.isDuplicate) {
-          return null;
-        }
       }
 
       List<Uri> builderUris = [builder.fileUri];
@@ -1226,6 +1240,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             CompilerContext.current.uriToSource[uri]!.source;
         // ignore: unnecessary_null_comparison
         if (previousSource == null || previousSource.isEmpty) {
+          recorderForTesting?.recordAdvancedInvalidationResult(
+              AdvancedInvalidationResult.noPreviousSource);
           return null;
         }
         ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
@@ -1239,6 +1255,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         String? before = textualOutline(previousSource, scannerConfiguration,
             performModelling: true);
         if (before == null) {
+          recorderForTesting?.recordAdvancedInvalidationResult(
+              AdvancedInvalidationResult.noPreviousOutline);
           return null;
         }
         String? now;
@@ -1248,6 +1266,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               performModelling: true);
         }
         if (before != now) {
+          recorderForTesting?.recordAdvancedInvalidationResult(
+              AdvancedInvalidationResult.outlineChange);
           return null;
         }
         missingSources ??= new Set<Uri>();
@@ -1285,6 +1305,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               // to rebuild only the body of.
               // TODO(jensj): We can probably add this to the rebuildBodies
               // list and just rebuild that library too.
+              recorderForTesting?.recordAdvancedInvalidationResult(
+                  AdvancedInvalidationResult.mixin);
               return null;
             }
           }
@@ -1306,6 +1328,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             Library importLibrary = dependency.targetLibrary;
             if (importLibrary.importUri == dartFfiUri) {
               // Explicitly imports dart:ffi.
+              recorderForTesting?.recordAdvancedInvalidationResult(
+                  AdvancedInvalidationResult.importsFfi);
               return null;
             }
             for (Reference exportReference in importLibrary.additionalExports) {
@@ -1314,6 +1338,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 Class c = export;
                 if (c.enclosingLibrary.importUri == dartFfiUri) {
                   // Implicitly imports a dart:ffi class.
+                  recorderForTesting?.recordAdvancedInvalidationResult(
+                      AdvancedInvalidationResult.importsFfiClass);
                   return null;
                 }
               }
@@ -1341,6 +1367,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       CompilerContext.current.uriToSource.remove(fileUri);
     }
 
+    recorderForTesting?.recordAdvancedInvalidationResult(
+        AdvancedInvalidationResult.bodiesOnly);
     return new ExperimentalInvalidation(
         rebuildBodies, originalNotReusedLibraries, missingSources);
   }
@@ -2796,8 +2824,58 @@ extension on UriTranslator {
   }
 }
 
+/// Result of advanced invalidation used for testing.
+enum AdvancedInvalidationResult {
+  /// Advanced invalidation is disabled.
+  disabled,
+
+  /// Requested to load modules, advanced invalidation is not supported.
+  modulesToLoad,
+
+  /// Nothing directly invalidated, no need for advanced invalidation.
+  // TODO(johnniwinther): Split this into multiple values that describe what led
+  // to there being no directly invalidated libraries.
+  noDirectlyInvalidated,
+
+  /// Package config has been updated, advanced invalidation is not supported.
+  packageUpdate,
+
+  /// Change to (dependency of) macro library, advanced invalidation is not
+  /// supported.
+  macroChange,
+
+  /// Problems in invalidated library, advanced invalidation is not supported.
+  problemsInLibrary,
+
+  /// No previous source for invalidated library, can't compare to new source.
+  noPreviousSource,
+
+  /// No textual outline computed for previous source, can't compare to new
+  /// source.
+  noPreviousOutline,
+
+  /// Textual outline has changed.
+  outlineChange,
+
+  /// Invalidated library contains class/mixin declaration used as mixin.
+  mixin,
+
+  /// Invalidated library imports 'dart:ffi'.
+  importsFfi,
+
+  /// Invalidated library imports library that exports class(es) from
+  /// 'dart:ffi'.
+  importsFfiClass,
+
+  /// Only bodies need to be rebuilt. This mean that advanced invalidation
+  /// succeeded.
+  bodiesOnly,
+}
+
 class RecorderForTesting {
   const RecorderForTesting();
+
+  void recordAdvancedInvalidationResult(AdvancedInvalidationResult result) {}
 
   void recordNonFullComponent(Component component) {}
 
