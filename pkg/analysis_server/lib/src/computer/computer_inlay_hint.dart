@@ -7,6 +7,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -35,8 +36,8 @@ class DartInlayHintComputer {
   /// Adds a type hint before [node] showing a label for the type [type].
   ///
   /// Padding will be added between the hint and [node] automatically.
-  void _addTypePrefix(AstNode node, DartType type) {
-    final offset = node.offset;
+  void _addTypePrefix(SyntacticEntity nodeOrToken, DartType type) {
+    final offset = nodeOrToken.offset;
     final position = toPosition(_lineInfo.getLocation(offset));
     final label =
         type.getDisplayString(withNullability: _isNonNullableByDefault);
@@ -83,6 +84,23 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     final declaration = node.declaredElement2;
     if (declaration != null) {
       _computer._addTypePrefix(node, declaration.returnType);
+    }
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    super.visitSimpleFormalParameter(node);
+
+    // Has explicit type.
+    if (node.isExplicitlyTyped) {
+      return;
+    }
+
+    final declaration = node.declaredElement;
+    if (declaration != null) {
+      // Prefer to insert before `name` to avoid going before keywords like
+      // `required`.
+      _computer._addTypePrefix(node.name ?? node, declaration.type);
     }
   }
 

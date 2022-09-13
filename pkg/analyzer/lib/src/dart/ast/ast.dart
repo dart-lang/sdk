@@ -5561,7 +5561,10 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   DartType resolve(ResolverVisitor resolver, DartType? imposedType);
 }
 
-/// A top-level declaration.
+/// A function declaration.
+///
+/// Wrapped in a [FunctionDeclarationStatementImpl] to represent a local
+/// function declaration, otherwise a top-level function declaration.
 ///
 ///    functionDeclaration ::=
 ///        'external' functionSignature
