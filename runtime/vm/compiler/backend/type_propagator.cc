@@ -599,7 +599,7 @@ void CompileType::Union(CompileType* other) {
   // Climb up the hierarchy to find a suitable supertype. Note that interface
   // types are not considered, making the union potentially non-commutative
   if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType() &&
-      !abstract_type->IsFunctionType()) {
+      !abstract_type->IsFunctionType() && !abstract_type->IsRecordType()) {
     Class& cls = Class::Handle(abstract_type->type_class());
     for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
       type_ = &AbstractType::ZoneHandle(cls.RareType());
@@ -773,6 +773,8 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kSentinelCid;
     } else if (type_->IsFunctionType() || type_->IsDartFunctionType()) {
       cid_ = kClosureCid;
+    } else if (type_->IsRecordType() || type_->IsDartRecordType()) {
+      cid_ = kRecordCid;
     } else if (type_->type_class_id() != kIllegalCid) {
       const Class& type_class = Class::Handle(type_->type_class());
       intptr_t implementation_cid = kIllegalCid;
@@ -1645,6 +1647,10 @@ CompileType AllocateClosureInstr::ComputeType() const {
                        CompileType::kCannotBeSentinel, kClosureCid, &sig);
   }
   return CompileType::FromCid(kClosureCid);
+}
+
+CompileType AllocateRecordInstr::ComputeType() const {
+  return CompileType::FromCid(kRecordCid);
 }
 
 CompileType LoadUntaggedInstr::ComputeType() const {

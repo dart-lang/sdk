@@ -2718,6 +2718,20 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   friend class Function;
 };
 
+class UntaggedRecordType : public UntaggedAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(RecordType);
+
+  COMPRESSED_POINTER_FIELD(ArrayPtr, field_types)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names);
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
+  VISIT_TO(hash)
+  uint8_t type_state_;
+  uint8_t nullability_;
+
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+};
+
 class UntaggedTypeRef : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeRef);
@@ -3208,6 +3222,19 @@ class UntaggedFloat64x2 : public UntaggedInstance {
   double y() const { return value_[1]; }
 };
 COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
+
+class UntaggedRecord : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Record);
+
+  int32_t num_fields_;
+  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names)
+  VISIT_FROM(field_names)
+  // Variable length data follows here.
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data)
+
+  friend void UpdateLengthField(intptr_t, ObjectPtr,
+                                ObjectPtr);  // num_fields_
+};
 
 // Define an aliases for intptr_t.
 #if defined(ARCH_IS_32_BIT)

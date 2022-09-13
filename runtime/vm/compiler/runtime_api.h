@@ -589,6 +589,16 @@ class GrowableObjectArray : public AllStatic {
   FINAL_CLASS();
 };
 
+class Record : public AllStatic {
+ public:
+  static word num_fields_offset();
+  static word field_names_offset();
+  static word field_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
 class PointerBase : public AllStatic {
  public:
   static word data_offset();
@@ -711,6 +721,12 @@ class FunctionType : public AllStatic {
   static word parameter_types_offset();
   static word type_parameters_offset();
   static word nullability_offset();
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
+class RecordType : public AllStatic {
+ public:
   static word InstanceSize();
   FINAL_CLASS();
 };

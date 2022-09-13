@@ -127,6 +127,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   /// Generate code for the member.
   void generate() {
+    // Build closure information.
     closures = Closures(this);
 
     Member member = this.member;
@@ -168,7 +169,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       Procedure procedure = member as Procedure;
       w.BaseFunction inner =
           translator.functions.getFunction(procedure.asyncInnerReference);
-      return generateAsyncWrapper(procedure.function, inner);
+      int parameterOffset = _initializeThis(member);
+      return generateAsyncWrapper(procedure.function, inner, parameterOffset);
     }
 
     return generateBody(member);
@@ -251,7 +253,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   ///
   /// The stub function unwraps the arguments from the struct and calls the
   /// inner function, containing the implementation of the async function.
-  void generateAsyncWrapper(FunctionNode functionNode, w.BaseFunction inner) {
+  void generateAsyncWrapper(
+      FunctionNode functionNode, w.BaseFunction inner, int parameterOffset) {
     w.DefinedFunction stub =
         m.addFunction(translator.functions.asyncStubFunctionType);
     w.BaseFunction asyncHelper =
@@ -260,6 +263,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.Instructions stubBody = stub.body;
     w.Local stubArguments = stub.locals[0];
     w.Local stubStack = stub.locals[1];
+
+    // Set up the type parameter to local mapping, in case a type parameter is
+    // used in the return type.
+    int paramIndex = parameterOffset;
+    for (TypeParameter typeParam in functionNode.typeParameters) {
+      typeLocals[typeParam] = paramLocals[paramIndex++];
+    }
 
     // Push the type argument to the async helper, specifying the type argument
     // of the returned `Future`.
@@ -312,9 +322,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   void generateBody(Member member) {
     ParameterInfo paramInfo = translator.paramInfoFor(reference);
-    bool hasThis = member.isInstanceMember || member is Constructor;
-    int typeParameterOffset = hasThis ? 1 : 0;
-    int implicitParams = typeParameterOffset + paramInfo.typeParamCount;
+    int parameterOffset = _initializeThis(member);
+    int implicitParams = parameterOffset + paramInfo.typeParamCount;
     List<VariableDeclaration> positional =
         member.function!.positionalParameters;
     for (int i = 0; i < positional.length; i++) {
@@ -329,7 +338,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         ? member.enclosingClass.typeParameters
         : member.function!.typeParameters;
     for (int i = 0; i < typeParameters.length; i++) {
-      typeLocals[typeParameters[i]] = paramLocals[typeParameterOffset + i];
+      typeLocals[typeParameters[i]] = paramLocals[parameterOffset + i];
     }
 
     // For all parameters whose Wasm type has been forced to `externref` due to
@@ -349,27 +358,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     });
 
     closures.findCaptures(member);
-
-    if (hasThis) {
-      Class cls = member.enclosingClass!;
-      ClassInfo info = translator.classInfo[cls]!;
-      thisLocal = paramLocals[0];
-      assert(!thisLocal!.type.nullable);
-      w.RefType thisType = info.nonNullableType;
-      if (translator.needsConversion(paramLocals[0].type, thisType) &&
-          !(cls == translator.objectInfo.cls ||
-              cls == translator.ffiPointerClass ||
-              translator.isFfiCompound(cls) ||
-              translator.isWasmType(cls))) {
-        preciseThisLocal = addLocal(thisType);
-        b.local_get(paramLocals[0]);
-        b.ref_cast(info.struct);
-        b.local_set(preciseThisLocal!);
-      } else {
-        preciseThisLocal = paramLocals[0];
-      }
-    }
-
     closures.collectContexts(member);
     if (member is Constructor) {
       for (Field field in member.enclosingClass.fields) {
@@ -418,17 +406,20 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   /// Generate code for the body of a lambda.
   w.DefinedFunction generateLambda(Lambda lambda, Closures closures) {
+    // Initialize closure information from enclosing member.
+    this.closures = closures;
+
     FunctionNode functionNode = lambda.functionNode;
+    _initializeContextLocals(functionNode);
+
     if (functionNode.asyncMarker == AsyncMarker.Async &&
         lambda.function == function) {
       w.DefinedFunction inner =
           translator.functions.addAsyncInnerFunctionFor(function);
-      generateAsyncWrapper(functionNode, inner);
+      generateAsyncWrapper(functionNode, inner, 1);
       return CodeGenerator(translator, inner, reference)
           .generateLambda(lambda, closures);
     }
-
-    this.closures = closures;
 
     int paramIndex = 1;
     for (TypeParameter typeParam in functionNode.typeParameters) {
@@ -441,6 +432,49 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       locals[param] = paramLocals[paramIndex++];
     }
 
+    allocateContext(functionNode);
+    captureParameters();
+
+    visitStatement(functionNode.body!);
+    _implicitReturn();
+    b.end();
+
+    return function;
+  }
+
+  /// Initialize locals containing `this` in constructors and instance members.
+  /// Returns the number of parameter locals taken up by the receiver parameter,
+  /// i.e. the parameter offset for the first type parameter (or the first
+  /// parameter if there are no type parameters).
+  int _initializeThis(Member member) {
+    bool hasThis = member.isInstanceMember || member is Constructor;
+    if (hasThis) {
+      Class cls = member.enclosingClass!;
+      ClassInfo info = translator.classInfo[cls]!;
+      thisLocal = paramLocals[0];
+      assert(!thisLocal!.type.nullable);
+      w.RefType thisType = info.nonNullableType;
+      if (translator.needsConversion(paramLocals[0].type, thisType) &&
+          !(cls == translator.objectInfo.cls ||
+              cls == translator.ffiPointerClass ||
+              translator.isFfiCompound(cls) ||
+              translator.isWasmType(cls))) {
+        preciseThisLocal = addLocal(thisType);
+        b.local_get(paramLocals[0]);
+        b.ref_cast(info.struct);
+        b.local_set(preciseThisLocal!);
+      } else {
+        preciseThisLocal = paramLocals[0];
+      }
+      return 1;
+    }
+    return 0;
+  }
+
+  /// Initialize locals pointing to every context in the context chain of a
+  /// closure, plus the locals containing `this` if `this` is captured by the
+  /// closure.
+  void _initializeContextLocals(FunctionNode functionNode) {
     Context? context = closures.contexts[functionNode]?.parent;
     if (context != null) {
       b.local_get(paramLocals[0]);
@@ -470,14 +504,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.local_set(thisLocal!);
       }
     }
-    allocateContext(functionNode);
-    captureParameters();
-
-    visitStatement(functionNode.body!);
-    _implicitReturn();
-    b.end();
-
-    return function;
   }
 
   void _implicitReturn() {

@@ -822,6 +822,11 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
                              pending_types);
   }
 
+  if (type.IsRecordType()) {
+    return FinalizeRecordType(zone, RecordType::Cast(type), finalization,
+                              pending_types);
+  }
+
   // This type is the root type of the type graph if no pending types queue is
   // allocated yet. A function type is a collection of types, but not a root.
   const bool is_root_type = pending_types == NULL;
@@ -904,6 +909,40 @@ AbstractTypePtr ClassFinalizer::FinalizeSignature(Zone* zone,
     return signature.Canonicalize(Thread::Current(), nullptr);
   }
   return signature.ptr();
+}
+
+AbstractTypePtr ClassFinalizer::FinalizeRecordType(
+    Zone* zone,
+    const RecordType& record,
+    FinalizationKind finalization,
+    PendingTypes* pending_types) {
+  AbstractType& type = AbstractType::Handle(zone);
+  AbstractType& finalized_type = AbstractType::Handle(zone);
+  // Finalize record field types.
+  const intptr_t num_fields = record.NumFields();
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    type = record.FieldTypeAt(i);
+    finalized_type = FinalizeType(type, kFinalize, pending_types);
+    if (type.ptr() != finalized_type.ptr()) {
+      record.SetFieldTypeAt(i, finalized_type);
+    }
+  }
+  // Canonicalize field names so they can be compared with pointer comparison.
+  // The field names are already sorted in the front-end.
+  Array& field_names = Array::Handle(zone, record.field_names());
+  field_names ^= field_names.Canonicalize(Thread::Current());
+  record.set_field_names(field_names);
+
+  if (FLAG_trace_type_finalization) {
+    THR_Print("Marking record type '%s' as finalized\n",
+              String::Handle(zone, record.Name()).ToCString());
+  }
+  record.SetIsFinalized();
+
+  if (finalization >= kCanonicalize) {
+    return record.Canonicalize(Thread::Current(), nullptr);
+  }
+  return record.ptr();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1597,6 +1636,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 //
 //    * UntaggedType::hash_
 //    * UntaggedFunctionType::hash_
+//    * UntaggedRecordType::hash_
 //    * UntaggedTypeParameter::hash_
 //    * UntaggedTypeArguments::hash_
 //    * InstancePtr (weak table)
@@ -1611,6 +1651,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 //
 //   * ObjectStore::canonical_types()
 //   * ObjectStore::canonical_function_types()
+//   * ObjectStore::canonical_record_types()
 //   * ObjectStore::canonical_type_parameters()
 //   * ObjectStore::canonical_type_arguments()
 //   * Class::constants()
@@ -1621,6 +1662,7 @@ class ClearTypeHashVisitor : public ObjectVisitor {
       : type_param_(TypeParameter::Handle(zone)),
         type_(Type::Handle(zone)),
         function_type_(FunctionType::Handle(zone)),
+        record_type_(RecordType::Handle(zone)),
         type_args_(TypeArguments::Handle(zone)) {}
 
   void VisitObject(ObjectPtr obj) {
@@ -1633,6 +1675,9 @@ class ClearTypeHashVisitor : public ObjectVisitor {
     } else if (obj->IsFunctionType()) {
       function_type_ ^= obj;
       function_type_.SetHash(0);
+    } else if (obj->IsRecordType()) {
+      record_type_ ^= obj;
+      record_type_.SetHash(0);
     } else if (obj->IsTypeArguments()) {
       type_args_ ^= obj;
       type_args_.SetHash(0);
@@ -1643,6 +1688,7 @@ class ClearTypeHashVisitor : public ObjectVisitor {
   TypeParameter& type_param_;
   Type& type_;
   FunctionType& function_type_;
+  RecordType& record_type_;
   TypeArguments& type_args_;
 };
 
@@ -1699,6 +1745,27 @@ void ClassFinalizer::RehashTypes() {
     ASSERT(!present || function_type.IsRecursive());
   }
   object_store->set_canonical_function_types(function_types_table.Release());
+
+  // Rehash the canonical RecordTypes table.
+  Array& record_types = Array::Handle(Z);
+  RecordType& record_type = RecordType::Handle(Z);
+  {
+    CanonicalRecordTypeSet record_types_table(
+        Z, object_store->canonical_record_types());
+    record_types = HashTables::ToArray(record_types_table, false);
+    record_types_table.Release();
+  }
+
+  dict_size = Utils::RoundUpToPowerOfTwo(record_types.Length() * 4 / 3);
+  CanonicalRecordTypeSet record_types_table(
+      Z, HashTables::New<CanonicalRecordTypeSet>(dict_size, Heap::kOld));
+  for (intptr_t i = 0; i < record_types.Length(); i++) {
+    record_type ^= record_types.At(i);
+    bool present = record_types_table.Insert(record_type);
+    // Two recursive types with different topology (and hashes) may be equal.
+    ASSERT(!present || record_type.IsRecursive());
+  }
+  object_store->set_canonical_record_types(record_types_table.Release());
 
   // Rehash the canonical TypeParameters table.
   Array& typeparams = Array::Handle(Z);

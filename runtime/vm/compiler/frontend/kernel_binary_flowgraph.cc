@@ -1129,6 +1129,12 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(
       break;
     case kMapLiteral:
       return BuildMapLiteral(position);
+    case kRecordLiteral:
+      return BuildRecordLiteral(position);
+    case kRecordIndexGet:
+      return BuildRecordFieldGet(position, /*is_named=*/false);
+    case kRecordNameGet:
+      return BuildRecordFieldGet(position, /*is_named=*/true);
     case kFunctionExpression:
       return BuildFunctionExpression();
     case kLet:
@@ -4024,6 +4030,99 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(TokenPosition* p) {
 
   return instructions +
          StaticCall(position, factory_method, 2, ICData::kStatic);
+}
+
+Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
+
+  // Figure out record shape.
+  const intptr_t positional_count = ReadListLength();
+  intptr_t named_count = -1;
+  const Array* field_names = &Object::empty_array();
+  {
+    AlternativeReadingScope alt(&reader_);
+    for (intptr_t i = 0; i < positional_count; ++i) {
+      SkipExpression();
+    }
+    named_count = ReadListLength();
+    if (named_count > 0) {
+      Array& names = Array::ZoneHandle(Z, Array::New(named_count, Heap::kOld));
+      for (intptr_t i = 0; i < named_count; ++i) {
+        String& name =
+            H.DartSymbolObfuscate(ReadStringReference());  // read ith name.
+        SkipExpression();  // read ith expression.
+        names.SetAt(i, name);
+      }
+      names ^= H.Canonicalize(names);
+      field_names = &names;
+    }
+  }
+  const intptr_t num_fields = positional_count + named_count;
+
+  // TODO(dartbug.com/49719): provide specialized allocation stubs for small
+  // records.
+
+  Fragment instructions;
+  instructions += B->AllocateRecord(position, num_fields, *field_names);
+  LocalVariable* record = MakeTemporary();
+
+  // List of positional.
+  intptr_t pos = 0;
+  for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
+    instructions += LoadLocal(record);
+    instructions += BuildExpression();  // read ith expression.
+    instructions += B->StoreNativeField(
+        Slot::GetRecordFieldSlot(thread(),
+                                 compiler::target::Record::field_offset(pos)),
+        StoreFieldInstr::Kind::kInitializing);
+  }
+
+  // List of named.
+  ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < named_count; ++i, ++pos) {
+    SkipStringReference();  // read ith name.
+    instructions += LoadLocal(record);
+    instructions += BuildExpression();  // read ith expression.
+    instructions += B->StoreNativeField(
+        Slot::GetRecordFieldSlot(thread(),
+                                 compiler::target::Record::field_offset(pos)),
+        StoreFieldInstr::Kind::kInitializing);
+  }
+
+  SkipDartType();  // read recordType.
+
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
+                                                        bool is_named) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
+
+  Fragment instructions = BuildExpression();  // read receiver.
+  const RecordType& record_type =
+      RecordType::Cast(T.BuildType());  // read recordType.
+
+  intptr_t field_index = -1;
+  if (is_named) {
+    const String& field_name = H.DartSymbolPlain(ReadStringReference());
+    for (intptr_t i = 0, n = record_type.NumNamedFields(); i < n; ++i) {
+      if (record_type.FieldNameAt(i) == field_name.ptr()) {
+        field_index = i;
+        break;
+      }
+    }
+    ASSERT(field_index >= 0 && field_index < record_type.NumNamedFields());
+    field_index += record_type.NumPositionalFields();
+  } else {
+    field_index = ReadUInt();
+    ASSERT(field_index < record_type.NumPositionalFields());
+  }
+
+  instructions += B->LoadNativeField(Slot::GetRecordFieldSlot(
+      thread(), compiler::target::Record::field_offset(field_index)));
+  return instructions;
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFunctionExpression() {

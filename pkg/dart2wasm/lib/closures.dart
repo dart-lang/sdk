@@ -61,7 +61,7 @@ class ClosureRepresentation {
       return vtableBaseIndex + posArgCount;
     } else {
       return vtableBaseIndex +
-          posArgCount +
+          (posArgCount + 1) +
           _indexOfCombination![NameCombination(argNames)]!;
     }
   }

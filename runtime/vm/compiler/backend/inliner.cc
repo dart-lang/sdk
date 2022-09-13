@@ -4216,7 +4216,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
         type = Type::IntType();
       } else if (IsTypeClassId(receiver_cid)) {
         type = Type::DartTypeType();
-      } else if (receiver_cid != kClosureCid) {
+      } else if ((receiver_cid != kClosureCid) &&
+                 (receiver_cid != kRecordCid)) {
         const Class& cls = Class::Handle(
             Z, flow_graph->isolate_group()->class_table()->At(receiver_cid));
         if (!cls.IsGeneric()) {

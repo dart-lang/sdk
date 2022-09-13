@@ -67,6 +67,7 @@
   V(PcDescriptors)                                                             \
   V(Pointer)                                                                   \
   V(ReceivePort)                                                               \
+  V(RecordType)                                                                \
   V(RegExp)                                                                    \
   V(Script)                                                                    \
   V(Sentinel)                                                                  \
@@ -288,6 +289,9 @@ void UpdateLengthField(intptr_t cid, ObjectPtr from, ObjectPtr to) {
   } else if (IsTypedDataClassId(cid)) {
     static_cast<UntaggedTypedDataBase*>(to.untag())->length_ =
         static_cast<UntaggedTypedDataBase*>(from.untag())->length_;
+  } else if (cid == kRecordCid) {
+    static_cast<UntaggedRecord*>(to.untag())->num_fields_ =
+        static_cast<UntaggedRecord*>(from.untag())->num_fields_;
   }
 }
 
@@ -1426,6 +1430,16 @@ class ObjectCopy : public Base {
         OFFSET_OF(UntaggedGrowableObjectArray, length_));
     Base::ForwardCompressedPointer(
         from, to, OFFSET_OF(UntaggedGrowableObjectArray, data_));
+  }
+
+  void CopyRecord(typename Types::Record from, typename Types::Record to) {
+    const intptr_t num_fields = Record::NumFields(Types::GetRecordPtr(from));
+    UntagRecord(to)->num_fields_ = UntagRecord(from)->num_fields_;
+    Base::ForwardCompressedPointer(from, to,
+                                   OFFSET_OF(UntaggedRecord, field_names_));
+    Base::ForwardCompressedPointers(
+        from, to, Record::field_offset(0),
+        Record::field_offset(0) + Record::kBytesPerElement * num_fields);
   }
 
   template <intptr_t one_for_set_two_for_map, typename T>

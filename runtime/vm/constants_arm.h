@@ -514,6 +514,14 @@ struct AllocateArrayABI {
   static const Register kTypeArgumentsReg = R1;
 };
 
+// ABI for AllocateRecordStub.
+struct AllocateRecordABI {
+  static const Register kResultReg = AllocateObjectABI::kResultReg;
+  static const Register kNumFieldsReg = R2;
+  static const Register kFieldNamesReg = R1;
+  static const Register kTempReg = R3;
+};
+
 // ABI for AllocateTypedDataArrayStub.
 struct AllocateTypedDataArrayABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;

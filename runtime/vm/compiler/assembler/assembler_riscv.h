@@ -943,6 +943,13 @@ class Assembler : public MicroAssembler {
   void AddRegisters(Register dest, Register src) {
     add(dest, dest, src);
   }
+  void AddScaled(Register dest,
+                 Register src,
+                 ScaleFactor scale,
+                 int32_t value) {
+    slli(dest, src, scale);
+    addi(dest, dest, value);
+  }
   void SubRegisters(Register dest, Register src) {
     sub(dest, dest, src);
   }

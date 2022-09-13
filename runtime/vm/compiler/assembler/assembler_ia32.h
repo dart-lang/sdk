@@ -728,6 +728,12 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     addl(dest, src);
   }
+  void AddScaled(Register dest,
+                 Register src,
+                 ScaleFactor scale,
+                 int32_t value) {
+    leal(dest, Address(src, scale, value));
+  }
 
   void SubImmediate(Register reg, const Immediate& imm);
   void SubRegisters(Register dest, Register src) {

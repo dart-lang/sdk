@@ -2765,6 +2765,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ b(&loop);
   }
 
+  // TODO(dartbug.com/49719): handle records
+
   // Non-Closure handling.
   {
     __ Bind(&not_closure);

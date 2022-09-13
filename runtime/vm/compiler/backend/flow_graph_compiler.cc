@@ -2582,6 +2582,10 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
     return GenerateFunctionTypeTest(source, type, is_instance_lbl,
                                     is_not_instance_lbl);
   }
+  if (type.IsRecordType()) {
+    // TODO(dartbug.com/49719)
+    UNIMPLEMENTED();
+  }
 
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
@@ -2798,6 +2802,12 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   if (type.IsDartFunctionType()) {
     // Check if instance is a closure.
     __ CompareImmediate(kScratchReg, kClosureCid);
+    __ BranchIf(EQUAL, is_instance_lbl);
+    return true;
+  }
+  if (type.IsDartRecordType()) {
+    // Check if instance is a record.
+    __ CompareImmediate(kScratchReg, kRecordCid);
     __ BranchIf(EQUAL, is_instance_lbl);
     return true;
   }

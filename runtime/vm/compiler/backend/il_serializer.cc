@@ -1598,6 +1598,16 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       stream_->WriteBytes(latin1, length);
       break;
     }
+    case kRecordCid: {
+      // TODO(dartbug.com/49719)
+      UNIMPLEMENTED();
+      break;
+    }
+    case kRecordTypeCid: {
+      // TODO(dartbug.com/49719)
+      UNIMPLEMENTED();
+      break;
+    }
     case kSentinelCid:
       if (x.ptr() == Object::sentinel().ptr()) {
         Write<bool>(true);
@@ -1857,6 +1867,16 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       stream_->ReadBytes(latin1, length);
       return String::ZoneHandle(Z,
                                 Symbols::FromLatin1(thread(), latin1, length));
+    }
+    case kRecordCid: {
+      // TODO(dartbug.com/49719)
+      UNIMPLEMENTED();
+      break;
+    }
+    case kRecordTypeCid: {
+      // TODO(dartbug.com/49719)
+      UNIMPLEMENTED();
+      break;
     }
     case kSentinelCid:
       return Read<bool>() ? Object::sentinel() : Object::transition_sentinel();
@@ -2161,6 +2181,9 @@ void Slot::Write(FlowGraphSerializer* s) const {
     case Kind::kArrayElement:
       s->Write<intptr_t>(offset_in_bytes_);
       break;
+    case Kind::kRecordField:
+      s->Write<intptr_t>(offset_in_bytes_);
+      break;
     case Kind::kCapturedVariable:
       s->Write<int8_t>(flags_);
       s->Write<intptr_t>(offset_in_bytes_);
@@ -2203,6 +2226,12 @@ const Slot& Slot::Read(FlowGraphDeserializer* d) {
               IsCompressedBit::encode(Array::ContainsCompressedPointers());
       offset = d->Read<intptr_t>();
       data = ":array_element";
+      break;
+    case Kind::kRecordField:
+      flags = IsNullableBit::encode(true) |
+              IsCompressedBit::encode(Record::ContainsCompressedPointers());
+      offset = d->Read<intptr_t>();
+      data = ":record_field";
       break;
     case Kind::kCapturedVariable:
       flags = d->Read<int8_t>();

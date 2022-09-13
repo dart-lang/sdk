@@ -439,6 +439,7 @@ class Object {
   V(Instance, null_instance)                                                   \
   V(Function, null_function)                                                   \
   V(FunctionType, null_function_type)                                          \
+  V(RecordType, null_record_type)                                              \
   V(TypeArguments, null_type_arguments)                                        \
   V(CompressedStackMaps, null_compressed_stackmaps)                            \
   V(TypeArguments, empty_type_arguments)                                       \
@@ -1441,6 +1442,11 @@ class Class : public Object {
   bool IsClosureClass() const { return id() == kClosureCid; }
   static bool IsClosureClass(ClassPtr cls) {
     return GetClassId(cls) == kClosureCid;
+  }
+
+  // Check if this class represents the 'Record' class.
+  bool IsRecordClass() const {
+    return id() == kRecordCid;
   }
 
   static bool IsInFullSnapshot(ClassPtr cls) {
@@ -8395,6 +8401,9 @@ class AbstractType : public Instance {
   // Check if this type represents the Dart '_Closure' type.
   bool IsDartClosureType() const;
 
+  // Check if this type represents the Dart 'Record' type.
+  bool IsDartRecordType() const;
+
   // Check if this type represents the 'Pointer' type from "dart:ffi".
   bool IsFfiPointerType() const;
 
@@ -8470,6 +8479,10 @@ class AbstractType : public Instance {
                            TrailPtr trail = nullptr) const;
 
  protected:
+  bool IsNullabilityEquivalent(Thread* thread,
+                               const AbstractType& other_type,
+                               TypeEquality kind) const;
+
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Instance);
   friend class Class;
   friend class Function;
@@ -8939,6 +8952,111 @@ class FunctionType : public AbstractType {
   friend class Class;
   friend class ClearTypeHashVisitor;
   friend class Function;
+};
+
+// A RecordType represents the type of a record. It describes
+// number of named and positional fields, field types and
+// names of the named fields.
+class RecordType : public AbstractType {
+ public:
+  static intptr_t type_state_offset() {
+    return OFFSET_OF(UntaggedRecordType, type_state_);
+  }
+  static intptr_t hash_offset() { return OFFSET_OF(UntaggedRecordType, hash_); }
+  static intptr_t nullability_offset() {
+    return OFFSET_OF(UntaggedRecordType, nullability_);
+  }
+  virtual bool IsFinalized() const {
+    return (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) ||
+           (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated);
+  }
+  virtual void SetIsFinalized() const;
+  virtual bool IsBeingFinalized() const {
+    return untag()->type_state_ == UntaggedType::kBeingFinalized;
+  }
+  virtual void SetIsBeingFinalized() const;
+  virtual bool HasTypeClass() const { return false; }
+  virtual Nullability nullability() const {
+    return static_cast<Nullability>(untag()->nullability_);
+  }
+  RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
+  virtual classid_t type_class_id() const { return kIllegalCid; }
+  virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
+                              TrailPtr trail = nullptr) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            TypeEquality kind,
+                            TrailPtr trail = nullptr) const;
+  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                                TrailPtr trail = nullptr) const;
+
+  virtual AbstractTypePtr InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+#if defined(DEBUG)
+  // Check if type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
+  virtual void EnumerateURIs(URIs* uris) const;
+
+  virtual uword Hash() const;
+  uword ComputeHash() const;
+
+  bool IsSubtypeOf(const RecordType& other, Heap::Space space) const;
+
+  ArrayPtr field_types() const {
+    return untag()->field_types();
+  }
+
+  AbstractTypePtr FieldTypeAt(intptr_t index) const;
+  void SetFieldTypeAt(intptr_t index, const AbstractType& value) const;
+
+  // Names of the named fields, sorted.
+  ArrayPtr field_names() const {
+    return untag()->field_names();
+  }
+
+  StringPtr FieldNameAt(intptr_t index) const;
+  void SetFieldNameAt(intptr_t index, const String& value) const;
+
+  intptr_t NumFields() const;
+  intptr_t NumNamedFields() const;
+  intptr_t NumPositionalFields() const;
+
+  void Print(NameVisibility name_visibility, BaseTextBuffer* printer) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedRecordType));
+  }
+
+  static RecordTypePtr New(const Array& field_types,
+                           const Array& field_names,
+                           Nullability nullability = Nullability::kLegacy,
+                           Heap::Space space = Heap::kOld);
+
+ private:
+  void SetHash(intptr_t value) const;
+
+  void set_type_state(uint8_t state) const;
+  void set_nullability(Nullability value) const {
+    ASSERT(!IsCanonical());
+    StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
+  }
+  void set_field_types(const Array& value) const;
+  void set_field_names(const Array& value) const;
+
+  static RecordTypePtr New(Heap::Space space);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(RecordType, AbstractType);
+  friend class Class;
+  friend class ClassFinalizer;
+  friend class ClearTypeHashVisitor;
+  friend class Record;
 };
 
 // A TypeRef is used to break cycles in the representation of recursive types.
@@ -10707,6 +10825,70 @@ class Float64x2 : public Instance {
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64x2, Instance);
   friend class Class;
+};
+
+class Record : public Instance {
+ public:
+  intptr_t num_fields() const { return NumFields(ptr()); }
+  static intptr_t NumFields(RecordPtr ptr) { return ptr->untag()->num_fields_; }
+  static intptr_t num_fields_offset() {
+    return OFFSET_OF(UntaggedRecord, num_fields_);
+  }
+
+  intptr_t NumNamedFields() const;
+  intptr_t NumPositionalFields() const;
+
+  ArrayPtr field_names() const { return untag()->field_names(); }
+  static intptr_t field_names_offset() {
+    return OFFSET_OF(UntaggedRecord, field_names_);
+  }
+
+  ObjectPtr FieldAt(intptr_t field_index) const {
+    return untag()->field(field_index);
+  }
+  void SetFieldAt(intptr_t field_index, const Object& value) const {
+    untag()->set_field(field_index, value.ptr());
+  }
+
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() { return sizeof(UntaggedRecord); }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
+
+  static intptr_t field_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data) +
+           kBytesPerElement * index;
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(UntaggedRecord) ==
+           OFFSET_OF_RETURNED_VALUE(UntaggedRecord, data));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t num_fields) {
+    return RoundedAllocationSize(sizeof(UntaggedRecord) +
+                                 (num_fields * kBytesPerElement));
+  }
+
+  static RecordPtr New(intptr_t num_fields,
+                       const Array& field_names,
+                       Heap::Space space = Heap::kNew);
+
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
+
+ private:
+  void set_num_fields(intptr_t num_fields) const;
+  void set_field_names(const Array& field_names) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Record, Instance);
+  friend class Class;
+  friend class Object;
 };
 
 class PointerBase : public Instance {
@@ -12592,6 +12774,33 @@ inline void FunctionType::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   untag()->set_hash(Smi::New(value));
+}
+
+inline uword RecordType::Hash() const {
+  ASSERT(IsFinalized());
+  intptr_t result = Smi::Value(untag()->hash());
+  if (result != 0) {
+    return result;
+  }
+  return ComputeHash();
+}
+
+inline void RecordType::SetHash(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  untag()->set_hash(Smi::New(value));
+}
+
+inline intptr_t RecordType::NumFields() const {
+  return Array::LengthOf(field_types());
+}
+
+inline intptr_t RecordType::NumNamedFields() const {
+  return Array::LengthOf(field_names());
+}
+
+inline intptr_t RecordType::NumPositionalFields() const {
+  return NumFields() - NumNamedFields();
 }
 
 inline uword TypeParameter::Hash() const {

@@ -834,6 +834,13 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     add(dest, dest, Operand(src));
   }
+  void AddScaled(Register dest,
+                 Register src,
+                 ScaleFactor scale,
+                 int32_t value) {
+    LoadImmediate(dest, value);
+    add(dest, dest, Operand(src, LSL, scale));
+  }
   void SubImmediate(Register rd,
                     Register rn,
                     int32_t value,

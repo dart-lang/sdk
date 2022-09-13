@@ -373,8 +373,11 @@ bool SimpleInstanceOfType(const AbstractType& type) {
   // Bail if the type is still uninstantiated at compile time.
   if (!type.IsInstantiated()) return false;
 
-  // Bail if the type is a function or a Dart Function type.
-  if (type.IsFunctionType() || type.IsDartFunctionType()) return false;
+  // Bail if the type is a function, record or a Dart Function type.
+  if (type.IsFunctionType() || type.IsRecordType() ||
+      type.IsDartFunctionType()) {
+    return false;
+  }
 
   ASSERT(type.HasTypeClass());
   const Class& type_class = Class::Handle(type.type_class());
