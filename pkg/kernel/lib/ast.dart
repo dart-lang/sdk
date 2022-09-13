@@ -10802,11 +10802,10 @@ class VariableDeclaration extends Statement implements Annotatable {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  /// For named parameters, this is the name of the parameter. No two named
-  /// parameters (in the same parameter list) can have the same name.
+  /// The name of the variable or parameter as provided in the source code.
   ///
-  /// In all other cases, the name is cosmetic, may be empty or null,
-  /// and is not necessarily unique.
+  /// If this variable is synthesized, for instance the variable of a [Let]
+  /// expression, the name is in most cases `null`.
   String? name;
   int flags = 0;
   DartType type; // Not null, defaults to dynamic.
