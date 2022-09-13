@@ -107,7 +107,8 @@ void main(List<String> args) async {
       await client.hitBreakpoint(sdkFile, breakpointLine, entryFile: testFile);
     });
 
-    test('stops at a line breakpoint and can be resumed', () async {
+    /// Tests hitting a simple breakpoint and resuming.
+    Future<void> _testHitBreakpointAndResume() async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -120,7 +121,31 @@ void main(List<String> args) async {
         client.event('terminated'),
         client.continue_(stop.threadId!),
       ], eagerError: true);
+    }
+
+    test('stops at a line breakpoint and can be resumed', () async {
+      await _testHitBreakpointAndResume();
     });
+
+    test(
+        'stops at a line breakpoint and can be resumed '
+        'when breakpoint requests have lowercase drive letters '
+        'and program/VM have uppercase drive letters', () async {
+      final client = dap.client;
+      client.forceDriveLetterCasingUpper = true;
+      client.forceBreakpointDriveLetterCasingLower = true;
+      await _testHitBreakpointAndResume();
+    }, skip: !Platform.isWindows);
+
+    test(
+        'stops at a line breakpoint and can be resumed '
+        'when breakpoint requests have uppercase drive letters '
+        'and program/VM have lowercase drive letters', () async {
+      final client = dap.client;
+      client.forceDriveLetterCasingLower = true;
+      client.forceBreakpointDriveLetterCasingUpper = true;
+      await _testHitBreakpointAndResume();
+    }, skip: !Platform.isWindows);
 
     test('stops at a line breakpoint and can step over (next)', () async {
       final testFile = dap.createTestFile('''

@@ -38,6 +38,20 @@ class DapTestClient {
 
   late final Future<Uri?> vmServiceUri;
 
+  /// Used to control drive letter casing on Windows for testing.
+  bool? forceDriveLetterCasingUpper;
+
+  /// Used to control drive letter casing on Windows for testing.
+  bool? forceDriveLetterCasingLower;
+
+  /// Used to control drive letter casing for breakpoint requests on Windows for
+  /// testing.
+  bool? forceBreakpointDriveLetterCasingUpper;
+
+  /// Used to control drive letter casing for breakpoint requests on Windows for
+  /// testing.
+  bool? forceBreakpointDriveLetterCasingLower;
+
   DapTestClient._(
     this._channel,
     this._logger, {
@@ -238,11 +252,12 @@ class DapTestClient {
     return sendRequest(
       DartLaunchRequestArguments(
         noDebug: noDebug,
-        program: program,
-        cwd: cwd,
+        program: _normalizePath(program),
+        cwd: cwd != null ? _normalizePath(cwd) : null,
         args: args,
         toolArgs: toolArgs,
-        additionalProjectPaths: additionalProjectPaths,
+        additionalProjectPaths:
+            additionalProjectPaths?.map(_normalizePath).toList(),
         console: console,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
@@ -522,7 +537,7 @@ extension DapTestClientExtension on DapTestClient {
   Future<void> setBreakpoint(File file, int line, {String? condition}) async {
     await sendRequest(
       SetBreakpointsArguments(
-        source: Source(path: file.path),
+        source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: [SourceBreakpoint(line: line, condition: condition)],
       ),
     );
@@ -532,10 +547,46 @@ extension DapTestClientExtension on DapTestClient {
   Future<void> setBreakpoints(File file, List<int> lines) async {
     await sendRequest(
       SetBreakpointsArguments(
-        source: Source(path: file.path),
+        source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: lines.map((line) => SourceBreakpoint(line: line)).toList(),
       ),
     );
+  }
+
+  /// Normalizes a non-breakpoint path being sent to the debug adapter based on
+  /// the values of [forceDriveLetterCasingUpper] and
+  /// [forceDriveLetterCasingLower].
+  String _normalizePath(String path) {
+    return _forceDriveLetterCasing(
+      path,
+      upper: forceDriveLetterCasingUpper,
+      lower: forceDriveLetterCasingLower,
+    );
+  }
+
+  /// Normalizes a non-breakpoint path being sent to the debug adapter based on
+  /// the values of [forceBreakpointDriveLetterCasingUpper] and
+  /// [forceBreakpointDriveLetterCasingLower].
+  String _normalizeBreakpointPath(String path) {
+    return _forceDriveLetterCasing(
+      path,
+      upper: forceBreakpointDriveLetterCasingUpper,
+      lower: forceBreakpointDriveLetterCasingLower,
+    );
+  }
+
+  String _forceDriveLetterCasing(String path, {bool? upper, bool? lower}) {
+    assert(upper != true || lower != true);
+    if (!Platform.isWindows || path.isEmpty) {
+      return path;
+    }
+    if (upper ?? false) {
+      return path.substring(0, 1).toUpperCase() + path.substring(1);
+    } else if (lower ?? false) {
+      return path.substring(0, 1).toLowerCase() + path.substring(1);
+    } else {
+      return path;
+    }
   }
 
   /// Sets the exception pause mode to [pauseMode] and expects to pause after
@@ -585,7 +636,7 @@ extension DapTestClientExtension on DapTestClient {
       initialize(),
       sendRequest(
         SetBreakpointsArguments(
-          source: Source(path: file.path),
+          source: Source(path: _normalizeBreakpointPath(file.path)),
           breakpoints: [
             SourceBreakpoint(
               line: line,
