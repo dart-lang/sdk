@@ -82,6 +82,7 @@ class AstTestFactory {
           extendsClause: extendsClause as ExtendsClauseImpl?,
           withClause: withClause as WithClauseImpl?,
           implementsClause: implementsClause as ImplementsClauseImpl?,
+          nativeClause: null,
           leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
           members: members,
           rightBracket:

@@ -1807,17 +1807,20 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required ExtendsClauseImpl? extendsClause,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
+    required NativeClauseImpl? nativeClause,
     required this.leftBracket,
     required List<ClassMember> members,
     required this.rightBracket,
   })  : _typeParameters = typeParameters,
         _extendsClause = extendsClause,
         _withClause = withClause,
-        _implementsClause = implementsClause {
+        _implementsClause = implementsClause,
+        _nativeClause = nativeClause {
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_extendsClause);
     _becomeParentOf(_withClause);
     _becomeParentOf(_implementsClause);
+    _becomeParentOf(_nativeClause);
     _members._initialize(this, members);
   }
 

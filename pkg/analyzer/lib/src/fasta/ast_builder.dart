@@ -88,17 +88,8 @@ class AstBuilder extends StackListener {
   /// `native` support.
   late Parser parser;
 
-  /// The class currently being parsed, or `null` if no class is being parsed.
-  ClassDeclarationImpl? classDeclaration;
-
-  /// The mixin currently being parsed, or `null` if no mixin is being parsed.
-  MixinDeclarationImpl? mixinDeclaration;
-
-  /// The extension currently being parsed, or `null` if none.
-  ExtensionDeclarationImpl? extensionDeclaration;
-
-  /// The enum currently being parsed, or `null` if none.
-  EnumDeclarationImpl? enumDeclaration;
+  /// The class like declaration being parsed.
+  _ClassLikeDeclarationBuilder? _classLikeBuilder;
 
   /// If true, this is building a full AST. Otherwise, only create method
   /// bodies.
@@ -186,30 +177,6 @@ class AstBuilder extends StackListener {
         enableRecords = _featureSet.isEnabled(Feature.records),
         uri = uri ?? fileUri;
 
-  NodeList<ClassMember> get currentDeclarationMembers {
-    if (classDeclaration != null) {
-      return classDeclaration!.members;
-    } else if (mixinDeclaration != null) {
-      return mixinDeclaration!.members;
-    } else if (extensionDeclaration != null) {
-      return extensionDeclaration!.members;
-    } else {
-      return enumDeclaration!.members;
-    }
-  }
-
-  Token? get currentDeclarationName {
-    if (classDeclaration != null) {
-      return classDeclaration!.name2;
-    } else if (mixinDeclaration != null) {
-      return mixinDeclaration!.name2;
-    } else if (extensionDeclaration != null) {
-      return extensionDeclaration!.name2;
-    } else {
-      return enumDeclaration!.name2;
-    }
-  }
-
   @override
   Uri get importUri => uri;
 
@@ -251,9 +218,7 @@ class AstBuilder extends StackListener {
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken,
       Token? macroToken, Token? augmentToken, Token name) {
-    assert(classDeclaration == null &&
-        mixinDeclaration == null &&
-        extensionDeclaration == null);
+    assert(_classLikeBuilder == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
       if (macroToken != null) {
@@ -280,9 +245,7 @@ class AstBuilder extends StackListener {
   @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
     assert(optional('extension', extensionKeyword));
-    assert(classDeclaration == null &&
-        mixinDeclaration == null &&
-        extensionDeclaration == null);
+    assert(_classLikeBuilder == null);
     debugEvent("ExtensionHeader");
 
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -294,27 +257,15 @@ class AstBuilder extends StackListener {
       name = ast.simpleIdentifier(nameToken, isDeclaration: true);
     }
 
-    extensionDeclaration = ExtensionDeclarationImpl(
+    _classLikeBuilder = _ExtensionDeclarationBuilder(
       comment: comment,
       metadata: metadata,
       extensionKeyword: extensionKeyword,
-      typeKeyword: null,
       name: name,
       typeParameters: typeParameters,
-      onKeyword: Tokens.on_(),
-      extendedType: NamedTypeImpl(
-        name: _tmpSimpleIdentifier(),
-        typeArguments: null,
-        question: null,
-      ), // extendedType is set in [endExtensionDeclaration]
-      showClause: null,
-      hideClause: null,
       leftBracket: Tokens.openCurlyBracket(),
       rightBracket: Tokens.closeCurlyBracket(),
-      members: [],
     );
-
-    declarations.add(extensionDeclaration!);
   }
 
   @override
@@ -382,8 +333,10 @@ class AstBuilder extends StackListener {
     }
     if (staticToken != null) {
       assert(staticToken.isModifier);
-      String? className = currentDeclarationName?.lexeme;
-      if (name.lexeme != className || getOrSet != null) {
+      final builder = _classLikeBuilder;
+      if (builder is! _ClassDeclarationBuilder ||
+          builder.name.token.lexeme != name.lexeme ||
+          getOrSet != null) {
         modifiers.staticKeyword = staticToken;
       }
     }
@@ -401,9 +354,7 @@ class AstBuilder extends StackListener {
   @override
   void beginMixinDeclaration(
       Token? augmentToken, Token mixinKeyword, Token name) {
-    assert(classDeclaration == null &&
-        mixinDeclaration == null &&
-        extensionDeclaration == null);
+    assert(_classLikeBuilder == null);
     push(augmentToken ?? NullValue.Token);
   }
 
@@ -598,6 +549,30 @@ class AstBuilder extends StackListener {
         }
       }
     }
+  }
+
+  /// TODO(scheglov) We should not do this.
+  /// Ideally, we should not test parsing pieces of class, and instead parse
+  /// the whole unit, and extract pieces that we need to validate.
+  _ClassDeclarationBuilder createFakeClassDeclarationBuilder(String className) {
+    return _classLikeBuilder = _ClassDeclarationBuilder(
+      comment: null,
+      metadata: null,
+      abstractKeyword: null,
+      macroKeyword: null,
+      augmentKeyword: null,
+      classKeyword: Token(Keyword.CLASS, 0),
+      name: ast.simpleIdentifier(
+        StringToken(TokenType.STRING, className, -1),
+      ),
+      typeParameters: null,
+      extendsClause: null,
+      withClause: null,
+      implementsClause: null,
+      nativeClause: null,
+      leftBracket: Tokens.openCurlyBracket(),
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
   }
 
   @override
@@ -950,8 +925,9 @@ class AstBuilder extends StackListener {
       redirectedConstructor: redirectedConstructor,
       body: body,
     );
-    currentDeclarationMembers.add(constructor);
-    if (mixinDeclaration != null) {
+
+    _classLikeBuilder?.members.add(constructor);
+    if (_classLikeBuilder is MixinDeclaration) {
       // TODO (danrubel): Report an error if this is a mixin declaration.
     }
   }
@@ -959,7 +935,12 @@ class AstBuilder extends StackListener {
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
-    classDeclaration = null;
+
+    final builder = _classLikeBuilder as _ClassDeclarationBuilder;
+    declarations.add(
+      builder.build(),
+    );
+    _classLikeBuilder = null;
   }
 
   @override
@@ -1019,7 +1000,7 @@ class AstBuilder extends StackListener {
       throw UnimplementedError();
     }
 
-    currentDeclarationMembers.add(
+    _classLikeBuilder?.members.add(
       ConstructorDeclarationImpl(
         comment: comment,
         metadata: metadata,
@@ -1091,7 +1072,7 @@ class AstBuilder extends StackListener {
     var covariantKeyword = covariantToken;
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, beginToken);
-    currentDeclarationMembers.add(
+    _classLikeBuilder?.members.add(
       FieldDeclarationImpl(
         comment: comment,
         metadata: metadata,
@@ -1159,7 +1140,7 @@ class AstBuilder extends StackListener {
     }
 
     checkFieldFormalParameters(parameters);
-    currentDeclarationMembers.add(
+    _classLikeBuilder?.members.add(
       MethodDeclarationImpl(
         comment: comment,
         metadata: metadata,
@@ -1185,16 +1166,9 @@ class AstBuilder extends StackListener {
     assert(optional('}', rightBracket));
     debugEvent("ClassOrMixinBody");
 
-    if (classDeclaration != null) {
-      classDeclaration!
-        ..leftBracket = leftBracket
-        ..rightBracket = rightBracket;
-    } else if (mixinDeclaration != null) {
-      mixinDeclaration!
-        ..leftBracket = leftBracket
-        ..rightBracket = rightBracket;
-    } else {
-      extensionDeclaration!
+    final builder = _classLikeBuilder;
+    if (builder != null) {
+      builder
         ..leftBracket = leftBracket
         ..rightBracket = rightBracket;
     }
@@ -1359,6 +1333,12 @@ class AstBuilder extends StackListener {
     assert(optional('enum', enumKeyword));
     assert(optional('{', leftBrace));
     debugEvent("Enum");
+
+    final builder = _classLikeBuilder as _EnumDeclarationBuilder;
+    declarations.add(
+      builder.build(),
+    );
+    _classLikeBuilder = null;
   }
 
   @override
@@ -1415,6 +1395,8 @@ class AstBuilder extends StackListener {
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
       Token onKeyword, Token? showKeyword, Token? hideKeyword, Token token) {
+    final builder = _classLikeBuilder as _ExtensionDeclarationBuilder;
+
     if (typeKeyword != null && !enableExtensionTypes) {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.extension_types,
@@ -1430,18 +1412,22 @@ class AstBuilder extends StackListener {
       );
     }
 
-    ShowClause? showClause = pop(NullValue.ShowClause) as ShowClause?;
-    HideClause? hideClause = pop(NullValue.HideClause) as HideClause?;
+    final showClause = pop(NullValue.ShowClause) as ShowClauseImpl?;
+    final hideClause = pop(NullValue.HideClause) as HideClauseImpl?;
 
-    var type = pop() as TypeAnnotation;
+    final type = pop() as TypeAnnotationImpl;
 
-    extensionDeclaration!
-      ..extendedType = type
-      ..onKeyword = onKeyword
-      ..typeKeyword = typeKeyword
-      ..showClause = showClause
-      ..hideClause = hideClause;
-    extensionDeclaration = null;
+    declarations.add(
+      builder.build(
+        extendedType: type,
+        onKeyword: onKeyword,
+        typeKeyword: typeKeyword,
+        showClause: showClause,
+        hideClause: hideClause,
+      ),
+    );
+
+    _classLikeBuilder = null;
   }
 
   @override
@@ -1488,7 +1474,7 @@ class AstBuilder extends StackListener {
       // don't bother adding this declaration to the AST.
       return;
     }
-    currentDeclarationMembers.add(
+    _classLikeBuilder?.members.add(
       MethodDeclarationImpl(
         comment: comment,
         metadata: metadata,
@@ -2284,7 +2270,12 @@ class AstBuilder extends StackListener {
   @override
   void endMixinDeclaration(Token mixinKeyword, Token endToken) {
     debugEvent("MixinDeclaration");
-    mixinDeclaration = null;
+
+    final builder = _classLikeBuilder as _MixinDeclarationBuilder;
+    declarations.add(
+      builder.build(),
+    );
+    _classLikeBuilder = null;
   }
 
   @override
@@ -3175,10 +3166,10 @@ class AstBuilder extends StackListener {
   void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
     assert(optional('class', classKeyword));
     assert(optionalOrNull('native', nativeToken));
-    assert(classDeclaration == null && mixinDeclaration == null);
+    assert(_classLikeBuilder == null);
     debugEvent("ClassHeader");
 
-    NativeClause? nativeClause;
+    NativeClauseImpl? nativeClause;
     if (nativeToken != null) {
       nativeClause = ast.nativeClause(nativeToken, nativeName);
     }
@@ -3196,7 +3187,7 @@ class AstBuilder extends StackListener {
     var comment = _findComment(metadata, begin);
     // leftBracket, members, and rightBracket
     // are set in [endClassOrMixinBody].
-    classDeclaration = ClassDeclarationImpl(
+    _classLikeBuilder = _ClassDeclarationBuilder(
       comment: comment,
       metadata: metadata,
       abstractKeyword: abstractKeyword,
@@ -3208,13 +3199,10 @@ class AstBuilder extends StackListener {
       extendsClause: extendsClause,
       withClause: withClause,
       implementsClause: implementsClause,
+      nativeClause: nativeClause,
       leftBracket: Tokens.openCurlyBracket(),
-      members: <ClassMember>[],
       rightBracket: Tokens.closeCurlyBracket(),
     );
-
-    classDeclaration!.nativeClause = nativeClause;
-    declarations.add(classDeclaration!);
   }
 
   @override
@@ -3400,12 +3388,13 @@ class AstBuilder extends StackListener {
   @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     debugEvent("EnumElements");
+    final builder = _classLikeBuilder as _EnumDeclarationBuilder;
 
     var constants = popTypedList2<EnumConstantDeclaration>(elementsCount);
-    enumDeclaration!.constants.addAll(constants);
+    builder.constants.addAll(constants);
 
     if (optional(';', elementsEndToken)) {
-      enumDeclaration!.semicolon = elementsEndToken;
+      builder.semicolon = elementsEndToken;
     }
 
     if (!enableEnhancedEnums && optional(';', elementsEndToken)) {
@@ -3445,21 +3434,17 @@ class AstBuilder extends StackListener {
       );
     }
 
-    declarations.add(
-      enumDeclaration = EnumDeclarationImpl(
-        comment: comment,
-        metadata: metadata,
-        enumKeyword: enumKeyword,
-        name: name,
-        typeParameters: typeParameters,
-        withClause: withClause,
-        implementsClause: implementsClause,
-        leftBracket: leftBrace,
-        constants: [],
-        semicolon: null,
-        members: [],
-        rightBracket: leftBrace.endGroup!,
-      ),
+    _classLikeBuilder = _EnumDeclarationBuilder(
+      comment: comment,
+      metadata: metadata,
+      enumKeyword: enumKeyword,
+      name: name,
+      typeParameters: typeParameters,
+      withClause: withClause,
+      implementsClause: implementsClause,
+      leftBracket: leftBrace,
+      semicolon: null,
+      rightBracket: leftBrace.endGroup!,
     );
   }
 
@@ -4098,9 +4083,7 @@ class AstBuilder extends StackListener {
   @override
   void handleMixinHeader(Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
-    assert(classDeclaration == null &&
-        mixinDeclaration == null &&
-        extensionDeclaration == null);
+    assert(_classLikeBuilder == null);
     debugEvent("MixinHeader");
 
     var implementsClause =
@@ -4112,7 +4095,7 @@ class AstBuilder extends StackListener {
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, mixinKeyword);
 
-    mixinDeclaration = MixinDeclarationImpl(
+    _classLikeBuilder = _MixinDeclarationBuilder(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
@@ -4122,10 +4105,8 @@ class AstBuilder extends StackListener {
       onClause: onClause,
       implementsClause: implementsClause,
       leftBracket: Tokens.openCurlyBracket(),
-      members: <ClassMember>[],
       rightBracket: Tokens.closeCurlyBracket(),
     );
-    declarations.add(mixinDeclaration!);
   }
 
   @override
@@ -4250,9 +4231,9 @@ class AstBuilder extends StackListener {
   @override
   void handleNoTypeNameInConstructorReference(Token token) {
     debugEvent("NoTypeNameInConstructorReference");
-    assert(enumDeclaration != null);
+    final builder = _classLikeBuilder as _EnumDeclarationBuilder;
 
-    push(ast.simpleIdentifier(enumDeclaration!.name2));
+    push(ast.simpleIdentifier(builder.name.token));
   }
 
   @override
@@ -4329,10 +4310,11 @@ class AstBuilder extends StackListener {
   void handleRecoverClassHeader() {
     debugEvent("RecoverClassHeader");
 
-    var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
-    var withClause = pop(NullValue.WithClause) as WithClause?;
-    var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
-    var declaration = declarations.last as ClassDeclarationImpl;
+    var implementsClause =
+        pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
+    var withClause = pop(NullValue.WithClause) as WithClauseImpl?;
+    var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClauseImpl?;
+    var declaration = _classLikeBuilder as _ClassDeclarationBuilder;
     if (extendsClause != null) {
       if (declaration.extendsClause?.superclass == null) {
         declaration.extendsClause = extendsClause;
@@ -4385,22 +4367,24 @@ class AstBuilder extends StackListener {
 
   @override
   void handleRecoverMixinHeader() {
-    var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
-    var onClause = pop(NullValue.IdentifierList) as OnClause?;
+    final builder = _classLikeBuilder as _MixinDeclarationBuilder;
+    var implementsClause =
+        pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
+    var onClause = pop(NullValue.IdentifierList) as OnClauseImpl?;
 
     if (onClause != null) {
-      if (mixinDeclaration!.onClause == null) {
-        mixinDeclaration!.onClause = onClause;
+      if (builder.onClause == null) {
+        builder.onClause = onClause;
       } else {
-        mixinDeclaration!.onClause!.superclassConstraints
+        builder.onClause!.superclassConstraints
             .addAll(onClause.superclassConstraints);
       }
     }
     if (implementsClause != null) {
-      if (mixinDeclaration!.implementsClause == null) {
-        mixinDeclaration!.implementsClause = implementsClause;
+      if (builder.implementsClause == null) {
+        builder.implementsClause = implementsClause;
       } else {
-        mixinDeclaration!.implementsClause!.interfaces
+        builder.implementsClause!.interfaces
             .addAll(implementsClause.interfaces);
       }
     }
@@ -4891,11 +4875,156 @@ class AstBuilder extends StackListener {
   }
 }
 
+class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? abstractKeyword;
+  final Token? macroKeyword;
+  final Token? augmentKeyword;
+  final Token classKeyword;
+  final SimpleIdentifierImpl name;
+  ExtendsClauseImpl? extendsClause;
+  WithClauseImpl? withClause;
+  ImplementsClauseImpl? implementsClause;
+  final NativeClauseImpl? nativeClause;
+
+  _ClassDeclarationBuilder({
+    required super.comment,
+    required super.metadata,
+    required super.typeParameters,
+    required super.leftBracket,
+    required super.rightBracket,
+    required this.abstractKeyword,
+    required this.macroKeyword,
+    required this.augmentKeyword,
+    required this.classKeyword,
+    required this.name,
+    required this.extendsClause,
+    required this.withClause,
+    required this.implementsClause,
+    required this.nativeClause,
+  });
+
+  ClassDeclarationImpl build() {
+    return ClassDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      abstractKeyword: abstractKeyword,
+      macroKeyword: macroKeyword,
+      augmentKeyword: augmentKeyword,
+      classKeyword: classKeyword,
+      name: name,
+      typeParameters: typeParameters,
+      extendsClause: extendsClause,
+      withClause: withClause,
+      implementsClause: implementsClause,
+      nativeClause: nativeClause,
+      leftBracket: leftBracket,
+      members: members,
+      rightBracket: rightBracket,
+    );
+  }
+}
+
+class _ClassLikeDeclarationBuilder {
+  final CommentImpl? comment;
+  final List<Annotation>? metadata;
+  final TypeParameterListImpl? typeParameters;
+
+  Token leftBracket;
+  final List<ClassMember> members = [];
+  Token rightBracket;
+
+  _ClassLikeDeclarationBuilder({
+    required this.comment,
+    required this.metadata,
+    required this.typeParameters,
+    required this.leftBracket,
+    required this.rightBracket,
+  });
+}
+
 class _ConstructorNameWithInvalidTypeArgs {
   final ConstructorName name;
   final TypeArgumentList invalidTypeArgs;
 
   _ConstructorNameWithInvalidTypeArgs(this.name, this.invalidTypeArgs);
+}
+
+class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token enumKeyword;
+  final SimpleIdentifierImpl name;
+  final WithClauseImpl? withClause;
+  final ImplementsClauseImpl? implementsClause;
+  final List<EnumConstantDeclaration> constants = [];
+  Token? semicolon;
+
+  _EnumDeclarationBuilder({
+    required super.comment,
+    required super.metadata,
+    required super.typeParameters,
+    required super.leftBracket,
+    required super.rightBracket,
+    required this.enumKeyword,
+    required this.name,
+    required this.withClause,
+    required this.implementsClause,
+    required this.semicolon,
+  });
+
+  EnumDeclarationImpl build() {
+    return EnumDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      enumKeyword: enumKeyword,
+      name: name,
+      typeParameters: typeParameters,
+      withClause: withClause,
+      implementsClause: implementsClause,
+      leftBracket: leftBracket,
+      constants: constants,
+      semicolon: semicolon,
+      members: members,
+      rightBracket: rightBracket,
+    );
+  }
+}
+
+class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token extensionKeyword;
+  final SimpleIdentifierImpl? name;
+
+  _ExtensionDeclarationBuilder({
+    required super.comment,
+    required super.metadata,
+    required super.typeParameters,
+    required super.leftBracket,
+    required super.rightBracket,
+    required this.extensionKeyword,
+    required this.name,
+  });
+
+  ExtensionDeclarationImpl build({
+    required Token? typeKeyword,
+    required HideClauseImpl? hideClause,
+    required ShowClauseImpl? showClause,
+    required Token onKeyword,
+    required TypeAnnotationImpl extendedType,
+  }) {
+    return ExtensionDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      extensionKeyword: extensionKeyword,
+      typeKeyword: typeKeyword,
+      name: name,
+      typeParameters: typeParameters,
+      onKeyword: onKeyword,
+      extendedType: extendedType,
+      showClause: showClause,
+      hideClause: hideClause,
+      leftBracket: leftBracket,
+      members: members,
+      rightBracket: rightBracket,
+    );
+  }
 }
 
 /// When [enableSpreadCollections] and/or [enableControlFlowCollections]
@@ -4909,6 +5038,43 @@ class _InvalidCollectionElement implements CollectionElement {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? augmentKeyword;
+  final Token mixinKeyword;
+  final SimpleIdentifierImpl name;
+  OnClauseImpl? onClause;
+  ImplementsClauseImpl? implementsClause;
+
+  _MixinDeclarationBuilder({
+    required super.comment,
+    required super.metadata,
+    required super.typeParameters,
+    required super.leftBracket,
+    required super.rightBracket,
+    required this.augmentKeyword,
+    required this.mixinKeyword,
+    required this.name,
+    required this.onClause,
+    required this.implementsClause,
+  });
+
+  MixinDeclarationImpl build() {
+    return MixinDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      augmentKeyword: augmentKeyword,
+      mixinKeyword: mixinKeyword,
+      name: name,
+      typeParameters: typeParameters,
+      onClause: onClause,
+      implementsClause: implementsClause,
+      leftBracket: leftBracket,
+      members: members,
+      rightBracket: rightBracket,
+    );
+  }
 }
 
 /// Data structure placed on the stack to represent a non-empty sequence

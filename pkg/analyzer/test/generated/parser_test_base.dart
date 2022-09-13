@@ -14,9 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show ClassDeclarationImpl, CompilationUnitImpl;
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
@@ -24,7 +22,7 @@ import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:collection/collection.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 
@@ -801,29 +799,11 @@ class ParserProxy extends analyzer.Parser {
 
   ClassMember? parseClassMemberOrNull(String className) {
     return _run('ClassOrMixinBody', () {
-      astBuilder.classDeclaration = ClassDeclarationImpl(
-        comment: null,
-        metadata: null,
-        abstractKeyword: null,
-        macroKeyword: null,
-        augmentKeyword: null,
-        classKeyword: Token(Keyword.CLASS, 0),
-        name: astFactory.simpleIdentifier(fasta.StringTokenImpl.fromString(
-            TokenType.IDENTIFIER, className, 6)),
-        typeParameters: null,
-        extendsClause: null,
-        withClause: null,
-        implementsClause: null,
-        leftBracket: Tokens.openCurlyBracket(),
-        members: <ClassMember>[],
-        rightBracket: Tokens.closeCurlyBracket(),
-      );
+      final builder = astBuilder.createFakeClassDeclarationBuilder(className);
       // TODO(danrubel): disambiguate between class and mixin
       currentToken = fastaParser.parseClassMember(currentToken, className);
       //currentToken = fastaParser.parseMixinMember(currentToken);
-      ClassDeclaration declaration = astBuilder.classDeclaration!;
-      astBuilder.classDeclaration = null;
-      return declaration.members.isNotEmpty ? declaration.members[0] : null;
+      return builder.members.firstOrNull;
     });
   }
 
