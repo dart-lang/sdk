@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
@@ -53,8 +52,8 @@ class _GetExpressionInfo extends Expression {
   _GetExpressionInfo(this.target, this.callback, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    target.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
   }
 
   @override
@@ -73,7 +72,7 @@ class _GetSsaNodes extends Statement {
   _GetSsaNodes(this.callback, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   void visit(Harness h) {
@@ -90,8 +89,8 @@ class _WhyNotPromoted extends Expression {
   _WhyNotPromoted(this.target, this.callback, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    target.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
   }
 
   @override
@@ -118,7 +117,7 @@ class _WhyNotPromoted_ImplicitThis extends Statement {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => 'implicit this (whyNotPromoted)';

@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:test/test.dart';
 
 import 'mini_ir.dart';
@@ -253,9 +254,12 @@ mixin CaseHead implements CaseHeads, Node {
       ExpressionCase._(_pattern, _whenExpression, body,
           location: computeLocation());
 
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    _pattern?.preVisit(assignedVariables);
-    _whenExpression?.preVisit(assignedVariables);
+  void _preVisit(
+      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+    variableBinder.startAlternative(this);
+    _pattern?.preVisit(visitor, variableBinder);
+    variableBinder.finishAlternative();
+    _whenExpression?.preVisit(visitor);
   }
 }
 
@@ -364,7 +368,7 @@ abstract class Expression extends Node {
   Expression or(Expression other) =>
       new _Logical(this, other, isAnd: false, location: computeLocation());
 
-  void preVisit(AssignedVariables<Node, Var> assignedVariables);
+  void preVisit(PreVisitor visitor);
 
   /// If `this` is an expression `x`, creates the L-value `x.name`.
   PromotableLValue property(String name) =>
@@ -406,9 +410,11 @@ class ExpressionCase extends Node
         ': $body'
       ].join('');
 
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    pattern?.preVisit(assignedVariables);
-    body.preVisit(assignedVariables);
+  void _preVisit(PreVisitor visitor) {
+    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
+    pattern?.preVisit(visitor, variableBinder);
+    variableBinder.finish();
+    body.preVisit(visitor);
   }
 }
 
@@ -719,25 +725,26 @@ class Harness
 
   /// Runs the given [statements] through flow analysis, checking any assertions
   /// they contain.
-  void run(List<Statement> statements, {bool errorRecoveryOk = false}) {
+  void run(List<Statement> statements,
+      {bool errorRecoveryOk = false, Set<String> expectedErrors = const {}}) {
     _started = true;
     if (legacy && patternsEnabled) {
       fail('Patterns cannot be enabled in legacy mode');
     }
-    var assignedVariables = AssignedVariables<Node, Var>();
+    var visitor = PreVisitor(typeAnalyzer.errors);
     var b = _Block(statements, location: computeLocation());
-    b.preVisit(assignedVariables);
+    b.preVisit(visitor);
     flow = legacy
         ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
-            this, assignedVariables)
+            this, visitor._assignedVariables)
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
-            this, assignedVariables,
+            this, visitor._assignedVariables,
             respectImplicitlyTypedVarInitializers:
                 _respectImplicitlyTypedVarInitializers,
             promotableFields: promotableFields);
     typeAnalyzer.dispatchStatement(b);
     typeAnalyzer.finish();
-    expect(typeAnalyzer.errors._accumulatedErrors, isEmpty);
+    expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
     var assertInErrorRecoveryStack =
         typeAnalyzer.errors._assertInErrorRecoveryStack;
     if (!errorRecoveryOk && assertInErrorRecoveryStack != null) {
@@ -829,8 +836,7 @@ abstract class LValue extends Expression {
   LValue._({required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables,
-      {_LValueDisposition disposition});
+  void preVisit(PreVisitor visitor, {_LValueDisposition disposition});
 
   /// Creates an expression representing a write to this L-value.
   Expression write(Expression? value) =>
@@ -878,7 +884,8 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   @override
   Expression? get _whenExpression => null;
 
-  void preVisit(AssignedVariables<Node, Var> assignedVariables);
+  void preVisit(
+      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder);
 
   @override
   String toString() => _debugString(needsKeywordOrType: true);
@@ -891,12 +898,24 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   String _debugString({required bool needsKeywordOrType});
 }
 
+/// Data structure holding information needed during the "pre-visit" phase of
+/// type analysis.
+class PreVisitor implements VariableBindingCallbacks<Node, Var, Type> {
+  final AssignedVariables<Node, Var> _assignedVariables =
+      AssignedVariables<Node, Var>();
+
+  @override
+  final VariableBinderErrors<Node, Var>? errors;
+
+  PreVisitor(this.errors);
+}
+
 /// Base class for language constructs that, at a given point in flow analysis,
 /// might or might not be promoted.
 abstract class Promotable {
-  /// Makes the appropriate calls to [assignedVariables] for this syntactic
-  /// construct.
-  void preVisit(AssignedVariables<Node, Var> assignedVariables);
+  /// Makes the appropriate calls to [AssignedVariables] and [VariableBinder]
+  /// for this syntactic construct.
+  void preVisit(PreVisitor visitor);
 
   /// Queries the current promotion status of `this`.  Return value is either a
   /// type (if `this` is promoted), or `null` (if it isn't).
@@ -919,10 +938,7 @@ abstract class Statement extends Node {
   Statement checkIr(String expectedIr) =>
       _CheckStatementIr(this, expectedIr, location: computeLocation());
 
-  Statement expectErrors(Set<String> expectedErrors) =>
-      _ExpectStatementErrors(this, expectedErrors, location: computeLocation());
-
-  void preVisit(AssignedVariables<Node, Var> assignedVariables);
+  void preVisit(PreVisitor visitor);
 
   /// If `this` is a statement `x`, creates a pseudo-expression that models
   /// execution of `x` followed by evaluation of [expr].  This can be used to
@@ -992,7 +1008,7 @@ class Var extends Node implements Promotable {
           location: computeLocation());
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   /// Creates an expression representing a read of this variable, which as a
   /// side effect will call the given callback with the returned promoted type.
@@ -1024,8 +1040,8 @@ class _As extends Expression {
   _As(this.target, this.type, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    target.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
   }
 
   @override
@@ -1044,9 +1060,9 @@ class _Assert extends Statement {
   _Assert(this.condition, this.message, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    condition.preVisit(assignedVariables);
-    message?.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    condition.preVisit(visitor);
+    message?.preVisit(visitor);
   }
 
   @override
@@ -1068,9 +1084,9 @@ class _Block extends Statement {
   _Block(this.statements, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+  void preVisit(PreVisitor visitor) {
     for (var statement in statements) {
-      statement.preVisit(assignedVariables);
+      statement.preVisit(visitor);
     }
   }
 
@@ -1093,7 +1109,7 @@ class _BooleanLiteral extends Expression {
   _BooleanLiteral(this.value, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => '$value';
@@ -1112,7 +1128,7 @@ class _Break extends Statement {
   _Break(this.target, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => 'break;';
@@ -1155,8 +1171,8 @@ class _CatchClause {
     return '$initialPart $_body';
   }
 
-  void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    _body.preVisit(assignedVariables);
+  void _preVisit(PreVisitor visitor) {
+    _body.preVisit(visitor);
   }
 }
 
@@ -1168,7 +1184,7 @@ class _CheckAssigned extends Statement {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() {
@@ -1192,8 +1208,8 @@ class _CheckExpressionContext extends Expression {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    inner.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    inner.preVisit(visitor);
   }
 
   @override
@@ -1216,8 +1232,8 @@ class _CheckExpressionIr extends Expression {
   _CheckExpressionIr(this.inner, this.expectedIr, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    inner.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    inner.preVisit(visitor);
   }
 
   @override
@@ -1240,8 +1256,8 @@ class _CheckExpressionType extends Expression {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    target.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
   }
 
   @override
@@ -1264,8 +1280,8 @@ class _CheckPromoted extends Statement {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    promotable.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    promotable.preVisit(visitor);
   }
 
   @override
@@ -1291,7 +1307,7 @@ class _CheckReachable extends Statement {
   _CheckReachable(this.expectedReachable, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => 'check reachable;';
@@ -1311,8 +1327,8 @@ class _CheckStatementIr extends Statement {
   _CheckStatementIr(this.inner, this.expectedIr, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    inner.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    inner.preVisit(visitor);
   }
 
   @override
@@ -1333,7 +1349,7 @@ class _CheckUnassigned extends Statement {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() {
@@ -1358,12 +1374,12 @@ class _Conditional extends Expression {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    condition.preVisit(assignedVariables);
-    assignedVariables.beginNode();
-    ifTrue.preVisit(assignedVariables);
-    assignedVariables.endNode(this);
-    ifFalse.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    condition.preVisit(visitor);
+    visitor._assignedVariables.beginNode();
+    ifTrue.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
+    ifFalse.preVisit(visitor);
   }
 
   @override
@@ -1386,8 +1402,9 @@ class _ConstantPattern extends Pattern {
   _ConstantPattern(this.constant, {required super.location}) : super._();
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    constant.preVisit(assignedVariables);
+  void preVisit(
+      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+    constant.preVisit(visitor);
   }
 
   @override
@@ -1402,7 +1419,7 @@ class _Continue extends Statement {
   _Continue({required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => 'continue;';
@@ -1424,14 +1441,16 @@ class _Declare extends Statement {
       {required this.isLate, required this.isFinal, required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    pattern.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
+    pattern.preVisit(visitor, variableBinder);
+    variableBinder.finish();
     if (isLate) {
-      assignedVariables.beginNode();
+      visitor._assignedVariables.beginNode();
     }
-    initializer?.preVisit(assignedVariables);
+    initializer?.preVisit(visitor);
     if (isLate) {
-      assignedVariables.endNode(this);
+      visitor._assignedVariables.endNode(this);
     }
   }
 
@@ -1492,11 +1511,11 @@ class _Do extends Statement {
   _Do(this.body, this.condition, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    assignedVariables.beginNode();
-    body.preVisit(assignedVariables);
-    condition.preVisit(assignedVariables);
-    assignedVariables.endNode(this);
+  void preVisit(PreVisitor visitor) {
+    visitor._assignedVariables.beginNode();
+    body.preVisit(visitor);
+    condition.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
   }
 
   @override
@@ -1518,9 +1537,9 @@ class _Equal extends Expression {
   _Equal(this.lhs, this.rhs, this.isInverted, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    lhs.preVisit(assignedVariables);
-    rhs.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    lhs.preVisit(visitor);
+    rhs.preVisit(visitor);
   }
 
   @override
@@ -1538,30 +1557,6 @@ class _Equal extends Expression {
   }
 }
 
-class _ExpectStatementErrors extends Statement {
-  final Statement _statement;
-
-  final Set<String> _expectedErrors;
-
-  _ExpectStatementErrors(this._statement, this._expectedErrors,
-      {required super.location});
-
-  @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    _statement.preVisit(assignedVariables);
-  }
-
-  @override
-  void visit(Harness h) {
-    var previousErrors = h.typeAnalyzer.errors;
-    h.typeAnalyzer.errors = _MiniAstErrors();
-    h.typeAnalyzer.dispatchStatement(_statement);
-    expect(h.typeAnalyzer.errors._accumulatedErrors, _expectedErrors,
-        reason: 'at $location');
-    h.typeAnalyzer.errors = previousErrors;
-  }
-}
-
 class _ExpressionInContext extends Statement {
   final Expression expr;
 
@@ -1570,8 +1565,8 @@ class _ExpressionInContext extends Statement {
   _ExpressionInContext(this.expr, this.context, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    expr.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    expr.preVisit(visitor);
   }
 
   @override
@@ -1591,8 +1586,8 @@ class _ExpressionStatement extends Statement {
   _ExpressionStatement(this.expr, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    expr.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    expr.preVisit(visitor);
   }
 
   @override
@@ -1618,13 +1613,13 @@ class _For extends Statement {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    initializer?.preVisit(assignedVariables);
-    assignedVariables.beginNode();
-    condition?.preVisit(assignedVariables);
-    body.preVisit(assignedVariables);
-    updater?.preVisit(assignedVariables);
-    assignedVariables.endNode(this);
+  void preVisit(PreVisitor visitor) {
+    initializer?.preVisit(visitor);
+    visitor._assignedVariables.beginNode();
+    condition?.preVisit(visitor);
+    body.preVisit(visitor);
+    updater?.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
   }
 
   @override
@@ -1687,18 +1682,18 @@ class _ForEach extends Statement {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    iterable.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    iterable.preVisit(visitor);
     if (variable != null) {
       if (declaresVariable) {
-        assignedVariables.declare(variable!);
+        visitor._assignedVariables.declare(variable!);
       } else {
-        assignedVariables.write(variable!);
+        visitor._assignedVariables.write(variable!);
       }
     }
-    assignedVariables.beginNode();
-    body.preVisit(assignedVariables);
-    assignedVariables.endNode(this);
+    visitor._assignedVariables.beginNode();
+    body.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
   }
 
   @override
@@ -1739,17 +1734,13 @@ class _If extends Statement {
   _If(this.condition, this.ifTrue, this.ifFalse, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    condition.preVisit(assignedVariables);
-    assignedVariables.beginNode();
-    ifTrue.preVisit(assignedVariables);
-    assignedVariables.endNode(this);
-    ifFalse?.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    condition.preVisit(visitor);
+    visitor._assignedVariables.beginNode();
+    ifTrue.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
+    ifFalse?.preVisit(visitor);
   }
-
-  @override
-  String toString() =>
-      'if ($condition) $ifTrue' + (ifFalse == null ? '' : 'else $ifFalse');
 
   @override
   void visit(Harness h) {
@@ -1767,9 +1758,9 @@ class _IfNull extends Expression {
   _IfNull(this.lhs, this.rhs, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    lhs.preVisit(assignedVariables);
-    rhs.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    lhs.preVisit(visitor);
+    rhs.preVisit(visitor);
   }
 
   @override
@@ -1796,7 +1787,7 @@ class _IntLiteral extends Expression {
       {this.expectConversionToDouble, required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => '$value';
@@ -1823,8 +1814,8 @@ class _Is extends Expression {
   _Is(this.target, this.type, this.isInverted, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    target.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
   }
 
   @override
@@ -1845,8 +1836,8 @@ class _LabeledStatement extends Statement {
   _LabeledStatement(this._body, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    _body.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    _body.preVisit(visitor);
   }
 
   @override
@@ -1864,10 +1855,11 @@ class _LocalFunction extends Statement {
   _LocalFunction(this.body, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    assignedVariables.beginNode();
-    body.preVisit(assignedVariables);
-    assignedVariables.endNode(this, isClosureOrLateVariableInitializer: true);
+  void preVisit(PreVisitor visitor) {
+    visitor._assignedVariables.beginNode();
+    body.preVisit(visitor);
+    visitor._assignedVariables
+        .endNode(this, isClosureOrLateVariableInitializer: true);
   }
 
   @override
@@ -1889,11 +1881,11 @@ class _Logical extends Expression {
   _Logical(this.lhs, this.rhs, {required this.isAnd, required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    lhs.preVisit(assignedVariables);
-    assignedVariables.beginNode();
-    rhs.preVisit(assignedVariables);
-    assignedVariables.endNode(this);
+  void preVisit(PreVisitor visitor) {
+    lhs.preVisit(visitor);
+    visitor._assignedVariables.beginNode();
+    rhs.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
   }
 
   @override
@@ -1928,7 +1920,9 @@ enum _LValueDisposition {
 }
 
 class _MiniAstErrors
-    implements TypeAnalyzerErrors<Node, Statement, Expression, Var, Type> {
+    implements
+        TypeAnalyzerErrors<Node, Statement, Expression, Var, Type>,
+        VariableBinderErrors<Node, Var> {
   final Set<String> _accumulatedErrors = {};
 
   /// If [assertInErrorRecovery] is called prior to any errors being reported,
@@ -2020,7 +2014,7 @@ class _MiniAstTypeAnalyzer
   final Harness _harness;
 
   @override
-  late _MiniAstErrors errors = _MiniAstErrors();
+  final _MiniAstErrors errors = _MiniAstErrors();
 
   Statement? _currentBreakTarget;
 
@@ -2511,8 +2505,8 @@ class _NonNullAssert extends Expression {
   _NonNullAssert(this.operand, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    operand.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    operand.preVisit(visitor);
   }
 
   @override
@@ -2530,8 +2524,8 @@ class _Not extends Expression {
   _Not(this.operand, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    operand.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    operand.preVisit(visitor);
   }
 
   @override
@@ -2554,9 +2548,9 @@ class _NullAwareAccess extends Expression {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    lhs.preVisit(assignedVariables);
-    rhs.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    lhs.preVisit(visitor);
+    rhs.preVisit(visitor);
   }
 
   @override
@@ -2582,7 +2576,7 @@ class _NullLiteral extends Expression {
   _NullLiteral({required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => 'null';
@@ -2601,8 +2595,8 @@ class _ParenthesizedExpression extends Expression {
   _ParenthesizedExpression(this.expr, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    expr.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    expr.preVisit(visitor);
   }
 
   @override
@@ -2620,7 +2614,7 @@ class _PlaceholderExpression extends Expression {
   _PlaceholderExpression(this.type, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => '(expr with type $type)';
@@ -2642,9 +2636,9 @@ class _Property extends PromotableLValue {
       : super._();
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables,
+  void preVisit(PreVisitor visitor,
       {_LValueDisposition disposition = _LValueDisposition.read}) {
-    target.preVisit(assignedVariables);
+    target.preVisit(visitor);
   }
 
   @override
@@ -2681,7 +2675,7 @@ class _Return extends Statement {
   _Return({required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => 'return;';
@@ -2701,10 +2695,10 @@ class _SwitchExpression extends Expression {
   _SwitchExpression(this.scrutinee, this.cases, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    scrutinee.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    scrutinee.preVisit(visitor);
     for (var case_ in cases) {
-      case_._preVisit(assignedVariables);
+      case_._preVisit(visitor);
     }
   }
 
@@ -2756,16 +2750,32 @@ class _SwitchStatement extends Statement {
       required this.expectScrutineeType});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    scrutinee.preVisit(assignedVariables);
-    assignedVariables.beginNode();
+  void preVisit(PreVisitor visitor) {
+    scrutinee.preVisit(visitor);
+    visitor._assignedVariables.beginNode();
+    VariableBinder<Node, Var, Type>? variableBinder;
     for (var case_ in cases) {
-      for (var caseHead in case_._caseHeads._caseHeads) {
-        caseHead._preVisit(assignedVariables);
+      variableBinder ??= VariableBinder<Node, Var, Type>(visitor)
+        ..startAlternatives();
+      for (var label in case_._caseHeads._labels) {
+        variableBinder.startAlternative(label);
+        variableBinder.finishAlternative();
       }
-      case_._body.preVisit(assignedVariables);
+      for (var caseHead in case_._caseHeads._caseHeads) {
+        caseHead._preVisit(visitor, variableBinder);
+      }
+      if (case_._body.statements.isNotEmpty) {
+        variableBinder.finishAlternatives();
+        variableBinder.finish();
+        variableBinder = null;
+      }
+      case_._body.preVisit(visitor);
     }
-    assignedVariables.endNode(this);
+    if (variableBinder != null) {
+      variableBinder.finishAlternatives();
+      variableBinder.finish();
+    }
+    visitor._assignedVariables.endNode(this);
   }
 
   @override
@@ -2812,7 +2822,7 @@ class _This extends Expression {
   _This({required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {}
+  void preVisit(PreVisitor visitor) {}
 
   @override
   String toString() => 'this';
@@ -2832,7 +2842,7 @@ class _ThisOrSuperProperty extends PromotableLValue {
       : super._();
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables,
+  void preVisit(PreVisitor visitor,
       {_LValueDisposition disposition = _LValueDisposition.read}) {}
 
   @override
@@ -2863,8 +2873,8 @@ class _Throw extends Expression {
   _Throw(this.operand, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    operand.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    operand.preVisit(visitor);
   }
 
   @override
@@ -2909,23 +2919,23 @@ class _TryStatement extends TryStatement {
   }
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
+  void preVisit(PreVisitor visitor) {
     if (_finally != null) {
-      assignedVariables.beginNode();
+      visitor._assignedVariables.beginNode();
     }
     if (_catches.isNotEmpty) {
-      assignedVariables.beginNode();
+      visitor._assignedVariables.beginNode();
     }
-    _body.preVisit(assignedVariables);
-    assignedVariables.endNode(_body);
+    _body.preVisit(visitor);
+    visitor._assignedVariables.endNode(_body);
     for (var catch_ in _catches) {
-      catch_._preVisit(assignedVariables);
+      catch_._preVisit(visitor);
     }
     if (_finally != null) {
       if (_catches.isNotEmpty) {
-        assignedVariables.endNode(this);
+        visitor._assignedVariables.endNode(this);
       }
-      _finally!.preVisit(assignedVariables);
+      _finally!.preVisit(visitor);
     }
   }
 
@@ -2956,8 +2966,11 @@ class _VariablePattern extends Pattern {
       : super._();
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    assignedVariables.declare(variable);
+  void preVisit(
+      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+    if (variableBinder.add(this, variable)) {
+      visitor._assignedVariables.declare(variable);
+    }
   }
 
   @override
@@ -2985,13 +2998,13 @@ class _VariableReference extends LValue {
       : super._();
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables,
+  void preVisit(PreVisitor visitor,
       {_LValueDisposition disposition = _LValueDisposition.read}) {
     if (disposition != _LValueDisposition.write) {
-      assignedVariables.read(variable);
+      visitor._assignedVariables.read(variable);
     }
     if (disposition != _LValueDisposition.read) {
-      assignedVariables.write(variable);
+      visitor._assignedVariables.write(variable);
     }
   }
 
@@ -3030,11 +3043,11 @@ class _While extends Statement {
   _While(this.condition, this.body, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    assignedVariables.beginNode();
-    condition.preVisit(assignedVariables);
-    body.preVisit(assignedVariables);
-    assignedVariables.endNode(this);
+  void preVisit(PreVisitor visitor) {
+    visitor._assignedVariables.beginNode();
+    condition.preVisit(visitor);
+    body.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
   }
 
   @override
@@ -3058,10 +3071,10 @@ class _WrappedExpression extends Expression {
       {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    before?.preVisit(assignedVariables);
-    expr.preVisit(assignedVariables);
-    after?.preVisit(assignedVariables);
+  void preVisit(PreVisitor visitor) {
+    before?.preVisit(visitor);
+    expr.preVisit(visitor);
+    after?.preVisit(visitor);
   }
 
   @override
@@ -3114,12 +3127,12 @@ class _Write extends Expression {
   _Write(this.lhs, this.rhs, {required super.location});
 
   @override
-  void preVisit(AssignedVariables<Node, Var> assignedVariables) {
-    lhs.preVisit(assignedVariables,
+  void preVisit(PreVisitor visitor) {
+    lhs.preVisit(visitor,
         disposition: rhs == null
             ? _LValueDisposition.readWrite
             : _LValueDisposition.write);
-    rhs?.preVisit(assignedVariables);
+    rhs?.preVisit(visitor);
   }
 
   @override

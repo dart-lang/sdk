@@ -397,28 +397,30 @@ main() {
           var x = Var('x');
           h.run([
             switch_(
-                    expr('int'),
-                    [
-                      x.pattern().then([]),
-                      (default_..errorId = 'DEFAULT').then([]),
-                    ],
-                    isExhaustive: true)
-                .expectErrors({'missingMatchVar(DEFAULT, x)'}),
-          ]);
+                expr('int'),
+                [
+                  x.pattern().then([]),
+                  (default_..errorId = 'DEFAULT').then([]),
+                ],
+                isExhaustive: true),
+          ], expectedErrors: {
+            'missingMatchVar(DEFAULT, x)'
+          });
         });
 
         test('case', () {
           var x = Var('x');
           h.run([
             switch_(
-                    expr('int'),
-                    [
-                      (intLiteral(0).pattern..errorId = 'CASE(0)').then([]),
-                      x.pattern().then([]),
-                    ],
-                    isExhaustive: true)
-                .expectErrors({'missingMatchVar(CASE(0), x)'}),
-          ]);
+                expr('int'),
+                [
+                  (intLiteral(0).pattern..errorId = 'CASE(0)').then([]),
+                  x.pattern().then([]),
+                ],
+                isExhaustive: true),
+          ], expectedErrors: {
+            'missingMatchVar(CASE(0), x)'
+          });
         });
 
         test('label', () {
@@ -426,13 +428,14 @@ main() {
           var l = Label('l')..errorId = 'LABEL';
           h.run([
             switch_(
-                    expr('int'),
-                    [
-                      l.then(x.pattern()).then([]),
-                    ],
-                    isExhaustive: true)
-                .expectErrors({'missingMatchVar(LABEL, x)'}),
-          ]);
+                expr('int'),
+                [
+                  l.then(x.pattern()).then([]),
+                ],
+                isExhaustive: true),
+          ], expectedErrors: {
+            'missingMatchVar(LABEL, x)'
+          });
         });
       });
 
@@ -441,19 +444,16 @@ main() {
           var x = Var('x');
           h.run([
             switch_(
-                    expr('num'),
-                    [
-                      (x.pattern(type: 'int')..errorId = 'PATTERN(int x)')
-                          .then([]),
-                      (x.pattern(type: 'num')..errorId = 'PATTERN(num x)')
-                          .then([]),
-                    ],
-                    isExhaustive: true)
-                .expectErrors({
-              'inconsistentMatchVar(pattern: PATTERN(num x), type: num, '
-                  'previousPattern: PATTERN(int x), previousType: int)'
-            }),
-          ]);
+                expr('num'),
+                [
+                  (x.pattern(type: 'int')..errorId = 'PATTERN(int x)').then([]),
+                  (x.pattern(type: 'num')..errorId = 'PATTERN(num x)').then([]),
+                ],
+                isExhaustive: true),
+          ], expectedErrors: {
+            'inconsistentMatchVar(pattern: PATTERN(num x), type: num, '
+                'previousPattern: PATTERN(int x), previousType: int)'
+          });
         });
 
         test('explicit/implicit type', () {
@@ -462,18 +462,16 @@ main() {
           var x = Var('x');
           h.run([
             switch_(
-                    expr('int'),
-                    [
-                      (x.pattern()..errorId = 'PATTERN(x)').then([]),
-                      (x.pattern(type: 'int')..errorId = 'PATTERN(int x)')
-                          .then([]),
-                    ],
-                    isExhaustive: true)
-                .expectErrors({
-              'inconsistentMatchVarExplicitness(pattern: PATTERN(int x), '
-                  'previousPattern: PATTERN(x))'
-            }),
-          ]);
+                expr('int'),
+                [
+                  (x.pattern()..errorId = 'PATTERN(x)').then([]),
+                  (x.pattern(type: 'int')..errorId = 'PATTERN(int x)').then([]),
+                ],
+                isExhaustive: true),
+          ], expectedErrors: {
+            'inconsistentMatchVarExplicitness(pattern: PATTERN(int x), '
+                'previousPattern: PATTERN(x))'
+          });
         });
 
         test('implicit/implicit type', () {
@@ -496,9 +494,10 @@ main() {
                 ]),
               ],
               isExhaustive: true,
-            )..errorId = 'SWITCH')
-                .expectErrors({'switchCaseCompletesNormally(SWITCH, 0, 1)'}),
-          ]);
+            )..errorId = 'SWITCH'),
+          ], expectedErrors: {
+            'switchCaseCompletesNormally(SWITCH, 0, 1)'
+          });
         });
 
         test('Handles cases that share a body', () {
@@ -517,9 +516,10 @@ main() {
                 ]),
               ],
               isExhaustive: true,
-            )..errorId = 'SWITCH')
-                .expectErrors({'switchCaseCompletesNormally(SWITCH, 0, 3)'}),
-          ]);
+            )..errorId = 'SWITCH'),
+          ], expectedErrors: {
+            'switchCaseCompletesNormally(SWITCH, 0, 3)'
+          });
         });
 
         test('Not reported when unreachable', () {
@@ -536,8 +536,8 @@ main() {
                 ]),
               ],
               isExhaustive: true,
-            ).expectErrors({}),
-          ]);
+            ),
+          ], expectedErrors: {});
         });
 
         test('Not reported for final case', () {
@@ -551,8 +551,8 @@ main() {
                 ]),
               ],
               isExhaustive: false,
-            ).expectErrors({}),
-          ]);
+            ),
+          ], expectedErrors: {});
         });
 
         test('Not reported in legacy mode', () {
@@ -573,8 +573,8 @@ main() {
                 ]),
               ],
               isExhaustive: false,
-            ).expectErrors({}),
-          ]);
+            ),
+          ], expectedErrors: {});
         });
 
         test('Not reported when patterns enabled', () {
@@ -593,8 +593,8 @@ main() {
                 ]),
               ],
               isExhaustive: false,
-            ).expectErrors({}),
-          ]);
+            ),
+          ], expectedErrors: {});
         });
       });
 
@@ -632,21 +632,18 @@ main() {
             h.legacy = true;
             h.run([
               switch_(
-                      expr('int')..errorId = 'SCRUTINEE',
-                      [
-                        (expr('String')..errorId = 'EXPRESSION').pattern.then([
-                          break_(),
-                        ]),
-                      ],
-                      isExhaustive: false)
-                  .expectErrors(
-                {
-                  'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
-                      'caseExpression: EXPRESSION, scrutineeType: int, '
-                      'caseExpressionType: String, nullSafetyEnabled: false)'
-                },
-              ),
-            ]);
+                  expr('int')..errorId = 'SCRUTINEE',
+                  [
+                    (expr('String')..errorId = 'EXPRESSION').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false)
+            ], expectedErrors: {
+              'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
+                  'caseExpression: EXPRESSION, scrutineeType: int, '
+                  'caseExpressionType: String, nullSafetyEnabled: false)'
+            });
           });
 
           test('dynamic scrutinee', () {
@@ -697,42 +694,36 @@ main() {
             h.patternsEnabled = false;
             h.run([
               switch_(
-                      expr('int')..errorId = 'SCRUTINEE',
-                      [
-                        (expr('num')..errorId = 'EXPRESSION').pattern.then([
-                          break_(),
-                        ]),
-                      ],
-                      isExhaustive: false)
-                  .expectErrors(
-                {
-                  'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
-                      'caseExpression: EXPRESSION, scrutineeType: int, '
-                      'caseExpressionType: num, nullSafetyEnabled: true)'
-                },
-              ),
-            ]);
+                  expr('int')..errorId = 'SCRUTINEE',
+                  [
+                    (expr('num')..errorId = 'EXPRESSION').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false)
+            ], expectedErrors: {
+              'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
+                  'caseExpression: EXPRESSION, scrutineeType: int, '
+                  'caseExpressionType: num, nullSafetyEnabled: true)'
+            });
           });
 
           test('unrelated types', () {
             h.patternsEnabled = false;
             h.run([
               switch_(
-                      expr('int')..errorId = 'SCRUTINEE',
-                      [
-                        (expr('String')..errorId = 'EXPRESSION').pattern.then([
-                          break_(),
-                        ]),
-                      ],
-                      isExhaustive: false)
-                  .expectErrors(
-                {
-                  'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
-                      'caseExpression: EXPRESSION, scrutineeType: int, '
-                      'caseExpressionType: String, nullSafetyEnabled: true)'
-                },
-              ),
-            ]);
+                  expr('int')..errorId = 'SCRUTINEE',
+                  [
+                    (expr('String')..errorId = 'EXPRESSION').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false)
+            ], expectedErrors: {
+              'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
+                  'caseExpression: EXPRESSION, scrutineeType: int, '
+                  'caseExpressionType: String, nullSafetyEnabled: true)'
+            });
           });
 
           test('dynamic scrutinee', () {
@@ -753,21 +744,18 @@ main() {
             h.patternsEnabled = false;
             h.run([
               switch_(
-                      expr('int')..errorId = 'SCRUTINEE',
-                      [
-                        (expr('dynamic')..errorId = 'EXPRESSION').pattern.then([
-                          break_(),
-                        ]),
-                      ],
-                      isExhaustive: false)
-                  .expectErrors(
-                {
-                  'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
-                      'caseExpression: EXPRESSION, scrutineeType: int, '
-                      'caseExpressionType: dynamic, nullSafetyEnabled: true)'
-                },
-              ),
-            ]);
+                  expr('int')..errorId = 'SCRUTINEE',
+                  [
+                    (expr('dynamic')..errorId = 'EXPRESSION').pattern.then([
+                      break_(),
+                    ]),
+                  ],
+                  isExhaustive: false)
+            ], expectedErrors: {
+              'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
+                  'caseExpression: EXPRESSION, scrutineeType: int, '
+                  'caseExpressionType: dynamic, nullSafetyEnabled: true)'
+            });
           });
         });
 
@@ -938,22 +926,21 @@ main() {
         // error it expects is `patternDoesNotAllowLate`.
         h.run([
           (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0),
-                  isLate: true)
-                ..errorId = 'CONTEXT')
-              .expectErrors({
-            'patternDoesNotAllowLate(PATTERN)',
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
-          }),
-        ]);
+              isLate: true)
+            ..errorId = 'CONTEXT'),
+        ], expectedErrors: {
+          'patternDoesNotAllowLate(PATTERN)',
+          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+        });
       });
 
       test('illegal refutable pattern', () {
         h.run([
           (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
-                ..errorId = 'CONTEXT')
-              .expectErrors(
-                  {'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'}),
-        ]);
+            ..errorId = 'CONTEXT'),
+        ], expectedErrors: {
+          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+        });
       });
     });
   });
@@ -963,10 +950,10 @@ main() {
       test('Refutability', () {
         h.run([
           (match(intLiteral(1).pattern..errorId = 'PATTERN', intLiteral(0))
-                ..errorId = 'CONTEXT')
-              .expectErrors(
-                  {'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'}),
-        ]);
+            ..errorId = 'CONTEXT'),
+        ], expectedErrors: {
+          'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+        });
       });
     });
 
@@ -994,10 +981,10 @@ main() {
           var x = Var('x');
           h.run([
             (match(x.pattern(type: 'num')..errorId = 'PATTERN', expr('String'))
-                  ..errorId = 'CONTEXT')
-                .expectErrors(
-                    {'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'}),
-          ]);
+              ..errorId = 'CONTEXT'),
+          ], expectedErrors: {
+            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          });
         });
       });
     });

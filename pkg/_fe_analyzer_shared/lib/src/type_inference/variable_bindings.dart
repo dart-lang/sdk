@@ -3,65 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'type_analyzer.dart';
-import 'type_operations.dart';
-
-/// Information about how a single variable is bound within a pattern (or in the
-/// case of several case clauses that share a body, a collection of patterns).
-class VariableBinding<Node extends Object, Variable extends Object,
-    Type extends Object> {
-  /// The variable in question.
-  final Variable variable;
-
-  /// The most recently seen variable pattern that binds [variable].
-  Node _latestPattern;
-
-  /// The alternative enclosing [_latestPattern].  This is used to detect
-  /// [TypeAnalyzerErrors.matchVarOverlap].
-  Node? _latestAlternative;
-
-  /// The static type of [_latestPattern].  This is used to detect
-  /// [TypeAnalyzerErrors.inconsistentMatchVar].
-  Type _latestStaticType;
-
-  /// Indicates whether [_latestPattern] used an implicit type.  This is used to
-  /// detect [TypeAnalyzerErrors.inconsistentMatchVarExplicitness].
-  bool _isImplicitlyTyped;
-
-  VariableBinding._(this._latestPattern, this.variable,
-      {required Type staticType,
-      required bool isImplicitlyTyped,
-      required Node? currentAlternative})
-      : _latestAlternative = currentAlternative,
-        _latestStaticType = staticType,
-        _isImplicitlyTyped = isImplicitlyTyped;
-
-  /// Indicates whether this variable was implicitly typed.
-  bool get isImplicitlyTyped => _isImplicitlyTyped;
-
-  /// The static type of this variable.
-  Type get staticType => _latestStaticType;
-}
-
-/// Callbacks used by [VariableBindings] to access members of [TypeAnalyzer].
-abstract class VariableBindingCallbacks<Node extends Object,
-    Variable extends Object, Type extends Object> {
-  /// Returns the interface for reporting error conditions up to the client.
-  TypeAnalyzerErrors<Node, Node, Node, Variable, Type>? get errors;
-
-  /// Options affecting the behavior of [TypeAnalyzer].
-  TypeAnalyzerOptions get options;
-
-  /// Returns the client's implementation of the [TypeOperations] class.
-  TypeOperations2<Type> get typeOperations;
-}
 
 /// Data structure for tracking all the variable bindings used by a pattern or
 /// a collection of patterns.
-class VariableBindings<Node extends Object, Variable extends Object,
+class VariableBinder<Node extends Object, Variable extends Object,
     Type extends Object> {
   final VariableBindingCallbacks<Node, Variable, Type> _callbacks;
 
-  final Map<Variable, VariableBinding<Node, Variable, Type>> _bindings = {};
+  final Map<Variable, VariableBinding<Node>> _bindings = {};
 
   /// Stack reflecting the nesting of alternatives under consideration.
   ///
@@ -76,26 +25,16 @@ class VariableBindings<Node extends Object, Variable extends Object,
   /// accumulated.
   Node? _currentAlternative;
 
-  VariableBindings(this._callbacks);
-
-  /// Iterates through all the accumulated [VariableBinding]s.
-  ///
-  /// Should not be called until after all the alternatives have been visited.
-  Iterable<VariableBinding<Node, Variable, Type>> get entries {
-    assert(_alternativesStack.isEmpty);
-    return _bindings.values;
-  }
+  VariableBinder(this._callbacks);
 
   /// Updates the set of bindings to account for the presence of a variable
   /// pattern.  [pattern] is the variable pattern, [variable] is the variable it
   /// refers to, [staticType] is the static type of the variable (inferred or
   /// declared), and [isImplicitlyTyped] indicates whether the variable pattern
   /// had an explicit type.
-  bool add(Node pattern, Variable variable,
-      {required Type staticType, required bool isImplicitlyTyped}) {
-    VariableBinding<Node, Variable, Type>? binding = _bindings[variable];
-    TypeAnalyzerErrors<Node, Node, Node, Variable, Type>? errors =
-        _callbacks.errors;
+  bool add(Node pattern, Variable variable) {
+    VariableBinding<Node>? binding = _bindings[variable];
+    VariableBinderErrors<Node, Variable>? errors = _callbacks.errors;
     if (binding == null) {
       if (errors != null) {
         for (List<Node> alternatives in _alternativesStack) {
@@ -104,33 +43,24 @@ class VariableBindings<Node extends Object, Variable extends Object,
           }
         }
       }
-      _bindings[variable] = new VariableBinding._(pattern, variable,
-          currentAlternative: _currentAlternative,
-          staticType: staticType,
-          isImplicitlyTyped: isImplicitlyTyped);
+      _bindings[variable] = new VariableBinding._(pattern,
+          currentAlternative: _currentAlternative);
       return true;
     } else {
       if (identical(_currentAlternative, binding._latestAlternative)) {
         errors?.matchVarOverlap(
             pattern: pattern, previousPattern: binding._latestPattern);
       }
-      if (!_callbacks.typeOperations
-          .isSameType(binding._latestStaticType, staticType)) {
-        errors?.inconsistentMatchVar(
-            pattern: pattern,
-            type: staticType,
-            previousPattern: binding._latestPattern,
-            previousType: binding._latestStaticType);
-        binding._latestStaticType = staticType;
-      } else if (binding._isImplicitlyTyped != isImplicitlyTyped) {
-        errors?.inconsistentMatchVarExplicitness(
-            pattern: pattern, previousPattern: binding._latestPattern);
-      }
       binding._latestPattern = pattern;
       binding._latestAlternative = _currentAlternative;
-      binding._isImplicitlyTyped = isImplicitlyTyped;
       return false;
     }
+  }
+
+  /// Performs a debug check that start/finish calls were properly nested.
+  /// Should be called after all the alternatives have been visited.
+  void finish() {
+    assert(_alternativesStack.isEmpty);
   }
 
   /// Called at the end of processing an alternative (either the left or right
@@ -140,12 +70,13 @@ class VariableBindings<Node extends Object, Variable extends Object,
     if (_alternativesStack.last.length > 1) {
       Node previousAlternative =
           _alternativesStack.last[_alternativesStack.last.length - 2];
-      for (VariableBinding<Node, Variable, Type> binding in _bindings.values) {
-        if (identical(binding._latestAlternative, previousAlternative)) {
-          _callbacks.errors
-              ?.missingMatchVar(_currentAlternative!, binding.variable);
+      for (MapEntry<Variable, VariableBinding<Node>> entry
+          in _bindings.entries) {
+        VariableBinding<Node> variable = entry.value;
+        if (identical(variable._latestAlternative, previousAlternative)) {
           // For error recovery, pretend it wasn't missing.
-          binding._latestAlternative = _currentAlternative;
+          _callbacks.errors?.missingMatchVar(_currentAlternative!, entry.key);
+          variable._latestAlternative = _currentAlternative;
         }
       }
     }
@@ -162,7 +93,7 @@ class VariableBindings<Node extends Object, Variable extends Object,
       Node lastAlternative = alternatives.last;
       _currentAlternative =
           _alternativesStack.isEmpty ? null : _alternativesStack.last.last;
-      for (VariableBinding<Node, Variable, Type> binding in _bindings.values) {
+      for (VariableBinding<Node> binding in _bindings.values) {
         if (identical(binding._latestAlternative, lastAlternative)) {
           binding._latestAlternative = _currentAlternative;
         }
@@ -183,4 +114,49 @@ class VariableBindings<Node extends Object, Variable extends Object,
   void startAlternatives() {
     _alternativesStack.add([]);
   }
+}
+
+/// Interface used by the [VariableBinder] logic to report error conditions
+/// up to the client during the "pre-visit" phase of type analysis.
+abstract class VariableBinderErrors<Node extends Object,
+    Variable extends Object> extends TypeAnalyzerErrorsBase {
+  /// Called if two subpatterns of a pattern attempt to declare the same
+  /// variable (with the exception of `_` and logical-or patterns).
+  ///
+  /// [pattern] is the variable pattern that was being processed at the time the
+  /// overlap was discovered.  [previousPattern] is the previous variable
+  /// pattern that overlaps with it.
+  void matchVarOverlap({required Node pattern, required Node previousPattern});
+
+  /// Called if a variable is bound by one of the alternatives of a logical-or
+  /// pattern but not the other, or if it is bound by one of the cases in a set
+  /// of case clauses that share a body, but not all of them.
+  ///
+  /// [alternative] is the AST node which fails to bind the variable.  This will
+  /// either be one of the immediate sub-patterns of a logical-or pattern, or a
+  /// value of [StatementCaseInfo.node].
+  ///
+  /// [variable] is the variable that is not bound within [alternative].
+  void missingMatchVar(Node alternative, Variable variable);
+}
+
+/// Information about how a single variable is bound within a pattern (or in the
+/// case of several case clauses that share a body, a collection of patterns).
+class VariableBinding<Node extends Object> {
+  /// The most recently seen variable pattern that binds [variable].
+  Node _latestPattern;
+
+  /// The alternative enclosing [_latestPattern].  This is used to detect
+  /// [TypeAnalyzerErrors.matchVarOverlap].
+  Node? _latestAlternative;
+
+  VariableBinding._(this._latestPattern, {required Node? currentAlternative})
+      : _latestAlternative = currentAlternative;
+}
+
+/// Callbacks used by [VariableBindings] to access members of [TypeAnalyzer].
+abstract class VariableBindingCallbacks<Node extends Object,
+    Variable extends Object, Type extends Object> {
+  /// Returns the interface for reporting error conditions up to the client.
+  VariableBinderErrors<Node, Variable>? get errors;
 }

@@ -5,7 +5,6 @@
 import '../flow_analysis/flow_analysis.dart';
 import 'type_analysis_result.dart';
 import 'type_operations.dart';
-import 'variable_bindings.dart';
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
 /// or [TypeAnalyzer.analyzeSwitchStatement] about a single case head.
@@ -135,8 +134,7 @@ class StatementCaseInfo<Node extends Object, Statement extends Node,
 /// of each entry in order to verify that when an entity is popped, it has the
 /// expected kind.
 mixin TypeAnalyzer<Node extends Object, Statement extends Node,
-        Expression extends Node, Variable extends Object, Type extends Object>
-    implements VariableBindingCallbacks<Node, Variable, Type> {
+    Expression extends Node, Variable extends Object, Type extends Object> {
   /// Returns the type `bool`.
   Type get boolType;
 
@@ -146,7 +144,6 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Returns the type `dynamic`.
   Type get dynamicType;
 
-  @override
   TypeAnalyzerErrors<Node, Statement, Expression, Variable, Type>? get errors;
 
   /// Returns the client's [FlowAnalysis] object.
@@ -158,6 +155,12 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
 
   /// Returns the type `int`.
   Type get intType;
+
+  /// Options affecting the behavior of [TypeAnalyzer].
+  TypeAnalyzerOptions get options;
+
+  /// Returns the client's implementation of the [TypeOperations] class.
+  TypeOperations2<Type> get typeOperations;
 
   /// Returns the unknown type context (`?`) used in type inference.
   Type get unknownType;
@@ -225,11 +228,10 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     if (isLate) {
       flow?.lateInitializer_end();
     }
-    VariableBindings<Node, Variable, Type> bindings =
-        new VariableBindings(this);
+    Map<Variable, VariableTypeInfo<Node, Type>> typeInfos = {};
     patternDispatchResult.match(
         initializerType,
-        bindings,
+        typeInfos,
         new MatchContext(
             isFinal: isFinal,
             isLate: isLate,
@@ -267,13 +269,12 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       ExpressionCaseInfo<Node, Expression> caseInfo =
           getExpressionCaseInfo(node, i);
       flow?.switchStatement_beginCase();
-      VariableBindings<Node, Variable, Type> bindings =
-          new VariableBindings(this);
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos = {};
       Node? pattern = caseInfo.pattern;
       if (pattern != null) {
         dispatchPattern(pattern).match(
             expressionType,
-            bindings,
+            typeInfos,
             new MatchContext<Node, Expression>(
                 isFinal: false,
                 switchScrutinee: scrutinee,
@@ -328,10 +329,8 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       // Stack: (Expression, numExecutionPaths * StatementCase)
       int firstCaseInThisExecutionPath = i;
       int numHeads = 0;
-      VariableBindings<Node, Variable, Type> bindings =
-          new VariableBindings(this);
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos = {};
       flow?.switchStatement_beginCase();
-      bindings.startAlternatives();
       flow?.switchStatement_beginAlternatives();
       bool hasLabels = false;
       List<Statement> body = const [];
@@ -342,21 +341,15 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
             getStatementCaseInfo(node, i);
         if (caseInfo.labels.isNotEmpty) {
           hasLabels = true;
-          for (Node label in caseInfo.labels) {
-            // Labels count as empty patterns for the purposes of bindings.
-            bindings.startAlternative(label);
-            bindings.finishAlternative();
-          }
         }
         List<CaseHeadInfo<Node, Expression>> heads = caseInfo.heads;
         for (int j = 0; j < heads.length; j++) {
           CaseHeadInfo<Node, Expression> head = heads[j];
-          bindings.startAlternative(head.node);
           Node? pattern = head.pattern;
           if (pattern != null) {
             dispatchPattern(pattern).match(
                 scrutineeType,
-                bindings,
+                typeInfos,
                 new MatchContext<Node, Expression>(
                     isFinal: false,
                     switchScrutinee: scrutinee,
@@ -382,7 +375,6 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
           // Stack: (Expression, numExecutionPaths * StatementCase,
           //         numHeads * CaseHead),
           flow?.switchStatement_endAlternative();
-          bindings.finishAlternative();
           body = caseInfo.body;
         }
         i++;
@@ -390,7 +382,6 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       }
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
-      bindings.finishAlternatives();
       flow?.switchStatement_endAlternatives(node, hasLabels: hasLabels);
       handleCase_afterCaseHeads(node, firstCaseInThisExecutionPath, numHeads);
       // Stack: (Expression, numExecutionPaths * StatementCase, CaseHeads)
@@ -608,21 +599,53 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Computes the type that should be inferred for an implicitly typed variable
   /// whose initializer expression has static type [type].
   Type variableTypeFromInitializerType(Type type);
+
+  /// Records in [typeInfos] that a [pattern] binds a [variable] with a given
+  /// [staticType], and reports any errors caused by type inconsistency.
+  /// [isImplicitlyTyped] indicates whether the variable is implicitly typed in
+  /// this pattern.
+  bool _recordTypeInfo(Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      {required Node pattern,
+      required Variable variable,
+      required Type staticType,
+      required bool isImplicitlyTyped}) {
+    VariableTypeInfo<Node, Type>? typeInfo = typeInfos[variable];
+    if (typeInfo == null) {
+      typeInfos[variable] =
+          new VariableTypeInfo(pattern, staticType, isImplicitlyTyped);
+      return true;
+    } else {
+      TypeAnalyzerErrors<Node, Statement, Expression, Variable, Type>? errors =
+          this.errors;
+      if (errors != null) {
+        if (!typeOperations.isSameType(
+            typeInfo._latestStaticType, staticType)) {
+          errors.inconsistentMatchVar(
+              pattern: pattern,
+              type: staticType,
+              previousPattern: typeInfo._latestPattern,
+              previousType: typeInfo._latestStaticType);
+        } else if (typeInfo._isImplicitlyTyped != isImplicitlyTyped) {
+          errors.inconsistentMatchVarExplicitness(
+              pattern: pattern, previousPattern: typeInfo._latestPattern);
+        }
+      }
+      typeInfo._latestStaticType = staticType;
+      typeInfo._latestPattern = pattern;
+      typeInfo._isImplicitlyTyped = isImplicitlyTyped;
+      return false;
+    }
+  }
 }
 
 /// Interface used by the shared [TypeAnalyzer] logic to report error conditions
-/// up to the client.
-abstract class TypeAnalyzerErrors<Node extends Object, Statement extends Node,
-    Expression extends Node, Variable extends Object, Type extends Object> {
-  /// Called when the [TypeAnalyzer] encounters a condition which should be
-  /// impossible if the user's code is free from static errors, but which might
-  /// arise as a result of error recovery.  To verify this invariant, the client
-  /// should double check (preferably using an assertion) that at least one
-  /// error is reported.
-  ///
-  /// Note that the error might be reported after this method is called.
-  void assertInErrorRecovery();
-
+/// up to the client during the "visit" phase of type analysis.
+abstract class TypeAnalyzerErrors<
+    Node extends Object,
+    Statement extends Node,
+    Expression extends Node,
+    Variable extends Object,
+    Type extends Object> implements TypeAnalyzerErrorsBase {
   /// Called if pattern support is disabled and a case constant's static type
   /// doesn't properly match the scrutinee's static type.
   void caseExpressionTypeMismatch(
@@ -659,25 +682,6 @@ abstract class TypeAnalyzerErrors<Node extends Object, Statement extends Node,
   void inconsistentMatchVarExplicitness(
       {required Node pattern, required Node previousPattern});
 
-  /// Called if two subpatterns of a pattern attempt to declare the same
-  /// variable (with the exception of `_` and logical-or patterns).
-  ///
-  /// [pattern] is the variable pattern that was being processed at the time the
-  /// overlap was discovered.  [previousPattern] is the previous variable
-  /// pattern that overlaps with it.
-  void matchVarOverlap({required Node pattern, required Node previousPattern});
-
-  /// Called if a variable is bound by one of the alternatives of a logical-or
-  /// pattern but not the other, or if it is bound by one of the cases in a set
-  /// of case clauses that share a body, but not all of them.
-  ///
-  /// [alternative] is the AST node which fails to bind the variable.  This will
-  /// either be one of the immediate sub-patterns of a logical-or pattern, or a
-  /// value of [StatementCaseInfo.node].
-  ///
-  /// [variable] is the variable that is not bound within [alternative].
-  void missingMatchVar(Node alternative, Variable variable);
-
   /// Called if a pattern is illegally used in a variable declaration statement
   /// that is marked `late`, and that pattern is not allowed in such a
   /// declaration.  The only kind of pattern that may be used in a late variable
@@ -703,6 +707,19 @@ abstract class TypeAnalyzerErrors<Node extends Object, Statement extends Node,
       Statement node, int caseIndex, int numMergedCases);
 }
 
+/// Base class for error reporting callbacks that might be reported either in
+/// the "pre-visit" or the "visit" phase of type analysis.
+abstract class TypeAnalyzerErrorsBase {
+  /// Called when the [TypeAnalyzer] encounters a condition which should be
+  /// impossible if the user's code is free from static errors, but which might
+  /// arise as a result of error recovery.  To verify this invariant, the client
+  /// should double check (preferably using an assertion) that at least one
+  /// error is reported.
+  ///
+  /// Note that the error might be reported after this method is called.
+  void assertInErrorRecovery();
+}
+
 /// Options affecting the behavior of [TypeAnalyzer].
 ///
 /// The client is free to `implement` or `extend` this class.
@@ -713,6 +730,29 @@ class TypeAnalyzerOptions {
 
   TypeAnalyzerOptions(
       {required this.nullSafetyEnabled, required this.patternsEnabled});
+}
+
+/// Data structure tracking information about the type of a variable bound by
+/// one or more patterns.
+class VariableTypeInfo<Node extends Object, Type extends Object> {
+  Node _latestPattern;
+
+  /// The static type of [_latestPattern].  This is used to detect
+  /// [TypeAnalyzerErrors.inconsistentMatchVar].
+  Type _latestStaticType;
+
+  /// Indicates whether [_latestPattern] used an implicit type.  This is used to
+  /// detect [TypeAnalyzerErrors.inconsistentMatchVarExplicitness].
+  bool _isImplicitlyTyped;
+
+  VariableTypeInfo(
+      this._latestPattern, this._latestStaticType, this._isImplicitlyTyped);
+
+  /// Indicates whether this variable was implicitly typed.
+  bool get isImplicitlyTyped => _isImplicitlyTyped;
+
+  /// The static type of this variable.
+  Type get staticType => _latestStaticType;
 }
 
 /// Specialization of [PatternDispatchResult] returned by
@@ -740,7 +780,9 @@ class _ConstOrLiteralPatternDispatchResult<Node extends Object,
   }
 
   @override
-  void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
+  void match(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
       MatchContext<Node, Expression> context) {
     // Stack: ()
     Node? irrefutableContext = context.irrefutableContext;
@@ -804,7 +846,9 @@ class _VariablePatternDispatchResult<Node extends Object,
   Type get typeSchema => _declaredType ?? _typeAnalyzer.unknownType;
 
   @override
-  void match(Type matchedType, VariableBindings<Node, Variable, Type> bindings,
+  void match(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
       MatchContext<Node, Expression> context) {
     // Stack: ()
     Type staticType = _declaredType ??
@@ -816,8 +860,11 @@ class _VariablePatternDispatchResult<Node extends Object,
           ?.refutablePatternInIrrefutableContext(node, irrefutableContext);
     }
     bool isImplicitlyTyped = _declaredType == null;
-    bool isFirstMatch = bindings.add(node, _variable,
-        staticType: staticType, isImplicitlyTyped: isImplicitlyTyped);
+    bool isFirstMatch = _typeAnalyzer._recordTypeInfo(typeInfos,
+        pattern: node,
+        variable: _variable,
+        staticType: staticType,
+        isImplicitlyTyped: isImplicitlyTyped);
     if (isFirstMatch) {
       _typeAnalyzer.flow?.declare(_variable, false);
       _typeAnalyzer.setVariableType(_variable, staticType);

@@ -972,6 +972,7 @@ perf
 permanently
 permit
 permits
+pertinent
 physically
 pi
 picking
