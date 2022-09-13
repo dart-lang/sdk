@@ -108,7 +108,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "49bc3ff32b5578b6e19f8fd376d668130941ee29", # manually rev'd
 
-  "dartdoc_rev": "401a7e8adfa2bdf1f117d34eee1680ab2c03d9e1",
+  "dartdoc_rev": "c64f800bd6a7f747c3eef59ffde8e5ebf72d8403",
   "devtools_rev": "40aae5e5ea2118e2b6dee8a8a20f166f7cec4270",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
@@ -127,7 +127,7 @@ vars = {
   "logging_rev": "f5d64426af1b48966a4b33e97927c9fc456960b6",
   "markdown_rev": "e3f4bd28c9e61b522f75f291d4d6cfcfeccd83ee", # b/236358256
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "matcher_rev": "eacb003c0af376863d3a298ad035a589bd9fcbd8",
+  "matcher_rev": "0611d61ec2ecd10b65be2b20b63db40682237a5d",
   "mime_rev": "0a75a41445eb642674a0a271eecde78cb025ee60",
   "mockito_rev": "2acf22f4d400c6e1eee0f6ca595092220fba8b34",
   "oauth2_rev": "199ebf15cbd5b07958438184f32e41c4447a57bf",
@@ -160,7 +160,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "4b46c0c4196a5e76c2b0e2589ed37de247d35938",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "webdev_rev": "f480bfc1ecb00671477298cf136d0a6b9f4f29a7",
+  "webdev_rev": "f6f000ced674f2a4afc32a3796a6f5b901c24ddf",
   "webdriver_rev": "e1a9ad671ee82e05eee463f922a34585ed2d2f15",
   "webkit_inspection_protocol_rev": "4e5eb8d4a48fb97603d90f2b5aac5483ebbdeb1d",
   "yaml_edit_rev": "01589b3ce447b03aed991db49f1ec6445ad5476d",

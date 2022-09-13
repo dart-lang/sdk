@@ -4,6 +4,9 @@
 
 // @dart = 2.9
 
+// VMOptions=--inline_alloc
+// VMOptions=--no_inline_alloc
+
 import "dart:typed_data";
 import "package:expect/expect.dart";
 

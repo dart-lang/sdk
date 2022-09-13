@@ -39,9 +39,12 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     List<Registration> registrations,
     Method method,
   ) {
+    final options = registrationFor(registrations, method)?.registerOptions;
+    if (options == null) {
+      throw 'Registration options for $method were not found';
+    }
     return TextDocumentRegistrationOptions.fromJson(
-        registrationFor(registrations, method)?.registerOptions
-            as Map<String, Object?>);
+        options as Map<String, Object?>);
   }
 
   Future<void> test_blazeWorkspace() async {
@@ -392,6 +395,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.callHierarchyProvider, isNull);
     expect(initResult.capabilities.completionProvider, isNull);
     expect(initResult.capabilities.hoverProvider, isNull);
+    expect(initResult.capabilities.inlayHintProvider, isNull);
     expect(initResult.capabilities.signatureHelpProvider, isNull);
     expect(initResult.capabilities.referencesProvider, isNull);
     expect(initResult.capabilities.colorProvider, isNull);

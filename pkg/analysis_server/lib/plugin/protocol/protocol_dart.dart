@@ -6,6 +6,7 @@
 /// entities.
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:path/path.dart' as path;
 
 /// Return a protocol [Element] corresponding to the given [engine.Element].
@@ -145,9 +146,9 @@ String? _getParametersString(engine.Element element,
     }
     parameters = element.parameters.toList();
   } else if (element is engine.TypeAliasElement) {
-    var aliasedElement = element.aliasedElement;
-    if (aliasedElement is engine.GenericFunctionTypeElement) {
-      parameters = aliasedElement.parameters.toList();
+    final aliasedType = element.aliasedType;
+    if (aliasedType is FunctionType) {
+      parameters = aliasedType.parameters.toList();
     } else {
       return null;
     }
