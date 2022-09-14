@@ -27,6 +27,15 @@
   Additionally, a type test of the form `v is Never` (where `v` is a local
   variable) no longer promotes `v` to type `Never`.
 
+- **Breaking change** [#49878][]: Calling `ResourceHandle.toFile()`,
+  `ResourceHandle.toSocket()`, `ResourceHandle.toRawSocket()` or
+  `ResourceHandle.toRawDatagramSocket()`, more than once now throws a
+  `StateError`.
+
+  The previous behavior would allow multiple Dart objects to refer to the same
+  file descriptor, which would produce errors when one object was closed or
+  garbage collected.
+
 [#49635]: https://github.com/dart-lang/sdk/issues/49635
 
 ### Libraries

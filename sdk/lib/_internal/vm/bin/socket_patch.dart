@@ -2607,19 +2607,35 @@ class ResourceHandle {
 
 @pragma("vm:entry-point")
 class _ResourceHandleImpl implements ResourceHandle {
+  bool _toMethodCalled = false;
+
   @pragma("vm:entry-point")
   int _handle; // file descriptor on linux
   @pragma("vm:entry-point")
   _ResourceHandleImpl(this._handle);
 
-  @pragma("vm:external-name", "ResourceHandleImpl_toFile")
-  external RandomAccessFile toFile();
-  @pragma("vm:external-name", "ResourceHandleImpl_toSocket")
-  external Socket toSocket();
-  @pragma("vm:external-name", "ResourceHandleImpl_toRawSocket")
-  external List<dynamic> _toRawSocket();
+  RandomAccessFile toFile() {
+    if (_toMethodCalled) {
+      throw StateError('Resource handle has already been used.');
+    }
+    _toMethodCalled = true;
+    return _toFile();
+  }
+
+  RawDatagramSocket toRawDatagramSocket() {
+    if (_toMethodCalled) {
+      throw StateError('Resource handle has already been used.');
+    }
+    _toMethodCalled = true;
+    return _toRawDatagramSocket();
+  }
 
   RawSocket toRawSocket() {
+    if (_toMethodCalled) {
+      throw StateError('Resource handle has already been used.');
+    }
+    _toMethodCalled = true;
+
     List<dynamic> list = _toRawSocket();
     InternetAddressType type = InternetAddressType._from(list[0] as int);
     String hostname = list[1] as String;
@@ -2633,6 +2649,14 @@ class _ResourceHandleImpl implements ResourceHandle {
     return _RawSocket(nativeSocket);
   }
 
+  Socket toSocket() {
+    if (_toMethodCalled) {
+      throw StateError('Resource handle has already been used.');
+    }
+    _toMethodCalled = true;
+    return _toSocket();
+  }
+
   _ReadPipe toReadPipe() {
     return _ReadPipe(toFile());
   }
@@ -2641,8 +2665,14 @@ class _ResourceHandleImpl implements ResourceHandle {
     return _WritePipe(toFile());
   }
 
+  @pragma("vm:external-name", "ResourceHandleImpl_toFile")
+  external RandomAccessFile _toFile();
+  @pragma("vm:external-name", "ResourceHandleImpl_toSocket")
+  external Socket _toSocket();
+  @pragma("vm:external-name", "ResourceHandleImpl_toRawSocket")
+  external List<dynamic> _toRawSocket();
   @pragma("vm:external-name", "ResourceHandleImpl_toRawDatagramSocket")
-  external RawDatagramSocket toRawDatagramSocket();
+  external RawDatagramSocket _toRawDatagramSocket();
 
   @pragma("vm:entry-point")
   static final _ResourceHandleImpl _sentinel = _ResourceHandleImpl(-1);
