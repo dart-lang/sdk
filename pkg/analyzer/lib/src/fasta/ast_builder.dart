@@ -1303,7 +1303,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("DoWhileStatement");
 
-    var condition = pop() as ParenthesizedExpressionImpl;
+    var condition = pop() as _ParenthesizedCondition;
     var body = pop() as StatementImpl;
     push(
       DoStatementImpl(
@@ -1901,7 +1901,7 @@ class AstBuilder extends StackListener {
   @override
   void endIfControlFlow(Token token) {
     var thenElement = pop() as CollectionElement;
-    var condition = pop() as ParenthesizedExpression;
+    var condition = pop() as _ParenthesizedCondition;
     var ifToken = pop() as Token;
     pushIfControlFlowInfo(ifToken, condition, thenElement, null, null);
   }
@@ -1911,7 +1911,7 @@ class AstBuilder extends StackListener {
     var elseElement = pop() as CollectionElement;
     var elseToken = pop() as Token;
     var thenElement = pop() as CollectionElement;
-    var condition = pop() as ParenthesizedExpression;
+    var condition = pop() as _ParenthesizedCondition;
     var ifToken = pop() as Token;
     pushIfControlFlowInfo(
         ifToken, condition, thenElement, elseToken, elseElement);
@@ -1924,7 +1924,7 @@ class AstBuilder extends StackListener {
 
     var elsePart = popIfNotNull(elseToken) as Statement?;
     var thenPart = pop() as Statement;
-    var condition = pop() as ParenthesizedExpression;
+    var condition = pop() as _ParenthesizedCondition;
     push(ast.ifStatement(
         ifToken,
         condition.leftParenthesis,
@@ -2698,12 +2698,12 @@ class AstBuilder extends StackListener {
     var rightBracket = pop() as Token;
     var members = pop() as List<SwitchMember>;
     var leftBracket = pop() as Token;
-    var expression = pop() as ParenthesizedExpression;
+    var condition = pop() as _ParenthesizedCondition;
     push(ast.switchStatement(
         switchKeyword,
-        expression.leftParenthesis,
-        expression.expression,
-        expression.rightParenthesis,
+        condition.leftParenthesis,
+        condition.expression,
+        condition.rightParenthesis,
         leftBracket,
         members,
         rightBracket));
@@ -2976,7 +2976,7 @@ class AstBuilder extends StackListener {
     debugEvent("WhileStatement");
 
     var body = pop() as Statement;
-    var condition = pop() as ParenthesizedExpression;
+    var condition = pop() as _ParenthesizedCondition;
     push(ast.whileStatement(whileKeyword, condition.leftParenthesis,
         condition.expression, condition.rightParenthesis, body));
   }
@@ -4261,8 +4261,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleParenthesizedCondition(Token leftParenthesis) {
-    // TODO(danrubel): Implement rather than forwarding.
-    endParenthesizedExpression(leftParenthesis);
+    push(_ParenthesizedCondition(leftParenthesis, pop() as ExpressionImpl));
   }
 
   @override
@@ -4713,7 +4712,7 @@ class AstBuilder extends StackListener {
 
   void pushIfControlFlowInfo(
       Token ifToken,
-      ParenthesizedExpression condition,
+      _ParenthesizedCondition condition,
       CollectionElement thenElement,
       Token? elseToken,
       CollectionElement? elseElement) {
@@ -5146,6 +5145,18 @@ class _ParameterDefaultValue {
   final ExpressionImpl value;
 
   _ParameterDefaultValue(this.separator, this.value);
+}
+
+/// Data structure placed on the stack to represent the parenthesized condition
+/// part of an if-statement, if-control-flow, switch-statement, while-statement,
+/// or do-while-statement.
+class _ParenthesizedCondition {
+  final Token leftParenthesis;
+  final ExpressionImpl expression;
+
+  _ParenthesizedCondition(this.leftParenthesis, this.expression);
+
+  Token get rightParenthesis => leftParenthesis.endGroup!;
 }
 
 /// Data structure placed on stack to represent the redirected constructor.
