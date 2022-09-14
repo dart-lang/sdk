@@ -324,7 +324,7 @@ class _AsyncDirectoryLister {
         controller.addError(response, response.stackTrace);
         close();
       } else {
-        error(response);
+        error(response as List<Object?>);
         close();
       }
     });
@@ -415,22 +415,23 @@ class _AsyncDirectoryLister {
     }
   }
 
-  void error(message) {
-    var errorType = message[responseError][_errorResponseErrorType];
+  void error(List<Object?> message) {
+    var errorResponseInfo = message[responseError]! as List<Object?>;
+    var errorType = errorResponseInfo[_errorResponseErrorType];
     if (errorType == _illegalArgumentResponse) {
       controller.addError(new ArgumentError());
     } else if (errorType == _osErrorResponse) {
-      var responseErrorInfo = message[responseError];
-      var err = new OSError(responseErrorInfo[_osErrorResponseMessage],
-          responseErrorInfo[_osErrorResponseErrorCode]);
+      var err = new OSError(
+          errorResponseInfo[_osErrorResponseMessage] as String,
+          errorResponseInfo[_osErrorResponseErrorCode] as int);
       var errorPath = message[responsePath];
       if (errorPath == null) {
         errorPath = utf8.decode(rawPath, allowMalformed: true);
       } else if (errorPath is Uint8List) {
-        errorPath = utf8.decode(message[responsePath], allowMalformed: true);
+        errorPath = utf8.decode(errorPath, allowMalformed: true);
       }
-      controller.addError(
-          new FileSystemException("Directory listing failed", errorPath, err));
+      controller.addError(new FileSystemException(
+          "Directory listing failed", errorPath as String, err));
     } else {
       controller.addError(new FileSystemException("Internal error"));
     }
