@@ -15,48 +15,57 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeInlayHintTest);
+    defineReflectiveTests(ParameterNameInlayHintTest);
   });
 }
 
 @reflectiveTest
-class TypeInlayHintTest extends AbstractLspAnalysisServerTest {
-  /// Substitutes text from [hints] into [content] to produce a text
-  /// representation that can be easily tested.
-  ///
-  /// Label kinds will be included as well as their text, with leading or
-  /// trailing spaces based on padding flags on the hint.
-  ///
-  /// ```
-  /// final a = 1;
-  /// ```
-  ///
-  /// May become:
-  ///
-  /// ```
-  /// final (Type:int) a = 1;
-  /// ```
-  String substituteHints(String content, List<InlayHint> hints) {
-    hints.sort((h1, h2) => positionCompare(h1.position, h2.position));
-    final buffer = StringBuffer();
-    final lineInfo = LineInfo.fromContent(content);
-
-    var lastOffset = 0;
-    for (final hint in hints) {
-      // First add any text from the last hint up to this hint.
-      final offset = toOffset(lineInfo, hint.position).result;
-      buffer.write(content.substring(lastOffset, offset));
-
-      // Then add the hint. Include the kind in parens so it can be tested too,
-      // and add a trailing/leading space based on settings.
-      _writeHintDescription(buffer, hint);
-      lastOffset = offset;
-    }
-    // Finally, write anything after the last hint.
-    buffer.write(content.substring(lastOffset));
-
-    return buffer.toString();
+class ParameterNameInlayHintTest extends _AbstractInlayHintTest {
+  Future<void> test_named() async {
+    final content = '''
+void f({required int? a, int? b}) {
+  f(a: a); // already named
+}
+''';
+    final expected = '''
+void f({required int? a, int? b}) {
+  f(a: a); // already named
+}
+''';
+    await _testHints(content, expected);
   }
 
+  Future<void> test_optionalPositional() async {
+    final content = '''
+void f([int? a, int? b]) {
+  f(a);
+}
+''';
+    final expected = '''
+void f([int? a, int? b]) {
+  f((Parameter:a:) a);
+}
+''';
+    await _testHints(content, expected);
+  }
+
+  Future<void> test_requiredPositional() async {
+    final content = '''
+void f(int a, int b) {
+  f(a, b);
+}
+''';
+    final expected = '''
+void f(int a, int b) {
+  f((Parameter:a:) a, (Parameter:b:) b);
+}
+''';
+    await _testHints(content, expected);
+  }
+}
+
+@reflectiveTest
+class TypeInlayHintTest extends _AbstractInlayHintTest {
   Future<void> test_class_field() async {
     final content = '''
 class A {
@@ -280,6 +289,45 @@ final (Type:Set<Object>) s4 = <Object>{1, 2, 3};
 final Set<Object> s5 = {1, 2, 3}; // already typed
 ''';
     await _testHints(content, expected);
+  }
+}
+
+class _AbstractInlayHintTest extends AbstractLspAnalysisServerTest {
+  /// Substitutes text from [hints] into [content] to produce a text
+  /// representation that can be easily tested.
+  ///
+  /// Label kinds will be included as well as their text, with leading or
+  /// trailing spaces based on padding flags on the hint.
+  ///
+  /// ```
+  /// final a = 1;
+  /// ```
+  ///
+  /// May become:
+  ///
+  /// ```
+  /// final (Type:int) a = 1;
+  /// ```
+  String substituteHints(String content, List<InlayHint> hints) {
+    hints.sort((h1, h2) => positionCompare(h1.position, h2.position));
+    final buffer = StringBuffer();
+    final lineInfo = LineInfo.fromContent(content);
+
+    var lastOffset = 0;
+    for (final hint in hints) {
+      // First add any text from the last hint up to this hint.
+      final offset = toOffset(lineInfo, hint.position).result;
+      buffer.write(content.substring(lastOffset, offset));
+
+      // Then add the hint. Include the kind in parens so it can be tested too,
+      // and add a trailing/leading space based on settings.
+      _writeHintDescription(buffer, hint);
+      lastOffset = offset;
+    }
+    // Finally, write anything after the last hint.
+    buffer.write(content.substring(lastOffset));
+
+    return buffer.toString();
   }
 
   Future<void> _testHints(
