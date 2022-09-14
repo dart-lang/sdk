@@ -1610,8 +1610,7 @@ class TypedDataMessageSerializationCluster
       s->AssignRef(data);
       intptr_t length = data->value.as_external_typed_data.length;
       s->WriteUnsigned(length);
-      uint8_t* cdata =
-          reinterpret_cast<uint8_t*>(data->value.as_typed_data.values);
+      const uint8_t* cdata = data->value.as_typed_data.values;
       s->WriteBytes(cdata, length * element_size);
     }
   }
@@ -1700,8 +1699,7 @@ class TypedDataMessageDeserializationCluster
       if (length == 0) {
         data->value.as_typed_data.values = NULL;
       } else {
-        data->value.as_typed_data.values =
-            const_cast<uint8_t*>(d->CurrentBufferAddress());
+        data->value.as_typed_data.values = d->CurrentBufferAddress();
         d->Advance(length * element_size);
       }
       d->AssignRef(data);
@@ -2305,7 +2303,7 @@ class TransferableTypedDataMessageDeserializationCluster
       data->value.as_typed_data.type = Dart_TypedData_kUint8;
       FinalizableData finalizable_data = d->finalizable_data()->Get();
       data->value.as_typed_data.values =
-          reinterpret_cast<uint8_t*>(finalizable_data.data);
+          reinterpret_cast<const uint8_t*>(finalizable_data.data);
       d->AssignRef(data);
     }
   }

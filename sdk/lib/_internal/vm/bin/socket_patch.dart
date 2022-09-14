@@ -756,7 +756,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                 "Address family not supported by protocol family, "
                 // ...and then add some details.
                 "sourceAddress.type must be ${InternetAddressType.unix} but was "
-                "${source.type}", address: address);
+                "${source.type}",
+                address: address);
           }
           connectionResult = socket.nativeCreateUnixDomainBindConnect(
               address.address, source.address, _Namespace._namespace);
@@ -2592,6 +2593,16 @@ class ResourceHandle {
   factory ResourceHandle.fromStdout(Stdout stdout) {
     return _ResourceHandleImpl(stdout._fd);
   }
+
+  factory ResourceHandle.fromReadPipe(ReadPipe pipe) {
+    _ReadPipe rp = pipe as _ReadPipe;
+    return ResourceHandle.fromFile(rp._openedFile!);
+  }
+
+  factory ResourceHandle.fromWritePipe(WritePipe pipe) {
+    _WritePipe wp = pipe as _WritePipe;
+    return ResourceHandle.fromFile(wp._file);
+  }
 }
 
 @pragma("vm:entry-point")
@@ -2620,6 +2631,14 @@ class _ResourceHandleImpl implements ResourceHandle {
     final nativeSocket = _NativeSocket.normal(internetAddress);
     nativeSocket.nativeSetSocketId(fd, _NativeSocket.typeInternalSocket);
     return _RawSocket(nativeSocket);
+  }
+
+  _ReadPipe toReadPipe() {
+    return _ReadPipe(toFile());
+  }
+
+  _WritePipe toWritePipe() {
+    return _WritePipe(toFile());
   }
 
   @pragma("vm:external-name", "ResourceHandleImpl_toRawDatagramSocket")

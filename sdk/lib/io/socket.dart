@@ -869,9 +869,16 @@ abstract class ResourceHandle {
   /// Creates wrapper around current stdout.
   external factory ResourceHandle.fromStdout(Stdout stdout);
 
+  // Creates wrapper around a readable pipe.
+  external factory ResourceHandle.fromReadPipe(ReadPipe pipe);
+
+  // Creates wrapper around a writeable pipe.
+  external factory ResourceHandle.fromWritePipe(WritePipe pipe);
+
   /// Extracts opened file from resource handle.
   ///
-  /// This can also be used when receiving stdin and stdout handles.
+  /// This can also be used when receiving stdin and stdout handles and read
+  /// and write pipes.
   ///
   /// If this resource handle is not a file or stdio handle, the behavior of the
   /// returned [RandomAccessFile] is completely unspecified.
@@ -898,6 +905,20 @@ abstract class ResourceHandle {
   /// the returned [RawDatagramSocket] is completely unspecified.
   /// Be very careful to avoid using a handle incorrectly.
   RawDatagramSocket toRawDatagramSocket();
+
+  /// Extracts a read pipe from resource handle.
+  ///
+  /// If this resource handle is not a readable pipe, the behavior of the
+  /// returned [ReadPipe] is completely unspecified.
+  /// Be very careful to avoid using a handle incorrectly.
+  ReadPipe toReadPipe();
+
+  /// Extracts a write pipe from resource handle.
+  ///
+  /// If this resource handle is not a writeable pipe, the behavior of the
+  /// returned [ReadPipe] is completely unspecified.
+  /// Be very careful to avoid using a handle incorrectly.
+  WritePipe toWritePipe();
 }
 
 /// Control message part of the [SocketMessage] received by a call to

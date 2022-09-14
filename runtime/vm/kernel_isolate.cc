@@ -377,7 +377,7 @@ static Dart_CObject BuildFilesPairs(int source_files_count,
       source_code->value.as_typed_data.type = Dart_TypedData_kUint8;
       source_code->value.as_typed_data.length = strlen(source_files[i].source);
       source_code->value.as_typed_data.values =
-          reinterpret_cast<uint8_t*>(const_cast<char*>(source_files[i].source));
+          reinterpret_cast<const uint8_t*>(source_files[i].source);
     } else {
       source_code->type = Dart_CObject_kNull;
     }
