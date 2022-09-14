@@ -20,6 +20,12 @@ class ParameterInfo {
     for (int i = 0; i < names.length; i++) names[i]: positional.length + i
   };
 
+  /// A special marker value to use for default parameter values to indicate
+  /// that different implementations within the same selector have different
+  /// default values.
+  static final Constant defaultValueSentinel =
+      UnevaluatedConstant(InvalidExpression("Default value sentinel"));
+
   int get paramCount => positional.length + named.length;
 
   static Constant? defaultValue(VariableDeclaration param) {
@@ -82,9 +88,8 @@ class ParameterInfo {
           positional[i] = other.positional[i];
         } else if (other.positional[i] != null) {
           if (positional[i] != other.positional[i]) {
-            print("Mismatching default value for parameter $i: "
-                "${member}: ${positional[i]} vs "
-                "${other.member}: ${other.positional[i]}");
+            // Default value differs between implementations.
+            positional[i] = defaultValueSentinel;
           }
         }
       }
@@ -96,9 +101,8 @@ class ParameterInfo {
         named[name] = otherValue;
       } else if (otherValue != null) {
         if (value != otherValue) {
-          print("Mismatching default value for parameter '$name': "
-              "${member}: ${value} vs "
-              "${other.member}: ${otherValue}");
+          // Default value differs between implementations.
+          named[name] = defaultValueSentinel;
         }
       }
     }

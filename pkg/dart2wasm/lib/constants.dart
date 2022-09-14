@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/closures.dart';
+import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/translator.dart';
 import 'package:dart2wasm/types.dart';
 
@@ -333,6 +334,19 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
       b.global_get(info.global);
       return globalType;
     }
+  }
+
+  @override
+  w.ValueType visitUnevaluatedConstant(UnevaluatedConstant constant) {
+    if (constant == ParameterInfo.defaultValueSentinel) {
+      // Instantiate a sentinel value specific to the parameter type.
+      w.ValueType sentinelType = expectedType.withNullability(false);
+      assert(sentinelType is w.RefType,
+          "Default value sentinel for unboxed parameter");
+      translator.globals.instantiateDummyValue(b, sentinelType);
+      return sentinelType;
+    }
+    return super.visitUnevaluatedConstant(constant);
   }
 
   @override
