@@ -44,7 +44,7 @@ class FlutterStyleTodos extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static final _todoRegExp = RegExp(r'//+(.* )?TODO\b');
+  static final _todoRegExp = RegExp(r'//+(.* )?TODO\b', caseSensitive: false);
 
   static final _todoExpectedRegExp =
       RegExp(r'// TODO\([a-zA-Z0-9][-a-zA-Z0-9]*\): ');
