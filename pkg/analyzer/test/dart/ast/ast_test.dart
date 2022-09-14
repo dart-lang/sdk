@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1002,204 +1001,87 @@ void f() {
 
 @reflectiveTest
 class NodeListTest extends ParserDiagnosticsTest {
-  void test_add() {
-    AstNode parent = AstTestFactory.argumentList();
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
-    list.insert(0, secondNode);
-    list.insert(0, firstNode);
-    expect(list, hasLength(2));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(secondNode));
-    expect(firstNode.parent, same(parent));
-    expect(secondNode.parent, same(parent));
-    AstNode thirdNode = false_();
-    list.insert(1, thirdNode);
-    expect(list, hasLength(3));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(thirdNode));
-    expect(list[2], same(secondNode));
-    expect(firstNode.parent, same(parent));
-    expect(secondNode.parent, same(parent));
-    expect(thirdNode.parent, same(parent));
-  }
-
-  void test_add_negative() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list.insert(-1, true_());
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
-
-  void test_add_tooBig() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list.insert(1, true_());
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
-
-  void test_addAll() {
-    AstNode parent = AstTestFactory.argumentList();
-    List<AstNode> firstNodes = <AstNode>[];
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    firstNodes.add(firstNode);
-    firstNodes.add(secondNode);
-    NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
-    list.addAll(firstNodes);
-    expect(list, hasLength(2));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(secondNode));
-    expect(firstNode.parent, same(parent));
-    expect(secondNode.parent, same(parent));
-    List<AstNode> secondNodes = <AstNode>[];
-    AstNode thirdNode = true_();
-    AstNode fourthNode = false_();
-    secondNodes.add(thirdNode);
-    secondNodes.add(fourthNode);
-    list.addAll(secondNodes);
-    expect(list, hasLength(4));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(secondNode));
-    expect(list[2], same(thirdNode));
-    expect(list[3], same(fourthNode));
-    expect(firstNode.parent, same(parent));
-    expect(secondNode.parent, same(parent));
-    expect(thirdNode.parent, same(parent));
-    expect(fourthNode.parent, same(parent));
-  }
-
-  void test_creation() {
-    AstNode owner = AstTestFactory.argumentList();
-    NodeList<AstNode> list = astFactory.nodeList<AstNode>(owner);
-    expect(list, isNotNull);
-    expect(list, hasLength(0));
-    expect(list.owner, same(owner));
-  }
-
-  void test_get_negative() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list[-1];
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
-
-  void test_get_tooBig() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list[1];
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
-
   void test_getBeginToken_empty() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    expect(list.beginToken, isNull);
+    final parseResult = parseStringWithErrors(r'''
+final x = f();
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('()');
+    final nodeList = argumentList.arguments;
+    expect(nodeList.beginToken, isNull);
   }
 
   void test_getBeginToken_nonEmpty() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    AstNode node = AstTestFactory.parenthesizedExpression(true_());
-    list.add(node);
-    expect(list.beginToken, same(node.beginToken));
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0, 1);
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
+    final first = nodeList[0];
+    expect(nodeList.beginToken, same(first.beginToken));
   }
 
   void test_getEndToken_empty() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    expect(list.endToken, isNull);
+    final parseResult = parseStringWithErrors(r'''
+final x = f();
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('()');
+    final nodeList = argumentList.arguments;
+    expect(nodeList.endToken, isNull);
   }
 
   void test_getEndToken_nonEmpty() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    AstNode node = AstTestFactory.parenthesizedExpression(true_());
-    list.add(node);
-    expect(list.endToken, same(node.endToken));
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0, 1);
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
+    final last = nodeList[nodeList.length - 1];
+    expect(nodeList.endToken, same(last.endToken));
   }
 
   void test_indexOf() {
-    List<AstNode> nodes = <AstNode>[];
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    AstNode thirdNode = true_();
-    AstNode fourthNode = false_();
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    list.addAll(nodes);
-    expect(list, hasLength(3));
-    expect(list.indexOf(firstNode), 0);
-    expect(list.indexOf(secondNode), 1);
-    expect(list.indexOf(thirdNode), 2);
-    expect(list.indexOf(fourthNode), -1);
-  }
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0, 1, 2);
+final y = 42;
+''');
+    parseResult.assertNoErrors();
 
-  void test_remove() {
-    List<AstNode> nodes = <AstNode>[];
-    AstNode firstNode = true_();
-    AstNode secondNode = false_();
-    AstNode thirdNode = true_();
-    nodes.add(firstNode);
-    nodes.add(secondNode);
-    nodes.add(thirdNode);
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    list.addAll(nodes);
-    expect(list, hasLength(3));
-    expect(list.removeAt(1), same(secondNode));
-    expect(list, hasLength(2));
-    expect(list[0], same(firstNode));
-    expect(list[1], same(thirdNode));
-  }
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
 
-  void test_remove_negative() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list.removeAt(-1);
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
-  }
+    final first = nodeList[0];
+    final second = nodeList[1];
+    final third = nodeList[2];
 
-  void test_remove_tooBig() {
-    NodeList<AstNode> list =
-        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
-    try {
-      list.removeAt(1);
-      fail("Expected IndexOutOfBoundsException");
-    } on RangeError {
-      // Expected
-    }
+    expect(nodeList, hasLength(3));
+    expect(nodeList.indexOf(first), 0);
+    expect(nodeList.indexOf(second), 1);
+    expect(nodeList.indexOf(third), 2);
+
+    final notInList = parseResult.findNode.integerLiteral('42');
+    expect(nodeList.indexOf(notInList), -1);
   }
 
   void test_set_negative() {
-    AstNode node = true_();
-    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0);
+final y = 42;
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
+
     try {
-      list[-1] = node;
+      nodeList[-1] = nodeList.first;
       fail("Expected IndexOutOfBoundsException");
     } on RangeError {
       // Expected
@@ -1207,28 +1089,20 @@ class NodeListTest extends ParserDiagnosticsTest {
   }
 
   void test_set_tooBig() {
-    AstNode node = true_();
-    var list = astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
+    final parseResult = parseStringWithErrors(r'''
+final x = f(0);
+final y = 42;
+''');
+    parseResult.assertNoErrors();
+
+    final argumentList = parseResult.findNode.argumentList('(0');
+    final nodeList = argumentList.arguments;
     try {
-      list[1] = node;
+      nodeList[1] = nodeList.first;
       fail("Expected IndexOutOfBoundsException");
     } on RangeError {
       // Expected
     }
-  }
-
-  static BooleanLiteralImpl false_() {
-    return BooleanLiteralImpl(
-      literal: Tokens.true_(),
-      value: true,
-    );
-  }
-
-  static BooleanLiteralImpl true_() {
-    return BooleanLiteralImpl(
-      literal: Tokens.true_(),
-      value: true,
-    );
   }
 }
 

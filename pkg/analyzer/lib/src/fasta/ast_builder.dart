@@ -838,10 +838,17 @@ class AstBuilder extends StackListener {
     debugEvent("Cascade");
 
     var expression = pop() as Expression;
-    var receiver = pop() as CascadeExpression;
+    var cascade = pop() as CascadeExpressionImpl;
     pop(); // Token.
-    receiver.cascadeSections.add(expression);
-    push(receiver);
+    push(
+      CascadeExpressionImpl(
+        target: cascade.target,
+        cascadeSections: <Expression>[
+          ...cascade.cascadeSections,
+          expression,
+        ],
+      ),
+    );
   }
 
   @override
@@ -2656,18 +2663,49 @@ class AstBuilder extends StackListener {
     var statements = popTypedList2<Statement>(statementCount);
     List<SwitchMember?> members;
 
+    List<LabelImpl> popLabels() {
+      final labels = <LabelImpl>[];
+      while (peek() is LabelImpl) {
+        labels.insert(0, pop() as LabelImpl);
+        --labelCount;
+      }
+      return labels;
+    }
+
+    SwitchMemberImpl updateSwitchMember({
+      required SwitchMember member,
+      List<Label>? labels,
+      List<Statement>? statements,
+    }) {
+      if (member is SwitchCaseImpl) {
+        return SwitchCaseImpl(
+          labels ?? member.labels,
+          member.keyword,
+          member.expression,
+          member.colon,
+          statements ?? member.statements,
+        );
+      } else if (member is SwitchDefaultImpl) {
+        return SwitchDefaultImpl(
+          labels ?? member.labels,
+          member.keyword,
+          member.colon,
+          statements ?? member.statements,
+        );
+      } else {
+        throw UnimplementedError('(${member.runtimeType}) $member');
+      }
+    }
+
     if (labelCount == 0 && defaultKeyword == null) {
       // Common situation: case with no default and no labels.
       members = popTypedList2<SwitchMember>(expressionCount);
     } else {
       // Labels and case statements may be intertwined
       if (defaultKeyword != null) {
-        SwitchDefault member = ast.switchDefault(
-            <Label>[], defaultKeyword, colonAfterDefault!, <Statement>[]);
-        while (peek() is Label) {
-          member.labels.insert(0, pop() as Label);
-          --labelCount;
-        }
+        final labels = popLabels();
+        final member = ast.switchDefault(
+            labels, defaultKeyword, colonAfterDefault!, <Statement>[]);
         members = List<SwitchMember?>.filled(expressionCount + 1, null);
         members[expressionCount] = member;
       } else {
@@ -2675,17 +2713,23 @@ class AstBuilder extends StackListener {
       }
       for (int index = expressionCount - 1; index >= 0; --index) {
         var member = pop() as SwitchMember;
-        while (peek() is Label) {
-          member.labels.insert(0, pop() as Label);
-          --labelCount;
-        }
-        members[index] = member;
+        final labels = popLabels();
+        members[index] = updateSwitchMember(
+          member: member,
+          labels: labels,
+          statements: null,
+        );
       }
       assert(labelCount == 0);
     }
+
     var members2 = members.whereNotNull().toList();
     if (members2.isNotEmpty) {
-      members2.last.statements.addAll(statements);
+      members2.last = updateSwitchMember(
+        member: members2.last,
+        labels: null,
+        statements: statements,
+      );
     }
     push(members2);
   }
@@ -4320,18 +4364,31 @@ class AstBuilder extends StackListener {
       }
     }
     if (withClause != null) {
-      if (declaration.withClause == null) {
+      final existingClause = declaration.withClause;
+      if (existingClause == null) {
         declaration.withClause = withClause;
       } else {
-        declaration.withClause!.mixinTypes.addAll(withClause.mixinTypes);
+        declaration.withClause = WithClauseImpl(
+          existingClause.withKeyword,
+          [
+            ...existingClause.mixinTypes,
+            ...withClause.mixinTypes,
+          ],
+        );
       }
     }
     if (implementsClause != null) {
-      if (declaration.implementsClause == null) {
+      final existingClause = declaration.implementsClause;
+      if (existingClause == null) {
         declaration.implementsClause = implementsClause;
       } else {
-        declaration.implementsClause!.interfaces
-            .addAll(implementsClause.interfaces);
+        declaration.implementsClause = ImplementsClauseImpl(
+          implementsKeyword: existingClause.implementsKeyword,
+          interfaces: [
+            ...existingClause.interfaces,
+            ...implementsClause.interfaces,
+          ],
+        );
       }
     }
   }
@@ -4344,24 +4401,37 @@ class AstBuilder extends StackListener {
     var combinators = pop() as List<Combinator>?;
     var deferredKeyword = pop(NullValue.Deferred) as Token?;
     var asKeyword = pop(NullValue.As) as Token?;
-    var prefix = pop(NullValue.Prefix) as SimpleIdentifier?;
+    var prefix = pop(NullValue.Prefix) as SimpleIdentifierImpl?;
     var configurations = pop() as List<Configuration>?;
 
-    var directive = directives.last as ImportDirectiveImpl;
-    if (combinators != null) {
-      directive.combinators.addAll(combinators);
-    }
-    directive.deferredKeyword ??= deferredKeyword;
+    final directive = directives.last as ImportDirectiveImpl;
+
+    // TODO(scheglov) This code would be easier if we used one object.
+    var mergedAsKeyword = directive.asKeyword;
+    var mergedPrefix = directive.prefix;
     if (directive.asKeyword == null && asKeyword != null) {
-      directive.asKeyword = asKeyword;
-      directive.prefix = prefix;
+      mergedAsKeyword = asKeyword;
+      mergedPrefix = prefix;
     }
-    if (configurations != null) {
-      directive.configurations.addAll(configurations);
-    }
-    if (semicolon != null) {
-      directive.semicolon = semicolon;
-    }
+
+    directives.last = ImportDirectiveImpl(
+      comment: directive.documentationComment,
+      metadata: directive.metadata,
+      importKeyword: directive.importKeyword,
+      uri: directive.uri,
+      configurations: [
+        ...directive.configurations,
+        ...?configurations,
+      ],
+      deferredKeyword: directive.deferredKeyword ?? deferredKeyword,
+      asKeyword: mergedAsKeyword,
+      prefix: mergedPrefix,
+      combinators: [
+        ...directive.combinators,
+        ...?combinators,
+      ],
+      semicolon: semicolon ?? directive.semicolon,
+    );
   }
 
   @override
@@ -4372,19 +4442,31 @@ class AstBuilder extends StackListener {
     var onClause = pop(NullValue.IdentifierList) as OnClauseImpl?;
 
     if (onClause != null) {
-      if (builder.onClause == null) {
+      final existingClause = builder.onClause;
+      if (existingClause == null) {
         builder.onClause = onClause;
       } else {
-        builder.onClause!.superclassConstraints
-            .addAll(onClause.superclassConstraints);
+        builder.onClause = OnClauseImpl(
+          existingClause.onKeyword,
+          [
+            ...existingClause.superclassConstraints,
+            ...onClause.superclassConstraints,
+          ],
+        );
       }
     }
     if (implementsClause != null) {
-      if (builder.implementsClause == null) {
+      final existingClause = builder.implementsClause;
+      if (existingClause == null) {
         builder.implementsClause = implementsClause;
       } else {
-        builder.implementsClause!.interfaces
-            .addAll(implementsClause.interfaces);
+        builder.implementsClause = ImplementsClauseImpl(
+          implementsKeyword: implementsClause.implementsKeyword,
+          interfaces: [
+            ...existingClause.interfaces,
+            ...implementsClause.interfaces,
+          ],
+        );
       }
     }
   }

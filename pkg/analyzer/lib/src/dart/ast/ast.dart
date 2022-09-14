@@ -2362,7 +2362,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   int get offset => 0;
 
   @override
-  ScriptTag? get scriptTag => _scriptTag;
+  ScriptTagImpl? get scriptTag => _scriptTag;
 
   set scriptTag(ScriptTag? scriptTag) {
     _scriptTag = _becomeParentOf(scriptTag as ScriptTagImpl?);
@@ -8933,7 +8933,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   late final AstNodeImpl _owner;
 
   /// The elements contained in the list.
-  List<E> _elements = <E>[];
+  late final List<E> _elements;
 
   /// Initialize a newly created list of nodes such that all of the nodes that
   /// are added to the list will have their parent set to the given [owner].
@@ -8962,6 +8962,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   @override
   int get length => _elements.length;
 
+  @Deprecated('NodeList cannot be resized')
   @override
   set length(int newLength) {
     throw UnsupportedError("Cannot resize NodeList.");
@@ -8995,46 +8996,46 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
     }
   }
 
+  @Deprecated('NodeList cannot be resized')
   @override
   void add(E element) {
-    insert(length, element);
+    throw UnsupportedError("Cannot resize NodeList.");
   }
 
+  @Deprecated('NodeList cannot be resized')
   @override
   void addAll(Iterable<E> iterable) {
-    for (E node in iterable) {
-      _elements.add(node);
-      _owner._becomeParentOf(node as AstNodeImpl);
-    }
+    throw UnsupportedError("Cannot resize NodeList.");
   }
 
+  @Deprecated('NodeList cannot be resized')
   @override
   void clear() {
-    _elements = <E>[];
+    throw UnsupportedError("Cannot resize NodeList.");
   }
 
+  @Deprecated('NodeList cannot be resized')
   @override
   void insert(int index, E element) {
-    _elements.insert(index, element);
-    _owner._becomeParentOf(element as AstNodeImpl);
+    throw UnsupportedError("Cannot resize NodeList.");
   }
 
+  @Deprecated('NodeList cannot be resized')
   @override
   E removeAt(int index) {
-    if (index < 0 || index >= _elements.length) {
-      throw RangeError("Index: $index, Size: ${_elements.length}");
-    }
-    return _elements.removeAt(index);
+    throw UnsupportedError("Cannot resize NodeList.");
   }
 
   /// Set the [owner] of this container, and populate it with [elements].
   void _initialize(AstNodeImpl owner, List<E>? elements) {
     _owner = owner;
-    if (elements != null) {
+    if (elements == null || elements.isEmpty) {
+      _elements = const <Never>[];
+    } else {
+      _elements = elements.toList(growable: false);
       var length = elements.length;
       for (var i = 0; i < length; i++) {
         var node = elements[i];
-        _elements.add(node);
         owner._becomeParentOf(node as AstNodeImpl);
       }
     }
@@ -9099,11 +9100,6 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 
   @override
   NodeListImpl<Annotation> get metadata => _metadata;
-
-  set metadata(List<Annotation> metadata) {
-    _metadata.clear();
-    _metadata.addAll(metadata);
-  }
 
   @override
   Token? get name => _identifier?.token;

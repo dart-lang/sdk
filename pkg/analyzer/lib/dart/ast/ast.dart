@@ -3768,6 +3768,10 @@ abstract class NodeList<E extends AstNode> implements List<E> {
   /// if the list is empty.
   Token? get endToken;
 
+  @Deprecated('NodeList cannot be resized')
+  @override
+  set length(int newLength);
+
   /// Return the node that is the parent of each of the elements in the list.
   AstNode get owner;
 
@@ -3778,6 +3782,26 @@ abstract class NodeList<E extends AstNode> implements List<E> {
 
   /// Use the given [visitor] to visit each of the nodes in this list.
   void accept(AstVisitor visitor);
+
+  @Deprecated('NodeList cannot be resized')
+  @override
+  void add(E element);
+
+  @Deprecated('NodeList cannot be resized')
+  @override
+  void addAll(Iterable<E> iterable);
+
+  @Deprecated('NodeList cannot be resized')
+  @override
+  void clear();
+
+  @Deprecated('NodeList cannot be resized')
+  @override
+  void insert(int index, E element);
+
+  @Deprecated('NodeList cannot be resized')
+  @override
+  E removeAt(int index);
 }
 
 /// A formal parameter that is required (is not optional).
