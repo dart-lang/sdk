@@ -5119,3 +5119,55 @@ class WildcardBinder extends Binder {
     return "WildcardBinder(${toStringInternal()})";
   }
 }
+
+class PatternVariableDeclaration extends Statement {
+  final Binder binder;
+  final Expression initializer;
+
+  PatternVariableDeclaration(this.binder, this.initializer);
+
+  @override
+  R accept<R>(StatementVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+      // Allow visitors needed for toString and replaceWith.
+      return visitor.defaultStatement(this);
+    }
+    return unsupported(
+        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) {
+    return unsupported(
+        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    binder.toTextInternal(printer);
+    printer.write(" = ");
+    printer.writeExpression(initializer);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    unsupported(
+        "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren on ${v.runtimeType}",
+        -1, null);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
+  }
+
+  @override
+  String toString() {
+    return "PatternVariableDeclaration(${toStringInternal()})";
+  }
+}

@@ -1162,6 +1162,7 @@ replicated
 repo
 repositories
 repurposed
+repurposing
 requesting
 requests
 requirement
@@ -1543,6 +1544,7 @@ unwraps
 unwritten
 unzip
 upcast
+updatable
 ur
 uri's
 url

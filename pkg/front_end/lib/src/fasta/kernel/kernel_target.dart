@@ -872,7 +872,7 @@ class KernelTarget extends TargetImplementation {
       constructorReference =
           indexedClass.lookupConstructorReference(new Name(""));
       tearOffReference = indexedClass.lookupGetterReference(
-          constructorTearOffName("", indexedClass.library));
+          new Name(constructorTearOffName(""), indexedClass.library));
     }
 
     /// From [Dart Programming Language Specification, 4th Edition](
@@ -930,7 +930,7 @@ class KernelTarget extends TargetImplementation {
       constructorReference =
           indexedClass.lookupConstructorReference(new Name(""));
       tearOffReference = indexedClass.lookupGetterReference(
-          constructorTearOffName("", indexedClass.library));
+          new Name(constructorTearOffName(""), indexedClass.library));
     }
 
     if (supertype is ClassBuilder) {
@@ -962,7 +962,7 @@ class KernelTarget extends TargetImplementation {
                 // added to `Class` whose name is `_` private to `lib1`.
                 .lookupConstructorReference(memberBuilder.member.name);
             tearOffReference = indexedClass.lookupGetterReference(
-                constructorTearOffName(name, indexedClass.library));
+                new Name(constructorTearOffName(name), indexedClass.library));
           }
           builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
               builder,

@@ -52,7 +52,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T%>
     ;
 }
-extension _extension#0 on invalid-type {
+extension /* unnamed */ _extension#0 on invalid-type {
 }
 static method try<T extends core::Object? = dynamic>() → dynamic
   ;

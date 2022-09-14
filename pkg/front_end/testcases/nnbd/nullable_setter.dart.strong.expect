@@ -10,7 +10,7 @@ class C extends core::Object {
   set setter(core::String v) → void {}
   operator []=(core::int index, core::String value) → void {}
 }
-extension _extension#0 on self::C? {
+extension /* unnamed */ _extension#0 on self::C? {
   operator []= = self::_extension#0|[]=;
   set setter = self::_extension#0|set#setter;
 }

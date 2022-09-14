@@ -10,7 +10,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     ;
 }
-extension _extension#0 on self::A {
+extension /* unnamed */ _extension#0 on self::A {
   method foo = self::_extension#0|foo;
   tearoff foo = self::_extension#0|get#foo;
 }

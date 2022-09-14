@@ -33,6 +33,22 @@ class DartInlayHintComputer {
     return _hints;
   }
 
+  /// Adds a parameter name hint before [node] showing a label for [name].
+  ///
+  /// A colon and padding will be added between the hint and [node]
+  /// automatically.
+  void _addParameterNamePrefix(SyntacticEntity nodeOrToken, String name) {
+    final offset = nodeOrToken.offset;
+    final position = toPosition(_lineInfo.getLocation(offset));
+    final labelParts = Either2<List<InlayHintLabelPart>, String>.t2('$name:');
+    _hints.add(InlayHint(
+      label: labelParts,
+      position: position,
+      kind: InlayHintKind.Parameter,
+      paddingRight: true,
+    ));
+  }
+
   /// Adds a type hint before [node] showing a label for the type [type].
   ///
   /// Padding will be added between the hint and [node] automatically.
@@ -56,6 +72,20 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
   final DartInlayHintComputer _computer;
 
   _DartInlayHintComputerVisitor(this._computer);
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    super.visitArgumentList(node);
+
+    for (final argument in node.arguments) {
+      if (argument is! NamedExpression) {
+        final parameter = argument.staticParameterElement;
+        if (parameter != null) {
+          _computer._addParameterNamePrefix(argument, parameter.name);
+        }
+      }
+    }
+  }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {

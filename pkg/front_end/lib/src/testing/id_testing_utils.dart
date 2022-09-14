@@ -48,6 +48,11 @@ Library? lookupLibrary(Component component, Uri uri, {bool required = true}) {
     if (library.importUri == uri) {
       return library;
     }
+    for (LibraryPart part in library.parts) {
+      if (library.fileUri.resolve(part.partUri) == uri) {
+        return library;
+      }
+    }
   }
   if (required) {
     throw new ArgumentError("Library '$uri' not found.");
@@ -160,8 +165,13 @@ ExtensionBuilder? lookupExtensionBuilder(
   TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
       compilerResult, extension.enclosingLibrary,
       required: required);
-  ExtensionBuilder? extensionBuilder =
-      libraryBuilder.members![extension.name] as ExtensionBuilder?;
+  ExtensionBuilder? extensionBuilder;
+  for (ExtensionBuilder builder in libraryBuilder.extensions!) {
+    if (builder.extension == extension) {
+      extensionBuilder = builder;
+      break;
+    }
+  }
   if (extensionBuilder == null && required) {
     throw new ArgumentError("ExtensionBuilder for $extension not found.");
   }

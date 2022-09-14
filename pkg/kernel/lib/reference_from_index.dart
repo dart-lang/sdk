@@ -7,8 +7,10 @@ import "ast.dart"
         Class,
         Constructor,
         Extension,
+        ExtensionMemberDescriptor,
         Field,
         Library,
+        Member,
         Name,
         Procedure,
         ProcedureKind,
@@ -98,13 +100,37 @@ class IndexedLibrary extends IndexedContainer {
       assert(_indexedClasses[c.name] == null);
       _indexedClasses[c.name] = new IndexedClass._(c, library);
     }
+    List<Extension> unnamedExtensions = [];
     for (int i = 0; i < library.extensions.length; i++) {
       Extension extension = library.extensions[i];
-      assert(_extensions[extension.name] == null);
-      _extensions[extension.name] = extension;
+      if (extension.isUnnamedExtension) {
+        unnamedExtensions.add(extension);
+      } else {
+        assert(_extensions[extension.name] == null);
+        _extensions[extension.name] = extension;
+      }
     }
     _addProcedures(library.procedures);
     _addFields(library.fields);
+
+    // Unnamed extensions and their members cannot be looked up and reused and
+    // their references should not therefore not be bound to the canonical names
+    // as it would otherwise prevent (new) unnamed extensions and member from
+    // repurposing these canonical names.
+    for (Extension extension in unnamedExtensions) {
+      extension.reference.canonicalName?.unbind();
+      for (ExtensionMemberDescriptor descriptor in extension.members) {
+        Reference reference = descriptor.member;
+        Member member = reference.asMember;
+        if (member is Field) {
+          member.fieldReference.canonicalName?.unbind();
+          member.getterReference.canonicalName?.unbind();
+          member.setterReference?.canonicalName?.unbind();
+        } else {
+          member.reference.canonicalName?.unbind();
+        }
+      }
+    }
   }
 
   Typedef? lookupTypedef(String name) => _typedefs[name];

@@ -10,11 +10,11 @@ class Subclass extends self::Class<self::Subclass> {
   synthetic constructor •() → self::Subclass
     ;
 }
-extension _extension#0<R extends core::Object? = dynamic, T extends core::Object? = dynamic> on (T%) → R% {
+extension /* unnamed */ _extension#0<R extends core::Object? = dynamic, T extends core::Object? = dynamic> on (T%) → R% {
   get returnType = self::_extension#0|get#returnType;
   get parameterType = self::_extension#0|get#parameterType;
 }
-extension _extension#1<T extends self::Class<T> = self::Class<dynamic>> on <S extends T = dynamic>(T, S) → dynamic {
+extension /* unnamed */ _extension#1<T extends self::Class<T> = self::Class<dynamic>> on <S extends T = dynamic>(T, S) → dynamic {
   get parameterType = self::_extension#1|get#parameterType;
 }
 static method _extension#0|get#returnType<R extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final (self::_extension#0|get#returnType::T%) → self::_extension#0|get#returnType::R% #this) → core::Type

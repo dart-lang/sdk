@@ -324,15 +324,37 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     ParameterInfo paramInfo = translator.paramInfoFor(reference);
     int parameterOffset = _initializeThis(member);
     int implicitParams = parameterOffset + paramInfo.typeParamCount;
+
+    void setupParamLocal(
+        VariableDeclaration variable, int index, Constant? defaultValue) {
+      w.Local local = paramLocals[implicitParams + index];
+      locals[variable] = local;
+      if (defaultValue == ParameterInfo.defaultValueSentinel) {
+        // The default value for this parameter differs between implementations
+        // within the same selector. This means that callers will pass the
+        // default value sentinel to indicate that the parameter is not given.
+        // The callee must check for the sentinel value and substitute the
+        // actual default value.
+        b.local_get(local);
+        translator.constants.instantiateConstant(
+            function, b, ParameterInfo.defaultValueSentinel, local.type);
+        b.ref_eq();
+        b.if_();
+        wrap(variable.initializer!, local.type);
+        b.local_set(local);
+        b.end();
+      }
+    }
+
     List<VariableDeclaration> positional =
         member.function!.positionalParameters;
     for (int i = 0; i < positional.length; i++) {
-      locals[positional[i]] = paramLocals[implicitParams + i];
+      setupParamLocal(positional[i], i, paramInfo.positional[i]);
     }
     List<VariableDeclaration> named = member.function!.namedParameters;
     for (var param in named) {
-      locals[param] =
-          paramLocals[implicitParams + paramInfo.nameIndex[param.name]!];
+      setupParamLocal(
+          param, paramInfo.nameIndex[param.name]!, paramInfo.named[param.name]);
     }
     List<TypeParameter> typeParameters = member is Constructor
         ? member.enclosingClass.typeParameters
@@ -1727,7 +1749,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       SuperPropertyGet node, w.ValueType expectedType) {
     Member target = _lookupSuperTarget(node.interfaceTarget, setter: false);
     if (target is Procedure && !target.isGetter) {
-      throw "Not supported: Super tear-off at ${node.location}";
+      // Super tear-off
+      w.StructType closureStruct = _pushClosure(
+          translator.getTearOffClosure(target),
+          () => visitThis(w.RefType.data(nullable: false)));
+      return w.RefType.def(closureStruct, nullable: false);
     }
     return _directGet(target, ThisExpression(), () => null);
   }
@@ -1922,6 +1948,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         lambda.function,
         ParameterInfo.fromLocalFunction(functionNode),
         "closure wrapper at ${functionNode.location}");
+    return _pushClosure(closure, () => _pushContext(functionNode));
+  }
+
+  w.StructType _pushClosure(ClosureImplementation closure, void pushContext()) {
     w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.classInfo[translator.functionClass]!;
@@ -1929,7 +1959,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
-    _pushContext(functionNode);
+    pushContext();
     b.global_get(closure.vtable);
     b.struct_new(struct);
 

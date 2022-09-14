@@ -21,6 +21,7 @@ import 'kernel/hierarchy/class_member.dart' show ClassMember;
 import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
 import 'source/source_class_builder.dart';
+import 'source/source_extension_builder.dart';
 import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
@@ -470,6 +471,17 @@ class Scope extends MutableScope {
 
   void forEachLocalSetter(void Function(String name, MemberBuilder member) f) {
     _setters.forEach(f);
+  }
+
+  ExtensionBuilder? lookupLocalUnnamedExtension(Uri fileUri, int offset) {
+    if (_extensions != null) {
+      for (ExtensionBuilder extension in _extensions!) {
+        if (extension.fileUri == fileUri && extension.charOffset == offset) {
+          return extension;
+        }
+      }
+    }
+    return null;
   }
 
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
@@ -968,13 +980,15 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder
 /// directly mapped builder.
 class ScopeIterator implements Iterator<Builder> {
   Iterator<Builder>? local;
-  final Iterator<Builder> setters;
+  Iterator<Builder>? setters;
+  Iterator<Builder>? extensions;
 
   Builder? _current;
 
   ScopeIterator(Scope scope)
       : local = scope._local.values.iterator,
-        setters = scope._setters.values.iterator;
+        setters = scope._setters.values.iterator,
+        extensions = scope._extensions?.iterator;
 
   @override
   bool moveNext() {
@@ -990,13 +1004,28 @@ class ScopeIterator implements Iterator<Builder> {
       }
       local = null;
     }
-    if (setters.moveNext()) {
-      _current = setters.current;
-      return true;
-    } else {
-      _current = null;
-      return false;
+    if (setters != null) {
+      if (setters!.moveNext()) {
+        _current = setters!.current;
+        return true;
+      }
+      setters = null;
     }
+    if (extensions != null) {
+      while (extensions!.moveNext()) {
+        Builder extension = extensions!.current;
+        // Named extensions have already been included throw [local] so we skip
+        // them here.
+        if (extension is SourceExtensionBuilder &&
+            extension.isUnnamedExtension) {
+          _current = extension;
+          return true;
+        }
+      }
+      extensions = null;
+    }
+    _current = null;
+    return false;
   }
 
   @override
@@ -1012,7 +1041,7 @@ class ScopeIterator implements Iterator<Builder> {
 /// access to the name that the builders are mapped to.
 class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
   Iterator<String>? localNames;
-  final Iterator<String> setterNames;
+  Iterator<String>? setterNames;
 
   String? _name;
 
@@ -1035,18 +1064,36 @@ class ScopeNameIterator extends ScopeIterator implements NameIterator<Builder> {
         _name = localNames!.current;
         return true;
       }
+      local = null;
       localNames = null;
     }
-    if (setters.moveNext()) {
-      setterNames.moveNext();
-      _current = setters.current;
-      _name = setterNames.current;
-      return true;
-    } else {
-      _current = null;
-      _name = null;
-      return false;
+    if (setters != null) {
+      if (setters!.moveNext()) {
+        setterNames!.moveNext();
+        _current = setters!.current;
+        _name = setterNames!.current;
+        return true;
+      }
+      setters = null;
+      setterNames = null;
     }
+    if (extensions != null) {
+      while (extensions!.moveNext()) {
+        Builder extension = extensions!.current;
+        // Named extensions have already been included throw [local] so we skip
+        // them here.
+        if (extension is SourceExtensionBuilder &&
+            extension.isUnnamedExtension) {
+          _current = extension;
+          _name = extension.name;
+          return true;
+        }
+      }
+      extensions = null;
+    }
+    _current = null;
+    _name = null;
+    return false;
   }
 
   @override
