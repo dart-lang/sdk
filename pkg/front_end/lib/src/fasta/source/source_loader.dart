@@ -1228,7 +1228,7 @@ severity: $severity
             extensionName: null,
             isExtensionMember: false,
             isInstanceMember: false,
-            libraryReference: libraryBuilder.library.reference),
+            libraryName: libraryBuilder.libraryName),
         isInstanceMember: false,
         isExtensionMember: false)
       ..parent = parent;

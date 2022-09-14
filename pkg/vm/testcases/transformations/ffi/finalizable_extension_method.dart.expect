@@ -11,11 +11,11 @@ class Foo extends core::Object implements ffi::Finalizable {
     : super core::Object::•()
     ;
 }
-extension _extension#0 on ffi::Finalizable {
+extension /* unnamed */ _extension#0 on ffi::Finalizable {
   method bar = self::_extension#0|bar;
   tearoff bar = self::_extension#0|get#bar;
 }
-extension _extension#1 on core::Object {
+extension /* unnamed */ _extension#1 on core::Object {
   method baz = self::_extension#1|baz;
   tearoff baz = self::_extension#1|get#baz;
 }

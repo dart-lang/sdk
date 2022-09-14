@@ -97,6 +97,8 @@ class ValueKinds {
       const UnionValueKind([Name, QualifiedName, Operator]);
   static const ValueKind NameOrParserRecovery =
       const UnionValueKind([Name, ParserRecovery]);
+  static const ValueKind NameOrParserRecoveryOrNull =
+      const UnionValueKind([NameOrNull, ParserRecovery]);
   static const ValueKind MetadataListOrNull =
       const SingleValueKind<List<type.MetadataBuilder>>(NullValue.Metadata);
   static const ValueKind ObjectList = const SingleValueKind<List<Object>>();

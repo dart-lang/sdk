@@ -12,7 +12,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-extension _extension#0 on core::List<core::String> {
+extension /* unnamed */ _extension#0 on core::List<core::String> {
   method foo = self::_extension#0|foo;
   tearoff foo = self::_extension#0|get#foo;
 }

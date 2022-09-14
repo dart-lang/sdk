@@ -29,26 +29,26 @@ extension Extension on int {
   intMethod() {}
 }
 
-/*class: _extension#0:
- builder-name=_extension#0,
+/*class: _extension#1:
+ builder-name=_unnamed-extension_,
  builder-onType=String,
  extension-members=[
-  stringMethod=_extension#0|stringMethod,
-  tearoff stringMethod=_extension#0|get#stringMethod],
- extension-name=_extension#0,
+  stringMethod=_extension#1|stringMethod,
+  tearoff stringMethod=_extension#1|get#stringMethod],
+ extension-name=_extension#1,
  extension-onType=String!
 */
 extension on String {
-  /*member: _extension#0|stringMethod:
+  /*member: _extension#1|get#stringMethod:
    builder-name=stringMethod,
    builder-params=[#this],
-   member-name=_extension#0|stringMethod,
+   member-name=_extension#1|get#stringMethod,
    member-params=[#this]
   */
-  /*member: _extension#0|get#stringMethod:
+  /*member: _extension#1|stringMethod:
    builder-name=stringMethod,
    builder-params=[#this],
-   member-name=_extension#0|get#stringMethod,
+   member-name=_extension#1|stringMethod,
    member-params=[#this]
   */
   stringMethod() {}

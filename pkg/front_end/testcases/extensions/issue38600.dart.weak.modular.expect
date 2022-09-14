@@ -53,7 +53,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-extension _extension#0 on invalid-type {
+extension /* unnamed */ _extension#0 on invalid-type {
 }
 static method try<T extends core::Object? = dynamic>() → dynamic {}
 static method main() → dynamic {}

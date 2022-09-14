@@ -436,9 +436,6 @@ class OutlineBuilder extends StackListenerImpl {
 
   String? nativeMethodName;
 
-  /// Counter used for naming unnamed extension declarations.
-  int unnamedExtensionCounter = 0;
-
   Link<DeclarationContext> _declarationContext = const Link();
 
   OutlineBuilder(SourceLibraryBuilder library)
@@ -1328,14 +1325,11 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
-    String name = nameToken?.lexeme ??
-        // Synthesized name used internally.
-        '_extension#${unnamedExtensionCounter++}';
-    push(name);
+    push(nameToken?.lexeme ?? NullValue.Name);
     push(offset);
     push(typeVariables ?? NullValue.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
-        .markAsExtensionDeclaration(name, offset, typeVariables);
+        .markAsExtensionDeclaration(nameToken?.lexeme, offset, typeVariables);
   }
 
   @override
@@ -1401,7 +1395,6 @@ class OutlineBuilder extends StackListenerImpl {
     String? name = pop(NullValue.Name) as String?;
     if (name == null) {
       nameOffset = extensionKeyword.charOffset;
-      name = '$nameOffset';
     }
     List<MetadataBuilder>? metadata =
         pop(NullValue.Metadata) as List<MetadataBuilder>?;

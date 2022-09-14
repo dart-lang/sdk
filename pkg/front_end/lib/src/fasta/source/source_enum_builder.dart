@@ -198,23 +198,23 @@ class SourceEnumBuilder extends SourceClassBuilder {
     //   }
     // }
 
+    LibraryName libraryName = referencesFromIndexed != null
+        ? new LibraryName(referencesFromIndexed.library.reference)
+        : libraryBuilder.libraryName;
+
     NameScheme staticFieldNameScheme = new NameScheme(
         isInstanceMember: false,
         className: name,
         isExtensionMember: false,
         extensionName: null,
-        libraryReference: referencesFromIndexed != null
-            ? referencesFromIndexed.library.reference
-            : libraryBuilder.library.reference);
+        libraryName: libraryName);
 
     NameScheme procedureNameScheme = new NameScheme(
         isInstanceMember: true,
         className: name,
         isExtensionMember: false,
         extensionName: null,
-        libraryReference: referencesFromIndexed != null
-            ? referencesFromIndexed.library.reference
-            : libraryBuilder.library.reference);
+        libraryName: libraryName);
 
     Reference? constructorReference;
     Reference? tearOffReference;
@@ -226,7 +226,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       constructorReference =
           referencesFromIndexed.lookupConstructorReference(new Name(""));
       tearOffReference = referencesFromIndexed.lookupGetterReference(
-          constructorTearOffName("", referencesFromIndexed.library));
+          new Name(constructorTearOffName(""), referencesFromIndexed.library));
       toStringReference =
           referencesFromIndexed.lookupGetterReference(new Name("toString"));
       Name valuesName = new Name("values");

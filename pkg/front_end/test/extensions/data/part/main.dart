@@ -4,7 +4,7 @@
 
 /*library: scope=[
   Extension,
-  _extension#0,
+  _extension#1,
   async.dart.FutureExtensions,
   core.dart.EnumByName,
   core.dart.EnumName]*/

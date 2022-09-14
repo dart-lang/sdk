@@ -11,7 +11,6 @@ import 'package:kernel/type_environment.dart';
 import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builder.dart';
-import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../modifier.dart';
@@ -186,16 +185,6 @@ enum BuiltMemberKind {
 
 class MemberDataForTesting {
   final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
-}
-
-/// If the name of [member] is private, update it to use the library reference
-/// of [libraryBuilder].
-// TODO(johnniwinther): Avoid having to update private names by setting
-// the correct library reference when creating parts.
-void updatePrivateMemberName(Member member, LibraryBuilder libraryBuilder) {
-  if (member.name.isPrivate) {
-    member.name = new Name(member.name.text, libraryBuilder.library);
-  }
 }
 
 class AugmentSuperTarget {

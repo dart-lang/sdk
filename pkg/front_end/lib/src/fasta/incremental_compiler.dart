@@ -128,6 +128,7 @@ import 'scope.dart' show Scope;
 
 import 'source/source_class_builder.dart' show SourceClassBuilder;
 
+import 'source/source_extension_builder.dart';
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
 import 'util/experiment_environment_getter.dart'
@@ -820,6 +821,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         NameIterator iterator = builder.localMembersNameIterator;
         while (iterator.moveNext()) {
           Builder childBuilder = iterator.current;
+          if (childBuilder is SourceExtensionBuilder &&
+              childBuilder.isUnnamedExtension) {
+            continue;
+          }
           String name = iterator.name;
           Map<String, Builder> map;
           if (childBuilder.isSetter) {

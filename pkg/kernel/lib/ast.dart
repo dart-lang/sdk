@@ -1543,6 +1543,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   // Must match serialized bit positions.
   static const int FlagExtensionTypeDeclaration = 1 << 0;
+  static const int FlagUnnamedExtension = 1 << 1;
 
   int flags = 0;
 
@@ -1590,6 +1591,16 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     flags = value
         ? (flags | FlagExtensionTypeDeclaration)
         : (flags & ~FlagExtensionTypeDeclaration);
+  }
+
+  bool get isUnnamedExtension {
+    return flags & FlagUnnamedExtension != 0;
+  }
+
+  void set isUnnamedExtension(bool value) {
+    flags = value
+        ? (flags | FlagUnnamedExtension)
+        : (flags & ~FlagUnnamedExtension);
   }
 
   @override

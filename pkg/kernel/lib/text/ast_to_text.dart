@@ -1335,6 +1335,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (node.isExtensionTypeDeclaration) {
       writeWord('type');
     }
+    if (node.isUnnamedExtension) {
+      writeWord('/* unnamed */');
+    }
     writeWord(getExtensionName(node));
     writeTypeParameterList(node.typeParameters);
     writeSpaced('on');
