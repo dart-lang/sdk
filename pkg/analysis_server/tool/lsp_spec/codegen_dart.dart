@@ -237,6 +237,11 @@ bool _isSpecType(TypeBase type) {
           (_namespaces.containsKey(type.name)));
 }
 
+bool _isUriType(TypeBase type) {
+  type = resolveTypeAlias(type);
+  return type is TypeReference && type.dartType == 'Uri';
+}
+
 /// Maps reserved words and identifiers that cause issues in field names.
 String _makeValidIdentifier(String identifier) {
   // Some identifiers used in LSP are reserved words in Dart, so map them to
@@ -684,6 +689,17 @@ void _writeFromJsonCode(
 
   if (_isSimpleType(type)) {
     buffer.write('$valueCode$cast');
+  } else if (_isUriType(type)) {
+    if (allowsNull) {
+      buffer.write('$valueCode != null ? ');
+    }
+    buffer
+      ..write('Uri.parse(')
+      ..write(requiresCast ? '$valueCode as String' : valueCode)
+      ..write(')');
+    if (allowsNull) {
+      buffer.write(': null');
+    }
   } else if (_isSpecType(type)) {
     // Our own types have fromJson() constructors we can call.
     if (allowsNull) {
@@ -973,6 +989,15 @@ void _writeToJsonCode(IndentableStringBuffer buffer, TypeBase type,
     buffer.write('$valueCode$nullOp.map((item) => ');
     _writeToJsonCode(buffer, type.elementType, 'item', '');
     buffer.write(').toList()');
+  } else if (type is MapType &&
+      (_isUriType(type.indexType) || _isUriType(type.valueType))) {
+    buffer.write('$valueCode$nullOp.map((key, value) => MapEntry(');
+    _writeToJsonCode(buffer, type.indexType, 'key', '');
+    buffer.write(', ');
+    _writeToJsonCode(buffer, type.valueType, 'value', '');
+    buffer.write('))');
+  } else if (_isUriType(type)) {
+    buffer.write('$valueCode$nullOp.toString()');
   } else {
     buffer.write(valueCode);
   }
@@ -1076,17 +1101,22 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
 
   final operator = negation ? '!' : '';
   final and = negation ? '||' : '&&';
+  final or = negation ? '&&' : '||';
   final every = negation ? 'any' : 'every';
+  final equals = negation ? '!=' : '==';
+  final notEqual = negation ? '==' : '!=';
+  final true_ = negation ? 'false' : 'true';
 
   if (isNullableAnyType(type)) {
-    buffer.write(negation ? 'false' : 'true');
+    buffer.write(true_);
   } else if (isObjectType(type)) {
-    final notEqual = negation ? '==' : '!=';
     buffer.write('$valueCode $notEqual null');
   } else if (_isSimpleType(type)) {
     buffer.write('$valueCode is$operator $fullDartType');
+  } else if (_isUriType(type)) {
+    buffer.write('($valueCode is$operator String $and '
+        'Uri.tryParse($valueCode) $notEqual null)');
   } else if (type is LiteralType) {
-    final equals = negation ? '!=' : '==';
     buffer.write('$valueCode $equals literal');
   } else if (type is LiteralUnionType) {
     buffer.write('${operator}literals.contains(value)');
@@ -1132,7 +1162,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
     if (parenForCollection) {
       buffer.write('(');
     }
-    var or = negation ? '&&' : '||';
+
     // To type check a union, we just recursively check against each of its types.
     for (var i = 0; i < type.types.length; i++) {
       if (i != 0) {

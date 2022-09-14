@@ -80,7 +80,7 @@ class ReferencesHandler
         return null;
       }
       return Location(
-        uri: Uri.file(result.file).toString(),
+        uri: Uri.file(result.file),
         range: toRange(
           file.lineInfo,
           result.sourceRange.offset,

@@ -76,7 +76,7 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'Bar',
             detail: 'other.dart',
             kind: SymbolKind.Class,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: rangeOfPattern(
                 otherContents, RegExp(r'class Bar \{.*\}', dotAll: true)),
             selectionRange: rangeOfString(otherContents, 'Bar'),
@@ -111,7 +111,7 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'other.dart',
             detail: null,
             kind: SymbolKind.File,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: entireRange(otherContents),
             selectionRange: startOfDocRange,
           ),
@@ -147,7 +147,7 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'main',
             detail: 'main.dart',
             kind: SymbolKind.Function,
-            uri: mainFileUri.toString(),
+            uri: mainFileUri,
             range: rangeOfPattern(
                 contents, RegExp(r'void main\(\) \{.*\}', dotAll: true)),
             selectionRange: rangeOfString(contents, 'main'),
@@ -188,7 +188,7 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'bar',
             detail: 'B',
             kind: SymbolKind.Method,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: rangeOfPattern(otherContents,
                 RegExp(r'String bar\(\) \{.*\      }', dotAll: true)),
             selectionRange: rangeOfString(otherContents, 'bar'),
@@ -227,7 +227,7 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'Bar',
             detail: 'other.dart',
             kind: SymbolKind.Class,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: rangeOfPattern(
                 otherContents, RegExp(r'class Bar \{.*\}', dotAll: true)),
             selectionRange: rangeOfString(otherContents, 'Bar'),
@@ -304,7 +304,7 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'Bar',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: rangeOfString(otherContents, 'Bar();'),
             selectionRange:
                 rangeStartingAtString(otherContents, 'Bar();', 'Bar'),
@@ -341,7 +341,7 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'bar',
             detail: 'other.dart',
             kind: SymbolKind.Function,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: rangeOfString(otherContents, 'void bar() {}'),
             selectionRange: rangeOfString(otherContents, 'bar'),
           ),
@@ -379,7 +379,7 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'Bar',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: rangeOfString(otherContents, 'class Bar {}'),
             selectionRange: rangeOfString(otherContents, 'Bar'),
           ),
@@ -420,7 +420,7 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'bar',
             detail: 'Bar',
             kind: SymbolKind.Method,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: rangeOfString(otherContents, 'void bar() {}'),
             selectionRange: rangeOfString(otherContents, 'bar'),
           ),
@@ -460,7 +460,7 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'Bar.named',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: rangeOfString(otherContents, 'Bar.named();'),
             selectionRange: rangeOfString(otherContents, 'named'),
           ),
@@ -545,7 +545,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
           name: 'Foo',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
-          uri: mainFileUri.toString(),
+          uri: mainFileUri,
           range: rangeOfString(contents, 'Foo(String a) {}'),
           selectionRange: rangeFromMarkers(contents)),
     );
@@ -573,7 +573,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
             name: 'Foo',
             detail: 'Foo', // Containing class name
             kind: SymbolKind.Constructor,
-            uri: otherFileUri.toString(),
+            uri: otherFileUri,
             range: rangeOfString(otherContents, 'Foo();'),
             selectionRange: rangeFromMarkers(otherContents)));
   }
@@ -589,7 +589,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
           name: 'myFunction',
           detail: 'main.dart', // Containing file name
           kind: SymbolKind.Function,
-          uri: mainFileUri.toString(),
+          uri: mainFileUri,
           range: rangeOfString(contents, 'void myFunction() {}'),
           selectionRange: rangeOfString(contents, 'myFunction')),
     );
@@ -615,7 +615,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
           name: 'myFunction',
           detail: 'other.dart', // Containing file name
           kind: SymbolKind.Function,
-          uri: otherFileUri.toString(),
+          uri: otherFileUri,
           range: rangeOfString(otherContents, 'void myFunction() {}'),
           selectionRange: rangeOfString(otherContents, 'myFunction')),
     );
@@ -644,7 +644,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
           name: 'Foo',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
-          uri: otherFileUri.toString(),
+          uri: otherFileUri,
           range: rangeOfString(otherContents, 'class Foo {}'),
           selectionRange: rangeOfString(otherContents, 'Foo')),
     );
@@ -663,7 +663,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
           name: 'myMethod',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Method,
-          uri: mainFileUri.toString(),
+          uri: mainFileUri,
           range: rangeOfString(contents, 'void myMethod() {}'),
           selectionRange: rangeOfString(contents, 'myMethod')),
     );
@@ -691,7 +691,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
           name: 'myMethod',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Method,
-          uri: otherFileUri.toString(),
+          uri: otherFileUri,
           range: rangeOfString(otherContents, 'void myMethod() {}'),
           selectionRange: rangeOfString(otherContents, 'myMethod')),
     );
@@ -710,7 +710,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
           name: 'Foo.Bar',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
-          uri: mainFileUri.toString(),
+          uri: mainFileUri,
           range: rangeOfString(contents, 'Foo.Bar(String a) {}'),
           selectionRange: rangeOfString(contents, 'Bar')),
     );
@@ -738,7 +738,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
           name: 'Foo.Bar',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
-          uri: otherFileUri.toString(),
+          uri: otherFileUri,
           range: rangeOfString(otherContents, 'Foo.Bar();'),
           selectionRange: rangeOfString(otherContents, 'Bar')),
     );

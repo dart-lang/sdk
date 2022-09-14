@@ -16,9 +16,10 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
-typedef DocumentUri = String;
+typedef DocumentUri = Uri;
 typedef LSPAny = Object?;
 typedef LSPObject = Object;
+typedef LSPUri = Uri;
 typedef TextDocumentEditEdits
     = List<Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit>>;
 
@@ -1217,7 +1218,7 @@ class PublishClosingLabelsParams implements ToJsonable {
         .map((item) => ClosingLabel.fromJson(item as Map<String, Object?>))
         .toList();
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return PublishClosingLabelsParams(
       labels: labels,
       uri: uri,
@@ -1225,13 +1226,13 @@ class PublishClosingLabelsParams implements ToJsonable {
   }
 
   final List<ClosingLabel> labels;
-  final String uri;
+  final Uri uri;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['labels'] = labels.map((item) => item.toJson()).toList();
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -1241,7 +1242,7 @@ class PublishClosingLabelsParams implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type PublishClosingLabelsParams');
@@ -1283,7 +1284,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
     final outline =
         FlutterOutline.fromJson(outlineJson as Map<String, Object?>);
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return PublishFlutterOutlineParams(
       outline: outline,
       uri: uri,
@@ -1291,13 +1292,13 @@ class PublishFlutterOutlineParams implements ToJsonable {
   }
 
   final FlutterOutline outline;
-  final String uri;
+  final Uri uri;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['outline'] = outline.toJson();
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -1307,7 +1308,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type PublishFlutterOutlineParams');
@@ -1347,7 +1348,7 @@ class PublishOutlineParams implements ToJsonable {
     final outlineJson = json['outline'];
     final outline = Outline.fromJson(outlineJson as Map<String, Object?>);
     final uriJson = json['uri'];
-    final uri = uriJson as String;
+    final uri = Uri.parse(uriJson as String);
     return PublishOutlineParams(
       outline: outline,
       uri: uri,
@@ -1355,13 +1356,13 @@ class PublishOutlineParams implements ToJsonable {
   }
 
   final Outline outline;
-  final String uri;
+  final Uri uri;
 
   @override
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     result['outline'] = outline.toJson();
-    result['uri'] = uri;
+    result['uri'] = uri.toString();
     return result;
   }
 
@@ -1371,7 +1372,7 @@ class PublishOutlineParams implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      return _canParseString(obj, reporter, 'uri',
+      return _canParseUri(obj, reporter, 'uri',
           allowsUndefined: false, allowsNull: false);
     } else {
       reporter.reportError('must be of type PublishOutlineParams');
@@ -2270,6 +2271,32 @@ bool _canParseString(
     }
     if ((!nullCheck || value != null) && value is! String) {
       reporter.reportError('must be of type String');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseUri(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! String || Uri.tryParse(value) == null)) {
+      reporter.reportError('must be of type Uri');
       return false;
     }
   } finally {

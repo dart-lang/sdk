@@ -38,7 +38,7 @@ void main() {
                 Either2<List<Location>, Location>.t1([
           Location(
             range: range,
-            uri: '!uri',
+            uri: Uri.parse('http://example.org/'),
           )
         ])),
         jsonrpc: jsonRpcVersion,
@@ -49,23 +49,27 @@ void main() {
           equals(
             '{"id":1,"jsonrpc":"2.0",'
             '"result":[{"range":{"end":{"character":2,"line":2},"start":{"character":1,"line":1}},'
-            '"uri":"!uri"}]}',
+            '"uri":"http://example.org/"}]}',
           ));
     });
 
     test('returns correct output for union types containing interface types',
         () {
       final params = Either2<String, TextDocumentItem>.t2(TextDocumentItem(
-          uri: '!uri', languageId: '!language', version: 1, text: '!text'));
+          uri: Uri.parse('http://example.org/'),
+          languageId: '!language',
+          version: 1,
+          text: '!text'));
       final output = json.encode(params);
       expect(
           output,
           equals(
-              '{"languageId":"!language","text":"!text","uri":"!uri","version":1}'));
+              '{"languageId":"!language","text":"!text","uri":"http://example.org/","version":1}'));
     });
 
     test('returns correct output for types with lists', () {
-      final location = Location(uri: 'y-uri', range: range);
+      final location =
+          Location(uri: Uri.parse('http://example.org/'), range: range);
       final codeAction = Diagnostic(
         range: range,
         severity: DiagnosticSeverity.Error,
@@ -91,7 +95,7 @@ void main() {
                     "end":{"character":2,"line":2},
                     "start":{"character":1,"line":1}
                   },
-                  "uri":"y-uri"
+                  "uri":"http://example.org/"
               },
               "message":"message"
             }
@@ -317,7 +321,7 @@ void main() {
       );
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
-          equals('params.textDocument.uri must be of type String'));
+          equals('params.textDocument.uri must be of type Uri'));
     });
 
     test(
@@ -407,7 +411,7 @@ void main() {
       // where the class definition only references a TextDocumentIdentifier.
       final input = jsonEncode(TextDocumentPositionParams(
         textDocument: VersionedTextDocumentIdentifier(
-            version: 111, uri: 'file:///foo/bar.dart'),
+            version: 111, uri: Uri.file('/foo/bar.dart')),
         position: Position(line: 1, character: 1),
       ).toJson());
       final params = TextDocumentPositionParams.fromJson(
@@ -439,8 +443,8 @@ void main() {
 
   test('objects with lists can round-trip through to json and back', () {
     final workspaceFolders = [
-      WorkspaceFolder(uri: '!uri1', name: '!name1'),
-      WorkspaceFolder(uri: '!uri2', name: '!name2'),
+      WorkspaceFolder(uri: Uri.parse('http://example.org/1'), name: '!name1'),
+      WorkspaceFolder(uri: Uri.parse('http://example.org/2'), name: '!name2'),
     ];
     final obj = InitializeParams(
       processId: 1,
@@ -486,9 +490,9 @@ void main() {
     final start = Position(line: 1, character: 1);
     final end = Position(line: 2, character: 2);
     final range = Range(start: start, end: end);
-    final obj = WorkspaceEdit(changes: <String, List<TextEdit>>{
-      'fileA': [TextEdit(range: range, newText: 'text A')],
-      'fileB': [TextEdit(range: range, newText: 'text B')]
+    final obj = WorkspaceEdit(changes: <Uri, List<TextEdit>>{
+      Uri.file('/fileA'): [TextEdit(range: range, newText: 'text A')],
+      Uri.file('/fileB'): [TextEdit(range: range, newText: 'text B')]
     });
     final json = jsonEncode(obj);
     final restoredObj =

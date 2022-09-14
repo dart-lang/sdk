@@ -19,7 +19,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     bool asCommand = false,
   }) async {
     final codeActions =
-        await getCodeActions(uri.toString(), range: range, position: position);
+        await getCodeActions(uri, range: range, position: position);
     final codeAction = findCommand(codeActions, command)!;
 
     codeAction.map(

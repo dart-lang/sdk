@@ -44,7 +44,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     final colorPresentations = await getColorPresentation(
-      mainFileUri.toString(),
+      mainFileUri,
       colorRange,
       Color(alpha: 1, red: 1, green: 1, blue: 1),
     );
@@ -64,7 +64,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     final colors = await getColorPresentation(
-      pubspecFileUri.toString(),
+      pubspecFileUri,
       startOfDocRange,
       Color(alpha: 1, red: 1, green: 1, blue: 1),
     );
@@ -84,7 +84,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     final colorPresentations = await getColorPresentation(
-      Uri.file(outsideRootFilePath).toString(),
+      Uri.file(outsideRootFilePath),
       colorRange,
       Color(alpha: 1, red: 1, green: 0, blue: 0),
     );
@@ -106,7 +106,7 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     final colorPresentations = await getColorPresentation(
-      mainFileUri.toString(),
+      mainFileUri,
       colorRange,
       // Send a different color to what's in the source to simulate the user
       // having changed in the color picker. This is the one that we should be
@@ -158,7 +158,7 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();
 
-    final colors = await getDocumentColors(pubspecFileUri.toString());
+    final colors = await getDocumentColors(pubspecFileUri);
     expect(colors, isEmpty);
   }
 
@@ -171,7 +171,7 @@ class DocumentColorTest extends AbstractLspAnalysisServerTest {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final colors = await getDocumentColors(mainFileUri.toString());
+    final colors = await getDocumentColors(mainFileUri);
     expect(colors, hasLength(1));
 
     final color = colors[0];

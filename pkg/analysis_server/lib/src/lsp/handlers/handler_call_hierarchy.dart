@@ -244,7 +244,7 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
     }
 
     final pos = item.selectionRange.start;
-    final path = pathOfUri(Uri.parse(item.uri));
+    final path = pathOfUri(item.uri);
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset.mapResult((offset) async {
@@ -373,7 +373,7 @@ mixin _CallHierarchyUtils {
       name: item.displayName,
       detail: item.containerName,
       kind: toSymbolKind(supportedSymbolKinds, item.kind),
-      uri: Uri.file(item.file).toString(),
+      uri: Uri.file(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
     );
@@ -399,7 +399,7 @@ mixin _CallHierarchyUtils {
       displayName: item.name,
       containerName: item.detail,
       kind: fromSymbolKind(item.kind),
-      file: Uri.parse(item.uri).toFilePath(),
+      file: item.uri.toFilePath(),
       nameRange: nameRange.result,
       codeRange: codeRange.result,
     );

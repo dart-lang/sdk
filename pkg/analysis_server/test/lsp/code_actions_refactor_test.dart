@@ -49,7 +49,7 @@ void f() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, refactorTitle)!;
@@ -66,7 +66,7 @@ set ^a(String value) {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, refactorTitle);
@@ -88,7 +88,7 @@ class A {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, refactorTitle);
@@ -114,7 +114,7 @@ void f() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, refactorTitle)!;
@@ -182,8 +182,8 @@ void newMethod() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -211,8 +211,8 @@ void newMethod() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -255,8 +255,8 @@ void f() {
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -286,7 +286,7 @@ void f() {
     );
 
     ofKind(CodeActionKind kind) => getCodeActions(
-          mainFileUri.toString(),
+          mainFileUri,
           range: rangeFromMarkers(content),
           kinds: [kind],
         );
@@ -340,8 +340,8 @@ Object Text(Object text) => null;
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -358,7 +358,7 @@ void f() {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
@@ -374,7 +374,7 @@ i^o.File a;
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
@@ -407,8 +407,8 @@ void newMethod() {
     // token was supplied by us (the client).
     expect(progressUpdates, emitsInOrder(['BEGIN', 'END']));
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -442,8 +442,8 @@ void newMethod() {
         .where((n) => n.method == Method.progress)
         .listen((_) => didGetProgressNotifications = true);
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -475,8 +475,8 @@ void newMethod() {
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -501,8 +501,8 @@ void doFoo(void Function() a) => a();
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -545,8 +545,8 @@ void doFoo(void Function() a) => a();
       failTestOnAnyErrorNotification: false,
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -584,8 +584,8 @@ void doFoo(void Function() a) => a();
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
@@ -633,8 +633,8 @@ void foo(int arg) {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction = findCommand(
         codeActions, Commands.performRefactor, extractVariableTitle)!;
 
@@ -663,8 +663,8 @@ void foo(int arg) {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction = findCommand(
         codeActions, Commands.performRefactor, extractVariableTitle)!;
 
@@ -745,8 +745,8 @@ class NewWidget extends StatelessWidget {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle)!;
 
@@ -763,7 +763,7 @@ void f() {}
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
@@ -809,7 +809,7 @@ void f() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction = findCommand(
         codeActions, Commands.performRefactor, inlineVariableTitle)!;
@@ -853,7 +853,7 @@ void bar() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
@@ -888,7 +888,7 @@ void foo2() {
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
