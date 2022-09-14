@@ -150,8 +150,13 @@ var dart2wasm = {
     },
     stringFromDartString: stringFromDartString,
     stringToDartString: stringToDartString,
-    wrapDartFunction: function(dartFunction, exportFunctionName) {
+    wrapDartFunction: function(dartFunction, exportFunctionName, argCount) {
         var wrapped = function (...args) {
+            // Pad `undefined` for optional arguments that aren't passed so that
+            // the trampoline can replace these values with defaults.
+            while (args.length < argCount) {
+                args.push(undefined);
+            }
             return dartInstance.exports[`${exportFunctionName}`](
                 dartFunction, ...args.map(dartInstance.exports.$dartifyRaw));
         }

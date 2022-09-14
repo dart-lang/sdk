@@ -240,7 +240,8 @@ class JsUtilWasmOptimizer extends Transformer {
   /// [String] function name representing the name of the wrapping function.
   /// TODO(joshualitt): Share callback trampolines if the [FunctionType]
   /// matches.
-  String _createFunctionTrampoline(Procedure node, FunctionType function) {
+  String _createFunctionTrampoline(
+      Procedure node, FunctionType function, Expression argument) {
     int fileOffset = node.fileOffset;
 
     // Create arguments for each positional parameter in the function. These
@@ -257,11 +258,50 @@ class JsUtilWasmOptimizer extends Transformer {
     List<Expression> callbackArguments = [];
     DartType nullableObjectType =
         _objectClass.getThisType(_coreTypes, Nullability.nullable);
-    for (DartType type in function.positionalParameters) {
+    for (int i = 0; i < function.positionalParameters.length; i++) {
+      DartType type = function.positionalParameters[i];
+      Expression? defaultExpression;
+      bool hasDefault = i >= function.requiredParameterCount;
+      if (hasDefault) {
+        // We can only generate default values if we have a statically typed
+        // function argument.
+        Expression? initializer;
+        if (argument is ConstantExpression) {
+          Procedure callbackTarget = (argument.constant as TearOffConstant)
+              .targetReference
+              .asProcedure;
+          initializer =
+              callbackTarget.function.positionalParameters[i].initializer;
+        } else if (argument is FunctionExpression) {
+          initializer = argument.function.positionalParameters[i].initializer;
+        } else {
+          throw 'Cannot pass default arguments.';
+        }
+
+        // The initializer for a default argument must be a
+        // [ConstantExpression].
+        ConstantExpression init = initializer as ConstantExpression;
+        defaultExpression = ConstantExpression(init.constant, init.type);
+      }
       VariableDeclaration variable =
           VariableDeclaration('x${parameterId++}', type: nullableObjectType);
       positionalParameters.add(variable);
-      callbackArguments.add(AsExpression(VariableGet(variable), type));
+      Expression body;
+      if (hasDefault) {
+        body = ConditionalExpression(
+            StaticInvocation(
+                _coreTypes.identicalProcedure,
+                Arguments([
+                  VariableGet(variable),
+                  ConstantExpression(NullConstant())
+                ])),
+            defaultExpression ?? ConstantExpression(NullConstant()),
+            VariableGet(variable),
+            nullableObjectType);
+      } else {
+        body = VariableGet(variable);
+      }
+      callbackArguments.add(AsExpression(body, type));
     }
 
     // Create a new procedure for the callback trampoline. This procedure will
@@ -308,11 +348,17 @@ class JsUtilWasmOptimizer extends Transformer {
   /// [_createFunctionTrampoline] followed by `_wrapDartFunction`.
   StaticInvocation _allowInterop(
       Procedure node, FunctionType type, Expression argument) {
-    String functionTrampolineName = _createFunctionTrampoline(node, type);
+    String functionTrampolineName =
+        _createFunctionTrampoline(node, type, argument);
     return StaticInvocation(
         _wrapDartFunctionTarget,
-        Arguments([argument, StringLiteral(functionTrampolineName)],
-            types: [type]));
+        Arguments([
+          argument,
+          StringLiteral(functionTrampolineName),
+          ConstantExpression(IntConstant(type.positionalParameters.length))
+        ], types: [
+          type
+        ]));
   }
 
   StaticGet get _globalThis => StaticGet(_globalThisMember);
