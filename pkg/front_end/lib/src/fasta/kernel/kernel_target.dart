@@ -1336,6 +1336,9 @@ class KernelTarget extends TargetImplementation {
         "Constructors of class '${builder.fullNameForErrors}' "
         "aren't fully patched.");
     for (Constructor constructor in cls.constructors) {
+      if (constructor.isExternal) {
+        continue;
+      }
       bool isRedirecting = false;
       for (Initializer initializer in constructor.initializers) {
         if (initializer is RedirectingInitializer) {

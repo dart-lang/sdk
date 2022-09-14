@@ -130,10 +130,8 @@ class A extends core::Object {
     : self::A::i = i, super core::Object::•()
     ;
   external constructor constructor8([core::int i = #C6]) → self::A
-    : super core::Object::•()
     ;
   external constructor constructor9({core::int i = #C6}) → self::A
-    : super core::Object::•()
     ;
   static factory factory3([core::int i = #C6]) → self::A
     return new self::A::constructor3(i);
