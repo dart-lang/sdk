@@ -1727,7 +1727,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       SuperPropertyGet node, w.ValueType expectedType) {
     Member target = _lookupSuperTarget(node.interfaceTarget, setter: false);
     if (target is Procedure && !target.isGetter) {
-      throw "Not supported: Super tear-off at ${node.location}";
+      // Super tear-off
+      w.StructType closureStruct = _pushClosure(
+          translator.getTearOffClosure(target),
+          () => visitThis(w.RefType.data(nullable: false)));
+      return w.RefType.def(closureStruct, nullable: false);
     }
     return _directGet(target, ThisExpression(), () => null);
   }
@@ -1922,6 +1926,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         lambda.function,
         ParameterInfo.fromLocalFunction(functionNode),
         "closure wrapper at ${functionNode.location}");
+    return _pushClosure(closure, () => _pushContext(functionNode));
+  }
+
+  w.StructType _pushClosure(ClosureImplementation closure, void pushContext()) {
     w.StructType struct = closure.representation.closureStruct;
 
     ClassInfo info = translator.classInfo[translator.functionClass]!;
@@ -1929,7 +1937,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
-    _pushContext(functionNode);
+    pushContext();
     b.global_get(closure.vtable);
     b.struct_new(struct);
 
