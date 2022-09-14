@@ -699,6 +699,84 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     });
   }
 
+  @override
+  ConstantInfo? visitInstantiationConstant(InstantiationConstant constant) {
+    TearOffConstant tearOffConstant =
+        constant.tearOffConstant as TearOffConstant;
+    List<ConstantInfo> types = constant.types
+        .map((c) => ensureConstant(TypeLiteralConstant(c))!)
+        .toList();
+    ClosureImplementation tearOffClosure = translator
+        .getTearOffClosure(tearOffConstant.targetReference.asProcedure);
+    int positionalCount = tearOffConstant.function.positionalParameters.length;
+    List<String> names =
+        tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
+    ClosureRepresentation representation = translator.closureLayouter
+        .getClosureRepresentation(0, positionalCount, names)!;
+    w.StructType struct = representation.closureStruct;
+    w.RefType type = w.RefType.def(struct, nullable: false);
+    return createConstant(constant, type, (function, b) {
+      ClassInfo info = translator.classInfo[translator.functionClass]!;
+      translator.functions.allocateClass(info.classId);
+
+      w.DefinedFunction makeTrampoline(
+          w.FunctionType signature, w.DefinedFunction tearOffFunction) {
+        assert(tearOffFunction.type.inputs.length ==
+            signature.inputs.length + types.length);
+        w.DefinedFunction function =
+            m.addFunction(signature, "instantiation constant trampoline");
+        w.Instructions b = function.body;
+        b.local_get(function.locals[0]);
+        for (ConstantInfo typeInfo in types) {
+          b.global_get(typeInfo.global);
+        }
+        for (int i = 1; i < signature.inputs.length; i++) {
+          b.local_get(function.locals[i]);
+        }
+        b.call(tearOffFunction);
+        b.end();
+        return function;
+      }
+
+      void fillVtableEntry(int posArgCount, List<String> argNames) {
+        int fieldIndex =
+            representation.fieldIndexForSignature(posArgCount, argNames);
+        int tearOffFieldIndex = tearOffClosure.representation
+            .fieldIndexForSignature(posArgCount, argNames);
+
+        w.FunctionType signature =
+            (representation.vtableStruct.fields[fieldIndex].type as w.RefType)
+                .heapType as w.FunctionType;
+        w.DefinedFunction tearOffFunction = tearOffClosure.functions[
+            tearOffFieldIndex - tearOffClosure.representation.vtableBaseIndex];
+        w.DefinedFunction function =
+            translator.globals.isDummyFunction(tearOffFunction)
+                ? translator.globals.getDummyFunction(signature)
+                : makeTrampoline(signature, tearOffFunction);
+        b.ref_func(function);
+      }
+
+      void makeVtable() {
+        // TODO(joshualitt): Generate function type metadata here.
+        for (int posArgCount = 0;
+            posArgCount <= positionalCount;
+            posArgCount++) {
+          fillVtableEntry(posArgCount, const []);
+        }
+        for (NameCombination combination in representation.nameCombinations) {
+          fillVtableEntry(positionalCount, combination.names);
+        }
+        b.struct_new(representation.vtableStruct);
+      }
+
+      b.i32_const(info.classId);
+      b.i32_const(initialIdentityHash);
+      b.global_get(translator.globals.dummyGlobal); // Dummy context
+      makeVtable();
+      b.struct_new(struct);
+    });
+  }
+
   ConstantInfo? _makeInterfaceType(
       TypeLiteralConstant constant, InterfaceType type, ClassInfo info) {
     ListConstant typeArgs = constants.makeTypeList(type.typeArguments);

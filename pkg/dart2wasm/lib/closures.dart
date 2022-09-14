@@ -164,6 +164,17 @@ class ClosureLayouter extends RecursiveVisitor {
           positionalCount++) {
         final representationsForCounts =
             representationsForTypeCount[positionalCount];
+        if (typeCount > 0) {
+          // Due to generic function instantiations, any name combination that
+          // occurs in a call of a non-generic function also counts as occurring
+          // in a call of all corresponding generic functions.
+          // Thus, the generic closure inherits the combinations for the
+          // corresponding closure with zero type parameters.
+          final instantiatedRepresentations =
+              representations[0][positionalCount];
+          representationsForCounts
+              .inheritCombinationsFrom(instantiatedRepresentations);
+        }
         representationsForCounts.computeClusters();
       }
     }
@@ -247,6 +258,14 @@ class ClosureLayouter extends RecursiveVisitor {
         functionNode.typeParameters.length,
         functionNode.positionalParameters.length);
     representations.registerFunction(functionNode);
+    if (functionNode.typeParameters.isNotEmpty) {
+      // Due to generic function instantiations, any generic function present
+      // in the program also counts as a presence of the corresponding
+      // non-generic function.
+      final instantiatedRepresentations = _representationsForCounts(
+          0, functionNode.positionalParameters.length);
+      instantiatedRepresentations.registerFunction(functionNode);
+    }
   }
 
   void _visitFunctionInvocation(Arguments arguments) {
@@ -330,6 +349,10 @@ class ClosureRepresentationsForParameterCount {
           NameCombination(arguments.named.map((a) => a.name).toList()..sort());
       callCombinations.add(combination);
     }
+  }
+
+  void inheritCombinationsFrom(ClosureRepresentationsForParameterCount other) {
+    callCombinations.addAll(other.callCombinations);
   }
 
   ClosureRepresentationCluster? clusterForNames(List<String> names) {

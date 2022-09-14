@@ -50,6 +50,11 @@ class Globals {
     });
   }
 
+  /// Returns whether the given function was provided by [getDummyFunction].
+  bool isDummyFunction(w.BaseFunction function) {
+    return dummyFunctions[function.type] == function;
+  }
+
   w.Global? prepareDummyValue(w.ValueType type) {
     if (type is w.RefType && !type.nullable) {
       w.HeapType heapType = type.heapType;
