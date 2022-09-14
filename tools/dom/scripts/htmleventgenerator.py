@@ -287,7 +287,7 @@ class HtmlEventGenerator(object):
     def EmitStreamProviders(self, interface, custom_events, members_emitter,
                             library_name):
 
-        events = self._GetEvents(interface, custom_events)
+        events = self.GetEvents(interface, custom_events)
         if not events:
             return
 
@@ -321,7 +321,7 @@ class HtmlEventGenerator(object):
                           stream_getter_signatures_emitter=None,
                           element_stream_getters_emitter=None):
 
-        events = self._GetEvents(interface, custom_events)
+        events = self.GetEvents(interface, custom_events)
         if not events:
             return
 
@@ -386,7 +386,7 @@ class HtmlEventGenerator(object):
                 ]))
         return events
 
-    def _GetEvents(self, interface, custom_events):
+    def GetEvents(self, interface, custom_events):
         """ Gets a list of all of the events for the specified interface.
     """
         html_interface_name = interface.doc_js_name
@@ -422,7 +422,7 @@ class HtmlEventGenerator(object):
         return events
 
     def _HasEvent(self, events, event_name, event_type):
-        """ Checks if the event is declared in the list of events (from _GetEvents),
+        """ Checks if the event is declared in the list of events (from GetEvents),
     with the same event type.
     """
         for (dom_name, html_name, found_type) in events:
@@ -442,7 +442,7 @@ class HtmlEventGenerator(object):
                 interface.doc_js_name == 'GlobalEventHandlers'):
             media_interface = self._database.GetInterface('HTMLMediaElement')
             if not self._media_events:
-                self._media_events = self._GetEvents(media_interface, [])
+                self._media_events = self.GetEvents(media_interface, [])
             if self._HasEvent(self._media_events, event_name, event_type):
                 return True
 
@@ -452,7 +452,7 @@ class HtmlEventGenerator(object):
     """
         if interface.doc_js_name == 'Window' or interface.doc_js_name == 'Document':
             element_interface = self._database.GetInterface('Element')
-            element_events = self._GetEvents(element_interface, [])
+            element_events = self.GetEvents(element_interface, [])
             if self._HasEvent(element_events, event_name, event_type):
                 return 'Element'
         return None

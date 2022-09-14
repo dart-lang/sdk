@@ -90,9 +90,21 @@ def main():
     output_file = open(OUTPUT_FILE, 'w')
     output_file.write("""
 /// Exposing all the extra CSS property getters and setters.
-part of 'dart:html_extensions';
+@JS()
+library dart.css_properties;
 
-extension CssStyleDeclarationPropertiesExtension on html.CssStyleDeclaration {
+import 'dart:_js_annotations';
+import 'dart:_js_bindings' as js_bindings;
+import 'dart:html_common';
+
+@JS()
+@staticInterop
+class CssStyleDeclaration implements js_bindings.CSSStyleDeclaration {}
+
+extension CssStyleDeclarationView on CssStyleDeclaration {
+  // dart:html requires a `String?` type for `value`.
+  external Object setProperty(String property, String? value,
+      [String? priority = '']);
 
   // ##### Universal property getters and setters #####
   """)

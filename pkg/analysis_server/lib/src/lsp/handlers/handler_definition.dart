@@ -151,9 +151,9 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
   /// line/location) generically, handling either type of Location class.
   List<T> _filterResults<T>(
     List<T> results,
-    String sourceUri,
+    Uri sourceUri,
     int sourceLineNumber,
-    String Function(T) uriSelector,
+    Uri Function(T) uriSelector,
     Range Function(T) rangeSelector,
   ) {
     // If we fetch navigation on a keyword like `var`, the results will include

@@ -9,7 +9,6 @@ import "package:js/js.dart";
 @js::anonymous
 class ParallaxOptions extends core::Object /*hasConstConstructor*/  {
   external const constructor •() → self::ParallaxOptions
-    : super core::Object::•()
     ;
   static method _#new#tearOff() → self::ParallaxOptions
     return new self::ParallaxOptions::•();

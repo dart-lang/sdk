@@ -880,6 +880,10 @@ abstract class ResourceHandle {
   /// This can also be used when receiving stdin and stdout handles and read
   /// and write pipes.
   ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
+  ///
   /// If this resource handle is not a file or stdio handle, the behavior of the
   /// returned [RandomAccessFile] is completely unspecified.
   /// Be very careful to avoid using a handle incorrectly.
@@ -887,12 +891,20 @@ abstract class ResourceHandle {
 
   /// Extracts opened socket from resource handle.
   ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
+  //
   /// If this resource handle is not a socket handle, the behavior of the
   /// returned [Socket] is completely unspecified.
   /// Be very careful to avoid using a handle incorrectly.
   Socket toSocket();
 
   /// Extracts opened raw socket from resource handle.
+  ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
   ///
   /// If this resource handle is not a socket handle, the behavior of the
   /// returned [RawSocket] is completely unspecified.
@@ -901,6 +913,10 @@ abstract class ResourceHandle {
 
   /// Extracts opened raw datagram socket from resource handle.
   ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
+  ///
   /// If this resource handle is not a datagram socket handle, the behavior of
   /// the returned [RawDatagramSocket] is completely unspecified.
   /// Be very careful to avoid using a handle incorrectly.
@@ -908,12 +924,20 @@ abstract class ResourceHandle {
 
   /// Extracts a read pipe from resource handle.
   ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
+  ///
   /// If this resource handle is not a readable pipe, the behavior of the
   /// returned [ReadPipe] is completely unspecified.
   /// Be very careful to avoid using a handle incorrectly.
   ReadPipe toReadPipe();
 
   /// Extracts a write pipe from resource handle.
+  ///
+  /// Since the [ResourceHandle] represents a single OS resource,
+  /// none of [toFile], [toSocket], [toRawSocket], or [toRawDatagramSocket],
+  /// [toReadPipe], [toWritePipe], can be called after a call to this method.
   ///
   /// If this resource handle is not a writeable pipe, the behavior of the
   /// returned [ReadPipe] is completely unspecified.

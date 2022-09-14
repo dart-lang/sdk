@@ -74,7 +74,7 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest {
     expect(changes.length, changedFiles.length);
     var contents = <String, String>{};
     for (var entry in changes.entries) {
-      var filePath = Uri.parse(entry.key).path;
+      var filePath = entry.key.path;
       expect(changedFiles[filePath], isNotNull);
       var file = resourceProvider.getFile(filePath);
       if (file.exists) {

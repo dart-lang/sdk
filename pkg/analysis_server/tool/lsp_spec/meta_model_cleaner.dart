@@ -39,7 +39,9 @@ class LspMetaModelCleaner {
         .where((type) => _includeTypeInOutput(type.name))
         .map(_clean)
         .toList();
-    types = _renameTypes(types).toList();
+    types = _renameTypes(types)
+        .where((type) => _includeTypeInOutput(type.name))
+        .toList();
     return types;
   }
 
@@ -293,6 +295,7 @@ class LspMetaModelCleaner {
       // unions with so many types).
       'LSPAny',
       'LSPObject',
+      'LSPUri',
       // The meta model currently includes an unwanted type named 'T' that we
       // don't want to create a class for.
       // TODO(dantup): Remove this once it's gone from the JSON model.
@@ -303,7 +306,7 @@ class LspMetaModelCleaner {
       // when getting the .dartType for it.
       'MarkedString'
     };
-    final shouldIgnore = ignoredTypes.contains(name) ||
+    var shouldIgnore = ignoredTypes.contains(name) ||
         ignoredPrefixes.any((ignore) => name.startsWith(ignore));
     return !shouldIgnore;
   }
@@ -365,7 +368,7 @@ class LspMetaModelCleaner {
       'TextDocumentFilter2': 'TextDocumentFilterWithScheme',
       'PrepareRenameResult1': 'PlaceholderAndRange',
       'Pattern': 'LspPattern',
-      'URI': 'LspUri',
+      'URI': 'LSPUri',
     };
 
     for (final type in types) {

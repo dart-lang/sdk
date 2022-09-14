@@ -382,7 +382,8 @@ class BodyBuilder extends StackListenerImpl
                     libraryBuilder.importUri.path == "ui"),
         needsImplicitSuperInitializer =
             declarationBuilder is SourceClassBuilder &&
-                coreTypes.objectClass != declarationBuilder.cls,
+                coreTypes.objectClass != declarationBuilder.cls &&
+                !member.isExternal,
         benchmarker = libraryBuilder.loader.target.benchmarker,
         this.scope = enclosingScope {
     Iterator<VariableBuilder>? iterator =

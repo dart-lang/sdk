@@ -42,8 +42,8 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
           withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final fixAction = findEditAction(
         codeActions,
         CodeActionKind('quickfix.remove.unusedImport'),
@@ -82,8 +82,8 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final fixAction = findEditAction(
         codeActions,
         CodeActionKind('quickfix.remove.unusedImport'),
@@ -118,8 +118,8 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
           emptyWorkspaceClientCapabilities, [ResourceOperationKind.Create]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final fixAction = findEditAction(codeActions,
         CodeActionKind('quickfix.create.file'), "Create file 'newfile.dart'")!;
 
@@ -145,7 +145,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     await initialize();
 
     ofKind(CodeActionKind kind) => getCodeActions(
-          mainFileUri.toString(),
+          mainFileUri,
           range: rangeFromMarkers(content),
           kinds: [kind],
         );
@@ -172,8 +172,8 @@ var b = bar();
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final allFixes = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final allFixes =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
 
     // Expect only the single-fix, there should be no apply-all.
     expect(allFixes, hasLength(1));
@@ -194,8 +194,8 @@ void f(String a) {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final fixAction = findEditAction(
         codeActions, CodeActionKind('quickfix'), "Remove '!'s in file");
 
@@ -223,8 +223,8 @@ void f(String a) {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final fixAction = findEditAction(
         codeActions, CodeActionKind('quickfix'), "Remove '!'s in file")!;
 
@@ -267,8 +267,8 @@ Future foo;''';
     );
 
     // Find the ignore action.
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final fixAction = findEditAction(
         codeActions,
         CodeActionKind('quickfix.ignore.file'),
@@ -302,8 +302,8 @@ Future foo;''';
     );
 
     // Find the ignore action.
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final fixAction = findEditAction(
         codeActions,
         CodeActionKind('quickfix.ignore.line'),
@@ -336,7 +336,7 @@ void f() {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final removeNnaAction = findEditActions(codeActions,
         CodeActionKind('quickfix.remove.nonNullAssertion'), "Remove the '!'");
@@ -364,8 +364,8 @@ void f() {
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final createClassActions = findEditActions(codeActions,
         CodeActionKind('quickfix.create.class'), "Create class 'Test'");
 
@@ -385,8 +385,8 @@ void f() {
         workspaceCapabilities: withApplyEditSupport(
             withDocumentChangesSupport(emptyWorkspaceClientCapabilities)));
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final createClassActions = findEditActions(codeActions,
         CodeActionKind('quickfix.create.class'), "Create class 'Test'");
 
@@ -402,7 +402,7 @@ void f() {
     );
 
     final codeActions =
-        await getCodeActions(pubspecFileUri.toString(), range: startOfDocRange);
+        await getCodeActions(pubspecFileUri, range: startOfDocRange);
     expect(codeActions, isEmpty);
   }
 
@@ -436,8 +436,8 @@ ProcessInfo b;
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final fixAction = findEditAction(codeActions,
         CodeActionKind('quickfix.organize.imports'), 'Organize Imports')!;
 
@@ -464,7 +464,7 @@ ProcessInfo b;
     );
 
     final codeActions = await getCodeActions(
-      otherFileUri.toString(),
+      otherFileUri,
       position: startOfDocPos,
     );
     expect(codeActions, isEmpty);
@@ -510,8 +510,8 @@ ProcessInfo b;
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final assist = findEditAction(codeActions,
         CodeActionKind('quickfix.fooToBar'), "Change 'foo' to 'bar'")!;
 
@@ -560,8 +560,8 @@ ProcessInfo b;
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
-        range: rangeFromMarkers(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeActionTitles = codeActions.map((action) =>
         action.map((command) => command.title, (action) => action.title));
 
@@ -603,7 +603,7 @@ class A {
       },
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final fixAction = findEditAction(codeActions,
         CodeActionKind('quickfix.create.method'), "Create method 'c'")!;
@@ -651,7 +651,7 @@ useFunction(int g(a, b)) {}
       },
     );
 
-    final codeActions = await getCodeActions(mainFileUri.toString(),
+    final codeActions = await getCodeActions(mainFileUri,
         position: positionFromMarker(content));
     final fixAction = findEditAction(
         codeActions,

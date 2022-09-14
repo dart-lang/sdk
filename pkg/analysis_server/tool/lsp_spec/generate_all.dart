@@ -236,15 +236,20 @@ List<LspEntity> getCustomClasses() {
     ),
     TypeAlias(
       name: 'DocumentUri',
-      baseType: TypeReference('string'),
+      baseType: TypeReference('Uri'),
+      isRename: false,
+    ),
+    TypeAlias(
+      name: 'LSPUri',
+      baseType: TypeReference('Uri'),
       isRename: false,
     ),
 
     interface('DartDiagnosticServer', [field('port', type: 'int')]),
     interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
     interface('PublishClosingLabelsParams', [
-      field('uri', type: 'string'),
-      field('labels', type: 'ClosingLabel', array: true)
+      field('uri', type: 'Uri'),
+      field('labels', type: 'ClosingLabel', array: true),
     ]),
     interface('ClosingLabel',
         [field('range', type: 'Range'), field('label', type: 'string')]),
@@ -257,16 +262,16 @@ List<LspEntity> getCustomClasses() {
       field('returnType', type: 'string', canBeUndefined: true),
     ]),
     interface('PublishOutlineParams',
-        [field('uri', type: 'string'), field('outline', type: 'Outline')]),
+        [field('uri', type: 'Uri'), field('outline', type: 'Outline')]),
     interface('Outline', [
       field('element', type: 'Element'),
       field('range', type: 'Range'),
       field('codeRange', type: 'Range'),
-      field('children', type: 'Outline', array: true, canBeUndefined: true)
+      field('children', type: 'Outline', array: true, canBeUndefined: true),
     ]),
     interface('PublishFlutterOutlineParams', [
-      field('uri', type: 'string'),
-      field('outline', type: 'FlutterOutline')
+      field('uri', type: 'Uri'),
+      field('outline', type: 'FlutterOutline'),
     ]),
     interface('FlutterOutline', [
       field('kind', type: 'string'),
@@ -279,7 +284,7 @@ List<LspEntity> getCustomClasses() {
       field('range', type: 'Range'),
       field('codeRange', type: 'Range'),
       field('children',
-          type: 'FlutterOutline', array: true, canBeUndefined: true)
+          type: 'FlutterOutline', array: true, canBeUndefined: true),
     ]),
     interface(
       'FlutterOutlineAttribute',

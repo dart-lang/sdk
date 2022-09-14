@@ -86,8 +86,10 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   Future<void> test_path_invalidFormat() async {
     await initialize();
     await expectLater(
-      // Add some invalid path characters to the end of a valid file:// URI.
-      formatDocument(mainFileUri.toString() + r'***###\\\///:::.dart'),
+      formatDocument(
+        // Add some invalid path characters to the end of a valid file:// URI.
+        Uri.parse(mainFileUri.toString() + r'###***\\\///:::.dart'),
+      ),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
           message: 'File URI did not contain a valid file path')),
     );

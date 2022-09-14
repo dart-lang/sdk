@@ -245,7 +245,8 @@ void f() {
     expect(diagnostic.code, equals('built_in_identifier_in_declaration'));
     expect(
       diagnostic.codeDescription!.href,
-      equals('https://dart.dev/diagnostics/built_in_identifier_in_declaration'),
+      equals(Uri.parse(
+          'https://dart.dev/diagnostics/built_in_identifier_in_declaration')),
     );
   }
 

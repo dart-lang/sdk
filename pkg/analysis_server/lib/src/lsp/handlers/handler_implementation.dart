@@ -93,7 +93,7 @@ class ImplementationHandler
           }
 
           return Location(
-            uri: Uri.file(elementLocation.file).toString(),
+            uri: Uri.file(elementLocation.file),
             range: toRange(
                 lineInfo, elementLocation.offset, elementLocation.length),
           );

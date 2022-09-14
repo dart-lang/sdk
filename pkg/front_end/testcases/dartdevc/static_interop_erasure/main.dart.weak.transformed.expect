@@ -23,7 +23,6 @@ import "package:js/js.dart";
 @#C5
 class StaticJSClass extends core::Object {
   external constructor •() → sta::StaticJSClass
-    : super core::Object::•()
     ;
   static method _#new#tearOff() → _in::JavaScriptObject
     return new sta::StaticJSClass::•() as _in::JavaScriptObject;

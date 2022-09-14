@@ -52,7 +52,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(referencedContents)));
-    expect(loc.uri, equals(referencedFileUri.toString()));
+    expect(loc.uri, equals(referencedFileUri));
   }
 
   Future<void> test_atDeclaration_class() async {
@@ -286,7 +286,7 @@ class A {
         equals(lsp.Range(
             start: lsp.Position(line: 0, character: 0),
             end: lsp.Position(line: 0, character: 5))));
-    expect(loc.uri, equals(pluginAnalyzedFileUri.toString()));
+    expect(loc.uri, equals(pluginAnalyzedFileUri));
   }
 
   Future<void> test_function() async {
@@ -334,7 +334,7 @@ class A {
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
-    expect(loc.targetUri, equals(referencedFileUri.toString()));
+    expect(loc.targetUri, equals(referencedFileUri));
     expect(loc.targetRange, equals(rangeFromMarkers(referencedContents)));
     expect(
       loc.targetSelectionRange,
@@ -377,7 +377,7 @@ class A {
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
-    expect(loc.targetUri, equals(referencedFileUri.toString()));
+    expect(loc.targetUri, equals(referencedFileUri));
     expect(loc.targetRange, equals(rangeFromMarkers(referencedContents)));
     expect(
       loc.targetSelectionRange,
@@ -435,7 +435,7 @@ class A {
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
-    expect(loc.targetUri, equals(partFileUri.toString()));
+    expect(loc.targetUri, equals(partFileUri));
     expect(loc.targetRange, equals(rangeFromMarkers(partContents)));
     expect(
       loc.targetSelectionRange,
@@ -460,7 +460,7 @@ part of 'main.dart';
     final res = await getDefinitionAsLocation(
         mainFileUri, positionFromMarker(mainContents));
 
-    expect(res.single.uri, equals(partFileUri.toString()));
+    expect(res.single.uri, equals(partFileUri));
   }
 
   Future<void> test_partOfFilename() async {
@@ -480,7 +480,7 @@ part of 'ma^in.dart';
     final res = await getDefinitionAsLocation(
         partFileUri, positionFromMarker(partContents));
 
-    expect(res.single.uri, equals(mainFileUri.toString()));
+    expect(res.single.uri, equals(mainFileUri));
   }
 
   Future<void> test_sameLine() async {
@@ -550,6 +550,6 @@ class [[A]] {}
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(contents)));
-    expect(loc.uri, equals(mainFileUri.toString()));
+    expect(loc.uri, equals(mainFileUri));
   }
 }
