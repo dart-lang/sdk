@@ -481,13 +481,15 @@ dart.try_builder(
 dart.try_builder(
     "dart-sdk-mac",
     dimensions = mac,
-    properties = pinned_xcode,
+    properties = [pinned_xcode, {"archs": ["x64"]}],
+    recipe = "release/sdk",
 )
 
 dart.try_builder(
     "dart-sdk-mac-arm64",
     dimensions = [mac, arm64],
-    properties = [no_android, pinned_xcode],
+    properties = [no_android, pinned_xcode, {"archs": ["arm64"]}],
+    recipe = "release/sdk",
 )
 
 dart.try_builder(
