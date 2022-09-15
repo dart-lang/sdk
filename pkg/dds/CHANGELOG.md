@@ -2,6 +2,7 @@
 - [DAP] Removed an unused parameter `resumeIfStarting` from `DartDebugAdapter.connectDebugger`.
 - [DAP] Fixed some issues where removing breakpoints could fail if an isolate exited during an update or multiple client breakpoints mapped to the same VM breakpoint.
 - [DAP] Paths provided to DAP now always have Windows drive letters normalized to uppercase to avoid some issues where paths may be treated case sensitively.
+- Fixed issue where DDS wasn't correctly handling `Sentinel` responses in `IsolateManager.initialize()`.
 
 # 2.2.6
 - Fixed an issue where debug adapters would not automatically close after terminating/disconnecting from the debugee.
