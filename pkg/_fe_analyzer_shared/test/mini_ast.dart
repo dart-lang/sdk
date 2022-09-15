@@ -243,23 +243,22 @@ mixin CaseHead implements CaseHeads, Node {
   @override
   List<CaseHead> get _caseHeads => [this];
 
+  Expression? get _guard;
+
   @override
   List<Label> get _labels => const [];
 
   Pattern? get _pattern;
 
-  Expression? get _whenExpression;
-
   ExpressionCase thenExpr(Expression body) =>
-      ExpressionCase._(_pattern, _whenExpression, body,
-          location: computeLocation());
+      ExpressionCase._(_pattern, _guard, body, location: computeLocation());
 
   void _preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
     variableBinder.startAlternative(this);
     _pattern?.preVisit(visitor, variableBinder);
     variableBinder.finishAlternative();
-    _whenExpression?.preVisit(visitor);
+    _guard?.preVisit(visitor);
   }
 }
 
@@ -434,6 +433,7 @@ class Harness
     'double <: int?': false,
     'double <: String': false,
     'dynamic <: int': false,
+    'int <: bool': false,
     'int <: double': false,
     'int <: double?': false,
     'int <: dynamic': true,
@@ -879,10 +879,10 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   Pattern._({required super.location}) : super._();
 
   @override
-  Pattern? get _pattern => this;
+  Expression? get _guard => null;
 
   @override
-  Expression? get _whenExpression => null;
+  Pattern? get _pattern => this;
 
   void preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder);
@@ -1002,10 +1002,11 @@ class Var extends Node implements Promotable {
     _type = value;
   }
 
-  Pattern pattern({String? type, String? expectInferredType}) =>
+  Pattern pattern(
+          {String? type, String? expectInferredType, bool isFinal = false}) =>
       new _VariablePattern(
           type == null ? null : Type(type), this, expectInferredType,
-          location: computeLocation());
+          isFinal: isFinal, location: computeLocation());
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -1409,7 +1410,7 @@ class _ConstantPattern extends Pattern {
 
   @override
   PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) =>
-      h.typeAnalyzer.analyzeConstOrLiteralPattern(this, constant);
+      h.typeAnalyzer.analyzeConstantPattern(this, constant);
 
   @override
   _debugString({required bool needsKeywordOrType}) => constant.toString();
@@ -1498,10 +1499,10 @@ class _Default extends Node with CaseHead, CaseHeads {
   _Default({required super.location}) : super._();
 
   @override
-  Pattern? get _pattern => null;
+  Expression? get _guard => null;
 
   @override
-  Expression? get _whenExpression => null;
+  Pattern? get _pattern => null;
 }
 
 class _Do extends Statement {
@@ -1984,8 +1985,25 @@ class _MiniAstErrors
   }
 
   @override
+  void nonBooleanCondition(Expression node) {
+    _recordError('nonBooleanCondition(${node.errorId})');
+  }
+
+  @override
   void patternDoesNotAllowLate(Node pattern) {
     _recordError('patternDoesNotAllowLate(${pattern.errorId})');
+  }
+
+  @override
+  void patternTypeMismatchInIrrefutableContext(
+      {required Node pattern,
+      required Node context,
+      required Type matchedType,
+      required Type requiredType}) {
+    _recordError(
+        'patternTypeMismatchInIrrefutableContext(pattern: ${pattern.errorId}, '
+        'context: ${context.errorId}, matchedType: ${matchedType.type}, '
+        'requiredType: ${requiredType.type})');
   }
 
   @override
@@ -2371,9 +2389,7 @@ class _MiniAstTypeAnalyzer
     return StatementCaseInfo([
       for (var caseHead in case_._caseHeads._caseHeads)
         CaseHeadInfo(
-            node: caseHead,
-            pattern: caseHead._pattern,
-            when: caseHead._whenExpression)
+            node: caseHead, pattern: caseHead._pattern, when: caseHead._guard)
     ], case_._body.statements, labels: case_._caseHeads._labels);
   }
 
@@ -2397,7 +2413,7 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleConstOrLiteralPattern(Node node, {required Type matchedType}) {
+  void handleConstantPattern(Node node, {required Type matchedType}) {
     _irBuilder.atom(matchedType.type, Kind.type, location: node.location);
     _irBuilder.apply('const', [Kind.expression, Kind.type], Kind.pattern,
         names: ['matchedType'], location: node.location);
@@ -2412,6 +2428,11 @@ class _MiniAstTypeAnalyzer
     _irBuilder.atom('true', Kind.expression, location: node.location);
   }
 
+  @override
+  void handleNoGuard(Node node, int caseIndex) {
+    _irBuilder.atom('true', Kind.expression, location: node.location);
+  }
+
   void handleNoInitializer(Node node) {
     _irBuilder.atom('uninitialized', Kind.statement, location: node.location);
   }
@@ -2422,11 +2443,6 @@ class _MiniAstTypeAnalyzer
 
   void handleNoStatement(Node node) {
     _irBuilder.atom('noop', Kind.statement, location: node.location);
-  }
-
-  @override
-  void handleNoWhenCondition(Node node, int caseIndex) {
-    _irBuilder.atom('true', Kind.expression, location: node.location);
   }
 
   @override
@@ -2961,8 +2977,10 @@ class _VariablePattern extends Pattern {
 
   final String? expectInferredType;
 
+  final bool isFinal;
+
   _VariablePattern(this.declaredType, this.variable, this.expectInferredType,
-      {required super.location})
+      {this.isFinal = false, required super.location})
       : super._();
 
   @override
@@ -2975,7 +2993,8 @@ class _VariablePattern extends Pattern {
 
   @override
   PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) {
-    return h.typeAnalyzer.analyzeVariablePattern(this, variable, declaredType);
+    return h.typeAnalyzer
+        .analyzeVariablePattern(this, variable, declaredType, isFinal: isFinal);
   }
 
   @override
@@ -3030,10 +3049,9 @@ class _When extends Node with CaseHead, CaseHeads {
   final Pattern _pattern;
 
   @override
-  final Expression _whenExpression;
+  final Expression _guard;
 
-  _When(this._pattern, this._whenExpression, {required super.location})
-      : super._();
+  _When(this._pattern, this._guard, {required super.location}) : super._();
 }
 
 class _While extends Statement {
