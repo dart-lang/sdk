@@ -62,6 +62,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
     }
     // TODO(brianwilkerson) Copy the file header to the new file.
     await builder.addDartFileEdit(commandArguments[0], (builder) {
+      // TODO(dantup): Ensure the range inserted and deleted match (allowing for
+      //  whitespace), including handling of leading/trailing comments etc.
       builder.addInsertion(0, (builder) {
         builder.writeln(utils.getNodeText(member.node));
       });
@@ -72,7 +74,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
   }
 
   @override
-  bool isAvailable() => _memberToMove != null;
+  bool isAvailable() => supportsFileCreation && _memberToMove != null;
 
   /// Computes a filename for a given class name (convert from PascalCase to
   /// snake_case).

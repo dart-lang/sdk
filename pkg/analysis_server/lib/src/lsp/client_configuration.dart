@@ -10,6 +10,13 @@ import 'package:path/path.dart' as path;
 /// Resource-specific config is currently only supported at the WorkspaceFolder
 /// level so when looking up config for a resource, the nearest WorkspaceFolders
 /// config will be used.
+///
+/// Settings prefixed with 'preview' are things that may not be completed but
+/// may be exposed to users as something they can try out.
+///
+/// Settings prefixed with 'experimental' are things that may be incomplete or
+/// still in development and users are not encouraged to try (but may be useful
+/// for Dart developers to enable for development/testing).
 class LspClientConfiguration {
   /// Global settings for the workspace.
   ///
@@ -116,6 +123,10 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   /// placeholders when used in an invocation context.
   bool get completeFunctionCalls =>
       _settings['completeFunctionCalls'] as bool? ?? false;
+
+  /// A hidden experimental flag for enabling new refactors during development.
+  bool get experimentalNewRefactors =>
+      _settings['experimentalNewRefactors'] as bool? ?? false;
 
   /// A preview flag for enabling commit characters for completions.
   ///

@@ -120,7 +120,7 @@ main() {
         ]);
       });
 
-      test('when clause', () {
+      test('guard', () {
         var i = Var('i');
         h.run([
           switchExpr(expr('int'), [
@@ -137,6 +137,40 @@ main() {
                   'staticType: int), ==(i, expr(num))), expr(String)))')
               .stmt,
         ]);
+      });
+
+      group('Guard not assignable to bool', () {
+        test('int', () {
+          var x = Var('x');
+          h.run([
+            switchExpr(expr('int'), [
+              x
+                  .pattern()
+                  .when(expr('int')..errorId = 'GUARD')
+                  .thenExpr(expr('int')),
+            ]).stmt,
+          ], expectedErrors: {
+            'nonBooleanCondition(GUARD)'
+          });
+        });
+
+        test('bool', () {
+          var x = Var('x');
+          h.run([
+            switchExpr(expr('int'), [
+              x.pattern().when(expr('bool')).thenExpr(expr('int')),
+            ]).stmt,
+          ], expectedErrors: {});
+        });
+
+        test('dynamic', () {
+          var x = Var('x');
+          h.run([
+            switchExpr(expr('int'), [
+              x.pattern().when(expr('dynamic')).thenExpr(expr('int')),
+            ]).stmt,
+          ], expectedErrors: {});
+        });
       });
     });
   });
@@ -369,7 +403,7 @@ main() {
         ]);
       });
 
-      test('when clause', () {
+      test('guard', () {
         var i = Var('i');
         h.run([
           switch_(
@@ -863,6 +897,52 @@ main() {
           ]);
         });
       });
+
+      group('Guard not assignable to bool', () {
+        test('int', () {
+          var x = Var('x');
+          h.run([
+            switch_(
+                expr('int'),
+                [
+                  x.pattern().when(expr('int')..errorId = 'GUARD').then([
+                    break_(),
+                  ]),
+                ],
+                isExhaustive: false),
+          ], expectedErrors: {
+            'nonBooleanCondition(GUARD)'
+          });
+        });
+
+        test('bool', () {
+          var x = Var('x');
+          h.run([
+            switch_(
+                expr('int'),
+                [
+                  x.pattern().when(expr('bool')).then([
+                    break_(),
+                  ]),
+                ],
+                isExhaustive: false),
+          ], expectedErrors: {});
+        });
+
+        test('dynamic', () {
+          var x = Var('x');
+          h.run([
+            switch_(
+                expr('int'),
+                [
+                  x.pattern().when(expr('dynamic')).then([
+                    break_(),
+                  ]),
+                ],
+                isExhaustive: false),
+          ], expectedErrors: {});
+        });
+      });
     });
 
     group('Variable declaration:', () {
@@ -983,7 +1063,8 @@ main() {
             (match(x.pattern(type: 'num')..errorId = 'PATTERN', expr('String'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
-            'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+            'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT, matchedType: String, requiredType: num)'
           });
         });
       });

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 
 /// The characters that will cause the editor to automatically commit the selected
 /// completion item.
@@ -54,12 +55,14 @@ abstract class Commands {
   /// A list of all commands IDs that can be sent to the client to inform which
   /// commands should be sent to the server for execution (as opposed to being
   /// executed in the local plugin).
-  static const serverSupportedCommands = [
+  static final serverSupportedCommands = [
     sortMembers,
     organizeImports,
     fixAll,
     sendWorkspaceEdit,
     performRefactor,
+    // Add commands for each of the new refactorings.
+    ...RefactoringProcessor.generators.keys,
   ];
   static const sortMembers = 'edit.sortMembers';
   static const organizeImports = 'edit.organizeImports';

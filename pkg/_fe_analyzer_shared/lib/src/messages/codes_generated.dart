@@ -1074,7 +1074,7 @@ const Code<Null> codeCompilingWithSoundNullSafety =
 const MessageCode messageCompilingWithSoundNullSafety = const MessageCode(
     "CompilingWithSoundNullSafety",
     severity: Severity.info,
-    problemMessage: r"""Compiling with sound null safety 💪""");
+    problemMessage: r"""Compiling with sound null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCompilingWithoutSoundNullSafety =
@@ -1084,7 +1084,7 @@ const Code<Null> codeCompilingWithoutSoundNullSafety =
 const MessageCode messageCompilingWithoutSoundNullSafety = const MessageCode(
     "CompilingWithoutSoundNullSafety",
     severity: Severity.info,
-    problemMessage: r"""Compiling without sound null safety ⚠️
+    problemMessage: r"""Compiling without sound null safety!
 Dart 3 will only support sound null safety, see https://dart.dev/null-safety""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

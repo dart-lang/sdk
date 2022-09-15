@@ -165,16 +165,15 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Returns the unknown type context (`?`) used in type inference.
   Type get unknownType;
 
-  /// Analyzes a constant pattern or literal pattern.  [node] is the pattern
-  /// itself, and [expression] is the constant or literal expression.  Depending
-  /// on the client's representation, [node] and [expression] might or might not
-  /// be identical.
+  /// Analyzes a constant pattern.  [node] is the pattern itself, and
+  /// [expression] is the constant expression.  Depending on the client's
+  /// representation, [node] and [expression] might or might not be identical.
   ///
   /// Stack effect: none.
   PatternDispatchResult<Node, Expression, Variable, Type>
-      analyzeConstOrLiteralPattern(Node node, Expression expression) {
-    return new _ConstOrLiteralPatternDispatchResult<Node, Expression, Variable,
-        Type>(this, node, expression);
+      analyzeConstantPattern(Node node, Expression expression) {
+    return new _ConstantPatternDispatchResult<Node, Expression, Variable, Type>(
+        this, node, expression);
   }
 
   /// Analyzes an expression.  [node] is the expression to analyze, and
@@ -280,14 +279,14 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
                 switchScrutinee: scrutinee,
                 topPattern: pattern));
         // Stack: (Expression, i * ExpressionCase, Pattern)
-        Expression? when = caseInfo.when;
-        bool hasWhen = when != null;
-        if (hasWhen) {
-          analyzeExpression(when, boolType);
+        Expression? guard = caseInfo.when;
+        bool hasGuard = guard != null;
+        if (hasGuard) {
+          _checkGuardType(guard, analyzeExpression(guard, boolType));
           // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
-          flow?.switchStatement_afterWhen(when);
+          flow?.switchStatement_afterGuard(guard);
         } else {
-          handleNoWhenCondition(node, i);
+          handleNoGuard(node, i);
           // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
         }
         handleCaseHead(node, caseIndex: i, subIndex: 0);
@@ -356,15 +355,15 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
                     topPattern: pattern));
             // Stack: (Expression, numExecutionPaths * StatementCase,
             //         numHeads * CaseHead, Pattern),
-            Expression? when = head.when;
-            bool hasWhen = when != null;
-            if (hasWhen) {
-              analyzeExpression(when, boolType);
+            Expression? guard = head.when;
+            bool hasGuard = guard != null;
+            if (hasGuard) {
+              _checkGuardType(guard, analyzeExpression(guard, boolType));
               // Stack: (Expression, numExecutionPaths * StatementCase,
               //         numHeads * CaseHead, Pattern, Expression),
-              flow?.switchStatement_afterWhen(when);
+              flow?.switchStatement_afterGuard(guard);
             } else {
-              handleNoWhenCondition(node, i);
+              handleNoGuard(node, i);
             }
             handleCaseHead(node, caseIndex: i, subIndex: j);
           } else {
@@ -438,14 +437,15 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   }
 
   /// Analyzes a variable pattern.  [node] is the pattern itself, [variable] is
-  /// the variable, and [declaredType] is the explicitly declared type (if
-  /// present).
+  /// the variable, [declaredType] is the explicitly declared type (if present),
+  /// and [isFinal] indicates whether the variable is final.
   ///
   /// Stack effect: none.
   PatternDispatchResult<Node, Expression, Variable, Type>
-      analyzeVariablePattern(Node node, Variable variable, Type? declaredType) {
+      analyzeVariablePattern(Node node, Variable variable, Type? declaredType,
+          {required bool isFinal}) {
     return new _VariablePatternDispatchResult<Node, Expression, Variable, Type>(
-        this, node, variable, declaredType);
+        this, node, variable, declaredType, isFinal);
   }
 
   /// Calls the appropriate `analyze` method according to the form of
@@ -536,13 +536,13 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   void handleCaseHead(Node node,
       {required int caseIndex, required int subIndex});
 
-  /// Called when matching a constant pattern or a literal pattern.
+  /// Called when matching a constant pattern.
   ///
   /// [node] is the AST node for the pattern and [matchedType] is the static
   /// type of the expression being matched.
   ///
   /// Stack effect: pops (Expression) and pushes (Pattern).
-  void handleConstOrLiteralPattern(Node node, {required Type matchedType});
+  void handleConstantPattern(Node node, {required Type matchedType});
 
   /// Called after visiting a `default` clause.
   ///
@@ -556,11 +556,11 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// of a `when` clause is semantically equivalent to `when true`, this method
   /// should behave similarly to visiting the boolean literal `true`.
   ///
-  /// [node] is the enclosing switch statement or switch expression and
-  /// [caseIndex] is the index of the `case`.
+  /// [node] is the enclosing switch statement, switch expression, or `if`, and
+  /// [caseIndex] is the index of the `case` within [node].
   ///
   /// Stack effect: pushes (Expression).
-  void handleNoWhenCondition(Node node, int caseIndex);
+  void handleNoGuard(Node node, int caseIndex);
 
   /// Called after visiting the scrutinee part of a switch statement or switch
   /// expression.  This is a hook to allow the client to start exhaustiveness
@@ -599,6 +599,16 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Computes the type that should be inferred for an implicitly typed variable
   /// whose initializer expression has static type [type].
   Type variableTypeFromInitializerType(Type type);
+
+  void _checkGuardType(Expression expression, Type type) {
+    // TODO(paulberry): harmonize this with analyzer's checkForNonBoolExpression
+    // TODO(paulberry): spec says the type must be `bool` or `dynamic`.  This
+    // logic permits `T extends bool`, `T promoted to bool`, or `Never`.  What
+    // do we want?
+    if (!typeOperations.isAssignableTo(type, boolType)) {
+      errors?.nonBooleanCondition(expression);
+    }
+  }
 
   /// Records in [typeInfos] that a [pattern] binds a [variable] with a given
   /// [staticType], and reports any errors caused by type inconsistency.
@@ -682,6 +692,9 @@ abstract class TypeAnalyzerErrors<
   void inconsistentMatchVarExplicitness(
       {required Node pattern, required Node previousPattern});
 
+  /// Called if the static type of a condition is not assignable to `bool`.
+  void nonBooleanCondition(Expression node);
+
   /// Called if a pattern is illegally used in a variable declaration statement
   /// that is marked `late`, and that pattern is not allowed in such a
   /// declaration.  The only kind of pattern that may be used in a late variable
@@ -690,10 +703,25 @@ abstract class TypeAnalyzerErrors<
   /// [pattern] is the AST node of the illegal pattern.
   void patternDoesNotAllowLate(Node pattern);
 
+  /// Called if, for a pattern in an irrefutable context, the matched type of
+  /// the pattern is not assignable to the required type.
+  ///
+  /// [pattern] is the AST node of the pattern with the type error, [context] is
+  /// the containing AST node that established an irrefutable context,
+  /// [matchedType] is the matched type, and [requiredType] is the required
+  /// type.
+  void patternTypeMismatchInIrrefutableContext(
+      {required Node pattern,
+      required Node context,
+      required Type matchedType,
+      required Type requiredType});
+
   /// Called if a refutable pattern is illegally used in an irrefutable context.
   ///
   /// [pattern] is the AST node of the refutable pattern, and [context] is the
   /// containing AST node that established an irrefutable context.
+  ///
+  /// TODO(paulberry): move this error reporting to the parser.
   void refutablePatternInIrrefutableContext(Node pattern, Node context);
 
   /// Called if one of the case bodies of a switch statement completes normally
@@ -756,8 +784,8 @@ class VariableTypeInfo<Node extends Object, Type extends Object> {
 }
 
 /// Specialization of [PatternDispatchResult] returned by
-/// [TypeAnalyzer.analyzeConstOrLiteralPattern]
-class _ConstOrLiteralPatternDispatchResult<Node extends Object,
+/// [TypeAnalyzer.analyzeConstantPattern]
+class _ConstantPatternDispatchResult<Node extends Object,
         Expression extends Node, Variable extends Object, Type extends Object>
     extends _PatternDispatchResultImpl<Node, Expression, Variable, Type> {
   /// The constant or literal expression.
@@ -766,7 +794,7 @@ class _ConstOrLiteralPatternDispatchResult<Node extends Object,
   /// identical to [node].
   final Expression _expression;
 
-  _ConstOrLiteralPatternDispatchResult(
+  _ConstantPatternDispatchResult(
       super.typeAnalyzer, super.node, this._expression);
 
   @override
@@ -813,7 +841,7 @@ class _ConstOrLiteralPatternDispatchResult<Node extends Object,
         }
       }
     }
-    _typeAnalyzer.handleConstOrLiteralPattern(node, matchedType: matchedType);
+    _typeAnalyzer.handleConstantPattern(node, matchedType: matchedType);
     // Stack: (Pattern)
   }
 }
@@ -839,8 +867,10 @@ class _VariablePatternDispatchResult<Node extends Object,
 
   final Type? _declaredType;
 
-  _VariablePatternDispatchResult(
-      super._typeAnalyzer, super.node, this._variable, this._declaredType);
+  final bool _isFinal;
+
+  _VariablePatternDispatchResult(super._typeAnalyzer, super.node,
+      this._variable, this._declaredType, this._isFinal);
 
   @override
   Type get typeSchema => _declaredType ?? _typeAnalyzer.unknownType;
@@ -856,8 +886,11 @@ class _VariablePatternDispatchResult<Node extends Object,
     Node? irrefutableContext = context.irrefutableContext;
     if (irrefutableContext != null &&
         !_typeAnalyzer.typeOperations.isAssignableTo(matchedType, staticType)) {
-      _typeAnalyzer.errors
-          ?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      _typeAnalyzer.errors?.patternTypeMismatchInIrrefutableContext(
+          pattern: node,
+          context: irrefutableContext,
+          matchedType: matchedType,
+          requiredType: staticType);
     }
     bool isImplicitlyTyped = _declaredType == null;
     bool isFirstMatch = _typeAnalyzer._recordTypeInfo(typeInfos,
@@ -868,9 +901,12 @@ class _VariablePatternDispatchResult<Node extends Object,
     if (isFirstMatch) {
       _typeAnalyzer.flow?.declare(_variable, false);
       _typeAnalyzer.setVariableType(_variable, staticType);
+      // TODO(paulberry): are we handling _isFinal correctly?
+      // TODO(paulberry): do we need to verify that all instances of a
+      // variable are final or all are not final?
       _typeAnalyzer.flow?.initialize(
           _variable, matchedType, context.getInitializer(node),
-          isFinal: context.isFinal,
+          isFinal: context.isFinal || _isFinal,
           isLate: context.isLate,
           isImplicitlyTyped: isImplicitlyTyped);
     }

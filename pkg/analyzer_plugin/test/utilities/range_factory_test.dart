@@ -480,6 +480,14 @@ class C {}
 ''');
   }
 
+  Future<void> test_deletionRange_only() async {
+    await _deletionRange(declarationIndex: 0, '''
+class A {}
+''', expected: '''
+
+''');
+  }
+
   Future<void> test_deletionRange_variableDeclaration() async {
     await _deletionRange(declarationIndex: 0, '''
 var x = 1;

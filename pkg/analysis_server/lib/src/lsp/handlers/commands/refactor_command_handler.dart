@@ -77,7 +77,8 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
         }
         final docIdentifier = server.getVersionedDocumentIdentifier(path);
         fileEdits.add(FileEditInformation(
-            docIdentifier, fileResult.lineInfo, edit.edits));
+            docIdentifier, fileResult.lineInfo, edit.edits,
+            newFile: edit.fileStamp == -1));
       }
       final workspaceEdit = toWorkspaceEdit(clientCapabilities, fileEdits);
       return sendWorkspaceEditToClient(workspaceEdit);

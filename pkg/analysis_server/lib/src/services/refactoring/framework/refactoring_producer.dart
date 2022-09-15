@@ -58,6 +58,13 @@ abstract class RefactoringProducer {
       _context.server.clientCapabilities?.codeActionCommandParameterSupport ==
       true;
 
+  /// Return `true` if the client has support for creating files. Subclasses
+  /// that require the ability to create new files must not create a refactoring
+  /// if this getter returns `false`.
+  bool get supportsFileCreation =>
+      _context.server.clientCapabilities?.documentChanges == true &&
+      _context.server.clientCapabilities?.createResourceOperations == true;
+
   /// Return the title of this refactoring.
   String get title;
 

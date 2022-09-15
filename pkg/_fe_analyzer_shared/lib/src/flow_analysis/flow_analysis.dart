@@ -530,11 +530,11 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   @visibleForTesting
   SsaNode<Type>? ssaNodeForTesting(Variable variable);
 
-  /// Call this method just after visiting a `when` part of a case clause.  See
+  /// Call this method just after visiting a guard part of a case clause.  See
   /// [switchStatement_expressionEnd] for details.
   ///
   /// [when] should be the expression following the `when` keyword.
-  void switchStatement_afterWhen(Expression when);
+  void switchStatement_afterGuard(Expression when);
 
   /// Call this method just before visiting a sequence of two or more `case` or
   /// `default` clauses that share a body.  See [switchStatement_expressionEnd]
@@ -583,7 +583,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///     to call if there is just one `case` or `default` clause).
   ///   - For each `case` or `default` clause associated with this case body:
   ///     - If a `when` clause is present, visit it and then call
-  ///       [switchStatement_afterWhen].
+  ///       [switchStatement_afterGuard].
   ///     - If [switchStatement_beginAlternatives] was called, call
   ///       [switchStatement_endAlternative].
   ///   - If [switchStatement_beginAlternatives] was called, call
@@ -1205,9 +1205,9 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_afterWhen(Expression when) {
-    _wrap('switchStatement_afterWhen($when)',
-        () => _wrapped.switchStatement_afterWhen(when));
+  void switchStatement_afterGuard(Expression when) {
+    _wrap('switchStatement_afterGuard($when)',
+        () => _wrapped.switchStatement_afterGuard(when));
   }
 
   @override
@@ -3745,7 +3745,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
-  void switchStatement_afterWhen(Expression when) {
+  void switchStatement_afterGuard(Expression when) {
     ExpressionInfo<Type>? expressionInfo = _getExpressionInfo(when);
     if (expressionInfo != null) {
       _current = expressionInfo.ifTrue;
@@ -4610,7 +4610,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_afterWhen(Expression when) {}
+  void switchStatement_afterGuard(Expression when) {}
 
   @override
   void switchStatement_beginAlternatives() {}
