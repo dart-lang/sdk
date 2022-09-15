@@ -1276,10 +1276,20 @@ mixin StandardBounds {
             topType: coreTypes.objectNullableRawType,
             topFunctionType: coreTypes.functionNonNullableRawType,
             unhandledTypeHandler: (type, recursor) => false);
+    Nullability resultingNullability =
+        uniteNullabilities(type1.right.declaredNullability, type2.nullability);
+
+    // If the resulting nullability is [Nullability.undetermined], one of the
+    // types can be nullable at run time. The upper bound is supposed to be a
+    // supertype to both of the types under all conditions, so we interpret the
+    // undetermined case as [Nullability.nullable].
+    resultingNullability = resultingNullability == Nullability.undetermined
+        ? Nullability.nullable
+        : resultingNullability;
+
     return _getNullabilityAwareStandardUpperBound(
             eliminator.eliminateToGreatest(type1.right), type2, clientLibrary)
-        .withDeclaredNullability(uniteNullabilities(
-            type1.right.declaredNullability, type2.nullability));
+        .withDeclaredNullability(resultingNullability);
   }
 
   DartType _getNullabilityObliviousStandardUpperBound(
