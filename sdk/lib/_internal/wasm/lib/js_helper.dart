@@ -510,15 +510,18 @@ List<Object?> toDartList(WasmExternRef? ref) => List<Object?>.generate(
     objectLength(ref).round(), (int n) => dartifyRaw(objectReadIndex(ref, n)));
 
 @pragma("wasm:import", "dart2wasm.wrapDartFunction")
-external WasmExternRef? _wrapDartFunctionRaw(
-    WasmExternRef? dartFunction, WasmExternRef? trampolineName);
+external WasmExternRef? _wrapDartFunctionRaw(WasmExternRef? dartFunction,
+    WasmExternRef? trampolineName, WasmExternRef? argCount);
 
-F _wrapDartFunction<F extends Function>(F f, String trampolineName) {
+F _wrapDartFunction<F extends Function>(
+    F f, String trampolineName, int argCount) {
   if (functionToJSWrapper.containsKey(f)) {
     return f;
   }
   JSValue wrappedFunction = JSValue(_wrapDartFunctionRaw(
-      f.toJS().toExternRef(), trampolineName.toJS().toExternRef())!);
+      f.toJS().toExternRef(),
+      trampolineName.toJS().toExternRef(),
+      argCount.toDouble().toJS().toExternRef())!);
   functionToJSWrapper[f] = wrappedFunction;
   return f;
 }

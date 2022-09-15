@@ -229,7 +229,11 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     var isAttr;
     try {
       // If getting/indexing attributes throws, count that as corrupt.
+      // Don't remove dynamic calls in sanitizing code.
+      // ignore: avoid_dynamic_calls
       attrs = element.attributes;
+      // Don't remove dynamic calls in sanitizing code.
+      // ignore: avoid_dynamic_calls
       isAttr = attrs['is'];
       var corruptedTest1 = Element._hasCorruptedAttributes(element);
 
@@ -290,7 +294,11 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     for (var i = attrs.length - 1; i >= 0; --i) {
       var name = keys[i];
       if (!validator.allowsAttribute(
-          element, name.toLowerCase(), attrs[name])) {
+          element,
+          // Don't remove dynamic calls in sanitizing code.
+          // ignore: avoid_dynamic_calls
+          name.toLowerCase(),
+          attrs[name])) {
         window.console.warn('Removing disallowed attribute '
             '<$tag $name="${attrs[name]}">');
         attrs.remove(name);

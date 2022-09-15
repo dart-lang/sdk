@@ -24,6 +24,10 @@ extension StaticJSClassMethods on StaticJSClass {
   external int? get nullableInt;
   external int nonNullableIntReturnMethod();
   external int? nullableIntReturnMethod(bool returnNull);
+  external String doSum1Or2(String a, [String? b]);
+  external String doSumUpTo2([String? a, String? b]);
+  external String doSum1Or2NonNull(String a, [String b = 'bar']);
+  external String doSumUpTo2NonNull([String a = 'foo', String b = 'bar']);
 }
 
 void createClassTest() {
@@ -49,6 +53,18 @@ void createClassTest() {
         this.nonNullableInt = 60.5;
         this.nullableInt = 100.5;
       }
+      this.doSum1Or2 = function(a, b) {
+        return a + (b ?? 'bar');
+      }
+      this.doSumUpTo2 = function(a, b) {
+        return (a ?? 'foo') + (b ?? 'bar');
+      }
+      this.doSum1Or2NonNull = function(a, b) {
+        return a + b;
+      }
+      this.doSumUpTo2NonNull = function(a, b) {
+        return a + b;
+      }
     }
   ''');
   final foo = StaticJSClass.factory('foo');
@@ -68,6 +84,18 @@ void createClassTest() {
   foo.doublifyNumbers();
   Expect.equals(100, foo.nullableInt);
   Expect.equals(60, foo.nonNullableInt);
+
+  Expect.equals('foobar', foo.doSum1Or2('foo'));
+  Expect.equals('foobar', foo.doSum1Or2('foo', 'bar'));
+  Expect.equals('foobar', foo.doSumUpTo2());
+  Expect.equals('foobar', foo.doSumUpTo2('foo'));
+  Expect.equals('foobar', foo.doSumUpTo2('foo', 'bar'));
+
+  Expect.equals('foobar', foo.doSum1Or2NonNull('foo'));
+  Expect.equals('foobar', foo.doSum1Or2NonNull('foo', 'bar'));
+  Expect.equals('foobar', foo.doSumUpTo2NonNull());
+  Expect.equals('foobar', foo.doSumUpTo2NonNull('foo'));
+  Expect.equals('foobar', foo.doSumUpTo2NonNull('foo', 'bar'));
 }
 
 @JS('JSClass.NestedJSClass')
