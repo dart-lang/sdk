@@ -7,10 +7,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-extension on BuildContext {
-  bool get mounted => false;
-}
-
 void mountedBinOpAnd(BuildContext context, bool condition) async {
   await Future<void>.delayed(Duration());
   if (condition && context.mounted) {

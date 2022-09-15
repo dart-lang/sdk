@@ -20,8 +20,8 @@ Storing `BuildContext` for later usage can easily lead to difficult to diagnose
 crashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of
 the easiest to overlook when writing code.
 
-When a `BuildContext` is used from a `StatefulWidget`, the `mounted` property
-must be checked after an asynchronous gap.
+When a `BuildContext` is used, its `mounted` property must be checked after an
+asynchronous gap.
 
 **GOOD:**
 ```dart
@@ -40,15 +40,11 @@ void onButtonTapped(BuildContext context) async {
 
 **GOOD:**
 ```dart
-class _MyWidgetState extends State<MyWidget> {
-  ...
+void onButtonTapped() async {
+  await Future.delayed(const Duration(seconds: 1));
 
-  void onButtonTapped() async {
-    await Future.delayed(const Duration(seconds: 1));
-
-    if (!mounted) return;
-    Navigator.of(context).pop();
-  }
+  if (!context.mounted) return;
+  Navigator.of(context).pop();
 }
 ```
 ''';

@@ -9,6 +9,7 @@ typedef void VoidCallback();
 
 abstract class BuildContext {
   Widget get widget;
+  bool get mounted;
   RenderObject? findRenderObject();
 }
 
