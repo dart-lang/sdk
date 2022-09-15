@@ -3202,36 +3202,6 @@
     },
     {
       "builders": [
-        "dart-sdk-mac",
-        "dart-sdk-mac-arm64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the sdk-builders for MacOS."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--check-clean",
-            "create_sdk"
-          ],
-          "environment": {
-            "DART_GN_ARGS": "mac_use_goma_rbe=true"
-          }
-        },
-        {
-          "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [
-            "--arch=${arch}"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
         "dart-sdk-win"
       ],
       "meta": {
