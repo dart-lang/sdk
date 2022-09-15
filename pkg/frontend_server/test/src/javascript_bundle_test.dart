@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
 import 'dart:convert';
 import 'dart:io';
 
@@ -190,7 +189,7 @@ void main() {
 
       test('converts package: uris into /packages/ uris', () async {
         var importUri = Uri.parse('package:a/a.dart');
-        var fileUri = packageConfig.resolve(importUri);
+        var fileUri = packageConfig.resolve(importUri)!;
         final library = Library(
           importUri,
           fileUri: fileUri,
@@ -595,8 +594,7 @@ Map<String, List<String>> _combineMaps(
 ) {
   final result = Map<String, List<String>>.from(left);
   for (String key in right.keys) {
-    result[key] ??= [];
-    result[key].addAll(right[key]);
+    (result[key] ??= []).addAll(right[key]!);
   }
   return result;
 }
