@@ -1257,6 +1257,7 @@ following
 follows
 food
 for
+forbid
 forbidden
 force
 forced
@@ -1388,6 +1389,7 @@ head
 header
 headers
 heading
+heavier
 help
 helper
 helpers

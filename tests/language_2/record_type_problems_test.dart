@@ -33,8 +33,10 @@ main() {
 //^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
-  //               ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] Undefined name 'Record'.
+//                 ^^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+//                        ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+// [cfe] Member not found: 'empty'.
   print(emptyRecord);
 }
