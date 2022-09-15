@@ -106,7 +106,7 @@ import '../type_inference/inference_results.dart'
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
 import '../type_inference/type_schema.dart' show UnknownType;
-import '../util/helpers.dart';
+import '../util/helpers.dart' show DelayedActionPerformer;
 import 'collections.dart';
 import 'constness.dart' show Constness;
 import 'constructor_tearoff_lowering.dart';

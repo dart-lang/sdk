@@ -16,8 +16,8 @@ main() {
   // [cfe] Record type with one entry requires a trailing comma.
 
   () emptyRecord = Record.empty;
-  //                      ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] Member not found: 'empty'.
+  //               ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [cfe] Undefined name 'Record'.
   print(emptyRecord);
 }

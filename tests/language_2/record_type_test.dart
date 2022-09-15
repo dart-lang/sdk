@@ -134,17 +134,6 @@ main() {
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
   print(oneElementNamedRecord);
-
-  () emptyRecord = Record.empty;
-//^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
-//                 ^^^^^^
-// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-//                        ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-// [cfe] Member not found: 'empty'.
-  print(emptyRecord);
 }
 
 (int, T) f1<T>(T t) {
