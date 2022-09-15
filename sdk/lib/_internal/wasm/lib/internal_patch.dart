@@ -4,6 +4,10 @@
 
 import "dart:typed_data" show Uint8List;
 
+// Compilation to Wasm is always fully null safe.
+@patch
+bool typeAcceptsNull<T>() => null is T;
+
 /// The returned string is a [_OneByteString] with uninitialized content.
 external String allocateOneByteString(int length);
 

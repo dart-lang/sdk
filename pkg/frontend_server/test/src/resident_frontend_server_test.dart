@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
 import 'dart:convert';
 import 'dart:io';
 
@@ -66,8 +65,8 @@ void main() async {
   });
 
   group('Resident Frontend Server: compile tests: ', () {
-    Directory d;
-    File executable, package, cachedDill;
+    late Directory d;
+    late File executable, package, cachedDill;
 
     setUp(() async {
       d = Directory.systemTemp.createTempSync();
@@ -188,11 +187,11 @@ void main() async {
       expect(compileResults2['incremental'], true);
       expect(
           ResidentFrontendServer
-              .compilers[executable.path].trackedSources.first,
+              .compilers[executable.path]!.trackedSources.first,
           equals(Uri.file(executable.path)));
       expect(
           ResidentFrontendServer
-              .compilers[executable.path].trackedSources.length,
+              .compilers[executable.path]!.trackedSources.length,
           1);
     });
 
@@ -243,19 +242,19 @@ void main() async {
           allOf(true, equals(compileResults2['success'])));
       expect(
           ResidentFrontendServer
-              .compilers[executable.path].trackedSources.length,
+              .compilers[executable.path]!.trackedSources.length,
           1);
       expect(
           ResidentFrontendServer
-              .compilers[executable.path].trackedSources.first,
+              .compilers[executable.path]!.trackedSources.first,
           equals(Uri.file(executable.path)));
       expect(
           ResidentFrontendServer
-              .compilers[executable2.path].trackedSources.length,
+              .compilers[executable2.path]!.trackedSources.length,
           1);
       expect(
           ResidentFrontendServer
-              .compilers[executable2.path].trackedSources.first,
+              .compilers[executable2.path]!.trackedSources.first,
           equals(Uri.file(executable2.path)));
       expect(ResidentFrontendServer.compilers.length, 2);
     });
@@ -322,11 +321,11 @@ void main() async {
       expect(compileResult1['incremental'], null);
       expect(
           ResidentFrontendServer
-              .compilers[executable.path].trackedSources.length,
+              .compilers[executable.path]!.trackedSources.length,
           1);
       expect(
           ResidentFrontendServer
-              .compilers[executable.path].trackedSources.first,
+              .compilers[executable.path]!.trackedSources.first,
           equals(Uri.file(executable.path)));
 
       // switching entrypoints, packages, and modifying packages
@@ -355,10 +354,10 @@ void main() async {
       expect(compileResult2['returnedStoredKernel'], null);
       expect(
           ResidentFrontendServer
-              .compilers[executable2.path].trackedSources.length,
+              .compilers[executable2.path]!.trackedSources.length,
           greaterThanOrEqualTo(2));
       expect(
-          ResidentFrontendServer.compilers[executable2.path].trackedSources,
+          ResidentFrontendServer.compilers[executable2.path]!.trackedSources,
           containsAll(
               <Uri>{Uri.file(executable2.path), Uri.file(executable3.path)}));
 
@@ -374,9 +373,9 @@ void main() async {
       expect(compileResult3['incremental'], true);
       expect(
           ResidentFrontendServer
-              .compilers[executable2.path].trackedSources.length,
+              .compilers[executable2.path]!.trackedSources.length,
           greaterThanOrEqualTo(1));
-      expect(ResidentFrontendServer.compilers[executable2.path].trackedSources,
+      expect(ResidentFrontendServer.compilers[executable2.path]!.trackedSources,
           containsAll(<Uri>{Uri.file(executable2.path)}));
     });
 
@@ -408,11 +407,11 @@ void main() async {
       expect(compileResults2['incremental'], true);
       expect(
           ResidentFrontendServer
-              .compilers[executable.path].trackedSources.length,
+              .compilers[executable.path]!.trackedSources.length,
           1);
       expect(
           ResidentFrontendServer
-              .compilers[executable.path].trackedSources.first,
+              .compilers[executable.path]!.trackedSources.first,
           equals(Uri.file(executable.path)));
     });
 
@@ -507,8 +506,8 @@ void main() async {
   });
 
   group('Resident Frontend Server: socket tests: ', () {
-    Directory d;
-    File serverInfo;
+    late Directory d;
+    late File serverInfo;
 
     setUp(() {
       d = Directory.systemTemp.createTempSync();

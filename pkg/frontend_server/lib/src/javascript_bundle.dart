@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
 import 'dart:convert';
 import 'dart:io';
 
@@ -33,7 +32,7 @@ class IncrementalJavaScriptBundler {
     this.emitDebugMetadata = false,
     this.emitDebugSymbols = false,
     this.soundNullSafety = false,
-    String moduleFormat,
+    String? moduleFormat,
   }) : _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd');
 
   final bool useDebuggerModuleNames;
@@ -41,7 +40,7 @@ class IncrementalJavaScriptBundler {
   final bool emitDebugSymbols;
   final ModuleFormat _moduleFormat;
   final bool soundNullSafety;
-  final FileSystem _fileSystem;
+  final FileSystem? _fileSystem;
   final Set<Library> _loadedLibraries;
   final Map<Uri, Component> _uriToComponent = <Uri, Component>{};
   final _importToSummary = Map<Library, Component>.identity();
@@ -50,9 +49,9 @@ class IncrementalJavaScriptBundler {
   final Map<Uri, String> _moduleImportNameForSummary = <Uri, String>{};
   final String _fileSystemScheme;
 
-  Component _lastFullComponent;
-  Component _currentComponent;
-  StrongComponents _strongComponents;
+  late Component _lastFullComponent;
+  late Component _currentComponent;
+  late StrongComponents _strongComponents;
 
   /// Initialize the incremental bundler from a full component.
   Future<void> initialize(
@@ -91,7 +90,7 @@ class IncrementalJavaScriptBundler {
     });
     var invalidated = <Uri>{
       for (Library library in partialComponent.libraries)
-        _strongComponents.moduleAssignment[library.importUri],
+        _strongComponents.moduleAssignment[library.importUri]!,
     };
     _updateSummaries(invalidated, packageConfig);
   }
@@ -121,7 +120,7 @@ class IncrementalJavaScriptBundler {
   /// Update the summaries [moduleKeys].
   void _updateSummaries(Iterable<Uri> moduleKeys, PackageConfig packageConfig) {
     for (Uri uri in moduleKeys) {
-      final List<Library> libraries = _strongComponents.modules[uri].toList();
+      final List<Library> libraries = _strongComponents.modules[uri]!.toList();
       final Component summaryComponent = Component(
         libraries: libraries,
         nameRoot: _lastFullComponent.root,
@@ -136,7 +135,7 @@ class IncrementalJavaScriptBundler {
 
       _uriToComponent[uri] = summaryComponent;
       // module loaders loads modules by modules names, not paths
-      var moduleImport = _moduleImportNameForSummary[uri];
+      var moduleImport = _moduleImportNameForSummary[uri]!;
 
       var oldSummaries = <Component>[];
       for (Component summary in _summaryToModule.keys) {
@@ -166,8 +165,8 @@ class IncrementalJavaScriptBundler {
     IOSink codeSink,
     IOSink manifestSink,
     IOSink sourceMapsSink,
-    IOSink metadataSink,
-    IOSink symbolsSink,
+    IOSink? metadataSink,
+    IOSink? symbolsSink,
   ) async {
     var codeOffset = 0;
     var sourceMapOffset = 0;
@@ -183,13 +182,13 @@ class IncrementalJavaScriptBundler {
         continue;
       }
       final Uri moduleUri =
-          _strongComponents.moduleAssignment[library.importUri];
+          _strongComponents.moduleAssignment[library.importUri]!;
       if (visited.contains(moduleUri)) {
         continue;
       }
       visited.add(moduleUri);
 
-      final summaryComponent = _uriToComponent[moduleUri];
+      final summaryComponent = _uriToComponent[moduleUri]!;
 
       // module name to use in trackLibraries
       // use full path for tracking if module uri is not a package uri.
@@ -217,12 +216,12 @@ class IncrementalJavaScriptBundler {
       // Save program compiler to reuse for expression evaluation.
       kernel2JsCompilers[moduleName] = compiler;
 
-      String sourceMapBase;
+      String? sourceMapBase;
       if (moduleUri.isScheme('package')) {
         // Source locations come through as absolute file uris. In order to
         // make relative paths in the source map we get the absolute uri for
         // the module and make them relative to that.
-        sourceMapBase = p.dirname((packageConfig.resolve(moduleUri)).path);
+        sourceMapBase = p.dirname((packageConfig.resolve(moduleUri))!.path);
       }
 
       final code = jsProgramToCode(
@@ -249,12 +248,12 @@ class IncrementalJavaScriptBundler {
       codeSink.add(codeBytes);
       sourceMapsSink.add(sourceMapBytes);
       if (emitDebugMetadata) {
-        metadataSink.add(metadataBytes);
+        metadataSink!.add(metadataBytes!);
       }
       if (emitDebugSymbols) {
-        symbolsSink.add(symbolsBytes);
+        symbolsSink!.add(symbolsBytes!);
       }
-      final String moduleKey = _moduleImportForSummary[moduleUri];
+      final String moduleKey = _moduleImportForSummary[moduleUri]!;
       manifest[moduleKey] = {
         'code': <int>[codeOffset, codeOffset += codeBytes.length],
         'sourcemap': <int>[
@@ -264,12 +263,12 @@ class IncrementalJavaScriptBundler {
         if (emitDebugMetadata)
           'metadata': <int>[
             metadataOffset,
-            metadataOffset += metadataBytes.length
+            metadataOffset += metadataBytes!.length
           ],
         if (emitDebugSymbols)
           'symbols': <int>[
             symbolsOffset,
-            symbolsOffset += symbolsBytes.length,
+            symbolsOffset += symbolsBytes!.length,
           ],
       };
     }
@@ -304,8 +303,8 @@ class IncrementalJavaScriptBundler {
     // Match relative directory structure of server paths to the
     // actual directory structure, so the sourcemaps relative paths
     // can be resolved by the browser.
-    final resolvedUri = packageConfig.resolve(componentUri);
-    final package = packageConfig.packageOf(resolvedUri);
+    final resolvedUri = packageConfig.resolve(componentUri)!;
+    final package = packageConfig.packageOf(resolvedUri)!;
     final root = package.root;
     final relativeRoot = root.pathSegments
         .lastWhere((segment) => segment.isNotEmpty, orElse: null);
@@ -313,8 +312,6 @@ class IncrementalJavaScriptBundler {
 
     // Relative component url (used as server path in the browser):
     // `packages/<package directory>/<path to file.dart>`
-    return relativeRoot == null
-        ? 'packages/$relativeUrl'
-        : 'packages/$relativeRoot/$relativeUrl';
+    return 'packages/$relativeRoot/$relativeUrl';
   }
 }

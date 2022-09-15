@@ -2,17 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.9
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io'
-    show
-        exit,
-        File,
-        InternetAddress,
-        ProcessSignal,
-        ServerSocket,
-        Socket;
+    show exit, File, InternetAddress, ProcessSignal, ServerSocket, Socket;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:args/args.dart';
@@ -34,7 +27,7 @@ const _STAT_GRANULARITY = const Duration(seconds: 1);
 
 /// Ensures the info file is removed if Ctrl-C is sent to the server.
 /// Mostly used when debugging.
-StreamSubscription<ProcessSignal> _cleanupHandler;
+StreamSubscription<ProcessSignal>? _cleanupHandler;
 
 extension on DateTime {
   /// Truncates by [amount].
@@ -74,9 +67,9 @@ enum _ResidentState {
 class ResidentCompiler {
   File _entryPoint;
   File _outputDill;
-  File _currentPackage;
+  File? _currentPackage;
   ArgResults _compileOptions;
-  FrontendCompiler _compiler;
+  late FrontendCompiler _compiler;
   DateTime _lastCompileStartTime = DateTime.now().floorTime();
   _ResidentState _state = _ResidentState.WAITING_FOR_FIRST_COMPILE;
   final StringBuffer _compilerOutput = StringBuffer();
@@ -115,7 +108,7 @@ class ResidentCompiler {
     }
     return _currentPackage != null &&
         !_lastCompileStartTime
-            .isAfter(_currentPackage.statSync().modified.floorTime());
+            .isAfter(_currentPackage!.statSync().modified.floorTime());
   }
 
   /// Compiles the entry point that this ResidentCompiler is hooked to.
@@ -359,20 +352,20 @@ class ResidentFrontendServer {
   /// Returns a JSON string that the resident compiler will be able to
   /// interpret.
   static String createCompileJSON(
-      {String executable,
-      String packages,
-      String outputDill,
-      bool supportMirrors,
-      bool enableAsserts,
-      bool soundNullSafety,
-      String verbosity,
-      bool aot,
-      bool tfa,
-      bool rta,
-      bool treeShakeWriteOnlyFields,
-      bool protobufTreeShakerV2,
-      List<String> define,
-      List<String> enableExperiement,
+      {required String executable,
+      String? packages,
+      required String outputDill,
+      bool? supportMirrors,
+      bool? enableAsserts,
+      bool? soundNullSafety,
+      String? verbosity,
+      bool? aot,
+      bool? tfa,
+      bool? rta,
+      bool? treeShakeWriteOnlyFields,
+      bool? protobufTreeShakerV2,
+      List<String>? define,
+      List<String>? enableExperiement,
       bool verbose = false}) {
     return jsonEncode(<String, Object>{
       "command": "compile",
@@ -403,7 +396,7 @@ class ResidentFrontendServer {
 /// ResidentFrontendServer instance.
 Future<Map<String, dynamic>> sendAndReceiveResponse(
     InternetAddress address, int port, String request) async {
-  Socket client;
+  Socket? client;
   Map<String, dynamic> jsonResponse;
   try {
     client = await Socket.connect(address, port);
@@ -428,7 +421,7 @@ Future<void> residentServerCleanup(
     ServerSocket server, File serverInfoFile) async {
   try {
     if (_cleanupHandler != null) {
-      _cleanupHandler.cancel();
+      _cleanupHandler!.cancel();
     }
   } catch (_) {
   } finally {
@@ -455,7 +448,7 @@ Timer startShutdownTimer(
 /// provided [address] and [port].
 /// If the last request exceeds the amount of time specified by
 /// [inactivityTimeout], the server will bring itself down
-Future<StreamSubscription<Socket>> residentListenAndCompile(
+Future<StreamSubscription<Socket>?> residentListenAndCompile(
     InternetAddress address, int port, File serverInfoFile,
     {Duration inactivityTimeout = const Duration(minutes: 30)}) async {
   ServerSocket server;
