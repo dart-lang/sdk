@@ -1440,38 +1440,79 @@ class CascadeExpressionImpl extends ExpressionImpl
   }
 }
 
+/// The `case` clause that can optionally appear in an `if` statement.
+///
+///    caseClause ::=
+///        'case' [DartPattern] [WhenClause]?
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+class CaseClauseImpl extends AstNodeImpl implements CaseClause {
+  @override
+  final WhenClauseImpl? whenClause;
+
+  @override
+  final Token caseKeyword;
+
+  @override
+  final DartPatternImpl pattern;
+
+  CaseClauseImpl(
+      {required this.caseKeyword,
+      required this.pattern,
+      required this.whenClause});
+
+  @override
+  Token get beginToken => caseKeyword;
+
+  @override
+  Token get endToken => whenClause?.endToken ?? pattern.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('caseKeyword', caseKeyword)
+    ..addNode('pattern', pattern)
+    ..addNode('whenClause', whenClause);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitCaseClause(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
+    whenClause?.accept(visitor);
+  }
+}
+
 /// A cast pattern.
 ///
 ///    castPattern ::=
-///        identifier 'as' [TypeAnnotation]
+///        [DartPattern] 'as' [TypeAnnotation]
 @experimental
 class CastPatternImpl extends DartPatternImpl implements CastPattern {
   @override
   final Token asToken;
 
   @override
-  VariableElement? declaredElement;
-
-  @override
-  final Token name;
+  final DartPatternImpl pattern;
 
   @override
   final TypeAnnotationImpl type;
 
   CastPatternImpl(
-      {required this.name, required this.asToken, required this.type}) {
+      {required this.pattern, required this.asToken, required this.type}) {
     _becomeParentOf(type);
   }
 
   @override
-  Token get beginToken => name;
+  Token get beginToken => pattern.beginToken;
 
   @override
   Token get endToken => type.endToken;
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name)
+    ..addNode('pattern', pattern)
     ..addToken('asToken', asToken)
     ..addNode('type', type);
 
@@ -2651,6 +2692,49 @@ class ConstantContextForExpressionImpl extends AstNodeImpl {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// An expression being used as a pattern.
+///
+/// The only expressions that can be validly used as a pattern are `bool`,
+/// `double`, `int`, `null`, and `String` literals and references to constant
+/// variables.
+///
+/// This node is also used to recover from cases where a different kind of
+/// expression is used as a pattern, so clients need to handle the case where
+/// the expression is not one of the valid alternatives.
+///
+///    constantPattern ::=
+///        'const'? [Expression]
+@experimental
+class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
+  @override
+  final Token? constKeyword;
+
+  @override
+  final ExpressionImpl expression;
+
+  ConstantPatternImpl({required this.constKeyword, required this.expression}) {
+    _becomeParentOf(expression);
+  }
+
+  @override
+  Token get beginToken => expression.beginToken;
+
+  @override
+  Token get endToken => expression.endToken;
+
+  @override
+  ChildEntities get _childEntities =>
+      super._childEntities..addNode('expression', expression);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
+  }
 }
 
 /// A constructor declaration.
@@ -4073,7 +4157,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 ///      | [ConditionalExpression] cascadeSection*
 ///      | [ThrowExpression]
 abstract class ExpressionImpl extends AstNodeImpl
-    implements CollectionElementImpl, Expression, IfConditionImpl {
+    implements CollectionElementImpl, Expression {
   /// The static type of this expression, or `null` if the AST structure has not
   /// been resolved.
   @override
@@ -4173,47 +4257,6 @@ abstract class ExpressionImpl extends AstNodeImpl
   /// call [ResolverVisitor.analyzeExpression], which has some special logic for
   /// handling dynamic contexts.
   void resolveExpression(ResolverVisitor resolver, DartType? contextType);
-}
-
-/// An expression being used as a pattern.
-///
-/// The only expressions that can be validly used as a pattern are `bool`,
-/// `double`, `int`, `null`, and `String` literals and references to constant
-/// variables.
-///
-/// This node is also used to recover from cases where a different kind of
-/// expression is used as a pattern, so clients need to handle the case where
-/// the expression is not one of the valid alternatives.
-///
-///    expressionPattern ::=
-///        [Expression]
-@experimental
-class ExpressionPatternImpl extends DartPatternImpl
-    implements ExpressionPattern {
-  @override
-  final ExpressionImpl expression;
-
-  ExpressionPatternImpl({required this.expression}) {
-    _becomeParentOf(expression);
-  }
-
-  @override
-  Token get beginToken => expression.beginToken;
-
-  @override
-  Token get endToken => expression.endToken;
-
-  @override
-  ChildEntities get _childEntities =>
-      super._childEntities..addNode('expression', expression);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitExpressionPattern(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    expression.accept(visitor);
-  }
 }
 
 /// An expression used as a statement.
@@ -6451,15 +6494,6 @@ abstract class IdentifierImpl extends CommentReferableExpressionImpl
   bool get isAssignable => true;
 }
 
-/// A condition in an `if` statement or `if` element.
-///
-///    ifCondition ::=
-///        [Expression]
-///      | [PatternVariableDeclaration]
-///      | [PatternAssignment]
-@experimental
-abstract class IfConditionImpl extends AstNodeImpl implements IfCondition {}
-
 class IfElementImpl extends CollectionElementImpl implements IfElement {
   @override
   Token ifKeyword;
@@ -6467,8 +6501,10 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   @override
   Token leftParenthesis;
 
-  /// The condition used to determine which of the branches is executed next.
-  IfConditionImpl _condition;
+  ExpressionImpl _condition;
+
+  @override
+  final CaseClauseImpl? caseClause;
 
   @override
   Token rightParenthesis;
@@ -6487,12 +6523,15 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   IfElementImpl(
       this.ifKeyword,
       this.leftParenthesis,
-      this._condition,
+      ExpressionImpl condition,
+      this.caseClause,
       this.rightParenthesis,
       this._thenElement,
       this.elseKeyword,
-      this._elseElement) {
-    _becomeParentOf(_condition);
+      this._elseElement)
+      : _condition = condition {
+    _becomeParentOf(condition);
+    _becomeParentOf(caseClause);
     _becomeParentOf(_thenElement);
     _becomeParentOf(_elseElement);
   }
@@ -6501,14 +6540,11 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   Token get beginToken => ifKeyword;
 
   @override
-  ExpressionImpl get condition => _condition as ExpressionImpl;
+  Expression get condition => _condition;
 
-  set condition(IfCondition condition) {
-    _condition = _becomeParentOf(condition as IfConditionImpl);
+  set condition(Expression condition) {
+    _condition = _becomeParentOf(condition as ExpressionImpl);
   }
-
-  @override
-  IfCondition get condition2 => _condition;
 
   @override
   CollectionElement? get elseElement => _elseElement;
@@ -6519,6 +6555,9 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
 
   @override
   Token get endToken => _elseElement?.endToken ?? _thenElement.endToken;
+
+  @override
+  Expression get expression => _condition;
 
   @override
   CollectionElementImpl get thenElement => _thenElement;
@@ -6532,6 +6571,7 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
     ..addToken('ifKeyword', ifKeyword)
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNode('condition', condition)
+    ..addNode('caseClause', caseClause)
     ..addToken('rightParenthesis', rightParenthesis)
     ..addNode('thenElement', thenElement)
     ..addToken('elseKeyword', elseKeyword)
@@ -6548,7 +6588,8 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _condition.accept(visitor);
+    condition.accept(visitor);
+    caseClause?.accept(visitor);
     _thenElement.accept(visitor);
     _elseElement?.accept(visitor);
   }
@@ -6557,7 +6598,8 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
 /// An if statement.
 ///
 ///    ifStatement ::=
-///        'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
+///        'if' '(' [Expression] [CaseClause]? ')'[Statement]
+///        ('else' [Statement])?
 class IfStatementImpl extends StatementImpl implements IfStatement {
   @override
   Token ifKeyword;
@@ -6566,7 +6608,10 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   Token leftParenthesis;
 
   /// The condition used to determine which of the branches is executed next.
-  IfConditionImpl _condition;
+  ExpressionImpl _condition;
+
+  @override
+  final CaseClauseImpl? caseClause;
 
   @override
   Token rightParenthesis;
@@ -6587,11 +6632,13 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
       this.ifKeyword,
       this.leftParenthesis,
       this._condition,
+      this.caseClause,
       this.rightParenthesis,
       this._thenStatement,
       this.elseKeyword,
       this._elseStatement) {
     _becomeParentOf(_condition);
+    _becomeParentOf(caseClause);
     _becomeParentOf(_thenStatement);
     _becomeParentOf(_elseStatement);
   }
@@ -6600,14 +6647,11 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   Token get beginToken => ifKeyword;
 
   @override
-  ExpressionImpl get condition => _condition as ExpressionImpl;
+  ExpressionImpl get condition => _condition;
 
-  set condition(IfCondition condition) {
-    _condition = _becomeParentOf(condition as IfConditionImpl);
+  set condition(Expression condition) {
+    _condition = _becomeParentOf(condition as ExpressionImpl);
   }
-
-  @override
-  IfCondition get condition2 => _condition;
 
   @override
   StatementImpl? get elseStatement => _elseStatement;
@@ -6625,6 +6669,9 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   }
 
   @override
+  Expression get expression => _condition;
+
+  @override
   StatementImpl get thenStatement => _thenStatement;
 
   set thenStatement(Statement statement) {
@@ -6636,6 +6683,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
     ..addToken('ifKeyword', ifKeyword)
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNode('condition', condition)
+    ..addNode('caseClause', caseClause)
     ..addToken('rightParenthesis', rightParenthesis)
     ..addNode('thenStatement', thenStatement)
     ..addToken('elseKeyword', elseKeyword)
@@ -6647,6 +6695,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _condition.accept(visitor);
+    caseClause?.accept(visitor);
     _thenStatement.accept(visitor);
     _elseStatement?.accept(visitor);
   }
@@ -9503,8 +9552,8 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 /// When used as the condition in an `if`, the pattern is always a
 /// [PatternVariable] whose type is not `null`.
 @experimental
-class PatternAssignmentImpl extends AstNodeImpl
-    implements IfConditionImpl, PatternAssignment {
+class PatternAssignmentImpl extends ExpressionImpl
+    implements PatternAssignment {
   @override
   final Token equals;
 
@@ -9527,6 +9576,11 @@ class PatternAssignmentImpl extends AstNodeImpl
   Token get endToken => expression.endToken;
 
   @override
+  // TODO(brianwilkerson) Create a new precedence constant for pattern
+  //  assignments. The proposal doesn't make the actual value clear.
+  Precedence get precedence => Precedence.assignment;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
     ..addNode('pattern', pattern)
     ..addToken('equals', equals)
@@ -9534,6 +9588,12 @@ class PatternAssignmentImpl extends AstNodeImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+    // TODO(brianwilkerson) implement resolveExpression
+    throw UnimplementedError();
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9586,7 +9646,7 @@ class PatternAssignmentStatementImpl extends StatementImpl
 ///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
 @experimental
 class PatternVariableDeclarationImpl extends AstNodeImpl
-    implements IfConditionImpl, PatternVariableDeclaration {
+    implements PatternVariableDeclaration {
   @override
   final Token equals;
 
@@ -10176,7 +10236,7 @@ class RecordPatternFieldImpl extends AstNodeImpl implements RecordPatternField {
 /// A field name in a record pattern field.
 ///
 ///    recordPatternField ::=
-///        [Token] ':'
+///        [Token]? ':'
 @experimental
 class RecordPatternFieldNameImpl extends AstNodeImpl
     implements RecordPatternFieldName {
@@ -11876,12 +11936,12 @@ class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
 /// A case in a switch expression.
 ///
 ///    switchExpressionCase ::=
-///        'case' [DartPattern] [SwitchGuard]? '=>' [Expression]
+///        'case' [DartPattern] [WhenClause]? '=>' [Expression]
 @experimental
 class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
     implements SwitchExpressionCase {
   @override
-  final SwitchGuardImpl? guard;
+  final WhenClauseImpl? whenClause;
 
   @override
   final DartPatternImpl pattern;
@@ -11889,10 +11949,10 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
   SwitchExpressionCaseImpl(
       {required super.keyword,
       required this.pattern,
-      required this.guard,
+      required this.whenClause,
       required super.arrow,
       required super.expression}) {
-    _becomeParentOf(guard);
+    _becomeParentOf(whenClause);
     _becomeParentOf(pattern);
   }
 
@@ -11906,7 +11966,7 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
     ..addNode('pattern', pattern)
-    ..addNode('guard', guard)
+    ..addNode('whenClause', whenClause)
     ..addToken('arrow', arrow)
     ..addNode('expression', expression);
 
@@ -11917,12 +11977,12 @@ class SwitchExpressionCaseImpl extends SwitchExpressionMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
-    guard?.accept(visitor);
+    whenClause?.accept(visitor);
     expression.accept(visitor);
   }
 }
 
-/// The default case in a switch statement.
+/// The default case in a switch expression.
 ///
 ///    switchDefault ::=
 ///        'default' '=>' [Expression]
@@ -12056,43 +12116,6 @@ abstract class SwitchExpressionMemberImpl extends AstNodeImpl
   }
 }
 
-/// A guard in a pattern-based `case` in a `switch` statement or `switch`
-/// expression.
-///
-///    switchCase ::=
-///        'when' [Expression]
-@experimental
-class SwitchGuardImpl extends AstNodeImpl implements SwitchGuard {
-  @override
-  final ExpressionImpl expression;
-
-  @override
-  final Token whenKeyword;
-
-  SwitchGuardImpl({required this.whenKeyword, required this.expression}) {
-    _becomeParentOf(expression);
-  }
-
-  @override
-  Token get beginToken => whenKeyword;
-
-  @override
-  Token get endToken => expression.endToken;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('whenKeyword', whenKeyword)
-    ..addNode('expression', expression);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchGuard(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    expression.accept(visitor);
-  }
-}
-
 /// An element within a switch statement.
 ///
 ///    switchMember ::=
@@ -12147,12 +12170,12 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 /// A pattern-based case in a switch statement.
 ///
 ///    switchPatternCase ::=
-///        [Label]* 'case' [DartPattern] [SwitchGuard]? ':' [Statement]*
+///        [Label]* 'case' [DartPattern] [WhenClause]? ':' [Statement]*
 @experimental
 class SwitchPatternCaseImpl extends SwitchMemberImpl
     implements SwitchPatternCase {
   @override
-  final SwitchGuardImpl? guard;
+  final WhenClauseImpl? whenClause;
 
   @override
   final DartPatternImpl pattern;
@@ -12161,12 +12184,12 @@ class SwitchPatternCaseImpl extends SwitchMemberImpl
       {required List<Label> labels,
       required Token keyword,
       required this.pattern,
-      required this.guard,
+      required this.whenClause,
       required Token colon,
       required List<Statement> statements})
       : super(labels, keyword, colon, statements) {
     _becomeParentOf(pattern);
-    _becomeParentOf(guard);
+    _becomeParentOf(whenClause);
   }
 
   @override
@@ -12174,7 +12197,7 @@ class SwitchPatternCaseImpl extends SwitchMemberImpl
     ..addNodeList('labels', labels)
     ..addToken('keyword', keyword)
     ..addNode('pattern', pattern)
-    ..addNode('guard', guard)
+    ..addNode('whenClause', whenClause)
     ..addToken('colon', colon)
     ..addNodeList('statements', statements);
 
@@ -12185,7 +12208,7 @@ class SwitchPatternCaseImpl extends SwitchMemberImpl
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
     pattern.accept(visitor);
-    guard?.accept(visitor);
+    whenClause?.accept(visitor);
     statements.accept(visitor);
   }
 }
@@ -13219,11 +13242,14 @@ class VariableDeclarationStatementImpl extends StatementImpl
 /// A variable pattern.
 ///
 ///    variablePattern ::=
-///        [TypeAnnotation]? [Identifier]
+///        ( 'var' | 'final' | [TypeAnnotation])? [Identifier]
 @experimental
 class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
   @override
   VariableElement? declaredElement;
+
+  @override
+  final Token? keyword;
 
   @override
   final Token name;
@@ -13231,7 +13257,8 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
   @override
   final TypeAnnotationImpl? type;
 
-  VariablePatternImpl({required this.name, required this.type}) {
+  VariablePatternImpl(
+      {required this.name, required this.keyword, required this.type}) {
     _becomeParentOf(type);
   }
 
@@ -13243,6 +13270,7 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
     ..addNode('type', type)
     ..addToken('name', name);
 
@@ -13252,6 +13280,43 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
+  }
+}
+
+/// A guard in a pattern-based `case` in a `switch` statement or `switch`
+/// expression.
+///
+///    switchCase ::=
+///        'when' [Expression]
+@experimental
+class WhenClauseImpl extends AstNodeImpl implements WhenClause {
+  @override
+  final ExpressionImpl expression;
+
+  @override
+  final Token whenKeyword;
+
+  WhenClauseImpl({required this.whenKeyword, required this.expression}) {
+    _becomeParentOf(expression);
+  }
+
+  @override
+  Token get beginToken => whenKeyword;
+
+  @override
+  Token get endToken => expression.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('whenKeyword', whenKeyword)
+    ..addNode('expression', expression);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitWhenClause(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    expression.accept(visitor);
   }
 }
 
