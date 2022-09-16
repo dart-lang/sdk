@@ -8,6 +8,7 @@ import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/js_util_wasm_optimizer.dart';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
+import 'package:_js_interop_checks/src/transformations/static_interop_mock_creator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -15,6 +16,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:vm/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
 import 'package:vm/transformations/ffi/common.dart' as ffiHelper
@@ -102,14 +104,25 @@ class WasmTarget extends Target {
         coreTypes,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!);
+    final staticInteropMockCreator = StaticInteropMockCreator(
+        TypeEnvironment(coreTypes, hierarchy), diagnosticReporter);
     final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
+    // Cache extensions for entire component before creating mock.
+    for (Library library in interopDependentLibraries) {
+      staticInteropMockCreator.processExtensions(library);
+    }
+    for (Library library in interopDependentLibraries) {
+      jsInteropChecks.visitLibrary(library);
+      staticInteropMockCreator.visitLibrary(library);
+      jsUtilOptimizer.visitLibrary(library);
+    }
+    // Do the erasure after any possible mock creation to avoid erasing types
+    // that need to be used during mock conformance checking.
     final staticInteropClassEraser = StaticInteropClassEraser(
         coreTypes, referenceFromIndex,
         libraryForJavaScriptObject: 'dart:_js_helper',
         classNameOfJavaScriptObject: 'JSValue');
     for (Library library in interopDependentLibraries) {
-      jsInteropChecks.visitLibrary(library);
-      jsUtilOptimizer.visitLibrary(library);
       staticInteropClassEraser.visitLibrary(library);
     }
   }

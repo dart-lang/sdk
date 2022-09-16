@@ -54,6 +54,7 @@ migrate
 n
 name.#name
 name.stack
+name3.#name
 nameokempty
 native('native
 nativefieldwrapperclass
