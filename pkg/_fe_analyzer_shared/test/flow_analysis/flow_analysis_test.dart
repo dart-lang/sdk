@@ -1865,6 +1865,38 @@ main() {
       ]);
     });
 
+    test('ifCase splits control flow', () {
+      var x = Var('x');
+      var y = Var('y');
+      var z = Var('z');
+      var w = Var('w');
+      h.run([
+        declare(x, type: 'int'),
+        declare(y, type: 'int'),
+        declare(z, type: 'int'),
+        ifCase(expr('num'), w.pattern(type: 'int'), [
+          x.write(expr('int')).stmt,
+          y.write(expr('int')).stmt,
+        ], else_: [
+          y.write(expr('int')).stmt,
+          z.write(expr('int')).stmt,
+        ]),
+        checkAssigned(x, false),
+        checkAssigned(y, true),
+        checkAssigned(z, false),
+      ]);
+    });
+
+    test('ifCase does not promote when expression true', () {
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'int?', initializer: expr('int?')),
+        ifCase(x.expr.notEq(nullLiteral), intLiteral(0).pattern, [
+          checkNotPromoted(x),
+        ]),
+      ]);
+    });
+
     test('promote promotes to a subtype and sets type of interest', () {
       var x = Var('x');
       h.run([

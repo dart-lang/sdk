@@ -379,7 +379,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method after visiting the condition part of an if statement.
   /// [condition] should be the if statement's condition.  [ifNode] should be
   /// the entire `if` statement (or the collection literal entry).
-  void ifStatement_thenBegin(Expression condition, Node ifNode);
+  ///
+  /// For an if-case statement, [condition] should be `null`.
+  void ifStatement_thenBegin(Expression? condition, Node ifNode);
 
   /// Call this method after visiting the initializer of a variable declaration,
   /// or a variable pattern that is being matched (and hence being initialized
@@ -1040,7 +1042,7 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void ifStatement_thenBegin(Expression condition, Node ifNode) {
+  void ifStatement_thenBegin(Expression? condition, Node ifNode) {
     _wrap('ifStatement_thenBegin($condition, $ifNode)',
         () => _wrapped.ifStatement_thenBegin(condition, ifNode));
   }
@@ -3530,7 +3532,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void ifStatement_thenBegin(Expression condition, Node ifNode) {
+  void ifStatement_thenBegin(Expression? condition, Node ifNode) {
     ExpressionInfo<Type> conditionInfo = _expressionEnd(condition);
     _stack.add(new _IfContext(conditionInfo));
     _current = conditionInfo.ifTrue;
@@ -4010,14 +4012,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// be the last expression that was traversed).  If there is no
   /// [ExpressionInfo] associated with the [expression], then a fresh
   /// [ExpressionInfo] is created recording the current flow analysis state.
-  ExpressionInfo<Type> _expressionEnd(Expression expression) =>
+  ExpressionInfo<Type> _expressionEnd(Expression? expression) =>
       _getExpressionInfo(expression) ?? new _TrivialExpressionInfo(_current);
 
   /// Gets the [ExpressionInfo] associated with the [expression] (which should
   /// be the last expression that was traversed).  If there is no
   /// [ExpressionInfo] associated with the [expression], then `null` is
   /// returned.
-  ExpressionInfo<Type>? _getExpressionInfo(Expression expression) {
+  ExpressionInfo<Type>? _getExpressionInfo(Expression? expression) {
     if (identical(expression, _expressionWithInfo)) {
       ExpressionInfo<Type>? expressionInfo = _expressionInfo;
       _expressionInfo = null;
@@ -4421,7 +4423,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void ifStatement_thenBegin(Expression condition, Node ifNode) {
+  void ifStatement_thenBegin(Expression? condition, Node ifNode) {
     _conditionalOrIf_thenBegin(condition, ifNode);
   }
 
@@ -4700,7 +4702,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
     _writeStackForAnd.last.add(variableKey);
   }
 
-  void _conditionalOrIf_thenBegin(Expression condition, Node node) {
+  void _conditionalOrIf_thenBegin(Expression? condition, Node node) {
     _contextStack.add(new _LegacyContext<Type>(_knownTypes));
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
     Map<int, Type>? newKnownTypes;
@@ -4748,7 +4750,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   /// Gets the [_LegacyExpressionInfo] associated with [expression], if any;
   /// otherwise returns `null`.
-  _LegacyExpressionInfo<Type>? _getExpressionInfo(Expression expression) {
+  _LegacyExpressionInfo<Type>? _getExpressionInfo(Expression? expression) {
     if (identical(expression, _expressionWithInfo)) {
       _LegacyExpressionInfo<Type>? expressionInfo = _expressionInfo;
       _expressionInfo = null;

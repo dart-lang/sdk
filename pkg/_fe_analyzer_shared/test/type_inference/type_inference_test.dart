@@ -176,6 +176,102 @@ main() {
   });
 
   group('Statements:', () {
+    group('If:', () {
+      test('Condition context', () {
+        h.run([
+          if_(expr('dynamic').checkContext('bool'), [
+            expr('Object').stmt,
+          ]).checkIr('if(expr(dynamic), block(stmt(expr(Object))), noop)'),
+        ]);
+      });
+
+      test('With else', () {
+        h.run([
+          if_(expr('bool'), [
+            expr('Object').stmt,
+          ], [
+            expr('String').stmt,
+          ]).checkIr('if(expr(bool), block(stmt(expr(Object))), '
+              'block(stmt(expr(String))))'),
+        ]);
+      });
+    });
+
+    group('If-case:', () {
+      test('Type schema', () {
+        var x = Var('x');
+        h.run([
+          ifCase(expr('int').checkContext('?'), x.pattern(type: 'num'), [
+            expr('Object').stmt,
+          ]).checkIr('ifCase(expr(int), '
+              'varPattern(x, matchedType: int, staticType: num), true, '
+              'block(stmt(expr(Object))), noop)'),
+        ]);
+      });
+
+      test('With else', () {
+        var x = Var('x');
+        h.run([
+          ifCase(expr('num'), x.pattern(type: 'int'), [
+            expr('Object').stmt,
+          ], else_: [
+            expr('String').stmt,
+          ]).checkIr('ifCase(expr(num), '
+              'varPattern(x, matchedType: num, staticType: int), true, '
+              'block(stmt(expr(Object))), block(stmt(expr(String))))'),
+        ]);
+      });
+
+      test('With guard', () {
+        var x = Var('x');
+        h.run([
+          ifCase(expr('num'),
+              x.pattern(type: 'int').when(x.expr.eq(intLiteral(0))), [
+            expr('Object').stmt,
+          ]).checkIr('ifCase(expr(num), '
+              'varPattern(x, matchedType: num, staticType: int), ==(x, 0), '
+              'block(stmt(expr(Object))), noop)'),
+        ]);
+      });
+
+      test('Allows refutable patterns', () {
+        var x = Var('x');
+        h.run([
+          ifCase(expr('num').checkContext('?'), x.pattern(type: 'int'), [
+            expr('Object').stmt,
+          ]).checkIr('ifCase(expr(num), '
+              'varPattern(x, matchedType: num, staticType: int), true, '
+              'block(stmt(expr(Object))), noop)'),
+        ]);
+      });
+
+      group('Guard not assignable to bool', () {
+        test('int', () {
+          var x = Var('x');
+          h.run([
+            ifCase(expr('int'),
+                x.pattern().when(expr('int')..errorId = 'GUARD'), []),
+          ], expectedErrors: {
+            'nonBooleanCondition(GUARD)'
+          });
+        });
+
+        test('bool', () {
+          var x = Var('x');
+          h.run([
+            ifCase(expr('int'), x.pattern().when(expr('bool')), []),
+          ], expectedErrors: {});
+        });
+
+        test('dynamic', () {
+          var x = Var('x');
+          h.run([
+            ifCase(expr('int'), x.pattern().when(expr('dynamic')), []),
+          ], expectedErrors: {});
+        });
+      });
+    });
+
     group('Switch:', () {
       test('Empty', () {
         h.run([

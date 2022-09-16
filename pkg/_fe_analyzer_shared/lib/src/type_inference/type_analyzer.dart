@@ -194,6 +194,65 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     return result.resolveShorting();
   }
 
+  /// Analyzes a statement of the form `if (expression case pattern) ifTrue` or
+  /// `if (expression case pattern) ifTrue else ifFalse`.
+  ///
+  /// [node] should be the AST node for the entire statement, [expression] for
+  /// the expression, [pattern] for the pattern to match, [ifTrue] for the
+  /// "then" branch, and [ifFalse] for the "else" branch (if present).
+  ///
+  /// Stack effect: pushes (Expression scrutinee, Pattern, Expression guard,
+  /// Statement ifTrue, Statement ifFalse).  If there is no `else` clause, the
+  /// representation for `ifFalse` will be pushed by [handleNoStatement].  If
+  /// there is no guard, the representation for `guard` will be pushed by
+  /// [handleNoGuard].
+  void analyzeIfCaseStatement(Statement node, Expression expression,
+      Node pattern, Expression? guard, Statement ifTrue, Statement? ifFalse) {
+    // Stack: ()
+    flow?.ifStatement_conditionBegin();
+    // Note: this follows what's proposed in
+    // https://github.com/dart-lang/language/issues/2458, which is that we use
+    // the unknown type for the type schema.
+    // TODO(paulberry): update this if necessary when that issue is closed.
+    Type initializerType = analyzeExpression(expression, unknownType);
+    // Stack: (Expression)
+    PatternDispatchResult<Node, Expression, Variable, Type>
+        patternDispatchResult = dispatchPattern(pattern);
+    Map<Variable, VariableTypeInfo<Node, Type>> typeInfos = {};
+    // TODO(paulberry): rework handling of isFinal
+    patternDispatchResult.match(initializerType, typeInfos,
+        new MatchContext(isFinal: false, topPattern: pattern));
+    // Stack: (Expression, Pattern)
+    if (guard != null) {
+      _checkGuardType(guard, analyzeExpression(guard, boolType));
+    } else {
+      handleNoGuard(node, 0);
+    }
+    // Stack: (Expression, Pattern, Guard)
+    flow?.ifStatement_thenBegin(null, node);
+    _analyzeIfCommon(node, ifTrue, ifFalse);
+  }
+
+  /// Analyzes a statement of the form `if (condition) ifTrue` or
+  /// `if (condition) ifTrue else ifFalse`.
+  ///
+  /// [node] should be the AST node for the entire statement, [condition] for
+  /// the condition expression, [ifTrue] for the "then" branch, and [ifFalse]
+  /// for the "else" branch (if present).
+  ///
+  /// Stack effect: pushes (Expression condition, Statement ifTrue, Statement
+  /// ifFalse).  Note that if there is no `else` clause, the representation for
+  /// `ifFalse` will be pushed by [handleNoStatement].
+  void analyzeIfStatement(Statement node, Expression condition,
+      Statement ifTrue, Statement? ifFalse) {
+    // Stack: ()
+    flow?.ifStatement_conditionBegin();
+    analyzeExpression(condition, boolType);
+    // Stack: (Expression condition)
+    flow?.ifStatement_thenBegin(condition, node);
+    _analyzeIfCommon(node, ifTrue, ifFalse);
+  }
+
   /// Analyzes a variable declaration statement of the form
   /// `pattern = initializer;`.
   ///
@@ -562,6 +621,13 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Stack effect: pushes (Expression).
   void handleNoGuard(Node node, int caseIndex);
 
+  /// Called when visiting a syntactic construct where there is an implicit
+  /// no-op statement.  For example, this is called in place of the missing
+  /// `else` part of an `if` statement that lacks an `else` clause.
+  ///
+  /// Stack effect: pushes (Statement).
+  void handleNoStatement(Statement node);
+
   /// Called after visiting the scrutinee part of a switch statement or switch
   /// expression.  This is a hook to allow the client to start exhaustiveness
   /// analysis.
@@ -599,6 +665,25 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Computes the type that should be inferred for an implicitly typed variable
   /// whose initializer expression has static type [type].
   Type variableTypeFromInitializerType(Type type);
+
+  /// Common functionality shared by [analyzeIfStatement] and
+  /// [analyzeIfCaseStatement].
+  ///
+  /// Stack effect: pushes (Statement ifTrue, Statement ifFalse).
+  void _analyzeIfCommon(Statement node, Statement ifTrue, Statement? ifFalse) {
+    // Stack: ()
+    dispatchStatement(ifTrue);
+    // Stack: (Statement ifTrue)
+    if (ifFalse == null) {
+      handleNoStatement(node);
+      flow?.ifStatement_end(false);
+    } else {
+      flow?.ifStatement_elseBegin();
+      dispatchStatement(ifFalse);
+      flow?.ifStatement_end(true);
+    }
+    // Stack: (Statement ifTrue, Statement ifFalse)
+  }
 
   void _checkGuardType(Expression expression, Type type) {
     // TODO(paulberry): harmonize this with analyzer's checkForNonBoolExpression
@@ -799,10 +884,9 @@ class _ConstantPatternDispatchResult<Node extends Object,
 
   @override
   Type get typeSchema {
-    // Note: the type schema only matters for patterns that appear in variable
-    // declarations, and variable declarations are not allowed to contain
-    // constant patterns.  So this code should only be reachable during error
-    // recovery.
+    // Note: this follows what's proposed in
+    // https://github.com/dart-lang/language/issues/2458.
+    // TODO(paulberry): update this if necessary when that issue is closed.
     _typeAnalyzer.errors?.assertInErrorRecovery();
     return _typeAnalyzer.unknownType;
   }
