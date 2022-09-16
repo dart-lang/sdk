@@ -120,6 +120,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitCaseClause(CaseClause node) {
+    _runSubscriptions(node, registry._forCaseClause);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitCastPattern(CastPattern node) {
     _runSubscriptions(node, registry._forCastPattern);
     node.visitChildren(this);
@@ -176,6 +182,12 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitConfiguration(Configuration node) {
     _runSubscriptions(node, registry._forConfiguration);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitConstantPattern(ConstantPattern node) {
+    _runSubscriptions(node, registry._forConstantPattern);
     node.visitChildren(this);
   }
 
@@ -284,12 +296,6 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _runSubscriptions(node, registry._forExpressionFunctionBody);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitExpressionPattern(ExpressionPattern node) {
-    _runSubscriptions(node, registry._forExpressionPattern);
     node.visitChildren(this);
   }
 
@@ -899,12 +905,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitSwitchGuard(SwitchGuard node) {
-    _runSubscriptions(node, registry._forSwitchGuard);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     _runSubscriptions(node, registry._forSwitchPatternCase);
     node.visitChildren(this);
@@ -995,6 +995,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitWhenClause(WhenClause node) {
+    _runSubscriptions(node, registry._forWhenClause);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitWhileStatement(WhileStatement node) {
     _runSubscriptions(node, registry._forWhileStatement);
     node.visitChildren(this);
@@ -1051,6 +1057,7 @@ class NodeLintRegistry {
   final List<_Subscription<BooleanLiteral>> _forBooleanLiteral = [];
   final List<_Subscription<BreakStatement>> _forBreakStatement = [];
   final List<_Subscription<CascadeExpression>> _forCascadeExpression = [];
+  final List<_Subscription<CaseClause>> _forCaseClause = [];
   final List<_Subscription<CastPattern>> _forCastPattern = [];
   final List<_Subscription<CatchClause>> _forCatchClause = [];
   final List<_Subscription<CatchClauseParameter>> _forCatchClauseParameter = [];
@@ -1062,6 +1069,7 @@ class NodeLintRegistry {
   final List<_Subscription<ConditionalExpression>> _forConditionalExpression =
       [];
   final List<_Subscription<Configuration>> _forConfiguration = [];
+  final List<_Subscription<ConstantPattern>> _forConstantPattern = [];
   final List<_Subscription<ConstructorDeclaration>> _forConstructorDeclaration =
       [];
   final List<_Subscription<ConstructorFieldInitializer>>
@@ -1086,7 +1094,6 @@ class NodeLintRegistry {
   final List<_Subscription<ExportDirective>> _forExportDirective = [];
   final List<_Subscription<ExpressionFunctionBody>> _forExpressionFunctionBody =
       [];
-  final List<_Subscription<ExpressionPattern>> _forExpressionPattern = [];
   final List<_Subscription<ExpressionStatement>> _forExpressionStatement = [];
   final List<_Subscription<ExtendsClause>> _forExtendsClause = [];
   final List<_Subscription<ExtensionDeclaration>> _forExtensionDeclaration = [];
@@ -1211,7 +1218,6 @@ class NodeLintRegistry {
   final List<_Subscription<SwitchExpressionDefault>>
       _forSwitchExpressionDefault = [];
   final List<_Subscription<SwitchExpression>> _forSwitchExpression = [];
-  final List<_Subscription<SwitchGuard>> _forSwitchGuard = [];
   final List<_Subscription<SwitchPatternCase>> _forSwitchPatternCase = [];
   final List<_Subscription<SwitchStatement>> _forSwitchStatement = [];
   final List<_Subscription<SymbolLiteral>> _forSymbolLiteral = [];
@@ -1230,6 +1236,7 @@ class NodeLintRegistry {
   final List<_Subscription<VariableDeclarationStatement>>
       _forVariableDeclarationStatement = [];
   final List<_Subscription<VariablePattern>> _forVariablePattern = [];
+  final List<_Subscription<WhenClause>> _forWhenClause = [];
   final List<_Subscription<WhileStatement>> _forWhileStatement = [];
   final List<_Subscription<WithClause>> _forWithClause = [];
   final List<_Subscription<YieldStatement>> _forYieldStatement = [];
@@ -1305,6 +1312,10 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addCaseClause(LintRule linter, AstVisitor visitor) {
+    _forCaseClause.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addCastPattern(LintRule linter, AstVisitor visitor) {
     _forCastPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1345,6 +1356,10 @@ class NodeLintRegistry {
 
   void addConfiguration(LintRule linter, AstVisitor visitor) {
     _forConfiguration.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addConstantPattern(LintRule linter, AstVisitor visitor) {
+    _forConstantPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addConstructorDeclaration(LintRule linter, AstVisitor visitor) {
@@ -1427,11 +1442,6 @@ class NodeLintRegistry {
 
   void addExpressionFunctionBody(LintRule linter, AstVisitor visitor) {
     _forExpressionFunctionBody
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addExpressionPattern(LintRule linter, AstVisitor visitor) {
-    _forExpressionPattern
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
@@ -1873,10 +1883,6 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  void addSwitchGuard(LintRule linter, AstVisitor visitor) {
-    _forSwitchGuard.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
   void addSwitchPatternCase(LintRule linter, AstVisitor visitor) {
     _forSwitchPatternCase
         .add(_Subscription(linter, visitor, _getTimer(linter)));
@@ -1946,6 +1952,10 @@ class NodeLintRegistry {
 
   void addVariablePattern(LintRule linter, AstVisitor visitor) {
     _forVariablePattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addWhenClause(LintRule linter, AstVisitor visitor) {
+    _forWhenClause.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addWhileStatement(LintRule linter, AstVisitor visitor) {

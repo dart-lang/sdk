@@ -2834,7 +2834,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
   } else {
     const Field& field =
         Field::ZoneHandle(Z, H.LookupFieldByKernelGetterOrSetter(target));
-    ASSERT(!field.NeedsSetter());
     if (NeedsDebugStepCheck(stack(), position)) {
       instructions = DebugStepCheck(position) + instructions;
     }

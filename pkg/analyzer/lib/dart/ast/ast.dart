@@ -383,6 +383,8 @@ abstract class AstVisitor<R> {
 
   R? visitCascadeExpression(CascadeExpression node);
 
+  R? visitCaseClause(CaseClause node);
+
   R? visitCastPattern(CastPattern node);
 
   R? visitCatchClause(CatchClause node);
@@ -402,6 +404,8 @@ abstract class AstVisitor<R> {
   R? visitConditionalExpression(ConditionalExpression node);
 
   R? visitConfiguration(Configuration node);
+
+  R? visitConstantPattern(ConstantPattern node);
 
   R? visitConstructorDeclaration(ConstructorDeclaration node);
 
@@ -438,8 +442,6 @@ abstract class AstVisitor<R> {
   R? visitExportDirective(ExportDirective node);
 
   R? visitExpressionFunctionBody(ExpressionFunctionBody node);
-
-  R? visitExpressionPattern(ExpressionPattern node);
 
   R? visitExpressionStatement(ExpressionStatement node);
 
@@ -644,8 +646,6 @@ abstract class AstVisitor<R> {
 
   R? visitSwitchExpressionDefault(SwitchExpressionDefault node);
 
-  R? visitSwitchGuard(SwitchGuard node);
-
   R? visitSwitchPatternCase(SwitchPatternCase node);
 
   R? visitSwitchStatement(SwitchStatement node);
@@ -675,6 +675,8 @@ abstract class AstVisitor<R> {
   R? visitVariableDeclarationStatement(VariableDeclarationStatement node);
 
   R? visitVariablePattern(VariablePattern node);
+
+  R? visitWhenClause(WhenClause node);
 
   R? visitWhileStatement(WhileStatement node);
 
@@ -858,10 +860,28 @@ abstract class CascadeExpression
   Expression get target;
 }
 
+/// The `case` clause that can optionally appear in an `if` statement.
+///
+///    caseClause ::=
+///        'case' [DartPattern] [WhenClause]?
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class CaseClause implements AstNode {
+  /// Return the token representing the 'case' keyword.
+  Token get caseKeyword;
+
+  /// Return the pattern controlling whether the statements will be executed.
+  DartPattern get pattern;
+
+  /// Return the clause controlling whether the statements will be executed.
+  WhenClause? get whenClause;
+}
+
 /// A cast pattern.
 ///
 ///    castPattern ::=
-///        identifier 'as' [TypeAnnotation]
+///        [DartPattern] 'as' [TypeAnnotation]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
@@ -869,12 +889,8 @@ abstract class CastPattern implements DartPattern {
   /// The `as` token.
   Token get asToken;
 
-  /// Return the element associated with this declaration, or `null` if the AST
-  /// structure has not been resolved.
-  VariableElement? get declaredElement;
-
-  /// The name of the variable being declared.
-  Token get name;
+  /// The pattern whose matched value will be cast.
+  DartPattern get pattern;
 
   /// The type that the value being matched is cast to.
   TypeAnnotation get type;
@@ -1372,6 +1388,39 @@ abstract class Configuration implements AstNode {
   StringLiteral? get value;
 }
 
+/// A constant expression being used as a pattern.
+///
+/// The only expressions that can be validly used as a pattern are
+/// - `bool` literals
+/// - `double` literals
+/// - `int` literals
+/// - `null` literals
+/// - `String` literals
+/// - references to constant variables
+/// - constant constructor invocations
+/// - constant list literals
+/// - constant set or map literals
+/// - constant expressions wrapped in parentheses and preceeded by the `const`
+///   keyword
+///
+/// This node is also used to recover from cases where a different kind of
+/// expression is used as a pattern, so clients need to handle the case where
+/// the expression is not one of the valid alternatives.
+///
+///    constantPattern ::=
+///        'const'? [Expression]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ConstantPattern implements DartPattern {
+  /// Return the `const` keyword, or `null` if the expression is not preceded by
+  /// the keyword `const`.
+  Token? get constKeyword;
+
+  /// Return the constant expression being used as a pattern.
+  Expression get expression;
+}
+
 /// A constructor declaration.
 ///
 ///    constructorDeclaration ::=
@@ -1567,7 +1616,7 @@ abstract class ContinueStatement implements Statement {
 ///
 ///    pattern ::=
 ///        [BinaryPattern]
-///      | [ConstantPattern]
+///      | [ExpressionPattern]
 ///      | [CastPattern]
 ///      | [ExtractorPattern]
 ///      | [ListPattern]
@@ -1575,7 +1624,8 @@ abstract class ContinueStatement implements Statement {
 ///      | [MapPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
-///      | [UnaryPattern]
+///      | [ParenthesizedPattern]
+///      | [PostfixPattern]
 ///      | [VariablePattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1860,7 +1910,7 @@ abstract class ExportDirective implements NamespaceDirective {
 ///      | [ThrowExpression]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class Expression implements CollectionElement, IfCondition {
+abstract class Expression implements CollectionElement {
   /// An expression _e_ is said to _occur in a constant context_,
   /// * if _e_ is an element of a constant list literal, or a key or value of an
   ///   entry of a constant map literal.
@@ -1929,30 +1979,6 @@ abstract class ExpressionFunctionBody implements FunctionBody {
 
   /// Return the semicolon terminating the statement.
   Token? get semicolon;
-}
-
-/// An expression being used as a pattern.
-///
-/// The only expressions that can be validly used as a pattern are
-/// - `bool` literals
-/// - `double` literals
-/// - `int` literals
-/// - `null` literals
-/// - `String` literals
-/// - references to constant variables.
-///
-/// This node is also used to recover from cases where a different kind of
-/// expression is used as a pattern, so clients need to handle the case where
-/// the expression is not one of the valid alternatives.
-///
-///    expressionPattern ::=
-///        [Expression]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class ExpressionPattern implements DartPattern {
-  /// Return the expression being used as a pattern.
-  Expression get expression;
 }
 
 /// An expression used as a statement.
@@ -2860,29 +2886,18 @@ abstract class Identifier implements Expression, CommentReferableExpression {
   static bool isPrivateName(String name) => name.isNotEmpty && name[0] == "_";
 }
 
-/// A condition in an `if` statement or `if` element.
-///
-///    ifCondition ::=
-///        [Expression]
-///      | [PatternVariableDeclaration]
-///      | [PatternAssignment]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class IfCondition implements AstNode {}
-
 /// The basic structure of an if element.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class IfElement implements CollectionElement {
-  /// Return the condition used to determine which of the statements is executed
-  /// next.
-  Expression get condition;
+  /// Return the `case` clause used to match a pattern against the [condition].
+  @experimental
+  CaseClause? get caseClause;
 
   /// Return the condition used to determine which of the statements is executed
   /// next.
-  @experimental
-  IfCondition get condition2;
+  // TODO(brianwilkerson) Deprecate this when the patterns feature is released.
+  Expression get condition;
 
   /// Return the statement that is executed if the condition evaluates to
   /// `false`, or `null` if there is no else statement.
@@ -2891,6 +2906,11 @@ abstract class IfElement implements CollectionElement {
   /// Return the token representing the 'else' keyword, or `null` if there is no
   /// else statement.
   Token? get elseKeyword;
+
+  /// Return the expression used to either determine which of the statements is
+  /// executed next or to compute the value to be matched against the pattern in
+  /// the `case` clause.
+  Expression get expression;
 
   /// Return the token representing the 'if' keyword.
   Token get ifKeyword;
@@ -2909,18 +2929,19 @@ abstract class IfElement implements CollectionElement {
 /// An if statement.
 ///
 ///    ifStatement ::=
-///        'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
+///        'if' '(' [Expression] [CaseClause]? ')'[Statement]
+///        ('else' [Statement])?
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class IfStatement implements Statement {
-  /// Return the condition used to determine which of the statements is executed
-  /// next.
-  Expression get condition;
+  /// Return the `case` clause used to match a pattern against the [condition].
+  @experimental
+  CaseClause? get caseClause;
 
   /// Return the condition used to determine which of the statements is executed
   /// next.
-  @experimental
-  IfCondition get condition2;
+  // TODO(brianwilkerson) Deprecate this when the patterns feature is released.
+  Expression get condition;
 
   /// Return the token representing the 'else' keyword, or `null` if there is no
   /// else statement.
@@ -2929,6 +2950,11 @@ abstract class IfStatement implements Statement {
   /// Return the statement that is executed if the condition evaluates to
   /// `false`, or `null` if there is no else statement.
   Statement? get elseStatement;
+
+  /// Return the expression used to either determine which of the statements is
+  /// executed next or to compute the value matched against the pattern in the
+  /// `case` clause.
+  Expression get expression;
 
   /// Return the token representing the 'if' keyword.
   Token get ifKeyword;
@@ -3949,12 +3975,9 @@ abstract class PartOfDirective implements Directive {
 ///    patternAssignment ::=
 ///        [DartPattern] '=' [Expression]
 ///
-/// When used as the condition in an `if`, the pattern is always a
-/// [PatternVariable] whose type is not `null`.
-///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class PatternAssignment implements IfCondition {
+abstract class PatternAssignment implements Expression {
   /// Return the equal sign separating the pattern from the expression.
   Token get equals;
 
@@ -3986,7 +4009,7 @@ abstract class PatternAssignmentStatement implements Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class PatternVariableDeclaration implements IfCondition {
+abstract class PatternVariableDeclaration implements AstNode {
   /// Return the equal sign separating the pattern from the expression.
   Token get equals;
 
@@ -4201,7 +4224,7 @@ abstract class RecordPatternField implements AstNode {
 /// A field name in a record pattern field.
 ///
 ///    recordPatternField ::=
-///        [Token] ':'
+///        [Token]? ':'
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
@@ -4821,14 +4844,21 @@ abstract class SwitchExpression implements Expression {
 /// A case in a switch expression.
 ///
 ///    switchExpressionCase ::=
-///        'case' [DartPattern] [SwitchGuard]? '=>' [Expression]
+///        'case' [DartPattern] [WhenClause]? '=>' [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class SwitchExpressionCase
-    implements SwitchExpressionMember, SwitchSelector {}
+abstract class SwitchExpressionCase implements SwitchExpressionMember {
+  /// Return the refutable pattern that must match for the [expression] to be executed.
+  DartPattern get pattern;
 
-/// The default case in a switch statement.
+  /// Return the clause containing the condition that is evaluated when the
+  /// [pattern] matches, that must evaluate to `true` in order for the
+  /// [expression] to be executed.
+  WhenClause? get whenClause;
+}
+
+/// The default case in a switch expression.
 ///
 ///    switchDefault ::=
 ///        'default' '=>' [Expression]
@@ -4860,27 +4890,20 @@ abstract class SwitchExpressionMember implements AstNode {
   Token get keyword;
 }
 
-/// A guard in a pattern-based `case` in a `switch` statement or `switch`
-/// expression.
-///
-///    switchCase ::=
-///        'when' [Expression]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class SwitchGuard implements AstNode {
-  /// Return the expression controlling whether the statements will be executed.
-  Expression get expression;
-
-  /// Return the `when` keyword.
-  Token get whenKeyword;
-}
-
 /// An element within a switch statement.
 ///
 ///    switchMember ::=
-///        switchCase
-///      | switchDefault
+///        [SwitchCase]
+///      | [SwitchDefault]
+///      | [SwitchPatternCase]
+///
+/// The class [SwitchPatternCase] exists only to support the 'patterns' feature.
+///
+/// Note that when the patterns feature is enabled by default, the class
+/// [SwitchPatternCase] might replace [SwitchCase] entirely. If we do that, then
+/// legacy code (code opted into a version prior to the release of patterns)
+/// will likely wrap the expression in a [ConstantPattern] with synthetic
+/// tokens.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class SwitchMember implements AstNode {
@@ -4902,26 +4925,16 @@ abstract class SwitchMember implements AstNode {
 /// A pattern-based case in a switch statement.
 ///
 ///    switchPatternCase ::=
-///        [Label]* 'case' [DartPattern] [SwitchGuard]? ':' [Statement]*
+///        [Label]* 'case' [DartPattern] [WhenClause]? ':' [Statement]*
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class SwitchPatternCase implements SwitchMember, SwitchSelector {}
-
-/// The portion of a [SwitchPatternCase] and [SwitchExpressionCase] that is used
-/// to select the member.
-///
-///    switchCase ::=
-///        [DartPattern] [SwitchGuard]?
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class SwitchSelector implements AstNode {
-  /// Return the expression controlling whether the statements will be executed.
-  SwitchGuard? get guard;
-
+abstract class SwitchPatternCase implements SwitchMember {
   /// Return the pattern controlling whether the statements will be executed.
   DartPattern get pattern;
+
+  /// Return the clause controlling whether the statements will be executed.
+  WhenClause? get whenClause;
 }
 
 /// A switch statement.
@@ -5295,7 +5308,7 @@ abstract class VariableDeclarationStatement implements Statement {
 /// A variable pattern.
 ///
 ///    variablePattern ::=
-///        [TypeAnnotation]? [Identifier]
+///        ( 'var' | 'final' | [TypeAnnotation])? [Identifier]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
@@ -5305,12 +5318,33 @@ abstract class VariablePattern implements DartPattern {
   /// structure has not been resolved.
   VariableElement? get declaredElement;
 
+  /// The 'var' or 'final' keyword used when there is no [type], or `null` if a
+  /// type is given.
+  Token? get keyword;
+
   /// The name of the variable being bound.
   Token get name;
 
   /// The type that the variable is required to match, or `null` if any type is
   /// matched.
   TypeAnnotation? get type;
+}
+
+/// A guard in a pattern-based `case` in a `switch` statement, `switch`
+/// expression, `if` statement, or `if` element.
+///
+///    switchCase ::=
+///        'when' [Expression]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class WhenClause implements AstNode {
+  /// Return the condition that is evaluated when the [pattern] matches, that
+  /// must evaluate to `true` in order for the [expression] to be executed.
+  Expression get expression;
+
+  /// Return the `when` keyword.
+  Token get whenKeyword;
 }
 
 /// A while statement.

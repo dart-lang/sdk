@@ -870,7 +870,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
   __ BranchIf(EQUAL, &call_runtime, Assembler::kNearJump);
 
-  // If this is not a [Type] object, we'll go to the runtime.
+  // If this is not a [Type] object, we'll use wider SubtypeTestCache.
   Label is_simple_case, is_complex_case;
   __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg);
   __ CompareImmediate(TypeTestABI::kScratchReg, kTypeCid);

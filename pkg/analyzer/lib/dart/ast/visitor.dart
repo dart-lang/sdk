@@ -182,6 +182,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitCascadeExpression(CascadeExpression node) => visitExpression(node);
 
   @override
+  R? visitCaseClause(CaseClause node) => visitNode(node);
+
+  @override
   R? visitCastPattern(CastPattern node) => visitDartPattern(node);
 
   @override
@@ -221,6 +224,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitConfiguration(Configuration node) => visitNode(node);
+
+  @override
+  R? visitConstantPattern(ConstantPattern node) => visitDartPattern(node);
 
   @override
   R? visitConstructorDeclaration(ConstructorDeclaration node) =>
@@ -294,9 +300,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
       visitFunctionBody(node);
-
-  @override
-  R? visitExpressionPattern(ExpressionPattern node) => visitDartPattern(node);
 
   @override
   R? visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
@@ -404,8 +407,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitHideCombinator(HideCombinator node) => visitCombinator(node);
 
   R? visitIdentifier(Identifier node) => visitExpression(node);
-
-  R? visitIfCondition(IfCondition node) => visitNode(node);
 
   @override
   R? visitIfElement(IfElement node) => visitCollectionElement(node);
@@ -542,7 +543,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitPartOfDirective(PartOfDirective node) => visitDirective(node);
 
   @override
-  R? visitPatternAssignment(PatternAssignment node) => visitIfCondition(node);
+  R? visitPatternAssignment(PatternAssignment node) => visitExpression(node);
 
   @override
   R? visitPatternAssignmentStatement(PatternAssignmentStatement node) =>
@@ -550,7 +551,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node) =>
-      visitIfCondition(node);
+      visitNode(node);
 
   @override
   R? visitPatternVariableDeclarationStatement(
@@ -691,9 +692,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitSwitchExpressionMember(SwitchExpressionMember node) =>
       visitNode(node);
 
-  @override
-  R? visitSwitchGuard(SwitchGuard node) => visitNode(node);
-
   R? visitSwitchMember(SwitchMember node) => visitNode(node);
 
   @override
@@ -752,6 +750,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitVariablePattern(VariablePattern node) => visitDartPattern(node);
+
+  @override
+  R? visitWhenClause(WhenClause node) => visitNode(node);
 
   @override
   R? visitWhileStatement(WhileStatement node) => visitStatement(node);
@@ -874,6 +875,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitCaseClause(CaseClause node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitCastPattern(CastPattern node) {
     node.visitChildren(this);
     return null;
@@ -929,6 +936,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitConfiguration(Configuration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitConstantPattern(ConstantPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1037,12 +1050,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitExpressionPattern(ExpressionPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1652,12 +1659,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitSwitchGuard(SwitchGuard node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitSwitchPatternCase(SwitchPatternCase node) {
     node.visitChildren(this);
     return null;
@@ -1748,6 +1749,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitWhenClause(WhenClause node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitWhileStatement(WhileStatement node) {
     node.visitChildren(this);
     return null;
@@ -1825,6 +1832,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitCascadeExpression(CascadeExpression node) => null;
 
   @override
+  R? visitCaseClause(CaseClause node) => null;
+
+  @override
   R? visitCastPattern(CastPattern node) => null;
 
   @override
@@ -1853,6 +1863,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitConfiguration(Configuration node) => null;
+
+  @override
+  R? visitConstantPattern(ConstantPattern node) => null;
 
   @override
   R? visitConstructorDeclaration(ConstructorDeclaration node) => null;
@@ -1907,9 +1920,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitExpressionFunctionBody(ExpressionFunctionBody node) => null;
-
-  @override
-  R? visitExpressionPattern(ExpressionPattern node) => null;
 
   @override
   R? visitExpressionStatement(ExpressionStatement node) => null;
@@ -2226,9 +2236,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitSwitchExpressionDefault(SwitchExpressionDefault node) => null;
 
   @override
-  R? visitSwitchGuard(SwitchGuard node) => null;
-
-  @override
   R? visitSwitchPatternCase(SwitchPatternCase node) => null;
 
   @override
@@ -2273,6 +2280,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitVariablePattern(VariablePattern node) => null;
+
+  @override
+  R? visitWhenClause(WhenClause node) => null;
 
   @override
   R? visitWhileStatement(WhileStatement node) => null;
@@ -2345,6 +2355,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitCascadeExpression(CascadeExpression node) => _throw(node);
 
   @override
+  R? visitCaseClause(CaseClause node) => _throw(node);
+
+  @override
   R? visitCastPattern(CastPattern node) => _throw(node);
 
   @override
@@ -2373,6 +2386,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitConfiguration(Configuration node) => _throw(node);
+
+  @override
+  R? visitConstantPattern(ConstantPattern node) => _throw(node);
 
   @override
   R? visitConstructorDeclaration(ConstructorDeclaration node) => _throw(node);
@@ -2428,9 +2444,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitExpressionFunctionBody(ExpressionFunctionBody node) => _throw(node);
-
-  @override
-  R? visitExpressionPattern(ExpressionPattern node) => _throw(node);
 
   @override
   R? visitExpressionStatement(ExpressionStatement node) => _throw(node);
@@ -2754,9 +2767,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitSwitchExpressionDefault(SwitchExpressionDefault node) => _throw(node);
 
   @override
-  R? visitSwitchGuard(SwitchGuard node) => _throw(node);
-
-  @override
   R? visitSwitchPatternCase(SwitchPatternCase node) => _throw(node);
 
   @override
@@ -2802,6 +2812,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitVariablePattern(VariablePattern node) => _throw(node);
+
+  @override
+  R? visitWhenClause(WhenClause node) => _throw(node);
 
   @override
   R? visitWhileStatement(WhileStatement node) => _throw(node);
@@ -2961,6 +2974,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitCaseClause(CaseClause node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCaseClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitCastPattern(CastPattern node) {
     stopwatch.start();
     T? result = _baseVisitor.visitCastPattern(node);
@@ -3036,6 +3057,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitConfiguration(Configuration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitConfiguration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitConstantPattern(ConstantPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitConstantPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -3180,14 +3209,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     stopwatch.start();
     T? result = _baseVisitor.visitExpressionFunctionBody(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitExpressionPattern(ExpressionPattern node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitExpressionPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -3997,14 +4018,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T? visitSwitchGuard(SwitchGuard node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitSwitchGuard(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitSwitchPatternCase(SwitchPatternCase node) {
     stopwatch.start();
     T? result = _baseVisitor.visitSwitchPatternCase(node);
@@ -4125,6 +4138,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitWhenClause(WhenClause node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitWhenClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitWhileStatement(WhileStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitWhileStatement(node);
@@ -4214,6 +4235,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitCascadeExpression(CascadeExpression node) => visitNode(node);
 
   @override
+  R? visitCaseClause(CaseClause node) => visitNode(node);
+
+  @override
   R? visitCastPattern(CastPattern node) => visitNode(node);
 
   @override
@@ -4242,6 +4266,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitConfiguration(Configuration node) => visitNode(node);
+
+  @override
+  R? visitConstantPattern(ConstantPattern node) => visitNode(node);
 
   @override
   R? visitConstructorDeclaration(ConstructorDeclaration node) =>
@@ -4301,9 +4328,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
       visitNode(node);
-
-  @override
-  R? visitExpressionPattern(ExpressionPattern node) => visitNode(node);
 
   @override
   R? visitExpressionStatement(ExpressionStatement node) => visitNode(node);
@@ -4638,9 +4662,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
       visitNode(node);
 
   @override
-  R? visitSwitchGuard(SwitchGuard node) => visitNode(node);
-
-  @override
   R? visitSwitchPatternCase(SwitchPatternCase node) => visitNode(node);
 
   @override
@@ -4687,6 +4708,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitVariablePattern(VariablePattern node) => visitNode(node);
+
+  @override
+  R? visitWhenClause(WhenClause node) => visitNode(node);
 
   @override
   R? visitWhileStatement(WhileStatement node) => visitNode(node);

@@ -148,8 +148,15 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitCaseClause(CaseClause node) {
+    sink.write('case ');
+    _visitNode(node.pattern);
+    _visitNode(node.whenClause, prefix: ' ');
+  }
+
+  @override
   void visitCastPattern(CastPattern node) {
-    sink.write(node.name.lexeme);
+    _visitNode(node.pattern);
     sink.write(' as ');
     _visitNode(node.type);
   }
@@ -242,6 +249,12 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.value, prefix: ' == ');
     sink.write(') ');
     _visitNode(node.uri);
+  }
+
+  @override
+  void visitConstantPattern(ConstantPattern node) {
+    _visitToken(node.constKeyword, suffix: ' ');
+    _visitNode(node.expression);
   }
 
   @override
@@ -394,11 +407,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     if (node.semicolon != null) {
       sink.write(';');
     }
-  }
-
-  @override
-  void visitExpressionPattern(ExpressionPattern node) {
-    _visitNode(node.expression);
   }
 
   @override
@@ -665,6 +673,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitIfElement(IfElement node) {
     sink.write('if (');
     _visitNode(node.condition);
+    _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
     _visitNode(node.thenElement);
     _visitNode(node.elseElement, prefix: ' else ');
@@ -674,6 +683,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitIfStatement(IfStatement node) {
     sink.write('if (');
     _visitNode(node.condition);
+    _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
     _visitNode(node.thenStatement);
     _visitNode(node.elseStatement, prefix: ' else ');
@@ -1230,7 +1240,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     sink.write('case ');
     _visitNode(node.pattern);
-    _visitNode(node.guard, prefix: ' ');
+    _visitNode(node.whenClause, prefix: ' ');
     sink.write(' => ');
     _visitNode(node.expression);
   }
@@ -1242,17 +1252,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitSwitchGuard(SwitchGuard node) {
-    sink.write('when ');
-    _visitNode(node.expression);
-  }
-
-  @override
   void visitSwitchPatternCase(SwitchPatternCase node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
     sink.write('case ');
     _visitNode(node.pattern);
-    _visitNode(node.guard, prefix: ' ');
+    _visitNode(node.whenClause, prefix: ' ');
     sink.write(' : ');
     _visitNodeList(node.statements, separator: ' ');
   }
@@ -1359,9 +1363,16 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitVariablePattern(VariablePattern node) {
+    _visitToken(node.keyword, suffix: ' ');
     _visitNode(node.type, suffix: ' ');
     sink.write(' ');
     sink.write(node.name.lexeme);
+  }
+
+  @override
+  void visitWhenClause(WhenClause node) {
+    sink.write('when ');
+    _visitNode(node.expression);
   }
 
   @override

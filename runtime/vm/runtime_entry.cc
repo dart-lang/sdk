@@ -848,6 +848,16 @@ static void UpdateTypeTestCache(
   ASSERT(destination_type.IsCanonical());
   ASSERT(instantiator_type_arguments.IsCanonical());
   ASSERT(function_type_arguments.IsCanonical());
+  if (instance.IsRecord()) {
+    // Do not add record instances to cache as they don't have a valid
+    // key (type of a record depends on types of all its fields).
+    // TODO(dartbug.com/49719): consider testing each record field using
+    // SubtypeTestCache.
+    if (FLAG_trace_type_checks) {
+      THR_Print("Not updating subtype test cache for the record instance.\n");
+    }
+    return;
+  }
   Class& instance_class = Class::Handle(zone);
   if (instance.IsSmi()) {
     instance_class = Smi::Class();

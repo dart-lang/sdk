@@ -4866,27 +4866,9 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
                                                 : try_catch_block->try_index());
 }
 
-bool FlowGraphBuilder::NeedsNullAssertion(const AbstractType& type) {
-  if (!type.IsNonNullable()) {
-    return false;
-  }
-  if (type.IsTypeRef()) {
-    return NeedsNullAssertion(
-        AbstractType::Handle(Z, TypeRef::Cast(type).type()));
-  }
-  if (type.IsTypeParameter()) {
-    return NeedsNullAssertion(
-        AbstractType::Handle(Z, TypeParameter::Cast(type).bound()));
-  }
-  if (type.IsFutureOrType()) {
-    return NeedsNullAssertion(AbstractType::Handle(Z, type.UnwrapFutureOr()));
-  }
-  return true;
-}
-
 Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
   Fragment code;
-  if (!NeedsNullAssertion(variable->type())) {
+  if (!variable->type().NeedsNullAssertion()) {
     return code;
   }
 

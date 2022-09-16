@@ -8414,6 +8414,10 @@ class AbstractType : public Instance {
   // Returns unmodified type if this type is not a 'FutureOr' type.
   AbstractTypePtr UnwrapFutureOr() const;
 
+  // Returns true if parameter of this type might need a
+  // null assertion (if null assertions are enabled).
+  bool NeedsNullAssertion() const;
+
   // Returns true if catching this type will catch all exceptions.
   // Exception objects are guaranteed to be non-nullable, so
   // non-nullable Object is also a catch-all type.
@@ -10881,6 +10885,12 @@ class Record : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;
+
+  // Returns RecordType representing runtime type of this record instance.
+  // It is not created eagerly when record instance is allocated because
+  // it depends on runtime types of values if its fields, which can be
+  // quite expensive to query.
+  RecordTypePtr GetRecordType() const;
 
  private:
   void set_num_fields(intptr_t num_fields) const;

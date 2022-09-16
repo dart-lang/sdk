@@ -131,6 +131,10 @@ class FindNode {
     return _node(search, (n) => n is Configuration);
   }
 
+  ConstantPattern constantPattern(String search) {
+    return _node(search, (n) => n is ConstantPattern);
+  }
+
   ConstructorDeclaration constructor(String search) {
     return _node(search, (n) => n is ConstructorDeclaration);
   }
@@ -197,10 +201,6 @@ class FindNode {
 
   ExpressionFunctionBody expressionFunctionBody(String search) {
     return _node(search, (n) => n is ExpressionFunctionBody);
-  }
-
-  ExpressionPattern expressionPattern(String search) {
-    return _node(search, (n) => n is ExpressionPattern);
   }
 
   ExpressionStatement expressionStatement(String search) {
@@ -606,10 +606,6 @@ class FindNode {
     return _node(search, (n) => n is SwitchExpressionDefault);
   }
 
-  SwitchGuard switchGuard(String search) {
-    return _node(search, (n) => n is SwitchGuard);
-  }
-
   SwitchPatternCase switchPatternCase(String search) {
     return _node(search, (n) => n is SwitchPatternCase);
   }
@@ -689,6 +685,10 @@ class FindNode {
 
   VariablePattern variablePattern(String search) {
     return _node(search, (n) => n is VariablePattern);
+  }
+
+  WhenClause whenClause(String search) {
+    return _node(search, (n) => n is WhenClause);
   }
 
   WhileStatement whileStatement(String search) {

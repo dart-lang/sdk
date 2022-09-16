@@ -2409,8 +2409,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ jmp(&loop, Assembler::kNearJump);
   }
 
-  // TODO(dartbug.com/49719): handle records
-
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
