@@ -707,6 +707,16 @@ class LeastUpperBoundHelper {
       return getLeastUpperBound(T1, _typeSystem.objectNone);
     }
 
+    // UP((...), Record) = Record
+    if (T1 is RecordType && T2.isDartCoreRecord) {
+      return T2;
+    }
+
+    // UP(Record, (...)) = Record
+    if (T1.isDartCoreRecord && T2 is RecordType) {
+      return T1;
+    }
+
     // Record types.
     if (T1 is RecordTypeImpl && T2 is RecordTypeImpl) {
       return _recordType(T1, T2);

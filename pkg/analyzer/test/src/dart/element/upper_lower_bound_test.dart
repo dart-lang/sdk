@@ -1301,6 +1301,15 @@ class LowerBoundTest extends _BoundsTestBase {
     _checkGreatestLowerBound2('(int)', 'void Function()', 'Never');
   }
 
+  test_recordType_dartCoreRecord() {
+    void check(String T) {
+      _checkGreatestLowerBound2(T, 'Record', T);
+    }
+
+    check('(int, String)');
+    check('({int f1, String f2})');
+  }
+
   test_self() {
     var T = typeParameter('T');
 
@@ -2642,6 +2651,15 @@ class UpperBound_RecordTypes_Test extends _BoundsTestBase {
   test_record_andNot() {
     _checkLeastUpperBound2('(int)', 'int', 'Object');
     _checkLeastUpperBound2('(int)', 'void Function()', 'Object');
+  }
+
+  test_record_dartCoreRecord() {
+    void check(String T1) {
+      _checkLeastUpperBound2(T1, 'Record', 'Record');
+    }
+
+    check('(int, String)');
+    check('({int f1, String f2})');
   }
 
   test_sameShape_named() {
