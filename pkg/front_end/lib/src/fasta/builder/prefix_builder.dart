@@ -47,6 +47,7 @@ class PrefixBuilder extends BuilderImpl {
   @override
   Uri get fileUri => parent.fileUri;
 
+  /// Lookup a member with [name] in the export scope.
   Builder? lookup(String name, int charOffset, Uri fileUri) {
     return exportScope.lookup(name, charOffset, fileUri);
   }
