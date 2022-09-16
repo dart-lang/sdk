@@ -106,6 +106,82 @@ final a = 1;
     expect(hintsAfterChange, isNotEmpty);
   }
 
+  Future<void> test_getter() async {
+    final content = '''
+get f => 1;
+''';
+    final expected = '''
+(Type:dynamic) get f => 1;
+''';
+    await _testHints(content, expected);
+  }
+
+  Future<void> test_leadingAnnotation() async {
+    final content = '''
+@deprecated
+f() => '';
+
+class A {
+  @deprecated
+  f() => '';
+}
+''';
+    final expected = '''
+@deprecated
+(Type:dynamic) f() => '';
+
+class A {
+  @deprecated
+  (Type:dynamic) f() => '';
+}
+''';
+    await _testHints(content, expected);
+  }
+
+  Future<void> test_leadingComment() async {
+    final content = '''
+// Comment
+f() => '';
+
+class A {
+  // Comment
+  f() => '';
+}
+''';
+    final expected = '''
+// Comment
+(Type:dynamic) f() => '';
+
+class A {
+  // Comment
+  (Type:dynamic) f() => '';
+}
+''';
+    await _testHints(content, expected);
+  }
+
+  Future<void> test_leadingDocumentation() async {
+    final content = '''
+/// Documentation
+f() => '';
+
+class A {
+  /// Documentation
+  f() => '';
+}
+''';
+    final expected = '''
+/// Documentation
+(Type:dynamic) f() => '';
+
+class A {
+  /// Documentation
+  (Type:dynamic) f() => '';
+}
+''';
+    await _testHints(content, expected);
+  }
+
   Future<void> test_localFunction_returnType() async {
     // Check inferred return types for local functions have type hints.
     final content = '''
@@ -166,6 +242,16 @@ class A {
 class A {
   (Type:dynamic) f() => '';
 }
+''';
+    await _testHints(content, expected);
+  }
+
+  Future<void> test_setter() async {
+    final content = '''
+set f(int i) {}
+''';
+    final expected = '''
+(Type:void) set f(int i) {}
 ''';
     await _testHints(content, expected);
   }
