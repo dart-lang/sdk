@@ -136,9 +136,15 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
   String get name => file.path;
 }
 
+abstract class _Process implements Process {
+  abstract String _path;
+  abstract List<String> _arguments;
+  abstract String? _workingDirectory;
+}
+
 class _SpawnedProcessResourceInfo extends _IOResourceInfo {
   static const String _type = 'SpawnedProcess';
-  final process;
+  final _Process process;
   final int startedAt;
 
   static Map<int, _SpawnedProcessResourceInfo> startedProcesses =
