@@ -65,6 +65,7 @@ class JsClosedWorld implements JClosedWorld {
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> implementedClasses;
 
+  @override
   final Set<MemberEntity> liveInstanceMembers;
 
   /// Members that are written either directly or through a setter selector.
