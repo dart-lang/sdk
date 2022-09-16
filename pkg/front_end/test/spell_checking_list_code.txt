@@ -1180,6 +1180,7 @@ ret
 reusage
 reversible
 rewinds
+rework
 rewrites
 rewrote
 rf

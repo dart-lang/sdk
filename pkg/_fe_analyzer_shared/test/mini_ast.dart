@@ -186,6 +186,19 @@ Statement if_(Expression condition, List<Statement> ifTrue,
       location: location);
 }
 
+Statement ifCase(
+    Expression expression, CaseHead caseHead, List<Statement> ifTrue,
+    {List<Statement>? else_}) {
+  var location = computeLocation();
+  return new _IfCase(
+      expression,
+      caseHead._pattern!,
+      caseHead._guard,
+      _Block(ifTrue, location: location),
+      else_ == null ? null : _Block(else_, location: location),
+      location: location);
+}
+
 Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
     new _IntLiteral(value,
         expectConversionToDouble: expectConversionToDouble,
@@ -423,6 +436,7 @@ class Harness
   static const Map<String, bool> _coreSubtypes = const {
     'bool <: int': false,
     'bool <: Object': true,
+    'double <: bool': false,
     'double <: double?': true,
     'double <: Object': true,
     'double <: Object?': true,
@@ -1727,20 +1741,18 @@ class _ForEach extends Statement {
   }
 }
 
-class _If extends Statement {
+class _If extends _IfBase {
   final Expression condition;
-  final Statement ifTrue;
-  final Statement? ifFalse;
 
-  _If(this.condition, this.ifTrue, this.ifFalse, {required super.location});
+  _If(this.condition, super.ifTrue, super.ifFalse, {required super.location});
+
+  @override
+  String get _conditionPartString => condition.toString();
 
   @override
   void preVisit(PreVisitor visitor) {
     condition.preVisit(visitor);
-    visitor._assignedVariables.beginNode();
-    ifTrue.preVisit(visitor);
-    visitor._assignedVariables.endNode(this);
-    ifFalse?.preVisit(visitor);
+    super.preVisit(visitor);
   }
 
   @override
@@ -1748,6 +1760,68 @@ class _If extends Statement {
     h.typeAnalyzer.analyzeIfStatement(this, condition, ifTrue, ifFalse);
     h.irBuilder.apply(
         'if', [Kind.expression, Kind.statement, Kind.statement], Kind.statement,
+        location: location);
+  }
+}
+
+abstract class _IfBase extends Statement {
+  final Statement ifTrue;
+  final Statement? ifFalse;
+
+  _IfBase(this.ifTrue, this.ifFalse, {required super.location});
+
+  String get _conditionPartString;
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    visitor._assignedVariables.beginNode();
+    ifTrue.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
+    ifFalse?.preVisit(visitor);
+  }
+
+  @override
+  String toString() =>
+      'if ($_conditionPartString) $ifTrue' +
+      (ifFalse == null ? '' : 'else $ifFalse');
+}
+
+class _IfCase extends _IfBase {
+  final Expression _expression;
+  final Pattern _pattern;
+  final Expression? _guard;
+
+  _IfCase(
+      this._expression, this._pattern, this._guard, super.ifTrue, super.ifFalse,
+      {required super.location});
+
+  @override
+  String get _conditionPartString => '$_expression case $_pattern';
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    _expression.preVisit(visitor);
+    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
+    _pattern.preVisit(visitor, variableBinder);
+    variableBinder.finish();
+    _guard?.preVisit(visitor);
+    super.preVisit(visitor);
+  }
+
+  @override
+  void visit(Harness h) {
+    h.typeAnalyzer.analyzeIfCaseStatement(
+        this, _expression, _pattern, _guard, ifTrue, ifFalse);
+    h.irBuilder.apply(
+        'ifCase',
+        [
+          Kind.expression,
+          Kind.pattern,
+          Kind.expression,
+          Kind.statement,
+          Kind.statement
+        ],
+        Kind.statement,
         location: location);
   }
 }
@@ -2192,22 +2266,6 @@ class _MiniAstTypeAnalyzer
             flow.operations.promoteToNonNull(leftType), rightType));
   }
 
-  void analyzeIfStatement(Statement node, Expression condition,
-      Statement ifTrue, Statement? ifFalse) {
-    flow.ifStatement_conditionBegin();
-    analyzeExpression(condition, unknownType);
-    flow.ifStatement_thenBegin(condition, node);
-    dispatchStatement(ifTrue);
-    if (ifFalse == null) {
-      handleNoStatement(node);
-      flow.ifStatement_end(false);
-    } else {
-      flow.ifStatement_elseBegin();
-      dispatchStatement(ifFalse);
-      flow.ifStatement_end(true);
-    }
-  }
-
   void analyzeLabeledStatement(Statement node, Statement body) {
     flow.labeledStatement_begin(node);
     dispatchStatement(body);
@@ -2441,6 +2499,7 @@ class _MiniAstTypeAnalyzer
     _irBuilder.atom('failure', Kind.expression, location: node.location);
   }
 
+  @override
   void handleNoStatement(Node node) {
     _irBuilder.atom('noop', Kind.statement, location: node.location);
   }
