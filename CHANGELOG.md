@@ -81,11 +81,11 @@
 
 #### `dart:io`
 
-- **Breaking Change** [#49305](https://github.com/dart-lang/sdk/issues/49305):
+- **Breaking change** [#49305](https://github.com/dart-lang/sdk/issues/49305):
   Disallow negative or hexadecimal content-length headers.
-- **Breaking change** [#49647][]: `File.create` now takes new optional
-  `exclusive` `bool` parameter, and when it is `true` the operation
-  will fail if target file already exists.
+- **Breaking change** [#49647](https://github.com/dart-lang/sdk/issues/49647):
+  `File.create` now takes new optional `exclusive` `bool` parameter, and
+  when it is `true` the operation will fail if target file already exists.
 
 #### `dart:isolate`
 
