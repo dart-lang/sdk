@@ -96,6 +96,11 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
+    // Don't add "void" for setters.
+    if (node.isSetter) {
+      return;
+    }
+
     final declaration = node.declaredElement2;
     if (declaration != null) {
       // For getters/setters, the type must come before the property keyword,

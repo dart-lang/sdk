@@ -250,8 +250,9 @@ class A {
     final content = '''
 set f(int i) {}
 ''';
+    // Setters are always `void` so we don't show a label there.
     final expected = '''
-(Type:void) set f(int i) {}
+set f(int i) {}
 ''';
     await _testHints(content, expected);
   }
