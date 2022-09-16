@@ -717,12 +717,18 @@ class SearchedFiles {
   final Map<Uri, Search> uriOwners = {};
 
   bool add(String path, Search search) {
-    var file = search._driver.fsState.getFileForPath(path);
+    final fsState = search._driver.fsState;
+    final file = fsState.resourceProvider.getFile(path);
+    final fileState = fsState.getExisting(file);
+    if (fileState == null) {
+      return false;
+    }
+
     var pathOwner = pathOwners[path];
-    var uriOwner = uriOwners[file.uri];
+    var uriOwner = uriOwners[fileState.uri];
     if (pathOwner == null && uriOwner == null) {
       pathOwners[path] = search;
-      uriOwners[file.uri] = search;
+      uriOwners[fileState.uri] = search;
       return true;
     }
     return identical(pathOwner, search) && identical(uriOwner, search);

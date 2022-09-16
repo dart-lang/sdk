@@ -469,6 +469,46 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
         offset: 85, codeOffset: 77, codeLength: 45);
   }
 
+  test_issue49951_references_dontAddToKnown_unrelated() async {
+    final myRoot = newFolder('$workspaceRootPath/packages/my');
+
+    final myFile = newFile('${myRoot.path}/lib/my.dart', r'''
+class A {}
+''');
+
+    // Configure `package:my`.
+    writePackageConfig(
+      getFile('${myRoot.path}/.dart_tool/package_config.json').path,
+      PackageConfigFileBuilder()..add(name: 'my', rootPath: myRoot.path),
+    );
+
+    final myDriver = driverFor(myFile);
+    final mySession = contextFor(myFile).currentSession;
+    final libraryElementResult =
+        await mySession.getLibraryByUri('package:my/my.dart');
+    libraryElementResult as LibraryElementResult;
+
+    final A = libraryElementResult.element.getClass('A')!;
+
+    final searchedFiles = SearchedFiles();
+    searchedFiles.ownAnalyzed(myDriver.search);
+
+    final testDriver = driverFor(testFile);
+
+    // No references, but this is not the most important.
+    final references = await testDriver.search.references(A, searchedFiles);
+    expect(references, isEmpty);
+
+    // We should not add the file to known files. It is not in the
+    // `package:test` itself, and not in a package from its package config.
+    // So, it is absolutely unrelated to `package:test`.
+    for (final knowFile in testDriver.fsState.knownFiles) {
+      if (knowFile.path == myFile.path) {
+        fail('The file should not be added.');
+      }
+    }
+  }
+
   test_searchMemberReferences_qualified_resolved() async {
     await resolveTestCode('''
 class C {
