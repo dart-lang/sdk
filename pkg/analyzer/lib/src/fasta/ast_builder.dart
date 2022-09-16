@@ -1929,17 +1929,18 @@ class AstBuilder extends StackListener {
     assert(optional('if', ifToken));
     assert(optionalOrNull('else', elseToken));
 
-    var elsePart = popIfNotNull(elseToken) as Statement?;
-    var thenPart = pop() as Statement;
+    var elsePart = popIfNotNull(elseToken) as StatementImpl?;
+    var thenPart = pop() as StatementImpl;
     var condition = pop() as _ParenthesizedCondition;
-    push(ast.ifStatement(
-        ifToken,
-        condition.leftParenthesis,
-        condition.expression,
-        condition.rightParenthesis,
-        thenPart,
-        elseToken,
-        elsePart));
+    push(IfStatementImpl(
+        ifKeyword: ifToken,
+        leftParenthesis: condition.leftParenthesis,
+        condition: condition.expression,
+        caseClause: null,
+        rightParenthesis: condition.rightParenthesis,
+        thenStatement: thenPart,
+        elseKeyword: elseToken,
+        elseStatement: elsePart));
   }
 
   @override
@@ -4802,14 +4803,15 @@ class AstBuilder extends StackListener {
         elseElement == _invalidCollectionElement) {
       push(_invalidCollectionElement);
     } else if (enableControlFlowCollections) {
-      push(ast.ifElement(
+      push(IfElementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
         condition: condition.expression,
+        caseClause: null,
         rightParenthesis: condition.rightParenthesis,
-        thenElement: thenElement,
+        thenElement: thenElement as CollectionElementImpl,
         elseKeyword: elseToken,
-        elseElement: elseElement,
+        elseElement: elseElement as CollectionElementImpl?,
       ));
     } else {
       _reportFeatureNotEnabled(

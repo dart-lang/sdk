@@ -6521,16 +6521,18 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
 
   /// Initialize a newly created for element.
   IfElementImpl(
-      this.ifKeyword,
-      this.leftParenthesis,
-      ExpressionImpl condition,
-      this.caseClause,
-      this.rightParenthesis,
-      this._thenElement,
-      this.elseKeyword,
-      this._elseElement)
-      : _condition = condition {
-    _becomeParentOf(condition);
+      {required this.ifKeyword,
+      required this.leftParenthesis,
+      required ExpressionImpl condition,
+      required this.caseClause,
+      required this.rightParenthesis,
+      required CollectionElementImpl thenElement,
+      required this.elseKeyword,
+      required CollectionElementImpl? elseElement})
+      : _condition = condition,
+        _thenElement = thenElement,
+        _elseElement = elseElement {
+    _becomeParentOf(_condition);
     _becomeParentOf(caseClause);
     _becomeParentOf(_thenElement);
     _becomeParentOf(_elseElement);
@@ -6629,14 +6631,17 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   /// Initialize a newly created if statement. The [elseKeyword] and
   /// [elseStatement] can be `null` if there is no else clause.
   IfStatementImpl(
-      this.ifKeyword,
-      this.leftParenthesis,
-      this._condition,
-      this.caseClause,
-      this.rightParenthesis,
-      this._thenStatement,
-      this.elseKeyword,
-      this._elseStatement) {
+      {required this.ifKeyword,
+      required this.leftParenthesis,
+      required ExpressionImpl condition,
+      required this.caseClause,
+      required this.rightParenthesis,
+      required StatementImpl thenStatement,
+      required this.elseKeyword,
+      required StatementImpl? elseStatement})
+      : _condition = condition,
+        _thenStatement = thenStatement,
+        _elseStatement = elseStatement {
     _becomeParentOf(_condition);
     _becomeParentOf(caseClause);
     _becomeParentOf(_thenStatement);

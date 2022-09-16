@@ -106,42 +106,6 @@ class AstFactoryImpl {
           parameters as FormalParameterListImpl,
           question);
 
-  IfElementImpl ifElement(
-          {required Token ifKeyword,
-          required Token leftParenthesis,
-          required Expression condition,
-          required Token rightParenthesis,
-          required CollectionElement thenElement,
-          Token? elseKeyword,
-          CollectionElement? elseElement}) =>
-      IfElementImpl(
-          ifKeyword,
-          leftParenthesis,
-          condition as ExpressionImpl,
-          null,
-          rightParenthesis,
-          thenElement as CollectionElementImpl,
-          elseKeyword,
-          elseElement as CollectionElementImpl?);
-
-  IfStatementImpl ifStatement(
-          Token ifKeyword,
-          Token leftParenthesis,
-          Expression condition,
-          Token rightParenthesis,
-          Statement thenStatement,
-          Token? elseKeyword,
-          Statement? elseStatement) =>
-      IfStatementImpl(
-          ifKeyword,
-          leftParenthesis,
-          condition as ExpressionImpl,
-          null,
-          rightParenthesis,
-          thenStatement as StatementImpl,
-          elseKeyword,
-          elseStatement as StatementImpl?);
-
   ImplicitCallReferenceImpl implicitCallReference({
     required Expression expression,
     required MethodElement staticElement,

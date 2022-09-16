@@ -659,11 +659,12 @@ class AstBinaryReader {
   }
 
   IfElement _readIfElement() {
-    var condition = readNode() as Expression;
-    var thenElement = readNode() as CollectionElement;
-    var elseElement = _readOptionalNode() as CollectionElement?;
-    return astFactory.ifElement(
+    var condition = readNode() as ExpressionImpl;
+    var thenElement = readNode() as CollectionElementImpl;
+    var elseElement = _readOptionalNode() as CollectionElementImpl?;
+    return IfElementImpl(
       condition: condition,
+      caseClause: null,
       elseElement: elseElement,
       elseKeyword: elseElement != null ? Tokens.else_() : null,
       ifKeyword: Tokens.if_(),
