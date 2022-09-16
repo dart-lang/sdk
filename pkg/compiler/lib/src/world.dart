@@ -69,6 +69,9 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
 
   Iterable<MemberEntity> get processedMembers;
 
+  @override
+  Iterable<MemberEntity> get liveInstanceMembers;
+
   /// Returns the set of interfaces passed as type arguments to the internal
   /// `extractTypeArguments` function.
   Set<ClassEntity> get extractTypeArgumentsInterfacesNewRti;

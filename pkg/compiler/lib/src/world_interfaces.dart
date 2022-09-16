@@ -29,6 +29,8 @@ abstract class JClosedWorld implements World {
 
   AnnotationsData get annotationsData;
 
+  Iterable<MemberEntity> get liveInstanceMembers;
+
   bool isUsedAsMixin(ClassEntity cls);
 
   bool includesClosureCall(Selector selector, AbstractValue? receiver);
