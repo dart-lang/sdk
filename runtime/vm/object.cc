@@ -11079,25 +11079,36 @@ void Field::set_guarded_list_length_in_object_offset_unsafe(
 }
 
 bool Field::NeedsSetter() const {
-  // Late fields always need a setter, unless they're static and non-final, or
-  // final with an initializer.
-  if (is_late()) {
-    if (is_static() && !is_final()) {
-      return false;
+  // According to the Dart language specification, final fields don't have
+  // a setter, except late final fields without initializer.
+  if (is_final()) {
+    // Late final fields without initializer always need a setter to check
+    // if they are already initialized.
+    if (is_late() && !has_initializer()) {
+      return true;
     }
-    if (is_final() && has_initializer()) {
-      return false;
-    }
-    return true;
-  }
-
-  // Non-late static fields never need a setter.
-  if (is_static()) {
     return false;
   }
 
-  // Otherwise, the field only needs a setter if it isn't final.
-  return !is_final();
+  // Instance non-final fields always need a setter.
+  if (!is_static()) {
+    return true;
+  }
+
+  // Setter is needed to make null assertions.
+  if (FLAG_null_assertions) {
+    Thread* thread = Thread::Current();
+    IsolateGroup* isolate_group = thread->isolate_group();
+    if (!isolate_group->null_safety() && isolate_group->asserts()) {
+      if (AbstractType::Handle(thread->zone(), type()).NeedsNullAssertion()) {
+        return true;
+      }
+    }
+  }
+
+  // Othwerwise, setters for static fields can be omitted
+  // and fields can be accessed directly.
+  return false;
 }
 
 bool Field::NeedsGetter() const {
@@ -20756,6 +20767,24 @@ AbstractTypePtr AbstractType::UnwrapFutureOr() const {
     type_arg = type_args.TypeAt(0);
   }
   return type_arg.ptr();
+}
+
+bool AbstractType::NeedsNullAssertion() const {
+  if (!IsNonNullable()) {
+    return false;
+  }
+  if (IsTypeRef()) {
+    return AbstractType::Handle(TypeRef::Cast(*this).type())
+        .NeedsNullAssertion();
+  }
+  if (IsTypeParameter()) {
+    return AbstractType::Handle(TypeParameter::Cast(*this).bound())
+        .NeedsNullAssertion();
+  }
+  if (IsFutureOrType()) {
+    return AbstractType::Handle(UnwrapFutureOr()).NeedsNullAssertion();
+  }
+  return true;
 }
 
 bool AbstractType::IsSubtypeOf(const AbstractType& other,
