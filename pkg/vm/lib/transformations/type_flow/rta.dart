@@ -459,6 +459,16 @@ class _ConstantVisitor extends ConstantVisitor<void> {
   }
 
   @override
+  void visitRecordConstant(RecordConstant constant) {
+    for (var value in constant.positional) {
+      visit(value);
+    }
+    for (var value in constant.named.values) {
+      visit(value);
+    }
+  }
+
+  @override
   void visitInstanceConstant(InstanceConstant constant) {
     rta.addAllocatedClass(constant.classNode);
     for (var value in constant.fieldValues.values) {

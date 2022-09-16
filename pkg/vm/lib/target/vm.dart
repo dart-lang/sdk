@@ -34,6 +34,7 @@ class VmTarget extends Target {
   Class? _internalImmutableLinkedHashSet;
   Class? _internalLinkedHashMap;
   Class? _internalLinkedHashSet;
+  Class? _record;
   Class? _oneByteString;
   Class? _twoByteString;
   Class? _smi;
@@ -450,6 +451,15 @@ class VmTarget extends Target {
     return _internalImmutableLinkedHashSet ??= coreTypes.index
         .getClass('dart:collection', '_InternalImmutableLinkedHashSet');
   }
+
+  @override
+  Class concreteRecordLiteralClass(CoreTypes coreTypes) {
+    return _record ??= coreTypes.index.getClass('dart:core', '_Record');
+  }
+
+  @override
+  Class concreteConstRecordLiteralClass(CoreTypes coreTypes) =>
+      concreteRecordLiteralClass(coreTypes);
 
   @override
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) {

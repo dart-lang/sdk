@@ -1618,6 +1618,34 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
+  TypeExpr visitRecordLiteral(RecordLiteral node) {
+    for (var expr in node.positional) {
+      _visit(expr);
+    }
+    for (var expr in node.named) {
+      _visit(expr.value);
+    }
+    Class? concreteClass =
+        target.concreteRecordLiteralClass(_environment.coreTypes);
+    if (concreteClass != null) {
+      return _entryPointsListener.addAllocatedClass(concreteClass);
+    }
+    return _staticType(node);
+  }
+
+  @override
+  TypeExpr visitRecordIndexGet(RecordIndexGet node) {
+    _visit(node.receiver);
+    return _staticType(node);
+  }
+
+  @override
+  TypeExpr visitRecordNameGet(RecordNameGet node) {
+    _visit(node.receiver);
+    return _staticType(node);
+  }
+
+  @override
   TypeExpr visitInstanceInvocation(InstanceInvocation node) {
     final receiverNode = node.receiver;
     final receiver = _visit(receiverNode);
@@ -2557,6 +2585,24 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
               .cls,
           null,
           constant);
+    }
+    return _getStaticType(constant);
+  }
+
+  @override
+  Type visitRecordConstant(RecordConstant constant) {
+    for (var value in constant.positional) {
+      typeFor(value);
+    }
+    for (var value in constant.named.values) {
+      typeFor(value);
+    }
+    Class? concreteClass = summaryCollector.target
+        .concreteConstRecordLiteralClass(
+            summaryCollector._environment.coreTypes);
+    if (concreteClass != null) {
+      return summaryCollector._entryPointsListener
+          .addAllocatedClass(concreteClass);
     }
     return _getStaticType(constant);
   }
