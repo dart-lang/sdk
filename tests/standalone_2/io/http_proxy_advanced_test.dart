@@ -334,8 +334,8 @@ void testProxyIPV6() {
   });
 }
 
-int testProxyFromEnviromentDoneCount = 0;
-void testProxyFromEnviroment() {
+int testProxyFromEnvironmentDoneCount = 0;
+void testProxyFromEnvironment() {
   setupProxyServer().then((proxyServer) {
     setupServer(1).then((server) {
       setupServer(1, secure: true).then((secureServer) {
@@ -363,8 +363,8 @@ void testProxyFromEnviroment() {
               return clientRequest.close();
             }).then((HttpClientResponse response) {
               response.listen((_) {}, onDone: () {
-                testProxyFromEnviromentDoneCount++;
-                if (testProxyFromEnviromentDoneCount == loopCount * 2) {
+                testProxyFromEnvironmentDoneCount++;
+                if (testProxyFromEnvironmentDoneCount == loopCount * 2) {
                   Expect.equals(loopCount, server.requestCount);
                   Expect.equals(loopCount, secureServer.requestCount);
                   proxyServer.shutdown();
@@ -614,7 +614,7 @@ void testRealProxyAuth() {
 
 main() {
   testProxyIPV6();
-  testProxyFromEnviroment();
+  testProxyFromEnvironment();
   // The two invocations use the same global variable for state -
   // run one after the other.
   testProxyAuthenticate(false).then((_) => testProxyAuthenticate(true));

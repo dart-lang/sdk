@@ -83,7 +83,7 @@ class KernelScopeInfo {
   String toString() {
     StringBuffer sb = StringBuffer();
     sb.write('KernelScopeInfo(this=$hasThisLocal,');
-    sb.write('freeVriables=$freeVariables,');
+    sb.write('freeVariables=$freeVariables,');
     sb.write('localsUsedInTryOrSync={${localsUsedInTryOrSync.join(', ')}}');
     String comma = '';
     sb.write('freeVariablesForRti={');

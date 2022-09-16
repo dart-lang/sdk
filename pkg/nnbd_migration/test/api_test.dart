@@ -3857,7 +3857,7 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_field_final_uninitalized_used() async {
+  Future<void> test_field_final_uninitialized_used() async {
     var content = '''
 class C {
   final String s;
@@ -4244,7 +4244,7 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_field_uninitalized_used() async {
+  Future<void> test_field_uninitialized_used() async {
     var content = '''
 class C {
   String s;
@@ -4268,7 +4268,7 @@ g(String s) {}
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_field_uninitalized_used_hint() async {
+  Future<void> test_field_uninitialized_used_hint() async {
     var content = '''
 class C {
   String /*?*/ s;
@@ -6344,7 +6344,7 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_localVariable_uninitalized_assigned_non_nullable() async {
+  Future<void> test_localVariable_uninitialized_assigned_non_nullable() async {
     var content = '''
 f() {
   String s;
@@ -6366,7 +6366,7 @@ h(String s) {}
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_localVariable_uninitalized_used() async {
+  Future<void> test_localVariable_uninitialized_used() async {
     var content = '''
 f() {
   String s;
@@ -6386,7 +6386,7 @@ g(String s) {}
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_localVariable_uninitalized_usedInComparison() async {
+  Future<void> test_localVariable_uninitialized_usedInComparison() async {
     var content = '''
 f() {
   String s;
@@ -6403,7 +6403,7 @@ f() {
   }
 
   Future<void>
-      test_localVariable_uninitalized_usedInExpressionStatement() async {
+      test_localVariable_uninitialized_usedInExpressionStatement() async {
     var content = '''
 f() {
   String s;
@@ -6419,7 +6419,7 @@ f() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_localVariable_uninitalized_usedInForUpdaters() async {
+  Future<void> test_localVariable_uninitialized_usedInForUpdaters() async {
     var content = '''
 f() {
   String s;
@@ -6435,7 +6435,7 @@ f() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_localVariable_uninitalized_usedInForVariable() async {
+  Future<void> test_localVariable_uninitialized_usedInForVariable() async {
     var content = '''
 f() {
   String s;
@@ -9256,7 +9256,7 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_topLevelVariable_uninitalized_used() async {
+  Future<void> test_topLevelVariable_uninitialized_used() async {
     var content = '''
 String s;
 f() {

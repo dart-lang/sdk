@@ -109,7 +109,8 @@ void checkTypeAnnotation(
 
 void checkParameterDeclaration(
     ParameterData expected, ParameterDeclaration declaration, String context) {
-  expect(expected.name, declaration.identifier.name, '$context.identifer.name');
+  expect(
+      expected.name, declaration.identifier.name, '$context.identifier.name');
   expect(expected.isNamed, declaration.isNamed, '$context.isNamed');
   expect(expected.isRequired, declaration.isRequired, '$context.isRequired');
   checkTypeAnnotation(expected.type, declaration.type, '$context.type');

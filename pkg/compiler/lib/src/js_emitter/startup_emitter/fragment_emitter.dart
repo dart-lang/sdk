@@ -270,7 +270,7 @@ function tearOffParameters(
     #tpIsStatic: isStatic,
     #tpIsIntercepted: isIntercepted,
     #tpRequiredParameterCount: requiredParameterCount,
-    #tpOptionalParamaterDefaultValues: optionalParameterDefaultValues,
+    #tpOptionalParameterDefaultValues: optionalParameterDefaultValues,
     #tpCallNames: callNames,
     #tpFunctionsOrNames: funsOrNames,
     #tpFunctionType: funType,
@@ -739,7 +739,7 @@ class FragmentEmitter {
           js.string(TearOffParametersPropertyNames.isIntercepted),
       'tpRequiredParameterCount':
           js.string(TearOffParametersPropertyNames.requiredParameterCount),
-      'tpOptionalParamaterDefaultValues': js.string(
+      'tpOptionalParameterDefaultValues': js.string(
           TearOffParametersPropertyNames.optionalParameterDefaultValues),
       'tpCallNames': js.string(TearOffParametersPropertyNames.callNames),
       'tpFunctionsOrNames':
@@ -1172,7 +1172,7 @@ class FragmentEmitter {
   js.Statement emitInheritance(Fragment fragment) {
     List<js.Statement> inheritCalls = [];
     List<js.Statement> mixinCalls = [];
-    // local caches of functions to allow minifaction of function name in call.
+    // local caches of functions to allow minification of function name in call.
     LocalAliases locals = LocalAliases();
 
     Set<Class> classesInFragment = Set();

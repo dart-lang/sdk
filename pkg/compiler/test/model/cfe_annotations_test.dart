@@ -428,7 +428,7 @@ main(List<String> args) {
               Expect.equals(
                   expectedAnonymousJsInteropClass,
                   nativeData.isAnonymousJsInteropClass(classEntity),
-                  "Unexpected js anonymousclass result from native data for "
+                  "Unexpected js anonymous class result from native data for "
                   "$cls");
 
               for (ir.Member member in cls.members) {

@@ -1706,7 +1706,7 @@ void ScopeBuilder::AddExceptionVariable(
                      AbstractType::dynamic_type());
 
     // If transformer did not lift the variable then there is no need
-    // to lift it into the context when we encouter a YieldStatement.
+    // to lift it into the context when we encounter a YieldStatement.
     v->set_is_forced_stack();
     current_function_scope_->AddVariable(v);
   }

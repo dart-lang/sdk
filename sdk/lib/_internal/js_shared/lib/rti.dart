@@ -2249,7 +2249,7 @@ class _Universe {
 ///     binding(interface("Map", [num,dynamic]), [int, bool])
 ///             0                 3   4           1    2
 ///
-/// Any environment can be reconstructed via a recipe. The above enviroment for
+/// Any environment can be reconstructed via a recipe. The above environment for
 /// method `cast` can be constructed as the ground term
 /// `Map<num,dynamic><int,bool>`, or (somewhat pointlessly) reconstructed via
 /// `0<1,2>` or `Map<3,4><1,2>`. The ability to construct an environment

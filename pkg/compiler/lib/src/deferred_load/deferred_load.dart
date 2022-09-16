@@ -20,10 +20,10 @@
 /// generates _load lists_: a list of JavaScript files that need to be
 /// downloaded for every deferred import in the program.
 ///
-/// Each generated JavaScript file has an initialzation within it. The files can
-/// be concatenated together in a bundle without affecting the initialization
-/// logic. This is used by customers to reduce the download latency when they
-/// know that multiple files will be loaded at once.
+/// Each generated JavaScript file has an initialization within it. The files
+/// can be concatenated together in a bundle without affecting the
+/// initialization logic. This is used by customers to reduce the download
+/// latency when they know that multiple files will be loaded at once.
 ///
 /// *The code splitting algorithm*
 ///
@@ -262,7 +262,7 @@
 /// into a set containing `{A, B}`.
 ///
 // TODO(joshualitt): update doc above when main is represented by a set
-// containing an implict import corresponding to `main`.
+// containing an implicit import corresponding to `main`.
 // TODO(sigmund): investigate different heuristics for how to select the next
 // work item (e.g. we might converge faster if we pick first the update that
 // contains a bigger delta.)

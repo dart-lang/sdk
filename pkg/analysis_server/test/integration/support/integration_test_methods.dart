@@ -1086,7 +1086,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   A list of objects each containing a path and the additional libraries
   ///   from which the client is interested in receiving completion
-  ///   suggestions. If one configured path is beneath another, the descendent
+  ///   suggestions. If one configured path is beneath another, the descendant
   ///   will override the ancestors' configured libraries of interest.
   @deprecated
   Future sendCompletionRegisterLibraryPaths(List<LibraryPathSet> paths) async {
