@@ -2162,11 +2162,17 @@ class FieldInvalidator {
         ASSERT(!FLAG_identity_reload || instance_.IsNull());
         field.set_needs_load_guard(true);
       } else {
-        cache_.AddCheck(instance_cid_or_signature_, type_,
-                        instance_type_arguments_, instantiator_type_arguments_,
-                        function_type_arguments_,
-                        parent_function_type_arguments_,
-                        delayed_function_type_arguments_, Bool::True());
+        // Do not add record instances to cache as they don't have a valid
+        // key (type of a record depends on types of all its fields).
+        // TODO(dartbug.com/49719): consider testing each record field using
+        // SubtypeTestCache.
+        if (cid != kRecordCid) {
+          cache_.AddCheck(
+              instance_cid_or_signature_, type_, instance_type_arguments_,
+              instantiator_type_arguments_, function_type_arguments_,
+              parent_function_type_arguments_, delayed_function_type_arguments_,
+              Bool::True());
+        }
       }
     }
   }

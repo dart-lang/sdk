@@ -2583,8 +2583,11 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
                                     is_not_instance_lbl);
   }
   if (type.IsRecordType()) {
-    // TODO(dartbug.com/49719)
-    UNIMPLEMENTED();
+    // Subtype test cache stubs are not useful for record types.
+    // Fall through to runtime.
+    // TODO(dartbug.com/49719): generate separate type test
+    // for each record field.
+    return SubtypeTestCache::New();
   }
 
   if (type.IsInstantiated()) {
@@ -2702,6 +2705,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   __ Comment("InstantiatedTypeWithArgumentsTest");
   ASSERT(type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
+  ASSERT(!type.IsRecordType());
   const Class& type_class = Class::ZoneHandle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() > 0);
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
@@ -2766,6 +2770,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ Comment("InstantiatedTypeNoArgumentsTest");
   ASSERT(type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
+  ASSERT(!type.IsRecordType());
   const Class& type_class = Class::Handle(zone(), type.type_class());
   ASSERT(type_class.NumTypeArguments() == 0);
 
@@ -2830,6 +2835,7 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   __ Comment("UninstantiatedTypeTest");
   ASSERT(!type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
+  ASSERT(!type.IsRecordType());
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     // We don't use TypeTestABI::kScratchReg as it is not defined on IA32.
@@ -3193,7 +3199,7 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     return output_dst_type();
   }
 
-  if (dst_type.IsFunctionType()) {
+  if (dst_type.IsFunctionType() || dst_type.IsRecordType()) {
     return output_dst_type();
   }
 

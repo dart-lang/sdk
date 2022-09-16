@@ -359,8 +359,8 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
 
   switch (slot.kind()) {
     case Slot::Kind::kCapturedVariable:  // Context
-      return true;
-    case Slot::Kind::kDartField:  // Instance
+    case Slot::Kind::kDartField:         // Instance
+    case Slot::Kind::kRecordField:       // Instance
       return true;
 
 #define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, __, ___)           \

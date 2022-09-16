@@ -18432,6 +18432,7 @@ void SubtypeTestCache::AddCheck(
              ->isolate_group()
              ->subtype_test_cache_mutex()
              ->IsOwnedByCurrentThread());
+  ASSERT(Smi::New(kRecordCid) != instance_class_id_or_signature.ptr());
 
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(cache());
@@ -19630,16 +19631,20 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
   }
   if (cls.IsClosureClass()) {
     FunctionType& signature = FunctionType::Handle(
-        Closure::Cast(*this).GetInstantiatedSignature(zone));
+        zone, Closure::Cast(*this).GetInstantiatedSignature(zone));
     if (!signature.IsFinalized()) {
       signature.SetIsFinalized();
     }
     signature ^= signature.Canonicalize(thread, nullptr);
     return signature.ptr();
   }
-  if (cls.IsRecordClass()) {
-    // TODO(dartbug.com/49719)
-    UNIMPLEMENTED();
+  if (IsRecord()) {
+    ASSERT(cls.IsRecordClass());
+    auto& record_type =
+        RecordType::Handle(zone, Record::Cast(*this).GetRecordType());
+    ASSERT(record_type.IsFinalized());
+    ASSERT(record_type.IsCanonical());
+    return record_type.ptr();
   }
   Type& type = Type::Handle(zone);
   if (!cls.IsGeneric()) {
@@ -20588,8 +20593,8 @@ void AbstractType::PrintName(NameVisibility name_visibility,
     return;
   }
   if (IsRecordType()) {
-    // TODO(dartbug.com/49719)
-    UNIMPLEMENTED();
+    RecordType::Cast(*this).Print(name_visibility, printer);
+    return;
   }
   const TypeArguments& args = TypeArguments::Handle(zone, arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
@@ -20905,8 +20910,25 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   }
   // Record types cannot be handled by Class::IsSubtypeOf().
   if (IsRecordType()) {
-    // TODO(dartbug.com/49719)
-    UNIMPLEMENTED();
+    if (other.IsObjectType() || other.IsDartRecordType()) {
+      return !isolate_group->use_strict_null_safety_checks() || !IsNullable() ||
+             !other.IsNonNullable();
+    }
+    if (other.IsRecordType()) {
+      // Check for two record types.
+      if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
+          other.IsNonNullable()) {
+        return false;
+      }
+      return RecordType::Cast(*this).IsSubtypeOf(RecordType::Cast(other),
+                                                 space);
+    }
+    // Apply additional subtyping rules if 'other' is 'FutureOr'.
+    if (IsSubtypeOfFutureOr(zone, other, space, trail)) {
+      return true;
+    }
+    // All possible supertypes for record type have been checked.
+    return false;
   } else if (other.IsRecordType()) {
     // RecordTypes can only be subtyped by other RecordTypes, so don't
     // fall through to class-based type tests.
@@ -20923,9 +20945,9 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
                                        TrailPtr trail) const {
   if (other.IsFutureOrType()) {
     // This function is only called with a receiver that is either a function
-    // type or an uninstantiated type parameter, therefore, it cannot be of
-    // class Future and we can spare the check.
-    ASSERT(IsFunctionType() || IsTypeParameter());
+    // type, record type, or an uninstantiated type parameter.
+    // Therefore, it cannot be of class Future and we can spare the check.
+    ASSERT(IsFunctionType() || IsRecordType() || IsTypeParameter());
     const TypeArguments& other_type_arguments =
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
@@ -27210,13 +27232,19 @@ void RecordType::Print(NameVisibility name_visibility,
     if (i != 0) {
       printer->AddString(", ");
     }
-    if (i >= num_positional_fields) {
-      name = FieldNameAt(i - num_positional_fields);
-      printer->AddString(name.ToCString());
-      printer->AddString(": ");
+    if (i == num_positional_fields) {
+      printer->AddString("{");
     }
     type = FieldTypeAt(i);
     type.PrintName(name_visibility, printer);
+    if (i >= num_positional_fields) {
+      printer->AddString(" ");
+      name = FieldNameAt(i - num_positional_fields);
+      printer->AddString(name.ToCString());
+    }
+  }
+  if (num_positional_fields < num_fields) {
+    printer->AddString("}");
   }
   printer->AddString(")");
   printer->AddString(NullabilitySuffix(name_visibility));
@@ -27347,12 +27375,12 @@ bool RecordType::IsEquivalent(const Instance& other,
       return false;
     }
   }
-  const intptr_t num_named_fields = NumNamedFields();
-  for (intptr_t i = 0; i < num_named_fields; ++i) {
-    field_type = FieldTypeAt(i);
-    other_field_type = other_type.FieldTypeAt(i);
-    if (FieldNameAt(i) != other_type.FieldNameAt(i)) {
-      return false;
+  if (field_names() != other_type.field_names()) {
+    const intptr_t num_named_fields = NumNamedFields();
+    for (intptr_t i = 0; i < num_named_fields; ++i) {
+      if (FieldNameAt(i) != other_type.FieldNameAt(i)) {
+        return false;
+      }
     }
   }
   return true;
@@ -27557,6 +27585,36 @@ AbstractTypePtr RecordType::InstantiateFrom(
   return rec.ptr();
 }
 
+bool RecordType::IsSubtypeOf(const RecordType& other, Heap::Space space) const {
+  if (ptr() == other.ptr()) {
+    return true;
+  }
+  ASSERT(IsFinalized());
+  ASSERT(other.IsFinalized());
+  const intptr_t num_fields = NumFields();
+  if ((num_fields != other.NumFields()) ||
+      (field_names() != other.field_names())) {
+    // Different number of fields or different named fields.
+    return false;
+  }
+  Thread* const thread = Thread::Current();
+  if (!IsNullabilityEquivalent(thread, other, TypeEquality::kInSubtypeTest)) {
+    return false;
+  }
+  // Check subtyping of record field types.
+  Zone* const zone = thread->zone();
+  AbstractType& field_type = Type::Handle(zone);
+  AbstractType& other_field_type = Type::Handle(zone);
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    field_type = FieldTypeAt(i);
+    other_field_type = other.FieldTypeAt(i);
+    if (!field_type.IsSubtypeOf(other_field_type, space)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 intptr_t Record::NumNamedFields() const {
   return Array::LengthOf(field_names());
 }
@@ -27573,6 +27631,8 @@ void Record::set_num_fields(intptr_t num_fields) const {
 void Record::set_field_names(const Array& field_names) const {
   ASSERT(!field_names.IsNull());
   ASSERT(field_names.IsCanonical());
+  ASSERT(field_names.ptr() == Object::empty_array().ptr() ||
+         field_names.Length() > 0);
   untag()->set_field_names(field_names.ptr());
 }
 
@@ -27676,6 +27736,24 @@ void Record::CanonicalizeFieldsLocked(Thread* thread) const {
     obj = obj.CanonicalizeLocked(thread);
     SetFieldAt(i, obj);
   }
+}
+
+RecordTypePtr Record::GetRecordType() const {
+  Zone* const zone = Thread::Current()->zone();
+  const intptr_t num_fields = this->num_fields();
+  const Array& field_types =
+      Array::Handle(zone, Array::New(num_fields, Heap::kOld));
+  Instance& obj = Instance::Handle(zone);
+  AbstractType& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < num_fields; ++i) {
+    obj ^= FieldAt(i);
+    type = obj.GetType(Heap::kNew);
+    field_types.SetAt(i, type);
+  }
+  const Array& field_names = Array::Handle(zone, this->field_names());
+  type = RecordType::New(field_types, field_names, Nullability::kNonNullable);
+  type = ClassFinalizer::FinalizeType(type);
+  return RecordType::Cast(type).ptr();
 }
 
 }  // namespace dart

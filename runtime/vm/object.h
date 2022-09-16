@@ -10886,6 +10886,12 @@ class Record : public Instance {
   virtual uint32_t CanonicalizeHash() const;
   virtual void CanonicalizeFieldsLocked(Thread* thread) const;
 
+  // Returns RecordType representing runtime type of this record instance.
+  // It is not created eagerly when record instance is allocated because
+  // it depends on runtime types of values if its fields, which can be
+  // quite expensive to query.
+  RecordTypePtr GetRecordType() const;
+
  private:
   void set_num_fields(intptr_t num_fields) const;
   void set_field_names(const Array& field_names) const;
