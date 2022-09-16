@@ -314,7 +314,8 @@ class StaticInteropMockCreator extends Transformer {
       Map<ExtensionMemberDescriptor, Class> descriptorToClass,
       Map<String, Member> dartMemberMap) {
     var block = <Statement>[];
-    assert(node.arguments.positional.length == 1);
+    var argsLength = node.arguments.positional.length;
+    assert(argsLength == 1 || argsLength == 2);
     var interopType = node.arguments.types[0];
     var dartType = node.arguments.types[1];
 
@@ -330,22 +331,25 @@ class StaticInteropMockCreator extends Transformer {
         Arguments([StaticGet(_globalThis), StringLiteral('Object')],
             types: [_objectType]));
 
-    // Get a fresh object literal.
-    // TODO(srujzs): Add prototype option for instance checks.
-    StaticInvocation getLiteral() {
+    // Get a fresh object literal, using the proto to create it if one was
+    // given.
+    StaticInvocation getLiteral([Expression? proto]) {
       return StaticInvocation(
           _callMethod,
           Arguments([
             getObjectProperty(),
             StringLiteral('create'),
-            ListLiteral([NullLiteral()]),
+            ListLiteral([proto ?? NullLiteral()]),
           ], types: [
             _objectType
           ]));
     }
 
     var jsMock = VariableDeclaration('#jsMock',
-        initializer: AsExpression(getLiteral(), interopType), type: interopType)
+        initializer: AsExpression(
+            getLiteral(argsLength == 2 ? node.arguments.positional[1] : null),
+            interopType),
+        type: interopType)
       ..fileOffset = node.fileOffset
       ..parent = node.parent;
     block.add(jsMock);

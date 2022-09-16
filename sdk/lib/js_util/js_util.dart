@@ -166,6 +166,10 @@ external Object? dartify(Object? o);
 /// U that implements the external extension members of T, creates a forwarding
 /// mock.
 ///
+/// Optionally, you may provide a JS prototype object e.g. the JS value
+/// `Window.prototype` using [proto]. This allows instanceof and is checks with
+/// `@Native` types to pass with the returned forwarding mock.
+///
 /// When external extension members are called, they will forward to the
 /// corresponding implementing member in [dartMock]. If U does not implement all
 /// the external extension members of T, or if U does not properly override
@@ -194,4 +198,4 @@ external Object? dartify(Object? o);
 /// TODO(srujzs): Add more detail on how inherited extension members need to be
 /// implemented, as well as how conflicts are resolved (if they are resolvable).
 /// The semantics here tries to conform to the view type specification.
-external T createStaticInteropMock<T, U>(U dartMock);
+external T createStaticInteropMock<T, U>(U dartMock, [Object? proto = null]);
