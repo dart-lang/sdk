@@ -62,13 +62,19 @@ class _Visitor extends SimpleAstVisitor<void> {
       var exp = expression.expression;
       if (exp is SimpleIdentifier) {
         var identifier = exp;
-        var bracket = expression.rightBracket;
-        if (bracket != null &&
-            !isIdentifierPart(bracket.next) &&
-            !identifier.name.contains('\$')) {
-          rule.reportLint(expression);
+        if (!identifier.name.contains('\$')) {
+          _check(expression);
         }
+      } else if (exp is ThisExpression) {
+        _check(expression);
       }
+    }
+  }
+
+  void _check(InterpolationExpression expression) {
+    var bracket = expression.rightBracket;
+    if (bracket != null && !isIdentifierPart(bracket.next)) {
+      rule.reportLint(expression);
     }
   }
 }
