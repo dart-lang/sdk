@@ -88,7 +88,7 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
 class _FileResourceInfo extends _ReadWriteResourceInfo {
   static const String _type = 'OpenFile';
 
-  final file;
+  final RandomAccessFile file;
 
   static Map<int, _FileResourceInfo> openFiles = {};
 

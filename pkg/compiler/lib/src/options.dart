@@ -454,6 +454,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// The compiler is run from the build bot.
   bool testMode = false;
 
+  /// Whether to use the development type inferrer.
+  bool experimentalInferrer = false;
+
   /// Whether to trust primitive types during inference and optimizations.
   bool trustPrimitives = false;
 
@@ -685,6 +688,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
+      ..experimentalInferrer = _hasOption(options, Flags.experimentalInferrer)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
       ..useFrequencyNamer =
           !_hasOption(options, Flags.noFrequencyBasedMinification)

@@ -38,6 +38,8 @@ import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
+import 'inferrerExperimental/types.dart' as experimentalInferrer
+    show GlobalTypeInferenceTask;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'ir/modular.dart';
 import 'js_backend/backend.dart' show CodegenInputs;
@@ -116,6 +118,7 @@ class Compiler
   fe.InitializedCompilerState initializedCompilerState;
   bool forceSerializationForTesting = false;
   GlobalTypeInferenceTask globalInference;
+  experimentalInferrer.GlobalTypeInferenceTask experimentalGlobalInference;
   CodegenWorldBuilder _codegenWorldBuilder;
 
   AbstractValueStrategy abstractValueStrategy;
@@ -186,6 +189,8 @@ class Compiler
       loadKernelTask = GenericTask('kernel loader', measurer),
       kernelFrontEndTask,
       globalInference = GlobalTypeInferenceTask(this),
+      experimentalGlobalInference =
+          experimentalInferrer.GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       dumpInfoTask = DumpInfoTask(this),
       selfTask,
@@ -472,6 +477,18 @@ class Compiler
   bool get shouldStopAfterModularAnalysis =>
       compilationFailed || options.writeModularAnalysisUri != null;
 
+  GlobalTypeInferenceResults performExperimentalGlobalTypeInference(
+      JClosedWorld closedWorld) {
+    FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
+    reporter.log('Performing experimental global type inference');
+    GlobalLocalsMap globalLocalsMap =
+        GlobalLocalsMap(closedWorld.closureDataLookup.getEnclosingMember);
+    InferredDataBuilder inferredDataBuilder =
+        InferredDataBuilderImpl(closedWorld.annotationsData);
+    return experimentalGlobalInference.runGlobalTypeInference(
+        mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
+  }
+
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
@@ -594,8 +611,13 @@ class Compiler
     JsClosedWorld closedWorld = closedWorldAndIndices.data;
     DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults;
     if (options.readDataUri == null) {
-      globalTypeInferenceResults =
-          DataAndIndices(performGlobalTypeInference(closedWorld), null);
+      if (options.experimentalInferrer) {
+        globalTypeInferenceResults = DataAndIndices(
+            performExperimentalGlobalTypeInference(closedWorld), null);
+      } else {
+        globalTypeInferenceResults =
+            DataAndIndices(performGlobalTypeInference(closedWorld), null);
+      }
       if (options.writeDataUri != null) {
         serializationTask.serializeGlobalTypeInference(
             globalTypeInferenceResults.data, closedWorldAndIndices.indices);

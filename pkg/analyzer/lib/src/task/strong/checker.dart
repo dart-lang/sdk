@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart' show CompileTimeErrorCode;
+import 'package:collection/collection.dart';
 
 Element? _getKnownElement(SyntacticEntity expression) {
   if (expression is ParenthesizedExpression) {
@@ -411,9 +412,7 @@ class CodeChecker extends RecursiveAstVisitor {
       assert(methodElement.isOperator);
       var functionType = methodElement.type;
       var paramTypes = functionType.normalParameterTypes;
-      assert(paramTypes.length == 1);
-      assert(functionType.namedParameterTypes.isEmpty);
-      assert(functionType.optionalParameterTypes.isEmpty);
+      var paramType = paramTypes.firstOrNull ?? _typeProvider.dynamicType;
 
       // Refine the return type.
       var rhsType = expr.rightHandSide.typeOrThrow;
@@ -426,7 +425,7 @@ class CodeChecker extends RecursiveAstVisitor {
       );
 
       // Check the argument for an implicit cast.
-      _checkImplicitCast(expr.rightHandSide, to: paramTypes[0], from: rhsType);
+      _checkImplicitCast(expr.rightHandSide, to: paramType, from: rhsType);
 
       // Check the return type for an implicit cast.
       //
