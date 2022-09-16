@@ -37,6 +37,7 @@
   garbage collected.
 
 [#49635]: https://github.com/dart-lang/sdk/issues/49635
+[#49878]: https://github.com/dart-lang/sdk/issues/49878
 
 ### Libraries
 
