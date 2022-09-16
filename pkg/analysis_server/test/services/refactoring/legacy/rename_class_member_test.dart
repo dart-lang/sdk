@@ -1487,6 +1487,95 @@ enum E {
 ''');
   }
 
+  Future<void> test_createChange_FieldElement_private() async {
+    await indexTestUnit('''
+class C {
+  int? field;
+  C(this.field);
+}
+void f() {
+  var c = C(1);
+  c.field = 1;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('field;');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.oldName, 'field');
+    refactoring.newName = '_field';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class C {
+  int? _field;
+  C(this._field);
+}
+void f() {
+  var c = C(1);
+  c._field = 1;
+}
+''');
+  }
+
+  Future<void> test_createChange_FieldElement_private_initializer() async {
+    await indexTestUnit('''
+class C {
+  int? field;
+  int? other;
+  C({this.field}) : other = field;
+}
+void f() {
+  var c = C(field: 0);
+  c.field = 1;
+}
+''');
+    // configure refactoring
+    var element = findElement.field('field');
+    createRenameRefactoringForElement(element);
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.oldName, 'field');
+    refactoring.newName = '_field';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class C {
+  int? _field;
+  int? other;
+  C({int? field}) : _field = field, other = field;
+}
+void f() {
+  var c = C(field: 0);
+  c._field = 1;
+}
+''');
+  }
+
+  Future<void> test_createChange_FieldElement_private_positional() async {
+    await indexTestUnit('''
+class C {
+  int? field;
+  C([this.field]);
+}
+void f() {
+  C().field;
+}
+''');
+    // configure refactoring
+    var element = findElement.field('field');
+    createRenameRefactoringForElement(element);
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.oldName, 'field');
+    refactoring.newName = '_field';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class C {
+  int? _field;
+  C([this._field]);
+}
+void f() {
+  C()._field;
+}
+''');
+  }
+
   Future<void> test_createChange_MethodElement() async {
     await indexTestUnit('''
 enum E {

@@ -11,114 +11,20 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/// A [Refactoring] for renaming [LocalElement]s.
-class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
-  final AnalysisSessionHelper sessionHelper;
-
-  List<LocalElement> elements = [];
-
-  RenameLocalRefactoringImpl(
-      super.workspace, AnalysisSession session, LocalElement super.element)
-      : sessionHelper = AnalysisSessionHelper(session);
-
-  @override
-  LocalElement get element => super.element as LocalElement;
-
-  @override
-  String get refactoringName {
-    if (element is ParameterElement) {
-      return 'Rename Parameter';
-    }
-    if (element is FunctionElement) {
-      return 'Rename Local Function';
-    }
-    return 'Rename Local Variable';
-  }
-
-  @override
-  Future<RefactoringStatus> checkFinalConditions() async {
-    var result = RefactoringStatus();
-    await _prepareElements();
-    for (var element in elements) {
-      var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
-      var unit = resolvedUnit?.unit;
-      unit?.accept(
-        _ConflictValidatorVisitor(
-          result,
-          newName,
-          element,
-          VisibleRangesComputer.forNode(unit),
-        ),
-      );
-    }
-    return result;
-  }
-
-  @override
-  RefactoringStatus checkNewName() {
-    var result = super.checkNewName();
-    if (element is LocalVariableElement) {
-      result.addStatus(validateVariableName(newName));
-    } else if (element is ParameterElement) {
-      result.addStatus(validateParameterName(newName));
-    } else if (element is FunctionElement) {
-      result.addStatus(validateFunctionName(newName));
-    }
-    return result;
-  }
-
-  @override
-  Future<void> fillChange() async {
-    var processor = RenameProcessor(workspace, change, newName);
-    for (Element element in elements) {
-      processor.addDeclarationEdit(element);
-      var references = await searchEngine.searchReferences(element);
-
-      // Remove references that don't have to have the same name.
-      if (element is ParameterElement) {
-        // Implicit references to optional positional parameters.
-        if (element.isOptionalPositional) {
-          references.removeWhere((match) => match.sourceRange.length == 0);
-        }
-        // References to positional parameters from super-formal.
-        if (element.isPositional) {
-          references.removeWhere(
-            (match) => match.element is SuperFormalParameterElement,
-          );
-        }
-      }
-
-      processor.addReferenceEdits(references);
-    }
-  }
-
-  /// Fills [elements] with [Element]s to rename.
-  Future _prepareElements() async {
-    final element = this.element;
-    if (element is ParameterElement && element.isNamed) {
-      elements = await getHierarchyNamedParameters(searchEngine, element);
-    } else {
-      elements = [element];
-    }
-  }
-}
-
-class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
+class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   final RefactoringStatus result;
   final String newName;
   final LocalElement target;
   final Map<Element, SourceRange> visibleRangeMap;
   final Set<Element> conflictingLocals = <Element>{};
 
-  _ConflictValidatorVisitor(
+  ConflictValidatorVisitor(
     this.result,
     this.newName,
     this.target,
@@ -203,5 +109,57 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   static bool _isNamedExpressionName(SimpleIdentifier node) {
     var parent = node.parent;
     return parent is Label && parent.parent is NamedExpression;
+  }
+}
+
+/// A [Refactoring] for renaming [LocalElement]s (excluding [ParameterElement]).
+class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
+  RenameLocalRefactoringImpl(
+      super.workspace, super.sessionHelper, LocalElement super.element);
+
+  @override
+  LocalElement get element => super.element as LocalElement;
+
+  @override
+  String get refactoringName {
+    if (element is FunctionElement) {
+      return 'Rename Local Function';
+    }
+    return 'Rename Local Variable';
+  }
+
+  @override
+  Future<RefactoringStatus> checkFinalConditions() async {
+    var result = RefactoringStatus();
+    var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
+    var unit = resolvedUnit?.unit;
+    unit?.accept(
+      ConflictValidatorVisitor(
+        result,
+        newName,
+        element,
+        VisibleRangesComputer.forNode(unit),
+      ),
+    );
+    return result;
+  }
+
+  @override
+  RefactoringStatus checkNewName() {
+    var result = super.checkNewName();
+    if (element is LocalVariableElement) {
+      result.addStatus(validateVariableName(newName));
+    } else if (element is FunctionElement) {
+      result.addStatus(validateFunctionName(newName));
+    }
+    return result;
+  }
+
+  @override
+  Future<void> fillChange() async {
+    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
+    processor.addDeclarationEdit(element);
+    var references = await searchEngine.searchReferences(element);
+    processor.addReferenceEdits(references);
   }
 }

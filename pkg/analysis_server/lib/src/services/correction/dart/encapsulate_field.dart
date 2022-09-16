@@ -84,9 +84,8 @@ class EncapsulateField extends CorrectionProducer {
                   builder.addSimpleReplacement(
                       range.startEnd(start, normalParam.period), '$type ');
 
-                  var previous = constructor.initializers.isEmpty
-                      ? constructor.parameters
-                      : constructor.separator!;
+                  var previous =
+                      constructor.separator ?? constructor.parameters;
                   var replacement = constructor.initializers.isEmpty
                       ? ' : _$name = $name'
                       : ' _$name = $name,';

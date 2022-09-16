@@ -10,7 +10,8 @@ import 'package:analyzer/dart/element/element.dart';
 
 /// A [Refactoring] for renaming [LabelElement]s.
 class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
-  RenameLabelRefactoringImpl(super.workspace, LabelElement super.element);
+  RenameLabelRefactoringImpl(
+      super.workspace, super.sessionHelper, LabelElement super.element);
 
   @override
   LabelElement get element => super.element as LabelElement;
@@ -33,7 +34,7 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() {
-    var processor = RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
     return processor.renameElement(element);
   }
 }

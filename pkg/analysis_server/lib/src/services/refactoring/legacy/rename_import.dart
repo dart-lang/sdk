@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -18,11 +17,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A [Refactoring] for renaming [LibraryImportElement]s.
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
-  final AnalysisSession session;
-
-  RenameImportRefactoringImpl(RefactoringWorkspace workspace, this.session,
-      LibraryImportElement element)
-      : super(workspace, element);
+  RenameImportRefactoringImpl(
+      super.workspace, super.sessionHelper, LibraryImportElement super.element);
 
   @override
   LibraryImportElement get element => super.element as LibraryImportElement;
@@ -102,7 +98,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   Future<ImportDirective?> _findNode() async {
     var library = element.library;
     var path = library.source.fullName;
-    var unitResult = session.getParsedUnit(path);
+    var unitResult = sessionHelper.session.getParsedUnit(path);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }
@@ -118,7 +114,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     SourceReference reference,
   ) async {
     var source = reference.element.source!;
-    var unitResult = session.getParsedUnit(source.fullName);
+    var unitResult = sessionHelper.session.getParsedUnit(source.fullName);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }
