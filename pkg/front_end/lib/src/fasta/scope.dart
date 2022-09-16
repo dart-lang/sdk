@@ -419,6 +419,7 @@ class Scope extends MutableScope {
     }
   }
 
+  /// Lookup a member with [name] in the scope.
   Builder? lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope = true}) {
     recordUse(name, charOffset);
@@ -1369,13 +1370,24 @@ abstract class MergedScope<T extends Builder> {
   }
 
   void _addAugmentationScope(T parentBuilder, Scope scope) {
+    // TODO(johnniwinther): Use `scope.filteredNameIterator` instead of
+    // `scope.forEachLocalMember`/`scope.forEachLocalSetter`.
+
     // Include all augmentation scope members to the origin scope.
     scope.forEachLocalMember((String name, Builder member) {
+      // In case of duplicates we use the first declaration.
+      while (member.isDuplicate) {
+        member = member.next!;
+      }
       _addBuilderToMergedScope(parentBuilder, name, member,
           _originScope.lookupLocalMember(name, setter: false),
           setter: false);
     });
     scope.forEachLocalSetter((String name, Builder member) {
+      // In case of duplicates we use the first declaration.
+      while (member.isDuplicate) {
+        member = member.next!;
+      }
       _addBuilderToMergedScope(parentBuilder, name, member,
           _originScope.lookupLocalMember(name, setter: true),
           setter: true);

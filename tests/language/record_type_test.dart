@@ -46,6 +46,12 @@ main() {
 
   ({int ok}) oneElementNamedRecord = (ok: 1);
   print(oneElementNamedRecord);
+
+  () emptyRecord = Record.empty;
+//                        ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+// [cfe] Member not found: 'empty'.
+  print(emptyRecord);
 }
 
 (int, T) f1<T>(T t) {
