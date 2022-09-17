@@ -1907,7 +1907,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endIfControlFlow(Token token) {
-    var thenElement = pop() as CollectionElement;
+    var thenElement = pop() as CollectionElementImpl;
     var condition = pop() as _ParenthesizedCondition;
     var ifToken = pop() as Token;
     pushIfControlFlowInfo(ifToken, condition, thenElement, null, null);
@@ -1915,9 +1915,9 @@ class AstBuilder extends StackListener {
 
   @override
   void endIfElseControlFlow(Token token) {
-    var elseElement = pop() as CollectionElement;
+    var elseElement = pop() as CollectionElementImpl;
     var elseToken = pop() as Token;
-    var thenElement = pop() as CollectionElement;
+    var thenElement = pop() as CollectionElementImpl;
     var condition = pop() as _ParenthesizedCondition;
     var ifToken = pop() as Token;
     pushIfControlFlowInfo(
@@ -1932,7 +1932,8 @@ class AstBuilder extends StackListener {
     var elsePart = popIfNotNull(elseToken) as StatementImpl?;
     var thenPart = pop() as StatementImpl;
     var condition = pop() as _ParenthesizedCondition;
-    push(IfStatementImpl(
+    push(
+      IfStatementImpl(
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
         condition: condition.expression,
@@ -1940,7 +1941,9 @@ class AstBuilder extends StackListener {
         rightParenthesis: condition.rightParenthesis,
         thenStatement: thenPart,
         elseKeyword: elseToken,
-        elseStatement: elsePart));
+        elseStatement: elsePart,
+      ),
+    );
   }
 
   @override
@@ -4796,23 +4799,25 @@ class AstBuilder extends StackListener {
   void pushIfControlFlowInfo(
       Token ifToken,
       _ParenthesizedCondition condition,
-      CollectionElement thenElement,
+      CollectionElementImpl thenElement,
       Token? elseToken,
-      CollectionElement? elseElement) {
+      CollectionElementImpl? elseElement) {
     if (thenElement == _invalidCollectionElement ||
         elseElement == _invalidCollectionElement) {
       push(_invalidCollectionElement);
     } else if (enableControlFlowCollections) {
-      push(IfElementImpl(
-        ifKeyword: ifToken,
-        leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
-        caseClause: null,
-        rightParenthesis: condition.rightParenthesis,
-        thenElement: thenElement as CollectionElementImpl,
-        elseKeyword: elseToken,
-        elseElement: elseElement as CollectionElementImpl?,
-      ));
+      push(
+        IfElementImpl(
+          ifKeyword: ifToken,
+          leftParenthesis: condition.leftParenthesis,
+          condition: condition.expression,
+          caseClause: null,
+          rightParenthesis: condition.rightParenthesis,
+          thenElement: thenElement,
+          elseKeyword: elseToken,
+          elseElement: elseElement,
+        ),
+      );
     } else {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.control_flow_collections,
@@ -5113,7 +5118,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 /// When [enableSpreadCollections] and/or [enableControlFlowCollections]
 /// are false, this class is pushed on the stack when a disabled
 /// [CollectionElement] has been parsed.
-class _InvalidCollectionElement implements CollectionElement {
+class _InvalidCollectionElement implements CollectionElementImpl {
   // TODO(danrubel): Remove this once control flow and spread collections
   // have been enabled by default.
 
