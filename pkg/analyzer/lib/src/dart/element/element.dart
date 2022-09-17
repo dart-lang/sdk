@@ -3641,7 +3641,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   @override
   String toString() {
     StringBuffer buffer = StringBuffer();
-    buffer.write("show ");
+    buffer.write("hide ");
     int count = hiddenNames.length;
     for (int i = 0; i < count; i++) {
       if (i > 0) {
