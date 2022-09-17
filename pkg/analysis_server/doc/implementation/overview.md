@@ -13,7 +13,7 @@ the following feature-specific documents:
 - Flutter Outline
 - Hovers
 - Implemented Markers
-- Navigation
+- [Navigation](navigation.md)
 - Occurrences
 - Organize Imports
 - Outline

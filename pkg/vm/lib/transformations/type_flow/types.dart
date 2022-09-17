@@ -86,6 +86,9 @@ abstract class TypesBuilder {
     } else if (type is FunctionType) {
       // TODO(alexmarkov): support function types
       result = const AnyType();
+    } else if (type is RecordType) {
+      // TODO(dartbug.com/49719): support inference of record types
+      result = const AnyType();
     } else if (type is FutureOrType) {
       // TODO(alexmarkov): support FutureOr types
       result = const AnyType();

@@ -273,7 +273,7 @@ void f() {
     newFile(dotFolderFilePath, 'String a = 1;');
 
     List<Diagnostic>? diagnostics;
-    // Record if diagnostics are recieved, but since we don't expect them
+    // Record if diagnostics are received, but since we don't expect them
     // don't await them.
     unawaited(
         waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d));

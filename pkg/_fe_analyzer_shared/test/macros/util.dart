@@ -146,7 +146,7 @@ extension DebugCodeString on Code {
   }
 }
 
-/// Checks if two [Code] objectss are of the same type and all their fields are
+/// Checks if two [Code] objects are of the same type and all their fields are
 /// equal.
 Matcher deepEqualsCode(Code other) => _DeepEqualityMatcher(other);
 

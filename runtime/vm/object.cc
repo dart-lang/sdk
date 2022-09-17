@@ -25534,7 +25534,7 @@ ExternalTypedDataPtr ExternalTypedData::New(
 
   if (perform_eager_msan_initialization_check) {
     // Once the TypedData is created, Dart might read this memory. Check for
-    // intialization at construction to make it easier to track the source.
+    // initialization at construction to make it easier to track the source.
     MSAN_CHECK_INITIALIZED(data, len);
   }
 

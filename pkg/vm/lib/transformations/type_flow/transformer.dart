@@ -986,11 +986,6 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
   }
 
   @override
-  visitFunctionType(FunctionType node) {
-    node.visitChildren(this);
-  }
-
-  @override
   visitTypeParameterType(TypeParameterType node) {
     final parent = node.parameter.parent;
     if (parent is Class) {
@@ -1951,6 +1946,16 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   visitListConstant(ListConstant constant) {
     for (final Constant entry in constant.entries) {
       analyzeConstant(entry);
+    }
+  }
+
+  @override
+  visitRecordConstant(RecordConstant constant) {
+    for (var value in constant.positional) {
+      analyzeConstant(value);
+    }
+    for (var value in constant.named.values) {
+      analyzeConstant(value);
     }
   }
 

@@ -13,12 +13,14 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
+import 'package:_js_interop_checks/src/transformations/static_interop_mock_creator.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../options.dart';
 import 'invocation_mirror_constants.dart';
@@ -154,19 +156,28 @@ class Dart2jsTarget extends Target {
         coreTypes,
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
         _nativeClasses!);
+    var staticInteropMockCreator = StaticInteropMockCreator(
+        TypeEnvironment(coreTypes, hierarchy), diagnosticReporter);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
-    var staticInteropClassEraser =
-        StaticInteropClassEraser(coreTypes, referenceFromIndex);
+    // Cache extensions for entire component before creating mock.
+    for (var library in libraries) {
+      staticInteropMockCreator.processExtensions(library);
+    }
     for (var library in libraries) {
       jsInteropChecks.visitLibrary(library);
+      staticInteropMockCreator.visitLibrary(library);
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.
       jsUtilOptimizer.visitLibrary(library);
     }
+    var staticInteropClassEraser =
+        StaticInteropClassEraser(coreTypes, referenceFromIndex);
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
     if (canPerformGlobalTransforms) {
       transformMixins.transformLibraries(libraries);
+      // Do the erasure after any possible mock creation to avoid erasing types
+      // that need to be used during mock conformance checking.
       for (var library in libraries) {
         staticInteropClassEraser.visitLibrary(library);
       }

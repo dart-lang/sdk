@@ -1065,15 +1065,17 @@ main(A a) {
     FieldElement field = findElement.field('field');
     PropertyAccessorElement getter = field.getter!;
     PropertyAccessorElement setter = field.setter!;
+
     // A()
-    assertThat(field).isWrittenAt('field});', true, length: 5);
+    assertThat(field)
+      ..isWrittenAt('field});', true, length: 5)
+      ..hasRelationCount(1);
     // m()
     assertThat(setter).isReferencedAt('field = 2; // nq', false, length: 5);
     assertThat(getter).isReferencedAt('field); // nq', false, length: 5);
     // main()
     assertThat(setter).isReferencedAt('field = 3; // q', true, length: 5);
     assertThat(getter).isReferencedAt('field); // q', true, length: 5);
-    assertThat(field).isReferencedAt('field: 4', true, length: 5);
   }
 
   test_isReferencedBy_FieldElement_class_multiple() async {
@@ -1164,15 +1166,17 @@ void f(E e) {
     FieldElement field = findElement.field('field');
     PropertyAccessorElement getter = field.getter!;
     PropertyAccessorElement setter = field.setter!;
+
     // E()
-    assertThat(field).isWrittenAt('field});', true, length: 5);
+    assertThat(field)
+      ..isWrittenAt('field});', true, length: 5)
+      ..hasRelationCount(1);
     // foo()
     assertThat(setter).isReferencedAt('field = 2; // nq', false, length: 5);
     assertThat(getter).isReferencedAt('field; // nq', false, length: 5);
     // f()
     assertThat(setter).isReferencedAt('field = 3; // q', true, length: 5);
     assertThat(getter).isReferencedAt('field; // q', true, length: 5);
-    assertThat(field).isReferencedAt('field: 4', true, length: 5);
   }
 
   test_isReferencedBy_FieldElement_enum_index() async {

@@ -90,7 +90,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   // static elements
   if (member.isStatic || member is ConstructorElement) {
     result.add(member);
-    return Future.value(result);
+    return result;
   }
   // method, field, etc
   if (enclosingElement is InterfaceElement) {

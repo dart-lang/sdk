@@ -38,12 +38,6 @@
   "org-dartlang-sdk:///lib/html/html_common/conversions.dart": {
     "Dynamic invocation of '[]='.": 1
   },
-  "org-dartlang-sdk:///lib/io/io_resource_info.dart": {
-    "Dynamic access of 'dart.io::_path'.": 1,
-    "Dynamic access of 'pid'.": 1,
-    "Dynamic access of 'dart.io::_arguments'.": 1,
-    "Dynamic access of 'dart.io::_workingDirectory'.": 2
-  },
   "org-dartlang-sdk:///lib/io/secure_server_socket.dart": {
     "Dynamic update to 'dart.io::_owner'.": 1
   },

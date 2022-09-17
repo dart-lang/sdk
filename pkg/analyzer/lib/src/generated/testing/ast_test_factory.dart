@@ -394,37 +394,6 @@ class AstTestFactory {
         .toList();
   }
 
-  static IfElementImpl ifElement(
-          Expression condition, CollectionElement thenElement,
-          [CollectionElement? elseElement]) =>
-      astFactory.ifElement(
-          ifKeyword: TokenFactory.tokenFromKeyword(Keyword.IF),
-          leftParenthesis: TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          condition: condition,
-          rightParenthesis: TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          thenElement: thenElement,
-          elseKeyword: elseElement == null
-              ? null
-              : TokenFactory.tokenFromKeyword(Keyword.ELSE),
-          elseElement: elseElement);
-
-  static IfStatementImpl ifStatement(
-          Expression condition, Statement thenStatement) =>
-      ifStatement2(condition, thenStatement, null);
-
-  static IfStatementImpl ifStatement2(Expression condition,
-          Statement thenStatement, Statement? elseStatement) =>
-      astFactory.ifStatement(
-          TokenFactory.tokenFromKeyword(Keyword.IF),
-          TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-          condition,
-          TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-          thenStatement,
-          elseStatement == null
-              ? null
-              : TokenFactory.tokenFromKeyword(Keyword.ELSE),
-          elseStatement);
-
   static ImportDirectiveImpl importDirective(List<Annotation> metadata,
           String uri, bool isDeferred, String? prefix,
           [List<Combinator> combinators = const []]) =>

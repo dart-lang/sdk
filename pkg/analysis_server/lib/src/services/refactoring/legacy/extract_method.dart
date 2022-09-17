@@ -451,7 +451,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
           AnalysisSessionHelper(resolveResult.session), interfaceElement, name);
     }
     // OK
-    return Future<RefactoringStatus>.value(result);
+    return result;
   }
 
   /// Checks if [selectionRange] selects [Expression] which can be extracted,

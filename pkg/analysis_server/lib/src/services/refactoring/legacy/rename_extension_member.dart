@@ -12,7 +12,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -22,15 +21,16 @@ import 'package:analyzer/src/generated/source.dart';
 
 /// A [Refactoring] for renaming extension member [Element]s.
 class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
-  final AnalysisSessionHelper sessionHelper;
   final ExtensionElement extensionElement;
 
   late _ExtensionMemberValidator _validator;
 
-  RenameExtensionMemberRefactoringImpl(RefactoringWorkspace workspace,
-      AnalysisSession session, this.extensionElement, Element element)
-      : sessionHelper = AnalysisSessionHelper(session),
-        super(workspace, element);
+  RenameExtensionMemberRefactoringImpl(
+      RefactoringWorkspace workspace,
+      AnalysisSessionHelper sessionHelper,
+      this.extensionElement,
+      Element element)
+      : super(workspace, sessionHelper, element);
 
   @override
   String get refactoringName {
@@ -56,7 +56,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
-    return Future<RefactoringStatus>.value(result);
+    return result;
   }
 
   @override
@@ -73,7 +73,7 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    var processor = RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
 
     // Update the declaration.
     var renameElement = element;

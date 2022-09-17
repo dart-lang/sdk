@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename_import.da
 import 'package:analysis_server/src/services/refactoring/legacy/rename_label.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_local.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/rename_parameter.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -28,6 +29,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringMethodParameter, SourceChange;
@@ -407,39 +409,45 @@ abstract class RenameRefactoring implements Refactoring {
   /// type.
   static RenameRefactoring? create(RefactoringWorkspace workspace,
       ResolvedUnitResult resolvedUnit, Element? element) {
-    var session = resolvedUnit.session;
     if (element == null) {
       return null;
     }
+    var session = resolvedUnit.session;
+    var sessionHelper = AnalysisSessionHelper(session);
     if (element is PropertyAccessorElement) {
       element = element.variable;
     }
     var enclosingElement = element.enclosingElement3;
     if (enclosingElement is CompilationUnitElement) {
-      return RenameUnitMemberRefactoringImpl(workspace, resolvedUnit, element);
+      return RenameUnitMemberRefactoringImpl(
+          workspace, sessionHelper, resolvedUnit, element);
     }
     if (element is ConstructorElement) {
-      return RenameConstructorRefactoringImpl(workspace, session, element);
+      return RenameConstructorRefactoringImpl(
+          workspace, sessionHelper, element);
     }
     if (element is LibraryImportElement) {
-      return RenameImportRefactoringImpl(workspace, session, element);
+      return RenameImportRefactoringImpl(workspace, sessionHelper, element);
     }
     if (element is LabelElement) {
-      return RenameLabelRefactoringImpl(workspace, element);
+      return RenameLabelRefactoringImpl(workspace, sessionHelper, element);
     }
     if (element is LibraryElement) {
-      return RenameLibraryRefactoringImpl(workspace, element);
+      return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
+    }
+    if (element is ParameterElement) {
+      return RenameParameterRefactoringImpl(workspace, sessionHelper, element);
     }
     if (element is LocalElement) {
-      return RenameLocalRefactoringImpl(workspace, session, element);
+      return RenameLocalRefactoringImpl(workspace, sessionHelper, element);
     }
     if (enclosingElement is InterfaceElement) {
       return RenameClassMemberRefactoringImpl(
-          workspace, session, enclosingElement, element);
+          workspace, sessionHelper, enclosingElement, element);
     }
     if (enclosingElement is ExtensionElement) {
       return RenameExtensionMemberRefactoringImpl(
-          workspace, session, enclosingElement, element);
+          workspace, sessionHelper, enclosingElement, element);
     }
     return null;
   }
@@ -481,10 +489,6 @@ abstract class RenameRefactoring implements Refactoring {
 
     if (node is SimpleIdentifier && element is ParameterElement) {
       element = declaredParameterElement(node, element);
-    }
-
-    if (element is FieldFormalParameterElement) {
-      element = element.field;
     }
 
     // Use the prefix offset/length when renaming an import directive.

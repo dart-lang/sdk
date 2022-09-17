@@ -7122,6 +7122,76 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateJsInteropStaticInteropMockExternalExtensionMemberConflict =
+    const Template<Message Function(String name, String string)>(
+        problemMessageTemplate:
+            r"""External extension member with name '#name' is defined in the following extensions and none are more specific: #string.""",
+        correctionMessageTemplate:
+            r"""Try using the `@JS` annotation to rename conflicting members.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockExternalExtensionMemberConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeJsInteropStaticInteropMockExternalExtensionMemberConflict =
+    const Code<Message Function(String name, String string)>(
+  "JsInteropStaticInteropMockExternalExtensionMemberConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockExternalExtensionMemberConflict(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(
+      codeJsInteropStaticInteropMockExternalExtensionMemberConflict,
+      problemMessage:
+          """External extension member with name '${name}' is defined in the following extensions and none are more specific: ${string}.""",
+      correctionMessage: """Try using the `@JS` annotation to rename conflicting members.""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String name2,
+        String
+            name3)> templateJsInteropStaticInteropMockMissingOverride = const Template<
+        Message Function(
+            String name, String name2, String name3)>(
+    problemMessageTemplate:
+        r"""`@staticInterop` class '#name' has external extension member '#name2', but Dart class '#name3' does not have an overriding instance member.""",
+    correctionMessageTemplate:
+        r"""Add a Dart instance member in '#name3' that overrides '#name.#name2'.""",
+    withArguments: _withArgumentsJsInteropStaticInteropMockMissingOverride);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String name3)>
+    codeJsInteropStaticInteropMockMissingOverride =
+    const Code<Message Function(String name, String name2, String name3)>(
+  "JsInteropStaticInteropMockMissingOverride",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockMissingOverride(
+    String name, String name2, String name3) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  return new Message(codeJsInteropStaticInteropMockMissingOverride,
+      problemMessage:
+          """`@staticInterop` class '${name}' has external extension member '${name2}', but Dart class '${name3}' does not have an overriding instance member.""",
+      correctionMessage: """Add a Dart instance member in '${name3}' that overrides '${name}.${name2}'.""",
+      arguments: {'name': name, 'name2': name2, 'name3': name3});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateJsInteropStaticInteropTrustTypesUsageNotAllowed =
     const Template<Message Function(String name)>(

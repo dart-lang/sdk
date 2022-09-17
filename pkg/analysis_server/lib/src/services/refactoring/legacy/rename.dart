@@ -9,16 +9,19 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Helper for renaming one or more [Element]s.
 class RenameProcessor {
   final RefactoringWorkspace workspace;
+  final AnalysisSessionHelper sessionHelper;
   final SourceChange change;
   final String newName;
 
-  RenameProcessor(this.workspace, this.change, this.newName);
+  RenameProcessor(
+      this.workspace, this.sessionHelper, this.change, this.newName);
 
   /// Add the edit that updates the [element] declaration.
   void addDeclarationEdit(Element? element) {
@@ -52,6 +55,7 @@ class RenameProcessor {
 abstract class RenameRefactoringImpl extends RefactoringImpl
     implements RenameRefactoring {
   final RefactoringWorkspace workspace;
+  final AnalysisSessionHelper sessionHelper;
   final SearchEngine searchEngine;
   final Element _element;
   @override
@@ -62,7 +66,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   late String newName;
 
-  RenameRefactoringImpl(this.workspace, Element element)
+  RenameRefactoringImpl(this.workspace, this.sessionHelper, Element element)
       : searchEngine = workspace.searchEngine,
         _element = element,
         elementKindName = element.kind.displayName,

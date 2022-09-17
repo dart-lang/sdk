@@ -460,7 +460,7 @@ class FileState {
   }
 
   File get resource {
-    return _fsState._resourceProvider.getFile(path);
+    return _fsState.resourceProvider.getFile(path);
   }
 
   @visibleForTesting
@@ -1085,7 +1085,7 @@ class FileStateTestView {
 /// Information about known file system state.
 class FileSystemState {
   final PerformanceLog _logger;
-  final ResourceProvider _resourceProvider;
+  final ResourceProvider resourceProvider;
   final String contextName;
   final ByteStore _byteStore;
   final SourceFactory _sourceFactory;
@@ -1137,7 +1137,7 @@ class FileSystemState {
   FileSystemState(
     this._logger,
     this._byteStore,
-    this._resourceProvider,
+    this.resourceProvider,
     this.contextName,
     this._sourceFactory,
     this._workspace,
@@ -1153,7 +1153,7 @@ class FileSystemState {
     _testView = FileSystemStateTestView(this);
   }
 
-  package_path.Context get pathContext => _resourceProvider.pathContext;
+  package_path.Context get pathContext => resourceProvider.pathContext;
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -1262,7 +1262,7 @@ class FileSystemState {
   }) {
     var file = _pathToFile[path];
     if (file == null) {
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
       Uri uri = _sourceFactory.pathToUri(path)!;
       file = _newFile(resource, path, uri);
     }
@@ -1305,7 +1305,7 @@ class FileSystemState {
         return Either2.t1(file);
       }
 
-      File resource = _resourceProvider.getFile(path);
+      File resource = resourceProvider.getFile(path);
 
       var rewrittenUri = rewriteToCanonicalUri(_sourceFactory, uri);
       if (rewrittenUri == null) {
@@ -2147,7 +2147,7 @@ class PartOfNameFileKind extends PartFileKind {
   @visibleForTesting
   void discoverLibraries() {
     if (libraries.isEmpty) {
-      var resourceProvider = file._fsState._resourceProvider;
+      var resourceProvider = file._fsState.resourceProvider;
       var pathContext = resourceProvider.pathContext;
 
       var siblings = <Resource>[];

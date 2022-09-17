@@ -511,12 +511,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       args.add('{${optionalArgs.join(', ')}}');
     }
     write('$className(${args.join(', ')})');
-    if (initializers.isEmpty) {
-      writeln(';');
-    } else {
+    if (initializers.isNotEmpty) {
       writeln(' : ${initializers.join(', ')}');
-      writeln(';');
     }
+    writeln(';');
   }
 
   /// Emit the operator== code for an object class.

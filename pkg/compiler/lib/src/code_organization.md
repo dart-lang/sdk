@@ -1,6 +1,6 @@
 [comment]: WIP - code is being refactored...
 
-##General code organization of this pacakge
+##General code organization of this package
 
   lib/src/
     |- ...

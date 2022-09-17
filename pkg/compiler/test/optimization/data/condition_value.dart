@@ -162,7 +162,7 @@ loop5HoistedElseJoin(int x) {
 }
 
 // Unlike loop5, this is not 'hoisted'. GVN is not required to match the
-// condition with its use, so the subsitution happens in a simplify pass before
+// condition with its use, so the substitution happens in a simplify pass before
 // GVN/LICM can hoist the negation.
 /*member: loop6ElseJoin:ConditionValue=[count=1&value=false&where=else-join]*/
 loop6ElseJoin(bool x) {

@@ -401,7 +401,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   /// Pragma annotation environments for annotatable places in the Kernel
   /// AST. These annotations generated on demand and not precomputed or
   /// persisted.  This map is a cache of the pragma annotation environment and
-  /// its enclosing enviroments.
+  /// its enclosing environments.
   // TODO(49475): Periodically clear this map to release references to tree
   // nodes.
   final Map<ir.Annotatable, DirectivesContext> _nodeToContextMap = {};

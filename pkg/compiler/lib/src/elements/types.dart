@@ -1187,9 +1187,9 @@ abstract class DartTypeSubstitutionVisitor<A>
     //      C extends D,
     //      D extends Map<B, F>>(){}
     //
-    // A and B have a cycle but are not changed by the subsitution of F->G. C is
-    // indirectly changed by the substitution of F. When D is replaced by `D2
-    // extends Map<B,G>`, C must be replaced by `C2 extends D2`.
+    // A and B have a cycle but are not changed by the substitution of F->G.
+    // C is indirectly changed by the substitution of F. When D is replaced by
+    // `D2 extends Map<B,G>`, C must be replaced by `C2 extends D2`.
 
     List<FunctionTypeVariable?> undecided = List.of(variables, growable: false);
     List<FunctionTypeVariable>? newVariables;

@@ -542,6 +542,8 @@ abstract class Target {
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteSetLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteConstSetLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteRecordLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteConstRecordLiteralClass(CoreTypes coreTypes) => null;
 
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;

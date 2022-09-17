@@ -15,6 +15,7 @@ isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 js/js_util/javascriptobject_extensions_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/constants_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/futurevaluetype_test: SkipByDesign # Uses dart:html.
+js/static_interop_test/mock/proto_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/supertype_transform_test: SkipByDesign # Uses dart:html.
 
 [ $runtime == dart_precompiled ]

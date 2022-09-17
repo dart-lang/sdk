@@ -120,7 +120,7 @@ class Builder {
     }
 
     // 3) Build a graph of [Constraint]s by processing user constraints and
-    // intializing each [Constraint]'s predecessor / successor members.
+    // initializing each [Constraint]'s predecessor / successor members.
     void createEdge(NamedNode successorNode, NamedNode predecessorNode) {
       var successor = nodeToConstraintMap[successorNode]!;
       var predecessor = nodeToConstraintMap[predecessorNode]!;

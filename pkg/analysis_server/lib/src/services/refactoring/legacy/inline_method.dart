@@ -264,17 +264,17 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // prepare method information
     result.addStatus(await _prepareMethod());
     if (result.hasFatalError) {
-      return Future<RefactoringStatus>.value(result);
+      return result;
     }
     // maybe operator
     if (_methodElement!.isOperator) {
       result = RefactoringStatus.fatal('Cannot inline operator.');
-      return Future<RefactoringStatus>.value(result);
+      return result;
     }
     // maybe [a]sync*
     if (_methodElement!.isGenerator) {
       result = RefactoringStatus.fatal('Cannot inline a generator.');
-      return Future<RefactoringStatus>.value(result);
+      return result;
     }
     // analyze method body
     result.addStatus(_prepareMethodParts());
