@@ -68,7 +68,7 @@ def RunHostGn(options):
         '-m',
         'all',
         '-a',
-        'all',
+        options.arch or 'all',
     ]
     if options.verbose:
         gn_command.append('-v')
