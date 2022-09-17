@@ -29,12 +29,10 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageOperatorWithTypeParameters,
         messagePositionalAfterNamedArgument,
         templateDuplicateLabelInSwitchStatement,
-        templateExpectedButGot,
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
         templateExtraneousModifier,
-        templateInternalProblemUnhandled,
-        templateUnexpectedToken;
+        templateInternalProblemUnhandled;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -53,7 +51,7 @@ import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show KeywordToken, StringToken, SyntheticStringToken, SyntheticToken;
+    show KeywordToken, StringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -68,8 +66,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-const _invalidCollectionElement = _InvalidCollectionElement._();
 
 /// A parser listener that builds the analyzer's AST structure.
 class AstBuilder extends StackListener {
@@ -113,12 +109,6 @@ class AstBuilder extends StackListener {
   /// `true` if non-nullable behavior is enabled.
   final bool enableNonNullable;
 
-  /// `true` if spread-collections behavior is enabled
-  final bool enableSpreadCollections;
-
-  /// `true` if control-flow-collections behavior is enabled
-  final bool enableControlFlowCollections;
-
   /// `true` if triple-shift behavior is enabled
   final bool enableTripleShift;
 
@@ -158,10 +148,6 @@ class AstBuilder extends StackListener {
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),
         enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
-        enableSpreadCollections =
-            _featureSet.isEnabled(Feature.spread_collections),
-        enableControlFlowCollections =
-            _featureSet.isEnabled(Feature.control_flow_collections),
         enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
         enableNonFunctionTypeAliases =
             _featureSet.isEnabled(Feature.nonfunction_type_aliases),
@@ -3974,28 +3960,11 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("LiteralList");
 
-    if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements = popCollectionElements(count);
-      var typeArguments = pop() as TypeArgumentList?;
+    List<CollectionElement> elements = popCollectionElements(count);
+    var typeArguments = pop() as TypeArgumentList?;
 
-      // TODO(danrubel): Remove this and _InvalidCollectionElement
-      // once control flow and spread collection support is enabled by default
-      elements.removeWhere((e) => e == _invalidCollectionElement);
-
-      push(ast.listLiteral(
-          constKeyword, typeArguments, leftBracket, elements, rightBracket));
-    } else {
-      var elements = popTypedList<Expression>(count) ?? const [];
-      var typeArguments = pop() as TypeArgumentList?;
-
-      List<Expression> expressions = <Expression>[];
-      for (var elem in elements) {
-        expressions.add(elem);
-      }
-
-      push(ast.listLiteral(
-          constKeyword, typeArguments, leftBracket, expressions, rightBracket));
-    }
+    push(ast.listLiteral(
+        constKeyword, typeArguments, leftBracket, elements, rightBracket));
   }
 
   @override
@@ -4032,96 +4001,16 @@ class AstBuilder extends StackListener {
     // behavior and will be removed once unified collection has been enabled
     bool hasSetEntry,
   ) {
-    if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements = popCollectionElements(count);
+    List<CollectionElement> elements = popCollectionElements(count);
 
-      // TODO(danrubel): Remove this and _InvalidCollectionElement
-      // once control flow and spread collection support is enabled by default
-      elements.removeWhere((e) => e == _invalidCollectionElement);
-
-      var typeArguments = pop() as TypeArgumentList?;
-      push(ast.setOrMapLiteral(
-        constKeyword: constKeyword,
-        typeArguments: typeArguments,
-        leftBracket: leftBrace,
-        elements: elements,
-        rightBracket: rightBrace,
-      ));
-    } else {
-      var elements = popTypedList(count);
-      var typeArguments = pop() as TypeArgumentList?;
-
-      // Replicate existing behavior that has been removed from the parser.
-      // This will be removed once control flow collections
-      // and spread collections are enabled by default.
-
-      // Determine if this is a set or map based on type args and content
-      final typeArgCount = typeArguments?.arguments.length;
-      bool? isSet = typeArgCount == 1
-          ? true
-          : typeArgCount != null
-              ? false
-              : null;
-      isSet ??= hasSetEntry;
-
-      // Build the set or map
-      if (isSet) {
-        final setEntries = <Expression>[];
-        if (elements != null) {
-          for (var elem in elements) {
-            if (elem is MapLiteralEntry) {
-              setEntries.add(elem.key);
-              handleRecoverableError(
-                  templateUnexpectedToken.withArguments(elem.separator),
-                  elem.separator,
-                  elem.separator);
-            } else if (elem is Expression) {
-              setEntries.add(elem);
-            }
-          }
-        }
-        push(ast.setOrMapLiteral(
-          constKeyword: constKeyword,
-          typeArguments: typeArguments,
-          leftBracket: leftBrace,
-          elements: setEntries,
-          rightBracket: rightBrace,
-        ));
-      } else {
-        final mapEntries = <MapLiteralEntry>[];
-        if (elements != null) {
-          for (var elem in elements) {
-            if (elem is MapLiteralEntry) {
-              mapEntries.add(elem);
-            } else if (elem is ExpressionImpl) {
-              Token next = elem.endToken.next!;
-              int offset = next.offset;
-              handleRecoverableError(
-                  templateExpectedButGot.withArguments(':'), next, next);
-              handleRecoverableError(
-                  templateExpectedIdentifier.withArguments(next), next, next);
-              Token separator = SyntheticToken(TokenType.COLON, offset);
-              final value = ast.simpleIdentifier(
-                  SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
-              mapEntries.add(
-                MapLiteralEntryImpl(
-                  key: elem,
-                  separator: separator,
-                  value: value,
-                ),
-              );
-            }
-          }
-        }
-        push(ast.setOrMapLiteral(
-          constKeyword: constKeyword,
-          typeArguments: typeArguments,
-          leftBracket: leftBrace,
-          elements: mapEntries,
-          rightBracket: rightBrace,
-        ));
-      }
-    }
+    var typeArguments = pop() as TypeArgumentList?;
+    push(ast.setOrMapLiteral(
+      constKeyword: constKeyword,
+      typeArguments: typeArguments,
+      leftBracket: leftBrace,
+      elements: elements,
+      rightBracket: rightBrace,
+    ));
   }
 
   @override
@@ -4511,16 +4400,12 @@ class AstBuilder extends StackListener {
   @override
   void handleSpreadExpression(Token spreadToken) {
     var expression = pop() as Expression;
-    if (enableSpreadCollections) {
-      push(ast.spreadElement(
-          spreadOperator: spreadToken, expression: expression));
-    } else {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.spread_collections,
-        startToken: spreadToken,
-      );
-      push(_invalidCollectionElement);
-    }
+    push(
+      ast.spreadElement(
+        spreadOperator: spreadToken,
+        expression: expression,
+      ),
+    );
   }
 
   @override
@@ -4770,26 +4655,16 @@ class AstBuilder extends StackListener {
 
   void pushForControlFlowInfo(Token? awaitToken, Token forToken,
       Token leftParenthesis, ForLoopPartsImpl forLoopParts, Object entry) {
-    if (entry == _invalidCollectionElement) {
-      push(_invalidCollectionElement);
-    } else if (enableControlFlowCollections) {
-      push(
-        ForElementImpl(
-          awaitKeyword: awaitToken,
-          forKeyword: forToken,
-          leftParenthesis: leftParenthesis,
-          forLoopParts: forLoopParts,
-          rightParenthesis: leftParenthesis.endGroup!,
-          body: entry as CollectionElementImpl,
-        ),
-      );
-    } else {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.control_flow_collections,
-        startToken: forToken,
-      );
-      push(_invalidCollectionElement);
-    }
+    push(
+      ForElementImpl(
+        awaitKeyword: awaitToken,
+        forKeyword: forToken,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParenthesis.endGroup!,
+        body: entry as CollectionElementImpl,
+      ),
+    );
   }
 
   void pushIfControlFlowInfo(
@@ -4798,29 +4673,18 @@ class AstBuilder extends StackListener {
       CollectionElementImpl thenElement,
       Token? elseToken,
       CollectionElementImpl? elseElement) {
-    if (thenElement == _invalidCollectionElement ||
-        elseElement == _invalidCollectionElement) {
-      push(_invalidCollectionElement);
-    } else if (enableControlFlowCollections) {
-      push(
-        IfElementImpl(
-          ifKeyword: ifToken,
-          leftParenthesis: condition.leftParenthesis,
-          condition: condition.expression,
-          caseClause: null,
-          rightParenthesis: condition.rightParenthesis,
-          thenElement: thenElement,
-          elseKeyword: elseToken,
-          elseElement: elseElement,
-        ),
-      );
-    } else {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.control_flow_collections,
-        startToken: ifToken,
-      );
-      push(_invalidCollectionElement);
-    }
+    push(
+      IfElementImpl(
+        ifKeyword: ifToken,
+        leftParenthesis: condition.leftParenthesis,
+        condition: condition.expression,
+        caseClause: null,
+        rightParenthesis: condition.rightParenthesis,
+        thenElement: thenElement,
+        elseKeyword: elseToken,
+        elseElement: elseElement,
+      ),
+    );
   }
 
   void reportErrorIfNullableType(Token? questionMark) {
@@ -5109,19 +4973,6 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       rightBracket: rightBracket,
     );
   }
-}
-
-/// When [enableSpreadCollections] and/or [enableControlFlowCollections]
-/// are false, this class is pushed on the stack when a disabled
-/// [CollectionElement] has been parsed.
-class _InvalidCollectionElement implements CollectionElementImpl {
-  // TODO(danrubel): Remove this once control flow and spread collections
-  // have been enabled by default.
-
-  const _InvalidCollectionElement._();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
