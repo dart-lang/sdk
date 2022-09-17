@@ -1843,7 +1843,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.macroKeyword,
     required this.augmentKeyword,
     required this.classKeyword,
-    required super.name,
+    required super.name2,
     required TypeParameterListImpl? typeParameters,
     required ExtendsClauseImpl? extendsClause,
     required WithClauseImpl? withClause,
@@ -2007,7 +2007,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required super.comment,
     required super.metadata,
     required super.typedefKeyword,
-    required super.name,
+    required super.name2,
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required this.abstractKeyword,
@@ -2788,7 +2788,8 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
 
   /// The name of the constructor, or `null` if the constructor being declared
   /// is unnamed.
-  SimpleIdentifierImpl? _name;
+  @override
+  Token? name2;
 
   /// The parameters associated with the constructor.
   FormalParameterListImpl _parameters;
@@ -2835,19 +2836,17 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     required this.factoryKeyword,
     required IdentifierImpl returnType,
     required this.period,
-    required SimpleIdentifierImpl? name,
+    required this.name2,
     required FormalParameterListImpl parameters,
     required this.separator,
     required List<ConstructorInitializer>? initializers,
     required ConstructorNameImpl? redirectedConstructor,
     required FunctionBodyImpl body,
   })  : _returnType = returnType,
-        _name = name,
         _parameters = parameters,
         _redirectedConstructor = redirectedConstructor,
         _body = body {
     _becomeParentOf(_returnType);
-    _becomeParentOf(_name);
     _becomeParentOf(_parameters);
     _initializers._initialize(this, initializers);
     _becomeParentOf(_redirectedConstructor);
@@ -2875,13 +2874,6 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @override
   NodeListImpl<ConstructorInitializer> get initializers => _initializers;
-
-  set name(SimpleIdentifier? name) {
-    _name = _becomeParentOf(name as SimpleIdentifierImpl);
-  }
-
-  @override
-  Token? get name2 => _name?.token;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -3811,8 +3803,8 @@ class EnumConstantArgumentsImpl extends AstNodeImpl
 /// The declaration of an enum constant.
 class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
-  /// The name of the constant.
-  final Token _name;
+  @override
+  final Token name2;
 
   @override
   FieldElement? declaredElement2;
@@ -3829,20 +3821,17 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   EnumConstantDeclarationImpl({
     required super.comment,
     required super.metadata,
-    required Token name,
+    required this.name2,
     required this.arguments,
-  }) : _name = name {
+  }) {
     _becomeParentOf(arguments);
   }
 
   @override
-  Token get endToken => arguments?.endToken ?? _name;
+  Token get endToken => arguments?.endToken ?? name2;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => _name;
-
-  @override
-  Token get name2 => _name;
+  Token get firstTokenAfterCommentAndMetadata => name2;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -3912,7 +3901,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.enumKeyword,
-    required super.name,
+    required super.name2,
     required TypeParameterListImpl? typeParameters,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
@@ -4383,9 +4372,8 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   /// hide any elements.
   HideClauseImpl? _hideClause;
 
-  /// The name of the extension, or `null` if the extension does not have a
-  /// name.
-  SimpleIdentifierImpl? _name;
+  @override
+  Token? name2;
 
   /// The show clause for the extension or `null` if the declaration does not
   /// show any elements.
@@ -4418,7 +4406,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required super.metadata,
     required this.extensionKeyword,
     required this.typeKeyword,
-    required SimpleIdentifierImpl? name,
+    required this.name2,
     required TypeParameterListImpl? typeParameters,
     required this.onKeyword,
     required TypeAnnotationImpl extendedType,
@@ -4427,12 +4415,10 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required this.leftBracket,
     required List<ClassMember> members,
     required this.rightBracket,
-  })  : _name = name,
-        _typeParameters = typeParameters,
+  })  : _typeParameters = typeParameters,
         _extendedType = extendedType,
         _showClause = showClause,
         _hideClause = hideClause {
-    _becomeParentOf(_name);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_extendedType);
     _members._initialize(this, members);
@@ -4460,13 +4446,6 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   NodeListImpl<ClassMember> get members => _members;
-
-  set name(SimpleIdentifier? identifier) {
-    _name = _becomeParentOf(identifier as SimpleIdentifierImpl?);
-  }
-
-  @override
-  Token? get name2 => _name?.token;
 
   @override
   ShowClauseImpl? get showClause => _showClause;
@@ -4801,12 +4780,11 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       this._type,
       this.thisKeyword,
       this.period,
-      SimpleIdentifierImpl identifier,
+      Token name,
       this._typeParameters,
       this._parameters,
       this.question)
-      : super(
-            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
+      : super(comment, metadata, covariantKeyword, requiredKeyword, name) {
     _becomeParentOf(_type);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -5656,7 +5634,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.externalKeyword,
     required TypeAnnotationImpl? returnType,
     required this.propertyKeyword,
-    required super.name,
+    required super.name2,
     required FunctionExpressionImpl functionExpression,
   })  : _returnType = returnType,
         _functionExpression = functionExpression {
@@ -5673,7 +5651,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
         externalKeyword ??
         _returnType?.beginToken ??
         propertyKeyword ??
-        _name.beginToken;
+        name2;
   }
 
   @override
@@ -6026,7 +6004,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
     required super.metadata,
     required super.typedefKeyword,
     required TypeAnnotationImpl? returnType,
-    required super.name,
+    required super.name2,
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl parameters,
     required super.semicolon,
@@ -6111,12 +6089,11 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       Token? covariantKeyword,
       Token? requiredKeyword,
       this._returnType,
-      SimpleIdentifierImpl identifier,
+      Token name,
       this._typeParameters,
       this._parameters,
       this.question)
-      : super(
-            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
+      : super(comment, metadata, covariantKeyword, requiredKeyword, name) {
     _becomeParentOf(_returnType);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -6340,7 +6317,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     required super.comment,
     required super.metadata,
     required super.typedefKeyword,
-    required super.name,
+    required super.name2,
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required TypeAnnotationImpl type,
@@ -8226,8 +8203,8 @@ class MethodDeclarationImpl extends ClassMemberImpl
   @override
   Token? operatorKeyword;
 
-  /// The name of the method.
-  SimpleIdentifierImpl _name;
+  @override
+  Token name2;
 
   /// The type parameters associated with the method, or `null` if the method is
   /// not a generic method.
@@ -8265,17 +8242,15 @@ class MethodDeclarationImpl extends ClassMemberImpl
     required TypeAnnotationImpl? returnType,
     required this.propertyKeyword,
     required this.operatorKeyword,
-    required SimpleIdentifierImpl name,
+    required this.name2,
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl? parameters,
     required FunctionBodyImpl body,
   })  : _returnType = returnType,
-        _name = name,
         _typeParameters = typeParameters,
         _parameters = parameters,
         _body = body {
     _becomeParentOf(_returnType);
-    _becomeParentOf(_name);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
     _becomeParentOf(_body);
@@ -8296,7 +8271,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
     return Token.lexicallyFirst(externalKeyword, modifierKeyword) ??
         _returnType?.beginToken ??
         Token.lexicallyFirst(propertyKeyword, operatorKeyword) ??
-        _name.beginToken;
+        name2;
   }
 
   @override
@@ -8317,13 +8292,6 @@ class MethodDeclarationImpl extends ClassMemberImpl
 
   @override
   bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
-
-  set name(SimpleIdentifier identifier) {
-    _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
-  }
-
-  @override
-  Token get name2 => _name.token;
 
   @override
   FormalParameterListImpl? get parameters => _parameters;
@@ -8581,7 +8549,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.augmentKeyword,
     required this.mixinKeyword,
-    required super.name,
+    required super.name2,
     required TypeParameterListImpl? typeParameters,
     required OnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
@@ -8658,7 +8626,8 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     implements NamedCompilationUnitMember {
   /// The name of the member being declared.
-  SimpleIdentifierImpl _name;
+  @override
+  Token name2;
 
   /// Initialize a newly created compilation unit member with the given [name2].
   /// Either or both of the [comment] and [metadata] can be `null` if the member
@@ -8666,17 +8635,8 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
   NamedCompilationUnitMemberImpl({
     required super.comment,
     required super.metadata,
-    required SimpleIdentifierImpl name,
-  }) : _name = name {
-    _becomeParentOf(_name);
-  }
-
-  set name(SimpleIdentifier identifier) {
-    _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
-  }
-
-  @override
-  Token get name2 => _name.token;
+    required this.name2,
+  });
 }
 
 /// An expression that has a name associated with it. They are used in method
@@ -9119,17 +9079,16 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   @override
   Token? requiredKeyword;
 
-  /// The name of the parameter being declared.
-  SimpleIdentifierImpl? _identifier;
+  @override
+  Token? name;
 
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute.
   NormalFormalParameterImpl(this._comment, List<Annotation>? metadata,
-      this.covariantKeyword, this.requiredKeyword, this._identifier) {
+      this.covariantKeyword, this.requiredKeyword, this.name) {
     _becomeParentOf(_comment);
     _metadata._initialize(this, metadata);
-    _becomeParentOf(_identifier);
   }
 
   @override
@@ -9137,10 +9096,6 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 
   set documentationComment(Comment? comment) {
     _comment = _becomeParentOf(comment as CommentImpl?);
-  }
-
-  set identifier(SimpleIdentifier? identifier) {
-    _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl?);
   }
 
   @override
@@ -9154,9 +9109,6 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 
   @override
   NodeListImpl<Annotation> get metadata => _metadata;
-
-  @override
-  Token? get name => _identifier?.token;
 
   @override
   List<AstNode> get sortedCommentAndAnnotations {
@@ -10974,9 +10926,8 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
       Token? requiredKeyword,
       this.keyword,
       this._type,
-      SimpleIdentifierImpl? identifier)
-      : super(
-            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
+      Token? name)
+      : super(comment, metadata, covariantKeyword, requiredKeyword, name) {
     _becomeParentOf(_type);
   }
 
@@ -11781,12 +11732,11 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
       this._type,
       this.superKeyword,
       this.period,
-      SimpleIdentifierImpl identifier,
+      Token name,
       this._typeParameters,
       this._parameters,
       this.question)
-      : super(
-            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
+      : super(comment, metadata, covariantKeyword, requiredKeyword, name) {
     _becomeParentOf(_type);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -12611,7 +12561,7 @@ abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.typedefKeyword,
-    required super.name,
+    required super.name2,
     required this.semicolon,
   });
 
@@ -12782,8 +12732,8 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
 ///
 ///    typeParameterVariance ::= 'out' | 'inout' | 'in'
 class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
-  /// The name of the type parameter.
-  SimpleIdentifierImpl _name;
+  @override
+  Token name2;
 
   /// The token representing the variance modifier keyword, or `null` if
   /// there is no explicit variance modifier, meaning legacy covariance.
@@ -12808,13 +12758,11 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeParameterImpl({
     required super.comment,
     required super.metadata,
-    required SimpleIdentifierImpl name,
+    required this.name2,
     required this.extendsKeyword,
     required TypeAnnotationImpl? bound,
     this.varianceKeyword,
-  })  : _name = name,
-        _bound = bound {
-    _becomeParentOf(_name);
+  }) : _bound = bound {
     _becomeParentOf(_bound);
   }
 
@@ -12828,20 +12776,13 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   Token get endToken {
     if (_bound == null) {
-      return _name.endToken;
+      return name2;
     }
     return _bound!.endToken;
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
-
-  set name(SimpleIdentifier identifier) {
-    _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
-  }
-
-  @override
-  Token get name2 => _name.token;
+  Token get firstTokenAfterCommentAndMetadata => name2;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -12995,8 +12936,8 @@ class UriValidationCode {
 /// extend [Declaration].
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
-  /// The name of the variable being declared.
-  SimpleIdentifierImpl _name;
+  @override
+  Token name2;
 
   @override
   VariableElement? declaredElement2;
@@ -13019,13 +12960,11 @@ class VariableDeclarationImpl extends DeclarationImpl
   /// Initialize a newly created variable declaration. The [equals] and
   /// [initializer] can be `null` if there is no initializer.
   VariableDeclarationImpl({
-    required SimpleIdentifierImpl name,
+    required this.name2,
     required this.equals,
     required ExpressionImpl? initializer,
-  })  : _name = name,
-        _initializer = initializer,
+  })  : _initializer = initializer,
         super(comment: null, metadata: null) {
-    _becomeParentOf(_name);
     _becomeParentOf(_initializer);
   }
 
@@ -13049,11 +12988,11 @@ class VariableDeclarationImpl extends DeclarationImpl
     if (_initializer != null) {
       return _initializer!.endToken;
     }
-    return _name.endToken;
+    return name2;
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
+  Token get firstTokenAfterCommentAndMetadata => name2;
 
   @override
   ExpressionImpl? get initializer => _initializer;
@@ -13079,13 +13018,6 @@ class VariableDeclarationImpl extends DeclarationImpl
     final parent = this.parent;
     return parent is VariableDeclarationList && parent.isLate;
   }
-
-  set name(SimpleIdentifier identifier) {
-    _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
-  }
-
-  @override
-  Token get name2 => _name.token;
 
   @override
   ChildEntities get _childEntities => super._childEntities

@@ -267,9 +267,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
 
       var variableDeclaration = VariableDeclarationImpl(
-        name: astFactory.simpleIdentifier(
-          StringToken(TokenType.STRING, name, -1),
-        ),
+        name2: StringToken(TokenType.STRING, name, -1),
         equals: Tokens.eq(),
         initializer: initializer,
       );
@@ -310,9 +308,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       valuesField.constantInitializer = initializer;
 
       var variableDeclaration = VariableDeclarationImpl(
-        name: astFactory.simpleIdentifier(
-          StringToken(TokenType.STRING, 'values', -1),
-        ),
+        name2: StringToken(TokenType.STRING, 'values', -1),
         equals: Tokens.eq(),
         initializer: initializer,
       );

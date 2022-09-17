@@ -77,7 +77,6 @@ class Tag {
   static const int MethodDeclaration_getter = 85;
   static const int MethodDeclaration_setter = 86;
   static const int MethodInvocation = 59;
-  static const int MixinDeclaration = 67;
   static const int NamedExpression = 60;
   static const int NamedType = 39;
   static const int NullLiteral = 49;

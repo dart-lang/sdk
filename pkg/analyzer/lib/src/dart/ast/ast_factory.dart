@@ -58,7 +58,7 @@ class AstFactoryImpl {
           TypeAnnotation? type,
           required Token thisKeyword,
           required Token period,
-          required SimpleIdentifier identifier,
+          required Token name,
           TypeParameterList? typeParameters,
           FormalParameterList? parameters,
           Token? question}) =>
@@ -71,7 +71,7 @@ class AstFactoryImpl {
           type as TypeAnnotationImpl?,
           thisKeyword,
           period,
-          identifier as SimpleIdentifierImpl,
+          name,
           typeParameters as TypeParameterListImpl?,
           parameters as FormalParameterListImpl?,
           question);
@@ -91,7 +91,7 @@ class AstFactoryImpl {
           Token? covariantKeyword,
           Token? requiredKeyword,
           TypeAnnotation? returnType,
-          required SimpleIdentifier identifier,
+          required Token name,
           TypeParameterList? typeParameters,
           required FormalParameterList parameters,
           Token? question}) =>
@@ -101,7 +101,7 @@ class AstFactoryImpl {
           covariantKeyword,
           requiredKeyword,
           returnType as TypeAnnotationImpl?,
-          identifier as SimpleIdentifierImpl,
+          name,
           typeParameters as TypeParameterListImpl?,
           parameters as FormalParameterListImpl,
           question);
@@ -267,7 +267,7 @@ class AstFactoryImpl {
           Token? requiredKeyword,
           Token? keyword,
           TypeAnnotation? type,
-          required SimpleIdentifier? identifier}) =>
+          required Token? name}) =>
       SimpleFormalParameterImpl(
           comment as CommentImpl?,
           metadata,
@@ -275,7 +275,7 @@ class AstFactoryImpl {
           requiredKeyword,
           keyword,
           type as TypeAnnotationImpl?,
-          identifier as SimpleIdentifierImpl?);
+          name);
 
   SimpleIdentifierImpl simpleIdentifier(Token token,
       {bool isDeclaration = false}) {
@@ -319,7 +319,7 @@ class AstFactoryImpl {
           TypeAnnotation? type,
           required Token superKeyword,
           required Token period,
-          required SimpleIdentifier identifier,
+          required Token name,
           TypeParameterList? typeParameters,
           FormalParameterList? parameters,
           Token? question}) =>
@@ -332,7 +332,7 @@ class AstFactoryImpl {
           type as TypeAnnotationImpl?,
           superKeyword,
           period,
-          identifier as SimpleIdentifierImpl,
+          name,
           typeParameters as TypeParameterListImpl?,
           parameters as FormalParameterListImpl?,
           question);
