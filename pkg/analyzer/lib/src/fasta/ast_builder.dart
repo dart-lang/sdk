@@ -1522,16 +1522,16 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFieldInitializer(Token assignment, Token token) {
-    assert(optional('=', assignment));
+  void endFieldInitializer(Token equals, Token token) {
+    assert(optional('=', equals));
     debugEvent("FieldInitializer");
 
     var initializer = pop() as ExpressionImpl;
     var name = pop() as SimpleIdentifierImpl;
     push(
-      _makeVariableDeclaration(
-        name: name,
-        equals: assignment,
+      VariableDeclarationImpl(
+        name2: name.token,
+        equals: equals,
         initializer: initializer,
       ),
     );
@@ -1540,12 +1540,21 @@ class AstBuilder extends StackListener {
   @override
   void endForControlFlow(Token token) {
     debugEvent("endForControlFlow");
-    var entry = pop() as Object;
+    var body = pop() as CollectionElementImpl;
     var forLoopParts = pop() as ForPartsImpl;
-    var leftParen = pop() as Token;
+    var leftParenthesis = pop() as Token;
     var forToken = pop() as Token;
 
-    pushForControlFlowInfo(null, forToken, leftParen, forLoopParts, entry);
+    push(
+      ForElementImpl(
+        awaitKeyword: null,
+        forKeyword: forToken,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParenthesis.endGroup!,
+        body: body,
+      ),
+    );
   }
 
   @override
@@ -1579,14 +1588,22 @@ class AstBuilder extends StackListener {
   void endForInControlFlow(Token token) {
     debugEvent("endForInControlFlow");
 
-    var entry = pop() as Object;
+    var body = pop() as CollectionElementImpl;
     var forLoopParts = pop() as ForEachPartsImpl;
     var leftParenthesis = pop() as Token;
     var forToken = pop() as Token;
     var awaitToken = pop(NullValue.AwaitToken) as Token?;
 
-    pushForControlFlowInfo(
-        awaitToken, forToken, leftParenthesis, forLoopParts, entry);
+    push(
+      ForElementImpl(
+        awaitKeyword: awaitToken,
+        forKeyword: forToken,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParenthesis.endGroup!,
+        body: body,
+      ),
+    );
   }
 
   @override
@@ -1892,7 +1909,18 @@ class AstBuilder extends StackListener {
     var thenElement = pop() as CollectionElementImpl;
     var condition = pop() as _ParenthesizedCondition;
     var ifToken = pop() as Token;
-    pushIfControlFlowInfo(ifToken, condition, thenElement, null, null);
+    push(
+      IfElementImpl(
+        ifKeyword: ifToken,
+        leftParenthesis: condition.leftParenthesis,
+        condition: condition.expression,
+        caseClause: null,
+        rightParenthesis: condition.rightParenthesis,
+        thenElement: thenElement,
+        elseKeyword: null,
+        elseElement: null,
+      ),
+    );
   }
 
   @override
@@ -1902,8 +1930,18 @@ class AstBuilder extends StackListener {
     var thenElement = pop() as CollectionElementImpl;
     var condition = pop() as _ParenthesizedCondition;
     var ifToken = pop() as Token;
-    pushIfControlFlowInfo(
-        ifToken, condition, thenElement, elseToken, elseElement);
+    push(
+      IfElementImpl(
+        ifKeyword: ifToken,
+        leftParenthesis: condition.leftParenthesis,
+        condition: condition.expression,
+        caseClause: null,
+        rightParenthesis: condition.rightParenthesis,
+        thenElement: thenElement,
+        elseKeyword: elseToken,
+        elseElement: elseElement,
+      ),
+    );
   }
 
   @override
@@ -2003,8 +2041,8 @@ class AstBuilder extends StackListener {
     if (node is VariableDeclaration) {
       variable = node;
     } else if (node is SimpleIdentifierImpl) {
-      variable = _makeVariableDeclaration(
-        name: node,
+      variable = VariableDeclarationImpl(
+        name2: node.token,
         equals: null,
         initializer: null,
       );
@@ -2956,17 +2994,17 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endVariableInitializer(Token assignmentOperator) {
-    assert(optionalOrNull('=', assignmentOperator));
+  void endVariableInitializer(Token equals) {
+    assert(optionalOrNull('=', equals));
     debugEvent("VariableInitializer");
 
     var initializer = pop() as ExpressionImpl;
     var identifier = pop() as SimpleIdentifierImpl;
     // TODO(ahe): Don't push initializers, instead install them.
     push(
-      _makeVariableDeclaration(
-        name: identifier,
-        equals: assignmentOperator,
+      VariableDeclarationImpl(
+        name2: identifier.token,
+        equals: equals,
         initializer: initializer,
       ),
     );
@@ -4131,8 +4169,8 @@ class AstBuilder extends StackListener {
 
     var name = pop() as SimpleIdentifierImpl;
     push(
-      _makeVariableDeclaration(
-        name: name,
+      VariableDeclarationImpl(
+        name2: name.token,
         equals: null,
         initializer: null,
       ),
@@ -4653,40 +4691,6 @@ class AstBuilder extends StackListener {
     return types.whereType<NamedType>().toList();
   }
 
-  void pushForControlFlowInfo(Token? awaitToken, Token forToken,
-      Token leftParenthesis, ForLoopPartsImpl forLoopParts, Object entry) {
-    push(
-      ForElementImpl(
-        awaitKeyword: awaitToken,
-        forKeyword: forToken,
-        leftParenthesis: leftParenthesis,
-        forLoopParts: forLoopParts,
-        rightParenthesis: leftParenthesis.endGroup!,
-        body: entry as CollectionElementImpl,
-      ),
-    );
-  }
-
-  void pushIfControlFlowInfo(
-      Token ifToken,
-      _ParenthesizedCondition condition,
-      CollectionElementImpl thenElement,
-      Token? elseToken,
-      CollectionElementImpl? elseElement) {
-    push(
-      IfElementImpl(
-        ifKeyword: ifToken,
-        leftParenthesis: condition.leftParenthesis,
-        condition: condition.expression,
-        caseClause: null,
-        rightParenthesis: condition.rightParenthesis,
-        thenElement: thenElement,
-        elseKeyword: elseToken,
-        elseElement: elseElement,
-      ),
-    );
-  }
-
   void reportErrorIfNullableType(Token? questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
@@ -4755,18 +4759,6 @@ class AstBuilder extends StackListener {
     push(ast.instanceCreationExpression(
         token, constructorName, arguments.argumentList,
         typeArguments: typeArguments));
-  }
-
-  VariableDeclaration _makeVariableDeclaration({
-    required SimpleIdentifierImpl name,
-    required Token? equals,
-    required ExpressionImpl? initializer,
-  }) {
-    return VariableDeclarationImpl(
-      name2: name.token,
-      equals: equals,
-      initializer: initializer,
-    );
   }
 
   void _reportFeatureNotEnabled({
