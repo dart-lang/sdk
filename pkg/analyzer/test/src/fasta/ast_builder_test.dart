@@ -165,6 +165,50 @@ ClassDeclaration
         withOffsets: true);
   }
 
+  void test_class_constructor_named() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A.named();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.constructor('A.named()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  void test_class_constructor_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.constructor('A()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   void test_class_extendsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C extends (int, int) {}

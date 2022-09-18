@@ -29,12 +29,10 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageOperatorWithTypeParameters,
         messagePositionalAfterNamedArgument,
         templateDuplicateLabelInSwitchStatement,
-        templateExpectedButGot,
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
         templateExtraneousModifier,
-        templateInternalProblemUnhandled,
-        templateUnexpectedToken;
+        templateInternalProblemUnhandled;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -53,7 +51,7 @@ import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show KeywordToken, StringToken, SyntheticStringToken, SyntheticToken;
+    show KeywordToken, StringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -68,8 +66,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-const _invalidCollectionElement = _InvalidCollectionElement._();
 
 /// A parser listener that builds the analyzer's AST structure.
 class AstBuilder extends StackListener {
@@ -113,12 +109,6 @@ class AstBuilder extends StackListener {
   /// `true` if non-nullable behavior is enabled.
   final bool enableNonNullable;
 
-  /// `true` if spread-collections behavior is enabled
-  final bool enableSpreadCollections;
-
-  /// `true` if control-flow-collections behavior is enabled
-  final bool enableControlFlowCollections;
-
   /// `true` if triple-shift behavior is enabled
   final bool enableTripleShift;
 
@@ -158,10 +148,6 @@ class AstBuilder extends StackListener {
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),
         enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
-        enableSpreadCollections =
-            _featureSet.isEnabled(Feature.spread_collections),
-        enableControlFlowCollections =
-            _featureSet.isEnabled(Feature.control_flow_collections),
         enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
         enableNonFunctionTypeAliases =
             _featureSet.isEnabled(Feature.nonfunction_type_aliases),
@@ -261,7 +247,7 @@ class AstBuilder extends StackListener {
       comment: comment,
       metadata: metadata,
       extensionKeyword: extensionKeyword,
-      name: name,
+      name: name?.token,
       typeParameters: typeParameters,
       leftBracket: Tokens.openCurlyBracket(),
       rightBracket: Tokens.closeCurlyBracket(),
@@ -335,7 +321,7 @@ class AstBuilder extends StackListener {
       assert(staticToken.isModifier);
       final builder = _classLikeBuilder;
       if (builder is! _ClassDeclarationBuilder ||
-          builder.name.token.lexeme != name.lexeme ||
+          builder.name.lexeme != name.lexeme ||
           getOrSet != null) {
         modifiers.staticKeyword = staticToken;
       }
@@ -394,7 +380,7 @@ class AstBuilder extends StackListener {
     var typeParameter = TypeParameterImpl(
       comment: comment,
       metadata: metadata,
-      name: name,
+      name2: name.token,
       extendsKeyword: null,
       bound: null,
     );
@@ -562,9 +548,7 @@ class AstBuilder extends StackListener {
       macroKeyword: null,
       augmentKeyword: null,
       classKeyword: Token(Keyword.CLASS, 0),
-      name: ast.simpleIdentifier(
-        StringToken(TokenType.STRING, className, -1),
-      ),
+      name: StringToken(TokenType.STRING, className, -1),
       typeParameters: null,
       extendsClause: null,
       withClause: null,
@@ -925,7 +909,7 @@ class AstBuilder extends StackListener {
       factoryKeyword: null,
       returnType: ast.simpleIdentifier(prefixOrName.token),
       period: period,
-      name: nameOrNull,
+      name2: nameOrNull?.token,
       parameters: parameters,
       separator: separator,
       initializers: initializers,
@@ -1016,7 +1000,7 @@ class AstBuilder extends StackListener {
         factoryKeyword: factoryKeyword,
         returnType: ast.simpleIdentifier(returnType.token),
         period: period,
-        name: name,
+        name2: name?.token,
         parameters: parameters,
         separator: separator,
         initializers: null,
@@ -1156,7 +1140,7 @@ class AstBuilder extends StackListener {
         returnType: returnType,
         propertyKeyword: getOrSet,
         operatorKeyword: operatorKeyword,
-        name: nameId,
+        name2: nameId.token,
         typeParameters: typeParameters,
         parameters: parameters,
         body: body,
@@ -1490,7 +1474,7 @@ class AstBuilder extends StackListener {
         returnType: null,
         propertyKeyword: null,
         operatorKeyword: null,
-        name: methodName,
+        name2: methodName.token,
         typeParameters: typeParameters,
         parameters: parameters,
         body: body,
@@ -1660,7 +1644,7 @@ class AstBuilder extends StackListener {
         assert(thisKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
         node = ast.superFormalParameter(
-            identifier: name!,
+            name: name!.token,
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
@@ -1675,7 +1659,7 @@ class AstBuilder extends StackListener {
         assert(superKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
         node = ast.fieldFormalParameter2(
-            identifier: name!,
+            name: name!.token,
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
@@ -1688,7 +1672,7 @@ class AstBuilder extends StackListener {
             question: typeOrFunctionTypedParameter.question);
       } else {
         node = ast.functionTypedFormalParameter2(
-            identifier: name!,
+            name: name!.token,
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
@@ -1719,7 +1703,7 @@ class AstBuilder extends StackListener {
             type: type,
             superKeyword: superKeyword,
             period: periodAfterThisOrSuper!,
-            identifier: name!);
+            name: name!.token);
       } else if (thisKeyword != null) {
         assert(superKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
@@ -1732,7 +1716,7 @@ class AstBuilder extends StackListener {
             type: type,
             thisKeyword: thisKeyword,
             period: thisKeyword.next!,
-            identifier: name!);
+            name: name!.token);
       } else {
         node = ast.simpleFormalParameter2(
             comment: comment,
@@ -1741,7 +1725,7 @@ class AstBuilder extends StackListener {
             requiredKeyword: requiredKeyword,
             keyword: keyword,
             type: type,
-            identifier: name);
+            name: name?.token);
       }
     }
 
@@ -1882,9 +1866,7 @@ class AstBuilder extends StackListener {
     // Create a temporary formal parameter that will be dissected later in
     // [endFormalParameter].
     push(ast.functionTypedFormalParameter2(
-        identifier: ast.simpleIdentifier(
-          StringToken(TokenType.IDENTIFIER, '', 0),
-        ),
+        name: StringToken(TokenType.IDENTIFIER, '', 0),
         returnType: returnType,
         typeParameters: typeParameters,
         parameters: formalParameters,
@@ -2214,7 +2196,7 @@ class AstBuilder extends StackListener {
       externalKeyword: null,
       returnType: returnType,
       propertyKeyword: null,
-      name: name,
+      name2: name.token,
       functionExpression: functionExpression,
     );
     push(
@@ -2382,7 +2364,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         typedefKeyword: classKeyword,
-        name: name,
+        name2: name.token,
         typeParameters: typeParameters,
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
@@ -2840,7 +2822,7 @@ class AstBuilder extends StackListener {
         externalKeyword: externalKeyword,
         returnType: returnType,
         propertyKeyword: getOrSet,
-        name: name,
+        name2: name.token,
         functionExpression: FunctionExpressionImpl(
           typeParameters: typeParameters,
           parameters: parameters,
@@ -2894,7 +2876,7 @@ class AstBuilder extends StackListener {
           metadata: metadata,
           typedefKeyword: typedefKeyword,
           returnType: returnType,
-          name: name,
+          name2: name.token,
           typeParameters: typeParameters,
           parameters: parameters,
           semicolon: semicolon,
@@ -2917,7 +2899,7 @@ class AstBuilder extends StackListener {
           comment: comment,
           metadata: metadata,
           typedefKeyword: typedefKeyword,
-          name: name,
+          name2: name.token,
           typeParameters: templateParameters,
           equals: equals,
           type: type,
@@ -3242,7 +3224,7 @@ class AstBuilder extends StackListener {
       macroKeyword: macroKeyword,
       augmentKeyword: augmentKeyword,
       classKeyword: classKeyword,
-      name: name,
+      name: name.token,
       typeParameters: typeParameters,
       extendsClause: extendsClause,
       withClause: withClause,
@@ -3421,7 +3403,7 @@ class AstBuilder extends StackListener {
       constant = EnumConstantDeclarationImpl(
         comment: constant.documentationComment,
         metadata: constant.metadata,
-        name: constant.name2,
+        name2: constant.name2,
         arguments: EnumConstantArgumentsImpl(
           typeArguments: typeArguments,
           constructorSelector: constructorSelector,
@@ -3486,7 +3468,7 @@ class AstBuilder extends StackListener {
       comment: comment,
       metadata: metadata,
       enumKeyword: enumKeyword,
-      name: name,
+      name: name.token,
       typeParameters: typeParameters,
       withClause: withClause,
       implementsClause: implementsClause,
@@ -3739,7 +3721,7 @@ class AstBuilder extends StackListener {
         EnumConstantDeclarationImpl(
           comment: comment,
           metadata: metadata,
-          name: token,
+          name2: token,
           arguments: null,
         ),
       );
@@ -3978,28 +3960,11 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("LiteralList");
 
-    if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements = popCollectionElements(count);
-      var typeArguments = pop() as TypeArgumentList?;
+    List<CollectionElement> elements = popCollectionElements(count);
+    var typeArguments = pop() as TypeArgumentList?;
 
-      // TODO(danrubel): Remove this and _InvalidCollectionElement
-      // once control flow and spread collection support is enabled by default
-      elements.removeWhere((e) => e == _invalidCollectionElement);
-
-      push(ast.listLiteral(
-          constKeyword, typeArguments, leftBracket, elements, rightBracket));
-    } else {
-      var elements = popTypedList<Expression>(count) ?? const [];
-      var typeArguments = pop() as TypeArgumentList?;
-
-      List<Expression> expressions = <Expression>[];
-      for (var elem in elements) {
-        expressions.add(elem);
-      }
-
-      push(ast.listLiteral(
-          constKeyword, typeArguments, leftBracket, expressions, rightBracket));
-    }
+    push(ast.listLiteral(
+        constKeyword, typeArguments, leftBracket, elements, rightBracket));
   }
 
   @override
@@ -4036,96 +4001,16 @@ class AstBuilder extends StackListener {
     // behavior and will be removed once unified collection has been enabled
     bool hasSetEntry,
   ) {
-    if (enableControlFlowCollections || enableSpreadCollections) {
-      List<CollectionElement> elements = popCollectionElements(count);
+    List<CollectionElement> elements = popCollectionElements(count);
 
-      // TODO(danrubel): Remove this and _InvalidCollectionElement
-      // once control flow and spread collection support is enabled by default
-      elements.removeWhere((e) => e == _invalidCollectionElement);
-
-      var typeArguments = pop() as TypeArgumentList?;
-      push(ast.setOrMapLiteral(
-        constKeyword: constKeyword,
-        typeArguments: typeArguments,
-        leftBracket: leftBrace,
-        elements: elements,
-        rightBracket: rightBrace,
-      ));
-    } else {
-      var elements = popTypedList(count);
-      var typeArguments = pop() as TypeArgumentList?;
-
-      // Replicate existing behavior that has been removed from the parser.
-      // This will be removed once control flow collections
-      // and spread collections are enabled by default.
-
-      // Determine if this is a set or map based on type args and content
-      final typeArgCount = typeArguments?.arguments.length;
-      bool? isSet = typeArgCount == 1
-          ? true
-          : typeArgCount != null
-              ? false
-              : null;
-      isSet ??= hasSetEntry;
-
-      // Build the set or map
-      if (isSet) {
-        final setEntries = <Expression>[];
-        if (elements != null) {
-          for (var elem in elements) {
-            if (elem is MapLiteralEntry) {
-              setEntries.add(elem.key);
-              handleRecoverableError(
-                  templateUnexpectedToken.withArguments(elem.separator),
-                  elem.separator,
-                  elem.separator);
-            } else if (elem is Expression) {
-              setEntries.add(elem);
-            }
-          }
-        }
-        push(ast.setOrMapLiteral(
-          constKeyword: constKeyword,
-          typeArguments: typeArguments,
-          leftBracket: leftBrace,
-          elements: setEntries,
-          rightBracket: rightBrace,
-        ));
-      } else {
-        final mapEntries = <MapLiteralEntry>[];
-        if (elements != null) {
-          for (var elem in elements) {
-            if (elem is MapLiteralEntry) {
-              mapEntries.add(elem);
-            } else if (elem is ExpressionImpl) {
-              Token next = elem.endToken.next!;
-              int offset = next.offset;
-              handleRecoverableError(
-                  templateExpectedButGot.withArguments(':'), next, next);
-              handleRecoverableError(
-                  templateExpectedIdentifier.withArguments(next), next, next);
-              Token separator = SyntheticToken(TokenType.COLON, offset);
-              final value = ast.simpleIdentifier(
-                  SyntheticStringToken(TokenType.IDENTIFIER, '', offset));
-              mapEntries.add(
-                MapLiteralEntryImpl(
-                  key: elem,
-                  separator: separator,
-                  value: value,
-                ),
-              );
-            }
-          }
-        }
-        push(ast.setOrMapLiteral(
-          constKeyword: constKeyword,
-          typeArguments: typeArguments,
-          leftBracket: leftBrace,
-          elements: mapEntries,
-          rightBracket: rightBrace,
-        ));
-      }
-    }
+    var typeArguments = pop() as TypeArgumentList?;
+    push(ast.setOrMapLiteral(
+      constKeyword: constKeyword,
+      typeArguments: typeArguments,
+      leftBracket: leftBrace,
+      elements: elements,
+      rightBracket: rightBrace,
+    ));
   }
 
   @override
@@ -4148,7 +4033,7 @@ class AstBuilder extends StackListener {
       metadata: metadata,
       augmentKeyword: augmentKeyword,
       mixinKeyword: mixinKeyword,
-      name: name,
+      name: name.token,
       typeParameters: typeParameters,
       onClause: onClause,
       implementsClause: implementsClause,
@@ -4281,7 +4166,7 @@ class AstBuilder extends StackListener {
     debugEvent("NoTypeNameInConstructorReference");
     final builder = _classLikeBuilder as _EnumDeclarationBuilder;
 
-    push(ast.simpleIdentifier(builder.name.token));
+    push(ast.simpleIdentifier(builder.name));
   }
 
   @override
@@ -4515,16 +4400,12 @@ class AstBuilder extends StackListener {
   @override
   void handleSpreadExpression(Token spreadToken) {
     var expression = pop() as Expression;
-    if (enableSpreadCollections) {
-      push(ast.spreadElement(
-          spreadOperator: spreadToken, expression: expression));
-    } else {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.spread_collections,
-        startToken: spreadToken,
-      );
-      push(_invalidCollectionElement);
-    }
+    push(
+      ast.spreadElement(
+        spreadOperator: spreadToken,
+        expression: expression,
+      ),
+    );
   }
 
   @override
@@ -4774,26 +4655,16 @@ class AstBuilder extends StackListener {
 
   void pushForControlFlowInfo(Token? awaitToken, Token forToken,
       Token leftParenthesis, ForLoopPartsImpl forLoopParts, Object entry) {
-    if (entry == _invalidCollectionElement) {
-      push(_invalidCollectionElement);
-    } else if (enableControlFlowCollections) {
-      push(
-        ForElementImpl(
-          awaitKeyword: awaitToken,
-          forKeyword: forToken,
-          leftParenthesis: leftParenthesis,
-          forLoopParts: forLoopParts,
-          rightParenthesis: leftParenthesis.endGroup!,
-          body: entry as CollectionElementImpl,
-        ),
-      );
-    } else {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.control_flow_collections,
-        startToken: forToken,
-      );
-      push(_invalidCollectionElement);
-    }
+    push(
+      ForElementImpl(
+        awaitKeyword: awaitToken,
+        forKeyword: forToken,
+        leftParenthesis: leftParenthesis,
+        forLoopParts: forLoopParts,
+        rightParenthesis: leftParenthesis.endGroup!,
+        body: entry as CollectionElementImpl,
+      ),
+    );
   }
 
   void pushIfControlFlowInfo(
@@ -4802,29 +4673,18 @@ class AstBuilder extends StackListener {
       CollectionElementImpl thenElement,
       Token? elseToken,
       CollectionElementImpl? elseElement) {
-    if (thenElement == _invalidCollectionElement ||
-        elseElement == _invalidCollectionElement) {
-      push(_invalidCollectionElement);
-    } else if (enableControlFlowCollections) {
-      push(
-        IfElementImpl(
-          ifKeyword: ifToken,
-          leftParenthesis: condition.leftParenthesis,
-          condition: condition.expression,
-          caseClause: null,
-          rightParenthesis: condition.rightParenthesis,
-          thenElement: thenElement,
-          elseKeyword: elseToken,
-          elseElement: elseElement,
-        ),
-      );
-    } else {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.control_flow_collections,
-        startToken: ifToken,
-      );
-      push(_invalidCollectionElement);
-    }
+    push(
+      IfElementImpl(
+        ifKeyword: ifToken,
+        leftParenthesis: condition.leftParenthesis,
+        condition: condition.expression,
+        caseClause: null,
+        rightParenthesis: condition.rightParenthesis,
+        thenElement: thenElement,
+        elseKeyword: elseToken,
+        elseElement: elseElement,
+      ),
+    );
   }
 
   void reportErrorIfNullableType(Token? questionMark) {
@@ -4903,7 +4763,7 @@ class AstBuilder extends StackListener {
     required ExpressionImpl? initializer,
   }) {
     return VariableDeclarationImpl(
-      name: name,
+      name2: name.token,
       equals: equals,
       initializer: initializer,
     );
@@ -4968,7 +4828,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? macroKeyword;
   final Token? augmentKeyword;
   final Token classKeyword;
-  final SimpleIdentifierImpl name;
+  final Token name;
   ExtendsClauseImpl? extendsClause;
   WithClauseImpl? withClause;
   ImplementsClauseImpl? implementsClause;
@@ -4999,7 +4859,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       macroKeyword: macroKeyword,
       augmentKeyword: augmentKeyword,
       classKeyword: classKeyword,
-      name: name,
+      name2: name,
       typeParameters: typeParameters,
       extendsClause: extendsClause,
       withClause: withClause,
@@ -5039,7 +4899,7 @@ class _ConstructorNameWithInvalidTypeArgs {
 
 class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token enumKeyword;
-  final SimpleIdentifierImpl name;
+  final Token name;
   final WithClauseImpl? withClause;
   final ImplementsClauseImpl? implementsClause;
   final List<EnumConstantDeclaration> constants = [];
@@ -5063,7 +4923,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       comment: comment,
       metadata: metadata,
       enumKeyword: enumKeyword,
-      name: name,
+      name2: name,
       typeParameters: typeParameters,
       withClause: withClause,
       implementsClause: implementsClause,
@@ -5078,7 +4938,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
 class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token extensionKeyword;
-  final SimpleIdentifierImpl? name;
+  final Token? name;
 
   _ExtensionDeclarationBuilder({
     required super.comment,
@@ -5102,7 +4962,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       metadata: metadata,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
-      name: name,
+      name2: name,
       typeParameters: typeParameters,
       onKeyword: onKeyword,
       extendedType: extendedType,
@@ -5115,23 +4975,10 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   }
 }
 
-/// When [enableSpreadCollections] and/or [enableControlFlowCollections]
-/// are false, this class is pushed on the stack when a disabled
-/// [CollectionElement] has been parsed.
-class _InvalidCollectionElement implements CollectionElementImpl {
-  // TODO(danrubel): Remove this once control flow and spread collections
-  // have been enabled by default.
-
-  const _InvalidCollectionElement._();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token mixinKeyword;
-  final SimpleIdentifierImpl name;
+  final Token name;
   OnClauseImpl? onClause;
   ImplementsClauseImpl? implementsClause;
 
@@ -5154,7 +5001,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       metadata: metadata,
       augmentKeyword: augmentKeyword,
       mixinKeyword: mixinKeyword,
-      name: name,
+      name2: name,
       typeParameters: typeParameters,
       onClause: onClause,
       implementsClause: implementsClause,
