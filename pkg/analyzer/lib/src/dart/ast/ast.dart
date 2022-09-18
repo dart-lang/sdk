@@ -14,7 +14,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
@@ -3979,15 +3978,6 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause?.accept(visitor);
     _constants.accept(visitor);
     _members.accept(visitor);
-  }
-}
-
-/// Ephemeral identifiers are created as needed to mimic the presence of an
-/// empty identifier.
-class EphemeralIdentifier extends SimpleIdentifierImpl {
-  EphemeralIdentifier(AstNode parent, int location)
-      : super(StringToken(TokenType.IDENTIFIER, "", location)) {
-    (parent as AstNodeImpl)._becomeParentOf(this);
   }
 }
 
