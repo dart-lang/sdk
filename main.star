@@ -499,6 +499,8 @@ dart.try_builder(
 dart.try_builder(
     "dart-sdk-win",
     dimensions = windows,
+    properties = {"archs": ["ia32", "x64", "arm64"], "disable_bcid": True},
+    recipe = "release/sdk",
     on_cq = True,
 )
 
