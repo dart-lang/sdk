@@ -419,7 +419,6 @@ class Scope extends MutableScope {
     }
   }
 
-  /// Lookup a member with [name] in the scope.
   Builder? lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope = true}) {
     recordUse(name, charOffset);

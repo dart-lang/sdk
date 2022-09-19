@@ -9,8 +9,7 @@ const List<String> denylistedCoreClasses = [
   "num",
   "double",
   "String",
-  "Null",
-  "Record",
+  "Null"
 ];
 
 // List of special classes in dart:typed_data that can't be subclassed.
