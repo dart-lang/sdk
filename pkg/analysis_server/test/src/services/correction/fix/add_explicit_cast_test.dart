@@ -76,6 +76,27 @@ class B {}
 ''');
   }
 
+  Future<void> test_assignment_iterable_to_set() async {
+    await resolveTestCode('''
+f(List<A> a) {
+  Set<B> b;
+  b = a.where((e) => e is B).toSet();
+  print(b);
+}
+class A {}
+class B {}
+''');
+    await assertHasFix('''
+f(List<A> a) {
+  Set<B> b;
+  b = a.where((e) => e is B).cast<B>().toSet();
+  print(b);
+}
+class A {}
+class B {}
+''');
+  }
+
   Future<void> test_assignment_list() async {
     await resolveTestCode('''
 f(List<A> a) {

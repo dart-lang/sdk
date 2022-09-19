@@ -49,8 +49,7 @@ class AddExplicitCast extends CorrectionProducer {
       // because it's nullable, in which case a cast won't fix the problem.
       return;
     }
-    // TODO(brianwilkerson) Handle `toSet` in a manner similar to the below.
-    if (target.isToListMethodInvocation) {
+    if (target.isToListMethodInvocation || target.isToSetMethodInvocation) {
       var targetTarget = (target as MethodInvocation).target;
       if (targetTarget != null) {
         var targetTargetType = targetTarget.typeOrThrow;
@@ -71,12 +70,11 @@ class AddExplicitCast extends CorrectionProducer {
     final target_final = target;
 
     var needsParentheses = target.precedence < Precedence.postfix;
-    if (((fromType.isDartCoreIterable || fromType.isDartCoreList) &&
-            toType is InterfaceType &&
-            toType.isDartCoreList) ||
-        (fromType.isDartCoreSet &&
-            toType is InterfaceType &&
-            toType.isDartCoreSet)) {
+    if (toType is InterfaceType &&
+        (((fromType.isDartCoreIterable || fromType.isDartCoreList) &&
+                toType.isDartCoreList) ||
+            (fromType.isDartCoreIterable || fromType.isDartCoreSet) &&
+                toType.isDartCoreSet)) {
       if (target.isCastMethodInvocation) {
         // TODO(brianwilkerson) Consider updating the type arguments to the
         // `cast` invocation.
