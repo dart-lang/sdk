@@ -4194,6 +4194,28 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_field_overrides_field_in_mixin() async {
+    var content = '''
+class C extends Object with M {
+  int x;
+}
+
+mixin M {
+  int x;
+}
+''';
+    var expected = '''
+class C extends Object with M {
+  int? x;
+}
+
+mixin M {
+  int? x;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_field_overrides_getter() async {
     var content = '''
 abstract class C {
