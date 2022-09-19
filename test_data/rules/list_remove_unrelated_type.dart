@@ -26,7 +26,7 @@ void someFunction4() {
 
 void someFunction4_1() {
   List list = [];
-  if(list.remove(null)) print('someFunction4_1');
+  if (list.remove(null)) print('someFunction4_1');
 }
 
 void someFunction5_1() {
@@ -47,7 +47,7 @@ void someFunction6() {
   if (list.remove(instance)) print('someFunction6'); // OK
 }
 
-class MixedIn with Mixin { }
+class MixedIn with Mixin {}
 
 void someFunction6_1() {
   List<DerivedClass2> list = <DerivedClass2>[];
@@ -99,7 +99,8 @@ void someFunction12() {
 }
 
 void bug_267(list) {
-  if (list.remove('1')) print('someFunction'); // https://github.com/dart-lang/linter/issues/267
+  if (list.remove('1'))
+    print('someFunction'); // https://github.com/dart-lang/linter/issues/267
 }
 
 abstract class ClassBase {}
@@ -135,19 +136,27 @@ bool takesList2(List<String> list) => list.remove('a'); // OK
 bool takesList3(List list) => list.remove('a'); // OK
 
 abstract class A implements List<int> {}
+
 abstract class B extends A {}
+
 bool takesB(B b) => b.remove('a'); // LINT
 
 abstract class A1 implements List<String> {}
+
 abstract class B1 extends A1 {}
+
 bool takesB1(B1 b) => b.remove('a'); // OK
 
 abstract class A3 implements List {}
+
 abstract class B3 extends A3 {}
+
 bool takesB3(B3 b) => b.remove('a'); // OK
 
 abstract class A2 implements List<String> {}
+
 abstract class B2 extends A2 {}
+
 bool takesB2(B2 b) => b.remove('a'); // OK
 
 abstract class SomeList<E> implements List<E> {}
@@ -172,4 +181,18 @@ abstract class MyListMixedClass extends Object
     implements List<int> {
   bool myConcreteBadMethod(String thing) => this.remove(thing); // LINT
   bool myConcreteBadMethod1(String thing) => remove(thing); // LINT
+}
+
+enum E implements List<int> {
+  one,
+  two;
+
+  @override
+  dynamic noSuchMethod(_) => throw UnsupportedError('');
+
+  void f() {
+    remove('string'); // LINT
+    this.remove('string'); // LINT
+    remove(1); // OK
+  }
 }

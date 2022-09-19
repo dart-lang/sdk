@@ -47,7 +47,7 @@ void someFunction6() {
   if (list.contains(instance)) print('someFunction6'); // OK
 }
 
-class MixedIn with Mixin { }
+class MixedIn with Mixin {}
 
 void someFunction6_1() {
   List<DerivedClass2> list = <DerivedClass2>[];
@@ -177,4 +177,18 @@ abstract class MyIterableMixedClass extends Object
     implements Iterable<int> {
   bool myConcreteBadMethod(String thing) => this.contains(thing); // LINT
   bool myConcreteBadMethod1(String thing) => contains(thing); // LINT
+}
+
+enum E implements List<int> {
+  one,
+  two;
+
+  @override
+  dynamic noSuchMethod(_) => throw UnsupportedError('');
+
+  void f() {
+    contains('string'); // LINT
+    this.contains('string'); // LINT
+    contains(1); // OK
+  }
 }
