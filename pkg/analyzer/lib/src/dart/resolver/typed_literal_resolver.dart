@@ -52,8 +52,6 @@ class TypedLiteralResolver {
   final MigratableAstInfoProvider _migratableAstInfoProvider;
 
   final bool _strictInference;
-  final bool _uiAsCodeEnabled;
-
   final bool _isNonNullableByDefault;
 
   factory TypedLiteralResolver(ResolverVisitor resolver, FeatureSet featureSet,
@@ -69,8 +67,6 @@ class TypedLiteralResolver {
         typeProvider,
         resolver.errorReporter,
         analysisOptionsImpl.strictInference,
-        featureSet.isEnabled(Feature.control_flow_collections) ||
-            featureSet.isEnabled(Feature.spread_collections),
         featureSet.isEnabled(Feature.non_nullable),
         migratableAstInfoProvider);
   }
@@ -81,7 +77,6 @@ class TypedLiteralResolver {
       this._typeProvider,
       this._errorReporter,
       this._strictInference,
-      this._uiAsCodeEnabled,
       this._isNonNullableByDefault,
       this._migratableAstInfoProvider);
 
@@ -170,7 +165,6 @@ class TypedLiteralResolver {
       assert(literalResolution.kind == _LiteralResolutionKind.ambiguous);
       literalType = null;
     }
-    var elements = _getSetOrMapElements(node);
     CollectionLiteralContext? context;
     if (literalType is InterfaceType) {
       List<DartType> typeArguments = literalType.typeArguments;
@@ -179,13 +173,6 @@ class TypedLiteralResolver {
         DartType iterableType = _typeProvider.iterableType(elementType);
         context = CollectionLiteralContext(
             elementType: elementType, iterableType: iterableType);
-        if (!_uiAsCodeEnabled &&
-            elements.isEmpty &&
-            node.typeArguments == null &&
-            node.isMap) {
-          // The node is really an empty set literal with no type arguments.
-          node.becomeMap();
-        }
       } else if (typeArguments.length == 2) {
         DartType keyType = typeArguments[0];
         DartType valueType = typeArguments[1];
