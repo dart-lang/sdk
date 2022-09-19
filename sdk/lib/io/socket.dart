@@ -599,6 +599,8 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   /// Returns `null` if no data is available.
   ///
   /// Unsupported by [RawSecureSocket].
+  ///
+  /// Unsupported on Android, Fuchsia, Windows.
   @Since("2.15")
   SocketMessage? readMessage([int? count]);
 
@@ -638,6 +640,8 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   /// Throws an [OSError] if message could not be sent out.
   ///
   /// Unsupported by [RawSecureSocket].
+  ///
+  /// Unsupported on Android, Fuchsia, Windows.
   @Since("2.15")
   int sendMessage(List<SocketControlMessage> controlMessages, List<int> data,
       [int offset = 0, int? count]);
