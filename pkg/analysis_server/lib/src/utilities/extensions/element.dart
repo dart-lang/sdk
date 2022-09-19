@@ -79,8 +79,8 @@ extension MethodElementExtensions on MethodElement {
         definingClass.isDartCoreSet;
   }
 
-  /// Return `true` if this element represents the method `toList` from either
-  /// `Iterable` or `List`.
+  /// Return `true` if this element represents the method `toList` from
+  /// `Iterable`.
   bool get isToListMethod {
     if (name != 'toList') {
       return false;
@@ -89,6 +89,19 @@ extension MethodElementExtensions on MethodElement {
     if (definingClass is! ClassElement) {
       return false;
     }
-    return definingClass.isDartCoreIterable || definingClass.isDartCoreList;
+    return definingClass.isDartCoreIterable;
+  }
+
+  /// Return `true` if this element represents the method `toSet` from
+  /// `Iterable`.
+  bool get isToSetMethod {
+    if (name != 'toSet') {
+      return false;
+    }
+    var definingClass = enclosingElement3;
+    if (definingClass is! ClassElement) {
+      return false;
+    }
+    return definingClass.isDartCoreIterable;
   }
 }

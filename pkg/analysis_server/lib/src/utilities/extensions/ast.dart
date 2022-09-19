@@ -180,11 +180,21 @@ extension ExpressionExtensions on Expression {
   }
 
   /// Return `true` if this expression is an invocation of the method `toList`
-  /// from either `Iterable` or `List`.
+  /// from `Iterable`.
   bool get isToListMethodInvocation {
     if (this is MethodInvocation) {
       var element = (this as MethodInvocation).methodName.staticElement;
       return element is MethodElement && element.isToListMethod;
+    }
+    return false;
+  }
+
+  /// Return `true` if this expression is an invocation of the method `toSet`
+  /// from `Iterable`.
+  bool get isToSetMethodInvocation {
+    if (this is MethodInvocation) {
+      var element = (this as MethodInvocation).methodName.staticElement;
+      return element is MethodElement && element.isToSetMethod;
     }
     return false;
   }

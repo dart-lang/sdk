@@ -28,7 +28,7 @@ void _checkForErrorResponse(Object? response, String message, String path) {
       case _fileClosedResponse:
         throw FileSystemException("File closed", path);
       default:
-        throw Exception("Unknown error");
+        throw AssertionError("Unknown error");
     }
   }
 }

@@ -1549,23 +1549,23 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   static createError(error, String message,
       [InternetAddress? address, int? port]) {
     if (error is OSError) {
-      return new SocketException(message,
+      return SocketException(message,
           osError: error, address: address, port: port);
     } else if (error is List) {
       assert(isErrorResponse(error));
       switch (error[0]) {
         case _illegalArgumentResponse:
-          return new ArgumentError();
+          return ArgumentError();
         case _osErrorResponse:
-          return new SocketException(message,
-              osError: new OSError(error[2], error[1]),
+          return SocketException(message,
+              osError: OSError(error[2], error[1]),
               address: address,
               port: port);
         default:
-          return new Exception("Unknown error");
+          return AssertionError("Unknown error");
       }
     } else {
-      return new SocketException(message, address: address, port: port);
+      return SocketException(message, address: address, port: port);
     }
   }
 
