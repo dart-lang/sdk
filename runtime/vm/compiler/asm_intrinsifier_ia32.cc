@@ -1460,7 +1460,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ movl(EAX, Address(ESP, +1 * target::kWordSize));  // FunctionType object.
   __ movl(EAX, FieldAddress(EAX, target::FunctionType::hash_offset()));
@@ -1471,7 +1471,7 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
-void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));
   __ movl(EBX, Address(ESP, +2 * target::kWordSize));

@@ -21284,6 +21284,23 @@ AbstractTypePtr Type::InstantiateFrom(
   return instantiated_type.NormalizeFutureOrType(space);
 }
 
+// Certain built-in classes are treated as syntactically equivalent.
+static classid_t NormalizeClassIdForSyntacticalTypeEquality(classid_t cid) {
+  if (IsIntegerClassId(cid)) {
+    return Type::Handle(Type::IntType()).type_class_id();
+  } else if (IsStringClassId(cid)) {
+    return Type::Handle(Type::StringType()).type_class_id();
+  } else if (cid == kDoubleCid) {
+    return Type::Handle(Type::Double()).type_class_id();
+  } else if (IsTypeClassId(cid)) {
+    return Type::Handle(Type::DartTypeType()).type_class_id();
+  } else if (IsArrayClassId(cid)) {
+    return Class::Handle(IsolateGroup::Current()->object_store()->list_class())
+        .id();
+  }
+  return cid;
+}
+
 bool Type::IsEquivalent(const Instance& other,
                         TypeEquality kind,
                         TrailPtr trail) const {
@@ -21302,8 +21319,14 @@ bool Type::IsEquivalent(const Instance& other,
     return false;
   }
   const Type& other_type = Type::Cast(other);
-  if (type_class_id() != other_type.type_class_id()) {
-    return false;
+  const classid_t type_cid = type_class_id();
+  const classid_t other_type_cid = other_type.type_class_id();
+  if (type_cid != other_type_cid) {
+    if ((kind != TypeEquality::kSyntactical) ||
+        (NormalizeClassIdForSyntacticalTypeEquality(type_cid) !=
+         NormalizeClassIdForSyntacticalTypeEquality(other_type_cid))) {
+      return false;
+    }
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();

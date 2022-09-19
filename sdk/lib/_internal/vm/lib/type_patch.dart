@@ -9,6 +9,16 @@
 abstract class _AbstractType implements Type {
   @pragma("vm:external-name", "AbstractType_toString")
   external String toString();
+
+  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:external-name", "AbstractType_getHashCode")
+  external int get hashCode;
+
+  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:exact-result-type", bool)
+  @pragma("vm:external-name", "AbstractType_equality")
+  external bool operator ==(other);
 }
 
 @pragma("vm:entry-point")
@@ -33,16 +43,6 @@ class _FunctionType extends _AbstractType {
   factory _FunctionType._uninstantiable() {
     throw "Unreachable";
   }
-
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:external-name", "FunctionType_getHashCode")
-  external int get hashCode;
-
-  @pragma("vm:recognized", "asm-intrinsic")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "FunctionType_equality")
-  external bool operator ==(other);
 }
 
 @pragma("vm:entry-point")
