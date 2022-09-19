@@ -1063,10 +1063,11 @@ void StubCodeCompiler::GenerateAllocateGrowableArrayStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
-  const Register temp_reg = AllocateRecordABI::kTempReg;
   const Register result_reg = AllocateRecordABI::kResultReg;
   const Register num_fields_reg = AllocateRecordABI::kNumFieldsReg;
   const Register field_names_reg = AllocateRecordABI::kFieldNamesReg;
+  const Register temp_reg = AllocateRecordABI::kTemp1Reg;
+  const Register new_top_reg = AllocateRecordABI::kTemp2Reg;
   Label slow_case;
 
   // Check for allocation tracing.
@@ -1082,16 +1083,16 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
 
   // Now allocate the object.
   __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
-  __ AddRegisters(temp_reg, result_reg);
+  __ MoveRegister(new_top_reg, temp_reg);
+  __ AddRegisters(new_top_reg, result_reg);
   // Check if the allocation fits into the remaining space.
-  __ CompareWithMemoryValue(temp_reg,
+  __ CompareWithMemoryValue(new_top_reg,
                             Address(THR, target::Thread::end_offset()));
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
-  __ StoreToOffset(temp_reg, Address(THR, target::Thread::top_offset()));
-  __ SubRegisters(temp_reg, result_reg);
+  __ StoreToOffset(new_top_reg, Address(THR, target::Thread::top_offset()));
   __ AddImmediate(result_reg, kHeapObjectTag);
 
   // Calculate the size tag.
@@ -1125,6 +1126,37 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
       result_reg,
       FieldAddress(result_reg, target::Record::field_names_offset()),
       field_names_reg);
+
+  // Initialize the remaining words of the object.
+  {
+    const Register field_reg = field_names_reg;
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
+    defined(TARGET_ARCH_RISCV64)
+    const Register null_reg = NULL_REG;
+#else
+    const Register null_reg = temp_reg;
+    __ LoadObject(null_reg, NullObject());
+#endif
+
+    Label loop, done;
+    __ AddImmediate(field_reg, result_reg,
+                    target::Record::field_offset(0) - kHeapObjectTag);
+    __ CompareRegisters(field_reg, new_top_reg);
+    __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
+
+    __ Bind(&loop);
+    for (intptr_t offset = 0; offset < target::kObjectAlignment;
+         offset += target::kCompressedWordSize) {
+      __ StoreCompressedIntoObjectNoBarrier(
+          result_reg, Address(field_reg, offset), null_reg);
+    }
+    // Safe to only check every kObjectAlignment bytes instead of each word.
+    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ AddImmediate(field_reg, target::kObjectAlignment);
+    __ CompareRegisters(field_reg, new_top_reg);
+    __ BranchIf(UNSIGNED_LESS, &loop, Assembler::kNearJump);
+    __ Bind(&done);
+  }
 
   __ Ret();
 
