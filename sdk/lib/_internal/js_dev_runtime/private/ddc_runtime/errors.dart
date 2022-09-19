@@ -65,7 +65,7 @@ String _nullFailedMessage(variableName) =>
     'A null value was passed into a non-nullable parameter: $variableName.';
 
 // Run-time null safety assertion per:
-// https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
+// https://github.com/dart-lang/language/blob/master/accepted/2.12/nnbd/feature-specification.md#automatic-debug-assertion-insertion
 nullFailed(String? fileUri, int? line, int? column, String? variable) {
   if (_nonNullAsserts) {
     throw AssertionErrorImpl(_nullFailedMessage(variable), fileUri, line,
