@@ -25,8 +25,8 @@ import '../io/source_information.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../inferrer/types.dart';
-import '../inferrerExperimental/types.dart' as experimentalInferrer;
-import '../inferrerExperimental/type_graph_inferrer.dart'
+import '../inferrer_experimental/types.dart' as experimentalInferrer;
+import '../inferrer_experimental/type_graph_inferrer.dart'
     as experimentalInferrer;
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';

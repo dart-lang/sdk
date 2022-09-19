@@ -13,8 +13,8 @@ import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
-import '../inferrerExperimental/engine.dart';
-import '../inferrerExperimental/type_graph_inferrer.dart'
+import '../inferrer_experimental/engine.dart';
+import '../inferrer_experimental/type_graph_inferrer.dart'
     show TypeGraphInferrer;
 import '../js_backend/inferred_data.dart';
 import '../js_model/element_map.dart';

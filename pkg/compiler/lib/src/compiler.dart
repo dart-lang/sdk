@@ -38,7 +38,7 @@ import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
-import 'inferrerExperimental/types.dart' as experimentalInferrer
+import 'inferrer_experimental/types.dart' as experimentalInferrer
     show GlobalTypeInferenceTask;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'ir/modular.dart';
