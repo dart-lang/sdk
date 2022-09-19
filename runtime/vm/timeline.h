@@ -425,6 +425,11 @@ class TimelineEvent {
   int64_t timestamp0() const { return timestamp0_; }
   int64_t timestamp1() const { return timestamp1_; }
 
+  bool HasIsolateId() const;
+  bool HasIsolateGroupId() const;
+  const char* GetFormattedIsolateId() const;
+  const char* GetFormattedIsolateGroupId() const;
+
   // The lowest time value stored in this event.
   int64_t LowTime() const;
   // The highest time value stored in this event.

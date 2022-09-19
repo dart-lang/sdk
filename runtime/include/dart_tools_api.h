@@ -29,6 +29,11 @@
  */
 #define ILLEGAL_ISOLATE_ID ILLEGAL_PORT
 
+/**
+ * ILLEGAL_ISOLATE_GROUP_ID is a number guaranteed never to be associated with a
+ * valid isolate group.
+ */
+#define ILLEGAL_ISOLATE_GROUP_ID 0
 
 /*
  * =======
