@@ -210,10 +210,6 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       Node pattern, Expression? guard, Statement ifTrue, Statement? ifFalse) {
     // Stack: ()
     flow?.ifStatement_conditionBegin();
-    // Note: this follows what's proposed in
-    // https://github.com/dart-lang/language/issues/2458, which is that we use
-    // the unknown type for the type schema.
-    // TODO(paulberry): update this if necessary when that issue is closed.
     Type initializerType = analyzeExpression(expression, unknownType);
     // Stack: (Expression)
     PatternDispatchResult<Node, Expression, Variable, Type>
@@ -884,9 +880,9 @@ class _ConstantPatternDispatchResult<Node extends Object,
 
   @override
   Type get typeSchema {
-    // Note: this follows what's proposed in
-    // https://github.com/dart-lang/language/issues/2458.
-    // TODO(paulberry): update this if necessary when that issue is closed.
+    // Constant patterns are only allowed in refutable contexts, and refutable
+    // contexts don't propagate a type schema into the scrutinee.  So this
+    // code path is only reachable if the user's code contains errors.
     _typeAnalyzer.errors?.assertInErrorRecovery();
     return _typeAnalyzer.unknownType;
   }
