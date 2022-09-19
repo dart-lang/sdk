@@ -255,7 +255,7 @@ class _Directory extends FileSystemEntity implements Directory {
               response[_osErrorResponseErrorCode] as int);
           throw FileSystemException(message, path, err);
         default:
-          throw Exception("Unknown error");
+          throw AssertionError("Unknown error");
       }
     }
   }
