@@ -156,12 +156,18 @@ extension RecordTypeExtension on RecordType {
   }
 
   RecordTypePositionalField? positionalField(String name) {
+    final index = positionalFieldIndex(name);
+    if (index != null && index < positionalFields.length) {
+      return positionalFields[index];
+    }
+    return null;
+  }
+
+  /// Attempt to parse `$0`, `$1`, etc.
+  static int? positionalFieldIndex(String name) {
     final match = _positionalName.firstMatch(name);
     if (match != null) {
-      final index = int.tryParse(match.group(1)!);
-      if (index != null && index < positionalFields.length) {
-        return positionalFields[index];
-      }
+      return int.tryParse(match.group(1)!);
     }
     return null;
   }
