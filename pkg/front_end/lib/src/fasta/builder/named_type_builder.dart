@@ -4,7 +4,6 @@
 
 library fasta.named_type_builder;
 
-import 'package:front_end/src/fasta/util/helpers.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -409,16 +408,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   DartType buildAliased(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     assert(hierarchy != null || isExplicit, "Cannot build $this.");
-
-    DartType builtType = _buildAliasedInternal(library, typeUse, hierarchy);
-
-    if (library is SourceLibraryBuilder &&
-        !checkRecordOrItsAliasAccessAllowed(builtType, library)) {
-      library.reportFeatureNotEnabled(library.libraryFeatures.records,
-          fileUri ?? library.fileUri, charOffset!, nameText.length);
-    }
-
-    return builtType;
+    return _buildAliasedInternal(library, typeUse, hierarchy);
   }
 
   DartType _buildAliasedInternal(
@@ -705,15 +695,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
   @override
   DartType build(LibraryBuilder library, TypeUse typeUse,
       {ClassHierarchyBase? hierarchy}) {
-    DartType builtType = _buildInternal(library, typeUse, hierarchy);
-
-    if (library is SourceLibraryBuilder &&
-        !checkRecordOrItsAliasAccessAllowed(builtType, library)) {
-      library.reportFeatureNotEnabled(library.libraryFeatures.records,
-          fileUri ?? library.fileUri, charOffset!, nameText.length);
-    }
-
-    return _type ??= builtType;
+    return _type ??= _buildInternal(library, typeUse, hierarchy);
   }
 }
 

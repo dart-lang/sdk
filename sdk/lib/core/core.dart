@@ -194,7 +194,6 @@ part "num.dart";
 part "object.dart";
 part "pattern.dart";
 part "print.dart";
-part "record.dart";
 part "regexp.dart";
 part "set.dart";
 part "sink.dart";

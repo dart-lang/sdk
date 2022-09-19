@@ -11,7 +11,6 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FutureOrType,
         InterfaceType,
-        InvalidType,
         Member,
         Name,
         NullType,
@@ -347,15 +346,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       int charOffset,
       ClassHierarchyBase? hierarchy,
       {required bool hasExplicitTypeArguments}) {
-    if (name == "Record" &&
-        libraryBuilder.importUri.scheme == "dart" &&
-        libraryBuilder.importUri.path == "core" &&
-        library is SourceLibraryBuilder &&
-        !library.libraryFeatures.records.isEnabled) {
-      library.reportFeatureNotEnabled(
-          library.libraryFeatures.records, fileUri, charOffset, name.length);
-      return const InvalidType();
-    }
     return buildAliasedTypeWithBuiltArguments(
         library,
         nullabilityBuilder.build(library),

@@ -17,7 +17,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
@@ -1026,16 +1025,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitNamedType(NamedType node) {
     _typeArgumentsVerifier.checkNamedType(node);
-    bool isDartCoreRecordVisible =
-        _currentLibrary.featureSet.isEnabled(Feature.records) ||
-            FeatureSet.latestLanguageVersion().isEnabled(Feature.records);
-    if ((node.type?.isDartCoreRecord ?? false) && !isDartCoreRecordVisible) {
-      errorReporter.reportErrorForToken(
-          ParserErrorCode.EXPERIMENT_NOT_ENABLED, node.beginToken, [
-        Feature.records.enableString,
-        "${Feature.records.releaseVersion ?? ExperimentStatus.currentVersion}"
-      ]);
-    }
     super.visitNamedType(node);
   }
 
@@ -1176,23 +1165,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
     }
     _checkUseVerifier.checkSimpleIdentifier(node);
-
-    bool isDartCoreRecordVisible =
-        _currentLibrary.featureSet.isEnabled(Feature.records) ||
-            FeatureSet.latestLanguageVersion().isEnabled(Feature.records);
-    Element? staticElement = node.staticElement;
-    if ((staticElement is ClassElement &&
-                staticElement.thisType.isDartCoreRecord ||
-            staticElement is TypeAliasElement &&
-                staticElement.aliasedType.isDartCoreRecord) &&
-        !isDartCoreRecordVisible) {
-      errorReporter.reportErrorForToken(
-          ParserErrorCode.EXPERIMENT_NOT_ENABLED, node.beginToken, [
-        Feature.records.enableString,
-        "${Feature.records.releaseVersion ?? ExperimentStatus.currentVersion}"
-      ]);
-    }
-
     super.visitSimpleIdentifier(node);
   }
 
