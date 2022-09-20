@@ -126,6 +126,76 @@ f({x: y}) {}
     ]);
   }
 
+  test_function_named_constList() async {
+    await assertNoErrorsInCode(r'''
+void f({x: const [0, 1]}) {}
+''');
+  }
+
+  test_function_named_constList_elements_listLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x: const [0, [1]]}) {}
+''');
+  }
+
+  test_function_named_constRecord() async {
+    await assertNoErrorsInCode(r'''
+void f({x: const (0, 1)}) {}
+''');
+  }
+
+  test_function_named_constRecord_namedFields_listLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x: const (0, foo: [1])}) {}
+''');
+  }
+
+  test_function_named_constRecord_positionalFields_listLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x: const (0, [1])}) {}
+''');
+  }
+
+  test_function_named_record_namedFields_integerLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x: (a: 0, b: 1)}) {}
+''');
+  }
+
+  test_function_named_record_namedFields_listLiteral() async {
+    await assertErrorsInCode(r'''
+void f({x: (a: 0, b: [1])}) {}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 21, 3),
+    ]);
+  }
+
+  test_function_named_record_namedFields_listLiteral_const() async {
+    await assertNoErrorsInCode(r'''
+void f({x: (a: 0, b: const [1])}) {}
+''');
+  }
+
+  test_function_named_record_positionalFields_integerLiteral() async {
+    await assertNoErrorsInCode(r'''
+void f({x: (0, 1)}) {}
+''');
+  }
+
+  test_function_named_record_positionalFields_listLiteral() async {
+    await assertErrorsInCode(r'''
+void f({x: (0, [1])}) {}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 15, 3),
+    ]);
+  }
+
+  test_function_named_record_positionalFields_listLiteral_const() async {
+    await assertNoErrorsInCode(r'''
+void f({x: (0, const [1])}) {}
+''');
+  }
+
   test_function_positional() async {
     await assertErrorsInCode(r'''
 int y = 0;

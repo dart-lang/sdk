@@ -431,6 +431,34 @@ f() {
     assertInContext("[]", true);
   }
 
+  test_inConstantContext_listLiteral_namedFields_recordLiteral_false() {
+    parse('''
+final x = (0, foo: [1]);
+''');
+    assertInContext('[1]', false);
+  }
+
+  test_inConstantContext_listLiteral_namedFields_recordLiteral_true() {
+    parse('''
+final x = const (0, foo: [1]);
+''');
+    assertInContext('[1]', true);
+  }
+
+  test_inConstantContext_listLiteral_positionalFields_recordLiteral_false() {
+    parse('''
+final x = (0, [1]);
+''');
+    assertInContext('[1]', false);
+  }
+
+  test_inConstantContext_listLiteral_positionalFields_recordLiteral_true() {
+    parse('''
+final x = const (0, [1]);
+''');
+    assertInContext('[1]', true);
+  }
+
   test_inConstantContext_listLiteral_switch_true() {
     parse('''
 f(v) {
