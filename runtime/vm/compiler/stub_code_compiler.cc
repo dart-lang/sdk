@@ -1139,8 +1139,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
 #endif
 
     Label loop, done;
-    __ AddImmediate(field_reg, result_reg,
-                    target::Record::field_offset(0) - kHeapObjectTag);
+    __ AddImmediate(field_reg, result_reg, target::Record::field_offset(0));
     __ CompareRegisters(field_reg, new_top_reg);
     __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
 
@@ -1148,7 +1147,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
     for (intptr_t offset = 0; offset < target::kObjectAlignment;
          offset += target::kCompressedWordSize) {
       __ StoreCompressedIntoObjectNoBarrier(
-          result_reg, Address(field_reg, offset), null_reg);
+          result_reg, FieldAddress(field_reg, offset), null_reg);
     }
     // Safe to only check every kObjectAlignment bytes instead of each word.
     ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
