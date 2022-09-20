@@ -476,6 +476,9 @@ class JsClosedWorld implements JClosedWorld {
   }
 
   @override
+  Selector getSelector(ir.Expression node) => elementMap.getSelector(node);
+
+  @override
   AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {
     _ensureFunctionSet();
     if (includesClosureCall(selector, receiver)) {

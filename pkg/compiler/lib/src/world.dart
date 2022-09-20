@@ -82,6 +82,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   @override
   AnnotationsData get annotationsData;
 
+  @override
   ClosureData get closureDataLookup;
 
   OutputUnitData get outputUnitData;
