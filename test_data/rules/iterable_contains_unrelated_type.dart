@@ -192,3 +192,11 @@ enum E implements List<int> {
     contains(1); // OK
   }
 }
+
+extension on List<int> {
+  void f() {
+    contains('string'); // LINT
+    this.contains('string'); // LINT
+    contains(1); // OK
+  }
+}

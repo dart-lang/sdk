@@ -196,3 +196,11 @@ enum E implements List<int> {
     remove(1); // OK
   }
 }
+
+extension on List<int> {
+  void f() {
+    remove('string'); // LINT
+    this.remove('string'); // LINT
+    remove(1); // OK
+  }
+}
