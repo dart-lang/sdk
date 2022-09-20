@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
+
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
 import '../util/unrelated_types_visitor.dart';
 
 const _desc = r'Invocation of `remove` with references of unrelated types.';
@@ -136,18 +137,16 @@ class ListRemoveUnrelatedType extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context.typeSystem);
+    var visitor = _Visitor(this, context.typeSystem, context.typeProvider);
     registry.addMethodInvocation(this, visitor);
   }
 }
 
 class _Visitor extends UnrelatedTypesProcessors {
-  static final _definition = InterfaceTypeDefinition('List', 'dart.core');
-
-  _Visitor(super.rule, super.typeSystem);
+  _Visitor(super.rule, super.typeSystem, super.typeProvider);
 
   @override
-  InterfaceTypeDefinition get definition => _definition;
+  InterfaceElement get interface => typeProvider.listElement;
 
   @override
   String get methodName => 'remove';
