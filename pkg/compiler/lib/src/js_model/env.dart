@@ -737,7 +737,7 @@ class SignatureFunctionData implements FunctionData {
 
   @override
   final MemberDefinition definition;
-  final InterfaceType memberThisType;
+  final InterfaceType? memberThisType;
   @override
   final ClassTypeVariableAccess classTypeVariableAccess;
   List<ir.TypeParameter> get typeParameters => _typeParameters.loaded();
@@ -753,8 +753,8 @@ class SignatureFunctionData implements FunctionData {
   factory SignatureFunctionData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
-    InterfaceType /*?*/ memberThisType =
-        source.readDartTypeOrNull() as InterfaceType /*?*/;
+    InterfaceType? memberThisType =
+        source.readDartTypeOrNull() as InterfaceType?;
     Deferrable<List<ir.TypeParameter>> typeParameters =
         source.readDeferrable(() => source.readTypeParameterNodes());
     ClassTypeVariableAccess classTypeVariableAccess =
@@ -804,9 +804,7 @@ class SignatureFunctionData implements FunctionData {
   }
 
   @override
-  InterfaceType getMemberThisType(JsToElementMap elementMap) {
-    return memberThisType;
-  }
+  InterfaceType? getMemberThisType(JsToElementMap elementMap) => memberThisType;
 }
 
 abstract class DelegatedFunctionData implements FunctionData {

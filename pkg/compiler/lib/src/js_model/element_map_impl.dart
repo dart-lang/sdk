@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
@@ -82,18 +80,14 @@ class JsKernelToElementMap
   @override
   final DiagnosticReporter reporter;
   final Environment _environment;
-  /*late final*/ JCommonElements _commonElements;
-  /*late final*/ JsElementEnvironment _elementEnvironment;
-  /*late final*/ DartTypeConverter _typeConverter;
-  /*late final*/ KernelDartTypes _types;
-  ir.CoreTypes _coreTypes;
-  ir.TypeEnvironment _typeEnvironment;
-  ir.ClassHierarchy _classHierarchy;
-  Dart2jsConstantEvaluator /*?*/ _constantEvaluator;
-  /*late final*/ ConstantValuefier _constantValuefier;
+  late final JCommonElements _commonElements;
+  late final JsElementEnvironment _elementEnvironment;
+  late final DartTypeConverter _typeConverter;
+  late final KernelDartTypes _types;
+  late final ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
-  JProgramEnv programEnv;
+  late final JProgramEnv programEnv;
 
   final EntityDataEnvMap<IndexedLibrary, JLibraryData, JLibraryEnv> libraries =
       EntityDataEnvMap<IndexedLibrary, JLibraryData, JLibraryEnv>();
@@ -125,13 +119,13 @@ class JsKernelToElementMap
 
   /// NativeData is need for computation of the default super class and
   /// parameter ordering.
-  NativeData nativeData;
+  late final NativeData nativeData;
 
   final Map<IndexedFunction, JGeneratorBody> _generatorBodies = {};
 
   final Map<IndexedClass, List<IndexedMember>> _injectedClassMembers = {};
 
-  LateOutputUnitDataBuilder lateOutputUnitDataBuilder;
+  late final LateOutputUnitDataBuilder lateOutputUnitDataBuilder;
 
   JsKernelToElementMap(
       this.reporter,
@@ -150,10 +144,11 @@ class JsKernelToElementMap
     for (int libraryIndex = 0;
         libraryIndex < _elementMap.libraries.length;
         libraryIndex++) {
-      IndexedLibrary oldLibrary = _elementMap.libraries.getEntity(libraryIndex);
+      IndexedLibrary oldLibrary =
+          _elementMap.libraries.getEntity(libraryIndex)!;
       KLibraryEnv oldEnv = _elementMap.libraries.getEnv(oldLibrary);
       KLibraryData data = _elementMap.libraries.getData(oldLibrary);
-      IndexedLibrary newLibrary = JLibrary(oldLibrary.name,
+      IndexedLibrary newLibrary = JLibrary(oldLibrary.name!,
           oldLibrary.canonicalUri, oldLibrary.isNonNullableByDefault);
       JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMemberUsage);
       libraryMap[oldEnv.library] =
@@ -166,81 +161,83 @@ class JsKernelToElementMap
     for (int classIndex = 0;
         classIndex < _elementMap.classes.length;
         classIndex++) {
-      IndexedClass oldClass = _elementMap.classes.getEntity(classIndex);
+      IndexedClass oldClass = _elementMap.classes.getEntity(classIndex)!;
       KClassEnv env = _elementMap.classes.getEnv(oldClass);
       KClassData data = _elementMap.classes.getData(oldClass);
-      IndexedLibrary oldLibrary = oldClass.library;
-      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
-      IndexedClass newClass =
-          JClass(newLibrary, oldClass.name, isAbstract: oldClass.isAbstract);
+      final oldLibrary = oldClass.library as IndexedLibrary;
+      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex)!;
+      IndexedClass newClass = JClass(newLibrary as JLibrary, oldClass.name,
+          isAbstract: oldClass.isAbstract);
       JClassEnv newEnv = env.convert(_elementMap, liveMemberUsage,
-          (ir.Library library) => libraryMap[library]);
+          (ir.Library library) => libraryMap[library]!);
       classMap[env.cls] = classes.register(newClass, data.convert(), newEnv);
       assert(newClass.classIndex == oldClass.classIndex);
-      libraries.getEnv(newClass.library).registerClass(newClass.name, newEnv);
+      libraries.getEnv(newLibrary).registerClass(newClass.name, newEnv);
     }
 
     for (int memberIndex = 0;
         memberIndex < _elementMap.members.length;
         memberIndex++) {
-      IndexedMember oldMember = _elementMap.members.getEntity(memberIndex);
-      MemberUsage memberUsage = liveMemberUsage[oldMember];
+      IndexedMember oldMember = _elementMap.members.getEntity(memberIndex)!;
+      MemberUsage? memberUsage = liveMemberUsage[oldMember];
       if (memberUsage == null) {
         members.skipIndex(oldMember.memberIndex);
         continue;
       }
       KMemberData data = _elementMap.members.getData(oldMember);
-      IndexedLibrary oldLibrary = oldMember.library;
-      IndexedClass oldClass = oldMember.enclosingClass;
-      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
-      ClassEntity newClass =
-          oldClass != null ? classes.getEntity(oldClass.classIndex) : null;
+      final oldLibrary = oldMember.library as IndexedLibrary;
+      final oldClass = oldMember.enclosingClass as IndexedClass?;
+      JLibrary newLibrary =
+          libraries.getEntity(oldLibrary.libraryIndex) as JLibrary;
+      JClass? newClass = oldClass != null
+          ? classes.getEntity(oldClass.classIndex) as JClass?
+          : null;
       IndexedMember newMember;
       Name memberName = oldMember.memberName;
       if (oldMember.isField) {
-        IndexedField field = oldMember;
+        final field = oldMember as IndexedField;
         newMember = JField(newLibrary, newClass, memberName,
             isStatic: field.isStatic,
             isAssignable: field.isAssignable,
             isConst: field.isConst);
       } else if (oldMember.isConstructor) {
-        IndexedConstructor constructor = oldMember;
+        final constructor = oldMember as IndexedConstructor;
         ParameterStructure parameterStructure =
             annotations.hasNoElision(constructor)
                 ? constructor.parameterStructure
-                : memberUsage.invokedParameters /*!*/;
+                : memberUsage.invokedParameters!;
         if (constructor.isFactoryConstructor) {
           // TODO(redemption): This should be a JFunction.
           newMember = JFactoryConstructor(
-              newClass, memberName, parameterStructure,
+              newClass!, memberName, parameterStructure,
               isExternal: constructor.isExternal,
               isConst: constructor.isConst,
               isFromEnvironmentConstructor:
                   constructor.isFromEnvironmentConstructor);
         } else {
           newMember = JGenerativeConstructor(
-              newClass, memberName, parameterStructure,
+              newClass!, memberName, parameterStructure,
               isExternal: constructor.isExternal, isConst: constructor.isConst);
         }
       } else if (oldMember.isGetter) {
-        IndexedFunction getter = oldMember;
+        final getter = oldMember as IndexedFunction;
         newMember = JGetter(
             newLibrary, newClass, memberName, getter.asyncMarker,
             isStatic: getter.isStatic,
             isExternal: getter.isExternal,
             isAbstract: getter.isAbstract);
       } else if (oldMember.isSetter) {
-        IndexedFunction setter = oldMember;
+        final setter = oldMember as IndexedFunction;
         newMember = JSetter(newLibrary, newClass, memberName,
             isStatic: setter.isStatic,
             isExternal: setter.isExternal,
             isAbstract: setter.isAbstract);
       } else {
-        IndexedFunction function = oldMember;
+        final function = oldMember as IndexedFunction;
         ParameterStructure parameterStructure =
             annotations.hasNoElision(function)
                 ? function.parameterStructure
-                : memberUsage.invokedParameters /*!*/;
+                : memberUsage.invokedParameters!;
         newMember = JMethod(newLibrary, newClass, memberName,
             parameterStructure, function.asyncMarker,
             isStatic: function.isStatic,
@@ -254,27 +251,27 @@ class JsKernelToElementMap
           "Old member $oldMember has index ${oldMember.memberIndex} "
           "whereas new member $newMember has index ${newMember.memberIndex}");
       if (newMember.isField) {
-        fieldMap[data.node] = newMember;
+        fieldMap[data.node as ir.Field] = newMember as IndexedField;
       } else if (newMember.isConstructor) {
-        constructorMap[data.node] = newMember;
+        constructorMap[data.node] = newMember as IndexedConstructor;
       } else {
-        methodMap[data.node] = newMember;
+        methodMap[data.node as ir.Procedure] = newMember as IndexedFunction;
       }
     }
     for (int typeVariableIndex = 0;
         typeVariableIndex < _elementMap.typeVariables.length;
         typeVariableIndex++) {
       IndexedTypeVariable oldTypeVariable =
-          _elementMap.typeVariables.getEntity(typeVariableIndex);
+          _elementMap.typeVariables.getEntity(typeVariableIndex)!;
       KTypeVariableData oldTypeVariableData =
           _elementMap.typeVariables.getData(oldTypeVariable);
-      Entity newTypeDeclaration;
+      Entity? newTypeDeclaration;
       if (oldTypeVariable.typeDeclaration is ClassEntity) {
-        IndexedClass cls = oldTypeVariable.typeDeclaration;
+        final cls = oldTypeVariable.typeDeclaration as IndexedClass;
         newTypeDeclaration = classes.getEntity(cls.classIndex);
         // TODO(johnniwinther): Skip type variables of unused classes.
       } else if (oldTypeVariable.typeDeclaration is MemberEntity) {
-        IndexedMember member = oldTypeVariable.typeDeclaration;
+        final member = oldTypeVariable.typeDeclaration as IndexedMember;
         newTypeDeclaration = members.getEntity(member.memberIndex);
         if (newTypeDeclaration == null) {
           typeVariables.skipIndex(typeVariableIndex);
@@ -284,7 +281,8 @@ class JsKernelToElementMap
         assert(oldTypeVariable.typeDeclaration is Local);
       }
       IndexedTypeVariable newTypeVariable = createTypeVariable(
-          newTypeDeclaration, oldTypeVariable.name, oldTypeVariable.index);
+              newTypeDeclaration, oldTypeVariable.name!, oldTypeVariable.index)
+          as IndexedTypeVariable;
       typeVariableMap[oldTypeVariableData.node] =
           typeVariables.register<IndexedTypeVariable, JTypeVariableData>(
               newTypeVariable, oldTypeVariableData.copy());
@@ -365,7 +363,9 @@ class JsKernelToElementMap
       classes.preRegisterByIndex(index, cls, env);
       JClassData data = JClassData.readFromDataSource(source);
       classes.postRegisterData(cls, data);
-      classMap[env.cls] = cls;
+      if (env.cls != null) {
+        classMap[env.cls!] = cls;
+      }
       if (cls is! closureMigrated.JRecord &&
           cls is! closureMigrated.JClosureClass) {
         // Synthesized classes are not part of the library environment.
@@ -382,13 +382,13 @@ class JsKernelToElementMap
       switch (data.definition.kind) {
         case MemberKind.regular:
         case MemberKind.constructor:
-          ir.Member node = data.definition.node;
+          final node = data.definition.node as ir.Member;
           if (member.isField) {
-            fieldMap[node] = member;
+            fieldMap[node as ir.Field] = member as IndexedField;
           } else if (member.isConstructor) {
-            constructorMap[node] = member;
+            constructorMap[node] = member as IndexedConstructor;
           } else {
-            methodMap[node] = member;
+            methodMap[node as ir.Procedure] = member as IndexedFunction;
           }
           break;
         default:
@@ -424,10 +424,11 @@ class JsKernelToElementMap
   int prepareForCodegenSerialization() {
     int length = members.length;
     for (int memberIndex = 0; memberIndex < length; memberIndex++) {
-      MemberEntity member = members.getEntity(memberIndex);
+      MemberEntity? member = members.getEntity(memberIndex);
       if (member == null) continue;
       if (member is JGenerativeConstructor) {
-        getConstructorBody(members.getData(member).definition.node);
+        getConstructorBody(
+            members.getData(member).definition.node as ir.Constructor);
       }
       if (member is IndexedFunction && member.asyncMarker != AsyncMarker.SYNC) {
         getGeneratorBody(member);
@@ -523,20 +524,20 @@ class JsKernelToElementMap
   @override
   JCommonElements get commonElements => _commonElements;
 
-  FunctionEntity get _mainFunction {
+  FunctionEntity? get _mainFunction {
     return programEnv.mainMethod != null
-        ? getMethodInternal(programEnv.mainMethod)
+        ? getMethodInternal(programEnv.mainMethod as ir.Procedure)
         : null;
   }
 
-  LibraryEntity get _mainLibrary {
+  LibraryEntity? get _mainLibrary {
     return programEnv.mainMethod != null
-        ? getLibraryInternal(programEnv.mainMethod.enclosingLibrary)
+        ? getLibraryInternal(programEnv.mainMethod!.enclosingLibrary)
         : null;
   }
 
-  SourceSpan getSourceSpan(Spannable spannable, Entity currentElement) {
-    SourceSpan fromSpannable(Spannable spannable) {
+  SourceSpan getSourceSpan(Spannable? spannable, Entity? currentElement) {
+    SourceSpan fromSpannable(Spannable? spannable) {
       if (spannable is IndexedLibrary &&
           spannable.libraryIndex < libraries.length) {
         JLibraryEnv env = libraries.getEnv(spannable);
@@ -544,12 +545,10 @@ class JsKernelToElementMap
       } else if (spannable is IndexedClass &&
           spannable.classIndex < classes.length) {
         JClassData data = classes.getData(spannable);
-        assert(data != null, "No data for $spannable in $this");
         return data.definition.location;
       } else if (spannable is IndexedMember &&
           spannable.memberIndex < members.length) {
         JMemberData data = members.getData(spannable);
-        assert(data != null, "No data for $spannable in $this");
         return data.definition.location;
       } else if (spannable is JLocal) {
         return getSourceSpan(spannable.memberContext, currentElement);
@@ -562,8 +561,8 @@ class JsKernelToElementMap
     return fromSpannable(currentElement);
   }
 
-  LibraryEntity lookupLibrary(Uri uri) {
-    JLibraryEnv libraryEnv = programEnv.lookupLibrary(uri);
+  LibraryEntity? lookupLibrary(Uri uri) {
+    JLibraryEnv? libraryEnv = programEnv.lookupLibrary(uri);
     if (libraryEnv == null) return null;
     return getLibraryInternal(libraryEnv.library, libraryEnv);
   }
@@ -574,11 +573,11 @@ class JsKernelToElementMap
     return libraryEnv.library.name ?? '';
   }
 
-  MemberEntity lookupLibraryMember(IndexedLibrary library, String name,
+  MemberEntity? lookupLibraryMember(IndexedLibrary library, String name,
       {bool setter = false}) {
     assert(checkFamily(library));
     JLibraryEnv libraryEnv = libraries.getEnv(library);
-    ir.Member member = libraryEnv.lookupMember(name, setter: setter);
+    ir.Member? member = libraryEnv.lookupMember(name, setter: setter);
     return member != null ? getMember(member) : null;
   }
 
@@ -591,12 +590,12 @@ class JsKernelToElementMap
     });
   }
 
-  ClassEntity lookupClass(IndexedLibrary library, String name) {
+  ClassEntity? lookupClass(IndexedLibrary library, String name) {
     assert(checkFamily(library));
     JLibraryEnv libraryEnv = libraries.getEnv(library);
-    JClassEnv classEnv = libraryEnv.lookupClass(name);
+    JClassEnv? classEnv = libraryEnv.lookupClass(name);
     if (classEnv != null) {
-      return getClassInternal(classEnv.cls, classEnv);
+      return getClassInternal(classEnv.cls!, classEnv);
     }
     return null;
   }
@@ -606,18 +605,18 @@ class JsKernelToElementMap
     JLibraryEnv libraryEnv = libraries.getEnv(library);
     libraryEnv.forEachClass((JClassEnv classEnv) {
       if (!classEnv.isUnnamedMixinApplication) {
-        f(getClassInternal(classEnv.cls, classEnv));
+        f(getClassInternal(classEnv.cls!, classEnv));
       }
     });
   }
 
-  MemberEntity lookupClassMember(IndexedClass cls, Name name) {
+  MemberEntity? lookupClassMember(IndexedClass cls, Name name) {
     assert(checkFamily(cls));
     JClassEnv classEnv = classes.getEnv(cls);
     return classEnv.lookupMember(this, name);
   }
 
-  ConstructorEntity lookupConstructor(IndexedClass cls, String name) {
+  ConstructorEntity? lookupConstructor(IndexedClass cls, String name) {
     assert(checkFamily(cls));
     JClassEnv classEnv = classes.getEnv(cls);
     return classEnv.lookupConstructor(this, name);
@@ -636,7 +635,7 @@ class JsKernelToElementMap
   ClassEntity getClass(ir.Class node) => getClassInternal(node);
 
   @override
-  InterfaceType getSuperType(IndexedClass cls) {
+  InterfaceType? getSuperType(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
@@ -646,7 +645,7 @@ class JsKernelToElementMap
   void _ensureCallType(ClassEntity cls, JClassData data) {
     assert(checkFamily(cls));
     if (data is JClassDataImpl && !data.isCallTypeComputed) {
-      MemberEntity callMember =
+      MemberEntity? callMember =
           _elementEnvironment.lookupClassMember(cls, Names.call);
       if (callMember is FunctionEntity &&
           callMember.isFunction &&
@@ -704,7 +703,7 @@ class JsKernelToElementMap
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
             coreTypes.legacyRawType(node),
             coreTypes.objectClass,
-            node.enclosingLibrary));
+            node.enclosingLibrary) as ir.InterfaceType);
       }
     }
   }
@@ -721,7 +720,7 @@ class JsKernelToElementMap
       ir.Class node = data.cls;
 
       if (node.supertype == null) {
-        data.orderedTypeSet = OrderedTypeSet.singleton(data.thisType);
+        data.orderedTypeSet = OrderedTypeSet.singleton(data.thisType!);
         data.isMixinApplication = false;
         data.interfaces = const <InterfaceType>[];
       } else {
@@ -734,18 +733,19 @@ class JsKernelToElementMap
 
         InterfaceType processSupertype(ir.Supertype supertypeNode) {
           supertypeNode = classHierarchy.getClassAsInstanceOf(
-              node, supertypeNode.classNode);
+              node, supertypeNode.classNode)!;
           InterfaceType supertype =
               _typeConverter.visitSupertype(supertypeNode);
           canonicalSupertypes.add(supertype);
-          IndexedClass superclass = supertype.element;
+          final superclass = supertype.element as IndexedClass;
           JClassData superdata = classes.getData(superclass);
           _ensureSupertypes(superclass, superdata);
-          for (InterfaceType supertype in superdata.orderedTypeSet.supertypes) {
+          for (InterfaceType supertype
+              in superdata.orderedTypeSet!.supertypes!) {
             ClassDefinition definition = getClassDefinition(supertype.element);
             if (definition.kind == ClassKind.regular) {
-              ir.Supertype canonicalSupertype =
-                  classHierarchy.getClassAsInstanceOf(node, definition.node);
+              ir.Supertype? canonicalSupertype = classHierarchy
+                  .getClassAsInstanceOf(node, definition.node as ir.Class);
               if (canonicalSupertype != null) {
                 supertype = _typeConverter.visitSupertype(canonicalSupertype);
               } else {
@@ -782,21 +782,23 @@ class JsKernelToElementMap
           // Set superclass to `Object`.
           supertype = _commonElements.objectType;
         } else {
-          supertype = processSupertype(node.supertype);
+          supertype = processSupertype(node.supertype!);
         }
         if (supertype == _commonElements.objectType) {
           ClassEntity defaultSuperclass =
               _commonElements.getDefaultSuperclass(cls, nativeData);
-          data.supertype = _elementEnvironment.getRawType(defaultSuperclass);
-          assert(data.supertype.typeArguments.isEmpty,
+          InterfaceType defaultSupertype = data.supertype =
+              _elementEnvironment.getRawType(defaultSuperclass);
+          assert(defaultSupertype.typeArguments.isEmpty,
               "Generic default supertypes are not supported");
-          canonicalSupertypes.add(data.supertype);
+          canonicalSupertypes.add(defaultSupertype);
         } else {
           data.supertype = supertype;
         }
         if (node.mixedInType != null) {
           data.isMixinApplication = true;
-          interfaces.add(data.mixedInType = processSupertype(node.mixedInType));
+          interfaces
+              .add(data.mixedInType = processSupertype(node.mixedInType!));
         } else {
           data.isMixinApplication = false;
         }
@@ -835,19 +837,14 @@ class JsKernelToElementMap
   ConstructorEntity getSuperConstructor(
       ir.Constructor sourceNode, ir.Member targetNode) {
     ConstructorEntity source = getConstructor(sourceNode);
-    ClassEntity sourceClass = source.enclosingClass;
+    final sourceClass = source.enclosingClass as IndexedClass;
     ConstructorEntity target = getConstructor(targetNode);
     ClassEntity targetClass = target.enclosingClass;
-    IndexedClass superClass = getSuperType(sourceClass)?.element;
-    if (superClass == targetClass) {
-      return target;
-    }
+    IndexedClass superClass =
+        getSuperType(sourceClass)!.element as IndexedClass;
+    if (superClass == targetClass) return target;
     JClassEnv env = classes.getEnv(superClass);
-    ConstructorEntity constructor = env.lookupConstructor(this, target.name);
-    if (constructor != null) {
-      return constructor;
-    }
-    throw failedAt(source, "Super constructor for $source not found.");
+    return env.lookupConstructor(this, target.name!)!;
   }
 
   @override
@@ -861,7 +858,7 @@ class JsKernelToElementMap
 
   @override
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
-      getDartType(type).withoutNullability;
+      getDartType(type).withoutNullability as TypeVariableType;
 
   @override
   List<DartType> getDartTypes(List<ir.DartType> types) {
@@ -874,7 +871,7 @@ class JsKernelToElementMap
 
   @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
-      _typeConverter.visitType(type).withoutNullability;
+      _typeConverter.visitType(type).withoutNullability as InterfaceType;
 
   @override
   FunctionType getFunctionType(ir.FunctionNode node) {
@@ -909,13 +906,14 @@ class JsKernelToElementMap
     var namedParameters = <String>[];
     var requiredNamedParameters = <String>{};
     List<DartType> namedParameterTypes = [];
-    List<ir.VariableDeclaration> sortedNamedParameters =
-        node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
+    List<ir.VariableDeclaration> sortedNamedParameters = node.namedParameters
+        .toList()
+      ..sort((a, b) => a.name!.compareTo(b.name!));
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
-      namedParameters.add(variable.name);
+      namedParameters.add(variable.name!);
       namedParameterTypes.add(getParameterType(variable));
       if (variable.isRequired) {
-        requiredNamedParameters.add(variable.name);
+        requiredNamedParameters.add(variable.name!);
       }
     }
     List<FunctionTypeVariable> typeVariables;
@@ -958,7 +956,7 @@ class JsKernelToElementMap
   @override
   DartType substByContext(DartType type, InterfaceType context) {
     return types.subst(context.typeArguments,
-        getThisType(context.element).typeArguments, type);
+        getThisType(context.element as IndexedClass).typeArguments, type);
   }
 
   /// Returns the type of the `call` method on 'type'.
@@ -966,13 +964,13 @@ class JsKernelToElementMap
   /// If [type] doesn't have a `call` member or has a non-method `call` member,
   /// `null` is returned.
   @override
-  FunctionType getCallType(InterfaceType type) {
-    IndexedClass cls = type.element;
+  FunctionType? getCallType(InterfaceType type) {
+    final cls = type.element as IndexedClass;
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureCallType(cls, data);
     if (data.callType != null) {
-      return substByContext(data.callType, type);
+      return substByContext(data.callType!, type) as FunctionType;
     }
     return null;
   }
@@ -982,45 +980,45 @@ class JsKernelToElementMap
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureThisAndRawType(cls, data);
-    return data.thisType /*!*/;
+    return data.thisType!;
   }
 
   InterfaceType _getJsInteropType(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureJsInteropType(cls, data);
-    return data.jsInteropType /*!*/;
+    return data.jsInteropType!;
   }
 
   InterfaceType _getRawType(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureThisAndRawType(cls, data);
-    return data.rawType /*!*/;
+    return data.rawType!;
   }
 
   InterfaceType _getClassInstantiationToBounds(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureClassInstantiationToBounds(cls, data);
-    return data.instantiationToBounds /*!*/;
+    return data.instantiationToBounds!;
   }
 
   FunctionType _getFunctionType(IndexedFunction function) {
     assert(checkFamily(function));
-    FunctionData data = members.getData(function);
+    final data = members.getData(function) as FunctionData;
     return data.getFunctionType(this);
   }
 
   List<TypeVariableType> _getFunctionTypeVariables(IndexedFunction function) {
     assert(checkFamily(function));
-    FunctionData data = members.getData(function);
+    final data = members.getData(function) as FunctionData;
     return data.getFunctionTypeVariables(this);
   }
 
   DartType _getFieldType(IndexedField field) {
     assert(checkFamily(field));
-    JFieldData data = members.getData(field);
+    final data = members.getData(field) as JFieldData;
     return data.getFieldType(this);
   }
 
@@ -1044,7 +1042,7 @@ class JsKernelToElementMap
     return data.getDefaultType(this);
   }
 
-  ClassEntity getAppliedMixin(IndexedClass cls) {
+  ClassEntity? getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
@@ -1055,7 +1053,7 @@ class JsKernelToElementMap
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.isMixinApplication;
+    return data.isMixinApplication!;
   }
 
   bool _isUnnamedMixinApplication(IndexedClass cls) {
@@ -1074,7 +1072,7 @@ class JsKernelToElementMap
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    data.orderedTypeSet.supertypes.forEach(f);
+    data.orderedTypeSet!.supertypes!.forEach(f);
   }
 
   void _forEachConstructor(IndexedClass cls, void f(ConstructorEntity member)) {
@@ -1101,20 +1099,21 @@ class JsKernelToElementMap
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
     if (data.supertype != null) {
-      _forEachClassMember(data.supertype.element, f);
+      _forEachClassMember(data.supertype!.element as IndexedClass, f);
     }
   }
 
   @override
-  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
+  InterfaceType? asInstanceOf(InterfaceType type, ClassEntity cls) {
     assert(checkFamily(cls));
-    OrderedTypeSet orderedTypeSet = getOrderedTypeSet(type.element);
-    InterfaceType supertype =
-        orderedTypeSet.asInstanceOf(cls, getHierarchyDepth(cls));
+    OrderedTypeSet orderedTypeSet =
+        getOrderedTypeSet(type.element as IndexedClass);
+    InterfaceType? supertype = orderedTypeSet.asInstanceOf(
+        cls, getHierarchyDepth(cls as IndexedClass));
     if (supertype != null) {
-      supertype = substByContext(supertype, type);
+      supertype = substByContext(supertype, type) as InterfaceType;
     }
-    return supertype /*!*/;
+    return supertype;
   }
 
   @override
@@ -1122,7 +1121,7 @@ class JsKernelToElementMap
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.orderedTypeSet /*!*/;
+    return data.orderedTypeSet!;
   }
 
   @override
@@ -1130,7 +1129,7 @@ class JsKernelToElementMap
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.orderedTypeSet /*!*/ .maxDepth;
+    return data.orderedTypeSet!.maxDepth;
   }
 
   @override
@@ -1153,19 +1152,19 @@ class JsKernelToElementMap
 
   @override
   ImportEntity getImport(ir.LibraryDependency node) {
-    ir.Library library = node.parent;
-    JLibraryData data = libraries.getData(getLibraryInternal(library));
-    return data.imports[node];
+    ir.Library library = node.enclosingLibrary;
+    JLibraryData data =
+        libraries.getData(getLibraryInternal(library) as IndexedLibrary);
+    return data.imports[node]!;
   }
 
   @override
-  ir.CoreTypes get coreTypes =>
-      _coreTypes ??= ir.CoreTypes(programEnv.mainComponent);
+  late final ir.CoreTypes coreTypes = ir.CoreTypes(programEnv.mainComponent);
 
-  ir.TypeEnvironment get typeEnvironment =>
-      _typeEnvironment ??= ir.TypeEnvironment(coreTypes, classHierarchy);
+  late final ir.TypeEnvironment typeEnvironment =
+      ir.TypeEnvironment(coreTypes, classHierarchy);
 
-  ir.ClassHierarchy get classHierarchy => _classHierarchy ??=
+  late final ir.ClassHierarchy classHierarchy =
       ir.ClassHierarchy(programEnv.mainComponent, coreTypes);
 
   ir.StaticTypeContext getStaticTypeContext(ir.Member node) {
@@ -1173,38 +1172,38 @@ class JsKernelToElementMap
     return ir.StaticTypeContext(node, typeEnvironment);
   }
 
-  Dart2jsConstantEvaluator get constantEvaluator {
-    return _constantEvaluator ??=
-        Dart2jsConstantEvaluator(programEnv.mainComponent, typeEnvironment,
-            (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
-      reportLocatedMessage(reporter, message, context);
-    },
-            environment: _environment,
-            evaluationMode: options.useLegacySubtyping
-                ? ir.EvaluationMode.weak
-                : ir.EvaluationMode.strong);
-  }
+  late final Dart2jsConstantEvaluator constantEvaluator =
+      Dart2jsConstantEvaluator(programEnv.mainComponent, typeEnvironment,
+          (ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
+    reportLocatedMessage(reporter, message, context);
+  },
+          environment: _environment,
+          evaluationMode: options.useLegacySubtyping
+              ? ir.EvaluationMode.weak
+              : ir.EvaluationMode.strong);
 
   @override
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
-    MemberDefinition memberDefinition = members.getData(member).definition;
-    StaticTypeCache cachedStaticTypes;
-    ir.StaticTypeContext staticTypeContext;
+    MemberDefinition memberDefinition =
+        members.getData(member as IndexedMember).definition;
+    late StaticTypeCache cachedStaticTypes;
+    late ir.StaticTypeContext staticTypeContext;
     switch (memberDefinition.kind) {
       case MemberKind.regular:
       case MemberKind.constructor:
       case MemberKind.constructorBody:
-        ir.Member node = memberDefinition.node;
+        final node = memberDefinition.node as ir.Member;
         staticTypeContext = getStaticTypeContext(node);
         cachedStaticTypes = members.getData(member).staticTypes;
         break;
       case MemberKind.closureCall:
-        ir.TreeNode node = memberDefinition.node;
+        var node = memberDefinition.node as ir.TreeNode?;
         while (node != null) {
           if (node is ir.Member) {
             ir.Member member = node;
             staticTypeContext = getStaticTypeContext(member);
-            cachedStaticTypes = members.getData(getMember(member)).staticTypes;
+            cachedStaticTypes =
+                members.getData(getMember(member) as IndexedMember).staticTypes;
             break;
           }
           node = node.parent;
@@ -1214,7 +1213,7 @@ class JsKernelToElementMap
       case MemberKind.signature:
       case MemberKind.generatorBody:
         cachedStaticTypes = const StaticTypeCache();
-        ir.TreeNode node = memberDefinition.node;
+        var node = memberDefinition.node as ir.TreeNode?;
         while (node != null) {
           if (node is ir.Member) {
             ir.Member member = node;
@@ -1230,15 +1229,13 @@ class JsKernelToElementMap
         }
         break;
     }
-    assert(cachedStaticTypes != null, "No static types cached for $member.");
-    assert(staticTypeContext != null, "No static types context for $member.");
     return CachedStaticType(staticTypeContext, cachedStaticTypes,
         ThisInterfaceType.from(staticTypeContext.thisType));
   }
 
   @override
   Name getName(ir.Name name, {bool setter = false}) {
-    return Name(name.text, name.isPrivate ? name.library.importUri : null,
+    return Name(name.text, name.isPrivate ? name.library!.importUri : null,
         isSetter: setter);
   }
 
@@ -1306,13 +1303,13 @@ class JsKernelToElementMap
 
   Selector getGetterSelector(ir.Name irName) {
     Name name =
-        Name(irName.text, irName.isPrivate ? irName.library.importUri : null);
+        Name(irName.text, irName.isPrivate ? irName.library!.importUri : null);
     return Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name =
-        Name(irName.text, irName.isPrivate ? irName.library.importUri : null);
+        Name(irName.text, irName.isPrivate ? irName.library!.importUri : null);
     return Selector.setter(name);
   }
 
@@ -1325,16 +1322,16 @@ class JsKernelToElementMap
         : (_cachedTypeLookupFull ??= _typeLookup(resolveAsRaw: false));
   }
 
-  TypeLookup _cachedTypeLookupRaw;
-  TypeLookup _cachedTypeLookupFull;
+  TypeLookup? _cachedTypeLookupRaw;
+  TypeLookup? _cachedTypeLookupFull;
 
-  TypeLookup _typeLookup({bool resolveAsRaw = true}) {
-    bool cachedMayLookupInMain;
+  TypeLookup _typeLookup({required bool resolveAsRaw}) {
+    bool? cachedMayLookupInMain;
 
-    DartType lookup(String typeName, {bool required}) {
-      DartType findInLibrary(LibraryEntity library) {
+    DartType? lookup(String typeName, {bool required = false}) {
+      DartType? findInLibrary(LibraryEntity? library) {
         if (library != null) {
-          ClassEntity cls = elementEnvironment.lookupClass(library, typeName);
+          ClassEntity? cls = elementEnvironment.lookupClass(library, typeName);
           if (cls != null) {
             // TODO(johnniwinther): Align semantics.
             return resolveAsRaw
@@ -1345,7 +1342,7 @@ class JsKernelToElementMap
         return null;
       }
 
-      DartType findIn(Uri uri) {
+      DartType? findIn(Uri uri) {
         return findInLibrary(elementEnvironment.lookupLibrary(uri));
       }
 
@@ -1354,9 +1351,9 @@ class JsKernelToElementMap
       // TODO(johnniwinther): Cache more results to avoid redundant lookups?
       cachedMayLookupInMain ??=
           // Tests permit lookup outside of dart: libraries.
-          allowedNativeTest(elementEnvironment.mainLibrary.canonicalUri);
-      DartType type;
-      if (cachedMayLookupInMain) {
+          allowedNativeTest(elementEnvironment.mainLibrary!.canonicalUri);
+      DartType? type;
+      if (cachedMayLookupInMain!) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
       }
       type ??= findIn(Uris.dart_core);
@@ -1385,7 +1382,7 @@ class JsKernelToElementMap
     return lookup;
   }
 
-  String _getStringArgument(ir.StaticInvocation node, int index) {
+  String? _getStringArgument(ir.StaticInvocation node, int index) {
     return node.arguments.positional[index].accept(Stringifier());
   }
 
@@ -1398,14 +1395,14 @@ class JsKernelToElementMap
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
       return NativeBehavior();
     }
-    String specString = _getStringArgument(node, 0);
+    String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
       return NativeBehavior();
     }
 
-    String codeString = _getStringArgument(node, 1);
+    String? codeString = _getStringArgument(node, 1);
     if (codeString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
@@ -1434,7 +1431,7 @@ class JsKernelToElementMap
           CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
       return NativeBehavior();
     }
-    String specString = _getStringArgument(node, 0);
+    String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
@@ -1468,7 +1465,7 @@ class JsKernelToElementMap
           "JS embedded global has more than 2 arguments.");
       return NativeBehavior();
     }
-    String specString = _getStringArgument(node, 0);
+    String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
@@ -1483,7 +1480,7 @@ class JsKernelToElementMap
   }
 
   @override
-  ConstantValue getConstantValue(ir.Member memberContext, ir.Expression node,
+  ConstantValue? getConstantValue(ir.Member memberContext, ir.Expression? node,
       {bool requireConstant = true, bool implicitNull = false}) {
     if (node == null) {
       if (!implicitNull) {
@@ -1499,7 +1496,7 @@ class JsKernelToElementMap
       // computation.
       ir.StaticTypeContext staticTypeContext =
           getStaticTypeContext(memberContext);
-      ir.Constant constant = constantEvaluator.evaluateOrNull(
+      ir.Constant? constant = constantEvaluator.evaluateOrNull(
           staticTypeContext, node,
           requireConstant: requireConstant);
       if (constant == null) {
@@ -1524,14 +1521,15 @@ class JsKernelToElementMap
   }
 
   @override
-  FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
+  FunctionEntity getSuperNoSuchMethod(ClassEntity? cls) {
     while (cls != null) {
       cls = elementEnvironment.getSuperClass(cls);
-      MemberEntity member =
+      if (cls == null) break;
+      MemberEntity? member =
           elementEnvironment.lookupLocalClassMember(cls, Names.noSuchMethod_);
       if (member != null && !member.isAbstract) {
         if (member.isFunction) {
-          FunctionEntity function = member;
+          final function = member as FunctionEntity;
           if (function.parameterStructure.positionalParameters >= 1) {
             return function;
           }
@@ -1541,26 +1539,23 @@ class JsKernelToElementMap
         break;
       }
     }
-    FunctionEntity function = elementEnvironment.lookupLocalClassMember(
-        commonElements.objectClass, Names.noSuchMethod_);
-    assert(function != null,
-        failedAt(cls, "No super noSuchMethod found for class $cls."));
-    return function;
+    return elementEnvironment.lookupLocalClassMember(
+        commonElements.objectClass, Names.noSuchMethod_)! as FunctionEntity;
   }
 
   TypeVariableEntity createTypeVariable(
-      Entity typeDeclaration, String name, int index) {
+      Entity? typeDeclaration, String name, int index) {
     return JTypeVariable(typeDeclaration, name, index);
   }
 
   JConstructorBody createConstructorBody(
       ConstructorEntity constructor, ParameterStructure parameterStructure) {
-    return JConstructorBody(constructor, parameterStructure);
+    return JConstructorBody(constructor as JConstructor, parameterStructure);
   }
 
   JGeneratorBody createGeneratorBody(
       FunctionEntity function, DartType elementType) {
-    return JGeneratorBody(function, elementType);
+    return JGeneratorBody(function as JFunction, elementType);
   }
 
   void forEachNestedClosure(
@@ -1570,14 +1565,14 @@ class JsKernelToElementMap
   }
 
   @override
-  InterfaceType getMemberThisType(MemberEntity member) {
-    return members.getData(member).getMemberThisType(this);
+  InterfaceType? getMemberThisType(MemberEntity member) {
+    return members.getData(member as IndexedMember).getMemberThisType(this);
   }
 
   @override
   ClassTypeVariableAccess getClassTypeVariableAccessForMember(
       MemberEntity member) {
-    return members.getData(member).classTypeVariableAccess;
+    return members.getData(member as IndexedMember).classTypeVariableAccess;
   }
 
   bool checkFamily(Entity entity) {
@@ -1589,64 +1584,42 @@ class JsKernelToElementMap
   }
 
   @override
-  Spannable getSpannable(MemberEntity member, ir.Node node) {
-    SourceSpan sourceSpan;
-    if (node is ir.TreeNode) {
-      sourceSpan = computeSourceSpanFromTreeNode(node);
-    }
-    sourceSpan ??= getSourceSpan(member, null);
-    return sourceSpan;
-  }
+  Spannable getSpannable(MemberEntity member, ir.Node node) =>
+      node is ir.TreeNode
+          ? computeSourceSpanFromTreeNode(node)
+          : getSourceSpan(member, null);
 
   Iterable<LibraryEntity> get libraryListInternal {
     return libraryMap.values;
   }
 
-  LibraryEntity getLibraryInternal(ir.Library node, [JLibraryEnv env]) {
-    LibraryEntity library = libraryMap[node];
-    assert(library != null, "No library entity for $node");
-    return library;
-  }
+  LibraryEntity getLibraryInternal(ir.Library node, [JLibraryEnv? env]) =>
+      libraryMap[node]!;
 
-  ClassEntity getClassInternal(ir.Class node, [JClassEnv env]) {
-    ClassEntity cls = classMap[node];
-    assert(cls != null, "No class entity for $node");
-    return cls;
-  }
+  ClassEntity getClassInternal(ir.Class node, [JClassEnv? env]) =>
+      classMap[node]!;
 
-  FieldEntity getFieldInternal(ir.Field node) {
-    FieldEntity field = fieldMap[node];
-    assert(field != null, "No field entity for $node");
-    return field;
-  }
+  FieldEntity getFieldInternal(ir.Field node) => fieldMap[node]!;
 
-  FunctionEntity getMethodInternal(ir.Procedure node) {
-    FunctionEntity function = methodMap[node];
-    assert(function != null, "No function entity for $node");
-    return function;
-  }
+  FunctionEntity getMethodInternal(ir.Procedure node) => methodMap[node]!;
 
-  ConstructorEntity getConstructorInternal(ir.Member node) {
-    ConstructorEntity constructor = constructorMap[node];
-    assert(constructor != null, "No constructor entity for $node");
-    return constructor;
-  }
+  ConstructorEntity getConstructorInternal(ir.Member node) =>
+      constructorMap[node]!;
 
   TypeVariableEntity getTypeVariableInternal(ir.TypeParameter node) {
-    TypeVariableEntity typeVariable = typeVariableMap[node];
+    TypeVariableEntity? typeVariable = typeVariableMap[node];
     if (typeVariable == null) {
-      if (node.parent is ir.FunctionNode) {
-        ir.FunctionNode func = node.parent;
-        int index = func.typeParameters.indexOf(node);
-        if (func.parent is ir.Constructor) {
-          ir.Constructor constructor = func.parent;
-          ir.Class cls = constructor.enclosingClass;
+      final parent = node.parent;
+      if (parent is ir.FunctionNode) {
+        final member = parent.parent;
+        int index = parent.typeParameters.indexOf(node);
+        if (member is ir.Constructor) {
+          ir.Class cls = member.enclosingClass;
           typeVariableMap[node] =
               typeVariable = getTypeVariableInternal(cls.typeParameters[index]);
-        } else if (func.parent is ir.Procedure) {
-          ir.Procedure procedure = func.parent;
-          if (procedure.kind == ir.ProcedureKind.Factory) {
-            ir.Class cls = procedure.enclosingClass;
+        } else if (member is ir.Procedure) {
+          if (member.kind == ir.ProcedureKind.Factory) {
+            ir.Class cls = member.enclosingClass!;
             typeVariableMap[node] = typeVariable =
                 getTypeVariableInternal(cls.typeParameters[index]);
           }
@@ -1657,7 +1630,7 @@ class JsKernelToElementMap
       throw failedAt(
           CURRENT_ELEMENT_SPANNABLE,
           "No type variable entity for $node on "
-          "${node.parent is ir.FunctionNode ? node.parent.parent : node.parent}");
+          "${node.parent is ir.FunctionNode ? node.parent!.parent : node.parent}");
     }
     return typeVariable;
   }
@@ -1665,29 +1638,30 @@ class JsKernelToElementMap
   @override
   FunctionEntity getConstructorBody(ir.Constructor node) {
     ConstructorEntity constructor = getConstructor(node);
-    return _getConstructorBody(constructor);
+    return _getConstructorBody(constructor as IndexedConstructor);
   }
 
   JConstructorBody _getConstructorBody(IndexedConstructor constructor) {
-    JConstructorDataImpl data = members.getData(constructor);
-    JConstructorBody /*?*/ constructorBody = data.constructorBody;
+    JConstructorDataImpl data =
+        members.getData(constructor) as JConstructorDataImpl;
+    JConstructorBody? constructorBody = data.constructorBody;
     if (constructorBody == null) {
       /// The constructor calls the constructor body with all parameters.
       // TODO(johnniwinther): Remove parameters that are not used in the
       //  constructor body.
       ParameterStructure parameterStructure =
-          _getParameterStructureFromFunctionNode(data.node.function);
+          _getParameterStructureFromFunctionNode(data.node.function!);
 
       constructorBody = createConstructorBody(constructor, parameterStructure);
       members.register<IndexedFunction, FunctionData>(
           constructorBody,
           ConstructorBodyDataImpl(
               data.node,
-              data.node.function,
+              data.node.function!,
               SpecialMemberDefinition(data.node, MemberKind.constructorBody),
               data.staticTypes));
-      IndexedClass cls = constructor.enclosingClass;
-      JClassEnvImpl classEnv = classes.getEnv(cls);
+      final cls = constructor.enclosingClass as IndexedClass;
+      final classEnv = classes.getEnv(cls) as JClassEnvImpl;
       // TODO(johnniwinther): Avoid this by only including live members in the
       // js-model.
       classEnv.addConstructorBody(constructorBody);
@@ -1700,12 +1674,12 @@ class JsKernelToElementMap
 
   @override
   MemberDefinition getMemberDefinition(MemberEntity member) {
-    return getMemberDefinitionInternal(member);
+    return getMemberDefinitionInternal(member as IndexedMember);
   }
 
   @override
-  ir.Member getMemberContextNode(MemberEntity member) {
-    ir.Member getParentMember(ir.TreeNode node) {
+  ir.Member? getMemberContextNode(MemberEntity member) {
+    ir.Member? getParentMember(ir.TreeNode? node) {
       while (node != null) {
         if (node is ir.Member) {
           return node;
@@ -1720,27 +1694,26 @@ class JsKernelToElementMap
       case MemberKind.regular:
       case MemberKind.constructor:
       case MemberKind.constructorBody:
-        return definition.node;
+        return definition.node as ir.Member;
       case MemberKind.closureCall:
       case MemberKind.closureField:
       case MemberKind.signature:
       case MemberKind.generatorBody:
-        return getParentMember(definition.node);
+        return getParentMember(definition.node as ir.TreeNode?);
     }
-    throw UnsupportedError('Unexpected member kind ${definition}');
   }
 
   @override
   ClassDefinition getClassDefinition(ClassEntity cls) {
-    return getClassDefinitionInternal(cls);
+    return getClassDefinitionInternal(cls as IndexedClass);
   }
 
   /// Calls [f] for each parameter of [function] providing the type and name of
   /// the parameter and the [defaultValue] if the parameter is optional.
   void forEachParameter(covariant IndexedFunction function,
-      void f(DartType type, String name, ConstantValue defaultValue),
+      void f(DartType type, String? name, ConstantValue? defaultValue),
       {bool isNative = false}) {
-    FunctionData data = members.getData(function);
+    final data = members.getData(function) as FunctionData;
     data.forEachParameter(this, function.parameterStructure, f,
         isNative: isNative);
   }
@@ -1757,12 +1730,12 @@ class JsKernelToElementMap
   }
 
   JRecordField _constructRecordFieldEntry(
-      InterfaceType memberThisType,
+      InterfaceType? memberThisType,
       ir.VariableDeclaration variable,
       BoxLocal boxLocal,
       Map<Name, MemberEntity> memberMap) {
     JRecordField boxedField =
-        JRecordField(variable.name, boxLocal, isConst: variable.isConst);
+        JRecordField(variable.name!, boxLocal, isConst: variable.isConst);
     members.register(
         boxedField,
         closureMigrated.ClosureFieldData(
@@ -1782,7 +1755,7 @@ class JsKernelToElementMap
       KernelScopeInfo info, MemberEntity member) {
     Map<ir.VariableDeclaration, JRecordField> boxedFields = {};
     if (info.boxedVariables.isNotEmpty) {
-      NodeBox box = info.capturedVariablesAccessor;
+      NodeBox box = info.capturedVariablesAccessor!;
 
       Map<Name, IndexedMember> memberMap = {};
       closureMigrated.JRecord container =
@@ -1795,11 +1768,12 @@ class JsKernelToElementMap
           RecordContainerDefinition(getMemberDefinition(member).location),
           thisType,
           supertype,
-          getOrderedTypeSet(supertype.element).extendClass(types, thisType));
+          getOrderedTypeSet(supertype.element as IndexedClass)
+              .extendClass(types, thisType));
       classes.register(container, containerData, RecordEnv(memberMap));
 
-      InterfaceType memberThisType = member.enclosingClass != null
-          ? elementEnvironment.getThisType(member.enclosingClass)
+      InterfaceType? memberThisType = member.enclosingClass != null
+          ? elementEnvironment.getThisType(member.enclosingClass!)
           : null;
       for (ir.VariableDeclaration variable in info.boxedVariables) {
         boxedFields[variable] = _constructRecordFieldEntry(
@@ -1817,10 +1791,10 @@ class JsKernelToElementMap
     var namedParameters = <String>[];
     var requiredNamedParameters = <String>{};
     for (var p in node.namedParameters.toList()
-      ..sort((a, b) => a.name.compareTo(b.name))) {
-      namedParameters.add(p.name);
+      ..sort((a, b) => a.name!.compareTo(b.name!))) {
+      namedParameters.add(p.name!);
       if (p.isRequired && !options.useLegacySubtyping) {
-        requiredNamedParameters.add(p.name);
+        requiredNamedParameters.add(p.name!);
       }
     }
     return ParameterStructure(
@@ -1838,12 +1812,12 @@ class JsKernelToElementMap
       Map<ir.VariableDeclaration, JRecordField> recordFieldsVisibleInScope,
       KernelScopeInfo info,
       InterfaceType supertype,
-      {bool createSignatureMethod}) {
-    InterfaceType memberThisType = member.enclosingClass != null
-        ? elementEnvironment.getThisType(member.enclosingClass)
+      {required bool createSignatureMethod}) {
+    InterfaceType? memberThisType = member.enclosingClass != null
+        ? elementEnvironment.getThisType(member.enclosingClass!)
         : null;
     ClassTypeVariableAccess typeVariableAccess =
-        members.getData(member).classTypeVariableAccess;
+        members.getData(member as IndexedMember).classTypeVariableAccess;
     if (typeVariableAccess == ClassTypeVariableAccess.instanceField) {
       // A closure in a field initializer will only be executed in the
       // constructor and type variables are therefore accessed through
@@ -1864,16 +1838,18 @@ class JsKernelToElementMap
             ClosureClassDefinition(location),
             thisType,
             supertype,
-            getOrderedTypeSet(supertype.element).extendClass(types, thisType));
+            getOrderedTypeSet(supertype.element as IndexedClass)
+                .extendClass(types, thisType));
     classes.register(classEntity, closureData, ClosureClassEnv(memberMap));
 
-    Local closureEntity;
-    ir.VariableDeclaration closureEntityNode;
+    Local? closureEntity;
+    ir.VariableDeclaration? closureEntityNode;
     if (node.parent is ir.FunctionDeclaration) {
-      ir.FunctionDeclaration parent = node.parent;
+      final parent = node.parent as ir.FunctionDeclaration;
       closureEntityNode = parent.variable;
     } else if (node.parent is ir.FunctionExpression) {
-      closureEntity = closureMigrated.AnonymousClosureLocal(classEntity);
+      closureEntity = closureMigrated.AnonymousClosureLocal(
+          classEntity as closureMigrated.JClosureClass);
     }
 
     IndexedFunction callMethod = JClosureCallMethod(classEntity,
@@ -1887,7 +1863,8 @@ class JsKernelToElementMap
     int index = 0;
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       typeVariableMap[typeParameter] = typeVariables.register(
-          createTypeVariable(callMethod, typeParameter.name, index),
+          createTypeVariable(callMethod, typeParameter.name!, index)
+              as IndexedTypeVariable,
           JTypeVariableData(typeParameter));
       index++;
     }
@@ -1900,7 +1877,7 @@ class JsKernelToElementMap
         member.enclosingClass,
         closureEntity,
         closureEntityNode,
-        info.hasThisLocal ? ThisLocal(member.enclosingClass) : null);
+        info.hasThisLocal ? ThisLocal(member.enclosingClass!) : null);
     _buildClosureClassFields(closureClassInfo, member, memberThisType, info,
         recordFieldsVisibleInScope, memberMap);
 
@@ -1915,19 +1892,20 @@ class JsKernelToElementMap
         callMethod,
         closureMigrated.ClosureFunctionData(
             ClosureMemberDefinition(
-                location, MemberKind.closureCall, node.parent),
+                location, MemberKind.closureCall, node.parent!),
             memberThisType,
-            closureData.callType,
+            closureData.callType!,
             node,
             typeVariableAccess));
-    memberMap[callMethod.memberName] = closureClassInfo.callMethod = callMethod;
+    memberMap[callMethod.memberName] =
+        closureClassInfo.callMethod = callMethod as JFunction;
     return closureClassInfo;
   }
 
   void _buildClosureClassFields(
       JsClosureClassInfo closureClassInfo,
       MemberEntity member,
-      InterfaceType memberThisType,
+      InterfaceType? memberThisType,
       KernelScopeInfo info,
       Map<ir.VariableDeclaration, JRecordField> recordFieldsVisibleInScope,
       Map<Name, MemberEntity> memberMap) {
@@ -1960,13 +1938,13 @@ class JsKernelToElementMap
     // Add a field for the captured 'this'.
     if (info.thisUsedAsFreeVariable) {
       closureClassInfo.registerFieldForLocal(
-          closureClassInfo.thisLocal,
+          closureClassInfo.thisLocal!,
           _constructClosureField(
-              closureClassInfo.thisLocal.name,
+              closureClassInfo.thisLocal!.name!,
               closureClassInfo,
               memberThisType,
               memberMap,
-              getClassDefinition(member.enclosingClass).node,
+              getClassDefinition(member.enclosingClass!).node as ir.TreeNode,
               true,
               false,
               fieldNumber));
@@ -1981,7 +1959,7 @@ class JsKernelToElementMap
           closureClassInfo.registerFieldForVariable(
               variable,
               _constructClosureField(
-                  variable.name,
+                  variable.name!,
                   closureClassInfo,
                   memberThisType,
                   memberMap,
@@ -1997,13 +1975,14 @@ class JsKernelToElementMap
         // We can have distinct TypeVariableTypeWithContexts that have the same
         // local variable but with different nullabilities. We only want to
         // construct a closure field once for each local variable.
-        if (closureClassInfo.hasFieldForTypeVariable(typeVariable)) {
+        if (closureClassInfo
+            .hasFieldForTypeVariable(typeVariable as JTypeVariable)) {
           continue;
         }
         closureClassInfo.registerFieldForTypeVariable(
             typeVariable,
             _constructClosureField(
-                variable.type.parameter.name,
+                variable.type.parameter.name!,
                 closureClassInfo,
                 memberThisType,
                 memberMap,
@@ -2028,12 +2007,12 @@ class JsKernelToElementMap
   bool _constructClosureFieldForRecord(
       ir.VariableDeclaration capturedLocal,
       JsClosureClassInfo closureClassInfo,
-      InterfaceType memberThisType,
+      InterfaceType? memberThisType,
       Map<Name, MemberEntity> memberMap,
       ir.TreeNode sourceNode,
       Map<ir.VariableDeclaration, JRecordField> recordFieldsVisibleInScope,
       int fieldNumber) {
-    JRecordField recordField = recordFieldsVisibleInScope[capturedLocal];
+    JRecordField recordField = recordFieldsVisibleInScope[capturedLocal]!;
 
     // Don't construct a new field if the box that holds this local already has
     // a field in the closure class.
@@ -2043,7 +2022,7 @@ class JsKernelToElementMap
       return false;
     }
 
-    FieldEntity closureField = JClosureField(
+    final closureField = JClosureField(
         '_box_$fieldNumber', closureClassInfo, recordField.box.name,
         isConst: true, isAssignable: false);
 
@@ -2063,16 +2042,16 @@ class JsKernelToElementMap
       JsClosureClassInfo closureClassInfo,
       Map<Name, MemberEntity> memberMap,
       ir.FunctionNode closureSourceNode,
-      InterfaceType memberThisType,
+      InterfaceType? memberThisType,
       SourceSpan location,
       ClassTypeVariableAccess typeVariableAccess) {
-    FunctionEntity signatureMethod =
+    final signatureMethod =
         JSignatureMethod(closureClassInfo.closureClassEntity);
     members.register<IndexedFunction, FunctionData>(
         signatureMethod,
         SignatureFunctionData(
             SpecialMemberDefinition(
-                closureSourceNode.parent, MemberKind.signature),
+                closureSourceNode.parent!, MemberKind.signature),
             memberThisType,
             closureSourceNode.typeParameters,
             typeVariableAccess));
@@ -2083,7 +2062,7 @@ class JsKernelToElementMap
   JField _constructClosureField(
       String name,
       JsClosureClassInfo closureClassInfo,
-      InterfaceType memberThisType,
+      InterfaceType? memberThisType,
       Map<Name, MemberEntity> memberMap,
       ir.TreeNode sourceNode,
       bool isConst,
@@ -2110,7 +2089,7 @@ class JsKernelToElementMap
     // compound name where increasing nesting level corresponds to extra
     // underscores.
     var anonymous = 'closure';
-    ir.TreeNode current = treeNode;
+    ir.TreeNode? current = treeNode;
     // TODO(johnniwinther): Simplify computed names.
     while (current != null) {
       var node = current;
@@ -2118,9 +2097,9 @@ class JsKernelToElementMap
         parts.add(anonymous);
         anonymous = '';
       } else if (node is ir.FunctionDeclaration) {
-        String name = node.variable.name;
+        String? name = node.variable.name;
         if (name != null && name != "") {
-          parts.add(utils.operatorNameToIdentifier(name));
+          parts.add(utils.operatorNameToIdentifier(name)!);
         } else {
           parts.add(anonymous);
           anonymous = '';
@@ -2131,17 +2110,18 @@ class JsKernelToElementMap
         break;
       } else if (node is ir.Procedure) {
         if (node.kind == ir.ProcedureKind.Factory) {
-          parts.add(utils.reconstructConstructorName(getMember(node)));
+          parts.add(utils
+              .reconstructConstructorName(getMember(node) as FunctionEntity));
         } else {
-          parts.add(utils.operatorNameToIdentifier(node.name.text));
+          parts.add(utils.operatorNameToIdentifier(node.name.text)!);
         }
       } else if (node is ir.Constructor) {
-        parts.add(utils.reconstructConstructorName(getMember(node)));
+        parts.add(utils
+            .reconstructConstructorName(getMember(node) as FunctionEntity));
         break;
       } else if (node is ir.Field) {
         // Add the field name for closures in field initializers.
-        String name = node.name?.text;
-        if (name != null) parts.add(name);
+        parts.add(node.name.text);
       }
       current = current.parent;
     }
@@ -2165,9 +2145,9 @@ class JsKernelToElementMap
 
   @override
   JGeneratorBody getGeneratorBody(covariant IndexedFunction function) {
-    JGeneratorBody generatorBody = _generatorBodies[function];
+    JGeneratorBody? generatorBody = _generatorBodies[function];
     if (generatorBody == null) {
-      FunctionData functionData = members.getData(function);
+      final functionData = members.getData(function) as FunctionData;
       DartType elementType =
           elementEnvironment.getFunctionAsyncOrSyncStarElementType(function);
       generatorBody = createGeneratorBody(function, elementType);
@@ -2180,7 +2160,8 @@ class JsKernelToElementMap
 
       if (function.enclosingClass != null) {
         // TODO(sra): Integrate this with ClassEnvImpl.addConstructorBody ?
-        (_injectedClassMembers[function.enclosingClass] ??= <IndexedMember>[])
+        (_injectedClassMembers[function.enclosingClass as IndexedClass] ??=
+                <IndexedMember>[])
             .add(generatorBody);
       }
       lateOutputUnitDataBuilder.registerColocatedMembers(
@@ -2201,37 +2182,37 @@ class JsElementEnvironment extends ElementEnvironment
   DartType get dynamicType => elementMap.types.dynamicType();
 
   @override
-  LibraryEntity get mainLibrary => elementMap._mainLibrary;
+  LibraryEntity? get mainLibrary => elementMap._mainLibrary;
 
   @override
-  FunctionEntity get mainFunction => elementMap._mainFunction;
+  FunctionEntity? get mainFunction => elementMap._mainFunction;
 
   @override
   Iterable<LibraryEntity> get libraries => elementMap.libraryListInternal;
 
   @override
   String getLibraryName(LibraryEntity library) {
-    return elementMap._getLibraryName(library);
+    return elementMap._getLibraryName(library as IndexedLibrary);
   }
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
-    return elementMap.getThisType(cls);
+    return elementMap.getThisType(cls as IndexedClass);
   }
 
   @override
   InterfaceType getJsInteropType(ClassEntity cls) {
-    return elementMap._getJsInteropType(cls);
+    return elementMap._getJsInteropType(cls as IndexedClass);
   }
 
   @override
   InterfaceType getRawType(ClassEntity cls) {
-    return elementMap._getRawType(cls);
+    return elementMap._getRawType(cls as IndexedClass);
   }
 
   @override
   InterfaceType getClassInstantiationToBounds(ClassEntity cls) =>
-      elementMap._getClassInstantiationToBounds(cls);
+      elementMap._getClassInstantiationToBounds(cls as IndexedClass);
 
   @override
   bool isGenericClass(ClassEntity cls) {
@@ -2240,41 +2221,42 @@ class JsElementEnvironment extends ElementEnvironment
 
   @override
   bool isMixinApplication(ClassEntity cls) {
-    return elementMap._isMixinApplication(cls);
+    return elementMap._isMixinApplication(cls as IndexedClass);
   }
 
   @override
   bool isUnnamedMixinApplication(ClassEntity cls) {
-    return elementMap._isUnnamedMixinApplication(cls);
+    return elementMap._isUnnamedMixinApplication(cls as IndexedClass);
   }
 
   @override
   bool isMixinApplicationWithMembers(ClassEntity cls) {
-    return elementMap._isMixinApplicationWithMembers(cls);
+    return elementMap._isMixinApplicationWithMembers(cls as IndexedClass);
   }
 
   @override
-  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
+  ClassEntity? getEffectiveMixinClass(ClassEntity cls) {
     if (!isMixinApplication(cls)) return null;
     do {
-      cls = elementMap.getAppliedMixin(cls);
+      cls = elementMap.getAppliedMixin(cls as IndexedClass)!;
     } while (isMixinApplication(cls));
     return cls;
   }
 
   @override
   DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
-    return elementMap.getTypeVariableBound(typeVariable);
+    return elementMap.getTypeVariableBound(typeVariable as IndexedTypeVariable);
   }
 
   @override
   List<Variance> getTypeVariableVariances(ClassEntity cls) {
-    return elementMap.getTypeVariableVariances(cls);
+    return elementMap.getTypeVariableVariances(cls as IndexedClass);
   }
 
   @override
   DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable) {
-    return elementMap._getTypeVariableDefaultType(typeVariable);
+    return elementMap
+        ._getTypeVariableDefaultType(typeVariable as IndexedTypeVariable);
   }
 
   @override
@@ -2285,12 +2267,12 @@ class JsElementEnvironment extends ElementEnvironment
 
   @override
   FunctionType getFunctionType(FunctionEntity function) {
-    return elementMap._getFunctionType(function);
+    return elementMap._getFunctionType(function as IndexedFunction);
   }
 
   @override
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
-    return elementMap._getFunctionTypeVariables(function);
+    return elementMap._getFunctionTypeVariables(function as IndexedFunction);
   }
 
   @override
@@ -2335,13 +2317,13 @@ class JsElementEnvironment extends ElementEnvironment
         }
         return dynamicType;
     }
-    assert(false, 'Unexpected marker ${asyncMarker}');
-    return null;
+    throw failedAt(
+        CURRENT_ELEMENT_SPANNABLE, 'Unexpected marker ${asyncMarker}');
   }
 
   @override
   DartType getFieldType(FieldEntity field) {
-    return elementMap._getFieldType(field);
+    return elementMap._getFieldType(field as IndexedField);
   }
 
   @override
@@ -2350,9 +2332,10 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
+  ConstructorEntity? lookupConstructor(ClassEntity cls, String name,
       {bool required = false}) {
-    ConstructorEntity constructor = elementMap.lookupConstructor(cls, name);
+    ConstructorEntity? constructor =
+        elementMap.lookupConstructor(cls as IndexedClass, name);
     if (constructor == null && required) {
       throw failedAt(
           CURRENT_ELEMENT_SPANNABLE,
@@ -2363,9 +2346,10 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  MemberEntity lookupLocalClassMember(ClassEntity cls, Name name,
+  MemberEntity? lookupLocalClassMember(ClassEntity cls, Name name,
       {bool required = false}) {
-    MemberEntity member = elementMap.lookupClassMember(cls, name);
+    MemberEntity? member =
+        elementMap.lookupClassMember(cls as IndexedClass, name);
     if (member == null && required) {
       throw failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '$name' was not found in ${cls.name}.");
@@ -2374,14 +2358,16 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  ClassEntity getSuperClass(ClassEntity cls,
+  ClassEntity? getSuperClass(ClassEntity cls,
       {bool skipUnnamedMixinApplications = false}) {
     assert(elementMap.checkFamily(cls));
-    ClassEntity superclass = elementMap.getSuperType(cls)?.element;
+    IndexedClass? superclass =
+        elementMap.getSuperType(cls as IndexedClass)?.element as IndexedClass?;
     if (skipUnnamedMixinApplications) {
       while (superclass != null &&
           elementMap._isUnnamedMixinApplication(superclass)) {
-        superclass = elementMap.getSuperType(superclass)?.element;
+        superclass =
+            elementMap.getSuperType(superclass)?.element as IndexedClass?;
       }
     }
     return superclass;
@@ -2389,36 +2375,36 @@ class JsElementEnvironment extends ElementEnvironment
 
   @override
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
-    elementMap._forEachSupertype(cls, f);
+    elementMap._forEachSupertype(cls as IndexedClass, f);
   }
 
   @override
   void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member)) {
-    elementMap._forEachLocalClassMember(cls, f);
+    elementMap._forEachLocalClassMember(cls as IndexedClass, f);
   }
 
   @override
   void forEachInjectedClassMember(
       ClassEntity cls, void f(MemberEntity member)) {
-    elementMap.forEachInjectedClassMember(cls, f);
+    elementMap.forEachInjectedClassMember(cls as IndexedClass, f);
   }
 
   @override
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
-    elementMap._forEachClassMember(cls, f);
+    elementMap._forEachClassMember(cls as IndexedClass, f);
   }
 
   @override
   void forEachConstructor(
       ClassEntity cls, void f(ConstructorEntity constructor)) {
-    elementMap._forEachConstructor(cls, f);
+    elementMap._forEachConstructor(cls as IndexedClass, f);
   }
 
   @override
   void forEachConstructorBody(
       ClassEntity cls, void f(ConstructorBodyEntity constructor)) {
-    elementMap.forEachConstructorBody(cls, f);
+    elementMap.forEachConstructorBody(cls as IndexedClass, f);
   }
 
   @override
@@ -2430,14 +2416,14 @@ class JsElementEnvironment extends ElementEnvironment
   @override
   void forEachLibraryMember(
       LibraryEntity library, void f(MemberEntity member)) {
-    elementMap._forEachLibraryMember(library, f);
+    elementMap._forEachLibraryMember(library as IndexedLibrary, f);
   }
 
   @override
-  MemberEntity lookupLibraryMember(LibraryEntity library, String name,
+  MemberEntity? lookupLibraryMember(LibraryEntity library, String name,
       {bool setter = false, bool required = false}) {
-    MemberEntity member =
-        elementMap.lookupLibraryMember(library, name, setter: setter);
+    MemberEntity? member = elementMap
+        .lookupLibraryMember(library as IndexedLibrary, name, setter: setter);
     if (member == null && required) {
       failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '${name}' was not found in library '${library.name}'.");
@@ -2446,9 +2432,9 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  ClassEntity lookupClass(LibraryEntity library, String name,
+  ClassEntity? lookupClass(LibraryEntity library, String name,
       {bool required = false}) {
-    ClassEntity cls = elementMap.lookupClass(library, name);
+    ClassEntity? cls = elementMap.lookupClass(library as IndexedLibrary, name);
     if (cls == null && required) {
       failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The class '$name'  was not found in library '${library.name}'.");
@@ -2458,12 +2444,12 @@ class JsElementEnvironment extends ElementEnvironment
 
   @override
   void forEachClass(LibraryEntity library, void f(ClassEntity cls)) {
-    elementMap._forEachClass(library, f);
+    elementMap._forEachClass(library as IndexedLibrary, f);
   }
 
   @override
-  LibraryEntity lookupLibrary(Uri uri, {bool required = false}) {
-    LibraryEntity library = elementMap.lookupLibrary(uri);
+  LibraryEntity? lookupLibrary(Uri uri, {bool required = false}) {
+    LibraryEntity? library = elementMap.lookupLibrary(uri);
     if (library == null && required) {
       failedAt(CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
     }
@@ -2473,14 +2459,14 @@ class JsElementEnvironment extends ElementEnvironment
   @override
   bool isEnumClass(ClassEntity cls) {
     assert(elementMap.checkFamily(cls));
-    JClassData classData = elementMap.classes.getData(cls);
+    JClassData classData = elementMap.classes.getData(cls as IndexedClass);
     return classData.isEnumClass;
   }
 
   @override
   void forEachParameter(FunctionEntity function,
-      void f(DartType type, String name, ConstantValue defaultValue)) {
-    elementMap.forEachParameter(function, f,
+      void f(DartType type, String? name, ConstantValue? defaultValue)) {
+    elementMap.forEachParameter(function as IndexedFunction, f,
         isNative: elementMap.nativeData.isNativeMember(function));
   }
 
@@ -2488,7 +2474,7 @@ class JsElementEnvironment extends ElementEnvironment
   void forEachParameterAsLocal(GlobalLocalsMap globalLocalsMap,
       FunctionEntity function, void f(Local parameter)) {
     forEachOrderedParameterAsLocal(globalLocalsMap, elementMap, function,
-        (Local parameter, {bool isElided}) {
+        (Local parameter, {required bool isElided}) {
       if (!isElided) {
         f(parameter);
       }
@@ -2500,7 +2486,7 @@ class JsElementEnvironment extends ElementEnvironment
       ClassEntity cls, void f(ClassEntity declarer, FieldEntity field)) {
     forEachClassMember(cls, (ClassEntity declarer, MemberEntity member) {
       if (member.isField && member.isInstanceMember) {
-        f(declarer, member);
+        f(declarer, member as FieldEntity);
       }
     });
   }
@@ -2514,7 +2500,7 @@ class JsElementEnvironment extends ElementEnvironment
       if (declarer != cls) return;
       if (!member.isField) return;
       if (!member.isInstanceMember) return;
-      f(member);
+      f(member as FieldEntity);
     });
   }
 }
@@ -2571,32 +2557,17 @@ class _EntityLookup implements EntityLookup {
   }
 
   @override
-  IndexedLibrary getLibraryByIndex(int index) {
-    IndexedLibrary library = _libraries[index];
-    assert(library != null, "No library found for index $index");
-    return library;
-  }
+  IndexedLibrary getLibraryByIndex(int index) => _libraries[index]!;
 
   @override
-  IndexedClass getClassByIndex(int index) {
-    IndexedClass cls = _classes[index];
-    assert(cls != null, "No class found for index $index");
-    return cls;
-  }
+  IndexedClass getClassByIndex(int index) => _classes[index]!;
 
   @override
-  IndexedMember getMemberByIndex(int index) {
-    IndexedMember member = _members[index];
-    assert(member != null, "No member found for index $index");
-    return member;
-  }
+  IndexedMember getMemberByIndex(int index) => _members[index]!;
 
   @override
-  IndexedTypeVariable getTypeVariableByIndex(int index) {
-    IndexedTypeVariable typeVariable = _typeVariables[index];
-    assert(typeVariable != null, "No type variable found for index $index");
-    return typeVariable;
-  }
+  IndexedTypeVariable getTypeVariableByIndex(int index) =>
+      _typeVariables[index]!;
 }
 
 /// [EntityLookup] implementation for an fully built [JsKernelToElementMap].
@@ -2607,22 +2578,22 @@ class ClosedEntityLookup implements EntityLookup {
 
   @override
   IndexedTypeVariable getTypeVariableByIndex(int index) {
-    return _elementMap.typeVariables.getEntity(index);
+    return _elementMap.typeVariables.getEntity(index)!;
   }
 
   @override
   IndexedMember getMemberByIndex(int index) {
-    return _elementMap.members.getEntity(index);
+    return _elementMap.members.getEntity(index)!;
   }
 
   @override
   IndexedClass getClassByIndex(int index) {
-    return _elementMap.classes.getEntity(index);
+    return _elementMap.classes.getEntity(index)!;
   }
 
   @override
   IndexedLibrary getLibraryByIndex(int index) {
-    return _elementMap.libraries.getEntity(index);
+    return _elementMap.libraries.getEntity(index)!;
   }
 }
 
@@ -2659,13 +2630,13 @@ class ClosedEntityReader extends EntityReader {
     LateMemberKind kind = source.readEnum(LateMemberKind.values);
     switch (kind) {
       case LateMemberKind.constructorBody:
-        IndexedConstructor constructor = source.readMember();
+        IndexedConstructor constructor =
+            source.readMember() as IndexedConstructor;
         return _elementMap._getConstructorBody(constructor);
       case LateMemberKind.generatorBody:
-        IndexedFunction function = source.readMember();
+        final function = source.readMember() as IndexedFunction;
         return _elementMap.getGeneratorBody(function);
     }
-    throw UnsupportedError("Unexpected late member kind: $kind.");
   }
 }
 

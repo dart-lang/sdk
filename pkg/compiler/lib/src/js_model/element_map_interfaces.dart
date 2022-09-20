@@ -19,8 +19,8 @@ abstract class JsToElementMap {
   JCommonElements get commonElements;
   JElementEnvironment get elementEnvironment;
   DartTypes get types;
-  ConstantValue getConstantValue(
-      ir.Member memberContext, ir.Expression expression,
+  ConstantValue? getConstantValue(
+      ir.Member memberContext, ir.Expression? expression,
       {bool requireConstant = true, bool implicitNull = false});
   DartType getDartType(ir.DartType type);
 

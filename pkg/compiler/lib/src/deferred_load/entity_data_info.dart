@@ -281,7 +281,7 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
     void addClassAndMaybeAddEffectiveMixinClass(ClassEntity cls) {
       infoBuilder.addClass(cls);
       if (elementEnvironment.isMixinApplication(cls)) {
-        infoBuilder.addClass(elementEnvironment.getEffectiveMixinClass(cls));
+        infoBuilder.addClass(elementEnvironment.getEffectiveMixinClass(cls)!);
       }
     }
 
