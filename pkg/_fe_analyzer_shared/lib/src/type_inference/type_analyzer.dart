@@ -19,11 +19,11 @@ class CaseHeadInfo<Node extends Object, Expression extends Node> {
   /// For a `case` clause, the case pattern.  For a `default` clause, `null`.
   final Node? pattern;
 
-  /// For a `case` clause that has a `when` part, the expression following
+  /// For a `case` clause that has a guard clause, the expression following
   /// `when`.  Otherwise `null`.
-  final Expression? when;
+  final Expression? guard;
 
-  CaseHeadInfo({required this.node, required this.pattern, this.when});
+  CaseHeadInfo({required this.node, required this.pattern, this.guard});
 }
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
@@ -38,7 +38,7 @@ class ExpressionCaseInfo<Node extends Object, Expression extends Node>
   ExpressionCaseInfo(
       {required super.node,
       required super.pattern,
-      super.when,
+      super.guard,
       required this.body});
 }
 
@@ -334,7 +334,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
                 switchScrutinee: scrutinee,
                 topPattern: pattern));
         // Stack: (Expression, i * ExpressionCase, Pattern)
-        Expression? guard = caseInfo.when;
+        Expression? guard = caseInfo.guard;
         bool hasGuard = guard != null;
         if (hasGuard) {
           _checkGuardType(guard, analyzeExpression(guard, boolType));
@@ -410,7 +410,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
                     topPattern: pattern));
             // Stack: (Expression, numExecutionPaths * StatementCase,
             //         numHeads * CaseHead, Pattern),
-            Expression? guard = head.when;
+            Expression? guard = head.guard;
             bool hasGuard = guard != null;
             if (hasGuard) {
               _checkGuardType(guard, analyzeExpression(guard, boolType));
@@ -582,7 +582,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   void handleCase_afterCaseHeads(Statement node, int caseIndex, int numHeads);
 
   /// Called after visiting a single `case` clause, consisting of a pattern and
-  /// a `when` condition.
+  /// an optional guard.
   ///
   /// [node] is the enclosing switch statement or switch expression and
   /// [caseIndex] is the index of the `case` clause.
@@ -607,8 +607,8 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Stack effect: pushes (CaseHead).
   void handleDefault(Node node, int caseIndex);
 
-  /// Called when visiting a `case` that lacks a `when` clause.  Since the lack
-  /// of a `when` clause is semantically equivalent to `when true`, this method
+  /// Called when visiting a `case` that lacks a guard clause.  Since the lack
+  /// of a guard clause is semantically equivalent to `when true`, this method
   /// should behave similarly to visiting the boolean literal `true`.
   ///
   /// [node] is the enclosing switch statement, switch expression, or `if`, and

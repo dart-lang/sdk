@@ -404,12 +404,12 @@ class ExpressionCase extends Node
   final Pattern? pattern;
 
   @override
-  final Expression? when;
+  final Expression? guard;
 
   @override
   final Expression body;
 
-  ExpressionCase._(this.pattern, this.when, this.body,
+  ExpressionCase._(this.pattern, this.guard, this.body,
       {required super.location})
       : super._();
 
@@ -418,7 +418,7 @@ class ExpressionCase extends Node
 
   String toString() => [
         pattern == null ? 'default' : 'case $pattern',
-        if (when != null) ' when $when',
+        if (guard != null) ' when $guard',
         ': $body'
       ].join('');
 
@@ -906,8 +906,8 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
 
   PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h);
 
-  CaseHead when(Expression whenExpression) =>
-      _When(this, whenExpression, location: location);
+  CaseHead when(Expression guard) =>
+      _GuardedCaseHead(this, guard, location: location);
 
   String _debugString({required bool needsKeywordOrType});
 }
@@ -1741,6 +1741,17 @@ class _ForEach extends Statement {
   }
 }
 
+class _GuardedCaseHead extends Node with CaseHead, CaseHeads {
+  @override
+  final Pattern _pattern;
+
+  @override
+  final Expression _guard;
+
+  _GuardedCaseHead(this._pattern, this._guard, {required super.location})
+      : super._();
+}
+
 class _If extends _IfBase {
   final Expression condition;
 
@@ -2447,7 +2458,7 @@ class _MiniAstTypeAnalyzer
     return StatementCaseInfo([
       for (var caseHead in case_._caseHeads._caseHeads)
         CaseHeadInfo(
-            node: caseHead, pattern: caseHead._pattern, when: caseHead._guard)
+            node: caseHead, pattern: caseHead._pattern, guard: caseHead._guard)
     ], case_._body.statements, labels: case_._caseHeads._labels);
   }
 
@@ -3101,16 +3112,6 @@ class _VariableReference extends LValue {
       Expression? rhs) {
     h.flow.write(assignmentExpression, variable, writtenType, rhs);
   }
-}
-
-class _When extends Node with CaseHead, CaseHeads {
-  @override
-  final Pattern _pattern;
-
-  @override
-  final Expression _guard;
-
-  _When(this._pattern, this._guard, {required super.location}) : super._();
 }
 
 class _While extends Statement {
