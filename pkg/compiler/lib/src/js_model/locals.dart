@@ -640,7 +640,7 @@ void forEachOrderedParameterAsLocal(
     GlobalLocalsMap globalLocalsMap,
     JsToElementMap elementMap,
     FunctionEntity function,
-    void f(Local parameter, {bool? isElided})) {
+    void f(Local parameter, {required bool isElided})) {
   KernelToLocalsMap localsMap = globalLocalsMap.getLocalsMap(function);
   forEachOrderedParameter(elementMap, function,
       (ir.VariableDeclaration variable, {required bool isElided}) {

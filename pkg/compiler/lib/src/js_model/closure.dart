@@ -704,7 +704,7 @@ class JsClosureClassInfo extends JsScopeInfo
       ir.FunctionNode closureSourceNode,
       Map<ir.VariableDeclaration, migrated.JRecordField> boxedVariables,
       KernelScopeInfo info,
-      ClassEntity enclosingClass,
+      ClassEntity? enclosingClass,
       this._closureEntity,
       this._closureEntityVariable,
       this.thisLocal)

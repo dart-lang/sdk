@@ -14,11 +14,11 @@ DiagnosticMessage _createDiagnosticMessage(
 }
 
 void reportLocatedMessage(DiagnosticReporter reporter,
-    ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+    ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
   DiagnosticMessage diagnosticMessage =
       _createDiagnosticMessage(reporter, message);
   List<DiagnosticMessage> infos = [];
-  for (ir.LocatedMessage message in context) {
+  for (ir.LocatedMessage message in context ?? const []) {
     infos.add(_createDiagnosticMessage(reporter, message));
   }
   reporter.reportError(diagnosticMessage, infos);

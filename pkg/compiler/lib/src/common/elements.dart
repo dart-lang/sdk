@@ -152,7 +152,7 @@ abstract class CommonElements {
     // so this cannot be found in kernel. Find a consistent way to handle
     // this and similar cases.
     return _symbolConstructorTarget ??=
-        _findConstructor(symbolImplementationClass, '');
+        _findConstructor(symbolImplementationClass, '')!;
   }
 
   void _ensureSymbolConstructorDependencies() {
@@ -324,14 +324,14 @@ abstract class CommonElements {
         setter: setter, required: required) as T?;
   }
 
-  T _findClassMember<T extends MemberEntity>(ClassEntity cls, String name,
+  T? _findClassMember<T extends MemberEntity>(ClassEntity cls, String name,
       {bool setter = false, bool required = true}) {
     return _env.lookupLocalClassMember(
         cls, Name(name, cls.library.canonicalUri, isSetter: setter),
-        required: required) as T;
+        required: required) as T?;
   }
 
-  ConstructorEntity _findConstructor(ClassEntity cls, String name,
+  ConstructorEntity? _findConstructor(ClassEntity cls, String name,
       {bool required = true}) {
     return _env.lookupConstructor(cls, name, required: required);
   }
@@ -395,9 +395,9 @@ abstract class CommonElements {
   }
 
   late final ConstructorEntity mapLiteralConstructor =
-      _env.lookupConstructor(mapLiteralClass, '_literal');
+      _env.lookupConstructor(mapLiteralClass, '_literal')!;
   late final ConstructorEntity mapLiteralConstructorEmpty =
-      _env.lookupConstructor(mapLiteralClass, '_empty');
+      _env.lookupConstructor(mapLiteralClass, '_empty')!;
   late final FunctionEntity mapLiteralUntypedMaker =
       _env.lookupLocalClassMember(mapLiteralClass,
               PrivateName('_makeLiteral', mapLiteralClass.library.canonicalUri))
@@ -411,9 +411,9 @@ abstract class CommonElements {
       _findClass(_env.lookupLibrary(Uris.dart_collection), 'LinkedHashSet')!;
 
   late final ConstructorEntity setLiteralConstructor =
-      _env.lookupConstructor(setLiteralClass, '_literal');
+      _env.lookupConstructor(setLiteralClass, '_literal')!;
   late final ConstructorEntity setLiteralConstructorEmpty =
-      _env.lookupConstructor(setLiteralClass, '_empty');
+      _env.lookupConstructor(setLiteralClass, '_empty')!;
   late final FunctionEntity setLiteralUntypedMaker =
       _env.lookupLocalClassMember(setLiteralClass,
               PrivateName('_makeLiteral', setLiteralClass.library.canonicalUri))
@@ -489,7 +489,7 @@ abstract class CommonElements {
   ClassEntity get streamIterator => _findAsyncHelperClass("StreamIterator");
 
   ConstructorEntity get streamIteratorConstructor =>
-      _env.lookupConstructor(streamIterator, "");
+      _env.lookupConstructor(streamIterator, "")!;
 
   late final FunctionEntity syncStarIterableFactory =
       _findAsyncHelperFunction('_makeSyncStarIterable');
@@ -580,7 +580,7 @@ abstract class CommonElements {
       _findInterceptorsFunction('getNativeInterceptor');
 
   late final ConstructorEntity jsArrayTypedConstructor =
-      _findConstructor(jsArrayClass, 'typed');
+      _findConstructor(jsArrayClass, 'typed')!;
 
   // From dart:_js_helper
   // TODO(johnniwinther): Avoid the need for this (from [CheckedModeHelper]).
@@ -619,7 +619,7 @@ abstract class CommonElements {
   InterfaceType get requiredSentinelType => _getRawType(requiredSentinelClass);
 
   late final MemberEntity invocationTypeArgumentGetter =
-      _findClassMember(jsInvocationMirrorClass, 'typeArguments');
+      _findClassMember(jsInvocationMirrorClass, 'typeArguments')!;
 
   /// Interface used to determine if an object has the JavaScript
   /// indexing behavior. The interface is only visible to specific libraries.
@@ -813,7 +813,7 @@ abstract class CommonElements {
   ClassEntity get _rtiUniverseClass => _findClass(rtiLibrary, '_Universe')!;
 
   FieldEntity _findRtiClassField(String name) =>
-      _findClassMember(_rtiImplClass, name);
+      _findClassMember(_rtiImplClass, name)!;
 
   late final FieldEntity rtiAsField = _findRtiClassField('_as');
 
@@ -825,19 +825,19 @@ abstract class CommonElements {
       _findRtiClassField('_precomputed1');
 
   late final FunctionEntity rtiEvalMethod =
-      _findClassMember(_rtiImplClass, '_eval');
+      _findClassMember(_rtiImplClass, '_eval')!;
 
   late final FunctionEntity rtiBindMethod =
-      _findClassMember(_rtiImplClass, '_bind');
+      _findClassMember(_rtiImplClass, '_bind')!;
 
   late final FunctionEntity rtiAddRulesMethod =
-      _findClassMember(_rtiUniverseClass, 'addRules');
+      _findClassMember(_rtiUniverseClass, 'addRules')!;
 
   late final FunctionEntity rtiAddErasedTypesMethod =
-      _findClassMember(_rtiUniverseClass, 'addErasedTypes');
+      _findClassMember(_rtiUniverseClass, 'addErasedTypes')!;
 
   late final FunctionEntity rtiAddTypeParameterVariancesMethod =
-      _findClassMember(_rtiUniverseClass, 'addTypeParameterVariances');
+      _findClassMember(_rtiUniverseClass, 'addTypeParameterVariances')!;
 
   FunctionEntity get installSpecializedIsTest =>
       _findRtiFunction('_installSpecializedIsTest');
@@ -1057,10 +1057,10 @@ class KCommonElements extends CommonElements {
   late final ClassEntity pragmaClass = _findClass(coreLibrary, 'pragma')!;
 
   late final FieldEntity pragmaClassNameField =
-      _findClassMember(pragmaClass, 'name');
+      _findClassMember(pragmaClass, 'name')!;
 
   late final FieldEntity pragmaClassOptionsField =
-      _findClassMember(pragmaClass, 'options');
+      _findClassMember(pragmaClass, 'options')!;
 }
 
 class JCommonElements extends CommonElements {
@@ -1106,9 +1106,9 @@ class JCommonElements extends CommonElements {
   }
 
   late final FunctionEntity jsArrayRemoveLast =
-      _findClassMember(jsArrayClass, 'removeLast');
+      _findClassMember(jsArrayClass, 'removeLast')!;
 
-  late final FunctionEntity jsArrayAdd = _findClassMember(jsArrayClass, 'add');
+  late final FunctionEntity jsArrayAdd = _findClassMember(jsArrayClass, 'add')!;
 
   bool _isJsStringClass(ClassEntity cls) {
     return cls.name == 'JSString' && cls.library == interceptorsLibrary;
@@ -1141,13 +1141,13 @@ class JCommonElements extends CommonElements {
   }
 
   FunctionEntity get jsStringSplit =>
-      _jsStringSplit ??= _findClassMember(jsStringClass, 'split');
+      _jsStringSplit ??= _findClassMember(jsStringClass, 'split')!;
 
   late final FunctionEntity jsStringToString =
-      _findClassMember(jsStringClass, 'toString');
+      _findClassMember(jsStringClass, 'toString')!;
 
   late final FunctionEntity jsStringOperatorAdd =
-      _findClassMember(jsStringClass, '+');
+      _findClassMember(jsStringClass, '+')!;
 
   late final ClassEntity jsConstClass = _findClass(foreignLibrary, 'JS_CONST')!;
 
@@ -1224,10 +1224,10 @@ class JCommonElements extends CommonElements {
 // both resolution and codegen.
 abstract class ElementEnvironment {
   /// Returns the main library for the compilation.
-  LibraryEntity get mainLibrary;
+  LibraryEntity? get mainLibrary;
 
   /// Returns the main method for the compilation.
-  FunctionEntity get mainFunction;
+  FunctionEntity? get mainFunction;
 
   /// Returns all known libraries.
   Iterable<LibraryEntity> get libraries;
@@ -1276,7 +1276,7 @@ abstract class ElementEnvironment {
 
   /// Lookup the constructor [name] in [cls], fail if the class is missing and
   /// [required].
-  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
+  ConstructorEntity? lookupConstructor(ClassEntity cls, String name,
       {bool required = false});
 
   /// Calls [f] for each class member declared in [cls].
@@ -1394,7 +1394,7 @@ abstract class ElementEnvironment {
   ///
   /// The mixin classes of `B` and `C` are `A` and `B`, respectively, but the
   /// _effective_ mixin class of both is `A`.
-  ClassEntity getEffectiveMixinClass(ClassEntity cls);
+  ClassEntity? getEffectiveMixinClass(ClassEntity cls);
 }
 
 abstract class KElementEnvironment extends ElementEnvironment {
