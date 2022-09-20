@@ -499,8 +499,10 @@ abstract class Map<K, V> {
   void addAll(Map<K, V> other);
   Map<RK, RV> cast<RK, RV>();
   bool containsKey(Object? key);
+  bool containsValue(Object? value);
   void forEach(void action(K key, V value));
   V putIfAbsent(K key, V ifAbsent());
+  V? remove(Object? key);
 }
 
 class Null extends Object {
@@ -595,8 +597,13 @@ abstract class Set<E> implements Iterable<E> {
 
   bool add(E value);
   void addAll(Iterable<E> elements);
-  bool remove(Object? value);
+  bool containsAll(Iterable<Object?> other);
+  Set<E> difference(Set<Object?> other);
+  Set<E> intersection(Set<Object?> other);
   E? lookup(Object? object);
+  bool remove(Object? value);
+  void removeAll(Iterable<Object?> elements);
+  void retainAll(Iterable<Object?> elements);
 
   static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
       throw '';

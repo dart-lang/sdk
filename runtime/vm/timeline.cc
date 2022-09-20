@@ -423,8 +423,8 @@ TimelineEvent::TimelineEvent()
       label_(NULL),
       stream_(NULL),
       thread_(OSThread::kInvalidThreadId),
-      isolate_id_(ILLEGAL_PORT),
-      isolate_group_id_(0) {}
+      isolate_id_(ILLEGAL_ISOLATE_ID),
+      isolate_group_id_(ILLEGAL_ISOLATE_GROUP_ID) {}
 
 TimelineEvent::~TimelineEvent() {
   Reset();
@@ -704,13 +704,13 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
   if (pre_serialized_args()) {
     ASSERT(arguments_.length() == 1);
     writer->AppendSerializedObject("args", arguments_[0].value);
-    if (isolate_id_ != ILLEGAL_PORT) {
+    if (HasIsolateId()) {
       writer->UncloseObject();
       writer->PrintfProperty("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                              static_cast<int64_t>(isolate_id_));
       writer->CloseObject();
     }
-    if (isolate_group_id_ != 0) {
+    if (HasIsolateGroupId()) {
       writer->UncloseObject();
       writer->PrintfProperty("isolateGroupId",
                              ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
@@ -725,11 +725,11 @@ void TimelineEvent::PrintJSON(JSONWriter* writer) const {
       const TimelineEventArgument& arg = arguments_[i];
       writer->PrintProperty(arg.name, arg.value);
     }
-    if (isolate_id_ != ILLEGAL_PORT) {
+    if (HasIsolateId()) {
       writer->PrintfProperty("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                              static_cast<int64_t>(isolate_id_));
     }
-    if (isolate_group_id_ != 0) {
+    if (HasIsolateGroupId()) {
       writer->PrintfProperty("isolateGroupId",
                              ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING,
                              isolate_group_id_);
@@ -777,6 +777,36 @@ int64_t TimelineEvent::ThreadCPUTimeDuration() const {
     return OS::GetCurrentThreadCPUMicros() - thread_timestamp0_;
   }
   return thread_timestamp1_ - thread_timestamp0_;
+}
+
+bool TimelineEvent::HasIsolateId() const {
+  return isolate_id_ != ILLEGAL_ISOLATE_ID;
+}
+
+bool TimelineEvent::HasIsolateGroupId() const {
+  return isolate_group_id_ != ILLEGAL_ISOLATE_GROUP_ID;
+}
+
+const char* TimelineEvent::GetFormattedIsolateId() const {
+  ASSERT(HasIsolateId());
+  intptr_t formatted_isolate_id_len =
+      Utils::SNPrint(nullptr, 0, ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
+  char* formatted_isolate_id =
+      reinterpret_cast<char*>(malloc(formatted_isolate_id_len + 1));
+  Utils::SNPrint(formatted_isolate_id, formatted_isolate_id_len + 1,
+                 ISOLATE_SERVICE_ID_FORMAT_STRING, isolate_id_);
+  return formatted_isolate_id;
+}
+
+const char* TimelineEvent::GetFormattedIsolateGroupId() const {
+  ASSERT(HasIsolateGroupId());
+  intptr_t formatted_isolate_group_id_len = Utils::SNPrint(
+      nullptr, 0, ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
+  char* formatted_isolate_group_id =
+      reinterpret_cast<char*>(malloc(formatted_isolate_group_id_len + 1));
+  Utils::SNPrint(formatted_isolate_group_id, formatted_isolate_group_id_len + 1,
+                 ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, isolate_group_id_);
+  return formatted_isolate_group_id;
 }
 
 TimelineStream::TimelineStream(const char* name,
