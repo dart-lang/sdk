@@ -56,6 +56,14 @@ linter:
       ''', [DEPRECATED_LINT_HINT]);
   }
 
+  test_deprecated_rule_map() {
+    assertErrors('''
+linter:
+  rules:
+    deprecated_lint: false
+      ''', [DEPRECATED_LINT_HINT]);
+  }
+
   test_duplicated_rule() {
     assertErrors('''
 linter:
@@ -74,6 +82,24 @@ linter:
       ''', [INCOMPATIBLE_LINT_WARNING]);
   }
 
+  test_incompatible_rule_map() {
+    assertErrors('''
+linter:
+  rules:
+    rule_pos: true
+    rule_neg: true
+      ''', [INCOMPATIBLE_LINT_WARNING]);
+  }
+
+  test_incompatible_rule_map_disabled() {
+    assertErrors('''
+linter:
+  rules:
+    rule_pos: true
+    rule_neg: false
+      ''', []);
+  }
+
   test_stable_rule() {
     assertErrors('''
 linter:
@@ -82,11 +108,27 @@ linter:
       ''', []);
   }
 
+  test_stable_rule_map() {
+    assertErrors('''
+linter:
+  rules:
+    stable_lint: true
+      ''', []);
+  }
+
   test_undefined_rule() {
     assertErrors('''
 linter:
   rules:
     - this_rule_does_not_exist
+      ''', [UNDEFINED_LINT_WARNING]);
+  }
+
+  test_undefined_rule_map() {
+    assertErrors('''
+linter:
+  rules:
+    this_rule_does_not_exist: false
       ''', [UNDEFINED_LINT_WARNING]);
   }
 }
@@ -99,6 +141,7 @@ class RuleNeg extends LintRule {
           description: '',
           details: '',
         );
+
   @override
   List<String> get incompatibleRules => ['rule_pos'];
 }
@@ -111,6 +154,7 @@ class RulePos extends LintRule {
           description: '',
           details: '',
         );
+
   @override
   List<String> get incompatibleRules => ['rule_neg'];
 }
