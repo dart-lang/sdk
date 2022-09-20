@@ -3202,34 +3202,6 @@
     },
     {
       "builders": [
-        "dart-sdk-win"
-      ],
-      "meta": {
-        "description": "This configuration is used by the sdk-builders for Windows. It also adds CQ coverage for building on Windows."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=ia32,x64,arm64",
-            "--mode=release",
-            "--check-clean",
-            "create_sdk",
-            "runtime"
-          ]
-        },
-        {
-          "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [
-            "--arch=ia32,x64,arm64"
-          ]
-        }
-      ]
-    },
-    {
-      "builders": [
         "debianpackage-linux"
       ],
       "meta": {
