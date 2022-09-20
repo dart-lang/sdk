@@ -18,6 +18,7 @@ load(
     "//lib/defaults.star",
     "arm64",
     "chrome",
+    "emscripten",
     "experimental",
     "firefox",
     "focal",
@@ -279,6 +280,7 @@ cron.weekly_builder(
 cron.nightly_builder(
     "dart2wasm-linux-x64-d8",
     channels = ["try"],
+    properties = emscripten,
 )
 
 # flutter
