@@ -36,6 +36,15 @@
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`DEFAULT_BUFFER_SIZE`]: https://api.dart.dev/stable/2.17.6/dart-convert/JsonUtf8Encoder/DEFAULT_BUFFER_SIZE-constant.html
 
+#### `dart:core`
+
+- The `Uri` class will parse a backslash in the path or the authority separator
+  of a URI as a forward slash. This affects the `Uri` constructor's `path`
+  parameter, and the `Uri.parse` method.
+  This change was made to not diverge as much from the browser `URL` behavior.
+  The Dart `Uri` class is still not an implementation of the same standard
+  as the browser's `URL` implementation.
+
 #### `dart:developer`
 
 - **Breaking change** [#34233][]: The previously deprecated APIs
