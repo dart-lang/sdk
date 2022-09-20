@@ -178,6 +178,11 @@ vars = {
   "chrome_tag": "101.0.4951.41",
   "download_firefox": False,
   "firefox_tag": "98.0.2",
+
+  # Emscripten is used in dart2wasm tests.
+  "download_emscripten": False,
+  "emsdk_rev": "d0291b3216fbc9765d9cfc1a2103316b32a555c6",
+  "emsdk_ver": "3.1.3",
 }
 
 gclient_gn_args_file = Var("dart_root") + '/build/config/gclient_args.gni'
@@ -269,6 +274,10 @@ deps = {
   Var("dart_root") + "/third_party/root_certificates":
       Var("dart_git") + "root_certificates.git" +
       "@" + Var("root_certificates_rev"),
+
+  Var("dart_root") + "/third_party/emsdk":
+      Var("dart_git") + "external/github.com/emscripten-core/emsdk.git" +
+      "@" + Var("emsdk_rev"),
 
   Var("dart_root") + "/third_party/jinja2":
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +
@@ -707,5 +716,20 @@ hooks = [
     'pattern': '.',
     'action': ['python3', 'sdk/build/vs_toolchain.py', 'update'],
     'condition': 'checkout_win'
+  },
+  # Install and activate the empscripten SDK.
+  {
+    'name': 'install_emscripten',
+    'pattern': '.',
+    'action': ['python3', 'sdk/third_party/emsdk/emsdk.py', 'install',
+        Var('emsdk_ver')],
+    'condition': 'download_emscripten'
+  },
+  {
+    'name': 'activate_emscripten',
+    'pattern': '.',
+    'action': ['python3', 'sdk/third_party/emsdk/emsdk.py', 'activate',
+        Var('emsdk_ver')],
+    'condition': 'download_emscripten'
   },
 ]
