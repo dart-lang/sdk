@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:meta/meta.dart';
@@ -447,6 +448,8 @@ class DartObjectImpl implements DartObject {
     InstanceState state = _state;
     if (state is GenericState) {
       return state.fields[name];
+    } else if (state is RecordState) {
+      return state.getField(name);
     }
     return null;
   }
@@ -2576,6 +2579,16 @@ class RecordState extends InstanceState {
       }
     }
     return BoolState.TRUE_STATE;
+  }
+
+  /// Returns the value of the field with the given [name].
+  DartObject? getField(String name) {
+    final index = RecordTypeExtension.positionalFieldIndex(name);
+    if (index != null && index < positionalFields.length) {
+      return positionalFields[index];
+    } else {
+      return namedFields[name];
+    }
   }
 
   @override

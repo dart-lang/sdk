@@ -473,6 +473,25 @@ class DartObjectImplTest {
     expect(_symbolValue("a"), _symbolValue("a"));
   }
 
+  void test_getField_record() {
+    final record = _recordValue([
+      _intValue(0),
+      _intValue(1),
+    ], {
+      'a': _intValue(2),
+      'b': _intValue(3),
+    });
+
+    expect(record.getField(r'$0'), _intValue(0));
+    expect(record.getField(r'$1'), _intValue(1));
+    expect(record.getField(r'$2'), isNull);
+    expect(record.getField(r'$-2'), isNull);
+
+    expect(record.getField(r'a'), _intValue(2));
+    expect(record.getField(r'b'), _intValue(3));
+    expect(record.getField(r'c'), isNull);
+  }
+
   void test_getValue_bool_false() {
     expect(_boolValue(false).toBoolValue(), false);
   }

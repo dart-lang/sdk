@@ -1369,7 +1369,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // FunctionType object.
   __ LoadCompressed(RAX,
@@ -1383,7 +1383,7 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
   // Hash not yet computed.
 }
 
-void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ movq(RCX, Address(RSP, +1 * target::kWordSize));
   __ movq(RDX, Address(RSP, +2 * target::kWordSize));

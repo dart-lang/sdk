@@ -79,6 +79,8 @@ abstract class RefactoringProducer {
   bool isAvailable();
 
   /// Return `true` if the selection is inside the given [token].
-  bool selectionIsInToken(Token token) =>
-      selectionOffset >= token.offset && selectionEnd <= token.end;
+  bool selectionIsInToken(Token? token) =>
+      token != null &&
+      selectionOffset >= token.offset &&
+      selectionEnd <= token.end;
 }

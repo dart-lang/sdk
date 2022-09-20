@@ -1324,7 +1324,7 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_getHashCode(Assembler* assembler,
                                                Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   __ ldr(R0, FieldAddress(R0, target::FunctionType::hash_offset()));
@@ -1333,7 +1333,7 @@ void AsmIntrinsifier::FunctionType_getHashCode(Assembler* assembler,
   __ Bind(normal_ir_body);  // Hash not yet computed.
 }
 
-void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
+void AsmIntrinsifier::AbstractType_equality(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ ldm(IA, SP, (1 << R1 | 1 << R2));
   __ cmp(R1, Operand(R2));

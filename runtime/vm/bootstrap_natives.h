@@ -26,11 +26,11 @@ namespace dart {
   V(Function_apply, 2)                                                         \
   V(Closure_equals, 2)                                                         \
   V(Closure_computeHash, 1)                                                    \
+  V(AbstractType_equality, 2)                                                  \
+  V(AbstractType_getHashCode, 1)                                               \
   V(AbstractType_toString, 1)                                                  \
-  V(Type_getHashCode, 1)                                                       \
   V(Type_equality, 2)                                                          \
-  V(FunctionType_getHashCode, 1)                                               \
-  V(FunctionType_equality, 2)                                                  \
+  V(Type_getHashCode, 1)                                                       \
   V(LibraryPrefix_isLoaded, 1)                                                 \
   V(LibraryPrefix_setLoaded, 1)                                                \
   V(LibraryPrefix_loadingUnit, 1)                                              \

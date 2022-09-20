@@ -35,22 +35,42 @@ class MoveTopLevelToFile extends RefactoringProducer {
   /// Return the member to be moved. As a side-effect, initialize the [title]
   /// and [defaultFilePath].
   _MemberToMove? get _memberToMove {
+    // TODO(brianwilkerson) Extend this to support the selection of multiple
+    //  top-level declarations by returning a list of the members to be moved.
     var node = selectedNode;
-    if (node is ClassDeclaration && selectionIsInToken(node.name2)) {
-      var name = node.name2.lexeme;
-      var unitPath = result.unit.declaredElement?.source.fullName;
-      if (unitPath == null) {
-        return null;
+    // TODO(brianwilkerson) If the caret is at the end of the name and before
+    //  the parameter list, then the `node` is the parameter list. This code
+    //  doesn't handle that case yet.
+    if (node is VariableDeclaration) {
+      var declaration = node.parent?.parent;
+      if (declaration is TopLevelVariableDeclaration &&
+          declaration.variables.variables.length == 1 &&
+          selectionIsInToken(node.name2)) {
+        return _memberFor(declaration, node.name2.lexeme);
       }
-      var context = result.session.resourceProvider.pathContext;
-
-      title = "Move '$name' to file";
-      defaultFilePath =
-          context.join(context.dirname(unitPath), _fileNameForClassName(name));
-      return _MemberToMove(unitPath, node, name);
     }
-    // TODO(brianwilkeson) Handle other top-level members.
-    return null;
+    if (node is! CompilationUnitMember) {
+      return null;
+    }
+    String name;
+    if (node is ClassDeclaration && selectionIsInToken(node.name2)) {
+      name = node.name2.lexeme;
+    } else if (node is EnumDeclaration && selectionIsInToken(node.name2)) {
+      name = node.name2.lexeme;
+    } else if (node is ExtensionDeclaration && selectionIsInToken(node.name2)) {
+      name = node.name2!.lexeme;
+    } else if (node is FunctionDeclaration &&
+        node.parent is CompilationUnit &&
+        selectionIsInToken(node.name2)) {
+      name = node.name2.lexeme;
+    } else if (node is MixinDeclaration && selectionIsInToken(node.name2)) {
+      name = node.name2.lexeme;
+    } else if (node is TypeAlias && selectionIsInToken(node.name2)) {
+      name = node.name2.lexeme;
+    } else {
+      return null;
+    }
+    return _memberFor(node, name);
   }
 
   @override
@@ -60,17 +80,34 @@ class MoveTopLevelToFile extends RefactoringProducer {
     if (member == null) {
       return;
     }
-    // TODO(brianwilkerson) Copy the file header to the new file.
-    await builder.addDartFileEdit(commandArguments[0], (builder) {
+    var sourcePath = member.containingFile;
+    var destinationFilePath = commandArguments[0];
+    var destinationUri = result.session.uriConverter
+        .pathToUri(destinationFilePath, containingPath: sourcePath);
+    if (destinationUri == null) {
+      return;
+    }
+    await builder.addDartFileEdit(destinationFilePath, (builder) {
+      // TODO(brianwilkerson) Copy the file header to the new file.
+      // TODO(brianwilkerson) Use `ImportedElementsComputer` to add imports
+      //  required by the newly copied code. Better yet, combine that with the
+      //  import analysis used to find unused and unnecessary imports so that we
+      //  can also remove any unused or unnecessary imports from the source
+      //  library.
       // TODO(dantup): Ensure the range inserted and deleted match (allowing for
       //  whitespace), including handling of leading/trailing comments etc.
       builder.addInsertion(0, (builder) {
         builder.writeln(utils.getNodeText(member.node));
       });
     });
-    await builder.addDartFileEdit(member.containingFile, (builder) {
+    await builder.addDartFileEdit(sourcePath, (builder) {
+      // TODO(brianwilkerson) Only add an import for the new file if the
+      //  remaining code references the moved code.
+      // builder.importLibrary(destinationUri);
       builder.addDeletion(range.deletionRange(member.node));
     });
+    // TODO(brianwilkerson) Find references to the moved declaration(s) outside
+    //  the source library and update the imports in those files.
   }
 
   @override
@@ -86,6 +123,21 @@ class MoveTopLevelToFile extends RefactoringProducer {
             (match) => match.start == 0 ? match[0]! : '_${match[0]}')
         .toLowerCase();
     return '$fileName.dart';
+  }
+
+  _MemberToMove? _memberFor(CompilationUnitMember declaration, String name) {
+    // TODO(brianwilkeson) Handle other top-level members, including
+    //  augmentations.
+    var unitPath = result.unit.declaredElement?.source.fullName;
+    if (unitPath == null) {
+      return null;
+    }
+    var context = result.session.resourceProvider.pathContext;
+
+    title = "Move '$name' to file";
+    defaultFilePath =
+        context.join(context.dirname(unitPath), _fileNameForClassName(name));
+    return _MemberToMove(unitPath, declaration, name);
   }
 }
 
