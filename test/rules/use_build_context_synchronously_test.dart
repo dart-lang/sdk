@@ -39,4 +39,39 @@ Future<void> bar({required BuildContext context}) async {}
       lint(117, 21),
     ]);
   }
+
+  /// https://github.com/dart-lang/linter/issues/3700
+  test_propertyAccess_getter() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+extension on BuildContext {
+  BuildContext get foo => this;
+}
+
+Future<void> f(BuildContext context) async {
+  await Future.value();
+  context.foo;
+}
+''', [
+      lint(174, 11),
+    ]);
+  }
+
+  test_propertyAccess_setter() async {
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+extension on BuildContext {
+  set foo(int x){ }
+}
+
+Future<void> f(BuildContext context) async {
+  await Future.value();
+  context.foo = 1;
+}
+''', [
+      lint(162, 11),
+    ]);
+  }
 }

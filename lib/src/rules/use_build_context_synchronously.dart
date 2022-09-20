@@ -70,6 +70,7 @@ class UseBuildContextSynchronously extends LintRule {
       registry.addMethodInvocation(this, visitor);
       registry.addInstanceCreationExpression(this, visitor);
       registry.addFunctionExpressionInvocation(this, visitor);
+      registry.addPrefixedIdentifier(this, visitor);
     }
   }
 }
@@ -292,6 +293,14 @@ class _Visitor extends SimpleAstVisitor {
   void visitMethodInvocation(MethodInvocation node) {
     if (isBuildContext(node.target?.staticType, skipNullable: true) ||
         accessesContext(node.argumentList)) {
+      check(node);
+    }
+  }
+
+  @override
+  visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // Getter access.
+    if (isBuildContext(node.prefix.staticType, skipNullable: true)) {
       check(node);
     }
   }
