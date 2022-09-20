@@ -399,7 +399,9 @@ abstract class Expression extends Node {
 /// Representation of a single case clause in a switch expression.  Use
 /// [caseExpr] to create instances of this class.
 class ExpressionCase extends Node
-    implements ExpressionCaseInfo<Node, Expression> {
+    implements
+        SwitchExpressionMemberInfo<Node, Expression>,
+        CaseHeadOrDefaultInfo<Node, Expression> {
   @override
   final Pattern? pattern;
 
@@ -407,26 +409,26 @@ class ExpressionCase extends Node
   final Expression? guard;
 
   @override
-  final Expression body;
+  final Expression expression;
 
-  ExpressionCase._(this.pattern, this.guard, this.body,
+  ExpressionCase._(this.pattern, this.guard, this.expression,
       {required super.location})
       : super._();
 
   @override
-  Node get node => this;
+  CaseHeadOrDefaultInfo<Node, Expression> get head => this;
 
   String toString() => [
         pattern == null ? 'default' : 'case $pattern',
         if (guard != null) ' when $guard',
-        ': $body'
+        ': $expression'
       ].join('');
 
   void _preVisit(PreVisitor visitor) {
     var variableBinder = VariableBinder<Node, Var, Type>(visitor);
     pattern?.preVisit(visitor, variableBinder);
     variableBinder.finish();
-    body.preVisit(visitor);
+    expression.preVisit(visitor);
   }
 }
 
@@ -2447,18 +2449,19 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  ExpressionCaseInfo<Node, Expression> getExpressionCaseInfo(
+  SwitchExpressionMemberInfo<Node, Expression> getSwitchExpressionMemberInfo(
           covariant _SwitchExpression node, int index) =>
       node.cases[index];
 
   @override
-  StatementCaseInfo<Node, Statement, Expression> getStatementCaseInfo(
-      covariant _SwitchStatement node, int caseIndex) {
+  SwitchStatementMemberInfo<Node, Statement, Expression>
+      getSwitchStatementMemberInfo(
+          covariant _SwitchStatement node, int caseIndex) {
     StatementCase case_ = node.cases[caseIndex];
-    return StatementCaseInfo([
+    return SwitchStatementMemberInfo([
       for (var caseHead in case_._caseHeads._caseHeads)
-        CaseHeadInfo(
-            node: caseHead, pattern: caseHead._pattern, guard: caseHead._guard)
+        CaseHeadOrDefaultInfo(
+            pattern: caseHead._pattern, guard: caseHead._guard)
     ], case_._body.statements, labels: case_._caseHeads._labels);
   }
 

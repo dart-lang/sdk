@@ -7,15 +7,11 @@ import 'type_analysis_result.dart';
 import 'type_operations.dart';
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
-/// or [TypeAnalyzer.analyzeSwitchStatement] about a single case head.
+/// or [TypeAnalyzer.analyzeSwitchStatement] about a single case head or
+/// `default` clause.
 ///
 /// The client is free to `implement` or `extend` this class.
-class CaseHeadInfo<Node extends Object, Expression extends Node> {
-  /// The AST node for this `case` or `default` clause.  This is used for error
-  /// reporting, in case errors arise from mismatch among the variables bound by
-  /// various cases that share a body.
-  final Node node;
-
+class CaseHeadOrDefaultInfo<Node extends Object, Expression extends Node> {
   /// For a `case` clause, the case pattern.  For a `default` clause, `null`.
   final Node? pattern;
 
@@ -23,36 +19,34 @@ class CaseHeadInfo<Node extends Object, Expression extends Node> {
   /// `when`.  Otherwise `null`.
   final Expression? guard;
 
-  CaseHeadInfo({required this.node, required this.pattern, this.guard});
+  CaseHeadOrDefaultInfo({required this.pattern, this.guard});
 }
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
 /// about an individual `case` or `default` clause.
 ///
 /// The client is free to `implement` or `extend` this class.
-class ExpressionCaseInfo<Node extends Object, Expression extends Node>
-    extends CaseHeadInfo<Node, Expression> {
-  /// The body of the `case` or `default` clause.
-  final Expression body;
+class SwitchExpressionMemberInfo<Node extends Object, Expression extends Node> {
+  /// The [CaseOrDefaultHead] associated with this clause.
+  final CaseHeadOrDefaultInfo<Node, Expression> head;
 
-  ExpressionCaseInfo(
-      {required super.node,
-      required super.pattern,
-      super.guard,
-      required this.body});
+  /// The body of the `case` or `default` clause.
+  final Expression expression;
+
+  SwitchExpressionMemberInfo({required this.head, required this.expression});
 }
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchStatement]
 /// about an individual `case` or `default` clause.
 ///
 /// The client is free to `implement` or `extend` this class.
-class StatementCaseInfo<Node extends Object, Statement extends Node,
+class SwitchStatementMemberInfo<Node extends Object, Statement extends Node,
     Expression extends Node> {
   /// The list of case heads for this case.
   ///
   /// The reason this is a list rather than a single head is because the front
   /// end merges together cases that share a body at parse time.
-  final List<CaseHeadInfo<Node, Expression>> heads;
+  final List<CaseHeadOrDefaultInfo<Node, Expression>> heads;
 
   /// The labels preceding this `case` or `default` clause, if any.
   final List<Node> labels;
@@ -63,7 +57,7 @@ class StatementCaseInfo<Node extends Object, Statement extends Node,
   /// that follows.
   final List<Statement> body;
 
-  StatementCaseInfo(this.heads, this.body, {this.labels = const []});
+  SwitchStatementMemberInfo(this.heads, this.body, {this.labels = const []});
 }
 
 /// Type analysis logic to be shared between the analyzer and front end.  The
@@ -320,11 +314,11 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     Type? lubType;
     for (int i = 0; i < numCases; i++) {
       // Stack: (Expression, i * ExpressionCase)
-      ExpressionCaseInfo<Node, Expression> caseInfo =
-          getExpressionCaseInfo(node, i);
+      SwitchExpressionMemberInfo<Node, Expression> memberInfo =
+          getSwitchExpressionMemberInfo(node, i);
       flow?.switchStatement_beginCase();
       Map<Variable, VariableTypeInfo<Node, Type>> typeInfos = {};
-      Node? pattern = caseInfo.pattern;
+      Node? pattern = memberInfo.head.pattern;
       if (pattern != null) {
         dispatchPattern(pattern).match(
             expressionType,
@@ -334,7 +328,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
                 switchScrutinee: scrutinee,
                 topPattern: pattern));
         // Stack: (Expression, i * ExpressionCase, Pattern)
-        Expression? guard = caseInfo.guard;
+        Expression? guard = memberInfo.head.guard;
         bool hasGuard = guard != null;
         if (hasGuard) {
           _checkGuardType(guard, analyzeExpression(guard, boolType));
@@ -349,7 +343,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
         handleDefault(node, i);
       }
       // Stack: (Expression, i * ExpressionCase, CaseHead)
-      Type type = analyzeExpression(caseInfo.body, context);
+      Type type = analyzeExpression(memberInfo.expression, context);
       // Stack: (Expression, i * ExpressionCase, CaseHead, Expression)
       if (lubType == null) {
         lubType = type;
@@ -391,14 +385,14 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       while (i < numCases) {
         // Stack: (Expression, numExecutionPaths * StatementCase,
         //         numHeads * CaseHead)
-        StatementCaseInfo<Node, Statement, Expression> caseInfo =
-            getStatementCaseInfo(node, i);
-        if (caseInfo.labels.isNotEmpty) {
+        SwitchStatementMemberInfo<Node, Statement, Expression> memberInfo =
+            getSwitchStatementMemberInfo(node, i);
+        if (memberInfo.labels.isNotEmpty) {
           hasLabels = true;
         }
-        List<CaseHeadInfo<Node, Expression>> heads = caseInfo.heads;
+        List<CaseHeadOrDefaultInfo<Node, Expression>> heads = memberInfo.heads;
         for (int j = 0; j < heads.length; j++) {
-          CaseHeadInfo<Node, Expression> head = heads[j];
+          CaseHeadOrDefaultInfo<Node, Expression> head = heads[j];
           Node? pattern = head.pattern;
           if (pattern != null) {
             dispatchPattern(pattern).match(
@@ -429,7 +423,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
           // Stack: (Expression, numExecutionPaths * StatementCase,
           //         numHeads * CaseHead),
           flow?.switchStatement_endAlternative();
-          body = caseInfo.body;
+          body = memberInfo.body;
         }
         i++;
         if (body.isNotEmpty) break;
@@ -558,7 +552,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// simply return the [index]th `case` or `default` clause.
   ///
   /// See [analyzeSwitchExpression].
-  ExpressionCaseInfo<Node, Expression> getExpressionCaseInfo(
+  SwitchExpressionMemberInfo<Node, Expression> getSwitchExpressionMemberInfo(
       Expression node, int index);
 
   /// Returns a [StatementCaseInfo] object describing the [index]th `case` or
@@ -569,8 +563,8 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// simply return the [index]th `case` or `default` clause.
   ///
   /// See [analyzeSwitchStatement].
-  StatementCaseInfo<Node, Statement, Expression> getStatementCaseInfo(
-      Statement node, int caseIndex);
+  SwitchStatementMemberInfo<Node, Statement, Expression>
+      getSwitchStatementMemberInfo(Statement node, int caseIndex);
 
   /// Called after visiting a merged set of `case` / `default` clauses.
   ///
