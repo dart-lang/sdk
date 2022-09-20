@@ -271,9 +271,9 @@ abstract class TypeMask implements AbstractValue {
 
   /// If [mask] is forwarding, returns the first non-forwarding [TypeMask] in
   /// [mask]'s forwarding chain.
-  static TypeMask nonForwardingMask(mask) {
-    while (mask.isForwarding) {
-      mask = mask.forwardTo;
+  static TypeMask nonForwardingMask(TypeMask mask) {
+    while (mask is ForwardingTypeMask) {
+      mask = (mask as ForwardingTypeMask).forwardTo;
     }
     return mask;
   }

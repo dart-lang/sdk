@@ -38,8 +38,12 @@ import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
 import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
+import 'inferrer_experimental/trivial.dart' as experimentalInferrer
+    show TrivialAbstractValueStrategy;
 import 'inferrer_experimental/types.dart' as experimentalInferrer
     show GlobalTypeInferenceTask;
+import 'inferrer_experimental/typemasks/masks.dart' as experimentalInferrer
+    show TypeMaskStrategy;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'ir/modular.dart';
 import 'js_backend/backend.dart' show CodegenInputs;
@@ -158,9 +162,13 @@ class Compiler
     options.deriveOptions();
     options.validate();
 
-    abstractValueStrategy = options.useTrivialAbstractValueDomain
-        ? const TrivialAbstractValueStrategy()
-        : const TypeMaskStrategy();
+    abstractValueStrategy = options.experimentalInferrer
+        ? (options.useTrivialAbstractValueDomain
+            ? const experimentalInferrer.TrivialAbstractValueStrategy()
+            : const experimentalInferrer.TypeMaskStrategy())
+        : (options.useTrivialAbstractValueDomain
+            ? const TrivialAbstractValueStrategy()
+            : const TypeMaskStrategy());
     if (options.experimentalWrapped || options.testMode) {
       abstractValueStrategy =
           WrappedAbstractValueStrategy(abstractValueStrategy);
