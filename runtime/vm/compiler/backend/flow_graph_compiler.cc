@@ -517,6 +517,57 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   }
 }
 
+#define __ assembler()->
+
+void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
+  if (is_optimizing()) {
+    return;
+  }
+  Definition* defn = instr->AsDefinition();
+  if (defn != nullptr && defn->HasTemp()) {
+    Location value = defn->locs()->out(0);
+    if (value.IsRegister()) {
+      __ PushRegister(value.reg());
+    } else if (value.IsFpuRegister()) {
+      const Code* stub;
+      switch (instr->representation()) {
+        case kUnboxedDouble:
+          stub = &StubCode::BoxDouble();
+          break;
+        case kUnboxedFloat32x4:
+          stub = &StubCode::BoxFloat32x4();
+          break;
+        case kUnboxedFloat64x2:
+          stub = &StubCode::BoxFloat64x2();
+          break;
+        default:
+          UNREACHABLE();
+          break;
+      }
+
+      // In unoptimized code at instruction epilogue the only
+      // live register is an output register.
+      instr->locs()->live_registers()->Clear();
+      if (instr->representation() == kUnboxedDouble) {
+        __ MoveUnboxedDouble(BoxDoubleStubABI::kValueReg, value.fpu_reg());
+      } else {
+        __ MoveUnboxedSimd128(BoxDoubleStubABI::kValueReg, value.fpu_reg());
+      }
+      GenerateNonLazyDeoptableStubCall(
+          InstructionSource(),  // No token position.
+          *stub, UntaggedPcDescriptors::kOther, instr->locs());
+      __ PushRegister(BoxDoubleStubABI::kResultReg);
+    } else if (value.IsConstant()) {
+      __ PushObject(value.constant());
+    } else {
+      ASSERT(value.IsStackSlot());
+      __ PushValueAtOffset(value.base_reg(), value.ToStackSlotOffset());
+    }
+  }
+}
+
+#undef __
+
 void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
   if (!instr->token_pos().IsReal()) {
     return;
@@ -1749,6 +1800,15 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
             assembler()->LoadUnboxedDouble(
                 fpu_reg, reg,
                 compiler::target::Double::value_offset() - kHeapObjectTag);
+            break;
+          case kUnboxedFloat32x4:
+          case kUnboxedFloat64x2:
+            ASSERT(fpu_reg != kNoFpuRegister);
+            ASSERT(instr->SpeculativeModeOfInput(i) ==
+                   Instruction::kNotSpeculative);
+            assembler()->LoadUnboxedSimd128(
+                fpu_reg, reg,
+                compiler::target::Float32x4::value_offset() - kHeapObjectTag);
             break;
           default:
             // No automatic unboxing for other representations.
@@ -3265,7 +3325,9 @@ void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
 void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   Representation rep = defn->representation();
   ASSERT(!is_optimizing());
-  if ((rep == kUnboxedDouble) && defn->locs()->out(0).IsFpuRegister()) {
+  if ((rep == kUnboxedDouble || rep == kUnboxedFloat32x4 ||
+       rep == kUnboxedFloat64x2) &&
+      defn->locs()->out(0).IsFpuRegister()) {
     // Output value is boxed in the instruction epilogue.
     rep = kTagged;
   }

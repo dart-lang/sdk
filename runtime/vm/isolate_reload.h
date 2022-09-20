@@ -52,6 +52,14 @@ class ObjectStore;
 class Script;
 class UpdateClassesVisitor;
 
+struct FieldMapping {
+  intptr_t offset;
+  intptr_t box_cid;  // kIllegalCid if field is boxed
+};
+
+using FieldMappingArray = ZoneGrowableArray<FieldMapping>;
+using FieldOffsetArray = ZoneGrowableArray<intptr_t>;
+
 class InstanceMorpher : public ZoneAllocated {
  public:
   // Creates a new [InstanceMorpher] based on the [from]/[to] class
@@ -64,8 +72,8 @@ class InstanceMorpher : public ZoneAllocated {
   InstanceMorpher(Zone* zone,
                   classid_t cid,
                   ClassTable* class_table,
-                  ZoneGrowableArray<intptr_t>* mapping,
-                  ZoneGrowableArray<intptr_t>* new_fields_offsets);
+                  FieldMappingArray* mapping,
+                  FieldOffsetArray* new_fields_offsets);
   virtual ~InstanceMorpher() {}
 
   // Adds an object to be morphed.
@@ -87,8 +95,8 @@ class InstanceMorpher : public ZoneAllocated {
   Zone* zone_;
   classid_t cid_;
   ClassTable* class_table_;
-  ZoneGrowableArray<intptr_t>* mapping_;
-  ZoneGrowableArray<intptr_t>* new_fields_offsets_;
+  FieldMappingArray* mapping_;
+  FieldOffsetArray* new_fields_offsets_;
 
   GrowableArray<const Instance*> before_;
 };

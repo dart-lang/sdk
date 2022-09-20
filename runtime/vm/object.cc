@@ -3560,6 +3560,19 @@ TypeParameterPtr Class::TypeParameterAt(intptr_t index,
   return type_param.ptr();
 }
 
+intptr_t Class::UnboxedFieldSizeInBytesByCid(intptr_t cid) {
+  switch (cid) {
+    case kDoubleCid:
+      return sizeof(UntaggedDouble::value_);
+    case kFloat32x4Cid:
+      return sizeof(UntaggedFloat32x4::value_);
+    case kFloat64x2Cid:
+      return sizeof(UntaggedFloat64x2::value_);
+    default:
+      return sizeof(UntaggedMint::value_);
+  }
+}
+
 UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
   Array& flds = Array::Handle(fields());
   const Class& super = Class::Handle(SuperClass());
@@ -3587,11 +3600,8 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
     ASSERT(num_native_fields() == 0);
     set_num_native_fields(super.num_native_fields());
 
-    if (FLAG_precompiled_mode) {
-      host_bitmap =
-          IsolateGroup::Current()->class_table()->GetUnboxedFieldsMapAt(
-              super.id());
-    }
+    host_bitmap = IsolateGroup::Current()->class_table()->GetUnboxedFieldsMapAt(
+        super.id());
   }
   // If the super class is parameterized, use the same type_arguments field,
   // otherwise, if this class is the first in the super chain to be
@@ -3623,27 +3633,9 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
       ASSERT(field.TargetOffset() == 0);
       field.SetOffset(host_offset, target_offset);
 
-      if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
-        intptr_t field_size;
-        switch (field.guarded_cid()) {
-          case kDoubleCid:
-            field_size = sizeof(UntaggedDouble::value_);
-            break;
-          case kFloat32x4Cid:
-            field_size = sizeof(UntaggedFloat32x4::value_);
-            break;
-          case kFloat64x2Cid:
-            field_size = sizeof(UntaggedFloat64x2::value_);
-            break;
-          default:
-            if (field.is_non_nullable_integer()) {
-              field_size = sizeof(UntaggedMint::value_);
-            } else {
-              UNREACHABLE();
-              field_size = 0;
-            }
-            break;
-        }
+      if (field.is_unboxed()) {
+        const intptr_t field_size =
+            UnboxedFieldSizeInBytesByCid(field.guarded_cid());
 
         const intptr_t host_num_words = field_size / kCompressedWordSize;
         const intptr_t host_next_offset = host_offset + field_size;
@@ -3669,7 +3661,7 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
           target_offset = target_next_offset;
         } else {
           // Make the field boxed
-          field.set_is_unboxing_candidate(false);
+          field.set_is_unboxed(false);
           host_offset += kCompressedWordSize;
           target_offset += compiler::target::kCompressedWordSize;
         }
@@ -3682,7 +3674,6 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
   set_instance_size(RoundedAllocationSize(host_offset),
                     compiler::target::RoundedAllocationSize(target_offset));
   set_next_field_offset(host_offset, target_offset);
-
   return host_bitmap;
 }
 
@@ -4155,8 +4146,6 @@ void Class::Finalize() const {
         // Unless class is top-level, which don't get instantiated,
         // sets the new size in the class table.
         isolate_group->class_table()->UpdateClassSize(id(), ptr());
-      }
-      if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(id())) {
         isolate_group->class_table()->SetUnboxedFieldsMapAt(id(), host_bitmap);
       }
     }
@@ -10671,43 +10660,6 @@ FieldPtr Field::Original() const {
   }
 }
 
-const Object* Field::CloneForUnboxed(const Object& value) const {
-  if (is_unboxing_candidate() && !is_nullable()) {
-    switch (guarded_cid()) {
-      case kDoubleCid:
-      case kFloat32x4Cid:
-      case kFloat64x2Cid:
-        return &Object::Handle(Object::Clone(value, Heap::kNew));
-      default:
-        // Not a supported unboxed field type.
-        return &value;
-    }
-  }
-  return &value;
-}
-
-void Field::DisableFieldUnboxing() const {
-  ASSERT(!IsOriginal());
-  const Field& original = Field::Handle(Original());
-  if (!original.is_unboxing_candidate()) {
-    return;
-  }
-  auto thread = Thread::Current();
-  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  if (!original.is_unboxing_candidate()) {
-    return;
-  }
-
-  // Ensures that to-be-disabled existing code won't continue running as we
-  // update field properties as it might write into now boxed field thinking
-  // it still holds unboxed(reusable box) value.
-  thread->isolate_group()->RunWithStoppedMutators([&]() {
-    original.set_is_unboxing_candidate(false);
-    set_is_unboxing_candidate(false);
-    original.DeoptimizeDependentCode();
-  });
-}
-
 intptr_t Field::guarded_cid() const {
 #if defined(DEBUG)
   // This assertion ensures that the cid seen by the background compiler is
@@ -10935,19 +10887,14 @@ void Field::InitializeNew(const Field& result,
   result.set_is_const(is_const);
   result.set_is_reflectable(is_reflectable);
   result.set_is_late(is_late);
-  result.set_is_double_initialized_unsafe(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(end_token_pos);
   result.set_has_nontrivial_initializer_unsafe(false);
   result.set_has_initializer_unsafe(false);
-  if (FLAG_precompiled_mode) {
-    // May be updated by KernelLoader::ReadInferredType
-    result.set_is_unboxing_candidate_unsafe(false);
-  } else {
-    result.set_is_unboxing_candidate_unsafe(!is_final && !is_late &&
-                                            !is_static);
-  }
+  // We will make unboxing decision once we read static type or
+  // in KernelLoader::ReadInferredType.
+  result.set_is_unboxed_unsafe(false);
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_has_pragma(false);
@@ -10993,6 +10940,9 @@ FieldPtr Field::New(const String& name,
   InitializeNew(result, name, is_static, is_final, is_const, is_reflectable,
                 is_late, owner, token_pos, end_token_pos);
   result.SetFieldTypeSafe(type);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  compiler::target::UnboxFieldIfSupported(result, type);
+#endif
   return result.ptr();
 }
 
@@ -11249,7 +11199,7 @@ bool Field::IsConsistentWith(const Field& other) const {
          (untag()->is_nullable_ == other.untag()->is_nullable_) &&
          (untag()->guarded_list_length() ==
           other.untag()->guarded_list_length()) &&
-         (is_unboxing_candidate() == other.is_unboxing_candidate()) &&
+         (is_unboxed() == other.is_unboxed()) &&
          (static_type_exactness_state().Encode() ==
           other.static_type_exactness_state().Encode());
 }
@@ -12019,10 +11969,10 @@ void Field::RecordStore(const Object& value) const {
 }
 
 void Field::ForceDynamicGuardedCidAndLength() const {
-  // Assume nothing about this field.
-  set_is_unboxing_candidate(false);
-  set_guarded_cid(kDynamicCid);
-  set_is_nullable(true);
+  if (!is_unboxed()) {
+    set_guarded_cid(kDynamicCid);
+    set_is_nullable(true);
+  }
   set_guarded_list_length(Field::kNoFixedLength);
   set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   if (static_type_exactness_state().IsTracking()) {
@@ -19562,7 +19512,7 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
 #endif  // DEBUG
 
 ObjectPtr Instance::GetField(const Field& field) const {
-  if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
+  if (field.is_unboxed()) {
     switch (field.guarded_cid()) {
       case kDoubleCid:
         return Double::New(*reinterpret_cast<double_t*>(FieldAddr(field)));
@@ -19573,12 +19523,7 @@ ObjectPtr Instance::GetField(const Field& field) const {
         return Float64x2::New(
             *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
       default:
-        if (field.is_non_nullable_integer()) {
-          return Integer::New(*reinterpret_cast<int64_t*>(FieldAddr(field)));
-        } else {
-          UNREACHABLE();
-          return nullptr;
-        }
+        return Integer::New(*reinterpret_cast<int64_t*>(FieldAddr(field)));
     }
   } else {
     return FieldAddr(field)->Decompress(untag()->heap_base());
@@ -19586,7 +19531,7 @@ ObjectPtr Instance::GetField(const Field& field) const {
 }
 
 void Instance::SetField(const Field& field, const Object& value) const {
-  if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
+  if (field.is_unboxed()) {
     switch (field.guarded_cid()) {
       case kDoubleCid:
         StoreNonPointer(reinterpret_cast<double_t*>(FieldAddr(field)),
@@ -19601,18 +19546,13 @@ void Instance::SetField(const Field& field, const Object& value) const {
                         Float64x2::Cast(value).value());
         break;
       default:
-        if (field.is_non_nullable_integer()) {
-          StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
-                          Integer::Cast(value).AsInt64Value());
-        } else {
-          UNREACHABLE();
-        }
+        StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
+                        Integer::Cast(value).AsInt64Value());
         break;
     }
   } else {
     field.RecordStore(value);
-    const Object* stored_value = field.CloneForUnboxed(value);
-    StoreCompressedPointer(FieldAddr(field), stored_value->ptr());
+    StoreCompressedPointer(FieldAddr(field), value.ptr());
   }
 }
 

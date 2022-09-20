@@ -416,7 +416,6 @@ class UntaggedObject {
     const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
     const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
         visitor->class_table()->GetUnboxedFieldsMapAt(class_id);
 
@@ -430,10 +429,6 @@ class UntaggedObject {
     } else {
       visitor->VisitCompressedPointers(heap_base(), first, last);
     }
-#else
-    // Call visitor function virtually
-    visitor->VisitCompressedPointers(heap_base(), first, last);
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
   }
@@ -454,7 +449,6 @@ class UntaggedObject {
     const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
     const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
         visitor->class_table()->GetUnboxedFieldsMapAt(class_id);
 
@@ -468,10 +462,6 @@ class UntaggedObject {
     } else {
       visitor->V::VisitCompressedPointers(heap_base(), first, last);
     }
-#else
-    // Call visitor function non-virtually
-    visitor->V::VisitCompressedPointers(heap_base(), first, last);
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
   }

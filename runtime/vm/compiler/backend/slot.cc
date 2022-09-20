@@ -316,41 +316,7 @@ const Slot& Slot::GetCanonicalSlot(Thread* thread,
 
 FieldGuardState::FieldGuardState(const Field& field)
     : state_(GuardedCidBits::encode(field.guarded_cid()) |
-             IsNonNullableIntegerBit::encode(field.is_non_nullable_integer()) |
-             IsUnboxingCandidateBit::encode(field.is_unboxing_candidate()) |
              IsNullableBit::encode(field.is_nullable())) {}
-
-bool FieldGuardState::IsUnboxed() const {
-  ASSERT(!is_non_nullable_integer() || FLAG_precompiled_mode);
-  const bool valid_class = ((FlowGraphCompiler::SupportsUnboxedDoubles() &&
-                             (guarded_cid() == kDoubleCid)) ||
-                            (FlowGraphCompiler::SupportsUnboxedSimd128() &&
-                             (guarded_cid() == kFloat32x4Cid)) ||
-                            (FlowGraphCompiler::SupportsUnboxedSimd128() &&
-                             (guarded_cid() == kFloat64x2Cid)) ||
-                            is_non_nullable_integer());
-  return is_unboxing_candidate() && !is_nullable() && valid_class;
-}
-
-bool FieldGuardState::IsPotentialUnboxed() const {
-  if (FLAG_precompiled_mode) {
-    // kernel_loader.cc:ReadInferredType sets the guarded cid for fields based
-    // on inferred types from TFA (if available). The guarded cid is therefore
-    // proven to be correct.
-    return IsUnboxed();
-  }
-
-  return is_unboxing_candidate() &&
-         (IsUnboxed() || (guarded_cid() == kIllegalCid));
-}
-
-bool Slot::IsUnboxed() const {
-  return field_guard_state().IsUnboxed();
-}
-
-bool Slot::IsPotentialUnboxed() const {
-  return field_guard_state().IsPotentialUnboxed();
-}
 
 Representation Slot::UnboxedRepresentation() const {
   switch (field_guard_state().guarded_cid()) {
@@ -361,7 +327,6 @@ Representation Slot::UnboxedRepresentation() const {
     case kFloat64x2Cid:
       return kUnboxedFloat64x2;
     default:
-      RELEASE_ASSERT(field_guard_state().is_non_nullable_integer());
       return kUnboxedInt64;
   }
 }
@@ -414,11 +379,22 @@ const Slot& Slot::Get(const Field& field,
     used_guarded_state = false;
   }
 
-  if (field_guard_state.is_non_nullable_integer()) {
-    ASSERT(FLAG_precompiled_mode);
+  const bool is_unboxed = field.is_unboxed();
+  if (is_unboxed) {
     is_nullable = false;
-    if (field_guard_state.IsUnboxed()) {
-      rep = kUnboxedInt64;
+    switch (field_guard_state.guarded_cid()) {
+      case kDoubleCid:
+        rep = kUnboxedDouble;
+        break;
+      case kFloat32x4Cid:
+        rep = kUnboxedFloat32x4;
+        break;
+      case kFloat64x2Cid:
+        rep = kUnboxedFloat64x2;
+        break;
+      default:
+        rep = kUnboxedInt64;
+        break;
     }
   }
 
@@ -432,7 +408,8 @@ const Slot& Slot::Get(const Field& field,
           IsCompressedBit::encode(
               compiler::target::Class::HasCompressedPointers(owner)) |
           IsSentinelVisibleBit::encode(field.is_late() && field.is_final() &&
-                                       !field.has_initializer()),
+                                       !field.has_initializer()) |
+          IsUnboxedBit::encode(is_unboxed),
       nullable_cid, compiler::target::Field::OffsetOf(field), &field, &type,
       rep, field_guard_state);
 

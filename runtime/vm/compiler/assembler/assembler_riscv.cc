@@ -2368,7 +2368,7 @@ void Assembler::LoadAcquireCompressed(Register dst,
 }
 
 void Assembler::StoreRelease(Register src, Register address, int32_t offset) {
-  fence(HartEffects::kMemory, HartEffects::kRead);
+  fence(HartEffects::kMemory, HartEffects::kWrite);
   StoreToOffset(src, address, offset);
 }
 
@@ -3168,7 +3168,7 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                Register value,
                                                MemoryOrder memory_order) {
   if (memory_order == kRelease) {
-    StoreRelease(value, object, offset);
+    StoreRelease(value, object, offset - kHeapObjectTag);
   } else {
     StoreToOffset(value, object, offset - kHeapObjectTag);
   }
@@ -3200,18 +3200,24 @@ void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
 }
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
+                                         const Object& value,
+                                         MemoryOrder memory_order) {
   ASSERT(IsOriginalObject(value));
   ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
+  Register value_reg;
   if (IsSameObject(compiler::NullObject(), value)) {
-    sx(NULL_REG, dest);
+    value_reg = NULL_REG;
   } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
-    sx(ZR, dest);
+    value_reg = ZR;
   } else {
     LoadObject(TMP2, value);
-    sx(TMP2, dest);
+    value_reg = TMP2;
   }
+  if (memory_order == kRelease) {
+    fence(HartEffects::kMemory, HartEffects::kWrite);
+  }
+  sx(value_reg, dest);
 }
 void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Address& dest,

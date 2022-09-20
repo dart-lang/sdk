@@ -220,12 +220,6 @@ void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
             field.set_field_id_unsafe(old_field.field_id());
           }
           reload_context->AddStaticFieldMapping(old_field, field);
-        } else {
-          if (old_field.needs_load_guard()) {
-            ASSERT(!old_field.is_unboxing_candidate());
-            field.set_needs_load_guard(true);
-            field.set_is_unboxing_candidate_unsafe(false);
-          }
         }
       }
     }
@@ -745,7 +739,29 @@ void Class::CheckReload(const Class& replacement,
             id(), replacement.id());
 }
 
-bool Class::RequiresInstanceMorphing(const Class& replacement) const {
+void Class::MarkFieldBoxedDuringReload(ClassTable* class_table,
+                                       const Field& field) const {
+  if (!field.is_unboxed()) {
+    return;
+  }
+
+  field.set_is_unboxed_unsafe(false);
+
+  // Make sure to update the bitmap used for scanning.
+  auto unboxed_fields_map = class_table->GetUnboxedFieldsMapAt(id());
+  const auto start_index = field.HostOffset() >> kCompressedWordSizeLog2;
+  const auto end_index =
+      start_index + (Class::UnboxedFieldSizeInBytesByCid(field.guarded_cid()) >>
+                     kCompressedWordSizeLog2);
+  ASSERT(unboxed_fields_map.Get(start_index));
+  for (intptr_t i = start_index; i < end_index; i++) {
+    unboxed_fields_map.Clear(i);
+  }
+  class_table->SetUnboxedFieldsMapAt(id(), unboxed_fields_map);
+}
+
+bool Class::RequiresInstanceMorphing(ClassTable* class_table,
+                                     const Class& replacement) const {
   // Get the field maps for both classes. These field maps walk the class
   // hierarchy.
   auto isolate_group = IsolateGroup::Current();
@@ -783,6 +799,22 @@ bool Class::RequiresInstanceMorphing(const Class& replacement) const {
     field_name = field.name();
     replacement_field_name = replacement_field.name();
     if (!field_name.Equals(replacement_field_name)) return true;
+    if (field.is_unboxed() && !replacement_field.is_unboxed()) {
+      return true;
+    }
+    if (field.is_unboxed() && (field.type() != replacement_field.type())) {
+      return true;
+    }
+    if (!field.is_unboxed() && replacement_field.is_unboxed()) {
+      // No actual morphing is required in this case but we need to mark
+      // the field unboxed.
+      replacement.MarkFieldBoxedDuringReload(class_table, replacement_field);
+    }
+    if (field.needs_load_guard()) {
+      ASSERT(!field.is_unboxed());
+      ASSERT(!replacement_field.is_unboxed());
+      replacement_field.set_needs_load_guard(true);
+    }
   }
   return false;
 }
@@ -799,11 +831,11 @@ bool Class::CanReloadFinalized(const Class& replacement,
             TypeParametersChanged(context->zone(), *this, replacement));
     return false;
   }
-  if (RequiresInstanceMorphing(replacement)) {
+  if (RequiresInstanceMorphing(class_table, replacement)) {
     ASSERT(id() == replacement.id());
     const classid_t cid = id();
     // We unconditionally create an instance morpher. As a side effect of
-    // building the morpher, we will mark all new fields as late.
+    // building the morpher, we will mark all new fields as guarded on load.
     auto instance_morpher = InstanceMorpher::CreateFromClassDescriptors(
         context->zone(), class_table, *this, replacement);
     group_context->EnsureHasInstanceMorpherFor(cid, instance_morpher);

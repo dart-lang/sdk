@@ -100,12 +100,10 @@ class ObjectSlots {
               // If the field is unboxed, we don't know the size of it (may be
               // multiple words) - but that doesn't matter because
               //   a) we will process instances using the slots we collect
-              //     (instead of regular GC visitor
+              //     (instead of regular GC visitor);
               //   b) we will not write the value of the field and instead treat
               //     it like a dummy reference to 0 (like we do with Smis).
-              const bool kIsUnboxedField =
-                  FLAG_precompiled_mode && field.is_unboxing_candidate();
-              slots->Add(ObjectSlot(field.HostOffset(), !kIsUnboxedField,
+              slots->Add(ObjectSlot(field.HostOffset(), !field.is_unboxed(),
                                     name.ToCString()));
             }
           }

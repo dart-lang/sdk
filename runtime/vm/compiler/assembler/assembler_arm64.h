@@ -518,6 +518,8 @@ class Assembler : public AssemblerBase {
   void PushRegister(Register r) { Push(r); }
   void PopRegister(Register r) { Pop(r); }
 
+  void PushValueAtOffset(Register base, int32_t offset) { UNIMPLEMENTED(); }
+
   void PushRegisterPair(Register r0, Register r1) { PushPair(r0, r1); }
   void PopRegisterPair(Register r0, Register r1) { PopPair(r0, r1); }
 
@@ -1955,6 +1957,18 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    LoadQFromOffset(dst, base, offset);
+  }
+  void StoreUnboxedSimd128(FpuRegister src, Register base, int32_t offset) {
+    StoreQToOffset(src, base, offset);
+  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      vmov(dst, src);
+    }
+  }
+
   void LoadCompressed(Register dest, const Address& slot);
   void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);
   void LoadCompressedSmi(Register dest, const Address& slot);
@@ -2025,7 +2039,8 @@ class Assembler : public AssemblerBase {
       MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                const Object& value);
+                                const Object& value,
+                                MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreCompressedIntoObjectNoBarrier(
       Register object,
       const Address& dest,

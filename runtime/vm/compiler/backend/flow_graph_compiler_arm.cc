@@ -231,31 +231,6 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
   __ Bind(&fall_through);
 }
 
-void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
-  if (is_optimizing()) {
-    return;
-  }
-  Definition* defn = instr->AsDefinition();
-  if ((defn != NULL) && defn->HasTemp()) {
-    const Location value = defn->locs()->out(0);
-    if (value.IsRegister()) {
-      __ PushRegister(value.reg());
-    } else if (value.IsFpuRegister()) {
-      ASSERT(instr->representation() == kUnboxedDouble);
-      // In unoptimized code at instruction epilogue the only
-      // live register is an output register.
-      instr->locs()->live_registers()->Clear();
-      __ MoveUnboxedDouble(BoxDoubleStubABI::kValueReg, value.fpu_reg());
-      GenerateNonLazyDeoptableStubCall(
-          InstructionSource(),  // No token position.
-          StubCode::BoxDouble(), UntaggedPcDescriptors::kOther, instr->locs());
-      __ PushRegister(BoxDoubleStubABI::kResultReg);
-    } else {
-      UNREACHABLE();
-    }
-  }
-}
-
 void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
     const Function& extracted_method,
     intptr_t type_arguments_field_offset) {
@@ -498,7 +473,7 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   __ LoadFieldFromOffset(R1, R0,
                          compiler::target::Array::element_offset(edge_id));
   __ add(R1, R1, compiler::Operand(Smi::RawValue(1)));
-  __ StoreIntoObjectNoBarrierOffset(
+  __ StoreIntoObjectOffsetNoBarrier(
       R0, compiler::target::Array::element_offset(edge_id), R1);
 #if defined(DEBUG)
   assembler_->set_use_far_branches(old_use_far_branches);

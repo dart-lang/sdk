@@ -1942,7 +1942,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   }
 }
 
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                Register value,
                                                MemoryOrder memory_order) {
@@ -1960,7 +1960,7 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
   }
 }
 
-void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
+void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
                                                int32_t offset,
                                                const Object& value,
                                                MemoryOrder memory_order) {
@@ -3033,77 +3033,6 @@ void Assembler::StoreMultipleDToOffset(DRegister first,
   ASSERT(base != IP);
   AddImmediate(IP, base, offset);
   vstmd(IA, IP, first, count);
-}
-
-void Assembler::CopyDoubleField(Register dst,
-                                Register src,
-                                Register tmp1,
-                                Register tmp2,
-                                DRegister dtmp) {
-    LoadDFromOffset(dtmp, src, target::Double::value_offset() - kHeapObjectTag);
-    StoreDToOffset(dtmp, dst, target::Double::value_offset() - kHeapObjectTag);
-}
-
-void Assembler::CopyFloat32x4Field(Register dst,
-                                   Register src,
-                                   Register tmp1,
-                                   Register tmp2,
-                                   DRegister dtmp) {
-  if (TargetCPUFeatures::neon_supported()) {
-    LoadMultipleDFromOffset(dtmp, 2, src,
-                            target::Float32x4::value_offset() - kHeapObjectTag);
-    StoreMultipleDToOffset(dtmp, 2, dst,
-                           target::Float32x4::value_offset() - kHeapObjectTag);
-  } else {
-    LoadFieldFromOffset(
-        tmp1, src, target::Float32x4::value_offset() + 0 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float32x4::value_offset() + 1 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float32x4::value_offset() + 0 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float32x4::value_offset() + 1 * target::kWordSize);
-
-    LoadFieldFromOffset(
-        tmp1, src, target::Float32x4::value_offset() + 2 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float32x4::value_offset() + 3 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float32x4::value_offset() + 2 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float32x4::value_offset() + 3 * target::kWordSize);
-  }
-}
-
-void Assembler::CopyFloat64x2Field(Register dst,
-                                   Register src,
-                                   Register tmp1,
-                                   Register tmp2,
-                                   DRegister dtmp) {
-  if (TargetCPUFeatures::neon_supported()) {
-    LoadMultipleDFromOffset(dtmp, 2, src,
-                            target::Float64x2::value_offset() - kHeapObjectTag);
-    StoreMultipleDToOffset(dtmp, 2, dst,
-                           target::Float64x2::value_offset() - kHeapObjectTag);
-  } else {
-    LoadFieldFromOffset(
-        tmp1, src, target::Float64x2::value_offset() + 0 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float64x2::value_offset() + 1 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float64x2::value_offset() + 0 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float64x2::value_offset() + 1 * target::kWordSize);
-
-    LoadFieldFromOffset(
-        tmp1, src, target::Float64x2::value_offset() + 2 * target::kWordSize);
-    LoadFieldFromOffset(
-        tmp2, src, target::Float64x2::value_offset() + 3 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp1, dst, target::Float64x2::value_offset() + 2 * target::kWordSize);
-    StoreFieldToOffset(
-        tmp2, dst, target::Float64x2::value_offset() + 3 * target::kWordSize);
-  }
 }
 
 void Assembler::AddImmediate(Register rd,

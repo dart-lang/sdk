@@ -53,13 +53,13 @@ static void Finish(Thread* thread) {
   Class& cls = Class::Handle(zone, object_store->closure_class());
   cls.EnsureIsFinalized(thread);
 
-  // Make sure _Closure fields are not marked as unboxing candidates
-  // as they are accessed with plain loads.
+  // Make sure _Closure fields are not marked as unboxed as they are accessed
+  // with plain loads.
   const Array& fields = Array::Handle(zone, cls.fields());
   Field& field = Field::Handle(zone);
   for (intptr_t i = 0; i < fields.Length(); ++i) {
     field ^= fields.At(i);
-    field.set_is_unboxing_candidate(false);
+    field.set_is_unboxed(false);
   }
   // _Closure._hash field should be explicitly marked as nullable because
   // VM creates instances of _Closure without compiling its constructors,

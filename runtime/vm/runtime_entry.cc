@@ -385,6 +385,16 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxDouble, 0) {
   arguments.SetReturn(Object::Handle(zone, Double::New(val)));
 }
 
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat32x4, 0) {
+  const auto val = thread->unboxed_simd128_runtime_arg();
+  arguments.SetReturn(Object::Handle(zone, Float32x4::New(val)));
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat64x2, 0) {
+  const auto val = thread->unboxed_simd128_runtime_arg();
+  arguments.SetReturn(Object::Handle(zone, Float64x2::New(val)));
+}
+
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);

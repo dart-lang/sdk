@@ -198,25 +198,11 @@ class FieldGuardState {
   explicit FieldGuardState(const Field& field);
 
   intptr_t guarded_cid() const { return GuardedCidBits::decode(state_); }
-  bool is_non_nullable_integer() const {
-    return IsNonNullableIntegerBit::decode(state_);
-  }
-  bool is_unboxing_candidate() const {
-    return IsUnboxingCandidateBit::decode(state_);
-  }
   bool is_nullable() const { return IsNullableBit::decode(state_); }
-
-  bool IsUnboxed() const;
-  bool IsPotentialUnboxed() const;
 
  private:
   using GuardedCidBits = BitField<int32_t, ClassIdTagType, 0, 16>;
-  using IsNonNullableIntegerBit =
-      BitField<int32_t, bool, GuardedCidBits::kNextBit, 1>;
-  using IsUnboxingCandidateBit =
-      BitField<int32_t, bool, IsNonNullableIntegerBit::kNextBit, 1>;
-  using IsNullableBit =
-      BitField<int32_t, bool, IsUnboxingCandidateBit::kNextBit, 1>;
+  using IsNullableBit = BitField<int32_t, bool, GuardedCidBits::kNextBit, 1>;
 
   const int32_t state_;
 };
@@ -362,8 +348,9 @@ class Slot : public ZoneAllocated {
     return kind() == Kind::kCapturedVariable || kind() == Kind::kContext_parent;
   }
 
-  bool IsUnboxed() const;
-  bool IsPotentialUnboxed() const;
+  bool is_unboxed() const {
+    return IsUnboxedBit::decode(flags_);
+  }
   Representation UnboxedRepresentation() const;
 
   void Write(FlowGraphSerializer* s) const;
@@ -403,6 +390,8 @@ class Slot : public ZoneAllocated {
   using IsCompressedBit = BitField<int8_t, bool, IsGuardedBit::kNextBit, 1>;
   using IsSentinelVisibleBit =
       BitField<int8_t, bool, IsCompressedBit::kNextBit, 1>;
+  using IsUnboxedBit =
+      BitField<int8_t, bool, IsSentinelVisibleBit::kNextBit, 1>;
 
   template <typename T>
   const T* DataAs() const {

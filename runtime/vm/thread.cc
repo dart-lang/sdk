@@ -77,8 +77,6 @@ Thread::Thread(bool is_vm_isolate)
       store_buffer_block_(nullptr),
       marking_stack_block_(nullptr),
       vm_tag_(0),
-      unboxed_int64_runtime_arg_(0),
-      unboxed_double_runtime_arg_(0.0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
       global_object_pool_(ObjectPool::null()),
@@ -149,6 +147,8 @@ Thread::Thread(bool is_vm_isolate)
 #else
   next_task_id_ = Random::GlobalNextUInt64();
 #endif
+
+  memset(&unboxed_runtime_arg_, 0, sizeof(simd128_value_t));
 }
 
 static const double double_nan_constant = NAN;

@@ -351,34 +351,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(
   __ Bind(&is_assignable);
 }
 
-void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
-  if (is_optimizing()) {
-    return;
-  }
-  Definition* defn = instr->AsDefinition();
-  if ((defn != NULL) && defn->HasTemp()) {
-    Location value = defn->locs()->out(0);
-    if (value.IsRegister()) {
-      __ PushRegister(value.reg());
-    } else if (value.IsFpuRegister()) {
-      ASSERT(instr->representation() == kUnboxedDouble);
-      // In unoptimized code at instruction epilogue the only
-      // live register is an output register.
-      instr->locs()->live_registers()->Clear();
-      __ MoveUnboxedDouble(BoxDoubleStubABI::kValueReg, value.fpu_reg());
-      GenerateNonLazyDeoptableStubCall(
-          InstructionSource(),  // No token position.
-          StubCode::BoxDouble(), UntaggedPcDescriptors::kOther, instr->locs());
-      __ PushRegister(BoxDoubleStubABI::kResultReg);
-    } else if (value.IsConstant()) {
-      __ PushObject(value.constant());
-    } else {
-      ASSERT(value.IsStackSlot());
-      __ pushl(LocationToStackSlotAddress(value));
-    }
-  }
-}
-
 // NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {

@@ -822,17 +822,13 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
     objects_.Add(instance);
 
     const intptr_t next_field_offset = next_field_offset_;
-#if defined(DART_PRECOMPILED_RUNTIME)
     const auto unboxed_fields_bitmap =
         s->isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid_);
-#endif
     for (intptr_t offset = Instance::NextFieldOffset();
          offset < next_field_offset; offset += kCompressedWordSize) {
-#if defined(DART_PRECOMPILED_RUNTIME)
       if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
         continue;
       }
-#endif
       s->Push(reinterpret_cast<CompressedObjectPtr*>(
                   reinterpret_cast<uword>(instance->untag()) + offset)
                   ->Decompress(instance->untag()->heap_base()));
@@ -856,13 +852,10 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
       Instance* instance = objects_[i];
 
       const intptr_t next_field_offset = next_field_offset_;
-#if defined(DART_PRECOMPILED_RUNTIME)
       const auto unboxed_fields_bitmap =
           s->isolate_group()->class_table()->GetUnboxedFieldsMapAt(cid_);
-#endif
       for (intptr_t offset = Instance::NextFieldOffset();
            offset < next_field_offset; offset += kCompressedWordSize) {
-#if defined(DART_PRECOMPILED_RUNTIME)
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
           // Writes 32 bits of the unboxed value at a time
           const uword value = *reinterpret_cast<compressed_uword*>(
@@ -870,7 +863,6 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
           s->WriteWordWith32BitWrites(value);
           continue;
         }
-#endif
         s->WriteRef(reinterpret_cast<CompressedObjectPtr*>(
                         reinterpret_cast<uword>(instance->untag()) + offset)
                         ->Decompress(instance->untag()->heap_base()));
@@ -905,10 +897,9 @@ class InstanceMessageDeserializationCluster
 
   void ReadEdges(MessageDeserializer* d) {
     const intptr_t next_field_offset = cls_.host_next_field_offset();
-#if defined(DART_PRECOMPILED_RUNTIME)
     const auto unboxed_fields_bitmap =
         d->isolate_group()->class_table()->GetUnboxedFieldsMapAt(cls_.id());
-#else
+#if !defined(DART_PRECOMPILED_RUNTIME)
     const intptr_t type_argument_field_offset =
         cls_.host_type_arguments_field_offset();
     const bool use_field_guards = d->isolate_group()->use_field_guards();
@@ -922,7 +913,6 @@ class InstanceMessageDeserializationCluster
       instance ^= d->Ref(id);
       for (intptr_t offset = Instance::NextFieldOffset();
            offset < next_field_offset; offset += kCompressedWordSize) {
-#if defined(DART_PRECOMPILED_RUNTIME)
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
           compressed_uword* p = reinterpret_cast<compressed_uword*>(
               reinterpret_cast<uword>(instance.untag()) + offset);
@@ -930,7 +920,6 @@ class InstanceMessageDeserializationCluster
           *p = d->ReadWordWith32BitReads();
           continue;
         }
-#endif
         value = d->ReadRef();
         instance.SetFieldAtOffset(offset, value);
 #if !defined(DART_PRECOMPILED_RUNTIME)

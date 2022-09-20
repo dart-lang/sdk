@@ -145,6 +145,7 @@ namespace dart {
 struct simd128_value_t {
   union {
     int32_t int_storage[4];
+    int64_t int64_storage[2];
     float float_storage[4];
     double double_storage[2];
   };
@@ -408,10 +409,6 @@ struct simd128_value_t {
     (defined(DART_TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||              \
      defined(DART_TARGET_OS_FUCHSIA))
 #define DUAL_MAPPING_SUPPORTED 1
-#endif
-
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-#define SUPPORT_UNBOXED_INSTANCE_FIELDS
 #endif
 
 // Short form printf format specifiers

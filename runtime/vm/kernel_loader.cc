@@ -869,17 +869,15 @@ void KernelLoader::ReadInferredType(const Field& field,
   field.set_is_nullable(type.IsNullable());
   field.set_guarded_list_length(Field::kNoFixedLength);
   if (FLAG_precompiled_mode) {
-    field.set_is_unboxing_candidate(
-        !field.is_late() && !field.is_static() &&
-        ((field.guarded_cid() == kDoubleCid &&
-          FlowGraphCompiler::SupportsUnboxedDoubles()) ||
-         (field.guarded_cid() == kFloat32x4Cid &&
-          FlowGraphCompiler::SupportsUnboxedSimd128()) ||
-         (field.guarded_cid() == kFloat64x2Cid &&
-          FlowGraphCompiler::SupportsUnboxedSimd128()) ||
-         type.IsInt()) &&
-        !field.is_nullable());
-    field.set_is_non_nullable_integer(!field.is_nullable() && type.IsInt());
+    field.set_is_unboxed(!field.is_late() && !field.is_static() &&
+                         !field.is_nullable() &&
+                         ((field.guarded_cid() == kDoubleCid &&
+                           FlowGraphCompiler::SupportsUnboxedDoubles()) ||
+                          (field.guarded_cid() == kFloat32x4Cid &&
+                           FlowGraphCompiler::SupportsUnboxedSimd128()) ||
+                          (field.guarded_cid() == kFloat64x2Cid &&
+                           FlowGraphCompiler::SupportsUnboxedSimd128()) ||
+                          type.IsInt()));
   }
 }
 
@@ -2190,14 +2188,7 @@ ObjectPtr KernelLoader::ReadInitialFieldValue(const Field& field,
       if (field_helper->IsStatic()) {
         return converter.SimpleValue().ptr();
       } else {
-        // Note: optimizer relies on DoubleInitialized bit in its field-unboxing
-        // heuristics. See JitCallSpecializer::VisitStoreField for more
-        // details.
         field.RecordStore(converter.SimpleValue());
-        if (!converter.SimpleValue().IsNull() &&
-            converter.SimpleValue().IsDouble()) {
-          field.set_is_double_initialized(true);
-        }
       }
     }
   }

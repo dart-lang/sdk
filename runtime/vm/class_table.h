@@ -55,6 +55,10 @@ class UnboxedFieldBitmap {
     ASSERT(position < Length());
     bitmap_ |= Utils::Bit<decltype(bitmap_)>(position);
   }
+  DART_FORCE_INLINE void Clear(intptr_t position) {
+    ASSERT(position < Length());
+    bitmap_ &= ~Utils::Bit<decltype(bitmap_)>(position);
+  }
   DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
   DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
   DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
@@ -373,13 +377,11 @@ class ClassTable : public MallocAllocated {
 
   UnboxedFieldBitmap GetUnboxedFieldsMapAt(intptr_t cid) const {
     ASSERT(IsValidIndex(cid));
-    return FLAG_precompiled_mode ? classes_.At<kUnboxedFieldBitmapIndex>(cid)
-                                 : UnboxedFieldBitmap();
+    return classes_.At<kUnboxedFieldBitmapIndex>(cid);
   }
 
   void SetUnboxedFieldsMapAt(intptr_t cid, UnboxedFieldBitmap map) {
     ASSERT(IsValidIndex(cid));
-    ASSERT(classes_.At<kUnboxedFieldBitmapIndex>(cid).IsEmpty());
     classes_.At<kUnboxedFieldBitmapIndex>(cid) = map;
   }
 

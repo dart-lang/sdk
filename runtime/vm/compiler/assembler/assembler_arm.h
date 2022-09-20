@@ -392,6 +392,8 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void PushValueAtOffset(Register base, int32_t offset) { UNIMPLEMENTED(); }
+
   void Bind(Label* label);
   // Unconditional jump to a given label. [distance] is ignored on ARM.
   void Jump(Label* label, JumpDistance distance = kFarJump) { b(label); }
@@ -958,12 +960,12 @@ class Assembler : public AssemblerBase {
                                 const Address& dest,
                                 const Object& value,
                                 MemoryOrder memory_order = kRelaxedNonAtomic);
-  void StoreIntoObjectNoBarrierOffset(
+  void StoreIntoObjectOffsetNoBarrier(
       Register object,
       int32_t offset,
       Register value,
       MemoryOrder memory_order = kRelaxedNonAtomic);
-  void StoreIntoObjectNoBarrierOffset(
+  void StoreIntoObjectOffsetNoBarrier(
       Register object,
       int32_t offset,
       const Object& value,
@@ -1134,21 +1136,17 @@ class Assembler : public AssemblerBase {
                               Register base,
                               int32_t offset);
 
-  void CopyDoubleField(Register dst,
-                       Register src,
-                       Register tmp1,
-                       Register tmp2,
-                       DRegister dtmp);
-  void CopyFloat32x4Field(Register dst,
-                          Register src,
-                          Register tmp1,
-                          Register tmp2,
-                          DRegister dtmp);
-  void CopyFloat64x2Field(Register dst,
-                          Register src,
-                          Register tmp1,
-                          Register tmp2,
-                          DRegister dtmp);
+  void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    LoadMultipleDFromOffset(EvenDRegisterOf(dst), 2, base, offset);
+  }
+  void StoreUnboxedSimd128(FpuRegister src, Register base, int32_t offset) {
+    StoreMultipleDToOffset(EvenDRegisterOf(src), 2, base, offset);
+  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      vmovq(dst, src);
+    }
+  }
 
   void Push(Register rd, Condition cond = AL);
   void Pop(Register rd, Condition cond = AL);

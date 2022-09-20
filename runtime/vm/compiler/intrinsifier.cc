@@ -109,14 +109,13 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(
     // We don't support complex getter cases.
     if (field.is_late() || field.needs_load_guard()) return false;
 
-    if (slot.IsPotentialUnboxed()) {
+    if (slot.is_unboxed()) {
       if (function.HasUnboxedReturnValue()) {
         // In AOT mode: Unboxed fields contain the unboxed value and can be
         // returned in unboxed form.
         ASSERT(FLAG_precompiled_mode);
       } else {
-        // In JIT mode: Unboxed fields contain a mutable box which we cannot
-        // return.
+        // In JIT mode: Can't return unboxed value directly.
         return false;
       }
     } else {
@@ -144,7 +143,7 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(
     // avoid the need for boxing (which we cannot do in the intrinsic).
     if (function.HasUnboxedParameters()) {
       ASSERT(FLAG_precompiled_mode);
-      if (!slot.IsUnboxed()) {
+      if (!slot.is_unboxed()) {
         return false;
       }
     }

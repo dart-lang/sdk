@@ -1296,10 +1296,11 @@ void Assembler::StoreCompressedIntoObjectOffsetNoBarrier(
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
+                                         const Object& value,
+                                         MemoryOrder memory_order) {
+  RELEASE_ASSERT(memory_order == kRelaxedNonAtomic);
   ASSERT(IsOriginalObject(value));
   ASSERT(IsNotTemporaryScopedHandle(value));
-  // No store buffer update.
   if (IsSameObject(compiler::NullObject(), value)) {
     str(NULL_REG, dest);
   } else if (target::IsSmi(value) && (target::ToRawSmi(value) == 0)) {
@@ -1315,7 +1316,7 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
                                                    const Object& value,
                                                    MemoryOrder memory_order) {
   // stlr does not feature an address operand.
-  ASSERT(memory_order == kRelaxedNonAtomic);
+  RELEASE_ASSERT(memory_order == kRelaxedNonAtomic);
   ASSERT(IsOriginalObject(value));
   ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.

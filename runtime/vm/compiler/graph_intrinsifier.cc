@@ -1054,10 +1054,10 @@ bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
 
   // We only support cases where we do not have to create a box (whose
   // allocation could fail).
-  ASSERT(function.HasUnboxedReturnValue() || !slot.IsUnboxed());
+  ASSERT(function.HasUnboxedReturnValue() || !slot.is_unboxed());
 
   // We might need to unbox the field value before returning.
-  if (function.HasUnboxedReturnValue() && !slot.IsUnboxed()) {
+  if (function.HasUnboxedReturnValue() && !slot.is_unboxed()) {
     ASSERT(FLAG_precompiled_mode);
     field_value = builder.AddUnboxInstr(
         FlowGraph::ReturnRepresentationOf(flow_graph->function()),
@@ -1082,10 +1082,10 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
   }
   ASSERT(field.is_instance() && !field.is_final());
   const auto& slot = Slot::Get(field, &flow_graph->parsed_function());
-  ASSERT(!function.HasUnboxedParameters() || slot.IsUnboxed());
+  ASSERT(!function.HasUnboxedParameters() || slot.is_unboxed());
 
   const auto barrier_mode =
-      slot.IsUnboxed() ? kNoStoreBarrier : kEmitStoreBarrier;
+      slot.is_unboxed() ? kNoStoreBarrier : kEmitStoreBarrier;
 
   flow_graph->CreateCommonConstants();
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -1096,7 +1096,7 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
   auto value = builder.AddParameter(1, /*with_frame=*/false);
   VerifyParameterIsBoxed(&builder, 0);
 
-  if (!function.HasUnboxedParameters() && slot.IsUnboxed()) {
+  if (!function.HasUnboxedParameters() && slot.is_unboxed()) {
     // We do not support storing to possibly guarded fields in JIT in graph
     // intrinsics.
     ASSERT(FLAG_precompiled_mode);
