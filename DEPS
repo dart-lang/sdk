@@ -145,7 +145,7 @@ vars = {
   "source_span_rev": "ff03af16474ce91c89eb3bc28182866f4cb6dfb0",
   "sse_rev": "00084c43684ddaf7e09c19c5364c4a27eb04efda",
   "stack_trace_rev": "17f09c2c6845bb31c7c385acecce5befb8527a13",
-  "stream_channel_rev": "8e0d7ef1f4a3fb97fbd82e11cd539093f58511f3",
+  "stream_channel_rev": "63831cb74c5a413da893bda0fa4a80b5cb567076",
   "string_scanner_rev": "2d84b16d8ae03c3a8c2417b71abe0fe6de7d8bf6",
   "sync_http_rev": "39509d69fd5a9c3da46eab48fcafdf62e6ad4580",
   "term_glyph_rev": "ec7cf7bb51ebb7d55760a1359f6697690dbc06ba",
