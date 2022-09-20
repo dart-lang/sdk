@@ -16,15 +16,16 @@ _callConstructor(constructor, interceptor) {
   };
 }
 
-_callAttached(receiver) {
+_callAttached(Element receiver) {
   return receiver.attached();
 }
 
-_callDetached(receiver) {
+_callDetached(Element receiver) {
   return receiver.detached();
 }
 
-_callAttributeChanged(receiver, name, oldValue, newValue) {
+_callAttributeChanged(
+    Element receiver, String name, String oldValue, String newValue) {
   return receiver.attributeChanged(name, oldValue, newValue);
 }
 
