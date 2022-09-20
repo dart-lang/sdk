@@ -580,6 +580,48 @@ f(v) {
 ''');
     assertInContext("{}", true);
   }
+
+  test_inConstantContext_recordLiteral_listLiteral_false() {
+    parse('''
+final x = [0, (1, 2)];
+''');
+    assertInContext('(1, 2)', false);
+  }
+
+  test_inConstantContext_recordLiteral_listLiteral_true() {
+    parse('''
+final x = const [0, (1, 2)];
+''');
+    assertInContext('(1, 2)', true);
+  }
+
+  test_inConstantContext_recordLiteral_namedFields_recordLiteral_false() {
+    parse('''
+final x = (0, foo: (1, 2));
+''');
+    assertInContext('(1, 2)', false);
+  }
+
+  test_inConstantContext_recordLiteral_namedFields_recordLiteral_true() {
+    parse('''
+final x = const (0, foo: (1, 2));
+''');
+    assertInContext('(1, 2)', true);
+  }
+
+  test_inConstantContext_recordLiteral_positionalFields_recordLiteral_false() {
+    parse('''
+final x = (0, (1, 2));
+''');
+    assertInContext('(1, 2)', false);
+  }
+
+  test_inConstantContext_recordLiteral_positionalFields_recordLiteral_true() {
+    parse('''
+final x = const (0, (1, 2));
+''');
+    assertInContext('(1, 2)', true);
+  }
 }
 
 @reflectiveTest
