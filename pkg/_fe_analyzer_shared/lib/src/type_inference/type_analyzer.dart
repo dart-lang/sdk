@@ -500,7 +500,7 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
         errors?.switchCaseCompletesNormally(node, firstCaseInThisExecutionPath,
             i - firstCaseInThisExecutionPath);
       }
-      finishStatementCase(node,
+      handleMergedStatementCase(node,
           caseIndex: i - 1,
           executionPathIndex: numExecutionPaths,
           numStatements: body.length);
@@ -588,19 +588,6 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Stack effect: pops (CaseHead, Expression) and pushes (ExpressionCase).
   void finishExpressionCase(Expression node, int caseIndex);
 
-  /// Called after visiting a merged statement case.
-  ///
-  /// [node] is enclosing switch statement, [caseIndex] is the index of the last
-  /// `case` or `default` clause in the merged statement case, and
-  /// [numStatements] is the number of statements in the case body.
-  ///
-  /// Stack effect: pops (CaseHeads, numStatements * Statement) and pushes
-  /// (StatementCase).
-  void finishStatementCase(Statement node,
-      {required int caseIndex,
-      required int executionPathIndex,
-      required int numStatements});
-
   /// Returns an [ExpressionCaseInfo] object describing the [index]th `case` or
   /// `default` clause in the switch expression [node].
   ///
@@ -686,6 +673,19 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Stack effect: pops (Pattern left, Pattern right) and pushes (Pattern).
   void handleLogicalPattern(Node node,
       {required bool isAnd, required Type matchedType});
+
+  /// Called after visiting a merged statement case.
+  ///
+  /// [node] is enclosing switch statement, [caseIndex] is the index of the last
+  /// `case` or `default` clause in the merged statement case, and
+  /// [numStatements] is the number of statements in the case body.
+  ///
+  /// Stack effect: pops (CaseHeads, numStatements * Statement) and pushes
+  /// (StatementCase).
+  void handleMergedStatementCase(Statement node,
+      {required int caseIndex,
+      required int executionPathIndex,
+      required int numStatements});
 
   /// Called when visiting a `case` that lacks a guard clause.  Since the lack
   /// of a guard clause is semantically equivalent to `when true`, this method

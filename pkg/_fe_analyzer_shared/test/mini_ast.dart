@@ -2606,19 +2606,6 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void finishStatementCase(Statement node,
-      {required int caseIndex,
-      required int executionPathIndex,
-      required int numStatements}) {
-    _irBuilder.apply(
-        'block', List.filled(numStatements, Kind.statement), Kind.statement,
-        location: node.location);
-    _irBuilder.apply(
-        'case', [Kind.caseHeads, Kind.statement], Kind.statementCase,
-        location: node.location);
-  }
-
-  @override
   SwitchExpressionMemberInfo<Node, Expression> getSwitchExpressionMemberInfo(
           covariant _SwitchExpression node, int index) =>
       node.cases[index];
@@ -2696,6 +2683,19 @@ class _MiniAstTypeAnalyzer
     _irBuilder.apply(isAnd ? 'logicalAndPattern' : 'logicalOrPattern',
         [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
         names: ['matchedType'], location: node.location);
+  }
+
+  @override
+  void handleMergedStatementCase(Statement node,
+      {required int caseIndex,
+      required int executionPathIndex,
+      required int numStatements}) {
+    _irBuilder.apply(
+        'block', List.filled(numStatements, Kind.statement), Kind.statement,
+        location: node.location);
+    _irBuilder.apply(
+        'case', [Kind.caseHeads, Kind.statement], Kind.statementCase,
+        location: node.location);
   }
 
   void handleNoCondition(Node node) {
