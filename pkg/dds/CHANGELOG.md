@@ -1,3 +1,6 @@
+# 2.3.1
+- Fixed issue where DDS wasn't correctly handling `Sentinel` responses in `IsolateManager.initialize()`.
+
 # 2.3.0
 - [DAP] Removed an unused parameter `resumeIfStarting` from `DartDebugAdapter.connectDebugger`.
 - [DAP] Fixed some issues where removing breakpoints could fail if an isolate exited during an update or multiple client breakpoints mapped to the same VM breakpoint.

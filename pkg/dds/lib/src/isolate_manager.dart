@@ -228,7 +228,7 @@ class IsolateManager {
           });
           // If the isolate has shutdown after the getVM request, ignore it and
           // continue to the next isolate.
-          if (isolate['kind'] == 'Sentinel') {
+          if (isolate['type'] == 'Sentinel') {
             continue;
           }
           final name = isolate['name'];
