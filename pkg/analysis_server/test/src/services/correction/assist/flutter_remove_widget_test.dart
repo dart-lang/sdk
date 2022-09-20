@@ -33,6 +33,69 @@ class FlutterRemoveWidgetTest extends AssistProcessorTest {
     );
   }
 
+  Future<void> test_builder_blockFunctionBody() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Builder(
+    builder: (context) {
+      return Text('');
+    }
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  Text('');
+}
+''');
+  }
+
+  Future<void> test_builder_blockFunctionBody_many_statements() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Builder(
+    builder: (context) {
+      var i = 1;
+      return Text('');
+    }
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_builder_expressionFunctionBody() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Builder(
+    builder: (context) => Text('')
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+void f() {
+  Text('');
+}
+''');
+  }
+
+  Future<void> test_builder_parameter_used() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+void f() {
+  /*caret*/Builder(
+    builder: (context) => context.widget
+  );
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_childIntoChild_multiLine() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
