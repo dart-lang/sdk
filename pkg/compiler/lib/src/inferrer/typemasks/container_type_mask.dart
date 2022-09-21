@@ -76,8 +76,6 @@ class ContainerTypeMask extends AllocationTypeMask {
   }
 
   @override
-  bool get isContainer => true;
-  @override
   bool get isExact => true;
 
   @override

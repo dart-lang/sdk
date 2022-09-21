@@ -22,10 +22,9 @@ import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
     show UniverseSelectorConstraints, SelectorConstraintsStrategy;
 import '../../util/util.dart';
-import '../../world.dart' show JClosedWorld;
+import '../../world_interfaces.dart' show JClosedWorld;
 import '../../inferrer/abstract_value_domain.dart';
 import '../../inferrer/abstract_value_strategy.dart';
-import '../type_graph_inferrer.dart' show TypeGraphInferrer;
 import 'constants.dart';
 
 part 'container_type_mask.dart';
@@ -467,13 +466,12 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  bool isPrimitiveValue(TypeMask value) => value.isValue;
+  bool isPrimitiveValue(TypeMask value) => value is ValueTypeMask;
 
   @override
   PrimitiveConstantValue getPrimitiveValue(TypeMask mask) {
-    if (mask.isValue) {
-      ValueTypeMask valueMask = mask;
-      return valueMask.value;
+    if (mask is ValueTypeMask) {
+      return mask.value;
     }
     return null;
   }
@@ -822,7 +820,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isFixedLengthJsIndexable(covariant TypeMask mask) {
-    if (mask.isContainer && (mask as ContainerTypeMask).length != null) {
+    if (mask is ContainerTypeMask && mask.length != null) {
       // A container on which we have inferred the length.
       return AbstractBool.True;
     }
@@ -862,24 +860,16 @@ class CommonMasks implements AbstractValueDomain {
   Map<TypeMask, AbstractBool> _isInterceptorCacheSecondChance = {};
 
   @override
-  bool isMap(TypeMask value) {
-    return value.isMap;
-  }
+  bool isMap(TypeMask value) => value is ValueTypeMask;
 
   @override
-  bool isSet(TypeMask value) {
-    return value.isSet;
-  }
+  bool isSet(TypeMask value) => value is SetTypeMask;
 
   @override
-  bool isContainer(TypeMask value) {
-    return value.isContainer;
-  }
+  bool isContainer(TypeMask value) => value is ContainerTypeMask;
 
   @override
-  bool isDictionary(TypeMask value) {
-    return value.isDictionary;
-  }
+  bool isDictionary(TypeMask value) => value is DictionaryTypeMask;
 
   @override
   bool containsDictionaryKey(AbstractValue value, String key) {

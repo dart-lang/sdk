@@ -78,8 +78,6 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   @override
-  bool get isDictionary => true;
-  @override
   bool get isExact => true;
 
   bool containsKey(String key) => _typeMap.containsKey(key);

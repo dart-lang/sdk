@@ -75,10 +75,6 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   @override
-  bool get isContainer => false;
-  @override
-  bool get isMap => true;
-  @override
   bool get isExact => true;
 
   @override

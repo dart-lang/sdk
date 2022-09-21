@@ -35,7 +35,7 @@ class UnionTypeMask extends TypeMask {
       : assert(isNullable != null),
         assert(hasLateSentinel != null),
         assert(disjointMasks.length > 1),
-        assert(disjointMasks.every((TypeMask mask) => !mask.isUnion)),
+        assert(disjointMasks.every((TypeMask mask) => mask is! UnionTypeMask)),
         assert(disjointMasks.every((TypeMask mask) => !mask.isNullable)),
         assert(disjointMasks.every((TypeMask mask) => !mask.hasLateSentinel));
 
@@ -94,9 +94,8 @@ class UnionTypeMask extends TypeMask {
     // are preferred to subtype masks.
     for (TypeMask mask in masks) {
       mask = TypeMask.nonForwardingMask(mask).withoutFlags();
-      if (mask.isUnion) {
-        UnionTypeMask union = mask;
-        unionOfHelper(union.disjointMasks, disjoint, domain);
+      if (mask is UnionTypeMask) {
+        unionOfHelper(mask.disjointMasks, disjoint, domain);
       } else if (mask.isEmpty) {
         continue;
       } else {
@@ -111,7 +110,7 @@ class UnionTypeMask extends TypeMask {
           if (current == null) continue;
           TypeMask newMask = flatMask.union(current, domain);
           // If we have found a disjoint union, continue iterating.
-          if (newMask.isUnion) continue;
+          if (newMask is UnionTypeMask) continue;
           covered = true;
           // We found a mask that is either equal to [mask] or is a
           // supertype of [mask].
@@ -301,20 +300,6 @@ class UnionTypeMask extends TypeMask {
   bool get isNull => false;
   @override
   bool get isExact => false;
-  @override
-  bool get isUnion => true;
-  @override
-  bool get isContainer => false;
-  @override
-  bool get isSet => false;
-  @override
-  bool get isMap => false;
-  @override
-  bool get isDictionary => false;
-  @override
-  bool get isForwarding => false;
-  @override
-  bool get isValue => false;
 
   /// Checks whether [other] is contained in this union.
   ///
@@ -324,7 +309,7 @@ class UnionTypeMask extends TypeMask {
   ///   must have failed.
   bool _slowContainsCheck(TypeMask other, JClosedWorld closedWorld) {
     // Unions should never make it here.
-    assert(!other.isUnion);
+    assert(other is! UnionTypeMask);
     // Likewise, nullness should be covered.
     assert(isNullable || !other.isNullable);
     assert(hasLateSentinel || !other.hasLateSentinel);
@@ -358,8 +343,8 @@ class UnionTypeMask extends TypeMask {
     other = TypeMask.nonForwardingMask(other);
     if (isNullable && !other.isNullable) return false;
     if (hasLateSentinel && !other.hasLateSentinel) return false;
-    if (other.isUnion) {
-      UnionTypeMask union = other;
+    if (other is UnionTypeMask) {
+      final union = other as UnionTypeMask;
       return disjointMasks.every((FlatTypeMask disjointMask) {
         bool contained = union.disjointMasks.any((FlatTypeMask other) =>
             other.containsMask(disjointMask, closedWorld));
@@ -379,7 +364,7 @@ class UnionTypeMask extends TypeMask {
     other = TypeMask.nonForwardingMask(other);
     if (other.isNullable && !isNullable) return false;
     if (other.hasLateSentinel && !hasLateSentinel) return false;
-    if (other.isUnion) return other.isInMask(this, closedWorld);
+    if (other is UnionTypeMask) return other.isInMask(this, closedWorld);
     other = other.withoutFlags();
     bool contained =
         disjointMasks.any((mask) => mask.containsMask(other, closedWorld));

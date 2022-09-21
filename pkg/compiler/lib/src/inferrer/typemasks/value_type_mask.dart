@@ -52,9 +52,6 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   @override
-  bool get isValue => true;
-
-  @override
   TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
       {bool isNullable, bool hasLateSentinel}) {
     assert(isNullable != null);

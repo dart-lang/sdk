@@ -366,30 +366,6 @@ abstract class TypeMask implements AbstractValue {
   /// it's subclasses or subtypes.
   bool get isExact;
 
-  /// Returns true if this mask is a union type.
-  bool get isUnion;
-
-  /// Returns `true` if this mask is a [ContainerTypeMask].
-  bool get isContainer;
-
-  /// Returns `true` if this mask is a [SetTypeMask].
-  bool get isSet;
-
-  /// Returns `true` if this mask is a [MapTypeMask].
-  bool get isMap;
-
-  /// Returns `true` if this mask is a [MapTypeMask] in dictionary mode, i.e.,
-  /// all keys are known string values and we have specific type information for
-  /// corresponding values.
-  bool get isDictionary;
-
-  /// Returns `true` if this mask is wrapping another mask for the purpose of
-  /// tracing.
-  bool get isForwarding;
-
-  /// Returns `true` if this mask holds encodes an exact value within a type.
-  bool get isValue;
-
   bool containsOnlyInt(JClosedWorld closedWorld);
   bool containsOnlyNum(JClosedWorld closedWorld);
   bool containsOnlyBool(JClosedWorld closedWorld);

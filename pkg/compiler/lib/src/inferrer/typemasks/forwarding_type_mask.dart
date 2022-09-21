@@ -29,21 +29,6 @@ abstract class ForwardingTypeMask extends TypeMask {
   bool get isExact => forwardTo.isExact;
 
   @override
-  bool get isUnion => false;
-  @override
-  bool get isContainer => false;
-  @override
-  bool get isSet => false;
-  @override
-  bool get isMap => false;
-  @override
-  bool get isDictionary => false;
-  @override
-  bool get isValue => false;
-  @override
-  bool get isForwarding => true;
-
-  @override
   bool isInMask(TypeMask other, JClosedWorld closedWorld) {
     return forwardTo.isInMask(other, closedWorld);
   }

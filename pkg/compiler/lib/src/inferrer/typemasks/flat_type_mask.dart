@@ -172,21 +172,6 @@ class FlatTypeMask extends TypeMask {
     return AbstractBool.Maybe;
   }
 
-  @override
-  bool get isUnion => false;
-  @override
-  bool get isContainer => false;
-  @override
-  bool get isSet => false;
-  @override
-  bool get isMap => false;
-  @override
-  bool get isDictionary => false;
-  @override
-  bool get isForwarding => false;
-  @override
-  bool get isValue => false;
-
   // TODO(kasperl): Get rid of these. They should not be a visible
   // part of the implementation because they make it hard to add
   // proper union types if we ever want to.

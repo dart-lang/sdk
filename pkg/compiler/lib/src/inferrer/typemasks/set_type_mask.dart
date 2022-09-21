@@ -69,9 +69,6 @@ class SetTypeMask extends AllocationTypeMask {
   }
 
   @override
-  bool get isSet => true;
-
-  @override
   bool get isExact => true;
 
   @override
