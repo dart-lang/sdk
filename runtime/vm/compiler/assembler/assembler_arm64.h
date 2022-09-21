@@ -136,16 +136,14 @@ class Address : public ValueObject {
  public:
   Address(const Address& other)
       : ValueObject(),
-        encoding_(other.encoding_),
         type_(other.type_),
         base_(other.base_),
-        log2sz_(other.log2sz_) {}
+        offset_(other.offset_) {}
 
   Address& operator=(const Address& other) {
-    encoding_ = other.encoding_;
     type_ = other.type_;
     base_ = other.base_;
-    log2sz_ = other.log2sz_;
+    offset_ = other.offset_;
     return *this;
   }
 
@@ -167,74 +165,21 @@ class Address : public ValueObject {
   bool can_writeback_to(Register r) const {
     if (type() == PreIndex || type() == PostIndex || type() == PairPreIndex ||
         type() == PairPostIndex) {
-      return base() != r;
+      return ConcreteRegister(base()) != ConcreteRegister(r);
     }
     return true;
   }
 
-  // Offset is in bytes. For the unsigned imm12 case, we unscale based on the
-  // operand size, and assert that offset is aligned accordingly.
-  // For the smaller signed imm9 case, the offset is the number of bytes, but
-  // is unscaled.
-  Address(Register rn,
-          int32_t offset = 0,
-          AddressType at = Offset,
-          OperandSize sz = kEightBytes) {
+  // Offset is in bytes.
+  explicit Address(Register rn, int32_t offset = 0, AddressType at = Offset) {
     ASSERT((rn != kNoRegister) && (rn != R31) && (rn != ZR));
-    ASSERT(CanHoldOffset(offset, at, sz));
-    log2sz_ = -1;
-    const int32_t scale = Log2OperandSizeBytes(sz);
-    if ((at == Offset) && Utils::IsUint(12 + scale, offset) &&
-        (offset == ((offset >> scale) << scale))) {
-      encoding_ =
-          B24 | ((offset >> scale) << kImm12Shift) | Arm64Encode::Rn(rn);
-      if (offset != 0) {
-        log2sz_ = scale;
-      }
-    } else if ((at == Offset) && Utils::IsInt(9, offset)) {
-      encoding_ = ((offset & 0x1ff) << kImm9Shift) | Arm64Encode::Rn(rn);
-    } else if ((at == PreIndex) || (at == PostIndex)) {
-      ASSERT(Utils::IsInt(9, offset));
-      int32_t idx = (at == PostIndex) ? B10 : (B11 | B10);
-      encoding_ = idx | ((offset & 0x1ff) << kImm9Shift) | Arm64Encode::Rn(rn);
-    } else {
-      ASSERT((at == PairOffset) || (at == PairPreIndex) ||
-             (at == PairPostIndex));
-      ASSERT(Utils::IsInt(7 + scale, offset) &&
-             (static_cast<uint32_t>(offset) ==
-              ((static_cast<uint32_t>(offset) >> scale) << scale)));
-      int32_t idx = 0;
-      switch (at) {
-        case PairPostIndex:
-          idx = B23;
-          break;
-        case PairPreIndex:
-          idx = B24 | B23;
-          break;
-        case PairOffset:
-          idx = B24;
-          break;
-        default:
-          UNREACHABLE();
-          break;
-      }
-      encoding_ =
-          idx |
-          ((static_cast<uint32_t>(offset >> scale) << kImm7Shift) & kImm7Mask) |
-          Arm64Encode::Rn(rn);
-      if (offset != 0) {
-        log2sz_ = scale;
-      }
-    }
     type_ = at;
-    base_ = ConcreteRegister(rn);
+    base_ = rn;
+    offset_ = offset;
   }
 
   // This addressing mode does not exist.
-  Address(Register rn,
-          Register offset,
-          AddressType at,
-          OperandSize sz = kEightBytes);
+  Address(Register rn, Register offset, AddressType at) = delete;
 
   static bool CanHoldOffset(int32_t offset,
                             AddressType at = Offset,
@@ -264,22 +209,20 @@ class Address : public ValueObject {
   static Address PC(int32_t pc_off) {
     ASSERT(CanHoldOffset(pc_off, PCOffset));
     Address addr;
-    addr.encoding_ = (((pc_off >> 2) << kImm19Shift) & kImm19Mask);
     addr.base_ = kNoRegister;
     addr.type_ = PCOffset;
-    addr.log2sz_ = -1;
+    addr.offset_ = pc_off;
     return addr;
   }
 
   static Address Pair(Register rn,
                       int32_t offset = 0,
-                      AddressType at = PairOffset,
-                      OperandSize sz = kEightBytes) {
-    return Address(rn, offset, at, sz);
+                      AddressType at = PairOffset) {
+    return Address(rn, offset, at);
   }
 
   // This addressing mode does not exist.
-  static Address PC(Register r);
+  static Address PC(Register r) = delete;
 
   enum Scaling {
     Unscaled,
@@ -298,12 +241,11 @@ class Address : public ValueObject {
     // Can only scale when ext = UXTX.
     ASSERT((scale != Scaled) || (ext == UXTX));
     ASSERT((ext == UXTW) || (ext == UXTX) || (ext == SXTW) || (ext == SXTX));
-    const int32_t s = (scale == Scaled) ? B12 : 0;
-    encoding_ = B21 | B11 | s | Arm64Encode::Rn(rn) | Arm64Encode::Rm(rm) |
-                (static_cast<int32_t>(ext) << kExtendTypeShift);
     type_ = Reg;
-    base_ = ConcreteRegister(rn);
-    log2sz_ = -1;  // Any.
+    base_ = rn;
+    // Use offset_ to store pre-encoded scale, extend and rm.
+    offset_ = ((scale == Scaled) ? B12 : 0) | Arm64Encode::Rm(rm) |
+              (static_cast<int32_t>(ext) << kExtendTypeShift);
   }
 
   static OperandSize OperandSizeFor(intptr_t cid) {
@@ -354,16 +296,71 @@ class Address : public ValueObject {
   }
 
  private:
-  uint32_t encoding() const { return encoding_; }
+  uint32_t encoding(OperandSize sz) const {
+    const int32_t offset = offset_;
+    const int32_t scale = Log2OperandSizeBytes(sz);
+    ASSERT((type_ == Reg) || CanHoldOffset(offset, type_, sz));
+    switch (type_) {
+      case Offset:
+        if (Utils::IsUint(12 + scale, offset) &&
+            (offset == ((offset >> scale) << scale))) {
+          return B24 | ((offset >> scale) << kImm12Shift) |
+                 Arm64Encode::Rn(base_);
+        } else if (Utils::IsInt(9, offset)) {
+          return ((offset & 0x1ff) << kImm9Shift) | Arm64Encode::Rn(base_);
+        } else {
+          FATAL("Offset %d is out of range\n", offset);
+        }
+      case PreIndex:
+      case PostIndex: {
+        ASSERT(Utils::IsInt(9, offset));
+        int32_t idx = (type_ == PostIndex) ? B10 : (B11 | B10);
+        return idx | ((offset & 0x1ff) << kImm9Shift) | Arm64Encode::Rn(base_);
+      }
+      case PairOffset:
+      case PairPreIndex:
+      case PairPostIndex: {
+        ASSERT(Utils::IsInt(7 + scale, offset) &&
+               (static_cast<uint32_t>(offset) ==
+                ((static_cast<uint32_t>(offset) >> scale) << scale)));
+        int32_t idx = 0;
+        switch (type_) {
+          case PairPostIndex:
+            idx = B23;
+            break;
+          case PairPreIndex:
+            idx = B24 | B23;
+            break;
+          case PairOffset:
+            idx = B24;
+            break;
+          default:
+            UNREACHABLE();
+            break;
+        }
+        return idx |
+               ((static_cast<uint32_t>(offset >> scale) << kImm7Shift) &
+                kImm7Mask) |
+               Arm64Encode::Rn(base_);
+      }
+      case PCOffset:
+        return (((offset >> 2) << kImm19Shift) & kImm19Mask);
+      case Reg:
+        // Offset contains pre-encoded scale, extend and rm.
+        return B21 | B11 | Arm64Encode::Rn(base_) | offset;
+      case Unknown:
+        UNREACHABLE();
+    }
+  }
+
   AddressType type() const { return type_; }
   Register base() const { return base_; }
 
-  Address() : encoding_(0), type_(Unknown), base_(kNoRegister) {}
+  Address() : type_(Unknown), base_(kNoRegister), offset_(0) {}
 
-  uint32_t encoding_;
   AddressType type_;
   Register base_;
-  int32_t log2sz_;  // Required log2 of operand size (-1 means any).
+  int32_t offset_;
 
   friend class Assembler;
 };
@@ -376,11 +373,11 @@ class FieldAddress : public Address {
     return Address::CanHoldOffset(offset - kHeapObjectTag, at, sz);
   }
 
-  FieldAddress(Register base, int32_t disp, OperandSize sz = kEightBytes)
-      : Address(base, disp - kHeapObjectTag, Offset, sz) {}
+  FieldAddress(Register base, int32_t disp)
+      : Address(base, disp - kHeapObjectTag) {}
 
   // This addressing mode does not exist.
-  FieldAddress(Register base, Register disp, OperandSize sz = kEightBytes);
+  FieldAddress(Register base, Register disp) = delete;
 
   FieldAddress(const FieldAddress& other) : Address(other) {}
 
@@ -653,15 +650,14 @@ class Assembler : public AssemblerBase {
                                           int8_t value) override {
     EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
     ldr(TMP,
-        FieldAddress(type, compiler::target::FunctionType::nullability_offset(),
-                     kByte),
+        FieldAddress(type,
+                     compiler::target::FunctionType::nullability_offset()),
         kUnsignedByte);
     cmp(TMP, Operand(value));
   }
   void CompareTypeNullabilityWith(Register type, int8_t value) override {
     EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
-    ldr(TMP,
-        FieldAddress(type, compiler::target::Type::nullability_offset(), kByte),
+    ldr(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()),
         kUnsignedByte);
     cmp(TMP, Operand(value));
   }
@@ -1417,11 +1413,11 @@ class Assembler : public AssemblerBase {
   void fcvtds(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FCVTDS, vd, vn); }
   void fldrq(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
-    EmitLoadStoreReg(FLDRQ, static_cast<Register>(vt), a, kByte);
+    EmitLoadStoreReg(FLDRQ, static_cast<Register>(vt), a, kQWord);
   }
   void fstrq(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
-    EmitLoadStoreReg(FSTRQ, static_cast<Register>(vt), a, kByte);
+    EmitLoadStoreReg(FSTRQ, static_cast<Register>(vt), a, kQWord);
   }
   void fldrd(VRegister vt, Address a) {
     ASSERT(a.type() != Address::PCOffset);
@@ -1650,20 +1646,18 @@ class Assembler : public AssemblerBase {
     fldrq(reg, Address(SP, 1 * kQuadSize, Address::PostIndex));
   }
   void PushDoublePair(VRegister low, VRegister high) {
-    fstp(low, high,
-         Address(SP, -2 * kDoubleSize, Address::PairPreIndex, kDWord), kDWord);
+    fstp(low, high, Address(SP, -2 * kDoubleSize, Address::PairPreIndex),
+         kDWord);
   }
   void PopDoublePair(VRegister low, VRegister high) {
-    fldp(low, high,
-         Address(SP, 2 * kDoubleSize, Address::PairPostIndex, kDWord), kDWord);
+    fldp(low, high, Address(SP, 2 * kDoubleSize, Address::PairPostIndex),
+         kDWord);
   }
   void PushQuadPair(VRegister low, VRegister high) {
-    fstp(low, high, Address(SP, -2 * kQuadSize, Address::PairPreIndex, kQWord),
-         kQWord);
+    fstp(low, high, Address(SP, -2 * kQuadSize, Address::PairPreIndex), kQWord);
   }
   void PopQuadPair(VRegister low, VRegister high) {
-    fldp(low, high, Address(SP, 2 * kQuadSize, Address::PairPostIndex, kQWord),
-         kQWord);
+    fldp(low, high, Address(SP, 2 * kQuadSize, Address::PairPostIndex), kQWord);
   }
   void TagAndPushPP() {
     // Add the heap object tag back to PP before putting it on the stack.
@@ -2762,9 +2756,8 @@ class Assembler : public AssemblerBase {
     ASSERT((op != LDR && op != STR && op != LDRS) || a.can_writeback_to(rt));
 
     const int32_t size = Log2OperandSizeBytes(sz);
-    ASSERT(a.log2sz_ == -1 || a.log2sz_ == size);
     const int32_t encoding =
-        op | ((size & 0x3) << kSzShift) | Arm64Encode::Rt(rt) | a.encoding();
+        op | ((size & 0x3) << kSzShift) | Arm64Encode::Rt(rt) | a.encoding(sz);
     Emit(encoding);
   }
 
@@ -2774,10 +2767,9 @@ class Assembler : public AssemblerBase {
                           OperandSize sz) {
     ASSERT((sz == kEightBytes) || (sz == kFourBytes) ||
            (sz == kUnsignedFourBytes));
-    ASSERT(a.log2sz_ == -1 || a.log2sz_ == Log2OperandSizeBytes(sz));
     ASSERT((rt != CSP) && (rt != R31));
     const int32_t size = (sz == kEightBytes) ? B30 : 0;
-    const int32_t encoding = op | size | Arm64Encode::Rt(rt) | a.encoding();
+    const int32_t encoding = op | size | Arm64Encode::Rt(rt) | a.encoding(sz);
     Emit(encoding);
   }
 
@@ -2792,7 +2784,6 @@ class Assembler : public AssemblerBase {
 
     ASSERT((sz == kEightBytes) || (sz == kFourBytes) ||
            (sz == kUnsignedFourBytes));
-    ASSERT(a.log2sz_ == -1 || a.log2sz_ == Log2OperandSizeBytes(sz));
     ASSERT((rt != CSP) && (rt != R31));
     ASSERT((rt2 != CSP) && (rt2 != R31));
     int32_t opc = 0;
@@ -2811,7 +2802,7 @@ class Assembler : public AssemblerBase {
         break;
     }
     const int32_t encoding =
-        opc | op | Arm64Encode::Rt(rt) | Arm64Encode::Rt2(rt2) | a.encoding();
+        opc | op | Arm64Encode::Rt(rt) | Arm64Encode::Rt2(rt2) | a.encoding(sz);
     Emit(encoding);
   }
 
@@ -2822,7 +2813,6 @@ class Assembler : public AssemblerBase {
                              OperandSize sz) {
     ASSERT(op != FLDP || rt != rt2);
     ASSERT((sz == kSWord) || (sz == kDWord) || (sz == kQWord));
-    ASSERT(a.log2sz_ == -1 || a.log2sz_ == Log2OperandSizeBytes(sz));
     int32_t opc = 0;
     switch (sz) {
       case kSWord:
@@ -2840,7 +2830,7 @@ class Assembler : public AssemblerBase {
     }
     const int32_t encoding =
         opc | op | Arm64Encode::Rt(static_cast<Register>(rt)) |
-        Arm64Encode::Rt2(static_cast<Register>(rt2)) | a.encoding();
+        Arm64Encode::Rt2(static_cast<Register>(rt2)) | a.encoding(sz);
     Emit(encoding);
   }
 

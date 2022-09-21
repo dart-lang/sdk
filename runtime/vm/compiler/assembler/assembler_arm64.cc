@@ -860,7 +860,7 @@ Address Assembler::PrepareLargeOffset(Register base,
                                       int32_t offset,
                                       OperandSize sz) {
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
-    return Address(base, offset, Address::Offset, sz);
+    return Address(base, offset);
   }
   ASSERT(base != TMP2);
   Operand op;
@@ -870,7 +870,7 @@ Address Assembler::PrepareLargeOffset(Register base,
       (Operand::CanHold(upper20, kXRegSizeInBits, &op) == Operand::Immediate) &&
       Address::CanHoldOffset(lower12, Address::Offset, sz)) {
     add(TMP2, base, op);
-    return Address(TMP2, lower12, Address::Offset, sz);
+    return Address(TMP2, lower12);
   }
   LoadImmediate(TMP2, offset);
   return Address(base, TMP2);
@@ -1103,10 +1103,8 @@ void Assembler::StoreBarrier(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
-  ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(HEAP_BITS, LSR, 32));
@@ -1158,7 +1156,7 @@ void Assembler::StoreCompressedIntoArray(Register object,
                                          Register slot,
                                          Register value,
                                          CanBeSmi can_be_smi) {
-  str(value, Address(slot, 0, Address::Offset, kObjectBytes), kObjectBytes);
+  str(value, Address(slot, 0), kObjectBytes);
   StoreIntoArrayBarrier(object, slot, value, can_be_smi);
 }
 
@@ -1185,10 +1183,8 @@ void Assembler::StoreIntoArrayBarrier(Register object,
   if (can_be_smi == kValueCanBeSmi) {
     BranchIfSmi(value, &done);
   }
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
-  ldr(TMP2, FieldAddress(value, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
+  ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
   and_(TMP, TMP2,
        Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
   tst(TMP, Operand(HEAP_BITS, LSR, 32));
@@ -1226,8 +1222,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
   tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   b(&done, ZERO);
 
@@ -1253,8 +1248,7 @@ void Assembler::StoreCompressedIntoObjectNoBarrier(Register object,
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
 
-  ldr(TMP, FieldAddress(object, target::Object::tags_offset(), kByte),
-      kUnsignedByte);
+  ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
   tsti(TMP, Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   b(&done, ZERO);
 
@@ -1905,13 +1899,13 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   const intptr_t count_offset = target::Array::element_offset(1);
 
   // Sadly this cannot use ldp because ldp requires aligned offsets.
-  ldr(R1, FieldAddress(R5, cid_offset, kObjectBytes), kObjectBytes);
-  ldr(R2, FieldAddress(R5, count_offset, kObjectBytes), kObjectBytes);
+  ldr(R1, FieldAddress(R5, cid_offset), kObjectBytes);
+  ldr(R2, FieldAddress(R5, count_offset), kObjectBytes);
   LoadClassIdMayBeSmi(IP0, R0);
   add(R2, R2, Operand(target::ToRawSmi(1)), kObjectBytes);
   cmp(R1, Operand(IP0, LSL, 1), kObjectBytes);
   b(&miss, NE);
-  str(R2, FieldAddress(R5, count_offset, kObjectBytes), kObjectBytes);
+  str(R2, FieldAddress(R5, count_offset), kObjectBytes);
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction
 
   // Fall through to unchecked entry.
@@ -2108,7 +2102,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
   ASSERT(Utils::IsInt(32, offset));
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
-  return Address(array, static_cast<int32_t>(offset), Address::Offset, size);
+  return Address(array, static_cast<int32_t>(offset));
 }
 
 void Assembler::ComputeElementAddressForIntIndex(Register address,
@@ -2174,7 +2168,7 @@ Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
     }
   }
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
-  return Address(temp, offset, Address::Offset, size);
+  return Address(temp, offset);
 }
 
 void Assembler::ComputeElementAddressForRegIndex(Register address,

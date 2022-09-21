@@ -1274,10 +1274,8 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ Bind(&use_declaration_type);
   __ LoadClassById(R2, R1);
-  __ ldr(
-      R3,
-      FieldAddress(R2, target::Class::num_type_arguments_offset(), kTwoBytes),
-      kTwoBytes);
+  __ ldr(R3, FieldAddress(R2, target::Class::num_type_arguments_offset()),
+         kTwoBytes);
   __ cbnz(normal_ir_body, R3);
 
   __ LoadCompressed(R0,
@@ -1465,9 +1463,9 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ ldr(R1, FieldAddress(R1, target::Type::nullability_offset(), kByte),
+  __ ldr(R1, FieldAddress(R1, target::Type::nullability_offset()),
          kUnsignedByte);
-  __ ldr(R2, FieldAddress(R2, target::Type::nullability_offset(), kByte),
+  __ ldr(R2, FieldAddress(R2, target::Type::nullability_offset()),
          kUnsignedByte);
   __ cmp(R1, Operand(R2));
   __ b(&check_legacy, NE);
@@ -1525,12 +1523,11 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
   Label not_yet_computed;
   __ ldr(R0, Address(SP, 0 * target::kWordSize));  // Object.
-  __ ldr(R0,
-         FieldAddress(R0,
-                      target::Object::tags_offset() +
-                          target::UntaggedObject::kHashTagPos / kBitsPerByte,
-                      kFourBytes),
-         kUnsignedFourBytes);
+  __ ldr(
+      R0,
+      FieldAddress(R0, target::Object::tags_offset() +
+                           target::UntaggedObject::kHashTagPos / kBitsPerByte),
+      kUnsignedFourBytes);
   __ cbz(&not_yet_computed, R0);
   __ SmiTag(R0);
   __ ret();
@@ -1935,7 +1932,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ AddImmediate(R6, 1);
   __ sub(R2, R2, Operand(1));
   __ cmp(R2, Operand(0));
-  __ str(R1, FieldAddress(R7, target::OneByteString::data_offset(), kByte),
+  __ str(R1, FieldAddress(R7, target::OneByteString::data_offset()),
          kUnsignedByte);
   __ AddImmediate(R7, 1);
   __ b(&loop, GT);
