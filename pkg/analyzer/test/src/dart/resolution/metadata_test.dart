@@ -720,11 +720,6 @@ Annotation
 A
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-    );
   }
 
   test_value_class_staticConstField() async {
@@ -794,11 +789,6 @@ Annotation
 A
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-    );
   }
 
   test_value_genericClass_downwards_inference_namedConstructor() async {
@@ -852,11 +842,6 @@ A<Object?>
   f: List
     elementType: List<Object?>
 ''');
-    assertElement2(
-      findNode.listLiteral('[]').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'Object?'},
-    );
   }
 
   test_value_genericClass_downwards_inference_unnamedConstructor() async {
@@ -898,11 +883,6 @@ A<Object?>
   f: List
     elementType: List<Object?>
 ''');
-    assertElement2(
-      findNode.listLiteral('[]').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'Object?'},
-    );
   }
 
   test_value_genericClass_inference_namedConstructor() async {
@@ -954,11 +934,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_genericClass_inference_unnamedConstructor() async {
@@ -998,11 +973,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_genericClass_instanceGetter() async {
@@ -1172,11 +1142,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_genericClass_typeArguments_unnamedConstructor() async {
@@ -1226,11 +1191,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_genericClass_unnamedConstructor_noGenericMetadata() async {
@@ -1271,11 +1231,6 @@ Annotation
 A<dynamic>
   f: int 42
 ''');
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'dynamic'},
-    );
   }
 
   test_value_genericMixinApplication_inference_unnamedConstructor() async {
@@ -1790,12 +1745,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
@@ -1848,12 +1797,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
@@ -1923,12 +1866,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_prefix_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
@@ -1991,12 +1928,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.importFind('package:test/a.dart').parameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_class_staticConstField() async {
@@ -2099,18 +2030,6 @@ A<int, double>
   t: int 42
   u: double 1.2
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('t'),
-      substitution: {'T': 'int', 'U': 'double'},
-    );
-
-    assertElement2(
-      findNode.doubleLiteral('1.2').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('u'),
-      substitution: {'T': 'int', 'U': 'double'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_1of2_typeArguments_unnamedConstructor() async {
@@ -2170,18 +2089,6 @@ A<int, double>
   t: int 42
   u: double 1.2
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('t'),
-      substitution: {'T': 'int', 'U': 'double'},
-    );
-
-    assertElement2(
-      findNode.doubleLiteral('1.2').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('u'),
-      substitution: {'T': 'int', 'U': 'double'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_all_inference_namedConstructor() async {
@@ -2235,12 +2142,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_all_inference_unnamedConstructor() async {
@@ -2282,12 +2183,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_all_typeArguments_namedConstructor() async {
@@ -2346,12 +2241,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_generic_class_generic_all_typeArguments_unnamedConstructor() async {
@@ -2403,12 +2292,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_notGeneric_class_generic_namedConstructor() async {
@@ -2462,12 +2345,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_notGeneric_class_generic_unnamedConstructor() async {
@@ -2509,12 +2386,6 @@ Annotation
 A<int>
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-      substitution: {'T': 'int'},
-    );
   }
 
   test_value_typeAlias_notGeneric_class_notGeneric_namedConstructor() async {
@@ -2560,11 +2431,6 @@ Annotation
 A
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-    );
   }
 
   test_value_typeAlias_notGeneric_class_notGeneric_unnamedConstructor() async {
@@ -2602,11 +2468,6 @@ Annotation
 A
   f: int 42
 ''');
-
-    assertElement2(
-      findNode.integerLiteral('42').staticParameterElement,
-      declaration: findElement.fieldFormalParameter('f'),
-    );
   }
 
   void _assertAnnotationValueText(Annotation annotation, String expected) {
