@@ -15,6 +15,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartLinkedEditBuilderImpl;
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2088,6 +2089,43 @@ import 'package:foo/foo.dart';
     );
   }
 
+  Future<void> test_default_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+''',
+    );
+  }
+
+  Future<void> test_directive_double_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:bbb";
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import "dart:aaa";
+import "dart:bbb";
+''',
+    );
+  }
+
+  Future<void> test_directive_single_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:bbb';
+''',
+    );
+  }
+
   Future<void> test_multiple_dart_then_package() async {
     await _assertImportLibrary(
       initialCode: '''
@@ -2391,6 +2429,36 @@ import 'foo.dart';
 import 'package:aaa/aaa.dart';
 
 import 'foo.dart';
+''',
+    );
+  }
+
+  Future<void> test_prefer_double_quotes() async {
+    registerLintRules();
+    writeTestPackageAnalysisOptionsFile(lints: ['prefer_double_quotes']);
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import "dart:aaa";
+import 'dart:bbb';
+''',
+    );
+  }
+
+  Future<void> test_prefer_single_quotes() async {
+    registerLintRules();
+    writeTestPackageAnalysisOptionsFile(lints: ['prefer_single_quotes']);
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:bbb";
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import "dart:bbb";
 ''',
     );
   }

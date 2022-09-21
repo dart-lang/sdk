@@ -20,6 +20,7 @@ dependencies:
 dev_dependencies:
   analyzer_utilities: any
   lints: any
+  linter: any
   meta: any
   path: any
   test_reflective_loader: any
