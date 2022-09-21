@@ -4679,7 +4679,7 @@ bool isInstantiated(DartType type) {
   return type.accept(new IsInstantiatedVisitor());
 }
 
-class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
+class IsInstantiatedVisitor implements DartTypeVisitor<bool> {
   final _availableVariables = new Set<TypeParameter>();
 
   bool isInstantiated(DartType type) {
@@ -4739,6 +4739,23 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
 
   @override
   bool visitNeverType(NeverType node) => true;
+
+  @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.every((p) => p.accept(this)) &&
+        node.named.every((p) => p.type.accept(this));
+  }
+
+  @override
+  bool visitExtensionType(ExtensionType node) {
+    return node.typeArguments
+        .every((DartType typeArgument) => typeArgument.accept(this));
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node) {
+    return node.left.accept(this) && node.right.accept(this);
+  }
 }
 
 bool _isFormalParameter(VariableDeclaration variable) {
