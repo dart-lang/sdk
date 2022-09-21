@@ -26,7 +26,7 @@ static method method() → dynamic {
   (0, {b: 1});
   ({a: 0, b: 1});
   let final core::int #t1 = 0 in (1, {a: #t1});
-  (#C1, #C2);
+  #C3;
 }
 static method sorting() → dynamic {
   ({a: 0, b: 1, c: 2, d: 3});
@@ -44,35 +44,22 @@ static method sorting() → dynamic {
 constants  {
   #C1 = TypeLiteralConstant(core::int)
   #C2 = TypeLiteralConstant(core::String)
+const (#C1, #C2)
 }
 
 Extra constant evaluation status:
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:10:7 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:16:7 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:16:13 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:16:19 -> IntConstant(2)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:17:7 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:17:19 -> IntConstant(2)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:17:13 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:18:13 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:18:19 -> IntConstant(2)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:18:7 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:20:4 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:20:7 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:20:13 -> IntConstant(2)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:21:4 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:21:7 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:21:13 -> IntConstant(2)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:21:19 -> IntConstant(3)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:22:4 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:22:7 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:22:13 -> IntConstant(2)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:22:19 -> IntConstant(3)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:22:25 -> IntConstant(4)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:23:4 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:23:13 -> IntConstant(2)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:23:10 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:24:10 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:24:13 -> IntConstant(2)
-Evaluated: VariableGet @ org-dartlang-testcase:///record_literal.dart:24:7 -> IntConstant(0)
-Extra constant evaluation: evaluated: 73, effectively constant: 28
+Evaluated: RecordLiteral @ org-dartlang-testcase:///record_literal.dart:7:9 -> RecordConstant(const (0, 1))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///record_literal.dart:8:12 -> RecordConstant(const (0, {b: 1}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///record_literal.dart:9:15 -> RecordConstant(const ({a: 0, b: 1}))
+Evaluated: Let @ org-dartlang-testcase:///record_literal.dart:10:7 -> RecordConstant(const (1, {a: 0}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///record_literal.dart:15:27 -> RecordConstant(const ({a: 0, b: 1, c: 2, d: 3}))
+Evaluated: Let @ org-dartlang-testcase:///record_literal.dart:16:7 -> RecordConstant(const ({a: 0, b: 1, c: 3, d: 2}))
+Evaluated: Let @ org-dartlang-testcase:///record_literal.dart:17:7 -> RecordConstant(const ({a: 0, b: 2, c: 3, d: 1}))
+Evaluated: Let @ org-dartlang-testcase:///record_literal.dart:18:7 -> RecordConstant(const ({a: 1, b: 2, c: 3, d: 0}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///record_literal.dart:19:30 -> RecordConstant(const (0, 1, 2, {a: 3, b: 4, c: 5}))
+Evaluated: Let @ org-dartlang-testcase:///record_literal.dart:20:4 -> RecordConstant(const (0, 1, 3, {a: 2, b: 4, c: 5}))
+Evaluated: Let @ org-dartlang-testcase:///record_literal.dart:21:4 -> RecordConstant(const (0, 1, 4, {a: 2, b: 3, c: 5}))
+Evaluated: Let @ org-dartlang-testcase:///record_literal.dart:22:4 -> RecordConstant(const (0, 1, 5, {a: 2, b: 3, c: 4}))
+Evaluated: Let @ org-dartlang-testcase:///record_literal.dart:23:4 -> RecordConstant(const (0, 2, 3, {a: 1, b: 4, c: 5}))
+Evaluated: Let @ org-dartlang-testcase:///record_literal.dart:24:7 -> RecordConstant(const (1, 2, 3, {a: 0, b: 4, c: 5}))
+Extra constant evaluation: evaluated: 16, effectively constant: 14
