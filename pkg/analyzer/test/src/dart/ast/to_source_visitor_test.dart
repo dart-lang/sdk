@@ -2505,7 +2505,11 @@ void f({$code}) {}
   }
 
   void test_visitNativeClause() {
-    _assertSource("native 'code'", AstTestFactory.nativeClause("code"));
+    final code = "native 'code'";
+    final findNode = _parseStringToFindNode('''
+class A $code {}
+''');
+    _assertSource(code, findNode.nativeClause(code));
   }
 
   void test_visitNativeFunctionBody() {
@@ -2513,7 +2517,11 @@ void f({$code}) {}
   }
 
   void test_visitNullLiteral() {
-    _assertSource("null", AstTestFactory.nullLiteral());
+    final code = 'null';
+    final findNode = _parseStringToFindNode('''
+final x = $code;
+''');
+    _assertSource(code, findNode.nullLiteral(code));
   }
 
   void test_visitParenthesizedExpression() {

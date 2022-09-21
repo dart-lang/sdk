@@ -104,7 +104,7 @@ class AstBuilder extends StackListener {
   // * The current library has an import that uses the scheme "dart-ext".
   bool allowNativeClause = false;
 
-  StringLiteral? nativeName;
+  StringLiteralImpl? nativeName;
 
   bool parseFunctionBodies = true;
 
@@ -3247,7 +3247,10 @@ class AstBuilder extends StackListener {
 
     NativeClauseImpl? nativeClause;
     if (nativeToken != null) {
-      nativeClause = ast.nativeClause(nativeToken, nativeName);
+      nativeClause = NativeClauseImpl(
+        nativeKeyword: nativeToken,
+        name: nativeName,
+      );
     }
     var implementsClause =
         pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
@@ -4039,7 +4042,11 @@ class AstBuilder extends StackListener {
     assert(optional('null', token));
     debugEvent("LiteralNull");
 
-    push(ast.nullLiteral(token));
+    push(
+      NullLiteralImpl(
+        literal: token,
+      ),
+    );
   }
 
   @override
@@ -4103,7 +4110,12 @@ class AstBuilder extends StackListener {
       final onTypes = _popNamedTypeList(
         errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_ON,
       );
-      push(ast.onClause(onKeyword, onTypes));
+      push(
+        OnClauseImpl(
+          onKeyword: onKeyword,
+          superclassConstraints: onTypes,
+        ),
+      );
     } else {
       push(NullValue.IdentifierList);
     }
@@ -4144,7 +4156,7 @@ class AstBuilder extends StackListener {
     debugEvent("NativeClause");
 
     if (hasName) {
-      nativeName = pop() as StringLiteral; // StringLiteral
+      nativeName = pop() as StringLiteralImpl;
     } else {
       nativeName = null;
     }
@@ -4390,8 +4402,8 @@ class AstBuilder extends StackListener {
         builder.onClause = onClause;
       } else {
         builder.onClause = OnClauseImpl(
-          existingClause.onKeyword,
-          [
+          onKeyword: existingClause.onKeyword,
+          superclassConstraints: [
             ...existingClause.superclassConstraints,
             ...onClause.superclassConstraints,
           ],
