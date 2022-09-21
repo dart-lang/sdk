@@ -40,7 +40,8 @@ class SelectorInfo {
 
   String get name => paramInfo.member!.name.text;
 
-  bool get alive => callCount > 0 && targetCount > 1 || calledDynamically;
+  bool get alive =>
+      calledDynamically ? targetCount > 0 : callCount > 0 && targetCount > 1;
 
   int get sortWeight => classIds.length * 10 + callCount;
 
