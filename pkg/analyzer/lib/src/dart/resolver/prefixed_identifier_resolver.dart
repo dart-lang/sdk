@@ -34,14 +34,18 @@ class PrefixedIdentifierResolver {
     if (prefixElement is! PrefixElement) {
       final prefixType = node.prefix.staticType;
       // TODO(scheglov) It would be nice to rewrite all such cases.
-      if (prefixType is RecordType) {
-        final propertyAccess = PropertyAccessImpl(
-          node.prefix,
-          node.period,
-          node.identifier,
-        );
-        NodeReplacer.replace(node, propertyAccess);
-        return propertyAccess;
+      if (prefixType != null) {
+        final prefixTypeResolved =
+            _resolver.typeSystem.resolveToBound(prefixType);
+        if (prefixTypeResolved is RecordType) {
+          final propertyAccess = PropertyAccessImpl(
+            node.prefix,
+            node.period,
+            node.identifier,
+          );
+          NodeReplacer.replace(node, propertyAccess);
+          return propertyAccess;
+        }
       }
     }
 

@@ -62,9 +62,13 @@ class LexicalLookupResult {
   /// The [FunctionType] referenced with `call`.
   final FunctionType? callFunctionType;
 
+  /// The field referenced in a [RecordType].
+  final RecordTypeField? recordField;
+
   LexicalLookupResult({
     this.requested,
     this.recovery,
     this.callFunctionType,
+    this.recordField,
   });
 }

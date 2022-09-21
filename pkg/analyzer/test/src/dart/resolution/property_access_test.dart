@@ -399,6 +399,29 @@ PropertyAccess
 ''');
   }
 
+  test_ofRecordType_namedField_ofTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends ({int foo})>(T r) {
+  r.foo;
+}
+''');
+
+    final node = findNode.propertyAccess(r'foo;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: T
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: int
+  staticType: int
+''');
+  }
+
   test_ofRecordType_Object_hashCode() async {
     await assertNoErrorsInCode('''
 void f(({int foo}) r) {
@@ -619,6 +642,29 @@ PropertyAccess
     staticElement: <null>
     staticType: dynamic
   staticType: dynamic
+''');
+  }
+
+  test_ofRecordType_positionalField_ofTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+void f<T extends (int, String)>(T r) {
+  r.$0;
+}
+''');
+
+    final node = findNode.propertyAccess(r'$0;');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: T
+  operator: .
+  propertyName: SimpleIdentifier
+    token: $0
+    staticElement: <null>
+    staticType: int
+  staticType: int
 ''');
   }
 

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -36,18 +35,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
   void resolve(SimpleIdentifierImpl node, {required DartType? contextType}) {
     if (node.inDeclarationContext()) {
       return;
-    }
-
-    final thisType = _resolver.thisType;
-    if (thisType is RecordType) {
-      final wasResolved = _resolveOfThisRecordType(
-        node: node,
-        recordType: thisType,
-        contextType: contextType,
-      );
-      if (wasResolved) {
-        return;
-      }
     }
 
     _resolver.checkUnreachableNode(node);
@@ -194,6 +181,14 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
+    final recordField = result.recordField;
+    if (recordField != null) {
+      _inferenceHelper.recordStaticType(node, recordField.type,
+          contextType: contextType);
+      _currentAlreadyResolved = true;
+      return;
+    }
+
     var element = hasRead ? result.readElement : result.writeElement;
 
     var enclosingClass = _resolver.enclosingClass;
@@ -292,22 +287,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
     }
     _inferenceHelper.recordStaticType(node, staticType,
         contextType: contextType);
-  }
-
-  /// This can happen only inside an extension.
-  bool _resolveOfThisRecordType({
-    required SimpleIdentifierImpl node,
-    required RecordType recordType,
-    required DartType? contextType,
-  }) {
-    final field = recordType.fieldByName(node.name);
-    if (field != null) {
-      _inferenceHelper.recordStaticType(node, field.type,
-          contextType: contextType);
-      return true;
-    } else {
-      return false;
-    }
   }
 
   /// TODO(scheglov) this is duplicate

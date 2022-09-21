@@ -40,6 +40,13 @@ class ThisLookup {
       );
     }
 
+    final recordField = propertyResult.recordField;
+    if (recordField != null) {
+      return LexicalLookupResult(
+        recordField: recordField,
+      );
+    }
+
     var getterElement = propertyResult.getter;
     if (getterElement != null) {
       return LexicalLookupResult(requested: getterElement);
