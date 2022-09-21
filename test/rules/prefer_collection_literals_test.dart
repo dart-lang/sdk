@@ -122,4 +122,19 @@ void f() {
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 44, 15),
     ]);
   }
+
+  @failingTest
+  test_closure_returns_linkedHashSet() async {
+    await assertDiagnostics(r'''
+import 'dart:collection';
+
+void a(Set<int> Function() f) {}
+
+void c() {
+  a(() => LinkedHashSet<int>());
+}
+''', [
+      lint(82, 20),
+    ]);
+  }
 }
