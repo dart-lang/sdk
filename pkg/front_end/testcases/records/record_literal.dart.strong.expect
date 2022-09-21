@@ -26,7 +26,7 @@ static method method() → dynamic {
   (0, {b: 1});
   ({a: 0, b: 1});
   let final core::int #t1 = 0 in (1, {a: #t1});
-  (#C1, #C2);
+  #C3;
 }
 static method sorting() → dynamic {
   ({a: 0, b: 1, c: 2, d: 3});
@@ -44,4 +44,5 @@ static method sorting() → dynamic {
 constants  {
   #C1 = TypeLiteralConstant(core::int)
   #C2 = TypeLiteralConstant(core::String)
+const (#C1, #C2)
 }

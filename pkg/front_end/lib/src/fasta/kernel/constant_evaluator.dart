@@ -803,8 +803,42 @@ class ConstantsTransformer extends RemovingTransformer {
   TreeNode visitRecordLiteral(RecordLiteral node, TreeNode? removalSentinel) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
+    } else {
+      // A record literal is a compile-time constant expression if and only
+      // if all its field expressions are compile-time constant expressions.
+
+      bool allConstant = true;
+
+      List<Constant> positional = [];
+
+      for (int i = 0; i < node.positional.length; i++) {
+        Expression result = transform(node.positional[i]);
+        node.positional[i] = result..parent = node;
+        if (allConstant && result is ConstantExpression) {
+          positional.add(result.constant);
+        } else {
+          allConstant = false;
+        }
+      }
+
+      Map<String, Constant> named = {};
+      for (NamedExpression expression in node.named) {
+        Expression result = transform(expression.value);
+        expression.value = result..parent = expression;
+        if (allConstant && result is ConstantExpression) {
+          named[expression.name] = result.constant;
+        } else {
+          allConstant = false;
+        }
+      }
+
+      if (allConstant) {
+        Constant constant = constantEvaluator.canonicalize(
+            new RecordConstant(positional, named, node.recordType));
+        return makeConstantExpression(constant, node);
+      }
+      return node;
     }
-    return super.visitRecordLiteral(node, removalSentinel);
   }
 
   @override
@@ -1505,12 +1539,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitRecordLiteral(RecordLiteral node) {
-    if (!node.isConst) {
-      return createExpressionErrorConstant(
-          node,
-          templateNotConstantExpression
-              .withArguments('Non-constant record literal'));
-    }
+    // A record literal is a compile-time constant expression if and only
+    // if all its field expressions are compile-time constant expressions.
+    //
+    // This visitor is called when the context requires the literal to be
+    // constant, so we report an error on the expressions when these are not
+    // constants.
 
     List<Constant>? positional = _evaluatePositionalArguments(node.positional);
     if (positional == null) {
@@ -4679,7 +4713,7 @@ bool isInstantiated(DartType type) {
   return type.accept(new IsInstantiatedVisitor());
 }
 
-class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
+class IsInstantiatedVisitor implements DartTypeVisitor<bool> {
   final _availableVariables = new Set<TypeParameter>();
 
   bool isInstantiated(DartType type) {
@@ -4739,6 +4773,23 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
 
   @override
   bool visitNeverType(NeverType node) => true;
+
+  @override
+  bool visitRecordType(RecordType node) {
+    return node.positional.every((p) => p.accept(this)) &&
+        node.named.every((p) => p.type.accept(this));
+  }
+
+  @override
+  bool visitExtensionType(ExtensionType node) {
+    return node.typeArguments
+        .every((DartType typeArgument) => typeArgument.accept(this));
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node) {
+    return node.left.accept(this) && node.right.accept(this);
+  }
 }
 
 bool _isFormalParameter(VariableDeclaration variable) {
