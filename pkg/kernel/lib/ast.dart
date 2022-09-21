@@ -8728,7 +8728,12 @@ class RecordLiteral extends Expression {
   }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(positional, this);
+    v.transformNamedExpressionList(named, this);
+    recordType =
+        v.visitDartType(recordType, cannotRemoveSentinel) as RecordType;
+  }
 
   @override
   String toString() {
