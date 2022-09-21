@@ -323,9 +323,9 @@ File* File::OpenFD(int fd) {
 
 class StringRAII {
  public:
-  explicit StringRAII(StringRAII* origin) {
-    own_ = origin->own_;
-    s_ = origin->release();
+  explicit StringRAII(StringRAII& origin) {  // NOLINT
+    own_ = origin.own_;
+    s_ = origin.release();
   }
 
   explicit StringRAII(const char* s) : s_(s), own_(false) {}
