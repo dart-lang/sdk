@@ -112,6 +112,11 @@ UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
 }
 
+DART_NOINLINE
+static void* IgnoreUseAfterFree(void* x) {
+  return x;
+}
+
 VM_UNIT_TEST_CASE(StackTraceMallocHookSimpleTest) {
   EnableMallocHooksAndStacksScope scope;
 
@@ -119,8 +124,9 @@ VM_UNIT_TEST_CASE(StackTraceMallocHookSimpleTest) {
   Sample* sample = MallocHooks::GetSample(var);
   EXPECT(sample != NULL);
 
+  void* lookup_var = IgnoreUseAfterFree(var);
   free(var);
-  sample = MallocHooks::GetSample(var);
+  sample = MallocHooks::GetSample(lookup_var);
   EXPECT(sample == NULL);
 }
 

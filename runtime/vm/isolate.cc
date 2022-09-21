@@ -469,7 +469,7 @@ void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
   }
 }
 
-bool IsolateGroup::UnregisterIsolateDecrementCount(Isolate* isolate) {
+bool IsolateGroup::UnregisterIsolateDecrementCount() {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   isolate_count_--;
   return isolate_count_ == 0;
@@ -2706,8 +2706,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
     }
   }
 
-  const bool shutdown_group =
-      isolate_group->UnregisterIsolateDecrementCount(isolate);
+  const bool shutdown_group = isolate_group->UnregisterIsolateDecrementCount();
   if (shutdown_group) {
     KernelIsolate::NotifyAboutIsolateGroupShutdown(isolate_group);
 

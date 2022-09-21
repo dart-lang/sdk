@@ -13,6 +13,8 @@
 #error Do not include assembler_ia32.h directly; use assembler.h instead.
 #endif
 
+#include <functional>
+
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/compiler/assembler/assembler_base.h"
