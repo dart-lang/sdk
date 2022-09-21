@@ -1652,9 +1652,7 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   __ LoadCompressedSmi(result,
                        compiler::FieldAddress(str, String::length_offset()));
-  __ ldr(TMP,
-         compiler::FieldAddress(str, OneByteString::data_offset(),
-                                compiler::kByte),
+  __ ldr(TMP, compiler::FieldAddress(str, OneByteString::data_offset()),
          compiler::kUnsignedByte);
   __ CompareImmediate(result, Smi::RawValue(1));
   __ LoadImmediate(result, -1);
@@ -2275,10 +2273,10 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (emit_full_guard) {
     __ LoadObject(field_reg, Field::ZoneHandle((field().Original())));
 
-    compiler::FieldAddress field_cid_operand(
-        field_reg, Field::guarded_cid_offset(), compiler::kUnsignedTwoBytes);
+    compiler::FieldAddress field_cid_operand(field_reg,
+                                             Field::guarded_cid_offset());
     compiler::FieldAddress field_nullability_operand(
-        field_reg, Field::is_nullable_offset(), compiler::kUnsignedTwoBytes);
+        field_reg, Field::is_nullable_offset());
 
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
@@ -2541,15 +2539,14 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   __ StoreCompressedIntoObjectNoBarrier(
       AllocateArrayABI::kResultReg,
       compiler::FieldAddress(AllocateArrayABI::kResultReg,
-                             Array::type_arguments_offset(),
-                             compiler::kObjectBytes),
+                             Array::type_arguments_offset()),
       AllocateArrayABI::kTypeArgumentsReg);
 
   // Set the length field.
   __ StoreCompressedIntoObjectNoBarrier(
       AllocateArrayABI::kResultReg,
       compiler::FieldAddress(AllocateArrayABI::kResultReg,
-                             Array::length_offset(), compiler::kObjectBytes),
+                             Array::length_offset()),
       AllocateArrayABI::kLengthReg);
 
   // TODO(zra): Use stp once added.
@@ -2566,9 +2563,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       intptr_t current_offset = 0;
       while (current_offset < array_size) {
         __ StoreCompressedIntoObjectNoBarrier(
-            AllocateArrayABI::kResultReg,
-            compiler::Address(R8, current_offset, compiler::Address::Offset,
-                              compiler::kObjectBytes),
+            AllocateArrayABI::kResultReg, compiler::Address(R8, current_offset),
             NULL_REG);
         current_offset += kCompressedWordSize;
       }
@@ -2577,11 +2572,8 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       __ Bind(&init_loop);
       __ CompareRegisters(R8, R3);
       __ b(&end_loop, CS);
-      __ StoreCompressedIntoObjectNoBarrier(
-          AllocateArrayABI::kResultReg,
-          compiler::Address(R8, 0, compiler::Address::Offset,
-                            compiler::kObjectBytes),
-          NULL_REG);
+      __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                            compiler::Address(R8, 0), NULL_REG);
       __ AddImmediate(R8, kCompressedWordSize);
       __ b(&init_loop);
       __ Bind(&end_loop);
@@ -5168,8 +5160,7 @@ void CheckWritableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
   __ ldr(TMP,
          compiler::FieldAddress(locs()->in(0).reg(),
-                                compiler::target::Object::tags_offset(),
-                                compiler::kUnsignedByte),
+                                compiler::target::Object::tags_offset()),
          compiler::kUnsignedByte);
   // In the first byte.
   ASSERT(compiler::target::UntaggedObject::kImmutableBit < 8);

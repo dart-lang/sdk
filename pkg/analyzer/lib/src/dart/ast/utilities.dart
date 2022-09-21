@@ -2905,15 +2905,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitNativeClause(covariant NativeClauseImpl node) {
-    if (identical(node.name, _oldNode)) {
-      node.name = _newNode as StringLiteral;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitNativeFunctionBody(covariant NativeFunctionBodyImpl node) {
     if (identical(node.stringLiteral, _oldNode)) {
       node.stringLiteral = _newNode as StringLiteral;

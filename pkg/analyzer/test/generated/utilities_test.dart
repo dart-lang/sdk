@@ -1350,20 +1350,6 @@ void f() {
     );
   }
 
-  void test_nativeClause() {
-    var findNode = _parseStringToFindNode(r'''
-class A native 'foo' {}
-class B native 'bar' {}
-''');
-    _assertReplacementForChildren<NativeClause>(
-      destination: findNode.nativeClause('foo'),
-      source: findNode.nativeClause('bar'),
-      childAccessors: [
-        (node) => node.name!,
-      ],
-    );
-  }
-
   void test_nativeFunctionBody() {
     var findNode = _parseStringToFindNode(r'''
 void f() native 'foo';

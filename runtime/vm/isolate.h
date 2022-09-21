@@ -336,7 +336,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void UnregisterIsolate(Isolate* isolate);
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
-  bool UnregisterIsolateDecrementCount(Isolate* isolate);
+  bool UnregisterIsolateDecrementCount();
 
   bool ContainsOnlyOneIsolate();
 

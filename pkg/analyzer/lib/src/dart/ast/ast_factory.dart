@@ -183,9 +183,6 @@ class AstFactoryImpl {
         rightBracket);
   }
 
-  NativeClauseImpl nativeClause(Token nativeKeyword, StringLiteral? name) =>
-      NativeClauseImpl(nativeKeyword, name as StringLiteralImpl?);
-
   NativeFunctionBodyImpl nativeFunctionBody(
           Token nativeKeyword, StringLiteral? stringLiteral, Token semicolon) =>
       NativeFunctionBodyImpl(
@@ -193,12 +190,6 @@ class AstFactoryImpl {
 
   NodeListImpl<E> nodeList<E extends AstNode>(AstNode owner) =>
       NodeListImpl<E>(owner as AstNodeImpl);
-
-  NullLiteralImpl nullLiteral(Token literal) => NullLiteralImpl(literal);
-
-  OnClauseImpl onClause(
-          Token onKeyword, List<NamedType> superclassConstraints) =>
-      OnClauseImpl(onKeyword, superclassConstraints);
 
   ParenthesizedExpressionImpl parenthesizedExpression(Token leftParenthesis,
           Expression expression, Token rightParenthesis) =>

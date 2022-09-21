@@ -1377,6 +1377,7 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
         "vm-kernel-precomp-nnbd-linux-debug-x64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64c",
@@ -1946,6 +1947,7 @@
     {
       "builders": [
         "vm-kernel-nnbd-linux-debug-ia32",
+        "vm-kernel-nnbd-linux-debug-simriscv64",
         "vm-kernel-nnbd-linux-debug-x64",
         "vm-kernel-nnbd-linux-debug-x64c",
         "vm-kernel-nnbd-linux-release-ia32",
@@ -1962,9 +1964,9 @@
         "vm-kernel-nnbd-mac-release-arm64",
         "vm-kernel-nnbd-mac-release-x64",
         "vm-kernel-nnbd-mac-release-x64c",
-        "vm-kernel-nnbd-win-release-ia32",
         "vm-kernel-nnbd-win-debug-x64",
         "vm-kernel-nnbd-win-debug-x64c",
+        "vm-kernel-nnbd-win-release-ia32",
         "vm-kernel-nnbd-win-release-x64",
         "vm-kernel-nnbd-win-release-x64c"
       ],
@@ -3148,9 +3150,10 @@
             "language",
             "corelib",
             "web/wasm",
-            "lib/js/static_interop_test"
+            "lib/lib/(async|collection|convert|js/static_interop_test|math|typed_data)/",
+            "co19/co19/(src/)?(Language|LanguageFeatures|LibTest/(async|collection|convert|core|math|typed_data))/"
           ],
-          "shards": 3,
+          "shards": 10,
           "fileset": "dart2wasm_hostasserts"
         }
       ]

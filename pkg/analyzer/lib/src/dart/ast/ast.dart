@@ -8833,16 +8833,18 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 ///    nativeClause ::=
 ///        'native' [StringLiteral]
 class NativeClauseImpl extends AstNodeImpl implements NativeClause {
-  /// The token representing the 'native' keyword.
   @override
-  Token nativeKeyword;
+  final Token nativeKeyword;
 
-  /// The name of the native object that implements the class.
-  StringLiteralImpl? _name;
+  @override
+  final StringLiteralImpl? name;
 
   /// Initialize a newly created native clause.
-  NativeClauseImpl(this.nativeKeyword, this._name) {
-    _becomeParentOf(_name);
+  NativeClauseImpl({
+    required this.nativeKeyword,
+    required this.name,
+  }) {
+    _becomeParentOf(name);
   }
 
   @override
@@ -8850,14 +8852,7 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 
   @override
   Token get endToken {
-    return _name?.endToken ?? nativeKeyword;
-  }
-
-  @override
-  StringLiteralImpl? get name => _name;
-
-  set name(StringLiteral? name) {
-    _name = _becomeParentOf(name as StringLiteralImpl?);
+    return name?.endToken ?? nativeKeyword;
   }
 
   @override
@@ -8870,7 +8865,7 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _name?.accept(visitor);
+    name?.accept(visitor);
   }
 }
 
@@ -9154,10 +9149,12 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   /// The token representing the literal.
   @override
-  Token literal;
+  final Token literal;
 
   /// Initialize a newly created null literal.
-  NullLiteralImpl(this.literal);
+  NullLiteralImpl({
+    required this.literal,
+  });
 
   @override
   Token get beginToken => literal;
@@ -9216,13 +9213,16 @@ mixin NullShortableExpressionImpl implements NullShortableExpression {
 ///        'on' [TypeName] (',' [TypeName])*
 class OnClauseImpl extends AstNodeImpl implements OnClause {
   @override
-  Token onKeyword;
+  final Token onKeyword;
 
   /// The classes are super-class constraints for the mixin.
   final NodeListImpl<NamedType> _superclassConstraints = NodeListImpl._();
 
   /// Initialize a newly created on clause.
-  OnClauseImpl(this.onKeyword, List<NamedType> superclassConstraints) {
+  OnClauseImpl({
+    required this.onKeyword,
+    required List<NamedType> superclassConstraints,
+  }) {
     _superclassConstraints._initialize(this, superclassConstraints);
   }
 

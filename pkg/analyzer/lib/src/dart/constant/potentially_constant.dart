@@ -102,6 +102,10 @@ class _Collector {
       return;
     }
 
+    if (node is RecordLiteral) {
+      return _recordLiteral(node);
+    }
+
     if (node is MethodInvocation) {
       return _methodInvocation(node);
     }
@@ -307,6 +311,12 @@ class _Collector {
     }
 
     nodes.add(node);
+  }
+
+  void _recordLiteral(RecordLiteral node) {
+    for (final field in node.fields) {
+      collect(field);
+    }
   }
 
   void _typeArgumentList(TypeArgumentList? typeArgumentList) {

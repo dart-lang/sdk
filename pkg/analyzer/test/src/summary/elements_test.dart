@@ -1769,6 +1769,51 @@ library
 ''');
   }
 
+  test_class_constructor_initializers_field_recordLiteral() async {
+    var library = await buildLibrary('''
+class C {
+  final Object x;
+  const C(int a) : x = (0, a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          final x @25
+            type: Object
+        constructors
+          const @36
+            parameters
+              requiredPositional a @42
+                type: int
+            constantInitializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x @47
+                  staticElement: self::@class::C::@field::x
+                  staticType: null
+                equals: = @49
+                expression: RecordLiteral
+                  leftParenthesis: ( @51
+                  fields
+                    IntegerLiteral
+                      literal: 0 @52
+                      staticType: int
+                    SimpleIdentifier
+                      token: a @55
+                      staticElement: self::@class::C::@constructor::•::@parameter::a
+                      staticType: int
+                  rightParenthesis: ) @56
+                  staticType: (int, int)
+        accessors
+          synthetic get x @-1
+            returnType: Object
+''');
+  }
+
   test_class_constructor_initializers_field_withParameter() async {
     var library = await buildLibrary('''
 class C {

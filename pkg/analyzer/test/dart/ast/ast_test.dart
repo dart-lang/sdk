@@ -714,27 +714,22 @@ void f() {
   }
 
   void test_isNullAware_false() {
-    final expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.nullLiteral(),
-      index: AstTestFactory.nullLiteral(),
-    );
-    expect(expression.isNullAware, isFalse);
-  }
-
-  void test_isNullAware_regularIndex() {
-    final expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.nullLiteral(),
-      index: AstTestFactory.nullLiteral(),
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a[0];
+}
+''');
+    final expression = findNode.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    final expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.nullLiteral(),
-      hasQuestion: true,
-      index: AstTestFactory.nullLiteral(),
-    );
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a?[0];
+}
+''');
+    final expression = findNode.index('[0]');
     expect(expression.isNullAware, isTrue);
   }
 }
@@ -1242,14 +1237,22 @@ void f() {
   }
 
   void test_isNullAware_regularPropertyAccess() {
-    final invocation = AstTestFactory.propertyAccess2(
-        AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  (a).foo;
+}
+''');
+    final invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
   void test_isNullAware_true() {
-    final invocation = AstTestFactory.propertyAccess2(
-        AstTestFactory.nullLiteral(), 'foo', TokenType.QUESTION_PERIOD);
+    final findNode = _parseStringToFindNode('''
+void f() {
+  a?.foo;
+}
+''');
+    final invocation = findNode.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -1762,16 +1765,20 @@ class SimpleStringLiteralTest extends ParserTestCase {
 }
 
 @reflectiveTest
-class SpreadElementTest extends ParserTestCase {
+class SpreadElementTest extends _AstTest {
   void test_notNullAwareSpread() {
-    final spread = AstTestFactory.spreadElement(
-        TokenType.PERIOD_PERIOD_PERIOD, AstTestFactory.nullLiteral());
+    final findNode = _parseStringToFindNode('''
+final x = [...foo];
+''');
+    final spread = findNode.spreadElement('...foo');
     expect(spread.isNullAware, isFalse);
   }
 
   void test_nullAwareSpread() {
-    final spread = AstTestFactory.spreadElement(
-        TokenType.PERIOD_PERIOD_PERIOD_QUESTION, AstTestFactory.nullLiteral());
+    final findNode = _parseStringToFindNode('''
+final x = [...?foo];
+''');
+    final spread = findNode.spreadElement('...?foo');
     expect(spread.isNullAware, isTrue);
   }
 }

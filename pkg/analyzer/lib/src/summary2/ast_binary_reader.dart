@@ -902,8 +902,8 @@ class AstBinaryReader {
   }
 
   NullLiteral _readNullLiteral() {
-    var node = astFactory.nullLiteral(
-      Tokens.null_(),
+    final node = NullLiteralImpl(
+      literal: Tokens.null_(),
     );
     _readExpressionResolution(node);
     return node;

@@ -1600,10 +1600,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     var importList = imports.toList();
     importList.sort((a, b) => a.uriText.compareTo(b.uriText));
 
+    var quote = codeStyleOptions.preferredQuoteForUris(importDirectives);
     void writeImport(EditBuilder builder, _LibraryToImport import) {
-      builder.write("import '");
+      builder.write('import $quote');
       builder.write(import.uriText);
-      builder.write("'");
+      builder.write(quote);
       var prefix = import.prefix;
       if (prefix != null) {
         builder.write(' as ');

@@ -463,18 +463,11 @@ class AstTestFactory {
         ),
       );
 
-  static NativeClauseImpl nativeClause(String nativeCode) =>
-      astFactory.nativeClause(
-          TokenFactory.tokenFromString("native"), string2(nativeCode));
-
   static NativeFunctionBodyImpl nativeFunctionBody(String nativeMethodName) =>
       astFactory.nativeFunctionBody(
           TokenFactory.tokenFromString("native"),
           string2(nativeMethodName),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static NullLiteralImpl nullLiteral() =>
-      astFactory.nullLiteral(TokenFactory.tokenFromKeyword(Keyword.NULL));
 
   static ParenthesizedExpressionImpl parenthesizedExpression(
           Expression expression) =>
