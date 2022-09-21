@@ -3148,9 +3148,10 @@
             "language",
             "corelib",
             "web/wasm",
-            "lib/js/static_interop_test"
+            "lib/lib/(async|collection|convert|js/static_interop_test|math|typed_data)/",
+            "co19/co19/(src/)?(Language|LanguageFeatures|LibTest/(async|collection|convert|core|math|typed_data))/"
           ],
-          "shards": 3,
+          "shards": 10,
           "fileset": "dart2wasm_hostasserts"
         }
       ]
