@@ -21892,6 +21892,22 @@ ParserErrorCode:
   EXPECTED_LIST_OR_MAP_LITERAL:
     problemMessage: Expected a list or map literal.
     correctionMessage: Try inserting a list or map literal, or remove the type arguments.
+  EXPECTED_NAMED_TYPE_EXTENDS:
+    sharedName: EXPECTED_NAMED_TYPE
+    problemMessage: Expected a class name.
+    correctionMessage: Try using a class name, possibly with type arguments.
+  EXPECTED_NAMED_TYPE_IMPLEMENTS:
+    sharedName: EXPECTED_NAMED_TYPE
+    problemMessage: Expected the name of a class or mixin.
+    correctionMessage: Try using a class or mixin name, possibly with type arguments.
+  EXPECTED_NAMED_TYPE_ON:
+    sharedName: EXPECTED_NAMED_TYPE
+    problemMessage: Expected the name of a class or mixin.
+    correctionMessage: Try using a class or mixin name, possibly with type arguments.
+  EXPECTED_NAMED_TYPE_WITH:
+    sharedName: EXPECTED_NAMED_TYPE
+    problemMessage: Expected a mixin name.
+    correctionMessage: Try using a mixin name, possibly with type arguments.
   EXPECTED_STRING_LITERAL:
     problemMessage: Expected a string literal.
   EXPECTED_TOKEN:

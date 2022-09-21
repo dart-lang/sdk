@@ -506,6 +506,36 @@ class ParserErrorCode extends ErrorCode {
         "Try inserting a list or map literal, or remove the type arguments.",
   );
 
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_EXTENDS = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected a class name.",
+    correctionMessage: "Try using a class name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_EXTENDS',
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_IMPLEMENTS = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected the name of a class or mixin.",
+    correctionMessage:
+        "Try using a class or mixin name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_IMPLEMENTS',
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_ON = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected the name of a class or mixin.",
+    correctionMessage:
+        "Try using a class or mixin name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_ON',
+  );
+
+  static const ParserErrorCode EXPECTED_NAMED_TYPE_WITH = ParserErrorCode(
+    'EXPECTED_NAMED_TYPE',
+    "Expected a mixin name.",
+    correctionMessage: "Try using a mixin name, possibly with type arguments.",
+    uniqueName: 'EXPECTED_NAMED_TYPE_WITH',
+  );
+
   static const ParserErrorCode EXPECTED_STRING_LITERAL = ParserErrorCode(
     'EXPECTED_STRING_LITERAL',
     "Expected a string literal.",

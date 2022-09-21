@@ -56,11 +56,13 @@ import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
@@ -2381,7 +2383,9 @@ class AstBuilder extends StackListener {
 
     ImplementsClauseImpl? implementsClause;
     if (implementsKeyword != null) {
-      var interfaces = popTypeList();
+      var interfaces = _popNamedTypeList(
+        errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS,
+      );
       implementsClause = ImplementsClauseImpl(
         implementsKeyword: implementsKeyword,
         interfaces: interfaces,
@@ -3221,12 +3225,16 @@ class AstBuilder extends StackListener {
         ),
       );
     } else {
-      // TODO(brianwilkerson) Produce a diagnostic indicating that the type
-      //  annotation is either missing or an invalid kind. Also, consider
-      //  (a) extending `ExtendsClause` to accept any type annotation for
-      //  recovery purposes, and (b) extending the parser to parse a generic
-      //  function type at this location.
       push(NullValue.ExtendsClause);
+      // TODO(brianwilkerson) Consider (a) extending `ExtendsClause` to accept
+      //  any type annotation for recovery purposes, and (b) extending the
+      //  parser to parse a generic function type at this location.
+      if (supertype != null) {
+        errorReporter.errorReporter?.reportErrorForNode(
+          ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS,
+          supertype,
+        );
+      }
     }
   }
 
@@ -3281,7 +3289,9 @@ class AstBuilder extends StackListener {
   @override
   void handleClassWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
-    var mixinTypes = popTypeList();
+    var mixinTypes = _popNamedTypeList(
+      errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
+    );
     push(ast.withClause(withKeyword, mixinTypes));
   }
 
@@ -3524,7 +3534,9 @@ class AstBuilder extends StackListener {
   @override
   void handleEnumWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
-    var mixinTypes = popTypeList();
+    var mixinTypes = _popNamedTypeList(
+      errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
+    );
     push(ast.withClause(withKeyword, mixinTypes));
   }
 
@@ -3781,9 +3793,10 @@ class AstBuilder extends StackListener {
     debugEvent("Implements");
 
     if (implementsKeyword != null) {
-      var types = popTypedList2<TypeAnnotation>(interfacesCount);
-      // TODO(brianwilkerson) Report diagnostics for any type that's filtered out.
-      var interfaces = types.whereType<NamedType>().toList();
+      endTypeList(interfacesCount);
+      final interfaces = _popNamedTypeList(
+        errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS,
+      );
       push(
         ImplementsClauseImpl(
           implementsKeyword: implementsKeyword,
@@ -4086,9 +4099,10 @@ class AstBuilder extends StackListener {
     debugEvent("MixinOn");
 
     if (onKeyword != null) {
-      var types = popTypedList2<TypeAnnotation>(typeCount);
-      // TODO(brianwilkerson) Report diagnostics for any type that's filtered out.
-      var onTypes = types.whereType<NamedType>().toList();
+      endTypeList(typeCount);
+      final onTypes = _popNamedTypeList(
+        errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_ON,
+      );
       push(ast.onClause(onKeyword, onTypes));
     } else {
       push(NullValue.IdentifierList);
@@ -4116,7 +4130,9 @@ class AstBuilder extends StackListener {
   @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     assert(optionalOrNull('with', withKeyword));
-    var mixinTypes = popTypeList();
+    var mixinTypes = _popNamedTypeList(
+      errorCode: ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
+    );
     push(ast.withClause(withKeyword, mixinTypes));
   }
 
@@ -4676,21 +4692,6 @@ class AstBuilder extends StackListener {
     return result.reversed.toList();
   }
 
-  // List<T?>? popTypedList<T>(int count, [List<T>? list]) {
-  //   if (count == 0) return null;
-  //   assert(stack.length >= count);
-  //
-  //   final tailList = list ?? List<T?>.filled(count, null, growable: true);
-  //   stack.popList(count, tailList, null);
-  //   return tailList;
-  // }
-
-  List<NamedType> popTypeList() {
-    var types = pop() as List<TypeAnnotation>;
-    // TODO(brianwilkerson) Report diagnostics for any type that's filtered out.
-    return types.whereType<NamedType>().toList();
-  }
-
   void reportErrorIfNullableType(Token? questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
@@ -4759,6 +4760,21 @@ class AstBuilder extends StackListener {
     push(ast.instanceCreationExpression(
         token, constructorName, arguments.argumentList,
         typeArguments: typeArguments));
+  }
+
+  List<NamedType> _popNamedTypeList({
+    required ErrorCode errorCode,
+  }) {
+    final types = pop() as List<TypeAnnotation>;
+    final namedTypes = <NamedType>[];
+    for (final type in types) {
+      if (type is NamedType) {
+        namedTypes.add(type);
+      } else {
+        errorReporter.errorReporter?.reportErrorForNode(errorCode, type);
+      }
+    }
+    return namedTypes;
   }
 
   void _reportFeatureNotEnabled({
