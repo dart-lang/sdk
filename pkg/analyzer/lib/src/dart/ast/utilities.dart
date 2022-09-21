@@ -1876,7 +1876,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   /// Initialize a newly created node locator to replace the [_oldNode] with the
   /// [_newNode].
-  NodeReplacer(this._oldNode, this._newNode);
+  NodeReplacer._(this._oldNode, this._newNode);
 
   @override
   bool visitAdjacentStrings(covariant AdjacentStringsImpl node) {
@@ -3393,7 +3393,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     if (parent == null) {
       throw ArgumentError("The old node is not a child of another node");
     }
-    NodeReplacer replacer = NodeReplacer(oldNode, newNode);
+    NodeReplacer replacer = NodeReplacer._(oldNode, newNode);
     return parent.accept(replacer)!;
   }
 }

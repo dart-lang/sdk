@@ -94,7 +94,7 @@ class AssignmentExpressionResolver {
     }
 
     _resolver.analyzeExpression(right, rhsContext);
-    right = node.rightHandSide;
+    right = _resolver.popRewrite()!;
     var whyNotPromoted = flow?.whyNotPromoted(right);
 
     _resolveTypes(node,

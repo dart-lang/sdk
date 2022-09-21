@@ -74,6 +74,7 @@ class PrefixExpressionResolver {
         innerContextType = contextType;
       }
       _resolver.analyzeExpression(operand, innerContextType);
+      _resolver.popRewrite();
     }
 
     _resolve1(node);
@@ -226,7 +227,7 @@ class PrefixExpressionResolver {
     var operand = node.operand;
 
     _resolver.analyzeExpression(operand, _typeProvider.boolType);
-    operand = node.operand;
+    operand = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(operand);
 
     _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand,

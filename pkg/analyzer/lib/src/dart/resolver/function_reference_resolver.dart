@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -291,7 +290,7 @@ class FunctionReferenceResolver {
       typeArguments: node.typeArguments,
       typeArgumentTypes: typeArgumentTypes,
     );
-    NodeReplacer.replace(node, callReference);
+    _resolver.replaceExpression(node, callReference);
     var instantiatedType = callMethodType.instantiate(typeArgumentTypes);
     callReference.staticType = instantiatedType;
   }
@@ -826,7 +825,7 @@ class FunctionReferenceResolver {
     typeName.name.staticType = instantiatedType;
     var typeLiteral = astFactory.typeLiteral(typeName: typeName);
     typeLiteral.staticType = _typeType;
-    NodeReplacer.replace(node, typeLiteral);
+    _resolver.replaceExpression(node, typeLiteral);
   }
 
   /// Resolves [name] as a property on [receiver].

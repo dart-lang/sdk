@@ -50,7 +50,7 @@ class VariableDeclarationResolver {
     }
 
     _resolver.analyzeExpression(initializer, element.type);
-    initializer = node.initializer!;
+    initializer = _resolver.popRewrite()!;
     var whyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
 

@@ -461,8 +461,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       }
       var argument = arguments[deferredArgument.index];
       resolver.analyzeExpression(argument, parameterContextType);
-      // In case of rewrites, we need to grab the argument again.
-      argument = arguments[deferredArgument.index];
+      argument = resolver.popRewrite()!;
       if (flow != null) {
         identicalInfo?[deferredArgument.index] =
             flow.equalityOperand_end(argument, argument.typeOrThrow);
@@ -521,8 +520,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           parameterContextType = _computeContextForArgument(parameterType);
         }
         resolver.analyzeExpression(argument, parameterContextType);
-        // In case of rewrites, we need to grab the argument again.
-        argument = arguments[i];
+        argument = resolver.popRewrite()!;
         if (flow != null) {
           identicalInfo
               ?.add(flow.equalityOperand_end(argument, argument.typeOrThrow));

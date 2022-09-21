@@ -664,7 +664,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateSwitchStatement_nullSafety(SwitchStatement node) {
-    var switchType = node.expression.typeOrThrow;
     for (var switchMember in node.members) {
       if (switchMember is SwitchCase) {
         Expression expression = switchMember.expression;
@@ -690,15 +689,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
             expression,
             [expressionType],
-          );
-        }
-
-        if (!_typeSystem.isSubtypeOf(expressionType, switchType)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode
-                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-            expression,
-            [expressionType, switchType],
           );
         }
       }

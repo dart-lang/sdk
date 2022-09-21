@@ -157,6 +157,7 @@ class YieldStatementResolver {
   ) {
     _resolver.analyzeExpression(
         node.expression, _computeContextType(bodyContext, node));
+    _resolver.popRewrite();
 
     if (node.star != null) {
       _resolver.nullableDereferenceVerifier.expression(

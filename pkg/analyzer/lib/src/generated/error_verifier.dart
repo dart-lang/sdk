@@ -48,7 +48,6 @@ import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:collection/collection.dart';
 
 class EnclosingExecutableContext {
   final ExecutableElement? element;
@@ -4243,30 +4242,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    Expression expression = statement.expression;
-    if (checkForUseOfVoidResult(expression)) {
-      return;
-    }
-
-    // prepare 'switch' expression type
-    DartType expressionType = expression.typeOrThrow;
-
-    // compare with type of the first non-default 'case'
-    var switchCase = statement.members.whereType<SwitchCase>().firstOrNull;
-    if (switchCase == null) {
-      return;
-    }
-
-    Expression caseExpression = switchCase.expression;
-    DartType caseType = caseExpression.typeOrThrow;
-
-    // check types
-    if (!typeSystem.isAssignableTo(expressionType, caseType)) {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
-          expression,
-          [expressionType, caseType]);
-    }
+    checkForUseOfVoidResult(statement.expression);
   }
 
   void _checkForThrowOfInvalidType(ThrowExpression node) {
