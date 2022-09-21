@@ -753,6 +753,10 @@ class Assembler : public AssemblerBase {
     PopRegister(r1);
   }
 
+  void PushValueAtOffset(Register base, int32_t offset) {
+    pushq(Address(base, offset));
+  }
+
   // Methods for adding/subtracting an immediate value that may be loaded from
   // the constant pool.
   // TODO(koda): Assert that these are not used for heap objects.
@@ -838,12 +842,29 @@ class Assembler : public AssemblerBase {
                        Register value,       // Value we are storing.
                        CanBeSmi can_be_smi = kValueCanBeSmi,
                        MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreIntoObjectOffset(Register object,  // Object we are storing into.
+                             int32_t offset,   // Where we are storing into.
+                             Register value,   // Value we are storing.
+                             CanBeSmi can_be_smi = kValueCanBeSmi,
+                             MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObject(object, FieldAddress(object, offset), value, can_be_smi,
+                    memory_order);
+  }
   void StoreCompressedIntoObject(
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
       Register value,       // Value we are storing.
       CanBeSmi can_be_smi = kValueCanBeSmi,
       MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreCompressedIntoObjectOffset(
+      Register object,  // Object we are storing into.
+      int32_t offset,   // Where we are storing into.
+      Register value,   // Value we are storing.
+      CanBeSmi can_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreCompressedIntoObject(object, FieldAddress(object, offset), value,
+                              can_be_smi, memory_order);
+  }
   void StoreBarrier(Register object,  // Object we are storing into.
                     Register value,   // Value we are storing.
                     CanBeSmi can_be_smi);
@@ -875,6 +896,39 @@ class Assembler : public AssemblerBase {
       const Address& dest,
       const Object& value,
       MemoryOrder memory_order = kRelaxedNonAtomic);
+
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
+  }
+  void StoreCompressedIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                       value, memory_order);
+  }
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
+  }
+  void StoreCompressedIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreCompressedIntoObjectNoBarrier(object, FieldAddress(object, offset),
+                                       value, memory_order);
+  }
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
@@ -1086,6 +1140,18 @@ class Assembler : public AssemblerBase {
   }
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     movq(Address(base, offset), src);
+  }
+
+  void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    movups(dst, Address(base, offset));
+  }
+  void StoreUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    movups(Address(base, offset), dst);
+  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      movaps(dst, src);
+    }
   }
 
   void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {

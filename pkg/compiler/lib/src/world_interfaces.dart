@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'closure.dart';
+import 'package:kernel/ast.dart' as ir;
 import 'common/elements.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
@@ -29,6 +31,8 @@ abstract class JClosedWorld implements World {
 
   AnnotationsData get annotationsData;
 
+  ClosureData get closureDataLookup;
+
   Iterable<MemberEntity> get liveInstanceMembers;
 
   bool isUsedAsMixin(ClassEntity cls);
@@ -39,6 +43,8 @@ abstract class JClosedWorld implements World {
       Selector selector, AbstractValue? receiver);
 
   bool fieldNeverChanges(MemberEntity element);
+
+  Selector getSelector(ir.Expression node);
 }
 
 // TODO(48820): Move back to `world.dart` when migrated.

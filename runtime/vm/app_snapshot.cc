@@ -334,10 +334,10 @@ class ClassSerializationCluster : public SerializationCluster {
     }
     s->Write<uint32_t>(cls->untag()->state_bits_);
 
-    // In AOT, the bitmap of unboxed fields should also be serialized
-    if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(class_id)) {
-      s->WriteUnsigned64(
-          CalculateTargetUnboxedFieldsBitmap(s, class_id).Value());
+    if (!ClassTable::IsTopLevelCid(class_id)) {
+      const auto unboxed_fields_map =
+          CalculateTargetUnboxedFieldsBitmap(s, class_id);
+      s->WriteUnsigned64(unboxed_fields_map.Value());
     }
   }
 
@@ -430,16 +430,10 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->untag()->implementor_cid_ = d.ReadCid();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
       cls->untag()->state_bits_ = d.Read<uint32_t>();
-
-#if defined(DART_PRECOMPILED_RUNTIME)
       d.ReadUnsigned64();  // Skip unboxed fields bitmap.
-#endif
     }
 
     ClassTable* table = d_->isolate_group()->class_table();
-#if defined(DART_PRECOMPILED_RUNTIME)
-    auto class_table = d_->isolate_group()->class_table();
-#endif
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ClassPtr cls = static_cast<ClassPtr>(d.Ref(id));
       Deserializer::InitializeHeader(cls, kClassCid, Class::InstanceSize());
@@ -478,12 +472,10 @@ class ClassDeserializationCluster : public DeserializationCluster {
       table->AllocateIndex(class_id);
       table->SetAt(class_id, cls);
 
-#if defined(DART_PRECOMPILED_RUNTIME)
       if (!ClassTable::IsTopLevelCid(class_id)) {
         const UnboxedFieldBitmap unboxed_fields_map(d.ReadUnsigned64());
-        class_table->SetUnboxedFieldsMapAt(class_id, unboxed_fields_map);
+        table->SetUnboxedFieldsMapAt(class_id, unboxed_fields_map);
       }
-#endif
     }
   }
 

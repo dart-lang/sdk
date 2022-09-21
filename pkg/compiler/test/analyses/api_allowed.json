@@ -30,10 +30,7 @@
     "Dynamic invocation of 'call'.": 2,
     "Dynamic access of 'attributes'.": 1,
     "Dynamic invocation of '[]'.": 1,
-    "Dynamic invocation of 'toLowerCase'.": 1,
-    "Dynamic invocation of 'attached'.": 1,
-    "Dynamic invocation of 'detached'.": 1,
-    "Dynamic invocation of 'attributeChanged'.": 1
+    "Dynamic invocation of 'toLowerCase'.": 1
   },
   "org-dartlang-sdk:///lib/html/html_common/conversions.dart": {
     "Dynamic invocation of '[]='.": 1

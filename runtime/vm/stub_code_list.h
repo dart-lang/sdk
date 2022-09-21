@@ -59,6 +59,8 @@ namespace dart {
   V(AllocateRecord)                                                            \
   V(AllocateUnhandledException)                                                \
   V(BoxDouble)                                                                 \
+  V(BoxFloat32x4)                                                              \
+  V(BoxFloat64x2)                                                              \
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \

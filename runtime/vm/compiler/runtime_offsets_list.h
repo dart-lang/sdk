@@ -316,8 +316,7 @@
   FIELD(Thread, top_exit_frame_info_offset)                                    \
   FIELD(Thread, top_offset)                                                    \
   FIELD(Thread, top_resource_offset)                                           \
-  FIELD(Thread, unboxed_int64_runtime_arg_offset)                              \
-  FIELD(Thread, unboxed_double_runtime_arg_offset)                             \
+  FIELD(Thread, unboxed_runtime_arg_offset)                                    \
   FIELD(Thread, vm_tag_offset)                                                 \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \

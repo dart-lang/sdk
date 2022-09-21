@@ -1196,8 +1196,7 @@ class Thread : public AllStatic {
   static word stack_overflow_shared_stub_entry_point_offset(bool fpu_regs);
   static word stack_limit_offset();
   static word saved_stack_limit_offset();
-  static word unboxed_int64_runtime_arg_offset();
-  static word unboxed_double_runtime_arg_offset();
+  static word unboxed_runtime_arg_offset();
 
   static word callback_code_offset();
   static word callback_stack_return_offset();
@@ -1577,6 +1576,9 @@ class FieldTable : public AllStatic {
  public:
   static word OffsetOf(const dart::Field& field);
 };
+
+void UnboxFieldIfSupported(const dart::Field& field,
+                           const dart::AbstractType& type);
 
 }  // namespace target
 }  // namespace compiler

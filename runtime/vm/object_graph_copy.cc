@@ -1304,7 +1304,7 @@ class ObjectCopy : public Base {
                               typename Types::Object to,
                               intptr_t cid) {
     if (IsImplicitFieldClassId(cid)) {
-      CopyUserdefinedInstance(from, to);
+      CopyUserdefinedInstanceWithoutUnboxedFields(from, to);
       return;
     }
     switch (cid) {
@@ -1367,21 +1367,18 @@ class ObjectCopy : public Base {
     FATAL1("Unexpected object: %s\n", obj.ToCString());
   }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-  void CopyUserdefinedInstanceAOT(typename Types::Object from,
-                                  typename Types::Object to,
-                                  UnboxedFieldBitmap bitmap) {
+  void CopyUserdefinedInstance(typename Types::Object from,
+                               typename Types::Object to,
+                               UnboxedFieldBitmap bitmap) {
     const intptr_t instance_size = UntagObject(from)->HeapSize();
     Base::ForwardCompressedPointers(from, to, kWordSize, instance_size, bitmap);
   }
-#endif
 
-  void CopyUserdefinedInstance(typename Types::Object from,
-                               typename Types::Object to) {
+  void CopyUserdefinedInstanceWithoutUnboxedFields(typename Types::Object from,
+                                                   typename Types::Object to) {
     const intptr_t instance_size = UntagObject(from)->HeapSize();
     Base::ForwardCompressedPointers(from, to, kWordSize, instance_size);
   }
-
   void CopyClosure(typename Types::Closure from, typename Types::Closure to) {
     Base::StoreCompressedPointers(
         from, to, OFFSET_OF(UntaggedClosure, instantiator_type_arguments_),
@@ -1870,13 +1867,9 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
       CopyPredefinedInstance(from, to, cid);
       return;
     }
-#if defined(DART_PRECOMPILED_RUNTIME)
     const auto bitmap = class_table_->GetUnboxedFieldsMapAt(cid);
-    CopyUserdefinedInstanceAOT(Instance::RawCast(from), Instance::RawCast(to),
-                               bitmap);
-#else
-    CopyUserdefinedInstance(Instance::RawCast(from), Instance::RawCast(to));
-#endif
+    CopyUserdefinedInstance(Instance::RawCast(from), Instance::RawCast(to),
+                            bitmap);
     if (cid == expando_cid_) {
       EnqueueExpandoToRehash(to);
     }
@@ -2004,12 +1997,8 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
       CopyPredefinedInstance(from, to, cid);
       return;
     }
-#if defined(DART_PRECOMPILED_RUNTIME)
     const auto bitmap = class_table_->GetUnboxedFieldsMapAt(cid);
-    CopyUserdefinedInstanceAOT(from, to, bitmap);
-#else
-    CopyUserdefinedInstance(from, to);
-#endif
+    CopyUserdefinedInstance(from, to, bitmap);
     if (cid == expando_cid_) {
       EnqueueExpandoToRehash(to);
     }

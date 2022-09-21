@@ -199,6 +199,7 @@ class UseResultVerifier {
         parent is ForElement ||
         parent is IfElement ||
         parent is ParenthesizedExpression ||
+        parent is PrefixExpression ||
         parent is SpreadElement) {
       return _isUsed(parent);
     }

@@ -9,6 +9,7 @@
 #include "vm/object.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/runtime_offsets_list.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
@@ -1044,6 +1045,49 @@ word Smi::InstanceSize() {
 
 word Number::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Number::NextFieldOffset());
+}
+
+void UnboxFieldIfSupported(const dart::Field& field,
+                           const dart::AbstractType& type) {
+  if (field.is_static() || field.is_late()) {
+    return;
+  }
+
+  if (type.IsNullable()) {
+    return;
+  }
+
+  // In JIT mode we can unbox fields which are guaranteed to be non-nullable
+  // based on their static type. We can only rely on this information
+  // when running in sound null safety. AOT instead uses TFA results, see
+  // |KernelLoader::ReadInferredType|.
+  if (!dart::Thread::Current()->isolate_group()->null_safety()) {
+    return;
+  }
+
+  classid_t cid = kIllegalCid;
+  if (type.IsDoubleType()) {
+    if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+      cid = kDoubleCid;
+    }
+  } else if (type.IsFloat32x4Type()) {
+    if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
+      cid = kFloat32x4Cid;
+    }
+  } else if (type.IsFloat64x2Type()) {
+    if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
+      cid = kFloat64x2Cid;
+    }
+  }
+
+  if (cid != kIllegalCid) {
+    field.set_guarded_cid(cid);
+    field.set_is_nullable(false);
+    field.set_is_unboxed(true);
+    field.set_guarded_list_length(dart::Field::kNoFixedLength);
+    field.set_guarded_list_length_in_object_offset(
+        dart::Field::kUnknownLengthOffset);
+  }
 }
 
 }  // namespace target

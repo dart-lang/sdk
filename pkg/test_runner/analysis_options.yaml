@@ -12,7 +12,6 @@ linter:
     cancel_subscriptions: true
     comment_references: true
     directives_ordering: true
-    invariant_booleans: true
     omit_local_variable_types: true
     package_api_docs: true
     prefer_const_constructors: true

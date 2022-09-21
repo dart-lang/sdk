@@ -395,7 +395,6 @@ void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
   const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
   const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
   const auto unboxed_fields_bitmap =
       visitor->class_table()->GetUnboxedFieldsMapAt(class_id);
 
@@ -409,9 +408,6 @@ void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
   } else {
     visitor->VisitCompressedPointers(heap_base(), first, last);
   }
-#else
-  visitor->VisitCompressedPointers(heap_base(), first, last);
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 }
 
 bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {

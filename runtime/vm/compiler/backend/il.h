@@ -5896,12 +5896,10 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
                         kind) {}
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
-    // In AOT unbox is done based on TFA, therefore it was proven to be correct
-    // and it can never deoptimize.
-    return (slot().representation() != kTagged ||
-            (IsUnboxedDartFieldStore() && CompilerState::Current().is_aot()))
-               ? kNotSpeculative
-               : kGuardInputs;
+    // Slots are unboxed based on statically inferrable type information.
+    // Either sound non-nullable static types (JIT) or global type flow analysis
+    // results (AOT).
+    return slot().representation() != kTagged ? kNotSpeculative : kGuardInputs;
   }
 
   DECLARE_INSTRUCTION(StoreField)
@@ -5937,9 +5935,7 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
     emit_store_barrier_ = value;
   }
 
-  virtual bool CanTriggerGC() const {
-    return IsUnboxedDartFieldStore() || IsPotentialUnboxedDartFieldStore();
-  }
+  virtual bool CanTriggerGC() const { return false; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -5950,15 +5946,6 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
   // are marked as having no side-effects.
   virtual bool HasUnknownSideEffects() const { return false; }
-
-  // Returns whether this instruction is an unboxed store into a _boxed_ Dart
-  // field. Unboxed Dart fields are handled similar to unboxed native fields.
-  bool IsUnboxedDartFieldStore() const;
-
-  // Returns whether this instruction is an potential unboxed store into a
-  // _boxed_ Dart field. Unboxed Dart fields are handled similar to unboxed
-  // native fields.
-  bool IsPotentialUnboxedDartFieldStore() const;
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const;
 
@@ -7361,15 +7348,6 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
   virtual Representation representation() const;
 
-  // Returns whether this instruction is an unboxed load from a _boxed_ Dart
-  // field. Unboxed Dart fields are handled similar to unboxed native fields.
-  bool IsUnboxedDartFieldLoad() const;
-
-  // Returns whether this instruction is an potential unboxed load from a
-  // _boxed_ Dart field. Unboxed Dart fields are handled similar to unboxed
-  // native fields.
-  bool IsPotentialUnboxedDartFieldLoad() const;
-
   DECLARE_INSTRUCTION(LoadField)
   DECLARE_ATTRIBUTES(&slot())
 
@@ -7402,9 +7380,7 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
 
-  virtual bool CanTriggerGC() const {
-    return calls_initializer() || IsPotentialUnboxedDartFieldLoad();
-  }
+  virtual bool CanTriggerGC() const { return calls_initializer(); }
 
   virtual bool AttributesEqual(const Instruction& other) const;
 

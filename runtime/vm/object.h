@@ -1831,6 +1831,10 @@ class Class : public Object {
 #endif  // defined(DART_PRECOMPILER)
   }
 
+  static intptr_t UnboxedFieldSizeInBytesByCid(intptr_t cid);
+  void MarkFieldBoxedDuringReload(ClassTable* class_table,
+                                  const Field& field) const;
+
  private:
   TypePtr declaration_type() const {
     return untag()->declaration_type<std::memory_order_acquire>();
@@ -1845,7 +1849,8 @@ class Class : public Object {
                              ProgramReloadContext* context) const;
 
   // Tells whether instances need morphing for reload.
-  bool RequiresInstanceMorphing(const Class& replacement) const;
+  bool RequiresInstanceMorphing(ClassTable* class_table,
+                                const Class& replacement) const;
 
   template <class FakeInstance, class TargetFakeInstance>
   static ClassPtr NewCommon(intptr_t index);
@@ -4054,9 +4059,6 @@ class Field : public Object {
     return !untag()->owner()->IsField();
   }
 
-  // Mark previously unboxed field boxed. Only operates on clones, updates
-  // original as well as this clone.
-  void DisableFieldUnboxing() const;
   // Returns a field cloned from 'this'. 'this' is set as the
   // original field of result.
   FieldPtr CloneFromOriginal() const;
@@ -4087,22 +4089,6 @@ class Field : public Object {
     ASSERT(IsOriginal());
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(ReflectableBit::update(value, untag()->kind_bits_));
-  }
-  bool is_double_initialized() const {
-    return DoubleInitializedBit::decode(kind_bits());
-  }
-  // Called in parser after allocating field, immutable property otherwise.
-  // Marks fields that are initialized with a simple double constant.
-  void set_is_double_initialized_unsafe(bool value) const {
-    ASSERT(IsOriginal());
-    // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(DoubleInitializedBit::update(value, untag()->kind_bits_));
-  }
-
-  void set_is_double_initialized(bool value) const {
-    DEBUG_ASSERT(
-        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-    set_is_double_initialized_unsafe(value);
   }
 
   bool initializer_changed_after_initialization() const {
@@ -4268,17 +4254,6 @@ class Field : public Object {
     return has_initializer() && !has_nontrivial_initializer();
   }
 
-  bool is_non_nullable_integer() const {
-    return IsNonNullableIntBit::decode(kind_bits());
-  }
-
-  void set_is_non_nullable_integer(bool is_non_nullable_integer) const {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(IsNonNullableIntBit::update(is_non_nullable_integer,
-                                              untag()->kind_bits_));
-  }
-
   StaticTypeExactnessState static_type_exactness_state() const {
     return StaticTypeExactnessState::Decode(
         LoadNonPointer<int8_t, std::memory_order_relaxed>(
@@ -4358,22 +4333,20 @@ class Field : public Object {
 
   const char* GuardedPropertiesAsCString() const;
 
-  intptr_t UnboxedFieldCid() const { return guarded_cid(); }
-
-  bool is_unboxing_candidate() const {
-    return UnboxingCandidateBit::decode(kind_bits());
+  bool is_unboxed() const {
+    return UnboxedBit::decode(kind_bits());
   }
 
-  // Default 'true', set to false once optimizing compiler determines it should
-  // be boxed.
-  void set_is_unboxing_candidate_unsafe(bool b) const {
-    set_kind_bits(UnboxingCandidateBit::update(b, untag()->kind_bits_));
+  // Field unboxing decisions are based either on static types (JIT) or
+  // inferred types (AOT). See the callers of this function.
+  void set_is_unboxed_unsafe(bool b) const {
+    set_kind_bits(UnboxedBit::update(b, untag()->kind_bits_));
   }
 
-  void set_is_unboxing_candidate(bool b) const {
+  void set_is_unboxed(bool b) const {
     DEBUG_ASSERT(
         IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-    set_is_unboxing_candidate_unsafe(b);
+    set_is_unboxed_unsafe(b);
   }
 
   enum {
@@ -4488,10 +4461,6 @@ class Field : public Object {
   void set_type_test_cache(const SubtypeTestCache& cache) const;
 #endif
 
-  // Unboxed fields require exclusive ownership of the box.
-  // Ensure this by cloning the box if necessary.
-  const Object* CloneForUnboxed(const Object& value) const;
-
  private:
   static void InitializeNew(const Field& result,
                             const String& name,
@@ -4510,9 +4479,8 @@ class Field : public Object {
     kStaticBit,
     kFinalBit,
     kHasNontrivialInitializerBit,
-    kUnboxingCandidateBit,
+    kUnboxedBit,
     kReflectableBit,
-    kDoubleInitializedBit,
     kInitializerChangedAfterInitializatonBit,
     kHasPragmaBit,
     kCovariantBit,
@@ -4521,18 +4489,14 @@ class Field : public Object {
     kIsExtensionMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
-    kIsNonNullableIntBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
   class FinalBit : public BitField<uint16_t, bool, kFinalBit, 1> {};
   class HasNontrivialInitializerBit
       : public BitField<uint16_t, bool, kHasNontrivialInitializerBit, 1> {};
-  class UnboxingCandidateBit
-      : public BitField<uint16_t, bool, kUnboxingCandidateBit, 1> {};
+  class UnboxedBit : public BitField<uint16_t, bool, kUnboxedBit, 1> {};
   class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
-  class DoubleInitializedBit
-      : public BitField<uint16_t, bool, kDoubleInitializedBit, 1> {};
   class InitializerChangedAfterInitializatonBit
       : public BitField<uint16_t,
                         bool,
@@ -4549,8 +4513,6 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit
       : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
-  class IsNonNullableIntBit
-      : public BitField<uint16_t, bool, kIsNonNullableIntBit, 1> {};
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -7768,6 +7730,19 @@ class Instance : public Object {
   }
   void RawSetFieldAtOffset(intptr_t offset, const Object& value) const {
     StoreCompressedPointer(RawFieldAddrAtOffset(offset), value.ptr());
+  }
+
+  template <typename T>
+  T* RawUnboxedFieldAddrAtOffset(intptr_t offset) const {
+    return reinterpret_cast<T*>(raw_value() - kHeapObjectTag + offset);
+  }
+  template <typename T>
+  T RawGetUnboxedFieldAtOffset(intptr_t offset) const {
+    return *RawUnboxedFieldAddrAtOffset<T>(offset);
+  }
+  template <typename T>
+  void RawSetUnboxedFieldAtOffset(intptr_t offset, const T& value) const {
+    *RawUnboxedFieldAddrAtOffset<T>(offset) = value;
   }
 
   static InstancePtr NewFromCidAndSize(ClassTable* class_table,

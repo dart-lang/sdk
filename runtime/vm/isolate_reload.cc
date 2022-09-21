@@ -100,8 +100,8 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     ClassTable* class_table,
     const Class& from,
     const Class& to) {
-  auto mapping = new (zone) ZoneGrowableArray<intptr_t>();
-  auto new_fields_offsets = new (zone) ZoneGrowableArray<intptr_t>();
+  auto mapping = new (zone) FieldMappingArray();
+  auto new_fields_offsets = new (zone) FieldOffsetArray();
 
   if (from.NumTypeArguments() > 0) {
     // Add copying of the optional type argument field.
@@ -109,8 +109,8 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     ASSERT(from_offset != Class::kNoTypeArguments);
     intptr_t to_offset = to.host_type_arguments_field_offset();
     ASSERT(to_offset != Class::kNoTypeArguments);
-    mapping->Add(from_offset);
-    mapping->Add(to_offset);
+    mapping->Add({from_offset, kIllegalCid});
+    mapping->Add({to_offset, kIllegalCid});
   }
 
   // Add copying of the instance fields if matching by name.
@@ -122,6 +122,13 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
   Field& to_field = Field::Handle();
   String& from_name = String::Handle();
   String& to_name = String::Handle();
+
+  auto ensure_boxed_and_guarded = [&](const Field& field) {
+    field.set_needs_load_guard(true);
+    if (field.is_unboxed()) {
+      to.MarkFieldBoxedDuringReload(class_table, field);
+    }
+  };
 
   // Scan across all the fields in the new class definition.
   for (intptr_t i = 0; i < to_fields.Length(); i++) {
@@ -146,19 +153,61 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
       ASSERT(from_field.is_instance());
       from_name = from_field.name();
       if (from_name.Equals(to_name)) {
+        intptr_t from_box_cid = kIllegalCid;
+        intptr_t to_box_cid = kIllegalCid;
+
+        // Check if either of the fields are unboxed.
+        if ((from_field.is_unboxed() && from_field.type() != to_field.type()) ||
+            (from_field.is_unboxed() != to_field.is_unboxed())) {
+          // For simplicity we just migrate to boxed fields if such
+          // situation occurs.
+          ensure_boxed_and_guarded(to_field);
+        }
+
+        if (from_field.is_unboxed()) {
+          const auto field_cid = from_field.guarded_cid();
+          switch (field_cid) {
+            case kDoubleCid:
+            case kFloat32x4Cid:
+            case kFloat64x2Cid:
+              from_box_cid = field_cid;
+              break;
+            default:
+              from_box_cid = kIntegerCid;
+              break;
+          }
+        }
+
+        if (to_field.is_unboxed()) {
+          const auto field_cid = to_field.guarded_cid();
+          switch (field_cid) {
+            case kDoubleCid:
+            case kFloat32x4Cid:
+            case kFloat64x2Cid:
+              to_box_cid = field_cid;
+              break;
+            default:
+              to_box_cid = kIntegerCid;
+              break;
+          }
+        }
+
+        // Field can't become unboxed if it was boxed.
+        ASSERT(from_box_cid != kIllegalCid || to_box_cid == kIllegalCid);
+
         // Success
-        mapping->Add(from_field.HostOffset());
-        mapping->Add(to_field.HostOffset());
+        mapping->Add({from_field.HostOffset(), from_box_cid});
+        mapping->Add({to_field.HostOffset(), to_box_cid});
+
         // Field did exist in old class deifnition.
         new_field = false;
+        break;
       }
     }
 
     if (new_field) {
-      const Field& field = Field::Handle(to_field.ptr());
-      field.set_needs_load_guard(true);
-      field.set_is_unboxing_candidate_unsafe(false);
-      new_fields_offsets->Add(field.HostOffset());
+      ensure_boxed_and_guarded(to_field);
+      new_fields_offsets->Add(to_field.HostOffset());
     }
   }
 
@@ -167,12 +216,11 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
       InstanceMorpher(zone, to.id(), class_table, mapping, new_fields_offsets);
 }
 
-InstanceMorpher::InstanceMorpher(
-    Zone* zone,
-    classid_t cid,
-    ClassTable* class_table,
-    ZoneGrowableArray<intptr_t>* mapping,
-    ZoneGrowableArray<intptr_t>* new_fields_offsets)
+InstanceMorpher::InstanceMorpher(Zone* zone,
+                                 classid_t cid,
+                                 ClassTable* class_table,
+                                 FieldMappingArray* mapping,
+                                 FieldOffsetArray* new_fields_offsets)
     : zone_(zone),
       cid_(cid),
       class_table_(class_table),
@@ -226,16 +274,77 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
 
     // Morph the context from [before] to [after] using mapping_.
     for (intptr_t i = 0; i < mapping_->length(); i += 2) {
-      intptr_t from_offset = mapping_->At(i);
-      intptr_t to_offset = mapping_->At(i + 1);
-      ASSERT(from_offset > 0);
-      ASSERT(to_offset > 0);
-      value = before.RawGetFieldAtOffset(from_offset);
-      after.RawSetFieldAtOffset(to_offset, value);
+      const auto& from = mapping_->At(i);
+      const auto& to = mapping_->At(i + 1);
+      ASSERT(from.offset > 0);
+      ASSERT(to.offset > 0);
+      if (from.box_cid == kIllegalCid) {
+        // Boxed to boxed field migration.
+        ASSERT(to.box_cid == kIllegalCid);
+        value = before.RawGetFieldAtOffset(from.offset);
+        after.RawSetFieldAtOffset(to.offset, value);
+      } else if (to.box_cid == kIllegalCid) {
+        // Unboxed to boxed field migration.
+        switch (from.box_cid) {
+          case kDoubleCid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<double>(from.offset);
+            value = Double::New(unboxed_value);
+            break;
+          }
+          case kFloat32x4Cid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
+            value = Float32x4::New(unboxed_value);
+            break;
+          }
+          case kFloat64x2Cid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
+            value = Float64x2::New(unboxed_value);
+            break;
+          }
+          case kIntegerCid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<int64_t>(from.offset);
+            value = Integer::New(unboxed_value);
+            break;
+          }
+        }
+        if (is_canonical) {
+          value = Instance::Cast(value).Canonicalize(Thread::Current());
+        }
+        after.RawSetFieldAtOffset(to.offset, value);
+      } else {
+        // Unboxed to unboxed field migration.
+        ASSERT(to.box_cid == from.box_cid);
+        switch (from.box_cid) {
+          case kDoubleCid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<double>(from.offset);
+            after.RawSetUnboxedFieldAtOffset<double>(to.offset, unboxed_value);
+            break;
+          }
+          case kFloat32x4Cid:
+          case kFloat64x2Cid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
+            after.RawSetUnboxedFieldAtOffset<simd128_value_t>(to.offset,
+                                                              unboxed_value);
+            break;
+          }
+          case kIntegerCid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<int64_t>(from.offset);
+            after.RawSetUnboxedFieldAtOffset<int64_t>(to.offset, unboxed_value);
+            break;
+          }
+        }
+      }
     }
 
     for (intptr_t i = 0; i < new_fields_offsets_->length(); i++) {
-      const intptr_t field_offset = new_fields_offsets_->At(i);
+      const auto& field_offset = new_fields_offsets_->At(i);
       after.RawSetFieldAtOffset(field_offset, Object::sentinel());
     }
 
@@ -248,11 +357,33 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
   }
 }
 
+static const char* BoxCidToCString(intptr_t box_cid) {
+  switch (box_cid) {
+    case kDoubleCid:
+      return "double";
+    case kFloat32x4Cid:
+      return "float32x4";
+    case kFloat64x2Cid:
+      return "float64x2";
+    case kIntegerCid:
+      return "int64";
+  }
+  return "?";
+}
+
 void InstanceMorpher::Dump() const {
   LogBlock blocker;
   THR_Print("Morphing objects with cid: %d via this mapping: ", cid_);
   for (int i = 0; i < mapping_->length(); i += 2) {
-    THR_Print(" %" Pd "->%" Pd, mapping_->At(i), mapping_->At(i + 1));
+    const auto& from = mapping_->At(i);
+    const auto& to = mapping_->At(i + 1);
+    THR_Print(" %" Pd "->%" Pd "", from.offset, to.offset);
+    THR_Print(" (%" Pd " -> %" Pd ")", from.box_cid, to.box_cid);
+    if (to.box_cid == kIllegalCid && from.box_cid != kIllegalCid) {
+      THR_Print("[box %s]", BoxCidToCString(from.box_cid));
+    } else if (to.box_cid != kIllegalCid) {
+      THR_Print("[%s]", BoxCidToCString(from.box_cid));
+    }
   }
   THR_Print("\n");
 }
@@ -264,9 +395,17 @@ void InstanceMorpher::AppendTo(JSONArray* array) {
   jsobj.AddProperty("instanceCount", before_.length());
   JSONArray map(&jsobj, "fieldOffsetMappings");
   for (int i = 0; i < mapping_->length(); i += 2) {
+    const auto& from = mapping_->At(i);
+    const auto& to = mapping_->At(i + 1);
+
     JSONArray pair(&map);
-    pair.AddValue(mapping_->At(i));
-    pair.AddValue(mapping_->At(i + 1));
+    pair.AddValue(from.offset);
+    pair.AddValue(to.offset);
+    if (to.box_cid == kIllegalCid && from.box_cid != kIllegalCid) {
+      pair.AddValueF("box %s", BoxCidToCString(from.box_cid));
+    } else if (to.box_cid != kIllegalCid) {
+      pair.AddValueF("%s", BoxCidToCString(from.box_cid));
+    }
   }
 }
 
@@ -724,7 +863,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       isolate_group_->program_reload_context()->ReloadPhase4CommitPrepare();
       bool discard_class_tables = true;
       if (HasInstanceMorphers()) {
-        // Find all objects that need to be morphed (reallocated to a new size).
+        // Find all objects that need to be morphed (reallocated to a new
+        // layout).
         ObjectLocator locator(this);
         {
           HeapIterationScope iteration(Thread::Current());
@@ -741,11 +881,11 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         if (count > 0) {
           TIMELINE_SCOPE(MorphInstances);
 
-          // While we are reallocating instances to their new size, the heap
-          // will contain a mix of instances with the old and new sizes that
+          // While we are reallocating instances to their new layout, the heap
+          // will contain a mix of instances with the old and new layouts that
           // have the same cid. This makes the heap unwalkable until the
           // "become" operation below replaces all the instances of the old
-          // size with forwarding corpses. Force heap growth to prevent size
+          // layout with forwarding corpses. Force heap growth to prevent layout
           // confusion during this period.
           ForceGrowthScope force_growth(thread);
           // The HeapIterationScope above ensures no other GC tasks can be
@@ -755,10 +895,10 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           MorphInstancesPhase1Allocate(&locator, IG->become());
           {
             // Apply the new class table before "become". Become will replace
-            // all the instances of the old size with forwarding corpses, then
+            // all the instances of the old layout with forwarding corpses, then
             // perform a heap walk to fix references to the forwarding corpses.
             // During this heap walk, it will encounter instances of the new
-            // size, so it requires the new class table.
+            // layout, so it requires the new class table.
             ASSERT(HasNoTasks(heap));
 
             // We accepted the hot-reload and morphed instances. So now we can
@@ -1664,8 +1804,8 @@ void IsolateGroupReloadContext::MorphInstancesPhase2Become(Become* become) {
   ASSERT(HasInstanceMorphers());
 
   become->Forward();
-  // The heap now contains only instances with the new size. Ordinary GC is safe
-  // again.
+  // The heap now contains only instances with the new layout.
+  // Ordinary GC is safe again.
 }
 
 void IsolateGroupReloadContext::ForEachIsolate(
@@ -2068,6 +2208,10 @@ class FieldInvalidator {
                           const Field& field) {
     if (field.needs_load_guard()) {
       return;  // Already guarding.
+    }
+    if (field.is_unboxed()) {
+      // Unboxed fields are guaranteed to match.
+      return;
     }
     value_ = instance.GetField(field);
     if (value_.ptr() == Object::sentinel().ptr()) {

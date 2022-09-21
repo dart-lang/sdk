@@ -1015,13 +1015,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitRecordLiteral(RecordLiteral node) {
-    if (!node.isConst) {
-      // TODO(brianwilkerson) Merge the error codes into a single error code or
-      //  declare a new error code specific to records.
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
-      return null;
-    }
     var nodeType = node.staticType;
     if (nodeType == null) {
       return null;

@@ -113,6 +113,17 @@ class Flutter {
     }
   }
 
+  /// Return the named expression representing the `builder` argument of the
+  /// given [newExpr], or `null` if none.
+  NamedExpression? findBuilderArgument(InstanceCreationExpression newExpr) {
+    for (var argument in newExpr.argumentList.arguments) {
+      if (isBuilderArgument(argument)) {
+        return argument as NamedExpression;
+      }
+    }
+    return null;
+  }
+
   /// Return the named expression representing the `child` argument of the given
   /// [newExpr], or `null` if none.
   NamedExpression? findChildArgument(InstanceCreationExpression newExpr) {
@@ -277,6 +288,10 @@ class Flutter {
     }
     return null;
   }
+
+  /// Return `true` is the given [argument] is the `builder` argument.
+  bool isBuilderArgument(Expression argument) =>
+      argument is NamedExpression && argument.name.label.name == 'builder';
 
   /// Return `true` is the given [argument] is the `child` argument.
   bool isChildArgument(Expression argument) =>

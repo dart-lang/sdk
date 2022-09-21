@@ -780,6 +780,8 @@ class Assembler : public MicroAssembler {
 
   void PushRegistersInOrder(std::initializer_list<Register> regs);
 
+  void PushValueAtOffset(Register base, int32_t offset) { UNIMPLEMENTED(); }
+
   // Push all registers which are callee-saved according to the ARM64 ABI.
   void PushNativeCalleeSavedRegisters();
 
@@ -1065,6 +1067,19 @@ class Assembler : public MicroAssembler {
     fmvd(dst, src);
   }
 
+  void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    // No single register SIMD on RISC-V.
+    UNREACHABLE();
+  }
+  void StoreUnboxedSimd128(FpuRegister src, Register base, int32_t offset) {
+    // No single register SIMD on RISC-V.
+    UNREACHABLE();
+  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
+    // No single register SIMD on RISC-V.
+    UNREACHABLE();
+  }
+
   void LoadCompressed(Register dest, const Address& slot) {
     lx(dest, slot);
   }
@@ -1143,7 +1158,8 @@ class Assembler : public MicroAssembler {
       MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
-                                const Object& value);
+                                const Object& value,
+                                MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreCompressedIntoObjectNoBarrier(
       Register object,
       const Address& dest,

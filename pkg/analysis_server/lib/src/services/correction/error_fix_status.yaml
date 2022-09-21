@@ -24,10 +24,10 @@
 #   issue created for it.
 #
 # Stats:
-# - 736 "needsEvaluation"
-# -  48 "needsFix"
-# - 285 "hasFix"
-# -  47 "noFix"
+# - 726 "needsEvaluation"
+# -  58 "needsFix"
+# - 287 "hasFix"
+# -  48 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -1543,31 +1543,63 @@ HintCode.UNUSED_RESULT_WITH_MESSAGE:
 HintCode.UNUSED_SHOWN_NAME:
   status: hasFix
 LanguageCode.IMPLICIT_DYNAMIC_FIELD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_FUNCTION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_INVOKE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_METHOD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_PARAMETER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_RETURN:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The correction says to add an explicit type or remove implicit-dynamic from
+    analysis options. We can add a fix to add an explicit `dynamic`.
 LintCode.always_declare_return_types:
   status: hasFix
 LintCode.always_put_control_body_on_new_line:
   status: hasFix
 LintCode.always_put_required_named_parameters_first:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Can fix by moving required named parameters before non-required ones.
 LintCode.always_require_non_null_named_parameters:
   status: hasFix
 LintCode.always_specify_types:
@@ -1579,9 +1611,15 @@ LintCode.annotate_overrides:
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
 LintCode.avoid_as:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    We could try to account for special situations, but this cannot be fixed
+    universally, and the lint rule is deprecated.
 LintCode.avoid_bool_literals_in_conditional_expressions:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Each expression like `condition ? true : boolExpression` can be universally
+    fixed to not contain a bool literal.
 LintCode.avoid_catches_without_on_clauses:
   status: needsEvaluation
 LintCode.avoid_catching_errors:
@@ -2129,6 +2167,14 @@ ParserErrorCode.EXPECTED_INSTEAD:
   status: needsEvaluation
 ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL:
   status: needsEvaluation
+ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS:
+  status: noFix
+ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS:
+  status: noFix
+ParserErrorCode.EXPECTED_NAMED_TYPE_ON:
+  status: noFix
+ParserErrorCode.EXPECTED_NAMED_TYPE_WITH:
+  status: noFix
 ParserErrorCode.EXPECTED_STRING_LITERAL:
   status: needsEvaluation
 ParserErrorCode.EXPECTED_TOKEN:

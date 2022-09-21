@@ -4150,8 +4150,7 @@ abstract class ExpressionImpl extends AstNodeImpl
         child is MapLiteralEntry ||
         child is SpreadElement ||
         child is IfElement ||
-        child is ForElement ||
-        child is RecordLiteral) {
+        child is ForElement) {
       var parent = child.parent;
       if (parent is ConstantContextForExpressionImpl) {
         return true;
@@ -4166,6 +4165,8 @@ abstract class ExpressionImpl extends AstNodeImpl
         return true;
       } else if (parent is Annotation) {
         // Inside an annotation.
+        return true;
+      } else if (parent is RecordLiteral && parent.constKeyword != null) {
         return true;
       } else if (parent is VariableDeclaration) {
         var grandParent = parent.parent;

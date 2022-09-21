@@ -580,6 +580,10 @@ class Assembler : public AssemblerBase {
     PushRegister(value);
   }
 
+  void PushValueAtOffset(Register base, int32_t offset) {
+    pushl(Address(base, offset));
+  }
+
   void CompareRegisters(Register a, Register b);
   void CompareObjectRegisters(Register a, Register b) {
     CompareRegisters(a, b);
@@ -681,6 +685,18 @@ class Assembler : public AssemblerBase {
     movsd(Address(base, offset), src);
   }
   void MoveUnboxedDouble(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      movaps(dst, src);
+    }
+  }
+
+  void LoadUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    movups(dst, Address(base, offset));
+  }
+  void StoreUnboxedSimd128(FpuRegister dst, Register base, int32_t offset) {
+    movups(Address(base, offset), dst);
+  }
+  void MoveUnboxedSimd128(FpuRegister dst, FpuRegister src) {
     if (src != dst) {
       movaps(dst, src);
     }
@@ -813,6 +829,31 @@ class Assembler : public AssemblerBase {
                                 const Address& dest,
                                 const Object& value,
                                 MemoryOrder memory_order = kRelaxedNonAtomic);
+
+  void StoreIntoObjectOffset(Register object,  // Object we are storing into.
+                             int32_t offset,   // Where we are storing into.
+                             Register value,   // Value we are storing.
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObject(object, FieldAddress(object, offset), value,
+                    can_value_be_smi, memory_order);
+  }
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
+  }
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
+  }
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,

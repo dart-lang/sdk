@@ -21,6 +21,8 @@ namespace dart {
   V(AllocateRecord)                                                            \
   V(AllocateSuspendState)                                                      \
   V(BoxDouble)                                                                 \
+  V(BoxFloat32x4)                                                              \
+  V(BoxFloat64x2)                                                              \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \

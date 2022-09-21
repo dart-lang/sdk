@@ -26,8 +26,8 @@ import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
 import '../universe/member_usage.dart';
-import 'element_map.dart';
-import 'element_map_interfaces.dart' show memberIsIgnorable;
+import 'element_map_interfaces.dart'
+    show memberIsIgnorable, KernelToElementMapForEnv;
 
 import 'env_interfaces.dart' as interfaces;
 
@@ -206,14 +206,14 @@ class KLibraryData implements interfaces.KLibraryData {
 
   KLibraryData(this.library);
 
-  Iterable<ConstantValue> getMetadata(KernelToElementMap elementMap) {
+  Iterable<ConstantValue> getMetadata(KernelToElementMapForEnv elementMap) {
     return _metadata ??= elementMap.getMetadata(
         ir.StaticTypeContext.forAnnotations(
             library, elementMap.typeEnvironment),
         library.annotations);
   }
 
-  Iterable<ImportEntity> getImports(KernelToElementMap elementMap) {
+  Iterable<ImportEntity> getImports(KernelToElementMapForEnv elementMap) {
     if (imports == null) {
       List<ir.LibraryDependency> dependencies = library.dependencies;
       if (dependencies.isEmpty) {
@@ -257,7 +257,7 @@ abstract class KClassEnv implements interfaces.KClassEnv {
   bool get isMixinApplicationWithMembers;
 
   /// Ensures that all members have been computed for [cls].
-  void ensureMembers(KernelToElementMap elementMap);
+  void ensureMembers(KernelToElementMapForEnv elementMap);
 
   /// Return the [MemberEntity] for the member [name] in the class.
   MemberEntity lookupMember(IrToElementMap elementMap, Name name);
@@ -339,11 +339,11 @@ class KClassEnvImpl implements KClassEnv {
   }
 
   @override
-  void ensureMembers(KernelToElementMap elementMap) {
+  void ensureMembers(KernelToElementMapForEnv elementMap) {
     _ensureMaps(elementMap);
   }
 
-  void _ensureMaps(KernelToElementMap elementMap) {
+  void _ensureMaps(KernelToElementMapForEnv elementMap) {
     if (_memberMap != null) return;
 
     _memberMap = <Name, ir.Member>{};
@@ -580,7 +580,8 @@ class KClassDataImpl implements KClassData {
   bool isCallTypeComputed = false;
 
   @override
-  Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
+  Iterable<ConstantValue> getMetadata(
+      covariant KernelToElementMapForEnv elementMap) {
     return _metadata ??= elementMap.getMetadata(
         ir.StaticTypeContext.forAnnotations(
             node.enclosingLibrary, elementMap.typeEnvironment),
@@ -626,7 +627,8 @@ abstract class KMemberDataImpl implements KMemberData {
   KMemberDataImpl(this.node);
 
   @override
-  Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
+  Iterable<ConstantValue> getMetadata(
+      covariant KernelToElementMapForEnv elementMap) {
     return _metadata ??= elementMap.getMetadata(
         ir.StaticTypeContext(node, elementMap.typeEnvironment),
         node.annotations);
@@ -658,7 +660,7 @@ abstract class KFunctionDataMixin implements KFunctionData {
 
   @override
   List<TypeVariableType> /*!*/ getFunctionTypeVariables(
-      covariant KernelToElementMap elementMap) {
+      covariant KernelToElementMapForEnv elementMap) {
     if (_typeVariables == null) {
       if (functionNode.typeParameters.isEmpty) {
         _typeVariables = const <TypeVariableType>[];
@@ -693,7 +695,7 @@ class KFunctionDataImpl extends KMemberDataImpl
   KFunctionDataImpl(ir.Member node, this.functionNode) : super(node);
 
   @override
-  FunctionType getFunctionType(covariant KernelToElementMap elementMap) {
+  FunctionType getFunctionType(covariant KernelToElementMapForEnv elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
@@ -793,7 +795,7 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   ir.Field get node => super.node;
 
   @override
-  DartType getFieldType(covariant KernelToElementMap elementMap) {
+  DartType getFieldType(covariant KernelToElementMapForEnv elementMap) {
     return _type ??= elementMap.getDartType(node.type);
   }
 

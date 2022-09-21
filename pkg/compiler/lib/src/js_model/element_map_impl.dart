@@ -1521,12 +1521,12 @@ class JsKernelToElementMap
   }
 
   @override
-  FunctionEntity getSuperNoSuchMethod(ClassEntity? cls) {
-    while (cls != null) {
-      cls = elementEnvironment.getSuperClass(cls);
-      if (cls == null) break;
-      MemberEntity? member =
-          elementEnvironment.lookupLocalClassMember(cls, Names.noSuchMethod_);
+  FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
+    while (true) {
+      ClassEntity? superclass = elementEnvironment.getSuperClass(cls);
+      if (superclass == null) break;
+      MemberEntity? member = elementEnvironment.lookupLocalClassMember(
+          superclass, Names.noSuchMethod_);
       if (member != null && !member.isAbstract) {
         if (member.isFunction) {
           final function = member as FunctionEntity;
@@ -1538,6 +1538,7 @@ class JsKernelToElementMap
         // `Object.superNoSuchMethod`.
         break;
       }
+      cls = superclass;
     }
     return elementEnvironment.lookupLocalClassMember(
         commonElements.objectClass, Names.noSuchMethod_)! as FunctionEntity;

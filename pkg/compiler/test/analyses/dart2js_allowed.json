@@ -25,10 +25,6 @@
     "Dynamic access of 'memberContext'.": 1,
     "Dynamic access of 'name'.": 1
   },
-  "pkg/compiler/lib/src/inferrer/typemasks/type_mask.dart": {
-    "Dynamic access of 'forwardTo'.": 1,
-    "Dynamic access of 'isForwarding'.": 1
-  },
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {
     "Dynamic invocation of '[]='.": 1,
     "Dynamic invocation of 'add'.": 1

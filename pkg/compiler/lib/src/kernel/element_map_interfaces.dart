@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart' as ir
         Expression,
         Field,
         InterfaceType,
+        Library,
         LibraryDependency,
         LocalFunction,
         Member,
@@ -31,6 +32,7 @@ import '../elements/entities.dart'
         ConstructorEntity,
         FieldEntity,
         FunctionEntity,
+        LibraryEntity,
         Local,
         MemberEntity,
         ImportEntity;
@@ -164,6 +166,13 @@ abstract class KernelToElementMapForJsModel implements IrToElementMap {
   KProgramEnv get env;
   bool get envIsClosed;
   set envIsClosed(bool v);
+}
+
+abstract class KernelToElementMapForEnv implements IrToElementMap {
+  ir.TypeEnvironment get typeEnvironment;
+  LibraryEntity getLibrary(ir.Library node);
+  List<ConstantValue> getMetadata(
+      ir.StaticTypeContext staticTypeContext, List<ir.Expression> annotations);
 }
 
 // Members which dart2js ignores.

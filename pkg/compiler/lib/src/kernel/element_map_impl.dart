@@ -60,6 +60,7 @@ import 'element_map_interfaces.dart' as interfaces
     show
         KernelElementEnvironment,
         KernelToElementMapForClassHierarchy,
+        KernelToElementMapForEnv,
         KernelToElementMapForImpactData,
         KernelToElementMapForKernelImpact,
         KernelToElementMapForNativeData,
@@ -74,6 +75,7 @@ import 'kernel_impact.dart';
 class KernelToElementMap
     implements
         interfaces.KernelToElementMapForClassHierarchy,
+        interfaces.KernelToElementMapForEnv,
         interfaces.KernelToElementMapForImpactData,
         interfaces.KernelToElementMapForNativeData,
         interfaces.KernelToElementMapForDeferredLoading,
@@ -287,6 +289,7 @@ class KernelToElementMap
     return types.interfaceType(getClass(cls), getDartTypes(typeArguments));
   }
 
+  @override
   LibraryEntity getLibrary(ir.Library node) => getLibraryInternal(node);
 
   /// Returns the [ClassEntity] corresponding to the class [node].
@@ -1210,6 +1213,7 @@ class KernelToElementMap
   }
 
   /// Converts [annotations] into a list of [ConstantValue]s.
+  @override
   List<ConstantValue> getMetadata(
       ir.StaticTypeContext staticTypeContext, List<ir.Expression> annotations) {
     if (annotations.isEmpty) return const <ConstantValue>[];

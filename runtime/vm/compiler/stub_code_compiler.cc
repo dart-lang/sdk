@@ -1139,8 +1139,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
 #endif
 
     Label loop, done;
-    __ AddImmediate(field_reg, result_reg,
-                    target::Record::field_offset(0) - kHeapObjectTag);
+    __ AddImmediate(field_reg, result_reg, target::Record::field_offset(0));
     __ CompareRegisters(field_reg, new_top_reg);
     __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
 
@@ -1148,7 +1147,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
     for (intptr_t offset = 0; offset < target::kObjectAlignment;
          offset += target::kCompressedWordSize) {
       __ StoreCompressedIntoObjectNoBarrier(
-          result_reg, Address(field_reg, offset), null_reg);
+          result_reg, FieldAddress(field_reg, offset), null_reg);
     }
     // Safe to only check every kObjectAlignment bytes instead of each word.
     ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
@@ -1358,13 +1357,17 @@ EMIT_BOX_ALLOCATION(Int32x4)
 
 #undef EMIT_BOX_ALLOCATION
 
-void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
+static void GenerateBoxFpuValueStub(Assembler* assembler,
+                                    const dart::Class& cls,
+                                    const RuntimeEntry& runtime_entry,
+                                    void (Assembler::*store_value)(FpuRegister,
+                                                                   Register,
+                                                                   int32_t)) {
   Label call_runtime;
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
-    __ TryAllocate(compiler::DoubleClass(), &call_runtime,
-                   compiler::Assembler::kFarJump, BoxDoubleStubABI::kResultReg,
-                   BoxDoubleStubABI::kTempReg);
-    __ StoreUnboxedDouble(
+    __ TryAllocate(cls, &call_runtime, compiler::Assembler::kFarJump,
+                   BoxDoubleStubABI::kResultReg, BoxDoubleStubABI::kTempReg);
+    (assembler->*store_value)(
         BoxDoubleStubABI::kValueReg, BoxDoubleStubABI::kResultReg,
         compiler::target::Double::value_offset() - kHeapObjectTag);
     __ Ret();
@@ -1372,18 +1375,44 @@ void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
   __ Bind(&call_runtime);
   __ EnterStubFrame();
   __ PushObject(NullObject()); /* Make room for result. */
-  __ StoreUnboxedDouble(BoxDoubleStubABI::kValueReg, THR,
-                        target::Thread::unboxed_double_runtime_arg_offset());
-  __ CallRuntime(kBoxDoubleRuntimeEntry, 0);
+  (assembler->*store_value)(BoxDoubleStubABI::kValueReg, THR,
+                            target::Thread::unboxed_runtime_arg_offset());
+  __ CallRuntime(runtime_entry, 0);
   __ PopRegister(BoxDoubleStubABI::kResultReg);
   __ LeaveStubFrame();
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
+  GenerateBoxFpuValueStub(assembler, compiler::DoubleClass(),
+                          kBoxDoubleRuntimeEntry,
+                          &Assembler::StoreUnboxedDouble);
+}
+
+void StubCodeCompiler::GenerateBoxFloat32x4Stub(Assembler* assembler) {
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+  GenerateBoxFpuValueStub(assembler, compiler::Float32x4Class(),
+                          kBoxFloat32x4RuntimeEntry,
+                          &Assembler::StoreUnboxedSimd128);
+#else
+  __ Stop("Not supported on RISC-V.");
+#endif
+}
+
+void StubCodeCompiler::GenerateBoxFloat64x2Stub(Assembler* assembler) {
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+  GenerateBoxFpuValueStub(assembler, compiler::Float64x2Class(),
+                          kBoxFloat64x2RuntimeEntry,
+                          &Assembler::StoreUnboxedSimd128);
+#else
+  __ Stop("Not supported on RISC-V.");
+#endif
+}
+
 void StubCodeCompiler::GenerateDoubleToIntegerStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ StoreUnboxedDouble(DoubleToIntegerStubABI::kInputReg, THR,
-                        target::Thread::unboxed_double_runtime_arg_offset());
+                        target::Thread::unboxed_runtime_arg_offset());
   __ PushObject(NullObject()); /* Make room for result. */
   __ PushRegister(DoubleToIntegerStubABI::kRecognizedKindReg);
   __ CallRuntime(kDoubleToIntegerRuntimeEntry, 1);
