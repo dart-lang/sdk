@@ -16,8 +16,9 @@ import '../js/js.dart' as jsAst;
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart';
 import '../universe/selector.dart';
-import '../world.dart' show JClosedWorld;
-import 'namer.dart' show ModularNamer, suffixForGetInterceptor;
+import '../world_interfaces.dart' show JClosedWorld;
+import 'namer_interfaces.dart' show ModularNamer;
+import 'namer_migrated.dart' show suffixForGetInterceptor;
 import 'native_data.dart';
 
 abstract class InterceptorData {
@@ -386,12 +387,11 @@ class OneShotInterceptorData {
     OneShotInterceptor interceptor =
         interceptors[key] ??= OneShotInterceptor(key, selector);
     interceptor.classes.addAll(classes);
-    registerSpecializedGetInterceptor(classes, namer);
+    registerSpecializedGetInterceptor(classes);
     return namer.nameForOneShotInterceptor(selector, classes);
   }
 
-  void registerSpecializedGetInterceptor(
-      Set<ClassEntity> classes, ModularNamer namer) {
+  void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
     if (classes.contains(_commonElements.jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.

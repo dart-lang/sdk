@@ -45,6 +45,8 @@ abstract class JClosedWorld implements World {
   bool fieldNeverChanges(MemberEntity element);
 
   Selector getSelector(ir.Expression node);
+
+  Iterable<ClassEntity> mixinUsesOf(ClassEntity cls);
 }
 
 // TODO(48820): Move back to `world.dart` when migrated.
