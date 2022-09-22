@@ -19,6 +19,8 @@ import 'validate_headers_test.dart' as validate_headers;
 import 'validate_incompatible_rules.dart' as validate_incompatible_rules;
 import 'validate_no_rule_description_references.dart'
     as validate_no_rule_description_references;
+import 'validate_rule_description_format_test.dart'
+    as validate_rule_description_format;
 import 'verify_reflective_test_suites.dart' as verify_reflective_test_suites;
 import 'version_test.dart' as version_test;
 
@@ -39,6 +41,7 @@ void main() {
   validate_headers.main();
   validate_incompatible_rules.main();
   validate_no_rule_description_references.main();
+  validate_rule_description_format.main();
   verify_reflective_test_suites.main();
   version_test.main();
 }

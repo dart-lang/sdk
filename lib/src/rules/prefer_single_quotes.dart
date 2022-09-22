@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Only use double quotes for strings containing single quotes.';
 
 const _details = '''
-
 **DO** use single quotes where they wouldn't require additional escapes.
 
 That means strings with an apostrophe may use double quotes so that the

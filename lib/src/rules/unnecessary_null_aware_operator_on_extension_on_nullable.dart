@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import '../analyzer.dart';
 
 const _desc =
-    r'Unnecessary null aware operator on extension on a nullable type';
+    r'Unnecessary null aware operator on extension on a nullable type.';
 
 const _details = r'''
 Avoid null aware operators for members defined in an extension on a nullable type.

@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = 'Prefer int literals over double literals.';
 
 const _details = '''
-
 **DO** use int literals rather than the corresponding double literal.
 
 **BAD:**
