@@ -8304,6 +8304,7 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kFfiAsExternalTypedDataFloat:
     case MethodRecognizer::kFfiAsExternalTypedDataDouble:
     case MethodRecognizer::kGetNativeField:
+    case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
     // Prevent the GC from running so that the operation is atomic from
     // a GC point of view. Always double check implementation in
@@ -20082,6 +20083,8 @@ intptr_t Instance::DataOffsetFor(intptr_t cid) {
       return OneByteString::data_offset();
     case kTwoByteStringCid:
       return TwoByteString::data_offset();
+    case kRecordCid:
+      return Record::field_offset(0);
     default:
       UNIMPLEMENTED();
       return Array::data_offset();

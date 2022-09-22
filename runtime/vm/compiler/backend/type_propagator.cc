@@ -1990,6 +1990,9 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataUint64ArrayCid:
       return CompileType::Int();
 
+    case kRecordCid:
+      return CompileType::Dynamic();
+
     default:
       UNIMPLEMENTED();
       return CompileType::Dynamic();

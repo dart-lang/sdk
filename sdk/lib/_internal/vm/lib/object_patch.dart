@@ -85,10 +85,68 @@ dynamic _objectNoSuchMethod(Object? obj, Invocation invocation) =>
     obj.noSuchMethod(invocation);
 
 // Base class for record instances.
-// TODO(49719): create a separate patch file for this class.
+// TODO(dartbug.com/49719): create a separate patch file for this class.
 @pragma("vm:entry-point")
 class _Record {
   factory _Record._uninstantiable() {
     throw "Unreachable";
   }
+
+  // Do not inline to avoid mixing _fieldAt with
+  // record field accesses.
+  @pragma("vm:never-inline")
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (other is! _Record) {
+      return false;
+    }
+
+    _Record otherRec = unsafeCast<_Record>(other);
+    final int numFields = _numFields;
+    if (numFields != otherRec._numFields ||
+        !identical(_fieldNames, otherRec._fieldNames)) {
+      return false;
+    }
+
+    for (int i = 0; i < numFields; ++i) {
+      if (_fieldAt(i) != otherRec._fieldAt(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Do not inline to avoid mixing _fieldAt with
+  // record field accesses.
+  @pragma("vm:never-inline")
+  int get hashCode {
+    final int numFields = _numFields;
+    int hash = numFields;
+    hash = SystemHash.combine(hash, identityHashCode(_fieldNames));
+    for (int i = 0; i < numFields; ++i) {
+      hash = SystemHash.combine(hash, _fieldAt(i).hashCode);
+    }
+    return SystemHash.finish(hash);
+  }
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external int get _numFields;
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external _List get _fieldNames;
+
+  // Currently compiler does not take into account aliasing
+  // between access to record fields via _fieldAt and
+  // via record.foo / record.$n.
+  // So this method should only be used in methods
+  // which only access record fields with _fieldAt and
+  // annotated with @pragma("vm:never-inline").
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  external Object? _fieldAt(int index);
 }
