@@ -303,6 +303,52 @@ void f() {
 }
 ''');
   }
+
+  Future<void> test_prefixedConstructor_onConstructor() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: m./*caret*/Center(
+      child: Text(''),
+    ),
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: Text(''),
+  );
+}
+''');
+  }
+
+  Future<void> test_prefixedConstructor_onPrefix() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: /*caret*/m.Center(
+      child: Text(''),
+    ),
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+void f() {
+  Center(
+    child: Text(''),
+  );
+}
+''');
+  }
 }
 
 @reflectiveTest

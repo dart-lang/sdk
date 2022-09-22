@@ -231,21 +231,23 @@ class Flutter {
 
   /// Return the instance creation expression that surrounds the given
   /// [node], if any, else null. The [node] may be the instance creation
-  /// expression itself or the identifier that names the constructor.
+  /// expression itself or an (optionally prefixed) identifier that names the
+  /// constructor.
   InstanceCreationExpression? identifyNewExpression(AstNode? node) {
     InstanceCreationExpression? newExpr;
     if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      var grandParent = parent?.parent;
-      var greatGrandParent = grandParent?.parent;
-      if (parent is ConstructorName &&
-          grandParent is InstanceCreationExpression) {
-        newExpr = grandParent;
-      } else if (grandParent is ConstructorName &&
-          greatGrandParent is InstanceCreationExpression) {
-        newExpr = greatGrandParent;
-      }
-    } else if (node is InstanceCreationExpression) {
+      node = node.parent;
+    }
+    if (node is PrefixedIdentifier) {
+      node = node.parent;
+    }
+    if (node is NamedType) {
+      node = node.parent;
+    }
+    if (node is ConstructorName) {
+      node = node.parent;
+    }
+    if (node is InstanceCreationExpression) {
       newExpr = node;
     }
     return newExpr;
