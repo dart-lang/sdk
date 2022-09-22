@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of masks;
 
 /// A [SetTypeMask] is a [TypeMask] for a specific allocation site of a set
@@ -17,12 +15,12 @@ class SetTypeMask extends AllocationTypeMask {
   @override
   final TypeMask forwardTo;
 
-  final ir.Node /*?*/ _allocationNode;
+  final ir.Node? _allocationNode;
   @override
-  ir.Node get allocationNode => _allocationNode /*!*/;
+  ir.Node? get allocationNode => _allocationNode;
 
   @override
-  final MemberEntity allocationElement;
+  final MemberEntity? allocationElement;
 
   // The element type of this set.
   final TypeMask elementType;
@@ -34,9 +32,9 @@ class SetTypeMask extends AllocationTypeMask {
   factory SetTypeMask.readFromDataSource(
       DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
-    MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask elementType = TypeMask.readFromDataSource(source, domain);
+    final forwardTo = TypeMask.readFromDataSource(source, domain);
+    final allocationElement = source.readMemberOrNull();
+    final elementType = TypeMask.readFromDataSource(source, domain);
     source.end(tag);
     return SetTypeMask(forwardTo, null, allocationElement, elementType);
   }
@@ -53,7 +51,7 @@ class SetTypeMask extends AllocationTypeMask {
   }
 
   @override
-  SetTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+  SetTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -72,13 +70,9 @@ class SetTypeMask extends AllocationTypeMask {
   bool get isExact => true;
 
   @override
-  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {bool isNullable, bool hasLateSentinel}) {
-    assert(isNullable != null);
-    assert(hasLateSentinel != null);
-    if (other is SetTypeMask &&
-        elementType != null &&
-        other.elementType != null) {
+  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
+      {required bool isNullable, required bool hasLateSentinel}) {
+    if (other is SetTypeMask) {
       TypeMask newElementType = elementType.union(other.elementType, domain);
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       return SetTypeMask(newForwardTo, null, null, newElementType);

@@ -491,7 +491,8 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
+      {ClassRelation classRelation = ClassRelation.subtype,
+      /* required */ bool nullable}) {
     var unwrapped = _abstractValueDomain.createFromStaticType(type,
         classRelation: classRelation, nullable: nullable);
     return AbstractValueWithPrecision(

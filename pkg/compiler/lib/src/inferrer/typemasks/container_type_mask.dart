@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of masks;
 
 /// A [TypeMask] for a specific allocation site of a container (currently only
@@ -17,18 +15,18 @@ class ContainerTypeMask extends AllocationTypeMask {
   @override
   final TypeMask forwardTo;
 
-  final ir.Node /*?*/ _allocationNode;
+  final ir.Node? _allocationNode;
   @override
-  ir.Node get allocationNode => _allocationNode /*!*/;
+  ir.Node? get allocationNode => _allocationNode;
 
   @override
-  final MemberEntity allocationElement;
+  final MemberEntity? allocationElement;
 
   // The element type of this container.
   final TypeMask elementType;
 
   // The length of the container.
-  final int length;
+  final int? length;
 
   const ContainerTypeMask(this.forwardTo, this._allocationNode,
       this.allocationElement, this.elementType, this.length);
@@ -37,10 +35,10 @@ class ContainerTypeMask extends AllocationTypeMask {
   factory ContainerTypeMask.readFromDataSource(
       DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
-    MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask elementType = TypeMask.readFromDataSource(source, domain);
-    int length = source.readIntOrNull();
+    final forwardTo = TypeMask.readFromDataSource(source, domain);
+    final allocationElement = source.readMemberOrNull();
+    final elementType = TypeMask.readFromDataSource(source, domain);
+    final length = source.readIntOrNull();
     source.end(tag);
     return ContainerTypeMask(
         forwardTo, null, allocationElement, elementType, length);
@@ -59,7 +57,7 @@ class ContainerTypeMask extends AllocationTypeMask {
   }
 
   @override
-  ContainerTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+  ContainerTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -79,16 +77,12 @@ class ContainerTypeMask extends AllocationTypeMask {
   bool get isExact => true;
 
   @override
-  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {bool isNullable, bool hasLateSentinel}) {
-    assert(isNullable != null);
-    assert(hasLateSentinel != null);
-    if (other is ContainerTypeMask &&
-        elementType != null &&
-        other.elementType != null) {
-      TypeMask newElementType = elementType.union(other.elementType, domain);
-      int newLength = (length == other.length) ? length : null;
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
+  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
+      {required bool isNullable, required bool hasLateSentinel}) {
+    if (other is ContainerTypeMask) {
+      final newElementType = elementType.union(other.elementType, domain);
+      final newLength = (length == other.length) ? length : null;
+      final newForwardTo = forwardTo.union(other.forwardTo, domain);
       return ContainerTypeMask(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,

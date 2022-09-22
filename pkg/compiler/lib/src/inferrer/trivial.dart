@@ -363,7 +363,8 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
+      {ClassRelation classRelation = ClassRelation.subtype,
+      /* required */ bool nullable}) {
     assert(nullable != null);
     return const AbstractValueWithPrecision(TrivialAbstractValue(), false);
   }
