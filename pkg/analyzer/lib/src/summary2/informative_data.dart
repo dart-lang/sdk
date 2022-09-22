@@ -1116,7 +1116,7 @@ class _InformativeDataWriter {
     sink.writeList2<ClassDeclaration>(unit.declarations, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name2.offset);
+      sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1132,7 +1132,7 @@ class _InformativeDataWriter {
     sink.writeList2<ClassTypeAlias>(unit.declarations, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name2.offset);
+      sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeOffsets(
@@ -1144,7 +1144,7 @@ class _InformativeDataWriter {
     sink.writeList2<EnumDeclaration>(unit.declarations, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name2.offset);
+      sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1161,7 +1161,7 @@ class _InformativeDataWriter {
     sink.writeList2<ExtensionDeclaration>(unit.declarations, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(1 + (node.name2?.offset ?? -1));
+      sink.writeUInt30(1 + (node.name?.offset ?? -1));
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1182,7 +1182,7 @@ class _InformativeDataWriter {
       (node) {
         sink.writeUInt30(node.offset);
         sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name2.offset);
+        sink.writeUInt30(node.name.offset);
         _writeDocumentationComment(node);
         _writeTypeParameters(node.functionExpression.typeParameters);
         _writeFormalParameters(node.functionExpression.parameters);
@@ -1201,7 +1201,7 @@ class _InformativeDataWriter {
             .toList(), (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name2.offset);
+      sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.functionExpression.typeParameters);
       _writeFormalParameters(node.functionExpression.parameters);
@@ -1215,7 +1215,7 @@ class _InformativeDataWriter {
     sink.writeList2<FunctionTypeAlias>(unit.declarations, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name2.offset);
+      sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeFormalParameters(node.parameters);
@@ -1230,7 +1230,7 @@ class _InformativeDataWriter {
       var aliasedType = node.type;
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name2.offset);
+      sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       if (aliasedType is GenericFunctionType) {
@@ -1250,7 +1250,7 @@ class _InformativeDataWriter {
     sink.writeList2<MixinDeclaration>(unit.declarations, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name2.offset);
+      sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1293,7 +1293,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeOptionalUInt30(node.period?.offset);
-      var nameNode = node.name2 ?? node.returnType;
+      var nameNode = node.name ?? node.returnType;
       sink.writeUInt30(nameNode.offset);
       sink.writeUInt30(nameNode.end);
       _writeDocumentationComment(node);
@@ -1331,7 +1331,7 @@ class _InformativeDataWriter {
       var codeOffset = node.offset;
       sink.writeUInt30(codeOffset);
       sink.writeUInt30(node.end - codeOffset);
-      sink.writeUInt30(node.name2.offset);
+      sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
       _writeOffsets(
         metadata: node.metadata,
@@ -1348,7 +1348,7 @@ class _InformativeDataWriter {
     var codeOffset = _codeOffsetForVariable(node);
     sink.writeUInt30(codeOffset);
     sink.writeUInt30(node.end - codeOffset);
-    sink.writeUInt30(node.name2.offset);
+    sink.writeUInt30(node.name.offset);
     _writeDocumentationComment(node);
 
     // TODO(scheglov) Replace with some kind of double-iterating list.
@@ -1403,7 +1403,7 @@ class _InformativeDataWriter {
       (node) {
         sink.writeUInt30(node.offset);
         sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name2.offset);
+        sink.writeUInt30(node.name.offset);
         _writeDocumentationComment(node);
         _writeTypeParameters(node.typeParameters);
         _writeFormalParameters(node.parameters);
@@ -1449,7 +1449,7 @@ class _InformativeDataWriter {
       (node) {
         sink.writeUInt30(node.offset);
         sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name2.offset);
+        sink.writeUInt30(node.name.offset);
         _writeDocumentationComment(node);
         _writeTypeParameters(node.typeParameters);
         _writeFormalParameters(node.parameters);
@@ -1537,7 +1537,7 @@ class _InformativeDataWriter {
     var codeOffset = _codeOffsetForVariable(node);
     sink.writeUInt30(codeOffset);
     sink.writeUInt30(node.end - codeOffset);
-    sink.writeUInt30(node.name2.offset);
+    sink.writeUInt30(node.name.offset);
     _writeDocumentationComment(node);
 
     // TODO(scheglov) Replace with some kind of double-iterating list.
@@ -1554,7 +1554,7 @@ class _InformativeDataWriter {
     sink.writeList<TypeParameter>(parameters, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name2.offset);
+      sink.writeUInt30(node.name.offset);
     });
   }
 }

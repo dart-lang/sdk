@@ -1472,7 +1472,7 @@ class _File {
             var defaultArguments = _computeDefaultArguments(parameters);
             var isConst = classMember.constKeyword != null;
 
-            var constructorName = classMember.name2;
+            var constructorName = classMember.name;
             constructorName ??= StringToken(
               TokenType.IDENTIFIER,
               '',
@@ -1513,7 +1513,7 @@ class _File {
                 isFinal: isFinal,
                 isStatic: isStatic,
                 kind: DeclarationKind.FIELD,
-                name: field.name2,
+                name: field.name,
                 parent: parent,
                 relevanceTags: [
                   'ElementKind.FIELD',
@@ -1531,7 +1531,7 @@ class _File {
                 isDeprecated: isDeprecated,
                 isStatic: isStatic,
                 kind: DeclarationKind.GETTER,
-                name: classMember.name2,
+                name: classMember.name,
                 parent: parent,
                 relevanceTags: ['ElementKind.FIELD'],
                 returnType: _getTypeAnnotationString(classMember.returnType),
@@ -1541,7 +1541,7 @@ class _File {
                 isDeprecated: isDeprecated,
                 isStatic: isStatic,
                 kind: DeclarationKind.SETTER,
-                name: classMember.name2,
+                name: classMember.name,
                 parameters: parameters.toSource(),
                 parameterNames: _getFormalParameterNames(parameters),
                 parameterTypes: _getFormalParameterTypes(parameters),
@@ -1558,7 +1558,7 @@ class _File {
                 isDeprecated: isDeprecated,
                 isStatic: isStatic,
                 kind: DeclarationKind.METHOD,
-                name: classMember.name2,
+                name: classMember.name,
                 parameters: parameters.toSource(),
                 parameterNames: _getFormalParameterNames(parameters),
                 parameterTypes: _getFormalParameterTypes(parameters),
@@ -1579,7 +1579,7 @@ class _File {
           isAbstract: node.abstractKeyword != null,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS,
-          name: node.name2,
+          name: node.name,
           relevanceTags: ['ElementKind.CLASS'],
         );
         if (classDeclaration == null) continue;
@@ -1614,7 +1614,7 @@ class _File {
             parent: classDeclaration,
             relevanceTagsInFile: ['ElementKind.CONSTRUCTOR'],
             requiredParameterCount: 0,
-            returnType: node.name2.lexeme,
+            returnType: node.name.lexeme,
             typeParameters: null,
           ));
         }
@@ -1622,14 +1622,14 @@ class _File {
         addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS_TYPE_ALIAS,
-          name: node.name2,
+          name: node.name,
           relevanceTags: ['ElementKind.CLASS'],
         );
       } else if (node is EnumDeclaration) {
         var enumDeclaration = addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.ENUM,
-          name: node.name2,
+          name: node.name,
           relevanceTags: ['ElementKind.ENUM'],
         );
         if (enumDeclaration == null) continue;
@@ -1640,7 +1640,7 @@ class _File {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.ENUM_CONSTANT,
-            name: constant.name2,
+            name: constant.name,
             parent: enumDeclaration,
             relevanceTags: [
               'ElementKind.ENUM_CONSTANT',
@@ -1649,7 +1649,7 @@ class _File {
           );
         }
       } else if (node is ExtensionDeclaration) {
-        var name = node.name2;
+        var name = node.name;
         if (name != null) {
           addDeclaration(
             isDeprecated: isDeprecated,
@@ -1667,7 +1667,7 @@ class _File {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.GETTER,
-            name: node.name2,
+            name: node.name,
             relevanceTags: ['ElementKind.FUNCTION'],
             returnType: _getTypeAnnotationString(node.returnType),
           );
@@ -1675,7 +1675,7 @@ class _File {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.SETTER,
-            name: node.name2,
+            name: node.name,
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
@@ -1690,7 +1690,7 @@ class _File {
             defaultArgumentListTextRanges: defaultArguments?.ranges,
             isDeprecated: isDeprecated,
             kind: DeclarationKind.FUNCTION,
-            name: node.name2,
+            name: node.name,
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
@@ -1709,7 +1709,7 @@ class _File {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
-            name: node.name2,
+            name: node.name,
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
@@ -1723,7 +1723,7 @@ class _File {
           addDeclaration(
             isDeprecated: isDeprecated,
             kind: DeclarationKind.TYPE_ALIAS,
-            name: node.name2,
+            name: node.name,
             relevanceTags: ['ElementKind.TYPE_ALIAS'],
           );
         }
@@ -1732,7 +1732,7 @@ class _File {
         addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
-          name: node.name2,
+          name: node.name,
           parameters: parameters.toSource(),
           parameterNames: _getFormalParameterNames(parameters),
           parameterTypes: _getFormalParameterTypes(parameters),
@@ -1745,7 +1745,7 @@ class _File {
         var mixinDeclaration = addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.MIXIN,
-          name: node.name2,
+          name: node.name,
           relevanceTags: ['ElementKind.MIXIN'],
         );
         if (mixinDeclaration == null) continue;
@@ -1760,7 +1760,7 @@ class _File {
             isDeprecated: isDeprecated,
             isFinal: isFinal,
             kind: DeclarationKind.VARIABLE,
-            name: variable.name2,
+            name: variable.name,
             relevanceTags: [
               'ElementKind.TOP_LEVEL_VARIABLE',
               if (isConst) 'ElementKind.TOP_LEVEL_VARIABLE+const',

@@ -28,7 +28,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       return;
     }
 
-    var className = classDeclaration.name2.lexeme;
+    var className = classDeclaration.name.lexeme;
     var superType = classDeclaration.declaredElement2?.supertype;
     if (superType == null) {
       return;
@@ -70,7 +70,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       for (var variableList in variableLists) {
         fieldNames.addAll(variableList.variables
             .where((v) => v.initializer == null)
-            .map((v) => v.name2.lexeme));
+            .map((v) => v.name.lexeme));
       }
 
       await builder.addDartFileEdit(file, (builder) {
@@ -143,7 +143,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     for (var variableList in variableLists) {
       var fieldNames = variableList.variables
           .where((v) => v.initializer == null)
-          .map((v) => v.name2.lexeme);
+          .map((v) => v.name.lexeme);
 
       for (var fieldName in fieldNames) {
         if (fieldName == 'child' || fieldName == 'children') {

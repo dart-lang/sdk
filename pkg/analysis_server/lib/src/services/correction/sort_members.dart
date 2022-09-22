@@ -114,14 +114,14 @@ class MemberSorter {
       String name;
       if (member is ConstructorDeclaration) {
         kind = _MemberKind.CLASS_CONSTRUCTOR;
-        name = member.name2?.lexeme ?? '';
+        name = member.name?.lexeme ?? '';
       } else if (member is FieldDeclaration) {
         var fieldDeclaration = member;
         List<VariableDeclaration> fields = fieldDeclaration.fields.variables;
         if (fields.isNotEmpty) {
           kind = _MemberKind.CLASS_FIELD;
           isStatic = fieldDeclaration.isStatic;
-          name = fields[0].name2.lexeme;
+          name = fields[0].name.lexeme;
         } else {
           // Don't sort members if there are errors in the code.
           return;
@@ -129,7 +129,7 @@ class MemberSorter {
       } else if (member is MethodDeclaration) {
         var method = member;
         isStatic = method.isStatic;
-        name = method.name2.lexeme;
+        name = method.name.lexeme;
         if (method.isGetter) {
           kind = _MemberKind.CLASS_ACCESSOR;
           name += ' getter';
@@ -169,18 +169,18 @@ class MemberSorter {
       String name;
       if (member is ClassDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
-        name = member.name2.lexeme;
+        name = member.name.lexeme;
       } else if (member is ClassTypeAlias) {
         kind = _MemberKind.UNIT_CLASS;
-        name = member.name2.lexeme;
+        name = member.name.lexeme;
       } else if (member is EnumDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
-        name = member.name2.lexeme;
+        name = member.name.lexeme;
       } else if (member is ExtensionDeclaration) {
         kind = _MemberKind.UNIT_EXTENSION;
-        name = member.name2?.lexeme ?? '';
+        name = member.name?.lexeme ?? '';
       } else if (member is FunctionDeclaration) {
-        name = member.name2.lexeme;
+        name = member.name.lexeme;
         if (member.isGetter) {
           kind = _MemberKind.UNIT_ACCESSOR;
           name += ' getter';
@@ -196,13 +196,13 @@ class MemberSorter {
         }
       } else if (member is FunctionTypeAlias) {
         kind = _MemberKind.UNIT_FUNCTION_TYPE;
-        name = member.name2.lexeme;
+        name = member.name.lexeme;
       } else if (member is GenericTypeAlias) {
         kind = _MemberKind.UNIT_GENERIC_TYPE_ALIAS;
-        name = member.name2.lexeme;
+        name = member.name.lexeme;
       } else if (member is MixinDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
-        name = member.name2.lexeme;
+        name = member.name.lexeme;
       } else if (member is TopLevelVariableDeclaration) {
         var variableDeclaration = member;
         List<VariableDeclaration> variables =
@@ -213,7 +213,7 @@ class MemberSorter {
           } else {
             kind = _MemberKind.UNIT_VARIABLE;
           }
-          name = variables[0].name2.lexeme;
+          name = variables[0].name.lexeme;
         } else {
           // Don't sort members if there are errors in the code.
           return;
@@ -262,8 +262,8 @@ class MemberSorter {
         }
         // sort all other members by name
         var name1 = o1.name.toLowerCase();
-        var name2 = o2.name.toLowerCase();
-        return name1.compareTo(name2);
+        var name = o2.name.toLowerCase();
+        return name1.compareTo(name);
       }
       return priority1 - priority2;
     });

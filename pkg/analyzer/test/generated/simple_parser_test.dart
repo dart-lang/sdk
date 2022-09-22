@@ -108,10 +108,10 @@ class SimpleParserTest extends FastaParserTestCase {
 class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
 ''');
     var clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name2.lexeme, 'C');
+    expect(clazz.name.lexeme, 'C');
     expect(clazz.typeParameters!.typeParameters, hasLength(1));
     TypeParameter typeParameter = clazz.typeParameters!.typeParameters[0];
-    expect(typeParameter.name2.lexeme, 'T');
+    expect(typeParameter.name.lexeme, 'T');
     expect(typeParameter.metadata, hasLength(1));
     Annotation metadata = typeParameter.metadata[0];
     expect(metadata.name.name, 'Foo.bar');
@@ -1850,7 +1850,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isGenericFunctionType);
     expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name2, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameter_bounded_functionType_return() {
@@ -1860,7 +1860,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isGenericFunctionType);
     expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name2, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameter_bounded_generic() {
@@ -1870,7 +1870,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isNamedType);
     expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name2, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameter_bounded_simple() {
@@ -1880,7 +1880,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isNamedType);
     expect(parameter.extendsKeyword, isNotNull);
-    expect(parameter.name2, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameter_simple() {
@@ -1890,7 +1890,7 @@ Function<A>(core.List<core.int> x) m() => null;
     assertNoErrors();
     expect(parameter.bound, isNull);
     expect(parameter.extendsKeyword, isNull);
-    expect(parameter.name2, isNotNull);
+    expect(parameter.name, isNotNull);
   }
 
   void test_parseTypeParameterList_multiple() {
@@ -1922,7 +1922,7 @@ Function<A>(core.List<core.int> x) m() => null;
     expect(parameterList.rightBracket, isNotNull);
     expect(parameterList.typeParameters, hasLength(1));
     TypeParameter typeParameter = parameterList.typeParameters[0];
-    expect(typeParameter.name2.lexeme, 'A');
+    expect(typeParameter.name.lexeme, 'A');
     var bound = typeParameter.bound as NamedType;
     expect(bound.name.name, 'B');
     var typeArguments = bound.typeArguments!;
@@ -1956,7 +1956,7 @@ Function<A>(core.List<core.int> x) m() => null;
     VariableDeclaration declaration = parseVariableDeclaration('var a = b;');
     expectNotNullIfNoErrors(declaration);
     assertNoErrors();
-    expect(declaration.name2, isNotNull);
+    expect(declaration.name, isNotNull);
     expect(declaration.equals, isNotNull);
     expect(declaration.initializer, isNotNull);
   }
@@ -2041,7 +2041,7 @@ Function<A>(core.List<core.int> x) m() => null;
     VariableDeclaration declaration = parseVariableDeclaration('var a;');
     expectNotNullIfNoErrors(declaration);
     assertNoErrors();
-    expect(declaration.name2, isNotNull);
+    expect(declaration.name, isNotNull);
     expect(declaration.equals, isNull);
     expect(declaration.initializer, isNull);
   }
@@ -2073,7 +2073,7 @@ Function<A>(core.List<core.int> x) m() => null;
       expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
     ]);
     var typeAlias = unit.declarations[0] as GenericTypeAlias;
-    expect(typeAlias.name2.lexeme, 'K');
+    expect(typeAlias.name.lexeme, 'K');
     var functionType = typeAlias.functionType!;
     expect(functionType.parameters.parameters, hasLength(1));
     var parameter = functionType.parameters.parameters[0];
@@ -2087,7 +2087,7 @@ Function<A>(core.List<core.int> x) m() => null;
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
     ]);
     var typeAlias = unit.declarations[0] as GenericTypeAlias;
-    expect(typeAlias.name2.lexeme, 'T');
+    expect(typeAlias.name.lexeme, 'T');
     var functionType = typeAlias.functionType!;
     expect(functionType.parameters.parameters, hasLength(1));
     var parameter = functionType.parameters.parameters[0];

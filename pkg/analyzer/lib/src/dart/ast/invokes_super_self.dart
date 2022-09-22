@@ -72,7 +72,7 @@ enum _Usage { writing, reading }
 extension MethodDeclarationExtension on MethodDeclaration {
   bool get invokesSuperSelf {
     var visitor = _SuperVisitor(
-      name2.lexeme,
+      name.lexeme,
       isSetter ? _Usage.writing : _Usage.reading,
     );
     body.accept(visitor);

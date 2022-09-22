@@ -471,15 +471,15 @@ abstract class RenameRefactoring implements Refactoring {
     } else if (node is LibraryDirective) {
       nameNode = node;
     } else if (node is MethodDeclaration) {
-      nameNode = node.name2;
+      nameNode = node.name;
     } else if (node is NamedCompilationUnitMember) {
-      nameNode = node.name2;
+      nameNode = node.name;
     } else if (node is SimpleFormalParameter) {
       nameNode = node.name;
     } else if (node is SimpleIdentifier) {
       nameNode = node.token;
     } else if (node is VariableDeclaration) {
-      nameNode = node.name2;
+      nameNode = node.name;
     }
     if (nameNode == null) {
       return null;

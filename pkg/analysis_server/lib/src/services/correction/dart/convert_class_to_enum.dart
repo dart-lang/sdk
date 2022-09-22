@@ -52,7 +52,7 @@ class ConvertClassToEnum extends CorrectionProducer {
       return;
     }
     final declaration = node;
-    if (declaration is ClassDeclaration && declaration.name2 == token) {
+    if (declaration is ClassDeclaration && declaration.name == token) {
       var description = _EnumDescription.fromClass(declaration);
       if (description != null) {
         await builder.addDartFileEdit(file, (builder) {
@@ -305,7 +305,7 @@ class _EnumDescription {
       return null;
     }
     var constructor = constructors[0];
-    var name = constructor.name2?.lexeme;
+    var name = constructor.name?.lexeme;
     if (name != null && name != 'new') {
       return null;
     }
@@ -630,7 +630,7 @@ class _EnumDescription {
   static bool _validateMethods(ClassDeclaration classDeclaration) {
     for (var member in classDeclaration.members) {
       if (member is MethodDeclaration) {
-        final name = member.name2.lexeme;
+        final name = member.name.lexeme;
         if (name == '==' || name == 'hashCode') {
           return false;
         }
@@ -697,7 +697,7 @@ class _Field {
       this.fieldDeclaration);
 
   /// Return the name of the field.
-  String get name => declaration.name2.lexeme;
+  String get name => declaration.name.lexeme;
 }
 
 /// A representation of all the fields of interest in the class being converted.

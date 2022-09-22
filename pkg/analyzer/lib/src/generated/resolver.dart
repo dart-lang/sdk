@@ -1718,7 +1718,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node.constructorElement = constructorElement;
         if (!constructorElement.isConst && constructorElement.isFactory) {
           final errorTarget =
-              node.arguments?.constructorSelector?.name ?? node.name2;
+              node.arguments?.constructorSelector?.name ?? node.name;
           errorReporter.reportErrorForOffset(
             CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR,
             errorTarget.offset,
@@ -1738,7 +1738,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           } else {
             errorReporter.reportErrorForToken(
               CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED,
-              node.name2,
+              node.name,
             );
           }
         }
@@ -1771,7 +1771,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           if (requiredParameterCount != 0) {
             errorReporter.reportErrorForToken(
               CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
-              node.name2,
+              node.name,
               [requiredParameterCount, 0],
             );
           }
@@ -1962,7 +1962,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (!node.isSetter) {
       checkForBodyMayCompleteNormally(
         body: node.functionExpression.body,
-        errorNode: node.name2,
+        errorNode: node.name,
       );
     }
     flowAnalysis.executableDeclaration_exit(
@@ -2277,7 +2277,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (!node.isSetter) {
       checkForBodyMayCompleteNormally(
         body: node.body,
-        errorNode: node.name2,
+        errorNode: node.name,
       );
     }
     flowAnalysis.executableDeclaration_exit(node.body, false);
@@ -2891,7 +2891,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
       var argumentsText = error.arguments.join(', ');
       errorReporter.reportErrorForToken(CompileTimeErrorCode.TOP_LEVEL_CYCLE,
-          node.name2, [node.name2.lexeme, argumentsText]);
+          node.name, [node.name.lexeme, argumentsText]);
     }
   }
 

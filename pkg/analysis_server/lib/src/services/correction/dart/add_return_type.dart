@@ -36,7 +36,7 @@ class AddReturnType extends CorrectionProducer {
     Token? insertBeforeEntity;
     FunctionBody? body;
     final executable = node;
-    if (executable is MethodDeclaration && executable.name2 == token) {
+    if (executable is MethodDeclaration && executable.name == token) {
       if (executable.returnType != null) {
         return;
       }
@@ -45,16 +45,16 @@ class AddReturnType extends CorrectionProducer {
       }
       insertBeforeEntity = executable.operatorKeyword ??
           executable.propertyKeyword ??
-          executable.name2;
+          executable.name;
       body = executable.body;
-    } else if (executable is FunctionDeclaration && executable.name2 == token) {
+    } else if (executable is FunctionDeclaration && executable.name == token) {
       if (executable.returnType != null) {
         return;
       }
       if (executable.isSetter) {
         return;
       }
-      insertBeforeEntity = executable.propertyKeyword ?? executable.name2;
+      insertBeforeEntity = executable.propertyKeyword ?? executable.name;
       body = executable.functionExpression.body;
     } else {
       return;

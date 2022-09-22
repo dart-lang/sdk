@@ -223,7 +223,7 @@ class SuggestionBuilder {
         var containingMethod = request.target.containingNode
             .thisOrAncestorOfType<MethodDeclaration>();
         if (containingMethod != null) {
-          _cachedContainingMemberName = containingMethod.name2.lexeme;
+          _cachedContainingMemberName = containingMethod.name.lexeme;
         }
       }
     }

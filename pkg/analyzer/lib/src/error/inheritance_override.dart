@@ -45,7 +45,7 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameToken: declaration.name2,
+          classNameToken: declaration.name,
           classElement: declaration.declaredElement2!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
@@ -60,7 +60,7 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameToken: declaration.name2,
+          classNameToken: declaration.name,
           classElement: declaration.declaredElement2!,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
@@ -74,7 +74,7 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameToken: declaration.name2,
+          classNameToken: declaration.name,
           classElement: declaration.declaredElement2!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
@@ -88,7 +88,7 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameToken: declaration.name2,
+          classNameToken: declaration.name,
           classElement: declaration.declaredElement2!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
@@ -109,7 +109,7 @@ class InheritanceOverrideVerifier {
   /// Returns [ExecutableElement] members that are in the interface of the
   /// given class, but don't have concrete implementations.
   static List<ExecutableElement> missingOverrides(ClassDeclaration node) {
-    return _missingOverrides[node.name2] ?? const [];
+    return _missingOverrides[node.name] ?? const [];
   }
 }
 
@@ -216,13 +216,13 @@ class _ClassVerifier {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
           var fieldElement = field.declaredElement2 as FieldElement;
-          _checkDeclaredMember(field.name2, libraryUri, fieldElement.getter);
-          _checkDeclaredMember(field.name2, libraryUri, fieldElement.setter);
+          _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
+          _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
           if (!member.isStatic && classElement is! EnumElement) {
-            _checkIllegalEnumValuesDeclaration(field.name2);
+            _checkIllegalEnumValuesDeclaration(field.name);
           }
           if (!member.isStatic) {
-            _checkIllegalConcreteEnumMemberDeclaration(field.name2);
+            _checkIllegalConcreteEnumMemberDeclaration(field.name);
           }
         }
       } else if (member is MethodDeclaration) {
@@ -231,13 +231,13 @@ class _ClassVerifier {
           continue;
         }
 
-        _checkDeclaredMember(member.name2, libraryUri, member.declaredElement2,
+        _checkDeclaredMember(member.name, libraryUri, member.declaredElement2,
             methodParameterNodes: member.parameters?.parameters);
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
-          _checkIllegalConcreteEnumMemberDeclaration(member.name2);
+          _checkIllegalConcreteEnumMemberDeclaration(member.name);
         }
         if (!member.isStatic && classElement is! EnumElement) {
-          _checkIllegalEnumValuesDeclaration(member.name2);
+          _checkIllegalEnumValuesDeclaration(member.name);
         }
       }
     }
@@ -805,15 +805,15 @@ class _ClassVerifier {
 
     for (var member in members) {
       if (member is MethodDeclaration) {
-        var displayName = member.name2.lexeme;
-        var name2 = displayName;
+        var displayName = member.name.lexeme;
+        var name = displayName;
         if (member.isSetter) {
-          name2 += '=';
+          name += '=';
         }
-        if (checkMemberNameCombo(member, name2, displayName)) return true;
+        if (checkMemberNameCombo(member, name, displayName)) return true;
       } else if (member is FieldDeclaration) {
         for (var variableDeclaration in member.fields.variables) {
-          var name = variableDeclaration.name2.lexeme;
+          var name = variableDeclaration.name.lexeme;
           if (checkMemberNameCombo(member, name, name)) return true;
           if (!variableDeclaration.isFinal) {
             if (checkMemberNameCombo(member, '$name=', name)) return true;
@@ -935,7 +935,7 @@ class _ClassVerifier {
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
         reporter.reportErrorForToken(
           CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE,
-          node.name2,
+          node.name,
           [
             classElement.name,
             inferenceError!.arguments[0],

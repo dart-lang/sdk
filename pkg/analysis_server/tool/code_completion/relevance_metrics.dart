@@ -993,7 +993,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (node.target is SuperExpression) {
       var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
       if (enclosingMethod != null) {
-        if (enclosingMethod.name2.lexeme == node.methodName.name) {
+        if (enclosingMethod.name.lexeme == node.methodName.name) {
           data.recordTypeMatch('super invocation member', 'same');
         } else {
           data.recordTypeMatch('super invocation member', 'different');
@@ -1120,7 +1120,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (node.target is SuperExpression) {
       var enclosingMethod = node.thisOrAncestorOfType<MethodDeclaration>();
       if (enclosingMethod != null) {
-        if (enclosingMethod.name2.lexeme == node.propertyName.name) {
+        if (enclosingMethod.name.lexeme == node.propertyName.name) {
           data.recordTypeMatch('super property access member', 'same');
         } else {
           data.recordTypeMatch('super property access member', 'different');

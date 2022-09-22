@@ -49,7 +49,7 @@ class _UnitApiSignatureComputer {
         var functionExpression = declaration.functionExpression;
         _addTokens(
           declaration.beginToken,
-          functionExpression.parameters?.endToken ?? declaration.name2,
+          functionExpression.parameters?.endToken ?? declaration.name,
         );
         _addFunctionBodyModifiers(functionExpression.body);
       } else if (declaration is MixinDeclaration) {
@@ -140,7 +140,7 @@ class _UnitApiSignatureComputer {
     signature.addInt(_kindMethodDeclaration);
     _addTokens(
       node.beginToken,
-      node.parameters?.endToken ?? node.name2,
+      node.parameters?.endToken ?? node.name,
     );
     signature.addBool(node.body is EmptyFunctionBody);
     _addFunctionBodyModifiers(node.body);
@@ -219,7 +219,7 @@ class _UnitApiSignatureComputer {
     signature.addInt(variables.length);
 
     for (var variable in variables) {
-      _addToken(variable.name2);
+      _addToken(variable.name);
       signature.addBool(variable.initializer != null);
       if (includeInitializers) {
         _addNode(variable.initializer);

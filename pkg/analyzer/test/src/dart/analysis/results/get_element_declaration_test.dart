@@ -28,7 +28,7 @@ class A {}
     var element = findNode.classDeclaration('A').declaredElement2!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
-    expect(node.name2.lexeme, 'A');
+    expect(node.name.lexeme, 'A');
   }
 
   test_class_duplicate() async {
@@ -40,9 +40,9 @@ class A {} // 2
       var element = findNode.classDeclaration('A {} // 1').declaredElement2!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ClassDeclaration;
-      expect(node.name2.lexeme, 'A');
+      expect(node.name.lexeme, 'A');
       expect(
-        node.name2.offset,
+        node.name.offset,
         this.result.content.indexOf('A {} // 1'),
       );
     }
@@ -51,9 +51,9 @@ class A {} // 2
       var element = findNode.classDeclaration('A {} // 2').declaredElement2!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ClassDeclaration;
-      expect(node.name2.lexeme, 'A');
+      expect(node.name.lexeme, 'A');
       expect(
-        node.name2.offset,
+        node.name.offset,
         this.result.content.indexOf('A {} // 2'),
       );
     }
@@ -71,7 +71,7 @@ part 'a.dart';
     var element = library.getClass('A')!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
-    expect(node.name2.lexeme, 'A');
+    expect(node.name.lexeme, 'A');
   }
 
   test_class_missingName() async {
@@ -81,8 +81,8 @@ class {}
     var element = findNode.classDeclaration('class {}').declaredElement2!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
-    expect(node.name2.lexeme, '');
-    expect(node.name2.offset, 6);
+    expect(node.name.lexeme, '');
+    expect(node.name.offset, 6);
   }
 
   test_classTypeAlias() async {
@@ -94,7 +94,7 @@ class B = A with M;
     var element = findElement.class_('B');
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassTypeAlias;
-    expect(node.name2.lexeme, 'B');
+    expect(node.name.lexeme, 'B');
   }
 
   test_compilationUnit() async {
@@ -115,14 +115,14 @@ class A {
       var unnamed = findNode.constructor('A();').declaredElement2!;
       var result = await getElementDeclaration(unnamed);
       var node = result!.node as ConstructorDeclaration;
-      expect(node.name2, isNull);
+      expect(node.name, isNull);
     }
 
     {
       var named = findNode.constructor('A.named();').declaredElement2!;
       var result = await getElementDeclaration(named);
       var node = result!.node as ConstructorDeclaration;
-      expect(node.name2!.lexeme, 'named');
+      expect(node.name!.lexeme, 'named');
     }
   }
 
@@ -137,9 +137,9 @@ class A {
       var element = findNode.constructor('A.named(); // 1').declaredElement2!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
-      expect(node.name2!.lexeme, 'named');
+      expect(node.name!.lexeme, 'named');
       expect(
-        node.name2!.offset,
+        node.name!.offset,
         this.result.content.indexOf('named(); // 1'),
       );
     }
@@ -148,9 +148,9 @@ class A {
       var element = findNode.constructor('A.named(); // 2').declaredElement2!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
-      expect(node.name2!.lexeme, 'named');
+      expect(node.name!.lexeme, 'named');
       expect(
-        node.name2!.offset,
+        node.name!.offset,
         this.result.content.indexOf('named(); // 2'),
       );
     }
@@ -167,7 +167,7 @@ class A {
       var element = findNode.constructor('A(); // 1').declaredElement2!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
-      expect(node.name2, isNull);
+      expect(node.name, isNull);
       expect(
         node.returnType.offset,
         this.result.content.indexOf('A(); // 1'),
@@ -178,7 +178,7 @@ class A {
       var element = findNode.constructor('A(); // 2').declaredElement2!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
-      expect(node.name2, isNull);
+      expect(node.name, isNull);
       expect(
         node.returnType.offset,
         this.result.content.indexOf('A(); // 2'),
@@ -204,7 +204,7 @@ enum MyEnum {a, b, c}
     var element = findElement.enum_('MyEnum');
     var result = await getElementDeclaration(element);
     var node = result!.node as EnumDeclaration;
-    expect(node.name2.lexeme, 'MyEnum');
+    expect(node.name.lexeme, 'MyEnum');
   }
 
   test_enum_constant() async {
@@ -214,7 +214,7 @@ enum MyEnum {a, b, c}
     var element = findElement.field('a');
     var result = await getElementDeclaration(element);
     var node = result!.node as EnumConstantDeclaration;
-    expect(node.name2.lexeme, 'a');
+    expect(node.name.lexeme, 'a');
   }
 
   test_extension() async {
@@ -224,7 +224,7 @@ extension E on int {}
     var element = findNode.extensionDeclaration('E').declaredElement2!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ExtensionDeclaration;
-    expect(node.name2!.lexeme, 'E');
+    expect(node.name!.lexeme, 'E');
   }
 
   test_field() async {
@@ -237,7 +237,7 @@ class C {
 
     var result = await getElementDeclaration(element);
     var node = result!.node as VariableDeclaration;
-    expect(node.name2.lexeme, 'foo');
+    expect(node.name.lexeme, 'foo');
   }
 
   test_functionDeclaration_local() async {
@@ -250,7 +250,7 @@ main() {
 
     var result = await getElementDeclaration(element);
     var node = result!.node as FunctionDeclaration;
-    expect(node.name2.lexeme, 'foo');
+    expect(node.name.lexeme, 'foo');
   }
 
   test_functionDeclaration_top() async {
@@ -261,7 +261,7 @@ void foo() {}
 
     var result = await getElementDeclaration(element);
     var node = result!.node as FunctionDeclaration;
-    expect(node.name2.lexeme, 'foo');
+    expect(node.name.lexeme, 'foo');
   }
 
   test_genericFunctionTypeElement() async {
@@ -282,7 +282,7 @@ class A {
     var element = findElement.getter('x');
     var result = await getElementDeclaration(element);
     var node = result!.node as MethodDeclaration;
-    expect(node.name2.lexeme, 'x');
+    expect(node.name.lexeme, 'x');
     expect(node.isGetter, isTrue);
   }
 
@@ -293,7 +293,7 @@ int get x => 0;
     var element = findElement.topGet('x');
     var result = await getElementDeclaration(element);
     var node = result!.node as FunctionDeclaration;
-    expect(node.name2.lexeme, 'x');
+    expect(node.name.lexeme, 'x');
     expect(node.isGetter, isTrue);
   }
 
@@ -316,7 +316,7 @@ main() {
 
     var result = await getElementDeclaration(element);
     var node = result!.node as VariableDeclaration;
-    expect(node.name2.lexeme, 'foo');
+    expect(node.name.lexeme, 'foo');
   }
 
   test_method() async {
@@ -329,7 +329,7 @@ class C {
 
     var result = await getElementDeclaration(element);
     var node = result!.node as MethodDeclaration;
-    expect(node.name2.lexeme, 'foo');
+    expect(node.name.lexeme, 'foo');
   }
 
   test_mixin() async {
@@ -339,7 +339,7 @@ mixin M {}
     var element = findElement.mixin('M');
     var result = await getElementDeclaration(element);
     var node = result!.node as MixinDeclaration;
-    expect(node.name2.lexeme, 'M');
+    expect(node.name.lexeme, 'M');
   }
 
   test_parameter() async {
@@ -390,7 +390,7 @@ class A {
     var element = findElement.setter('x');
     var result = await getElementDeclaration(element);
     var node = result!.node as MethodDeclaration;
-    expect(node.name2.lexeme, 'x');
+    expect(node.name.lexeme, 'x');
     expect(node.isSetter, isTrue);
   }
 
@@ -401,7 +401,7 @@ set x(_) {}
     var element = findElement.topSet('x');
     var result = await getElementDeclaration(element);
     var node = result!.node as FunctionDeclaration;
-    expect(node.name2.lexeme, 'x');
+    expect(node.name.lexeme, 'x');
     expect(node.isSetter, isTrue);
   }
 
@@ -413,7 +413,7 @@ int foo;
 
     var result = await getElementDeclaration(element);
     var node = result!.node as VariableDeclaration;
-    expect(node.name2.lexeme, 'foo');
+    expect(node.name.lexeme, 'foo');
   }
 
   test_topLevelVariable_synthetic() async {

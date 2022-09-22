@@ -628,7 +628,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       // class A { static late ^ }
       if (node.staticKeyword != null &&
           variables.length == 1 &&
-          variables[0].name2.lexeme == 'late') {
+          variables[0].name.lexeme == 'late') {
         optype.completionLocation = 'FieldDeclaration_static_late';
         optype.includeTypeNameSuggestions = true;
         return;
@@ -637,7 +637,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (node.staticKeyword == null &&
           offset <= node.semicolon.offset &&
           variables.length == 1 &&
-          variables[0].name2.lexeme == 'static') {
+          variables[0].name.lexeme == 'static') {
         optype.completionLocation = 'FieldDeclaration_static';
         optype.includeTypeNameSuggestions = true;
         return;
@@ -806,7 +806,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name2) && node.returnType == null) {
+        identical(entity, node.name) && node.returnType == null) {
       optype.completionLocation = 'FunctionDeclaration_returnType';
       optype.includeTypeNameSuggestions = true;
     }
@@ -821,7 +821,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name2) && node.returnType == null) {
+        identical(entity, node.name) && node.returnType == null) {
       optype.includeTypeNameSuggestions = true;
     }
   }
@@ -948,7 +948,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (identical(entity, node.returnType) ||
-        identical(entity, node.name2) && node.returnType == null) {
+        identical(entity, node.name) && node.returnType == null) {
       optype.completionLocation = 'MethodDeclaration_returnType';
     }
     // TODO(brianwilkerson) In visitFunctionDeclaration, this is conditional. It

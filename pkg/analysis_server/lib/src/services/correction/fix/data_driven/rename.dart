@@ -79,7 +79,7 @@ class Rename extends Change<_Data> {
   _Data? validate(DataDrivenFix fix) {
     var node = fix.node;
     if (node is MethodDeclaration) {
-      return _Data(node, node.name2);
+      return _Data(node, node.name);
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       var grandParent = parent?.parent;

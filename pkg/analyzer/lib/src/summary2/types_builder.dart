@@ -194,7 +194,7 @@ class TypesBuilder {
       if (returnType == null) {
         if (node.isSetter) {
           returnType = _voidType;
-        } else if (node.isOperator && node.name2.lexeme == '[]=') {
+        } else if (node.isOperator && node.name.lexeme == '[]=') {
           returnType = _voidType;
         } else {
           returnType = _dynamicType;

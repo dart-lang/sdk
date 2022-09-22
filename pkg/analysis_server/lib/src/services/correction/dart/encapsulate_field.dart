@@ -40,7 +40,7 @@ class EncapsulateField extends CorrectionProducer {
       return;
     }
     var field = fields.first;
-    var nameToken = field.name2;
+    var nameToken = field.name;
     var fieldElement = field.declaredElement2 as FieldElement;
     // should have a public name
     var name = nameToken.lexeme;

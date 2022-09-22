@@ -56,7 +56,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
         _errorReporter.reportErrorForToken(
           HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
-          field.name2,
+          field.name,
         );
       }
     }
@@ -69,18 +69,18 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
       if (element is MethodElement) {
         _errorReporter.reportErrorForToken(
           HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
-          node.name2,
+          node.name,
         );
       } else if (element is PropertyAccessorElement) {
         if (element.isGetter) {
           _errorReporter.reportErrorForToken(
             HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
-            node.name2,
+            node.name,
           );
         } else {
           _errorReporter.reportErrorForToken(
             HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
-            node.name2,
+            node.name,
           );
         }
       }

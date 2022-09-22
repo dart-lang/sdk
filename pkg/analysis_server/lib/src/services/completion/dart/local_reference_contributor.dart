@@ -245,7 +245,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeReturnValueSuggestions &&
-        declaration.name2 != null) {
+        declaration.name != null) {
       builder.suggestExtension(declaredElement, kind: _defaultKind);
     }
   }

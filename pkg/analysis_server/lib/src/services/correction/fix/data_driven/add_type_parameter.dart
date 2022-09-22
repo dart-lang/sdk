@@ -87,7 +87,7 @@ class AddTypeParameter extends Change<_Data> {
       if (_isInvalidIndex(typeParameters?.typeParameters)) {
         return null;
       }
-      return _TypeParameterData(typeParameters, node.name2.end);
+      return _TypeParameterData(typeParameters, node.name.end);
     } else if (node is TypeArgumentList && parent is ExtensionOverride) {
       // wrong_number_of_type_arguments_extension
       if (!argumentValue.validate(context)) {

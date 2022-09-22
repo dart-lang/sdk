@@ -288,7 +288,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor- defines/binding
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name2,
+          syntacticEntity: node.name,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -355,7 +355,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name2,
+          syntacticEntity: node.name,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -471,7 +471,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       // anchor
       var start = node.returnType.offset;
       var end = node.returnType.end;
-      var nameToken = node.name2;
+      var nameToken = node.name;
       if (nameToken != null) {
         end = nameToken.end;
       }
@@ -517,7 +517,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
     // anchor- defines/binding, defines
     addAnchorEdgesContainingEdge(
-        syntacticEntity: node.name2,
+        syntacticEntity: node.name,
         edges: [
           schema.DEFINES_BINDING_EDGE,
           schema.DEFINES_EDGE,
@@ -539,7 +539,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor- defines/binding
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name2,
+          syntacticEntity: node.name,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -599,7 +599,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor- defines/binding
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name2,
+          syntacticEntity: node.name,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -751,7 +751,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
       // anchor- defines/binding
       addAnchorEdgesContainingEdge(
-          syntacticEntity: node.name2,
+          syntacticEntity: node.name,
           edges: [
             schema.DEFINES_BINDING_EDGE,
           ],
@@ -919,7 +919,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
     // variable
     var declaredElement = node.declaredElement2!;
-    _handleVariableDeclaration(declaredElement, node.name2,
+    _handleVariableDeclaration(declaredElement, node.name,
         subKind: isLocal ? schema.LOCAL_SUBKIND : schema.FIELD_SUBKIND,
         type: declaredElement.type);
 

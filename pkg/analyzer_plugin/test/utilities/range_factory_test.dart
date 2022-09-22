@@ -518,7 +518,7 @@ class B {}
   Future<void> test_endEnd() async {
     await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name2;
+    var mainName = mainFunction.name;
     var mainBody = mainFunction.functionExpression.body;
     expect(range.endEnd(mainName, mainBody), SourceRange(4, 5));
   }
@@ -526,14 +526,14 @@ class B {}
   Future<void> test_endLength() async {
     await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name2;
+    var mainName = mainFunction.name;
     expect(range.endLength(mainName, 3), SourceRange(4, 3));
   }
 
   Future<void> test_endStart() async {
     await resolveTestCode('main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name2;
+    var mainName = mainFunction.name;
     var mainBody = mainFunction.functionExpression.body;
     expect(range.endStart(mainName, mainBody), SourceRange(4, 3));
   }
@@ -574,7 +574,7 @@ const class B {}
   Future<void> test_startEnd_nodeNode() async {
     await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name2;
+    var mainName = mainFunction.name;
     var mainBody = mainFunction.functionExpression.body;
     expect(range.startEnd(mainName, mainBody), SourceRange(1, 9));
   }
@@ -601,7 +601,7 @@ const class B {}
   Future<void> test_token() async {
     await resolveTestCode(' main() {}');
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
-    var mainName = mainFunction.name2;
+    var mainName = mainFunction.name;
     expect(range.token(mainName), SourceRange(1, 4));
   }
 

@@ -1,3 +1,6 @@
+## 5.1.0-dev
+* Deprecated `get name2`, use `get name` instead.
+
 ## 5.0.0
 * Removed deprecated methods from AST.
 * Removed deprecated `DiagnosticMessage.message`.

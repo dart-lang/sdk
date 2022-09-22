@@ -807,7 +807,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    final nameRange = range.token(node.name2);
+    final nameRange = range.token(node.name);
     if (bodyRange.covers(nameRange)) {
       final declaredElement = node.declaredElement2;
       if (declaredElement != null) {

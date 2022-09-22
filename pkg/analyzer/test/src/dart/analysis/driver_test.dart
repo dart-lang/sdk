@@ -3531,7 +3531,7 @@ var v = 0
   ClassDeclaration _getClass(CompilationUnit unit, String name) {
     for (CompilationUnitMember declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
-        if (declaration.name2.lexeme == name) {
+        if (declaration.name.lexeme == name) {
           return declaration;
         }
       }
@@ -3545,7 +3545,7 @@ var v = 0
     for (ClassMember declaration in classDeclaration.members) {
       if (declaration is FieldDeclaration) {
         for (var field in declaration.fields.variables) {
-          if (field.name2.lexeme == fieldName) {
+          if (field.name.lexeme == fieldName) {
             return field;
           }
         }
@@ -3559,7 +3559,7 @@ var v = 0
     ClassDeclaration classDeclaration = _getClass(unit, className);
     for (ClassMember declaration in classDeclaration.members) {
       if (declaration is MethodDeclaration &&
-          declaration.name2.lexeme == methodName) {
+          declaration.name.lexeme == methodName) {
         return declaration;
       }
     }
@@ -3581,7 +3581,7 @@ var v = 0
     for (CompilationUnitMember declaration in unit.declarations) {
       if (declaration is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in declaration.variables.variables) {
-          if (variable.name2.lexeme == name) {
+          if (variable.name.lexeme == name) {
             return variable;
           }
         }

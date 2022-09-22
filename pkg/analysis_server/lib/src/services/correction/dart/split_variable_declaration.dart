@@ -41,7 +41,7 @@ class SplitVariableDeclaration extends CorrectionProducer {
 
     // The caret must be between the type and the variable name.
     var variable = variables[0];
-    if (!range.startEnd(statement, variable.name2).contains(selectionOffset)) {
+    if (!range.startEnd(statement, variable.name).contains(selectionOffset)) {
       return;
     }
 
@@ -64,8 +64,8 @@ class SplitVariableDeclaration extends CorrectionProducer {
       }
 
       var indent = utils.getNodePrefix(statement);
-      var name = variable.name2.lexeme;
-      builder.addSimpleInsertion(variable.name2.end, ';$eol$indent$name');
+      var name = variable.name.lexeme;
+      builder.addSimpleInsertion(variable.name.end, ';$eol$indent$name');
     });
   }
 }

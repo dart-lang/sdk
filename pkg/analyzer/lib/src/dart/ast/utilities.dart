@@ -273,7 +273,7 @@ class AstComparator implements AstVisitor<bool> {
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
         isEqualTokens(node.classKeyword, other.classKeyword) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualNodes(node.extendsClause, other.extendsClause) &&
         isEqualNodes(node.withClause, other.withClause) &&
@@ -290,7 +290,7 @@ class AstComparator implements AstVisitor<bool> {
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.typedefKeyword, other.typedefKeyword) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualTokens(node.equals, other.equals) &&
         isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
@@ -363,7 +363,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.factoryKeyword, other.factoryKeyword) &&
         isEqualNodes(node.returnType, other.returnType) &&
         isEqualTokens(node.period, other.period) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.parameters, other.parameters) &&
         isEqualTokens(node.separator, other.separator) &&
         _isEqualNodeLists(node.initializers, other.initializers) &&
@@ -481,7 +481,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.name2, other.name2);
+        isEqualTokens(node.name, other.name);
   }
 
   @override
@@ -491,7 +491,7 @@ class AstComparator implements AstVisitor<bool> {
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.enumKeyword, other.enumKeyword) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualTokens(node.leftBracket, other.leftBracket) &&
         _isEqualNodeLists(node.constants, other.constants) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
@@ -538,7 +538,7 @@ class AstComparator implements AstVisitor<bool> {
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.extensionKeyword, other.extensionKeyword) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualTokens(node.onKeyword, other.onKeyword) &&
         isEqualNodes(node.extendedType, other.extendedType) &&
@@ -687,7 +687,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.externalKeyword, other.externalKeyword) &&
         isEqualNodes(node.returnType, other.returnType) &&
         isEqualTokens(node.propertyKeyword, other.propertyKeyword) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.functionExpression, other.functionExpression);
   }
 
@@ -726,7 +726,7 @@ class AstComparator implements AstVisitor<bool> {
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.typedefKeyword, other.typedefKeyword) &&
         isEqualNodes(node.returnType, other.returnType) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualNodes(node.parameters, other.parameters) &&
         isEqualTokens(node.semicolon, other.semicolon);
@@ -760,7 +760,7 @@ class AstComparator implements AstVisitor<bool> {
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.typedefKeyword, other.typedefKeyword) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualTokens(node.equals, other.equals) &&
         isEqualNodes(node.type, other.type);
@@ -980,7 +980,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.returnType, other.returnType) &&
         isEqualTokens(node.propertyKeyword, other.propertyKeyword) &&
         isEqualTokens(node.operatorKeyword, other.operatorKeyword) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.parameters, other.parameters) &&
         isEqualNodes(node.body, other.body);
   }
@@ -1001,7 +1001,7 @@ class AstComparator implements AstVisitor<bool> {
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.mixinKeyword, other.mixinKeyword) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualNodes(node.typeParameters, other.typeParameters) &&
         isEqualNodes(node.onClause, other.onClause) &&
         isEqualNodes(node.implementsClause, other.implementsClause) &&
@@ -1496,7 +1496,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualTokens((node as TypeParameterImpl).varianceKeyword,
             (other as TypeParameterImpl).varianceKeyword) &&
         isEqualTokens(node.extendsKeyword, other.extendsKeyword) &&
@@ -1517,7 +1517,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.name2, other.name2) &&
+        isEqualTokens(node.name, other.name) &&
         isEqualTokens(node.equals, other.equals) &&
         isEqualNodes(node.initializer, other.initializer);
   }
@@ -3529,7 +3529,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   void _addVariables(NodeList<VariableDeclaration> variables) {
     for (VariableDeclaration variable in variables) {
-      _addToScope(variable.name2);
+      _addToScope(variable.name);
     }
   }
 
@@ -3545,7 +3545,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
         _addVariables(statement.variables.variables);
       } else if (statement is FunctionDeclarationStatement &&
           !_referenceIsWithinLocalFunction) {
-        _addToScope(statement.functionDeclaration.name2);
+        _addToScope(statement.functionDeclaration.name);
       }
     }
   }

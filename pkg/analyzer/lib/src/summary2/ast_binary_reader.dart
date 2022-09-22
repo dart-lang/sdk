@@ -1206,7 +1206,7 @@ class AstBinaryReader {
     var node = TypeParameterImpl(
       comment: null,
       metadata: metadata,
-      name2: name,
+      name: name,
       extendsKeyword: bound != null ? Tokens.extends_() : null,
       bound: bound,
     );
@@ -1233,7 +1233,7 @@ class AstBinaryReader {
     var initializer = _readOptionalNode() as ExpressionImpl?;
 
     var node = VariableDeclarationImpl(
-      name2: name,
+      name: name,
       equals: Tokens.eq(),
       initializer: initializer,
     );

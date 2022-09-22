@@ -114,17 +114,17 @@ class ReplaceConditionalWithIfElse extends CorrectionProducer {
                 builder.writeType(type);
               });
             } else {
-              builder.addInsertion(variable.name2.offset, (builder) {
+              builder.addInsertion(variable.name.offset, (builder) {
                 builder.writeType(type);
                 builder.write(' ');
               });
             }
           }
-          builder.addDeletion(range.endEnd(variable.name2, conditional));
+          builder.addDeletion(range.endEnd(variable.name, conditional));
           var conditionSrc = utils.getNodeText(conditional.condition);
           var thenSrc = utils.getNodeText(conditional.thenExpression);
           var elseSrc = utils.getNodeText(conditional.elseExpression);
-          var name = variable.name2.lexeme;
+          var name = variable.name.lexeme;
           var src = eol;
           src += '${prefix}if ($conditionSrc) {$eol';
           src += '$prefix$indent$name = $thenSrc;$eol';

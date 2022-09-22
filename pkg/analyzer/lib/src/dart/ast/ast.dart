@@ -1842,7 +1842,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.macroKeyword,
     required this.augmentKeyword,
     required this.classKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required ExtendsClauseImpl? extendsClause,
     required WithClauseImpl? withClause,
@@ -1917,7 +1917,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('macroKeyword', macroKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('classKeyword', classKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('extendsClause', extendsClause)
     ..addNode('withClause', withClause)
@@ -2006,7 +2006,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required super.comment,
     required super.metadata,
     required super.typedefKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required this.abstractKeyword,
@@ -2063,7 +2063,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('typedefKeyword', typedefKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addToken('abstractKeyword', abstractKeyword)
@@ -2788,7 +2788,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// The name of the constructor, or `null` if the constructor being declared
   /// is unnamed.
   @override
-  Token? name2;
+  Token? name;
 
   /// The parameters associated with the constructor.
   FormalParameterListImpl _parameters;
@@ -2819,7 +2819,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// [comment] and [metadata] can be `null` if the constructor does not have
   /// the corresponding attribute. The [constKeyword] can be `null` if the
   /// constructor cannot be used to create a constant. The [factoryKeyword] can
-  /// be `null` if the constructor is not a factory. The [period] and [name2] can
+  /// be `null` if the constructor is not a factory. The [period] and [name] can
   /// both be `null` if the constructor is not a named constructor. The
   /// [separator] can be `null` if the constructor does not have any
   /// initializers and does not redirect to a different constructor. The list of
@@ -2835,7 +2835,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     required this.factoryKeyword,
     required IdentifierImpl returnType,
     required this.period,
-    required this.name2,
+    required this.name,
     required FormalParameterListImpl parameters,
     required this.separator,
     required List<ConstructorInitializer>? initializers,
@@ -2874,6 +2874,10 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   NodeListImpl<ConstructorInitializer> get initializers => _initializers;
 
+  @Deprecated('Use name instead')
+  @override
+  Token? get name2 => name;
+
   @override
   FormalParameterListImpl get parameters => _parameters;
 
@@ -2903,7 +2907,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addToken('factoryKeyword', factoryKeyword)
     ..addNode('returnType', returnType)
     ..addToken('period', period)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('parameters', parameters)
     ..addToken('separator', separator)
     ..addNodeList('initializers', initializers)
@@ -3803,7 +3807,7 @@ class EnumConstantArgumentsImpl extends AstNodeImpl
 class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
   @override
-  final Token name2;
+  final Token name;
 
   @override
   FieldElement? declaredElement2;
@@ -3820,21 +3824,25 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   EnumConstantDeclarationImpl({
     required super.comment,
     required super.metadata,
-    required this.name2,
+    required this.name,
     required this.arguments,
   }) {
     _becomeParentOf(arguments);
   }
 
   @override
-  Token get endToken => arguments?.endToken ?? name2;
+  Token get endToken => arguments?.endToken ?? name;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name2;
+  Token get firstTokenAfterCommentAndMetadata => name;
+
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('arguments', arguments);
 
   @override
@@ -3900,7 +3908,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.enumKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
@@ -3957,7 +3965,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   // TODO(brianwilkerson) Add commas?
   ChildEntities get _childEntities => super._childEntities
     ..addToken('enumKeyword', enumKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('withClause', withClause)
     ..addNode('implementsClause', implementsClause)
@@ -4364,7 +4372,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   HideClauseImpl? _hideClause;
 
   @override
-  Token? name2;
+  Token? name;
 
   /// The show clause for the extension or `null` if the declaration does not
   /// show any elements.
@@ -4397,7 +4405,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required super.metadata,
     required this.extensionKeyword,
     required this.typeKeyword,
-    required this.name2,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required this.onKeyword,
     required TypeAnnotationImpl extendedType,
@@ -4438,6 +4446,10 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   NodeListImpl<ClassMember> get members => _members;
 
+  @Deprecated('Use name instead')
+  @override
+  Token? get name2 => name;
+
   @override
   ShowClauseImpl? get showClause => _showClause;
 
@@ -4455,7 +4467,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('extensionKeyword', extensionKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addToken('onKeyword', onKeyword)
     ..addNode('extendedType', extendedType)
@@ -5626,7 +5638,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.externalKeyword,
     required TypeAnnotationImpl? returnType,
     required this.propertyKeyword,
-    required super.name2,
+    required super.name,
     required FunctionExpressionImpl functionExpression,
   })  : _returnType = returnType,
         _functionExpression = functionExpression {
@@ -5643,7 +5655,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
         externalKeyword ??
         _returnType?.beginToken ??
         propertyKeyword ??
-        name2;
+        name;
   }
 
   @override
@@ -5673,7 +5685,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('externalKeyword', externalKeyword)
     ..addNode('returnType', returnType)
     ..addToken('propertyKeyword', propertyKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('functionExpression', functionExpression);
 
   @override
@@ -5996,7 +6008,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
     required super.metadata,
     required super.typedefKeyword,
     required TypeAnnotationImpl? returnType,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl parameters,
     required super.semicolon,
@@ -6033,7 +6045,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   ChildEntities get _childEntities => super._childEntities
     ..addToken('typedefKeyword', typedefKeyword)
     ..addNode('returnType', returnType)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('parameters', parameters)
     ..addToken('semicolon', semicolon);
@@ -6309,7 +6321,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     required super.comment,
     required super.metadata,
     required super.typedefKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required TypeAnnotationImpl type,
@@ -6354,7 +6366,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
     ..addToken('typedefKeyword', typedefKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addNode('type', type);
@@ -8198,7 +8210,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   Token? operatorKeyword;
 
   @override
-  Token name2;
+  Token name;
 
   /// The type parameters associated with the method, or `null` if the method is
   /// not a generic method.
@@ -8236,7 +8248,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
     required TypeAnnotationImpl? returnType,
     required this.propertyKeyword,
     required this.operatorKeyword,
-    required this.name2,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl? parameters,
     required FunctionBodyImpl body,
@@ -8265,7 +8277,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
     return Token.lexicallyFirst(externalKeyword, modifierKeyword) ??
         _returnType?.beginToken ??
         Token.lexicallyFirst(propertyKeyword, operatorKeyword) ??
-        name2;
+        name;
   }
 
   @override
@@ -8286,6 +8298,10 @@ class MethodDeclarationImpl extends ClassMemberImpl
 
   @override
   bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
+
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
 
   @override
   FormalParameterListImpl? get parameters => _parameters;
@@ -8315,7 +8331,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
     ..addNode('returnType', returnType)
     ..addToken('propertyKeyword', propertyKeyword)
     ..addToken('operatorKeyword', operatorKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('parameters', parameters)
     ..addNode('body', body);
 
@@ -8543,7 +8559,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.augmentKeyword,
     required this.mixinKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required OnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
@@ -8595,7 +8611,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('onClause', onClause)
     ..addNode('implementsClause', implementsClause)
@@ -8621,16 +8637,20 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     implements NamedCompilationUnitMember {
   /// The name of the member being declared.
   @override
-  Token name2;
+  Token name;
 
-  /// Initialize a newly created compilation unit member with the given [name2].
+  /// Initialize a newly created compilation unit member with the given [name].
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// does not have the corresponding attribute.
   NamedCompilationUnitMemberImpl({
     required super.comment,
     required super.metadata,
-    required this.name2,
+    required this.name,
   });
+
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
 }
 
 /// An expression that has a name associated with it. They are used in method
@@ -12556,7 +12576,7 @@ abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.typedefKeyword,
-    required super.name2,
+    required super.name,
     required this.semicolon,
   });
 
@@ -12728,7 +12748,7 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
 ///    typeParameterVariance ::= 'out' | 'inout' | 'in'
 class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
-  Token name2;
+  Token name;
 
   /// The token representing the variance modifier keyword, or `null` if
   /// there is no explicit variance modifier, meaning legacy covariance.
@@ -12753,7 +12773,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeParameterImpl({
     required super.comment,
     required super.metadata,
-    required this.name2,
+    required this.name,
     required this.extendsKeyword,
     required TypeAnnotationImpl? bound,
     this.varianceKeyword,
@@ -12771,17 +12791,21 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   Token get endToken {
     if (_bound == null) {
-      return name2;
+      return name;
     }
     return _bound!.endToken;
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name2;
+  Token get firstTokenAfterCommentAndMetadata => name;
+
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addToken('extendsKeyword', extendsKeyword)
     ..addNode('bound', bound);
 
@@ -12932,7 +12956,7 @@ class UriValidationCode {
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
-  Token name2;
+  Token name;
 
   @override
   VariableElement? declaredElement2;
@@ -12955,7 +12979,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   /// Initialize a newly created variable declaration. The [equals] and
   /// [initializer] can be `null` if there is no initializer.
   VariableDeclarationImpl({
-    required this.name2,
+    required this.name,
     required this.equals,
     required ExpressionImpl? initializer,
   })  : _initializer = initializer,
@@ -12983,11 +13007,11 @@ class VariableDeclarationImpl extends DeclarationImpl
     if (_initializer != null) {
       return _initializer!.endToken;
     }
-    return name2;
+    return name;
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name2;
+  Token get firstTokenAfterCommentAndMetadata => name;
 
   @override
   ExpressionImpl? get initializer => _initializer;
@@ -13014,9 +13038,13 @@ class VariableDeclarationImpl extends DeclarationImpl
     return parent is VariableDeclarationList && parent.isLate;
   }
 
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
+
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addToken('equals', equals)
     ..addNode('initializer', initializer);
 

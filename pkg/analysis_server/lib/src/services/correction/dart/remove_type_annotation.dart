@@ -55,12 +55,12 @@ class RemoveTypeAnnotation extends CorrectionProducer {
     }
     // ignore if an incomplete variable declaration
     if (declarationList.variables.length == 1 &&
-        declarationList.variables[0].name2.isSynthetic) {
+        declarationList.variables[0].name.isSynthetic) {
       return;
     }
     // must be not after the name of the variable
     var firstVariable = declarationList.variables[0];
-    if (selectionOffset > firstVariable.name2.end) {
+    if (selectionOffset > firstVariable.name.end) {
       return;
     }
 

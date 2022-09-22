@@ -560,7 +560,7 @@ class InfoBuilder {
         enclosingNode != null;
         enclosingNode = enclosingNode.parent) {
       if (enclosingNode is ConstructorDeclaration) {
-        if (enclosingNode.name2 == null) {
+        if (enclosingNode.name == null) {
           return _describeClassOrExtensionMember(
               enclosingNode.parent as CompilationUnitMember?,
               'the default constructor of',
@@ -569,10 +569,10 @@ class InfoBuilder {
           return _describeClassOrExtensionMember(
               enclosingNode.parent as CompilationUnitMember?,
               'the constructor',
-              enclosingNode.name2!.lexeme);
+              enclosingNode.name!.lexeme);
         }
       } else if (enclosingNode is MethodDeclaration) {
-        var functionName = enclosingNode.name2.lexeme;
+        var functionName = enclosingNode.name.lexeme;
         String baseDescription;
         if (enclosingNode.isGetter) {
           baseDescription = 'the getter';
@@ -590,7 +590,7 @@ class InfoBuilder {
             functionName);
       } else if (enclosingNode is FunctionDeclaration &&
           enclosingNode.parent is CompilationUnit) {
-        var functionName = enclosingNode.name2.lexeme;
+        var functionName = enclosingNode.name.lexeme;
         String baseDescription;
         if (enclosingNode.isGetter) {
           baseDescription = 'the getter';
@@ -617,20 +617,20 @@ class InfoBuilder {
   static String _describeClassOrExtensionMember(CompilationUnitMember? parent,
       String baseDescription, String functionName) {
     if (parent is NamedCompilationUnitMember) {
-      var parentName = parent.name2.lexeme;
+      var parentName = parent.name.lexeme;
       if (functionName.isEmpty) {
         return "$baseDescription '$parentName'";
       } else {
         return "$baseDescription '$parentName.$functionName'";
       }
     } else if (parent is ExtensionDeclaration) {
-      if (parent.name2 == null) {
+      if (parent.name == null) {
         var extendedTypeString = parent.extendedType.type!.getDisplayString(
           withNullability: false,
         );
         return "$baseDescription '$functionName' in unnamed extension on $extendedTypeString";
       } else {
-        return "$baseDescription '${parent.name2!.lexeme}.$functionName'";
+        return "$baseDescription '${parent.name!.lexeme}.$functionName'";
       }
     } else {
       throw ArgumentError(
@@ -639,7 +639,7 @@ class InfoBuilder {
   }
 
   static String? _describeVariableDeclaration(VariableDeclaration node) {
-    var variableName = node.name2.lexeme;
+    var variableName = node.name.lexeme;
     var parent = node.parent!;
     var grandParent = parent.parent;
     if (grandParent is FieldDeclaration) {

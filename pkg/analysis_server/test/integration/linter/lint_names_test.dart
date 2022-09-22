@@ -33,7 +33,7 @@ void main() {
     }
 
     var lintNamesClass = parseResult.unit.declarations.firstWhere(
-        (m) => m is ClassDeclaration && m.name2.lexeme == 'LintNames');
+        (m) => m is ClassDeclaration && m.name.lexeme == 'LintNames');
 
     var collector = _FixCollector();
     lintNamesClass.accept(collector);
@@ -65,7 +65,7 @@ class _FixCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var v in node.fields.variables) {
-      lintNames.add(v.name2.lexeme);
+      lintNames.add(v.name.lexeme);
     }
   }
 }

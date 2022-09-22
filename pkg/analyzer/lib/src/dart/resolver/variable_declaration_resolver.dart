@@ -33,7 +33,7 @@ class VariableDeclarationResolver {
         _resolver.errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
           node,
-          [node.name2.lexeme],
+          [node.name.lexeme],
         );
       }
       return;

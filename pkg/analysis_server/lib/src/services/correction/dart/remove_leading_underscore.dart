@@ -37,7 +37,7 @@ class RemoveLeadingUnderscore extends CorrectionProducer {
       nameToken = node.name;
       element = node.declaredElement;
     } else if (node is VariableDeclaration) {
-      nameToken = node.name2;
+      nameToken = node.name;
       element = node.declaredElement2;
     } else {
       return;

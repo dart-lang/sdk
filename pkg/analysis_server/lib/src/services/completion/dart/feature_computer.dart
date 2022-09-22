@@ -1029,7 +1029,7 @@ parent3: ${node.parent?.parent?.parent}
       var parent = node.parent;
       if (parent is VariableDeclarationList) {
         return parent.type?.type ??
-            _impliedDartTypeWithName(typeProvider, node.name2.lexeme);
+            _impliedDartTypeWithName(typeProvider, node.name.lexeme);
       }
     }
     return null;
@@ -1042,7 +1042,7 @@ parent3: ${node.parent?.parent?.parent}
         var equals = varDecl.equals;
         if (equals != null && equals.end <= offset) {
           return node.type?.type ??
-              _impliedDartTypeWithName(typeProvider, varDecl.name2.lexeme);
+              _impliedDartTypeWithName(typeProvider, varDecl.name.lexeme);
         }
       }
     }

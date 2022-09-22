@@ -148,7 +148,7 @@ class JoinVariableDeclaration extends CorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
-        range.endStart(declaredVariable.name2, assignment.operator),
+        range.endStart(declaredVariable.name, assignment.operator),
         ' ',
       );
     });

@@ -28,7 +28,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    _addOccurrence(node.declaredElement2!, node.name2.offset);
+    _addOccurrence(node.declaredElement2!, node.name.offset);
 
     super.visitEnumConstantDeclaration(node);
   }
@@ -48,13 +48,13 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    _addOccurrence(node.declaredElement2!, node.name2.offset);
+    _addOccurrence(node.declaredElement2!, node.name.offset);
     super.visitFunctionDeclaration(node);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    _addOccurrence(node.declaredElement2!, node.name2.offset);
+    _addOccurrence(node.declaredElement2!, node.name.offset);
     super.visitMethodDeclaration(node);
   }
 
@@ -85,7 +85,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _addOccurrence(node.declaredElement2!, node.name2.offset);
+    _addOccurrence(node.declaredElement2!, node.name.offset);
     super.visitVariableDeclaration(node);
   }
 

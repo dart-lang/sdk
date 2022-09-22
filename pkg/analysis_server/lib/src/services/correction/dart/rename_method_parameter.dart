@@ -39,7 +39,7 @@ class RenameMethodParameter extends CorrectionProducer {
     if (classElement is! InterfaceElement) return;
 
     var parentMethod = classElement.lookUpInheritedMethod(
-        method.name2.lexeme, classElement.library);
+        method.name.lexeme, classElement.library);
     if (parentMethod == null) return;
 
     var parameters = methodParameters.parameters;
@@ -89,7 +89,7 @@ class _Collector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _addNameToken(node.name2, node.declaredElement2);
+    _addNameToken(node.name, node.declaredElement2);
     super.visitVariableDeclaration(node);
   }
 

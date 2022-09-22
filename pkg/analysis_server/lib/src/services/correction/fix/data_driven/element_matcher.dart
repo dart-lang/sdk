@@ -152,7 +152,7 @@ class _MatcherBuilder {
     } else if (node is ConstructorName) {
       _buildFromConstructorName(node);
     } else if (node is FunctionDeclaration) {
-      _addMatcher(components: [node.name2.lexeme], kinds: []);
+      _addMatcher(components: [node.name.lexeme], kinds: []);
     } else if (node is Literal) {
       var parent = node.parent;
       if (parent is ArgumentList) {
@@ -169,7 +169,7 @@ class _MatcherBuilder {
     } else if (node is TypeArgumentList) {
       _buildFromTypeArgumentList(node);
     } else if (node is VariableDeclaration) {
-      _addMatcher(components: [node.name2.lexeme], kinds: []);
+      _addMatcher(components: [node.name.lexeme], kinds: []);
     }
   }
 
@@ -264,7 +264,7 @@ class _MatcherBuilder {
   /// Build a matcher for the method being declared.
   void _buildFromMethodDeclaration(MethodDeclaration node) {
     _addMatcher(
-      components: [node.name2.lexeme],
+      components: [node.name.lexeme],
       kinds: [ElementKind.methodKind],
     );
   }
@@ -465,7 +465,7 @@ class _MatcherBuilder {
       _buildFromArgumentList(parent.parent!.parent as ArgumentList);
     } else if (parent is NamedType) {
       _buildFromNamedType(parent);
-    } else if (parent is MethodDeclaration && nameToken == parent.name2) {
+    } else if (parent is MethodDeclaration && nameToken == parent.name) {
       _buildFromMethodDeclaration(parent);
     } else if (parent is MethodInvocation &&
         node == parent.methodName &&

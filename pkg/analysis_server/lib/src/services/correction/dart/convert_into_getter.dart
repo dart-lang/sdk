@@ -54,7 +54,7 @@ class ConvertIntoGetter extends CorrectionProducer {
       code += '${utils.getNodeText(typeAnnotation)} ';
     }
     code += 'get';
-    code += ' ${field.name2.lexeme}';
+    code += ' ${field.name.lexeme}';
     code += ' => ${utils.getNodeText(initializer)}';
     code += ';';
     var replacementRange = range.startEnd(finalKeyword, fieldDeclaration);

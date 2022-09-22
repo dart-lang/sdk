@@ -43,8 +43,7 @@ class CreateConstructor extends CorrectionProducer {
       }
       var parent = node.thisOrAncestorOfType<EnumConstantDeclaration>();
       if (parent != null) {
-        await _proposeFromEnumConstantDeclaration(
-            builder, parent.name2, parent);
+        await _proposeFromEnumConstantDeclaration(builder, parent.name, parent);
       }
     }
   }
@@ -139,7 +138,7 @@ class CreateConstructor extends CorrectionProducer {
 
     var arguments = parent.arguments;
     _constructorName =
-        '${targetNode.name2.lexeme}${arguments?.constructorSelector ?? ''}';
+        '${targetNode.name.lexeme}${arguments?.constructorSelector ?? ''}';
 
     await _write(
       builder,

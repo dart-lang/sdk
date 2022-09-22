@@ -45,28 +45,28 @@ class MoveTopLevelToFile extends RefactoringProducer {
       var declaration = node.parent?.parent;
       if (declaration is TopLevelVariableDeclaration &&
           declaration.variables.variables.length == 1 &&
-          selectionIsInToken(node.name2)) {
-        return _memberFor(declaration, node.name2.lexeme);
+          selectionIsInToken(node.name)) {
+        return _memberFor(declaration, node.name.lexeme);
       }
     }
     if (node is! CompilationUnitMember) {
       return null;
     }
     String name;
-    if (node is ClassDeclaration && selectionIsInToken(node.name2)) {
-      name = node.name2.lexeme;
-    } else if (node is EnumDeclaration && selectionIsInToken(node.name2)) {
-      name = node.name2.lexeme;
-    } else if (node is ExtensionDeclaration && selectionIsInToken(node.name2)) {
-      name = node.name2!.lexeme;
+    if (node is ClassDeclaration && selectionIsInToken(node.name)) {
+      name = node.name.lexeme;
+    } else if (node is EnumDeclaration && selectionIsInToken(node.name)) {
+      name = node.name.lexeme;
+    } else if (node is ExtensionDeclaration && selectionIsInToken(node.name)) {
+      name = node.name!.lexeme;
     } else if (node is FunctionDeclaration &&
         node.parent is CompilationUnit &&
-        selectionIsInToken(node.name2)) {
-      name = node.name2.lexeme;
-    } else if (node is MixinDeclaration && selectionIsInToken(node.name2)) {
-      name = node.name2.lexeme;
-    } else if (node is TypeAlias && selectionIsInToken(node.name2)) {
-      name = node.name2.lexeme;
+        selectionIsInToken(node.name)) {
+      name = node.name.lexeme;
+    } else if (node is MixinDeclaration && selectionIsInToken(node.name)) {
+      name = node.name.lexeme;
+    } else if (node is TypeAlias && selectionIsInToken(node.name)) {
+      name = node.name.lexeme;
     } else {
       return null;
     }
