@@ -7,6 +7,9 @@
 void someFunction() {
   var list = <int>[];
   if (list.remove('1')) print('someFunction'); // LINT
+  list
+    ..add(1)
+    ..remove('1'); // LINT
 }
 
 void someFunction1() {

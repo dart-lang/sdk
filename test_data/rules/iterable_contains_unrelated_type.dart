@@ -7,6 +7,9 @@
 void someFunction() {
   var list = <int>[];
   if (list.contains('1')) print('someFunction'); // LINT
+  list
+    ..add(1)
+    ..contains('1'); // LINT
 }
 
 void someFunction1() {
