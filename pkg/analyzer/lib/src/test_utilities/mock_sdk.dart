@@ -218,6 +218,10 @@ abstract class ListMixin<E> implements List<E> { }
 abstract class MapMixin<K, V> implements Map<K, V> { }
 
 abstract class SetMixin<E> implements Set<E> { }
+
+abstract class Queue<E> implements Iterable<E> {
+  bool remove(Object? value);
+}
 ''',
   )
 ]);
