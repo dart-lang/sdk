@@ -132,6 +132,28 @@ class _Record {
     return SystemHash.finish(hash);
   }
 
+  // Do not inline to avoid mixing _fieldAt with
+  // record field accesses.
+  @pragma("vm:never-inline")
+  String toString() {
+    StringBuffer buffer = StringBuffer("(");
+    final int numFields = _numFields;
+    final _List fieldNames = _fieldNames;
+    final int numPositionalFields = numFields - fieldNames.length;
+    for (int i = 0; i < numFields; ++i) {
+      if (i != 0) {
+        buffer.write(", ");
+      }
+      if (i >= numPositionalFields) {
+        buffer.write(unsafeCast<String>(fieldNames[i - numPositionalFields]));
+        buffer.write(": ");
+      }
+      buffer.write(_fieldAt(i).toString());
+    }
+    buffer.write(")");
+    return buffer.toString();
+  }
+
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external int get _numFields;
