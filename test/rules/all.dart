@@ -62,6 +62,7 @@ import 'prefer_generic_function_type_aliases_test.dart'
     as prefer_generic_function_type_aliases;
 import 'prefer_spread_collections_test.dart' as prefer_spread_collections;
 import 'public_member_api_docs_test.dart' as public_member_api_docs;
+import 'recursive_getters_test.dart' as recursive_getters;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_unnamed_constructors_first_test.dart'
     as sort_unnamed_constructors_first;
@@ -125,6 +126,7 @@ void main() {
   prefer_generic_function_type_aliases.main();
   prefer_spread_collections.main();
   public_member_api_docs.main();
+  recursive_getters.main();
   sort_constructors_first.main();
   sort_unnamed_constructors_first.main();
   super_goes_last.main();

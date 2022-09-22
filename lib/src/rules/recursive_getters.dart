@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc = r'Property getter recursively returns itself.';
 
@@ -53,65 +52,58 @@ class RecursiveGetters extends LintRule {
   }
 }
 
-/// Tests if a simple identifier is a recursive getter by looking at its parent.
-class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
-  @override
-  bool visitPropertyAccess(PropertyAccess node) =>
-      node.target is ThisExpression;
+class _BodyVisitor extends RecursiveAstVisitor {
+  final LintRule rule;
+  final ExecutableElement element;
+  _BodyVisitor(this.element, this.rule);
 
   @override
-  bool? visitSimpleIdentifier(SimpleIdentifier node) {
-    var parent = node.parent;
-    if (parent is ArgumentList ||
-        parent is ConditionalExpression ||
-        parent is ExpressionFunctionBody ||
-        parent is ReturnStatement) {
-      return true;
+  visitListLiteral(ListLiteral node) {
+    if (node.isConst) return null;
+    return super.visitListLiteral(node);
+  }
+
+  @override
+  visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isConst) return null;
+    return super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticElement == element) {
+      if (node.parent is! PrefixedIdentifier) {
+        rule.reportLint(node);
+      }
     }
 
-    if (parent is PropertyAccess) {
-      return parent.accept(this);
-    }
-
-    return false;
+    return super.visitSimpleIdentifier(node);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final visitor = _RecursiveGetterParentVisitor();
-
   _Visitor(this.rule);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // getters have null arguments, methods have parameters, could be empty.
-    if (node.functionExpression.parameters != null) {
-      return;
-    }
+    if (node.functionExpression.parameters != null) return;
 
-    var element = node.declaredElement2;
-    _verifyElement(node.functionExpression, element);
+    _verifyElement(node.functionExpression, node.declaredElement2);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     // getters have null arguments, methods have parameters, could be empty.
-    if (node.parameters != null) {
-      return;
-    }
+    if (node.parameters != null) return;
 
-    var element = node.declaredElement2;
-    _verifyElement(node.body, element);
+    _verifyElement(node.body, node.declaredElement2);
   }
 
   void _verifyElement(AstNode node, ExecutableElement? element) {
-    node
-        .traverseNodesInDFS()
-        .whereType<SimpleIdentifier>()
-        .where(
-            (n) => element == n.staticElement && (n.accept(visitor) ?? false))
-        .forEach(rule.reportLint);
+    if (element == null) return;
+    node.accept(_BodyVisitor(element, rule));
   }
 }
