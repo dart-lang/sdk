@@ -274,6 +274,9 @@ class JsUtilWasmOptimizer extends Transformer {
               callbackTarget.function.positionalParameters[i].initializer;
         } else if (argument is FunctionExpression) {
           initializer = argument.function.positionalParameters[i].initializer;
+        } else if (argument is InstanceTearOff) {
+          initializer = argument.interfaceTargetReference.asProcedure.function
+              .positionalParameters[i].initializer;
         } else {
           throw 'Cannot pass default arguments.';
         }

@@ -155,6 +155,30 @@ void staticInteropCallbackTest() {
   Expect.equals('foobar', helper.doSumTwoOptionalCNonNull('foo', 'bar'));
 }
 
+typedef NoArgsFun = String Function();
+typedef OneArgFun = String Function(String arg);
+typedef OnePositionalAndOneOptionalArgsFun = String Function(String arg,
+    [String arg2]);
+typedef TwoPositionalArgsFun = String Function([String arg, String arg2]);
+
+class TornOffClass {
+  String noArgs() {
+    return 'foo';
+  }
+
+  String oneArg(String arg) {
+    return arg;
+  }
+
+  String onePositionalAndOneOptionalArgs(String arg, [String arg2 = 'bar']) {
+    return arg + arg2;
+  }
+
+  String twoPositionalArgs([String arg = 'foo', String? arg2]) {
+    return arg + (arg2 ?? '');
+  }
+}
+
 void allowInteropCallbackTest() {
   eval(r'''
     globalThis.doSum1 = function(summer) {
@@ -192,6 +216,26 @@ void allowInteropCallbackTest() {
     }
     globalThis.doSumTwoOptionalCNonNull = function(a, b) {
       return summer(a, b);
+    }
+
+    // tear off cases
+    globalThis.tearOffNoArgs = function (f) {
+      return f();
+    }
+    globalThis.tearOffOneArg = function (f) {
+      return f('foo');
+    }
+    globalThis.tearOffOnePositionalAndOneOptionalArgsA = function (f) {
+      return f('foo');
+    }
+    globalThis.tearOffOnePositionalAndOneOptionalArgsB = function (f) {
+      return f('foo', 'baz');
+    }
+    globalThis.tearOffTwoPositionalArgsA = function (f) {
+      return f('foo');
+    }
+    globalThis.tearOffTwoPositionalArgsB = function (f) {
+      return f('foo', 'baz');
     }
   ''');
 
@@ -265,6 +309,63 @@ void allowInteropCallbackTest() {
         callMethod(globalThis, 'doSumTwoOptionalB', ['foo']).toString());
     Expect.equals('foobar',
         callMethod(globalThis, 'doSumTwoOptionalC', ['foo', 'bar']).toString());
+  }
+
+  // Tear off cases
+  // No args.
+  {
+    final t = TornOffClass();
+    final interopCallback = allowInterop<NoArgsFun>(t.noArgs);
+    Expect.equals(
+        'foo', callMethod(globalThis, 'tearOffNoArgs', [interopCallback]));
+  }
+
+  // One arg.
+  {
+    final t = TornOffClass();
+    final interopCallback = allowInterop<OneArgFun>(t.oneArg);
+    Expect.equals(
+        'foo', callMethod(globalThis, 'tearOffOneArg', [interopCallback]));
+  }
+
+  // One positional and one optional case A.
+  {
+    final t = TornOffClass();
+    final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFun>(
+        t.onePositionalAndOneOptionalArgs);
+    Expect.equals(
+        'foobar',
+        callMethod(globalThis, 'tearOffOnePositionalAndOneOptionalArgsA',
+            [interopCallback]));
+  }
+
+  // One positional and one optional case B.
+  {
+    final t = TornOffClass();
+    final interopCallback = allowInterop<OnePositionalAndOneOptionalArgsFun>(
+        t.onePositionalAndOneOptionalArgs);
+    Expect.equals(
+        'foobaz',
+        callMethod(globalThis, 'tearOffOnePositionalAndOneOptionalArgsB',
+            [interopCallback]));
+  }
+
+  // Two positional case A.
+  {
+    final t = TornOffClass();
+    final interopCallback =
+        allowInterop<TwoPositionalArgsFun>(t.twoPositionalArgs);
+    Expect.equals('foo',
+        callMethod(globalThis, 'tearOffTwoPositionalArgsA', [interopCallback]));
+  }
+
+  // Two positional case B.
+  {
+    final t = TornOffClass();
+    final interopCallback =
+        allowInterop<TwoPositionalArgsFun>(t.twoPositionalArgs);
+    Expect.equals('foobaz',
+        callMethod(globalThis, 'tearOffTwoPositionalArgsB', [interopCallback]));
   }
 }
 
