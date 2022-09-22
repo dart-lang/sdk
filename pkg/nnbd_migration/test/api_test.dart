@@ -8777,6 +8777,24 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_reference_to_mixin_getter() async {
+    var content = '''
+mixin M {
+  Object f() => this.x;
+
+  Object get x => null;
+}
+''';
+    var expected = '''
+mixin M {
+  Object? f() => this.x;
+
+  Object? get x => null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_regression_40551() async {
     var content = '''
 class B<T extends Object> { // bound should not be made nullable
