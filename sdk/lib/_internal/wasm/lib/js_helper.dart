@@ -375,6 +375,8 @@ WasmExternRef? jsifyRaw(Object? object) {
   }
 }
 
+bool isWasmGCStruct(WasmExternRef ref) => ref.internalize().isObject;
+
 /// TODO(joshualitt): We shouldn't need this, but otherwise we seem to get a
 /// cast error for certain oddball types(I think undefined, but need to dig
 /// deeper).
@@ -419,15 +421,10 @@ Object? dartifyRaw(WasmExternRef? ref) {
     return toDartList(ref);
   } else if (isJSWrappedDartFunction(ref)) {
     return unwrapJSWrappedDartFunction(ref);
-  } else if (isJSObject(ref) ||
-      // TODO(joshualitt): We may want to create proxy types for some of these
-      // cases.
-      isJSBigInt(ref) ||
-      isJSSymbol(ref) ||
-      isJSFunction(ref)) {
-    return JSValue(ref);
-  } else {
+  } else if (isWasmGCStruct(ref)) {
     return jsObjectToDartObject(ref);
+  } else {
+    return JSValue(ref);
   }
 }
 
