@@ -7,10 +7,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Unnecessary parenthesis can be removed.';
+const _desc = r'Unnecessary parentheses can be removed.';
 
 const _details = r'''
-**AVOID** using parenthesis when not needed.
+**AVOID** using parentheses when not needed.
 
 **GOOD:**
 ```dart
@@ -22,6 +22,21 @@ a = b;
 a = (b);
 ```
 
+Parentheses are considered unnecessary if they do not change the meaning of the
+code and they do not improve the readability of the code. The goal is not to
+force all developers to maintain the expression precedence table in their heads,
+which is why the second condition is included. Examples of this condition
+include:
+
+* cascade expressions - it is sometimes not clear what the target of a cascade
+  expression is, especially with assignments, or nested cascades. For example,
+  the expression `a.b = (c..d)`.
+* expressions with whitespace between tokens - it can look very strange to see
+  an expression like `!await foo` which is valid and equivalent to
+  `!(await foo)`.
+* logical expressions - parentheses can improve the readability of the implicit
+  grouping defined by precedence. For example, the expression
+  `(a && b) || c && d`.
 ''';
 
 class UnnecessaryParenthesis extends LintRule {
@@ -90,7 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    // `a..b=(c..d)` is OK.
+    // `a..b = (c..d)` is OK.
     if (expression is CascadeExpression ||
         node.thisOrAncestorMatching(
                 (n) => n is Statement || n is CascadeExpression)
@@ -111,6 +126,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parent is ConditionalExpression) return;
       if (parent is CascadeExpression) return;
       if (parent is FunctionExpressionInvocation) return;
+      if (parent is AsExpression) return;
+      if (parent is IsExpression) return;
 
       // A prefix expression (! or -) can have an argument wrapped in
       // "unnecessary" parens if that argument has potentially confusing

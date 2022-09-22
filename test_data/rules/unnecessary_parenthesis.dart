@@ -6,26 +6,25 @@
 
 import 'dart:async';
 
-
 /// https://github.com/dart-lang/linter/issues/2944
 void foo() {
   final items = [];
   (() => [].add('something')).compose(() {}); // OK
   (() => '').hashCode; // OK
   (() => '').f = 1; // OK
-  (() => '') +  1; // OK
+  (() => '') + 1; // OK
   (() => '')[0]; // OK
 }
 
 extension A on void Function() {
   void Function() compose(void Function() other) => () {
-    this();
-    other();
-  };
+        this();
+        other();
+      };
 
   set f(int f) {}
-  operator+(int x) {}
-  int operator[](int i) => 0;
+  operator +(int x) {}
+  int operator [](int i) => 0;
 }
 
 var func = (() => null); // LINT
@@ -58,6 +57,8 @@ main() async {
   (await new Future.value(1)).toString(); // OK
   ('' as String).toString(); // OK
   !(true as bool); // OK
+  (b - a) as num; // OK
+  (b - a) is num; // OK
   a = (a); // LINT
   (a) ? true : false; // LINT
   true ? (a) : false; // LINT
@@ -122,7 +123,8 @@ class ClassWithFunction {
   ClassWithFunction();
   ClassWithFunction.named(int a) : this.number = (a + 2); // LINT
   // https://github.com/dart-lang/linter/issues/1473
-  ClassWithFunction.named2(Function value) : this.f = (value ?? (_) => 42); // OK
+  ClassWithFunction.named2(Function value)
+      : this.f = (value ?? (_) => 42); // OK
 }
 
 class ClassWithClassWithFunction {
@@ -141,5 +143,5 @@ class UnnecessaryParenthesis {
 }
 
 extension<T> on Set<T> {
-  Set<T> operator+(Set<T> other) => {...this, ...other};
+  Set<T> operator +(Set<T> other) => {...this, ...other};
 }
