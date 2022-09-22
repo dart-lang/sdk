@@ -347,9 +347,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             definingLibrary.featureSet.isEnabled(Feature.generic_metadata),
         options = TypeAnalyzerOptions(
             nullSafetyEnabled: definingLibrary.isNonNullableByDefault,
-            // TODO(paulberry): set `patternsEnabled` correctly once we have an
-            // experiment flag for patterns.
-            patternsEnabled: false) {
+            patternsEnabled:
+                definingLibrary.featureSet.isEnabled(Feature.patterns)) {
     var analysisOptions =
         definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
 

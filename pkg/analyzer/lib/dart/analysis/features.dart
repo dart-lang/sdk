@@ -40,6 +40,9 @@ abstract class Feature {
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
 
+  /// Feature information for patterns.
+  static final patterns = ExperimentalFeatures.patterns;
+
   /// Feature information for records.
   static final records = ExperimentalFeatures.records;
 

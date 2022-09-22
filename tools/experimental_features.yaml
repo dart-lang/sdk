@@ -131,6 +131,9 @@ features:
   records:
     help: "Records"
 
+  patterns:
+    help: "Patterns"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
