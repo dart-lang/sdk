@@ -19,7 +19,7 @@ import '../../common_test_utils.dart';
 
 final Uri pkgVmDir = Platform.script.resolve('../../..');
 
-runTestCase(
+void runTestCase(
     Uri source, bool enableNullSafety, List<Uri>? linkedDependencies) async {
   final target =
       new TestingVmTarget(new TargetFlags(enableNullSafety: enableNullSafety));
@@ -87,7 +87,7 @@ class TestOptions {
   static const List<Option> options = [linked, nnbdStrong];
 }
 
-main(List<String> args) {
+void main(List<String> args) {
   final testNameFilter = argsTestName(args);
 
   group('transform-component', () {

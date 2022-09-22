@@ -293,15 +293,11 @@ class Isolate {
   /// The entry-point function is invoked in the new isolate with [message]
   /// as the only argument.
   ///
-  /// The function must be a top-level function or a static method
-  /// that can be called with a single argument,
-  /// that is, a compile-time constant function value
-  /// which accepts at least one positional parameter
+  /// The function must be such that it can be called with a single argument,
+  /// that is, a function which accepts at least one positional parameter
   /// and has at most one required positional parameter.
   /// The function may accept any number of optional parameters,
   /// as long as it *can* be called with just a single argument.
-  /// The function must not be the value of a function expression
-  /// or an instance method tear-off.
   ///
   /// Usually the initial [message] contains a [SendPort] so
   /// that the spawner and spawnee can communicate with each other.
