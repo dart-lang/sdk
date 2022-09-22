@@ -1,6 +1,6 @@
 ---
-name: Issue report
-about: Create a report to help us make the linter better.
+name: Lint bug report
+about: Report a bug with, or propose a modification to, an existing lint.
 title: ''
 labels: ''
 assignees: ''
