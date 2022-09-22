@@ -107,6 +107,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes);
 
   /// Returns an iterable over the live mixin applications that mixin [cls].
+  @override
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls);
 
   /// Returns `true` if [cls] is mixed into a live class.

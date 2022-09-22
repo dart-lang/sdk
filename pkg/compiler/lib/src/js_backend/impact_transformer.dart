@@ -152,8 +152,7 @@ class CodegenImpactTransformer {
     }
 
     for (Set<ClassEntity> classes in impact.specializedGetInterceptors) {
-      _oneShotInterceptorData.registerSpecializedGetInterceptor(
-          classes, _namer);
+      _oneShotInterceptorData.registerSpecializedGetInterceptor(classes);
     }
 
     if (impact.usesInterceptor) {
