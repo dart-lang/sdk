@@ -513,6 +513,13 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// the identifier to the right hand side of the `.`.  [staticType] should be
   /// the static type of the value returned by the property get.
   ///
+  /// [wholeExpression] is used by flow analysis to detect the case where the
+  /// property get is used as a subexpression of a larger expression that
+  /// participates in promotion (e.g. promotion of a property of a property).
+  /// If there is no expression corresponding to the property get (e.g. because
+  /// the property is being invoked like a method, or the property get is part
+  /// of a compound assignment), [wholeExpression] may be `null`.
+  ///
   /// [propertyMember] should be whatever data structure the client uses to keep
   /// track of the field or property being accessed.  If not `null`,
   /// [Operations.isPropertyPromotable] will be consulted to find out whether
@@ -522,7 +529,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///
   /// If the property's type is currently promoted, the promoted type is
   /// returned.  Otherwise `null` is returned.
-  Type? propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression? wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType);
 
   /// Retrieves the SSA node associated with [variable], or `null` if [variable]
@@ -1186,7 +1193,7 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  Type? propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression? wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType) {
     return _wrap(
         'propertyGet($wholeExpression, $target, $propertyName, '
@@ -3733,7 +3740,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  Type? propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression? wholeExpression, Expression target,
       String propertyName, Object? propertyMember, Type staticType) {
     return _handleProperty(
         wholeExpression, target, propertyName, propertyMember, staticType);
@@ -4600,7 +4607,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  Type? propertyGet(Expression wholeExpression, Expression target,
+  Type? propertyGet(Expression? wholeExpression, Expression target,
           String propertyName, Object? propertyMember, Type staticType) =>
       null;
 
