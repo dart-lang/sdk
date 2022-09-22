@@ -354,7 +354,7 @@ CompilationUnit
                     staticElement: package:test/a.dart::@class::A
                     staticType: null
                   type: A
-                staticElement: package:test/a.dart::@class::A::@constructor::•
+                staticElement: package:test/a.dart::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -456,7 +456,7 @@ CompilationUnit
                     staticElement: package:test/a_html.dart::@class::A
                     staticType: null
                   type: A
-                staticElement: package:test/a_html.dart::@class::A::@constructor::•
+                staticElement: package:test/a_html.dart::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -680,7 +680,7 @@ CompilationUnit
                     staticElement: package:test/a_io.dart::@class::A
                     staticType: null
                   type: A
-                staticElement: package:test/a_io.dart::@class::A::@constructor::•
+                staticElement: package:test/a_io.dart::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )

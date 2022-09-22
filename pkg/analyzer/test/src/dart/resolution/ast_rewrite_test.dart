@@ -392,7 +392,7 @@ InstanceCreationExpression
         rightBracket: >
       type: A<int, String>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -400,7 +400,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::•::@parameter::a
+          base: self::@class::A::@constructor::new::@parameter::a
           substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
@@ -520,7 +520,7 @@ InstanceCreationExpression
         rightBracket: >
       type: A<int, String>
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -528,7 +528,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::•::@parameter::_
+          base: self::@class::A::@constructor::new::@parameter::_
           substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )
@@ -730,11 +730,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: package:test/a.dart::@class::A::@constructor::•
+        base: package:test/a.dart::@class::A::@constructor::new
         substitution: {T: int}
       staticType: null
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::•
+      base: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -742,7 +742,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::a
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -1000,11 +1000,11 @@ InstanceCreationExpression
     name: SimpleIdentifier
       token: new
       staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
+        base: self::@class::A::@constructor::new
         substitution: {T: dynamic, U: dynamic}
       staticType: null
     staticElement: ConstructorMember
-      base: self::@class::A::@constructor::•
+      base: self::@class::A::@constructor::new
       substitution: {T: dynamic, U: dynamic}
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1028,7 +1028,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: self::@class::A::@constructor::•::@parameter::a
+          base: self::@class::A::@constructor::new::@parameter::a
           substitution: {T: dynamic, U: dynamic}
         staticType: int
     rightParenthesis: )
@@ -1101,7 +1101,7 @@ InstanceCreationExpression
         rightBracket: >
       type: A<int, String>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::A::@constructor::•
+      base: package:test/a.dart::@class::A::@constructor::new
       substitution: {T: int, U: String}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1109,7 +1109,7 @@ InstanceCreationExpression
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::a
           substitution: {T: int, U: String}
         staticType: int
     rightParenthesis: )

@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
@@ -660,7 +661,8 @@ class LibraryReader {
     return List.generate(length, (_) {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       var name = _reader.readStringReference();
-      var reference = containerRef.getChild(name);
+      var referenceName = name.ifNotEmptyOrElse('new');
+      var reference = containerRef.getChild(referenceName);
       var element = ConstructorElementImpl(name, -1);
       var linkedData = ConstructorElementLinkedData(
         reference: reference,

@@ -114,19 +114,19 @@ Annotation
               staticElement: self::@class::A
               staticType: null
             type: A
-          staticElement: self::@class::A::@constructor::•
+          staticElement: self::@class::A::@constructor::new
         argumentList: ArgumentList
           leftParenthesis: (
           arguments
             IntegerLiteral
               literal: 0
-              parameter: self::@class::A::@constructor::•::@parameter::f
+              parameter: self::@class::A::@constructor::new::@parameter::f
               staticType: int
           rightParenthesis: )
-        parameter: self::@class::A::@constructor::•::@parameter::f
+        parameter: self::@class::A::@constructor::new::@parameter::f
         staticType: A
     rightParenthesis: )
-  element: self::@class::A::@constructor::•
+  element: self::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
@@ -215,10 +215,10 @@ Annotation
     arguments
       IntegerLiteral
         literal: 3
-        parameter: self::@class::A::@constructor::•::@parameter::a
+        parameter: self::@class::A::@constructor::new::@parameter::a
         staticType: int
     rightParenthesis: )
-  element: self::@class::A::@constructor::•
+  element: self::@class::A::@constructor::new
 ''');
 
     final localVariable = findElement.localVar('x');
@@ -300,12 +300,12 @@ Annotation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::a
           isLegacy: true
         staticType: int*
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@class::A::@constructor::•
+    base: package:test/a.dart::@class::A::@constructor::new
     isLegacy: true
 ''');
   }
@@ -535,12 +535,12 @@ Annotation
       IntegerLiteral
         literal: 0
         parameter: ParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::a
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::a
           isLegacy: true
         staticType: int*
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@class::A::@constructor::•
+    base: package:test/a.dart::@class::A::@constructor::new
     isLegacy: true
 ''');
   }
@@ -780,10 +780,10 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        parameter: self::@class::A::@constructor::•::@parameter::f
+        parameter: self::@class::A::@constructor::new::@parameter::f
         staticType: int
     rightParenthesis: )
-  element: self::@class::A::@constructor::•
+  element: self::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
@@ -870,12 +870,12 @@ Annotation
         leftBracket: [
         rightBracket: ]
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: Object?}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -961,12 +961,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1179,12 +1179,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1219,12 +1219,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: dynamic}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1262,12 +1262,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1309,12 +1309,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1353,12 +1353,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1396,12 +1396,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1440,12 +1440,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1486,12 +1486,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1540,12 +1540,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: ParameterMember
-          base: self::@class::B::@constructor::•::@parameter::f
+          base: self::@class::B::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::B::@constructor::•
+    base: self::@class::B::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1785,12 +1785,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::f
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@class::A::@constructor::•
+    base: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -1916,12 +1916,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: package:test/a.dart::@class::A::@constructor::•::@parameter::f
+          base: package:test/a.dart::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: package:test/a.dart::@class::A::@constructor::•
+    base: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -2070,18 +2070,18 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::t
+          base: self::@class::A::@constructor::new::@parameter::t
           substitution: {T: int, U: double}
         staticType: int
       DoubleLiteral
         literal: 1.2
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::u
+          base: self::@class::A::@constructor::new::@parameter::u
           substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int, U: double}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -2171,12 +2171,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -2280,12 +2280,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -2374,12 +2374,12 @@ Annotation
       IntegerLiteral
         literal: 42
         parameter: FieldFormalParameterMember
-          base: self::@class::A::@constructor::•::@parameter::f
+          base: self::@class::A::@constructor::new::@parameter::f
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
   element: ConstructorMember
-    base: self::@class::A::@constructor::•
+    base: self::@class::A::@constructor::new
     substitution: {T: int}
 ''');
     _assertAnnotationValueText(annotation, r'''
@@ -2459,10 +2459,10 @@ Annotation
     arguments
       IntegerLiteral
         literal: 42
-        parameter: self::@class::A::@constructor::•::@parameter::f
+        parameter: self::@class::A::@constructor::new::@parameter::f
         staticType: int
     rightParenthesis: )
-  element: self::@class::A::@constructor::•
+  element: self::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(annotation, r'''
 A

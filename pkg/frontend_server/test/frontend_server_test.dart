@@ -11,6 +11,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:args/args.dart';
 import 'package:_fe_analyzer_shared/src/macros/compiler/request_channel.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:frontend_server/frontend_server.dart';
@@ -19,14 +20,103 @@ import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
 import 'package:kernel/verifier.dart' show verifyComponent;
-import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
 
+class _MockedBinaryPrinter implements BinaryPrinter {
+  @override
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+
+class _MockedBinaryPrinterFactory implements BinaryPrinterFactory {
+  @override
+  BinaryPrinter newBinaryPrinter(Sink<List<int>> targetSink) {
+    return _MockedBinaryPrinter();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+
+typedef VerifyCompile = void Function(String entryPoint, ArgResults opts);
+typedef VerifyInvalidate = void Function(Uri uri);
+typedef VerifyRecompileDelta = void Function(String entryPoint);
+typedef Verify = void Function();
+
+nopVerifyCompile(String entryPoint, ArgResults opts) {}
+nopVerifyInvalidate(Uri uri) {}
+nopVerifyRecompileDelta(String entryPoint) {}
+nopVerify() {}
+
+class _MockedCompiler implements CompilerInterface {
+  _MockedCompiler(
+      {this.verifyCompile = nopVerifyCompile,
+      this.verifyRecompileDelta = nopVerifyRecompileDelta,
+      this.verifyInvalidate = nopVerifyInvalidate,
+      this.verifyAcceptLastDelta = nopVerify,
+      this.verifyResetIncrementalCompiler= nopVerify}) {}
+
+  @override
+  void acceptLastDelta() {
+    verifyAcceptLastDelta();
+  }
+
+  @override
+  Future<Null> recompileDelta({String entryPoint}) async {
+    verifyRecompileDelta(entryPoint);
+  }
+
+  @override
+  void resetIncrementalCompiler() {
+    verifyResetIncrementalCompiler();
+  }
+
+  @override
+  void invalidate(Uri uri) {
+    verifyInvalidate(uri);
+  }
+
+  @override
+  Future<bool> compile(
+    String entryPoint,
+    ArgResults opts, {
+    IncrementalCompiler generator,
+  }) async {
+    verifyCompile(entryPoint, opts);
+    return true;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {}
+
+  final VerifyCompile verifyCompile;
+  final VerifyRecompileDelta verifyRecompileDelta;
+  final VerifyInvalidate verifyInvalidate;
+  final Verify verifyAcceptLastDelta;
+  final Verify verifyResetIncrementalCompiler;
+}
+
+class _MockedIncrementalCompiler implements IncrementalCompiler {
+  @override
+  accept() {}
+
+  @override
+  bool get initialized => false;
+
+  @override
+  Future<IncrementalCompilerResult> compile({List<Uri> entryPoints}) async {
+    return Future<IncrementalCompilerResult>.value(
+        IncrementalCompilerResult(Component()));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {}
+}
+
 void main() async {
   group('basic', () {
-    final CompilerInterface compiler = _MockedCompiler();
+    final compiler = _MockedCompiler();
 
     test('train with mocked compiler completes', () async {
       await starter(<String>['--train', 'foo.dart'], compiler: compiler);
@@ -34,26 +124,27 @@ void main() async {
   });
 
   group('batch compile with mocked compiler', () {
-    final CompilerInterface compiler = _MockedCompiler();
-    when(compiler.compile(any, any, generator: anyNamed('generator')))
-        .thenAnswer((_) => Future.value(true));
-
     test('compile from command line', () async {
+      final verify = (String entryPoint, ArgResults opts) {
+        expect(entryPoint, equals('server.dart'));
+        expect(opts['sdk-root'], equals('sdkroot'));
+      };
+      final compiler = _MockedCompiler(verifyCompile : verify);
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
         'sdkroot',
       ];
       await starter(args, compiler: compiler);
-      final List<dynamic> capturedArgs = verify(compiler.compile(
-        argThat(equals('server.dart')),
-        captureAny,
-        generator: anyNamed('generator'),
-      )).captured;
-      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
     });
 
     test('compile from command line with link platform', () async {
+      final verify = (String entryPoint, ArgResults opts) {
+        expect(entryPoint, equals('server.dart'));
+        expect(opts['sdk-root'], equals('sdkroot'));
+        expect(opts['link-platform'], equals(true));
+      };
+      final compiler = _MockedCompiler(verifyCompile : verify);
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
@@ -61,16 +152,16 @@ void main() async {
         '--link-platform',
       ];
       await starter(args, compiler: compiler);
-      final List<dynamic> capturedArgs = verify(compiler.compile(
-        argThat(equals('server.dart')),
-        captureAny,
-        generator: anyNamed('generator'),
-      )).captured;
-      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-      expect(capturedArgs.single['link-platform'], equals(true));
     });
 
     test('compile from command line with widget cache', () async {
+      final verify = (String entryPoint, ArgResults opts) {
+        expect(entryPoint, equals('server.dart'));
+        expect(opts['sdk-root'], equals('sdkroot'));
+        expect(opts['link-platform'], equals(true));
+        expect(opts['flutter-widget-cache'], equals(true));
+      };
+      final compiler = _MockedCompiler(verifyCompile : verify);
       final List<String> args = <String>[
         'server.dart',
         '--sdk-root',
@@ -78,38 +169,25 @@ void main() async {
         '--flutter-widget-cache',
       ];
       await starter(args, compiler: compiler);
-      final List<dynamic> capturedArgs = verify(compiler.compile(
-        argThat(equals('server.dart')),
-        captureAny,
-        generator: anyNamed('generator'),
-      )).captured;
-      expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
-      expect(capturedArgs.single['link-platform'], equals(true));
-      expect(capturedArgs.single['flutter-widget-cache'], equals(true));
     });
   });
 
   group('interactive compile with mocked compiler', () {
-    final CompilerInterface compiler = _MockedCompiler();
-
     final List<String> args = <String>[
       '--sdk-root',
       'sdkroot',
     ];
 
     test('compile one file', () async {
+      final compileCalled = ReceivePort();
+      final verify = (String entryPoint, ArgResults opts) {
+        expect(entryPoint, equals('server.dart'));
+        expect(opts['sdk-root'], equals('sdkroot'));
+        compileCalled.sendPort.send(true);
+      };
+      final compiler = _MockedCompiler(verifyCompile : verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort compileCalled = ReceivePort();
-      when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((Invocation invocation) async {
-        expect(invocation.positionalArguments[0], equals('server.dart'));
-        expect(
-            invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        compileCalled.sendPort.send(true);
-        return true;
-      });
-
       Future<int> result = starter(
         args,
         compiler: compiler,
@@ -123,17 +201,15 @@ void main() async {
     });
 
     test('compile one file to JavaScript', () async {
+      final compileCalled = ReceivePort();
+      final verify = (String entryPoint, ArgResults opts) {
+        expect(entryPoint, equals('server.dart'));
+        expect(opts['sdk-root'], equals('sdkroot'));
+        compileCalled.sendPort.send(true);
+      };
+      final compiler = _MockedCompiler(verifyCompile : verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort compileCalled = ReceivePort();
-      when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((Invocation invocation) async {
-        expect(invocation.positionalArguments[0], equals('server.dart'));
-        expect(
-            invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        compileCalled.sendPort.send(true);
-        return true;
-      });
 
       Future<int> result = starter(
         ['--target=dartdevc', ...args],
@@ -149,26 +225,21 @@ void main() async {
   });
 
   group('interactive compile with mocked compiler', () {
-    final CompilerInterface compiler = _MockedCompiler();
-
     final List<String> args = <String>[
       '--sdk-root',
       'sdkroot',
     ];
 
     test('compile one file', () async {
+      final compileCalled = ReceivePort();
+      final verify = (String entryPoint, ArgResults opts) {
+        expect(entryPoint, equals('server.dart'));
+        expect(opts['sdk-root'], equals('sdkroot'));
+        compileCalled.sendPort.send(true);
+      };
+      final compiler = _MockedCompiler(verifyCompile : verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort compileCalled = ReceivePort();
-      when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((Invocation invocation) async {
-        expect(invocation.positionalArguments[0], equals('server.dart'));
-        expect(
-            invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        compileCalled.sendPort.send(true);
-        return true;
-      });
-
       Future<int> result = starter(
         args,
         compiler: compiler,
@@ -182,20 +253,16 @@ void main() async {
     });
 
     test('compile few files', () async {
+      final compileCalled = ReceivePort();
+      int counter = 1;
+      final verify = (String entryPoint, ArgResults opts) {
+        expect(entryPoint, equals('server${counter++}.dart'));
+        expect(opts['sdk-root'], equals('sdkroot'));
+        compileCalled.sendPort.send(true);
+      };
+      final compiler = _MockedCompiler(verifyCompile : verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort compileCalled = ReceivePort();
-      int counter = 1;
-      when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((Invocation invocation) async {
-        expect(invocation.positionalArguments[0],
-            equals('server${counter++}.dart'));
-        expect(
-            invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
-        compileCalled.sendPort.send(true);
-        return true;
-      });
-
       Future<int> result = starter(
         args,
         compiler: compiler,
@@ -211,10 +278,6 @@ void main() async {
   });
 
   group('interactive incremental compile with mocked compiler', () {
-    final CompilerInterface compiler = _MockedCompiler();
-    when(compiler.compile(any, any, generator: anyNamed('generator')))
-        .thenAnswer((_) => Future.value(true));
-
     final List<String> args = <String>[
       '--sdk-root',
       'sdkroot',
@@ -222,14 +285,23 @@ void main() async {
     ];
 
     test('recompile few files', () async {
+      final recompileDeltaCalled = ReceivePort();
+      int invalidated = 0;
+      int counter = 1;
+      final verifyI = (Uri uri) {
+        expect(uri.path, contains('file${counter++}.dart'));
+        invalidated += 1;
+      };
+      final verifyR = (String entryPoint) {
+        expect(invalidated, equals(2));
+        expect(entryPoint, equals(null));
+        recompileDeltaCalled.sendPort.send(true);
+      };
+      final compiler = _MockedCompiler(
+        verifyInvalidate : verifyI, verifyRecompileDelta : verifyR);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort recompileCalled = ReceivePort();
 
-      when(compiler.recompileDelta(entryPoint: null))
-          .thenAnswer((Invocation invocation) async {
-        recompileCalled.sendPort.send(true);
-      });
       Future<int> result = starter(
         args,
         compiler: compiler,
@@ -237,55 +309,62 @@ void main() async {
       );
       inputStreamController
           .add('recompile abc\nfile1.dart\nfile2.dart\nabc\n'.codeUnits);
-      await recompileCalled.first;
+      await recompileDeltaCalled.first;
 
-      verifyInOrder(<void>[
-        compiler.invalidate(Uri.base.resolve('file1.dart')),
-        compiler.invalidate(Uri.base.resolve('file2.dart')),
-        await compiler.recompileDelta(entryPoint: null),
-      ]);
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
       inputStreamController.close();
     });
 
     test('recompile one file with widget cache does not fail', () async {
+      final recompileDeltaCalled = ReceivePort();
+      bool invalidated = false;
+      final verifyR = (String entryPoint) {
+        expect(invalidated, equals(true));
+        expect(entryPoint, equals(null));
+        recompileDeltaCalled.sendPort.send(true);
+      };
+      final verifyI = (Uri uri) {
+        invalidated = true;
+        expect(uri.path, contains('file1.dart'));
+      };
       // The component will not contain the flutter framework sources so
       // this should no-op.
+      final compiler = _MockedCompiler(
+        verifyRecompileDelta : verifyR, verifyInvalidate : verifyI);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort recompileCalled = ReceivePort();
 
-      when(compiler.recompileDelta(entryPoint: null))
-          .thenAnswer((Invocation invocation) async {
-        recompileCalled.sendPort.send(true);
-      });
       Future<int> result = starter(
         <String>[...args, '--flutter-widget-cache'],
         compiler: compiler,
         input: inputStreamController.stream,
       );
       inputStreamController.add('recompile abc\nfile1.dart\nabc\n'.codeUnits);
-      await recompileCalled.first;
-
-      verifyInOrder(<void>[
-        compiler.invalidate(Uri.base.resolve('file1.dart')),
-        await compiler.recompileDelta(entryPoint: null),
-      ]);
+      await recompileDeltaCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
       inputStreamController.close();
     });
 
     test('recompile few files with new entrypoint', () async {
+      int invalidated = 0;
+      final recompileDeltaCalled = ReceivePort();
+      int counter = 1;
+      final verifyI = (Uri uri) {
+        expect(uri.path, contains('file${counter++}.dart'));
+        invalidated += 1;
+      };
+      final verifyR = (String entryPoint) {
+        expect(invalidated, equals(2));
+        expect(entryPoint, equals('file2.dart'));
+        recompileDeltaCalled.sendPort.send(true);
+      };
+      final compiler = _MockedCompiler(
+        verifyRecompileDelta : verifyR, verifyInvalidate : verifyI);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort recompileCalled = ReceivePort();
 
-      when(compiler.recompileDelta(entryPoint: 'file2.dart'))
-          .thenAnswer((Invocation invocation) async {
-        recompileCalled.sendPort.send(true);
-      });
       Future<int> result = starter(
         args,
         compiler: compiler,
@@ -293,25 +372,20 @@ void main() async {
       );
       inputStreamController.add(
           'recompile file2.dart abc\nfile1.dart\nfile2.dart\nabc\n'.codeUnits);
-      await recompileCalled.first;
-
-      verifyInOrder(<void>[
-        compiler.invalidate(Uri.base.resolve('file1.dart')),
-        compiler.invalidate(Uri.base.resolve('file2.dart')),
-        await compiler.recompileDelta(entryPoint: 'file2.dart'),
-      ]);
+      await recompileDeltaCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
       inputStreamController.close();
     });
 
     test('accept', () async {
+      final acceptCalled = ReceivePort();
+      final verify = () {
+        acceptCalled.sendPort.send(true);
+      };
+      final compiler = _MockedCompiler(verifyAcceptLastDelta : verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort acceptCalled = ReceivePort();
-      when(compiler.acceptLastDelta()).thenAnswer((Invocation invocation) {
-        acceptCalled.sendPort.send(true);
-      });
       Future<int> result = starter(
         args,
         compiler: compiler,
@@ -325,13 +399,13 @@ void main() async {
     });
 
     test('reset', () async {
+      final resetCalled = ReceivePort();
+      final verify = () {
+        resetCalled.sendPort.send(true);
+      };
+      final compiler = _MockedCompiler(verifyResetIncrementalCompiler : verify);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort resetCalled = ReceivePort();
-      when(compiler.resetIncrementalCompiler())
-          .thenAnswer((Invocation invocation) {
-        resetCalled.sendPort.send(true);
-      });
       Future<int> result = starter(
         args,
         compiler: compiler,
@@ -345,14 +419,38 @@ void main() async {
     });
 
     test('compile then recompile', () async {
+      final recompileDeltaCalled = ReceivePort();
+      bool compile = false;
+      int invalidate = 0;
+      bool acceptDelta = false;
+      final verifyC = (String entryPoint, ArgResults opts) {
+        compile = true;
+        expect(entryPoint, equals('file1.dart'));
+      };
+      final verifyA = () {
+        expect(compile, equals(true));
+        acceptDelta = true;
+      };
+      int counter = 2;
+      final verifyI = (Uri uri) {
+        expect(compile, equals(true));
+        expect(acceptDelta, equals(true));
+        expect(uri.path, contains('file${counter++}.dart'));
+        invalidate += 1;
+      };
+      final verifyR = (String entryPoint) {
+        expect(compile, equals(true));
+        expect(invalidate, equals(2));
+        expect(acceptDelta, equals(true));
+        expect(entryPoint, equals(null));
+        recompileDeltaCalled.sendPort.send(true);
+      };
+      final compiler = _MockedCompiler(verifyCompile : verifyC,
+        verifyRecompileDelta : verifyR, verifyInvalidate : verifyI,
+        verifyAcceptLastDelta : verifyA);
       final StreamController<List<int>> inputStreamController =
           StreamController<List<int>>();
-      final ReceivePort recompileCalled = ReceivePort();
 
-      when(compiler.recompileDelta(entryPoint: null))
-          .thenAnswer((Invocation invocation) async {
-        recompileCalled.sendPort.send(true);
-      });
       Future<int> result = starter(
         args,
         compiler: compiler,
@@ -362,16 +460,7 @@ void main() async {
       inputStreamController.add('accept\n'.codeUnits);
       inputStreamController
           .add('recompile def\nfile2.dart\nfile3.dart\ndef\n'.codeUnits);
-      await recompileCalled.first;
-
-      verifyInOrder(<void>[
-        await compiler.compile('file1.dart', any,
-            generator: anyNamed('generator')),
-        compiler.acceptLastDelta(),
-        compiler.invalidate(Uri.base.resolve('file2.dart')),
-        compiler.invalidate(Uri.base.resolve('file3.dart')),
-        await compiler.recompileDelta(entryPoint: null),
-      ]);
+      await recompileDeltaCalled.first;
       inputStreamController.add('quit\n'.codeUnits);
       expect(await result, 0);
       inputStreamController.close();
@@ -420,17 +509,8 @@ void main() async {
       });
 
       final _MockedIncrementalCompiler generator = _MockedIncrementalCompiler();
-      when(generator.initialized).thenAnswer((_) => false);
-      when(generator.compile()).thenAnswer((_) =>
-          Future<IncrementalCompilerResult>.value(
-              IncrementalCompilerResult(Component())));
-      when(generator.compile(entryPoints: anyNamed("entryPoints"))).thenAnswer(
-          (_) => Future<IncrementalCompilerResult>.value(
-              IncrementalCompilerResult(Component())));
       final _MockedBinaryPrinterFactory printerFactory =
           _MockedBinaryPrinterFactory();
-      when(printerFactory.newBinaryPrinter(any))
-          .thenReturn(_MockedBinaryPrinter());
       Future<int> result = starter(
         args,
         compiler: null,
@@ -455,10 +535,10 @@ void main() async {
     });
 
     group('compile with output path', () {
-      final CompilerInterface compiler = _MockedCompiler();
-      when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((_) => Future.value(true));
-
+      final verify = (String entryPoint, ArgResults opts) {
+        expect(opts['sdk-root'], equals('sdkroot'));
+      };
+      final compiler = _MockedCompiler(verifyCompile : verify);
       test('compile from command line', () async {
         final List<String> args = <String>[
           'server.dart',
@@ -470,12 +550,6 @@ void main() async {
           '/foo/bar/server.incremental.dart.dill',
         ];
         expect(await starter(args, compiler: compiler), 0);
-        final List<dynamic> capturedArgs = verify(compiler.compile(
-          argThat(equals('server.dart')),
-          captureAny,
-          generator: anyNamed('generator'),
-        )).captured;
-        expect(capturedArgs.single['sdk-root'], equals('sdkroot'));
       });
     });
   });
@@ -3047,15 +3121,6 @@ class Result {
     }
   }
 }
-
-class _MockedBinaryPrinter extends Mock implements BinaryPrinter {}
-
-class _MockedBinaryPrinterFactory extends Mock
-    implements BinaryPrinterFactory {}
-
-class _MockedCompiler extends Mock implements CompilerInterface {}
-
-class _MockedIncrementalCompiler extends Mock implements IncrementalCompiler {}
 
 /// Creates a matcher for the negation of [matcher].
 Matcher not(Matcher matcher) => NotMatcher(matcher);

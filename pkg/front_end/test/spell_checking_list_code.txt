@@ -958,6 +958,7 @@ paren
 parens
 parenteses
 parity
+participates
 particularly
 partof
 patchup

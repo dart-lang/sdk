@@ -17,6 +17,7 @@ import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
@@ -1359,7 +1360,9 @@ class _EnclosingContext {
 
   Reference addConstructor(ConstructorElementImpl element) {
     constructors.add(element);
-    return _bindReference('@constructor', element.name, element);
+
+    final referenceName = element.name.ifNotEmptyOrElse('new');
+    return _bindReference('@constructor', referenceName, element);
   }
 
   Reference addEnum(String name, EnumElementImpl element) {
