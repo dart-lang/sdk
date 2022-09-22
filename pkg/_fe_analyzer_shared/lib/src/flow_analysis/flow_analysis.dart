@@ -104,12 +104,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Object, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(Operations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers,
-      Set<Object?> promotableFields = const {}}) {
+      {required bool respectImplicitlyTypedVarInitializers}) {
     return new _FlowAnalysisImpl(operations, assignedVariables,
         respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers,
-        promotableFields: promotableFields);
+            respectImplicitlyTypedVarInitializers);
   }
 
   factory FlowAnalysis.legacy(Operations<Variable, Type> operations,
@@ -492,10 +490,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// expression.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  This will be matched
-  /// against set set of promotable fields passed to the [FlowAnalysis]
-  /// constructor.  [staticType] should be the static type of the value returned
-  /// by the property get.
+  /// track of the field or property being accessed.  If not `null`,
+  /// [Operations.isPropertyPromotable] will be consulted to find out whether
+  /// the property is promotable.  [staticType] should be the static type of the
+  /// value returned by the property get.
   ///
   /// Note: although only fields can be promoted, this method uses the
   /// nomenclature "property" rather than "field", to highlight the fact that
@@ -516,10 +514,11 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// the static type of the value returned by the property get.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  This will be matched
-  /// against the set of promotable fields passed to the [FlowAnalysis]
-  /// constructor.  In the event of non-promotion of a property get, this value
-  /// can be retrieved from [PropertyNotPromoted.propertyMember].
+  /// track of the field or property being accessed.  If not `null`,
+  /// [Operations.isPropertyPromotable] will be consulted to find out whether
+  /// the property is promotable.  In the event of non-promotion of a property
+  /// get, this value can be retrieved from
+  /// [PropertyNotPromoted.propertyMember].
   ///
   /// If the property's type is currently promoted, the promoted type is
   /// returned.  Otherwise `null` is returned.
@@ -610,10 +609,11 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// returned by the property get.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  This will be matched
-  /// against the set of promotable fields passed to the [FlowAnalysis]
-  /// constructor.  In the event of non-promotion of a property get, this value
-  /// can be retrieved from [PropertyNotPromoted.propertyMember].
+  /// track of the field or property being accessed.  If not `null`,
+  /// [Operations.isPropertyPromotable] will be consulted to find out whether
+  /// the property is promotable.  In the event of non-promotion of a property
+  /// get, this value can be retrieved from
+  /// [PropertyNotPromoted.propertyMember].
   ///
   /// If the property's type is currently promoted, the promoted type is
   /// returned.  Otherwise `null` is returned.
@@ -808,14 +808,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   factory FlowAnalysisDebug(Operations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers,
-      Set<Object?> promotableFields = const {}}) {
+      {required bool respectImplicitlyTypedVarInitializers}) {
     print('FlowAnalysisDebug()');
     return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
         operations, assignedVariables,
         respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers,
-        promotableFields: promotableFields));
+            respectImplicitlyTypedVarInitializers));
   }
 
   factory FlowAnalysisDebug.legacy(Operations<Variable, Type> operations,
@@ -2244,7 +2242,13 @@ abstract class NonPromotionReasonVisitor<R, Node extends Object,
 
 /// Operations on types and variables, abstracted from concrete type interfaces.
 abstract class Operations<Variable extends Object, Type extends Object>
-    implements TypeOperations<Type>, VariableOperations<Variable, Type> {}
+    implements TypeOperations<Type>, VariableOperations<Variable, Type> {
+  /// Determines whether the given property can be promoted.  [propertyMember]
+  /// will correspond to a `propertyMember` value passed to
+  /// [FlowAnalysis.promotedPropertyType], [FlowAnalysis.propertyGet], or
+  /// [FlowAnalysis.thisOrSuperPropertyGet].
+  bool isPropertyPromotable(Object property);
+}
 
 /// Non-promotion reason describing the situation where an expression was not
 /// promoted due to the fact that it's a property get.
@@ -3161,16 +3165,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   final PromotionKeyStore<Variable> promotionKeyStore;
 
-  /// The set of fields that can be promoted.  The type of the set element is
-  /// `Object?` to match the type of the `propertyMember` argument of
-  /// [promotedFieldType], [propertyGet], and [thisOrSuperPropertyGet].
-  final Set<Object?> _promotableFields;
-
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
-      {required this.respectImplicitlyTypedVarInitializers,
-      Set<Object?> promotableFields = const {}})
-      : promotionKeyStore = _assignedVariables.promotionKeyStore,
-        _promotableFields = promotableFields {
+      {required this.respectImplicitlyTypedVarInitializers})
+      : promotionKeyStore = _assignedVariables.promotionKeyStore {
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
@@ -4096,7 +4093,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   Type? _handleProperty(Expression? wholeExpression, Expression? target,
       String propertyName, Object? propertyMember, Type staticType) {
     int targetKey;
-    bool isPromotable = _promotableFields.contains(propertyMember);
+    bool isPromotable = propertyMember != null &&
+        operations.isPropertyPromotable(propertyMember);
     if (target == null) {
       targetKey = promotionKeyStore.thisPromotionKey;
     } else {

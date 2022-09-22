@@ -331,6 +331,9 @@ class OperationsCfe
     return typeEnvironment.coreTypes.isBottom(type);
   }
 
+  @override
+  bool isPropertyPromotable(Object property) => false;
+
   // TODO(cstefantsova): Consider checking for mutual subtypes instead of ==.
   @override
   bool isSameType(DartType type1, DartType type2) => type1 == type2;

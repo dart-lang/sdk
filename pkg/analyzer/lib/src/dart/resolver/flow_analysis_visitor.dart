@@ -419,6 +419,9 @@ class TypeSystemOperations
   }
 
   @override
+  bool isPropertyPromotable(Object property) => false;
+
+  @override
   bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
     return type1 == type2;
   }
