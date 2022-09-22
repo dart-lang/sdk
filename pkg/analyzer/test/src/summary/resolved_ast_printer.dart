@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1061,7 +1062,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeDeclaredElement(node, node.declaredElement);
         _writeType('declaredElementType', node.declaredElement!.type);
       }
     });
@@ -1136,7 +1137,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        _writeDeclaredElement(node, node.declaredElement);
         _writeType('declaredElementType', node.declaredElement!.type);
       }
     });
@@ -1430,6 +1431,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     });
   }
 
+  void _writeDeclaredElement(AstNode node, Element? declaredElement) {
+    if (_withResolution) {
+      if (node is FormalParameter) {
+        final expected = _expectedFormalParameterElements(node);
+        _assertHasIdenticalElement(expected, declaredElement);
+      }
+    }
+
+    _writeElement('declaredElement', declaredElement);
+  }
+
   void _writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {
       _writeln('<null>');
@@ -1696,6 +1708,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     }
   }
 
+  static void _assertHasIdenticalElement<T>(List<T> elements, T expected) {
+    for (final element in elements) {
+      if (identical(element, expected)) {
+        return;
+      }
+    }
+    fail('No $expected in $elements');
+  }
+
   static Token _entityBeginToken(SyntacticEntity entity) {
     if (entity is Token) {
       return entity;
@@ -1714,6 +1735,35 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     } else {
       throw UnimplementedError('(${entity.runtimeType}) $entity');
     }
+  }
+
+  /// Every [FormalParameter] declares an element, and this element must be
+  /// in the list of formal parameter elements of some declaration, e.g. of
+  /// [ConstructorDeclaration], [MethodDeclaration], or a local
+  /// [FunctionDeclaration].
+  static List<ParameterElement> _expectedFormalParameterElements(
+    FormalParameter node,
+  ) {
+    final parametersParent = node.parentFormalParameterList.parent;
+    if (parametersParent is ConstructorDeclaration) {
+      final declaredElement = parametersParent.declaredElement2!;
+      return declaredElement.parameters;
+    } else if (parametersParent is FormalParameter) {
+      final declaredElement = parametersParent.declaredElement!;
+      return declaredElement.parameters;
+    } else if (parametersParent is FunctionExpression) {
+      final declaredElement = parametersParent.declaredElement!;
+      return declaredElement.parameters;
+    } else if (parametersParent is GenericFunctionTypeImpl) {
+      final declaredElement = parametersParent.declaredElement!;
+      return declaredElement.parameters;
+    } else if (parametersParent is MethodDeclaration) {
+      final declaredElement = parametersParent.declaredElement2!;
+      return declaredElement.parameters;
+    }
+    throw UnimplementedError(
+      '(${parametersParent.runtimeType}) $parametersParent',
+    );
   }
 
   static String _nameOfMemberClass(Member member) {
