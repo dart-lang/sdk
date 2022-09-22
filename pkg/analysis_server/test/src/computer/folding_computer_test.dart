@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
+import '../../utils/test_code_format.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -25,6 +26,19 @@ class FoldingComputerTest extends AbstractContextTest {
   };
 
   late String sourcePath;
+  late TestCode code;
+  List<FoldingRegion> regions = [];
+
+  /// Expects to find a [FoldingRegion] for the code marked [index] with a
+  /// [FoldingKind] of [kind].
+  void expectRegions(Map<int, FoldingKind> expected) {
+    final expectedRegions = expected.entries.map((entry) {
+      final range = code.ranges[entry.key].sourceRange;
+      return FoldingRegion(entry.value, range.offset, range.length);
+    }).toSet();
+
+    expect(regions, expectedRegions);
+  }
 
   @override
   void setUp() {
@@ -34,53 +48,63 @@ class FoldingComputerTest extends AbstractContextTest {
 
   Future<void> test_annotations() async {
     var content = '''
-@myMultilineAnnotation/*1:INC*/(
+@myMultilineAnnotation/*[0*/(
   "this",
   "is a test"
-)/*1:EXC:ANNOTATIONS*/
+)/*0]*/
 void f() {}
 
 @noFoldNecessary
 main2() {}
 
-@multipleAnnotations1/*2:INC*/(
+@multipleAnnotations1/*[1*/(
   "this",
   "is a test"
 )
 @multipleAnnotations2()
-@multipleAnnotations3/*2:EXC:ANNOTATIONS*/
+@multipleAnnotations3/*1]*/
 main3() {}
 
 @noFoldsForSingleClassAnnotation
 class MyClass {}
 
-@folded.classAnnotation1/*3:INC*/()
-@foldedClassAnnotation2/*3:EXC:ANNOTATIONS*/
-class MyClass2 {/*4:INC*/
-  @fieldAnnotation1/*5:INC*/
-  @fieldAnnotation2/*5:EXC:ANNOTATIONS*/
+@folded.classAnnotation1/*[2*/()
+@foldedClassAnnotation2/*2]*/
+class MyClass2 {/*[3*/
+  @fieldAnnotation1/*[4*/
+  @fieldAnnotation2/*4]*/
   int myField;
 
-  @getterAnnotation1/*6:INC*/
-  @getterAnnotation2/*6:EXC:ANNOTATIONS*/
+  @getterAnnotation1/*[5*/
+  @getterAnnotation2/*5]*/
   int get myThing => 1;
 
-  @setterAnnotation1/*7:INC*/
-  @setterAnnotation2/*7:EXC:ANNOTATIONS*/
+  @setterAnnotation1/*[6*/
+  @setterAnnotation2/*6]*/
   void set myThing(int value) {}
 
-  @methodAnnotation1/*8:INC*/
-  @methodAnnotation2/*8:EXC:ANNOTATIONS*/
+  @methodAnnotation1/*[7*/
+  @methodAnnotation2/*7]*/
   void myMethod() {}
 
-  @constructorAnnotation1/*9:INC*/
-  @constructorAnnotation1/*9:EXC:ANNOTATIONS*/
+  @constructorAnnotation1/*[8*/
+  @constructorAnnotation1/*8]*/
   MyClass2() {}
-/*4:INC:CLASS_BODY*/}
+/*3]*/}
 ''';
 
-    final regions = await _computeRegions(content);
-    _compareRegions(regions, content);
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.ANNOTATIONS,
+      1: FoldingKind.ANNOTATIONS,
+      2: FoldingKind.ANNOTATIONS,
+      3: FoldingKind.CLASS_BODY,
+      4: FoldingKind.ANNOTATIONS,
+      5: FoldingKind.ANNOTATIONS,
+      6: FoldingKind.ANNOTATIONS,
+      7: FoldingKind.ANNOTATIONS,
+      8: FoldingKind.ANNOTATIONS,
+    });
   }
 
   Future<void> test_assertInitializer() async {
@@ -603,10 +627,12 @@ void f() {}
   }
 
   Future<List<FoldingRegion>> _computeRegions(String sourceContent) async {
-    newFile(sourcePath, sourceContent);
+    code = TestCode.parse(sourceContent);
+    newFile(sourcePath, code.code);
     var result =
         await (await session).getResolvedUnit(sourcePath) as ResolvedUnitResult;
     var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);
-    return computer.compute();
+    regions = computer.compute();
+    return regions;
   }
 }

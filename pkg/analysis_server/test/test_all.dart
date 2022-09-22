@@ -25,6 +25,7 @@ import 'search/test_all.dart' as search;
 import 'services/test_all.dart' as services;
 import 'socket_server_test.dart' as socket_server;
 import 'src/test_all.dart' as src;
+import 'test_code_format_test.dart' as test_code_format;
 import 'tool/test_all.dart' as tool;
 import 'verify_error_fix_status_test.dart' as verify_error_fix_status;
 import 'verify_no_solo_test.dart' as verify_no_solo;
@@ -53,6 +54,7 @@ void main() {
     services.main();
     socket_server.main();
     src.main();
+    test_code_format.main();
     tool.main();
     verify_error_fix_status.main();
     verify_no_solo.main();
