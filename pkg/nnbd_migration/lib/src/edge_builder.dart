@@ -286,7 +286,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Element? baseElement = element.declaration;
     if (targetType != null) {
       var enclosingElement = baseElement!.enclosingElement3;
-      if (enclosingElement is ClassElement) {
+      if (enclosingElement is InterfaceElement) {
         if (targetType.type.explicitBound is InterfaceType &&
             enclosingElement.typeParameters.isNotEmpty) {
           substitution = _decoratedClassHierarchy!

@@ -745,6 +745,10 @@ class Harness
   }
 
   @override
+  bool isPropertyPromotable(Object property) =>
+      promotableFields.contains(property);
+
+  @override
   bool isSameType(Type type1, Type type2) {
     return type1.type == type2.type;
   }
@@ -809,8 +813,7 @@ class Harness
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
             this, visitor._assignedVariables,
             respectImplicitlyTypedVarInitializers:
-                _respectImplicitlyTypedVarInitializers,
-            promotableFields: promotableFields);
+                _respectImplicitlyTypedVarInitializers);
     typeAnalyzer.dispatchStatement(b);
     typeAnalyzer.finish();
     expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
