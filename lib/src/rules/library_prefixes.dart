@@ -12,7 +12,6 @@ const _desc =
     r'Use `lowercase_with_underscores` when specifying a library prefix.';
 
 const _details = r'''
-
 **DO** use `lowercase_with_underscores` when specifying a library prefix.
 
 **GOOD:**

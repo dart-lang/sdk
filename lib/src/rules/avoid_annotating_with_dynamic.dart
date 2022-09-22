@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid annotating with dynamic when not required.';
 
 const _details = r'''
-
 **AVOID** annotating with dynamic when not required.
 
 As `dynamic` is the assumed return value of a function or method, it is usually

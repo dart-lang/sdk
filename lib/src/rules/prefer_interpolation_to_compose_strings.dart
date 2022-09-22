@@ -12,7 +12,6 @@ import '../extensions.dart';
 const _desc = r'Use interpolation to compose strings and values.';
 
 const _details = r'''
-
 **PREFER** using interpolation to compose strings and values.
 
 Using interpolation when composing strings and values is usually easier to write

@@ -11,7 +11,6 @@ const _desc =
     r'Prefer final for parameter declarations if they are not reassigned.';
 
 const _details = r'''
-
 **DO** prefer declaring parameters as final if they are not reassigned in
 the function body.
 

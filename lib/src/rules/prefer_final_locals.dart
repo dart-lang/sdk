@@ -11,7 +11,6 @@ const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
 
 const _details = r'''
-
 **DO** prefer declaring variables as final if they are not reassigned later in
 the code.
 

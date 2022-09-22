@@ -11,8 +11,7 @@ import '../analyzer.dart';
 const _desc = r"Don't cast a nullable value to a non nullable type.";
 
 const _details = r'''
-
-Don't cast a nullable value to a non nullable type. This hides a null check
+**DON'T** cast a nullable value to a non nullable type. This hides a null check
 and most of the time it is not what is expected.
 
 **BAD:**

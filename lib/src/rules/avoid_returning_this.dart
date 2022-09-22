@@ -13,7 +13,6 @@ const _desc =
     r'Avoid returning this from methods just to enable a fluent interface.';
 
 const _details = r'''
-
 **AVOID** returning this from methods just to enable a fluent interface.
 
 Returning `this` from a method is redundant; Dart has a cascade operator which

@@ -12,7 +12,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid returning null for Future.';
 
 const _details = r'''
-
 **AVOID** returning null for Future.
 
 It is almost always wrong to return `null` for a `Future`.  Most of the time the

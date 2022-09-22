@@ -8,7 +8,6 @@ import '../../utils.dart';
 const _desc = r'Use `lowercase_with_underscores` for package names.';
 
 const _details = r'''
-
 From the [Pubspec format description](https://dart.dev/tools/pub/pubspec):
 
 **DO** use `lowercase_with_underscores` for package names.

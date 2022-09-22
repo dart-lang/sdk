@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r"Don't declare multiple variables on a single line.";
 
 const _details = r'''
-
 **DON'T** declare multiple variables on a single line.
 
 **BAD:**

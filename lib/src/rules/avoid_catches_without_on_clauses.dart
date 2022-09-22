@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid catches without on clauses.';
 
 const _details = r'''
-
 **AVOID** catches without on clauses.
 
 Using catch clauses without on clauses make your code prone to encountering

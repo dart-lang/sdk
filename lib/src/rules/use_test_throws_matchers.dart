@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Use throwsA matcher instead of fail().';
 
 const _details = r'''
-
 Use the `throwsA` matcher instead of try-catch with `fail()`.
 
 **BAD:**

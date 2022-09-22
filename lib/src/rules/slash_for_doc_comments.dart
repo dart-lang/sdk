@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Prefer using /// for doc comments.';
 
 const _details = r'''
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/style):
 
 **PREFER** using `///` for doc comments.

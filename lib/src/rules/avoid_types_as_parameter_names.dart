@@ -12,7 +12,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid types as parameter names.';
 
 const _details = r'''
-
 **AVOID** using a parameter name that is the same as an existing type.
 
 **BAD:**

@@ -10,6 +10,7 @@ import '../analyzer.dart';
 const _desc = r'Start multiline strings with a newline.';
 
 const _details = r"""
+
 Multiline strings are easier to read when they start with a newline (a newline
 starting a multiline string is ignored).
 

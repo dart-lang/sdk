@@ -12,7 +12,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid using unnecessary statements.';
 
 const _details = r'''
-
 **AVOID** using unnecessary statements.
 
 Statements which have no clear effect are usually unnecessary, or should be

@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid async functions that return void.';
 
 const _details = r'''
-
 **DO** mark async functions as returning Future<void>.
 
 When declaring an async method or function which does not return a value,

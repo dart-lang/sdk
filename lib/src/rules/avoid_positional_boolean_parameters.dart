@@ -13,7 +13,6 @@ import '../extensions.dart';
 const _desc = r'Avoid positional boolean parameters.';
 
 const _details = r'''
-
 **AVOID** positional boolean parameters.
 
 Positional boolean parameters are a bad practice because they are very

@@ -11,7 +11,6 @@ import '../util/dart_type_utilities.dart' as type_utils;
 const _desc = r'Join return statement with assignment when possible.';
 
 const _details = r'''
-
 **DO** join return statement with assignment when possible.
 
 **BAD:**

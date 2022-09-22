@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Unnecessary parenthesis can be removed.';
 
 const _details = r'''
-
 **AVOID** using parenthesis when not needed.
 
 **GOOD:**

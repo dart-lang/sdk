@@ -12,7 +12,6 @@ import '../util/ascii_utils.dart';
 const _desc = r'Type annotate public APIs.';
 
 const _details = r'''
-
 From [effective dart](https://dart.dev/guides/language/effective-dart/design#prefer-type-annotating-public-fields-and-top-level-variables-if-the-type-isnt-obvious):
 
 **PREFER** type annotating public APIs.

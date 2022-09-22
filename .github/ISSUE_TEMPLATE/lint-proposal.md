@@ -40,7 +40,7 @@ assignees: ''
 - [ ] List any existing rules this proposal modifies, complements, overlaps or conflicts with.
 - [ ] List any relevant issues (reported here, the [SDK Tracker], or elsewhere).
 - [ ] If there's any prior art (e.g., in other linters), please add references here.
-- [ ] If this proposal corresponds to [Effective Dart] or [Flutter Style Guide] advice, please call it out. (If there isn’t any corresponding advice, should there be?)
+- [ ] If this proposal corresponds to [Effective Dart] or [Flutter Style Guide] advice, please call it out. (If there isn't any corresponding advice, should there be?)
 - [ ] If this proposal is motivated by real-world examples, please provide as many details as you can.  Demonstrating potential impact is _especially valuable_.
 
 <!-- Links -->

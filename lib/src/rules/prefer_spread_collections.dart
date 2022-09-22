@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Use spread collections when possible.';
 
 const _details = r'''
-
 Use spread collections when possible.
 
 Collection literals are excellent when you want to create a new collection out 

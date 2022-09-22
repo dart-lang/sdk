@@ -13,8 +13,7 @@ const _desc =
     r"Don't use the Null type, unless you are positive that you don't want void.";
 
 const _details = r'''
-
-**DO NOT** use the type Null where void would work.
+**DON'T** use the type Null where void would work.
 
 **BAD:**
 ```dart

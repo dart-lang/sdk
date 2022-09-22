@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid using braces in interpolation when not needed.';
 
 const _details = r'''
-
 **AVOID** using braces in interpolation when not needed.
 
 If you're just interpolating a simple identifier, and it's not immediately

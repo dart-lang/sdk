@@ -12,8 +12,7 @@ import '../analyzer.dart';
 const _desc = r'Unnecessary null checks.';
 
 const _details = r'''
-
-Don't apply a null check when a nullable value is accepted.
+**DON'T** apply a null check when a nullable value is accepted.
 
 **BAD:**
 ```dart

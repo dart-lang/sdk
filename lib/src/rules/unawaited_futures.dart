@@ -13,7 +13,6 @@ const _desc = r'`Future` results in `async` function bodies must be '
     '`await`ed or marked `unawaited` using `dart:async`.';
 
 const _details = r'''
-
 **DO** await functions that return a `Future` inside of an async function body.
 
 It's easy to forget await in async methods as naming conventions usually don't

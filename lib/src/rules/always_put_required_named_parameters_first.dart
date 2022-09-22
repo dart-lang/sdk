@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Put required named parameters first.';
 
 const _details = r'''
-
 **DO** specify `required` on named parameter before other named parameters.
 
 **GOOD:**

@@ -13,7 +13,6 @@ import '../extensions.dart';
 
 const _desc = r'Use `isEmpty` for Iterables and Maps.';
 const _details = r'''
-
 **DON'T** use `length` to see if a collection is empty.
 
 The `Iterable` contract does not require that a collection know its length or be

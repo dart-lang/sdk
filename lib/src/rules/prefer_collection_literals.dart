@@ -12,7 +12,6 @@ import '../extensions.dart';
 const _desc = r'Use collection literals when possible.';
 
 const _details = r'''
-
 **DO** use collection literals when possible.
 
 **BAD:**

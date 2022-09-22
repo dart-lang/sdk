@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Test type arguments in operator ==(Object other).';
 
 const _details = r'''
-
 **DO** test type arguments in operator ==(Object other).
 
 Not testing types might result in null pointer exceptions which will be

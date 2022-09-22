@@ -13,7 +13,6 @@ import '../extensions.dart';
 const _desc = r'Avoid null in null-aware assignment.';
 
 const _details = r'''
-
 **AVOID** `null` in null-aware assignment.
 
 Using `null` on the right-hand side of a null-aware assignment effectively makes

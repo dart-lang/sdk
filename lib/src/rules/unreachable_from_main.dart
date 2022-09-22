@@ -14,7 +14,6 @@ import '../analyzer.dart';
 const _desc = 'Unreachable top-level members in executable libraries.';
 
 const _details = r'''
-
 Top-level members in an executable library should be used directly inside this
 library.  An executable library is a library that contains a `main` top-level
 function or that contains a top-level function annotated with

@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid shadowing type parameters.';
 
 const _details = r'''
-
 **AVOID** shadowing type parameters.
 
 **BAD:**

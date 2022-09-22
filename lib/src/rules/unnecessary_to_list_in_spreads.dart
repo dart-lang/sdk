@@ -11,7 +11,6 @@ import '../extensions.dart';
 const _desc = r'Unnecessary toList() in spreads.';
 
 const _details = r'''
-
 Unnecessary `toList()` in spreads.
 
 **BAD:**

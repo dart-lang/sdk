@@ -11,8 +11,7 @@ import '../analyzer.dart';
 const _desc = r'Prefer using null aware operators.';
 
 const _details = r'''
-
-Prefer using null aware operators instead of null checks in conditional
+**PREFER** using null aware operators instead of null checks in conditional
 expressions.
 
 **BAD:**

@@ -12,7 +12,6 @@ import '../utils.dart';
 const _desc = r'Prefer using lowerCamelCase for constant names.';
 
 const _details = r'''
-
 **PREFER** using lowerCamelCase for constant names.
 
 In new code, use `lowerCamelCase` for constant variables, including enum values.

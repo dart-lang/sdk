@@ -12,7 +12,6 @@ import '../analyzer.dart';
 const _desc = r'Use predefined named constants.';
 
 const _details = r'''
-
 Where possible, use already defined const values.
 
 **BAD:**

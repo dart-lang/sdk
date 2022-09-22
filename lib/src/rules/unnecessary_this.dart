@@ -12,7 +12,6 @@ import '../ast.dart';
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 
 const _details = r'''
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 
 **DON'T** use `this` when not needed to avoid shadowing.

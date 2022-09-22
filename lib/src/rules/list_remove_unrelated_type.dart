@@ -10,7 +10,6 @@ import '../util/unrelated_types_visitor.dart';
 const _desc = r'Invocation of `remove` with references of unrelated types.';
 
 const _details = r'''
-
 **DON'T** invoke `remove` on `List` with an instance of different type than
 the parameter type.
 

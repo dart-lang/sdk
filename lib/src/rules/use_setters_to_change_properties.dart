@@ -14,7 +14,6 @@ const _desc =
     r'Use a setter for operations that conceptually change a property.';
 
 const _details = r'''
-
 **DO** use a setter for operations that conceptually change a property.
 
 **BAD:**

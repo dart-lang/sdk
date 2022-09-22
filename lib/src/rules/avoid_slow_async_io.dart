@@ -13,7 +13,6 @@ import '../extensions.dart';
 const _desc = r'Avoid slow async `dart:io` methods.';
 
 const _details = r'''
-
 **AVOID** using the following asynchronous file I/O methods because they are
 much slower than their synchronous counterparts.
 

@@ -13,7 +13,6 @@ import '../util/dart_type_utilities.dart';
 
 const _desc = r'Use contains for `List` and `String` instances.';
 const _details = r'''
-
 **DON'T** use `indexOf` to see if a collection contains an element.
 
 Calling `indexOf` to see if a collection contains something is difficult to read

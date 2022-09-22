@@ -113,7 +113,6 @@ import '../analyzer.dart';
 const _desc = r' ';
 
 const _details = r'''
-
 **DO** ...
 
 **BAD:**

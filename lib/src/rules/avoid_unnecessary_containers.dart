@@ -10,7 +10,8 @@ import '../util/flutter_utils.dart';
 
 const _desc = r'Avoid unnecessary containers.';
 
-const _details = r'''Avoid wrapping widgets in unnecessary containers.
+const _details = r'''
+**AVOID** wrapping widgets in unnecessary containers.
 
 Wrapping a widget in `Container` with no other parameters set has no effect 
 and makes code needlessly more complex.

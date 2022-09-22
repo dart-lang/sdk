@@ -12,7 +12,6 @@ import '../analyzer.dart';
 const _desc = r'Annotate overridden members.';
 
 const _details = r'''
-
 **DO** annotate overridden methods and fields.
 
 This practice improves code readability and helps protect against

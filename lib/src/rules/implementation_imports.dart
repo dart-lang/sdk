@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r"Don't import implementation files from another package.";
 
 const _details = r'''
-
 From the the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files):
 
 **DON'T** import implementation files from another package.

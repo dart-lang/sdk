@@ -14,7 +14,7 @@ import '../util/flutter_utils.dart';
 const _desc = r'Do not use BuildContexts across async gaps.';
 
 const _details = r'''
-**DO NOT** use BuildContext across asynchronous gaps.
+**DON'T** use BuildContext across asynchronous gaps.
 
 Storing `BuildContext` for later usage can easily lead to difficult to diagnose
 crashes. Asynchronous gaps are implicitly storing `BuildContext` and are some of

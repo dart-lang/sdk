@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid field initializers in const classes.';
 
 const _details = r'''
-
 **AVOID** field initializers in const classes.
 
 Instead of `final x = const expr;`, you should write `get x => const expr;` and

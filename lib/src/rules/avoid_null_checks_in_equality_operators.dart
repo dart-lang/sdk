@@ -15,7 +15,6 @@ import '../extensions.dart';
 const _desc = r"Don't check for null in custom == operators.";
 
 const _details = r'''
-
 **DON'T** check for null in custom == operators.
 
 As null is a special type, no class can be equivalent to it.  Thus, it is

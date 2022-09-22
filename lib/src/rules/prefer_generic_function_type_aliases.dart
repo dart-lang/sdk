@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Prefer generic function type aliases.';
 
 const _details = r'''
-
 **PREFER** generic function type aliases.
 
 With the introduction of generic functions, function type aliases

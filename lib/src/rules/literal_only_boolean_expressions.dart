@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Boolean expression composed only with literals.';
 
 const _details = r'''
-
 **DON'T** test for conditions composed only by literals, since the value can be
 inferred at compile time.
 

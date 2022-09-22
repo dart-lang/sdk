@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid using `as`.';
 
 const _details = r'''
-
 **AVOID** using `as`.
 
 If you know the type is correct, use an assertion or assign to a more

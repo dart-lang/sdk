@@ -16,7 +16,6 @@ const _desc =
     r'Only throw instances of classes extending either Exception or Error.';
 
 const _details = r'''
-
 **DO** throw only instances of classes that extend `dart.core.Error` or
 `dart.core.Exception`.
 

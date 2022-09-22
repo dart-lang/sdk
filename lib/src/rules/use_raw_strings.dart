@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Use raw string to avoid escapes.';
 
 const _details = r'''
-
 A raw string can be used to avoid escaping only backslashes and dollars.
 
 **BAD:**

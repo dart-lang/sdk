@@ -13,7 +13,6 @@ import '../ast.dart';
 const _desc = r'Document all public members.';
 
 const _details = r'''
-
 **DO** document all public members.
 
 All non-overriding public members should be documented with `///` doc-style

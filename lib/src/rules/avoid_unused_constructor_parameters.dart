@@ -12,7 +12,6 @@ import '../util/ascii_utils.dart';
 const _desc = r'Avoid defining unused parameters in constructors.';
 
 const _details = r'''
-
 **AVOID** defining unused parameters in constructors.
 
 **BAD:**

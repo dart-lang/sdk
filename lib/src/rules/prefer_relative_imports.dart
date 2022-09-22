@@ -13,7 +13,8 @@ import 'implementation_imports.dart' show samePackage;
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
-const _details = r'''Prefer relative imports for files in `lib/`.
+const _details = r'''
+**PREFER** relative imports for files in `lib/`.
 
 When mixing relative and absolute imports it's possible to create confusion
 where the same member gets imported in two different ways. One way to avoid

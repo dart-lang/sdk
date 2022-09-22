@@ -11,7 +11,6 @@ import '../utils.dart';
 const _desc = r'Name libraries using `lowercase_with_underscores`.';
 
 const _details = r'''
-
 **DO** name libraries using `lowercase_with_underscores`.
 
 Some file systems are not case-sensitive, so many projects require filenames to

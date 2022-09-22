@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Prefer null aware method calls.';
 
 const _details = r'''
-
 Instead of checking nullability of a function/method `f` before calling it you
 can use `f?.call()`.
 

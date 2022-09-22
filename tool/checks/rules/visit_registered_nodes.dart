@@ -11,7 +11,6 @@ import 'package:linter/src/analyzer.dart';
 const _desc = r'Declare visit methods for all registered node types.';
 
 const _details = r'''
-
 **DO** declare a visit method for all registered node processors.
 
 **BAD:**

@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Use trailing commas for all function calls and declarations.';
 
 const _details = r'''
-
 **DO** use trailing commas for all function calls and declarations unless the
 function call or definition, from the start of the function name up to the
 closing parenthesis, fits in a single line.

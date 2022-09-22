@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Use generic function type syntax for parameters.';
 
 const _details = r'''
-
 Use generic function type syntax for parameters.
 
 **BAD:**

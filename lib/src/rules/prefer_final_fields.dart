@@ -15,7 +15,6 @@ import '../extensions.dart';
 const _desc = r'Private field could be final.';
 
 const _details = r'''
-
 **DO** prefer declaring private fields as final if they are not reassigned later
 in the library.
 

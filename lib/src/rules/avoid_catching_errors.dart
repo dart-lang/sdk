@@ -11,7 +11,6 @@ import '../extensions.dart';
 const _desc = r"Don't explicitly catch Error or types that implement it.";
 
 const _details = r'''
-
 **DON'T** explicitly catch Error or types that implement it.
 
 Errors differ from Exceptions in that Errors can be analyzed and prevented prior

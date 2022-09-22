@@ -11,8 +11,7 @@ import '../analyzer.dart';
 const _desc = r'Prefer using if null operators.';
 
 const _details = r'''
-
-Prefer using if null operators instead of null checks in conditional
+**PREFER** using if null operators instead of null checks in conditional
 expressions.
 
 **BAD:**

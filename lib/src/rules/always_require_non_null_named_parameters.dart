@@ -13,7 +13,6 @@ import '../extensions.dart';
 const _desc = r'Specify `@required` on named parameters without defaults.';
 
 const _details = r'''
-
 **DO** specify `@required` on named parameters without a default value on which 
 an `assert(param != null)` is done.
 

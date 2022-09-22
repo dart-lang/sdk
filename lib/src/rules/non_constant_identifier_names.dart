@@ -13,7 +13,6 @@ import '../utils.dart';
 const _desc = r'Name non-constant identifiers using lowerCamelCase.';
 
 const _details = r'''
-
 **DO** name non-constant identifiers using lowerCamelCase.
 
 Class members, top-level definitions, variables, parameters, named parameters

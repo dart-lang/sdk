@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid empty else statements.';
 
 const _details = r'''
-
 **AVOID** empty else statements.
 
 **BAD:**

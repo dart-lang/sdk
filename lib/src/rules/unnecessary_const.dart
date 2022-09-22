@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid const keyword.';
 
 const _details = r'''
-
 **AVOID** repeating const keyword in a const context.
 
 **BAD:**

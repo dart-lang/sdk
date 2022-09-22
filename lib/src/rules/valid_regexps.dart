@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Use valid regular expression syntax.';
 
 const _details = r'''
-
 **DO** use valid regular expression syntax when creating regular expression
 instances.
 

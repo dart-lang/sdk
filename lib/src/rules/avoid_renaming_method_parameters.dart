@@ -13,7 +13,8 @@ import '../ast.dart';
 
 const _desc = r"Don't rename parameters of overridden methods.";
 
-const _details = r'''**DON'T** rename parameters of overridden methods.
+const _details = r'''
+**DON'T** rename parameters of overridden methods.
 
 Methods that override another method, but do not have their own documentation
 comment, will inherit the overridden method's comment when `dart doc` produces

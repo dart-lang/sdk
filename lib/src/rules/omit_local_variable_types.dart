@@ -13,8 +13,7 @@ import '../extensions.dart';
 const _desc = r'Omit type annotations for local variables.';
 
 const _details = r'''
-
-**DON’T** redundantly type annotate initialized local variables.
+**DON'T** redundantly type annotate initialized local variables.
 
 Local variables, especially in modern code where functions tend to be small,
 have very little scope. Omitting the type focuses the reader's attention on the

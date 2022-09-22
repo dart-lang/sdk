@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid escaping inner quotes by converting surrounding quotes.';
 
 const _details = r'''
-
 Avoid escaping inner quotes by converting surrounding quotes.
 
 **BAD:**

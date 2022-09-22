@@ -12,7 +12,6 @@ import '../extensions.dart';
 const _desc = r'Property getter recursively returns itself.';
 
 const _details = r'''
-
 **DON'T** create recursive getters.
 
 Recursive getters are getters which return themselves as a value.  This is

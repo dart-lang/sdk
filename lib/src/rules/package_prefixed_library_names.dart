@@ -11,7 +11,6 @@ const _desc =
     r'Prefix library names with the package name and a dot-separated path.';
 
 const _details = r'''
-
 **DO** prefix library names with the package name and a dot-separated path.
 
 This guideline helps avoid the warnings you get when two libraries have the same

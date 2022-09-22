@@ -14,7 +14,6 @@ import '../extensions.dart';
 const _desc = r"Don't explicitly initialize variables to null.";
 
 const _details = r'''
-
 From [effective dart](https://dart.dev/guides/language/effective-dart/usage#dont-explicitly-initialize-variables-to-null):
 
 **DON'T** explicitly initialize variables to null.

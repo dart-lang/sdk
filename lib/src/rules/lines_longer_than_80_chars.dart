@@ -13,7 +13,6 @@ const _cr = '\r';
 const _desc = r'Avoid lines longer than 80 characters.';
 
 const _details = r'''
-
 **AVOID** lines longer than 80 characters
 
 Readability studies show that long lines of text are harder to read because your

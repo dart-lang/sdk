@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Sort constructor declarations before other members.';
 
 const _details = r'''
-
 **DO** sort constructor declarations before other members.
 
 **GOOD:**

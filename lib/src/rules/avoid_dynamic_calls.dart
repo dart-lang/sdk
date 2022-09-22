@@ -12,7 +12,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid method calls or property accesses on a "dynamic" target.';
 
 const _details = r'''
-
 **DO** avoid method calls or accessing properties on an object that is either
 explicitly or implicitly statically typed "dynamic". Dynamic calls are treated
 slightly different in every runtime environment and compiler, but most

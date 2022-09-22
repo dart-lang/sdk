@@ -13,7 +13,6 @@ import '../extensions.dart';
 const _desc = r'Avoid using `forEach` with a function literal.';
 
 const _details = r'''
-
 **AVOID** using `forEach` with a function literal.
 
 The `for` loop enables a developer to be clear and explicit as to their intent.

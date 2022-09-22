@@ -15,7 +15,6 @@ const _desc =
     r' or num.';
 
 const _details = r'''
-
 **AVOID** returning null from members whose return type is bool, double, int,
 or num.
 

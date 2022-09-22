@@ -11,7 +11,6 @@ import '../ast.dart';
 const _desc = r'Noop primitive operations.';
 
 const _details = r'''
-
 Some operations on primitive types are idempotent and can be removed.
 
 **BAD:**

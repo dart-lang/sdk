@@ -12,7 +12,6 @@ import '../analyzer.dart';
 const _desc = r'Prefer declaring const constructors on `@immutable` classes.';
 
 const _details = r'''
-
 **PREFER** declaring const constructors on `@immutable` classes.
 
 If a class is immutable, it is usually a good idea to make its constructor a

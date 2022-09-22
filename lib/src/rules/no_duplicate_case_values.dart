@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r"Don't use more than one case with same value.";
 
 const _details = r'''
-
 **DON'T** use more than one case with same value.
 
 This is usually a typo or changed value of constant.

@@ -13,7 +13,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid calling toString() on runtimeType.';
 
 const _details = r'''
-
 Calling `toString` on a runtime type is a non-trivial operation that can
 negatively impact performance. It's better to avoid it.
 

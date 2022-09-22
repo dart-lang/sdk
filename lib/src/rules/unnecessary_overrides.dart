@@ -15,7 +15,6 @@ const _desc =
     r' parameters.';
 
 const _details = r'''
-
 **DON'T** override a method to do a super method invocation with same parameters.
 
 **BAD:**

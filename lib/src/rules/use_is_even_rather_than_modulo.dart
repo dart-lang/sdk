@@ -12,7 +12,6 @@ const _desc =
     r'Prefer intValue.isOdd/isEven instead of checking the result of % 2.';
 
 const _details = r'''
-
 **PREFER** the use of intValue.isOdd/isEven to check for evenness.
 
 **BAD:**

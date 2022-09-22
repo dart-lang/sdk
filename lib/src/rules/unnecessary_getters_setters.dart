@@ -12,7 +12,6 @@ const _desc =
     r'Avoid wrapping fields in getters and setters just to be "safe".';
 
 const _details = r'''
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 
 **AVOID** wrapping fields in getters and setters just to be "safe".

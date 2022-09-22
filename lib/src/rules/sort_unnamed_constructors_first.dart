@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Sort unnamed constructor declarations first.';
 
 const _details = r'''
-
 **DO** sort unnamed constructor declarations first, before named ones.
 
 **GOOD:**

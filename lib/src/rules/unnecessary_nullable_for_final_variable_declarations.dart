@@ -12,7 +12,6 @@ const _desc = r'Use a non-nullable type for a final variable initialized '
     'with a non-nullable value.';
 
 const _details = r'''
-
 Use a non-nullable type for a final variable initialized with a non-nullable
 value.
 

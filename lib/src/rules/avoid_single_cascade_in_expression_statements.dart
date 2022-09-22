@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid single cascade in expression statements.';
 
 const _details = r'''
-
 **AVOID** single cascade in expression statements.
 
 **BAD:**

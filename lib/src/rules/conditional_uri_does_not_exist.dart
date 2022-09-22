@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Missing conditional import.';
 
 const _details = r'''
-
 **DON'T** reference files that do not exist in conditional imports.
 
 Code may fail at runtime if the condition evaluates such that the missing file

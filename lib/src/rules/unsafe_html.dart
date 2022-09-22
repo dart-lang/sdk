@@ -14,7 +14,6 @@ const _descPrefix = r'Avoid unsafe HTML APIs';
 const _desc = '$_descPrefix.';
 
 const _details = r'''
-
 **AVOID**
 
 * assigning directly to the `href` field of an AnchorElement

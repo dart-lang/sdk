@@ -15,7 +15,6 @@ import '../util/dart_type_utilities.dart';
 const _desc = r"Don't create a lambda when a tear-off will do.";
 
 const _details = r'''
-
 **DON'T** create a lambda when a tear-off will do.
 
 **BAD:**

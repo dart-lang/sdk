@@ -11,8 +11,7 @@ import '../analyzer.dart';
 const _desc = r'Unnecessary string interpolation.';
 
 const _details = r'''
-
-Don't use string interpolation if there's only a string expression in it.
+**DON'T** use string interpolation if there's only a string expression in it.
 
 **BAD:**
 ```dart

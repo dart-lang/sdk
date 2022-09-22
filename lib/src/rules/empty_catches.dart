@@ -11,7 +11,6 @@ import '../util/ascii_utils.dart';
 const _desc = r'Avoid empty catch blocks.';
 
 const _details = r'''
-
 **AVOID** empty catch blocks.
 
 In general, empty catch blocks should be avoided.  In cases where they are

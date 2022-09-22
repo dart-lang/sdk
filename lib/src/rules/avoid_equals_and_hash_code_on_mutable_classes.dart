@@ -14,7 +14,6 @@ const _desc =
     r'Avoid overloading operator == and hashCode on classes not marked `@immutable`.';
 
 const _details = r'''
-
 **AVOID** overloading operator == and hashCode on classes not marked `@immutable`.
 
 If a class is not immutable, overloading operator == and hashCode can lead to

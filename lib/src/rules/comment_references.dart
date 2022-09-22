@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Only reference in scope identifiers in doc comments.';
 
 const _details = r'''
-
 **DO** reference only in scope identifiers in doc comments.
 
 If you surround things like variable, method, or type names in square brackets,

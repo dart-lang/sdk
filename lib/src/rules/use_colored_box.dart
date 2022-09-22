@@ -12,7 +12,6 @@ import '../util/flutter_utils.dart';
 const _desc = r'Use `ColoredBox`.';
 
 const _details = r'''
-
 **DO** use `ColoredBox` when `Container` has only a `Color`.
 
 A `Container` is a heavier Widget than a `ColoredBox`, and as bonus,

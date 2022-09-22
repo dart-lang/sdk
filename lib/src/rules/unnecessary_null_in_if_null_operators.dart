@@ -12,7 +12,6 @@ import '../extensions.dart';
 const _desc = r'Avoid using `null` in `if null` operators.';
 
 const _details = r'''
-
 **AVOID** using `null` as an operand in `if null` operators.
 
 Using `null` in an `if null` operator is redundant, regardless of which side

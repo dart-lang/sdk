@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid JavaScript rounded ints.';
 
 const _details = r'''
-
 **AVOID** integer literals that cannot be represented exactly when compiled to
 JavaScript.
 

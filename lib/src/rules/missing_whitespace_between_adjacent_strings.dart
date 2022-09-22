@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Missing whitespace between adjacent strings.';
 
 const _details = r'''
-
 Add a trailing whitespace to prevent missing whitespace between adjacent
 strings.
 

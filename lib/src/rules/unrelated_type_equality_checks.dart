@@ -16,7 +16,6 @@ const _desc =
     r'Equality operator `==` invocation with references of unrelated types.';
 
 const _details = r'''
-
 **DON'T** Compare references of unrelated types for equality.
 
 Comparing references of a type where neither is a subtype of the other most

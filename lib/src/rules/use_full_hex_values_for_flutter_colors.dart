@@ -12,8 +12,7 @@ const _desc =
     r'Prefer an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color.';
 
 const _details = r'''
-
-Prefer an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color. Colors
+**PREFER** an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color. Colors
 have four 8-bit channels, which adds up to 32 bits, so Colors are described
 using a 32 bit integer.
 

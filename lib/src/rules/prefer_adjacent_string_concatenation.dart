@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Use adjacent strings to concatenate string literals.';
 
 const _details = r'''
-
 **DO** use adjacent strings to concatenate string literals.
 
 **BAD:**

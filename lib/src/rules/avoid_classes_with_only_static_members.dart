@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid defining a class that contains only static members.';
 
 const _details = r'''
-
 **AVOID** defining a class that contains only static members.
 
 Creating classes with the sole purpose of providing utility or otherwise static

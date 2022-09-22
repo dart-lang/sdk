@@ -13,7 +13,6 @@ const _desc =
     r'getter.';
 
 const _details = r'''
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 
 **PREFER** using a public final field instead of a private field with a public

@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid double and int checks.';
 
 const _details = r'''
-
 **AVOID** to check if type is double or int.
 
 When compiled to JS, integer values are represented as floats. That can lead to

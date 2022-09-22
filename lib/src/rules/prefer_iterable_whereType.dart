@@ -12,7 +12,6 @@ import '../extensions.dart';
 const _desc = r'Prefer to use whereType on iterable.';
 
 const _details = r'''
-
 **PREFER** `iterable.whereType<T>()` over `iterable.where((e) => e is T)`.
 
 **BAD:**

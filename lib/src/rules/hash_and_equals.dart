@@ -11,7 +11,6 @@ import '../ast.dart';
 const _desc = r'Always override `hashCode` if overriding `==`.';
 
 const _details = r'''
-
 **DO** override `hashCode` if overriding `==` and prefer overriding `==` if
 overriding `hashCode`.
 

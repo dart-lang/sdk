@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Sort combinator names alphabetically.';
 
 const _details = r'''
-
 **DO** sort combinator names alphabetically.
 
 **BAD:**

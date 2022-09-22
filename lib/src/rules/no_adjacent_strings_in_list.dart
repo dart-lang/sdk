@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r"Don't use adjacent strings in list.";
 
 const _details = r'''
-
 **DON'T** use adjacent strings in list.
 
 This can be sign of forgotten comma.

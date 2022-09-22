@@ -13,7 +13,7 @@ import '../utils.dart';
 const _desc = r'Avoid leading underscores for local identifiers.';
 
 const _details = r'''
-**DON’T** use a leading underscore for identifiers that aren't private. Dart
+**DON'T** use a leading underscore for identifiers that aren't private. Dart
 uses a leading underscore in an identifier to mark members and top-level
 declarations as private. This trains users to associate a leading underscore
 with one of those kinds of declarations. They see `_` and  think "private".

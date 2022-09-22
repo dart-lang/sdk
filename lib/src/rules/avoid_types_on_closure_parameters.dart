@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid annotating types for function expression parameters.';
 
 const _details = r'''
-
 **AVOID** annotating types for function expression parameters.
 
 Annotating types for function expression parameters is usually unnecessary

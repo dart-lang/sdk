@@ -13,7 +13,6 @@ import '../analyzer.dart';
 const _desc = r"Don't override fields.";
 
 const _details = r'''
-
 **DON'T** override fields.
 
 Overriding fields is almost always done unintentionally.  Regardless, it is a

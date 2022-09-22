@@ -13,7 +13,8 @@ import '../ast.dart';
 const _desc =
     r'Avoid using web-only libraries outside Flutter web plugin packages.';
 
-const _details = r'''Avoid using web libraries, `dart:html`, `dart:js` and 
+const _details = r'''
+**AVOID** using web libraries, `dart:html`, `dart:js` and 
 `dart:js_util` in Flutter packages that are not web plugins. These libraries are 
 not supported outside a web context; functionality that depends on them will
 fail at runtime in Flutter mobile, and their use is generally discouraged in
