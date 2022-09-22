@@ -57,7 +57,7 @@ InstanceCreationExpression
         staticType: null
       type: B<num>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::B::@constructor::•
+      base: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -122,7 +122,7 @@ InstanceCreationExpression
         staticType: null
       type: B<num>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::B::@constructor::•
+      base: package:test/a.dart::@class::B::@constructor::new
       substitution: {T: num}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -166,7 +166,7 @@ InstanceCreationExpression
         staticElement: package:test/a.dart::@class::A
         staticType: null
       type: A
-    staticElement: package:test/a.dart::@class::A::@constructor::•
+    staticElement: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -225,7 +225,7 @@ InstanceCreationExpression
         staticElement: package:test/a.dart::@class::A
         staticType: null
       type: A
-    staticElement: package:test/a.dart::@class::A::@constructor::•
+    staticElement: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -275,7 +275,7 @@ InstanceCreationExpression
         rightBracket: >
       type: C<int>
     staticElement: ConstructorMember
-      base: package:test/a.dart::@class::C::@constructor::•
+      base: package:test/a.dart::@class::C::@constructor::new
       substitution: {T: int}
   argumentList: ArgumentList
     leftParenthesis: (

@@ -75,3 +75,9 @@ extension IterableOfStringExtension on Iterable<String> {
     }
   }
 }
+
+extension StringExtension on String {
+  String ifNotEmptyOrElse(String orElse) {
+    return isNotEmpty ? this : orElse;
+  }
+}

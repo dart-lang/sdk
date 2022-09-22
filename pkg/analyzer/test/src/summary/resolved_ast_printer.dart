@@ -1395,7 +1395,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
     var name = reference.name;
     if (name.isEmpty) {
-      name = '•';
+      fail('Currently every reference must have a name');
     }
     return '${_referenceToString(parent)}::$name';
   }

@@ -1455,7 +1455,7 @@ AssignmentExpression
             staticElement: self::@class::B
             staticType: null
           type: B
-        staticElement: self::@class::B::@constructor::•
+        staticElement: self::@class::B::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -3315,7 +3315,7 @@ AssignmentExpression
           staticElement: self::@class::C
           staticType: null
         type: C
-      staticElement: self::@class::C::@constructor::•
+      staticElement: self::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -3919,7 +3919,7 @@ AssignmentExpression
           staticElement: self::@class::C
           staticType: null
         type: C
-      staticElement: self::@class::C::@constructor::•
+      staticElement: self::@class::C::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )

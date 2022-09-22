@@ -857,7 +857,7 @@ CascadeExpression
           staticElement: self::@class::A
           staticType: null
         type: A
-      staticElement: self::@class::A::@constructor::•
+      staticElement: self::@class::A::@constructor::new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )

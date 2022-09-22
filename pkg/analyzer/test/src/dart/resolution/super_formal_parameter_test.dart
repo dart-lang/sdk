@@ -101,10 +101,10 @@ SuperFormalParameter
           staticType: null
         type: int
       name: b
-      declaredElement: self::@class::B::@constructor::•::@parameter::a::@parameter::b
+      declaredElement: self::@class::B::@constructor::new::@parameter::a::@parameter::b
       declaredElementType: int
     rightParenthesis: )
-  declaredElement: self::@class::B::@constructor::•::@parameter::a
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
   declaredElementType: T Function<T>(int)
 ''');
   }
@@ -144,7 +144,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: self::@class::B::@constructor::•::@parameter::a
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
   declaredElementType: int?
 ''');
   }
@@ -166,7 +166,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: self::@class::B::@constructor::•::@parameter::a
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
   declaredElementType: int?
 ''');
   }
@@ -189,7 +189,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: self::@class::B::@constructor::•::@parameter::a
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
   declaredElementType: int
 ''');
   }
@@ -211,7 +211,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: self::@class::B::@constructor::•::@parameter::a
+  declaredElement: self::@class::B::@constructor::new::@parameter::a
   declaredElementType: int
 ''');
   }
@@ -255,7 +255,7 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  staticElement: self::@class::B::@constructor::•::@parameter::a
+  staticElement: self::@class::B::@constructor::new::@parameter::a
   staticType: int
 ''');
   }

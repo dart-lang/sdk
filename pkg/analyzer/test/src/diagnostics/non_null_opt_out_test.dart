@@ -341,7 +341,7 @@ AssignmentExpression
             staticType: null
           type: A*
         staticElement: ConstructorMember
-          base: package:test/a.dart::@class::A::@constructor::•
+          base: package:test/a.dart::@class::A::@constructor::new
           isLegacy: true
       argumentList: ArgumentList
         leftParenthesis: (
@@ -400,7 +400,7 @@ AssignmentExpression
             staticType: null
           type: A*
         staticElement: ConstructorMember
-          base: package:test/a.dart::@class::A::@constructor::•
+          base: package:test/a.dart::@class::A::@constructor::new
           isLegacy: true
       argumentList: ArgumentList
         leftParenthesis: (

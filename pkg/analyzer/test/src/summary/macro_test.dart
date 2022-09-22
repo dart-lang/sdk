@@ -402,7 +402,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
   parts
@@ -547,7 +547,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @43
               rightParenthesis: ) @44
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
   parts
@@ -923,7 +923,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
           named @-1
@@ -975,7 +975,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         fields
           foo @-1
             type: int
@@ -1034,7 +1034,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         fields
           synthetic foo @-1
             type: int
@@ -1088,7 +1088,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
         methods
@@ -1142,7 +1142,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @26
               rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::•
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         fields
           synthetic foo @-1
             type: int
@@ -1724,7 +1724,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
     mixins
       mixin M @6
         superclassConstraints

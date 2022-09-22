@@ -84,7 +84,7 @@ library
                   rightParenthesis: ) @11
                   staticType: (int, {int a})
               rightParenthesis: ) @12
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
       class A @31
@@ -128,7 +128,7 @@ library
                   rightParenthesis: ) @13
                   staticType: (String)
               rightParenthesis: ) @14
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
       class A @33
@@ -275,7 +275,7 @@ library
             supertype: A
             constructors
               @51
-                superConstructor: self::@class::A::@constructor::•
+                superConstructor: self::@class::A::@constructor::new
   definingUnit
     classes
       class A @31
@@ -584,7 +584,7 @@ library
                       staticElement: package:test/a.dart::@class::A
                       staticType: null
                     type: A
-                  staticElement: package:test/a.dart::@class::A::@constructor::•
+                  staticElement: package:test/a.dart::@class::A::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @57
                   rightParenthesis: ) @58
@@ -1598,7 +1598,7 @@ library
                 condition: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: x @36
-                    staticElement: self::@class::C::@constructor::•::@parameter::x
+                    staticElement: self::@class::C::@constructor::new::@parameter::x
                     staticType: int
                   operator: >= @38
                   rightOperand: IntegerLiteral
@@ -1634,7 +1634,7 @@ library
                 condition: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: x @36
-                    staticElement: self::@class::C::@constructor::•::@parameter::x
+                    staticElement: self::@class::C::@constructor::new::@parameter::x
                     staticType: int
                   operator: >= @38
                   rightOperand: IntegerLiteral
@@ -1761,7 +1761,7 @@ library
                 equals: = @54
                 expression: SimpleIdentifier
                   token: f @56
-                  staticElement: self::@class::A::@constructor::•::@parameter::f
+                  staticElement: self::@class::A::@constructor::new::@parameter::f
                   staticType: int
         accessors
           synthetic get _f @-1
@@ -1804,7 +1804,7 @@ library
                       staticType: int
                     SimpleIdentifier
                       token: a @55
-                      staticElement: self::@class::C::@constructor::•::@parameter::a
+                      staticElement: self::@class::C::@constructor::new::@parameter::a
                       staticType: int
                   rightParenthesis: ) @56
                   staticType: (int, int)
@@ -1848,7 +1848,7 @@ library
                   operator: + @46
                   rightOperand: SimpleIdentifier
                     token: p @48
-                    staticElement: self::@class::C::@constructor::•::@parameter::p
+                    staticElement: self::@class::C::@constructor::new::@parameter::p
                     staticType: int
                   staticElement: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
@@ -1918,15 +1918,15 @@ library
                             rightBracket: > @96
                           type: A<dynamic Function()>
                         staticElement: ConstructorMember
-                          base: self::@class::A::@constructor::•
+                          base: self::@class::A::@constructor::new
                           substitution: {T: dynamic Function()}
                       argumentList: ArgumentList
                         leftParenthesis: ( @97
                         rightParenthesis: ) @98
                       staticType: A<dynamic Function()>
                   rightParenthesis: ) @99
-                staticElement: self::@class::B::@constructor::•
-            redirectedConstructor: self::@class::B::@constructor::•
+                staticElement: self::@class::B::@constructor::new
+            redirectedConstructor: self::@class::B::@constructor::new
 ''');
   }
 
@@ -1965,8 +1965,8 @@ library
                       rightBracket: ] @91
                       staticType: List<String>
                   rightParenthesis: ) @92
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2145,8 +2145,8 @@ library
                       literal: 42 @74
                       staticType: int
                   rightParenthesis: ) @76
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2182,8 +2182,8 @@ library
                       rightBracket: ] @74
                       staticType: List<String>
                   rightParenthesis: ) @75
-                staticElement: self::@class::A::@constructor::•
-            redirectedConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            redirectedConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2311,8 +2311,8 @@ library
                     SimpleStringLiteral
                       literal: 'bbb' @38
                   rightParenthesis: ) @43
-                staticElement: self::@class::C::@constructor::•
-            redirectedConstructor: self::@class::C::@constructor::•
+                staticElement: self::@class::C::@constructor::new
+            redirectedConstructor: self::@class::C::@constructor::new
           const @54
             parameters
               requiredPositional a @60
@@ -2355,8 +2355,8 @@ library
                 parameters
                   requiredPositional d @82
                     type: T
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2387,8 +2387,8 @@ library
             parameters
               requiredPositional final super.a @59
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2419,8 +2419,8 @@ library
             parameters
               requiredPositional final super.a @61
                 type: int?
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2472,13 +2472,13 @@ library
                 type: String
               optionalNamed final super.a @97
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
               optionalNamed o2 @107
                 type: String
               optionalNamed final super.b @117
                 type: double
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2510,7 +2510,7 @@ library
               optionalNamed final super.b @67
                 type: dynamic
                 superConstructorParameter: <null>
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2542,7 +2542,7 @@ library
               optionalNamed final super.a @56
                 type: dynamic
                 superConstructorParameter: <null>
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2577,13 +2577,13 @@ library
                 type: String
               optionalPositional final super.a @77
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
               optionalPositional o2 @87
                 type: String
               optionalPositional final super.b @97
                 type: double
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2623,13 +2623,13 @@ library
                 type: String
               requiredNamed final super.a @124
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
               requiredNamed o2 @147
                 type: String
               requiredNamed final super.b @170
                 type: double
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2664,13 +2664,13 @@ library
                 type: String
               requiredPositional final super.a @76
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
               requiredPositional o2 @86
                 type: String
               requiredPositional final super.b @96
                 type: double
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::b
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2707,8 +2707,8 @@ library
             parameters
               requiredPositional final super.a @64
                 type: int
-                superConstructorParameter: self::@class::B::@constructor::•::@parameter::a
-            superConstructor: self::@class::B::@constructor::•
+                superConstructorParameter: self::@class::B::@constructor::new::@parameter::a
+            superConstructor: self::@class::B::@constructor::new
       class B @77
         supertype: A
         constructors
@@ -2716,8 +2716,8 @@ library
             parameters
               requiredPositional final super.a @101
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2755,10 +2755,10 @@ library
               requiredPositional final super.a @63
                 type: int
                 superConstructorParameter: SuperFormalParameterMember
-                  base: self::@class::B::@constructor::•::@parameter::a
+                  base: self::@class::B::@constructor::new::@parameter::a
                   substitution: {T: String}
             superConstructor: ConstructorMember
-              base: self::@class::B::@constructor::•
+              base: self::@class::B::@constructor::new
               substitution: {T: String}
       class B @76
         typeParameters
@@ -2770,8 +2770,8 @@ library
             parameters
               requiredPositional final super.a @103
                 type: int
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::a
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2798,7 +2798,7 @@ library
               requiredPositional final super.a @42
                 type: dynamic
                 superConstructorParameter: <null>
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -2830,7 +2830,7 @@ library
               requiredPositional final super.a @65
                 type: dynamic
                 superConstructorParameter: <null>
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -3175,7 +3175,7 @@ library
       class C @6
         constructors
           factory @20
-            redirectedConstructor: self::@class::D::@constructor::•
+            redirectedConstructor: self::@class::D::@constructor::new
           _ @33
             periodOffset: 32
             nameEnd: 34
@@ -3210,7 +3210,7 @@ library
         constructors
           factory @26
             redirectedConstructor: ConstructorMember
-              base: self::@class::D::@constructor::•
+              base: self::@class::D::@constructor::new
               substitution: {T: U, U: T}
           _ @45
             periodOffset: 44
@@ -3254,7 +3254,7 @@ library
         constructors
           factory @53
             redirectedConstructor: ConstructorMember
-              base: self::@class::C::@constructor::•
+              base: self::@class::C::@constructor::new
               substitution: {T: U, U: T}
         methods
           abstract B_ @70
@@ -3302,7 +3302,7 @@ library
       class C @25
         constructors
           factory @39
-            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::new
           _ @52
             periodOffset: 51
             nameEnd: 53
@@ -3338,7 +3338,7 @@ library
         constructors
           factory @45
             redirectedConstructor: ConstructorMember
-              base: package:test/foo.dart::@class::D::@constructor::•
+              base: package:test/foo.dart::@class::D::@constructor::new
               substitution: {T: U, U: T}
           _ @64
             periodOffset: 63
@@ -3370,7 +3370,7 @@ library
       class C @25
         constructors
           factory @39
-            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::new
           _ @52
             periodOffset: 51
             nameEnd: 53
@@ -3400,7 +3400,7 @@ library
       class C @32
         constructors
           factory @46
-            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::D::@constructor::new
           _ @63
             periodOffset: 62
             nameEnd: 64
@@ -3436,7 +3436,7 @@ library
         constructors
           factory @52
             redirectedConstructor: ConstructorMember
-              base: package:test/foo.dart::@class::D::@constructor::•
+              base: package:test/foo.dart::@class::D::@constructor::new
               substitution: {T: U, U: T}
           _ @75
             periodOffset: 74
@@ -3468,7 +3468,7 @@ library
       class C @32
         constructors
           factory @46
-            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::•
+            redirectedConstructor: package:test/foo.dart::@class::B::@constructor::new
           _ @63
             periodOffset: 62
             nameEnd: 64
@@ -3512,7 +3512,7 @@ library
       class B @21
         constructors
           factory @35
-            redirectedConstructor: self::@class::C::@constructor::•
+            redirectedConstructor: self::@class::C::@constructor::new
           _ @48
             periodOffset: 47
             nameEnd: 49
@@ -3640,8 +3640,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @47
                   rightParenthesis: ) @48
-                staticElement: self::@class::C::@constructor::•
-            redirectedConstructor: self::@class::C::@constructor::•
+                staticElement: self::@class::C::@constructor::new
+            redirectedConstructor: self::@class::C::@constructor::new
 ''');
   }
 
@@ -3671,8 +3671,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @50
                   rightParenthesis: ) @51
-                staticElement: self::@class::C::@constructor::•
-            redirectedConstructor: self::@class::C::@constructor::•
+                staticElement: self::@class::C::@constructor::new
+            redirectedConstructor: self::@class::C::@constructor::new
 ''');
   }
 
@@ -3693,7 +3693,7 @@ library
           named @21
             periodOffset: 20
             nameEnd: 26
-            redirectedConstructor: self::@class::C::@constructor::•
+            redirectedConstructor: self::@class::C::@constructor::new
 ''');
   }
 
@@ -3775,7 +3775,7 @@ library
         supertype: A
         constructors
           @33
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -3797,7 +3797,7 @@ library
         supertype: A
         constructors
           @33
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -3817,7 +3817,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
 ''');
   }
 
@@ -3874,7 +3874,7 @@ library
                         staticElement: self::@class::D
                         staticType: null
                       type: D
-                    staticElement: self::@class::D::@constructor::•
+                    staticElement: self::@class::D::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @46
                     rightParenthesis: ) @47
@@ -3904,7 +3904,7 @@ library
                         staticElement: self::@class::C
                         staticType: null
                       type: C
-                    staticElement: self::@class::C::@constructor::•
+                    staticElement: self::@class::C::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @98
                     rightParenthesis: ) @99
@@ -4219,7 +4219,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @39
               rightParenthesis: ) @40
-            element: self::@class::Annotation::@constructor::•
+            element: self::@class::Annotation::@constructor::new
         constructors
           synthetic @-1
       class BeforeMetaNamed @117
@@ -4257,7 +4257,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            element: self::@class::Annotation::@constructor::•
+            element: self::@class::Annotation::@constructor::new
         constructors
           synthetic @-1
       class AroundMeta @247
@@ -4272,7 +4272,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @224
               rightParenthesis: ) @225
-            element: self::@class::Annotation::@constructor::•
+            element: self::@class::Annotation::@constructor::new
         constructors
           synthetic @-1
       class DocBeforeMetaNotDocAfter @319
@@ -4287,7 +4287,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @290
               rightParenthesis: ) @291
-            element: self::@class::Annotation::@constructor::•
+            element: self::@class::Annotation::@constructor::new
         constructors
           synthetic @-1
       class Annotation @354
@@ -4644,7 +4644,7 @@ library
                       rightBracket: > @80
                     type: A<int Function(double)>
                   staticElement: ConstructorMember
-                    base: self::@class::A::@constructor::•
+                    base: self::@class::A::@constructor::new
                     substitution: {T: int Function(double)}
                 argumentList: ArgumentList
                   leftParenthesis: ( @81
@@ -4741,7 +4741,7 @@ library
               requiredPositional final this.v @34
                 type: int
                 field: self::@class::C::@field::v
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           synthetic get v @-1
             returnType: int
@@ -4868,7 +4868,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           synthetic get v @-1
             returnType: int
@@ -4931,7 +4931,7 @@ library
                 staticType: List<int>
         constructors
           const @94
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get f @-1
             returnType: List<int>
@@ -5006,7 +5006,7 @@ library
                 staticType: double
         constructors
           const @80
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get foo @-1
             returnType: double
@@ -5471,7 +5471,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get f @-1
             returnType: int
@@ -5513,7 +5513,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get f @-1
             returnType: int
@@ -5972,7 +5972,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         methods
           f @25
             parameters
@@ -6008,7 +6008,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         methods
           f @22
             returnType: int
@@ -6060,7 +6060,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           A @38
             returnType: void
@@ -6258,7 +6258,7 @@ library
           G
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
       class D @40
         constructors
           synthetic @-1
@@ -6292,7 +6292,7 @@ library
           C<double>
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
       class A @50
         constructors
           synthetic @-1
@@ -7125,7 +7125,7 @@ library
             type: double
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         accessors
           synthetic get t @-1
             returnType: double
@@ -7140,7 +7140,7 @@ library
           B
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
       class D @96
         supertype: C
         fields
@@ -7148,7 +7148,7 @@ library
             type: dynamic
         constructors
           synthetic @-1
-            superConstructor: self::@class::C::@constructor::•
+            superConstructor: self::@class::C::@constructor::new
         accessors
           set t @121
             parameters
@@ -7173,7 +7173,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           set f @29
             parameters
@@ -7450,7 +7450,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
       class D @27
         constructors
           synthetic @-1
@@ -7471,7 +7471,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::D::@constructor::•
+              base: self::@class::D::@constructor::new
               substitution: {T1: int, T2: double}
       class D @40
         typeParameters
@@ -7504,7 +7504,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: B}
 ''');
   }
@@ -8121,8 +8121,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @32
         constructors
           synthetic @-1
@@ -8160,8 +8160,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @35
         constructors
           synthetic @-1
@@ -8198,8 +8198,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @43
         constructors
           synthetic @-1
@@ -8236,8 +8236,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @48
         constructors
           synthetic @-1
@@ -8274,8 +8274,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @87
         constructors
           synthetic @-1
@@ -8309,8 +8309,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
       class A @42
         constructors
           synthetic @-1
@@ -8355,8 +8355,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @39
         constructors
           synthetic @-1
@@ -8393,8 +8393,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @29
         constructors
           synthetic @-1
@@ -8428,8 +8428,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @26
         constructors
           synthetic @-1
@@ -8473,8 +8473,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: package:test/a.dart::@class::Base::@constructor::•
-            superConstructor: package:test/a.dart::@class::Base::@constructor::•
+                staticElement: package:test/a.dart::@class::Base::@constructor::new
+            superConstructor: package:test/a.dart::@class::Base::@constructor::new
           synthetic const named @-1
             constantInitializers
               SuperConstructorInvocation
@@ -8534,8 +8534,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: package:test/a.dart::@class::Base::@constructor::•
-            superConstructor: package:test/a.dart::@class::Base::@constructor::•
+                staticElement: package:test/a.dart::@class::Base::@constructor::new
+            superConstructor: package:test/a.dart::@class::Base::@constructor::new
           synthetic noArgs @-1
             constantInitializers
               SuperConstructorInvocation
@@ -8840,8 +8840,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @26
         constructors
           synthetic @-1
@@ -9000,7 +9000,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @75
               rightParenthesis: ) @76
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 68
         codeLength: 32
         constructors
@@ -9017,7 +9017,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @109
               rightParenthesis: ) @110
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 102
         codeLength: 70
         constructors
@@ -9034,7 +9034,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @211
               rightParenthesis: ) @212
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 174
         codeLength: 70
         constructors
@@ -9051,7 +9051,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @268
               rightParenthesis: ) @269
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 261
         codeLength: 57
         constructors
@@ -9121,7 +9121,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias HasDocComment @91
         documentationComment: /// Comment 1.\n/// Comment 2.
         codeOffset: 55
@@ -9138,7 +9138,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias HasAnnotation @142
         metadata
           Annotation
@@ -9150,7 +9150,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @133
               rightParenthesis: ) @134
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 126
         codeLength: 49
         supertype: Object
@@ -9165,7 +9165,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias AnnotationThenComment @223
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
@@ -9178,7 +9178,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @184
               rightParenthesis: ) @185
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 177
         codeLength: 87
         supertype: Object
@@ -9193,7 +9193,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias CommentThenAnnotation @312
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
@@ -9206,7 +9206,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @303
               rightParenthesis: ) @304
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 266
         codeLength: 87
         supertype: Object
@@ -9221,7 +9221,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias CommentAroundAnnotation @401
         documentationComment: /// Comment 2.
         metadata
@@ -9234,7 +9234,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @377
               rightParenthesis: ) @378
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 370
         codeLength: 74
         supertype: Object
@@ -9249,7 +9249,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
 ''',
         withCodeRanges: true);
   }
@@ -9319,7 +9319,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @99
                   rightParenthesis: ) @100
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 92
             codeLength: 32
             periodOffset: 105
@@ -9336,7 +9336,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @135
                   rightParenthesis: ) @136
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 128
             codeLength: 74
             periodOffset: 175
@@ -9353,7 +9353,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @247
                   rightParenthesis: ) @248
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 206
             codeLength: 74
             periodOffset: 253
@@ -9370,7 +9370,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @308
                   rightParenthesis: ) @309
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 301
             codeLength: 59
             periodOffset: 331
@@ -9444,7 +9444,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @152
                   rightParenthesis: ) @153
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 145
             codeLength: 49
             periodOffset: 166
@@ -9461,7 +9461,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @205
                   rightParenthesis: ) @206
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 198
             codeLength: 91
             periodOffset: 253
@@ -9478,7 +9478,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @334
                   rightParenthesis: ) @335
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 293
             codeLength: 91
             periodOffset: 348
@@ -9495,7 +9495,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @412
                   rightParenthesis: ) @413
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 405
             codeLength: 76
             periodOffset: 443
@@ -9534,7 +9534,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -9552,7 +9552,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -9570,7 +9570,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -9670,7 +9670,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @105
               rightParenthesis: ) @106
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 98
         codeLength: 41
         extendedType: A
@@ -9686,7 +9686,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 141
         codeLength: 79
         extendedType: A
@@ -9702,7 +9702,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @259
               rightParenthesis: ) @260
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 222
         codeLength: 79
         extendedType: A
@@ -9718,7 +9718,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @325
               rightParenthesis: ) @326
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 318
         codeLength: 66
         extendedType: A
@@ -9865,7 +9865,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @91
                   rightParenthesis: ) @92
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 84
             codeLength: 29
             type: int
@@ -9880,7 +9880,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @91
                   rightParenthesis: ) @92
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 115
             codeLength: 14
             type: int
@@ -9896,7 +9896,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @141
                   rightParenthesis: ) @142
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 134
             codeLength: 71
             type: int
@@ -9912,7 +9912,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @141
                   rightParenthesis: ) @142
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 207
             codeLength: 22
             type: int
@@ -9928,7 +9928,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @275
                   rightParenthesis: ) @276
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 234
             codeLength: 71
             type: int
@@ -9944,7 +9944,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @275
                   rightParenthesis: ) @276
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 307
             codeLength: 22
             type: int
@@ -9960,7 +9960,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @358
                   rightParenthesis: ) @359
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 351
             codeLength: 56
             type: int
@@ -9976,7 +9976,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @358
                   rightParenthesis: ) @359
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 409
             codeLength: 24
             type: int
@@ -10109,7 +10109,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @77
               rightParenthesis: ) @78
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 70
         codeLength: 33
         returnType: void
@@ -10125,7 +10125,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @112
               rightParenthesis: ) @113
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 105
         codeLength: 71
         returnType: void
@@ -10141,7 +10141,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @215
               rightParenthesis: ) @216
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 178
         codeLength: 71
         returnType: void
@@ -10157,7 +10157,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @273
               rightParenthesis: ) @274
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 266
         codeLength: 58
         returnType: void
@@ -10221,7 +10221,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @79
               rightParenthesis: ) @80
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 72
         codeLength: 34
         aliasedType: dynamic Function()
@@ -10239,7 +10239,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @115
               rightParenthesis: ) @116
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 108
         codeLength: 72
         aliasedType: dynamic Function()
@@ -10257,7 +10257,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @219
               rightParenthesis: ) @220
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 182
         codeLength: 72
         aliasedType: dynamic Function()
@@ -10275,7 +10275,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @278
               rightParenthesis: ) @279
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 271
         codeLength: 59
         aliasedType: dynamic Function()
@@ -10341,7 +10341,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @101
               rightParenthesis: ) @102
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 94
         codeLength: 45
         aliasedType: dynamic Function()
@@ -10359,7 +10359,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @148
               rightParenthesis: ) @149
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 141
         codeLength: 83
         aliasedType: dynamic Function()
@@ -10377,7 +10377,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @263
               rightParenthesis: ) @264
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 226
         codeLength: 83
         aliasedType: dynamic Function()
@@ -10395,7 +10395,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @333
               rightParenthesis: ) @334
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 326
         codeLength: 70
         aliasedType: dynamic Function()
@@ -10465,7 +10465,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @97
                   rightParenthesis: ) @98
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 90
             codeLength: 35
             returnType: void
@@ -10481,7 +10481,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @136
                   rightParenthesis: ) @137
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 129
             codeLength: 77
             returnType: void
@@ -10497,7 +10497,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @251
                   rightParenthesis: ) @252
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 210
             codeLength: 77
             returnType: void
@@ -10513,7 +10513,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @315
                   rightParenthesis: ) @316
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
             codeOffset: 308
             codeLength: 62
             returnType: void
@@ -10571,7 +10571,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @12
                   rightParenthesis: ) @13
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
           requiredPositional b @26
             type: int
           requiredPositional c @43
@@ -10586,7 +10586,7 @@ library
                 arguments: ArgumentList
                   leftParenthesis: ( @36
                   rightParenthesis: ) @37
-                element: dart:core::@class::Object::@constructor::•
+                element: dart:core::@class::Object::@constructor::new
         returnType: dynamic
 ''');
   }
@@ -10716,7 +10716,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @73
               rightParenthesis: ) @74
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 66
         codeLength: 27
         type: int
@@ -10731,7 +10731,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @73
               rightParenthesis: ) @74
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 95
         codeLength: 14
         type: int
@@ -10747,7 +10747,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @119
               rightParenthesis: ) @120
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 112
         codeLength: 65
         type: int
@@ -10763,7 +10763,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @119
               rightParenthesis: ) @120
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 179
         codeLength: 22
         type: int
@@ -10779,7 +10779,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @241
               rightParenthesis: ) @242
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 204
         codeLength: 65
         type: int
@@ -10795,7 +10795,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @241
               rightParenthesis: ) @242
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 271
         codeLength: 22
         type: int
@@ -10811,7 +10811,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @318
               rightParenthesis: ) @319
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 311
         codeLength: 52
         type: int
@@ -10827,7 +10827,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @318
               rightParenthesis: ) @319
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         codeOffset: 365
         codeLength: 24
         type: int
@@ -11190,7 +11190,7 @@ library
                   staticType: null
                 type: C<int>
               staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
+                base: self::@class::C::@constructor::new
                 substitution: {T: int}
             argumentList: ArgumentList
               leftParenthesis: ( @96
@@ -11490,7 +11490,7 @@ library
         constructors
           const @64
             superConstructor: ConstructorMember
-              base: self::@class::P::@constructor::•
+              base: self::@class::P::@constructor::new
               substitution: {T: T}
       class P2 @79
         typeParameters
@@ -11500,7 +11500,7 @@ library
         constructors
           const @108
             superConstructor: ConstructorMember
-              base: self::@class::P::@constructor::•
+              base: self::@class::P::@constructor::new
               substitution: {T: T}
     topLevelVariables
       static const values @131
@@ -11518,7 +11518,7 @@ library
                       staticType: null
                     type: P1<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@class::P1::@constructor::•
+                    base: self::@class::P1::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @146
@@ -11543,7 +11543,7 @@ library
                       rightBracket: > @158
                     type: P2<int>
                   staticElement: ConstructorMember
-                    base: self::@class::P2::@constructor::•
+                    base: self::@class::P2::@constructor::new
                     substitution: {T: int}
                 argumentList: ArgumentList
                   leftParenthesis: ( @159
@@ -12039,7 +12039,7 @@ library
                   staticType: null
                 type: C<dynamic, dynamic>
               staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
+                base: self::@class::C::@constructor::new
                 substitution: {K: dynamic, V: dynamic}
             argumentList: ArgumentList
               leftParenthesis: ( @48
@@ -12100,7 +12100,7 @@ library
                   rightBracket: > @60
                 type: C<int, String>
               staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
+                base: self::@class::C::@constructor::new
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @61
@@ -12157,7 +12157,7 @@ library
                   rightBracket: > @46
                 type: C<int, String>
               staticElement: ConstructorMember
-                base: package:test/a.dart::@class::C::@constructor::•
+                base: package:test/a.dart::@class::C::@constructor::new
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @47
@@ -12222,7 +12222,7 @@ library
                   rightBracket: > @53
                 type: C<int, String>
               staticElement: ConstructorMember
-                base: package:test/a.dart::@class::C::@constructor::•
+                base: package:test/a.dart::@class::C::@constructor::new
                 substitution: {K: int, V: String}
             argumentList: ArgumentList
               leftParenthesis: ( @54
@@ -12709,7 +12709,7 @@ library
                   staticElement: self::@class::C
                   staticType: null
                 type: C
-              staticElement: self::@class::C::@constructor::•
+              staticElement: self::@class::C::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: ( @42
               rightParenthesis: ) @43
@@ -12748,7 +12748,7 @@ library
                   staticElement: package:test/a.dart::@class::C
                   staticType: null
                 type: C
-              staticElement: package:test/a.dart::@class::C::@constructor::•
+              staticElement: package:test/a.dart::@class::C::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: ( @34
               rightParenthesis: ) @35
@@ -12795,7 +12795,7 @@ library
                   staticElement: package:test/a.dart::@class::C
                   staticType: null
                 type: C
-              staticElement: package:test/a.dart::@class::C::@constructor::•
+              staticElement: package:test/a.dart::@class::C::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: ( @41
               rightParenthesis: ) @42
@@ -14852,7 +14852,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -14868,7 +14868,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -14884,7 +14884,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17123,7 +17123,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17139,7 +17139,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17155,7 +17155,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17231,7 +17231,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -17514,7 +17514,7 @@ library
                           rightBracket: > @71
                         type: A<dynamic Function()>
                       staticElement: ConstructorMember
-                        base: self::@class::A::@constructor::•
+                        base: self::@class::A::@constructor::new
                         substitution: {T: dynamic Function()}
                     argumentList: ArgumentList
                       leftParenthesis: ( @72
@@ -17809,7 +17809,7 @@ library
                           staticType: null
                         type: B<int, double>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T1: int, T2: double}
                     argumentList: ArgumentList
                       leftParenthesis: ( @81
@@ -17858,7 +17858,7 @@ library
                           staticType: null
                         type: B<Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @68
@@ -17917,7 +17917,7 @@ library
                           staticType: null
                         type: B<Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @133
@@ -17977,7 +17977,7 @@ library
                           staticType: null
                         type: B<Null*>*
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Null*}
                     argumentList: ArgumentList
                       leftParenthesis: ( @148
@@ -18026,7 +18026,7 @@ library
                           staticType: null
                         type: B<Null*>*
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Null*}
                     argumentList: ArgumentList
                       leftParenthesis: ( @83
@@ -18070,7 +18070,7 @@ library
                       staticType: null
                     type: B<Never>
                   staticElement: ConstructorMember
-                    base: self::@class::B::@constructor::•
+                    base: self::@class::B::@constructor::new
                     substitution: {T: Never}
                 argumentList: ArgumentList
                   leftParenthesis: ( @57
@@ -18120,7 +18120,7 @@ library
                           staticType: null
                         type: B<Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @69
@@ -18175,7 +18175,7 @@ library
                           staticType: null
                         type: B<Never, Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T1: Never, T2: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @84
@@ -18226,7 +18226,7 @@ library
                           staticType: null
                         type: B<Never>
                       staticElement: ConstructorMember
-                        base: self::@class::B::@constructor::•
+                        base: self::@class::B::@constructor::new
                         substitution: {T: Never}
                     argumentList: ArgumentList
                       leftParenthesis: ( @69
@@ -18314,8 +18314,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
       class alias X @48
         supertype: B
         mixins
@@ -18328,8 +18328,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::B::@constructor::•
-            superConstructor: self::@class::B::@constructor::•
+                staticElement: self::@class::B::@constructor::new
+            superConstructor: self::@class::B::@constructor::new
     mixins
       mixin M @68
         superclassConstraints
@@ -18360,7 +18360,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18376,7 +18376,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18420,7 +18420,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18436,7 +18436,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18452,7 +18452,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18729,7 +18729,7 @@ library
                       staticType: null
                     type: E<int>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: int}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18751,7 +18751,7 @@ library
                       staticType: null
                     type: E<String>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: String}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18816,7 +18816,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18882,7 +18882,7 @@ library
                       rightBracket: > @22
                     type: E<double>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: double}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -18941,7 +18941,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -18993,7 +18993,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19048,7 +19048,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19101,7 +19101,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19166,7 +19166,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19230,7 +19230,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19287,7 +19287,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19360,7 +19360,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19421,7 +19421,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19482,7 +19482,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19608,7 +19608,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   arguments
@@ -19672,7 +19672,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -19704,7 +19704,7 @@ library
                 condition: IsExpression
                   expression: SimpleIdentifier
                     token: a @57
-                    staticElement: self::@enum::E::@constructor::•::@parameter::a
+                    staticElement: self::@enum::E::@constructor::new::@parameter::a
                     staticType: T?
                   isOperator: is @59
                   type: NamedType
@@ -19760,7 +19760,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19812,7 +19812,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19872,7 +19872,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19934,7 +19934,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -19999,7 +19999,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {U: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -20063,7 +20063,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20119,7 +20119,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -20182,7 +20182,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20239,7 +20239,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20299,7 +20299,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20364,7 +20364,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20426,7 +20426,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -20486,7 +20486,7 @@ library
                       staticType: null
                     type: E<num, num>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: num, U: num}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -20759,7 +20759,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20776,7 +20776,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20851,7 +20851,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20876,7 +20876,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20939,7 +20939,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -20955,7 +20955,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -21008,7 +21008,7 @@ library
                       staticElement: self::@enum::E1
                       staticType: null
                     type: E1
-                  staticElement: self::@enum::E1::@constructor::•
+                  staticElement: self::@enum::E1::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -21046,7 +21046,7 @@ library
                       staticElement: self::@enum::E2
                       staticType: null
                     type: E2
-                  staticElement: self::@enum::E2::@constructor::•
+                  staticElement: self::@enum::E2::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -21135,7 +21135,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
     enums
       enum E @5
         supertype: Enum
@@ -21151,7 +21151,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -21167,7 +21167,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -21183,7 +21183,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -21721,7 +21721,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo.dart');
@@ -21754,7 +21754,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_io.dart');
@@ -21787,7 +21787,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_html.dart');
@@ -23310,7 +23310,7 @@ library
               leftParenthesis: ( @55
               rightParenthesis: ) @56
             element: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int Function(String)}
         constructors
           synthetic @-1
@@ -23382,7 +23382,7 @@ library
               leftParenthesis: ( @55
               rightParenthesis: ) @56
             element: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int Function(String)}
         type: int
     accessors
@@ -23466,7 +23466,7 @@ library
                   rightBracket: > @66
                 type: A<String Function({int? a})>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: String Function({int? a})}
             argumentList: ArgumentList
               leftParenthesis: ( @67
@@ -23548,7 +23548,7 @@ library
                   rightBracket: > @66
                 type: A<String Function([int?])>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: String Function([int?])}
             argumentList: ArgumentList
               leftParenthesis: ( @67
@@ -23630,7 +23630,7 @@ library
                   rightBracket: > @74
                 type: A<String Function({required int a})>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: String Function({required int a})}
             argumentList: ArgumentList
               leftParenthesis: ( @75
@@ -23706,7 +23706,7 @@ library
                   rightBracket: > @63
                 type: A<String Function(int)>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: String Function(int)}
             argumentList: ArgumentList
               leftParenthesis: ( @64
@@ -23764,9 +23764,9 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: void Function()}
     mixins
       mixin M @20
@@ -23936,7 +23936,7 @@ library
             type: int
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           get f @24
             returnType: int
@@ -24028,7 +24028,7 @@ library
                     ImplicitCallReference
                       expression: SimpleIdentifier
                         token: c @68
-                        staticElement: self::@class::D::@constructor::•::@parameter::c
+                        staticElement: self::@class::D::@constructor::new::@parameter::c
                         staticType: C
                       staticElement: self::@class::C::@method::call
                       staticType: void Function()
@@ -24167,7 +24167,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo.dart');
@@ -24198,7 +24198,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_io.dart');
@@ -24229,7 +24229,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_io.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_io.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_io.dart');
@@ -24260,7 +24260,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_html.dart');
@@ -24291,7 +24291,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/foo_html.dart::@class::A::@constructor::•
+            superConstructor: package:test/foo_html.dart::@class::A::@constructor::new
 ''');
     var typeA = library.definingCompilationUnit.getClass('B')!.supertype!;
     expect(typeA.element2.source.shortName, 'foo_html.dart');
@@ -24489,7 +24489,7 @@ library
         supertype: C
         constructors
           synthetic @-1
-            superConstructor: self::@class::C::@constructor::•
+            superConstructor: self::@class::C::@constructor::new
 ''');
   }
 
@@ -24640,7 +24640,7 @@ library
                   staticType: null
                 type: C<int>
               staticElement: ConstructorMember
-                base: self::@class::C::@constructor::•
+                base: self::@class::C::@constructor::new
                 substitution: {V: int}
             argumentList: ArgumentList
               leftParenthesis: ( @129
@@ -24709,7 +24709,7 @@ library
                   staticElement: self::@class::C
                   staticType: null
                 type: C
-              staticElement: self::@class::C::@constructor::•
+              staticElement: self::@class::C::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: ( @112
               arguments
@@ -24753,7 +24753,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
       class S @40
         typeParameters
           covariant T @42
@@ -24831,7 +24831,7 @@ library
         supertype: C
         constructors
           synthetic @-1
-            superConstructor: self::@class::C::@constructor::•
+            superConstructor: self::@class::C::@constructor::new
     topLevelVariables
       static a @111
         type: A
@@ -25229,7 +25229,7 @@ library
               alias: self::@typeAlias::F
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           synthetic get v @-1
             returnType: int Function(String)
@@ -25386,7 +25386,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::D::@constructor::•
+              base: self::@class::D::@constructor::new
               substitution: {U: int, V: T}
         accessors
           synthetic get v @-1
@@ -25476,7 +25476,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::D::@constructor::•
+              base: self::@class::D::@constructor::new
               substitution: {V: U, W: int}
         methods
           f @41
@@ -25534,7 +25534,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: package:test/a.dart::@class::D::@constructor::•
+            superConstructor: package:test/a.dart::@class::D::@constructor::new
         methods
           f @44
             parameters
@@ -25557,7 +25557,7 @@ library
         supertype: D
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         methods
           f @25
             parameters
@@ -25663,7 +25663,7 @@ library
             type: int Function(String)
         constructors
           synthetic @-1
-            superConstructor: self::@class::D::@constructor::•
+            superConstructor: self::@class::D::@constructor::new
         accessors
           set f @29
             parameters
@@ -25711,7 +25711,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: package:test/a.dart::@class::A::@constructor::•
+            superConstructor: package:test/a.dart::@class::A::@constructor::new
         methods
           m @39
             parameters
@@ -25897,7 +25897,7 @@ library
             type: dynamic
         constructors
           synthetic @-1
-            superConstructor: self::@class::C::@constructor::•
+            superConstructor: self::@class::C::@constructor::new
         accessors
           synthetic get f @-1
             returnType: dynamic
@@ -26099,7 +26099,7 @@ library
         supertype: LegacyDefault*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::new
         methods
           == @86
             parameters
@@ -26110,7 +26110,7 @@ library
         supertype: LegacyObject*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::new
         methods
           == @155
             parameters
@@ -26121,7 +26121,7 @@ library
         supertype: LegacyInt*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::new
         methods
           == @221
             parameters
@@ -26182,7 +26182,7 @@ library
           NullSafeDefault*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyDefault::@constructor::new
         methods
           == @136
             parameters
@@ -26195,7 +26195,7 @@ library
           NullSafeObject*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyObject::@constructor::new
         methods
           == @231
             parameters
@@ -26208,7 +26208,7 @@ library
           NullSafeInt*
         constructors
           synthetic @-1
-            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::•
+            superConstructor: package:test/legacy.dart::@class::LegacyInt::@constructor::new
         methods
           == @320
             parameters
@@ -26252,7 +26252,7 @@ library
         supertype: NullSafeDefault
         constructors
           synthetic @-1
-            superConstructor: package:test/nullSafe.dart::@class::NullSafeDefault::@constructor::•
+            superConstructor: package:test/nullSafe.dart::@class::NullSafeDefault::@constructor::new
         methods
           == @74
             parameters
@@ -26263,7 +26263,7 @@ library
         supertype: NullSafeObject
         constructors
           synthetic @-1
-            superConstructor: package:test/nullSafe.dart::@class::NullSafeObject::@constructor::•
+            superConstructor: package:test/nullSafe.dart::@class::NullSafeObject::@constructor::new
         methods
           == @145
             parameters
@@ -26274,7 +26274,7 @@ library
         supertype: NullSafeInt
         constructors
           synthetic @-1
-            superConstructor: package:test/nullSafe.dart::@class::NullSafeInt::@constructor::•
+            superConstructor: package:test/nullSafe.dart::@class::NullSafeInt::@constructor::new
         methods
           == @213
             parameters
@@ -27666,8 +27666,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::C::@constructor::•
-            superConstructor: self::@class::C::@constructor::•
+                staticElement: self::@class::C::@constructor::new
+            superConstructor: self::@class::C::@constructor::new
       class C @29
         constructors
           synthetic @-1
@@ -28147,8 +28147,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @45
         constructors
           synthetic @-1
@@ -28669,7 +28669,7 @@ library
                   literal: 0 @33
                   staticType: int
               rightParenthesis: ) @34
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -28713,7 +28713,7 @@ library
                   staticType: int
               rightParenthesis: ) @36
             element: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
         constructors
           synthetic @-1
@@ -28761,7 +28761,7 @@ library
               leftParenthesis: ( @36
               rightParenthesis: ) @37
             element: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
         constructors
           synthetic @-1
@@ -28801,7 +28801,7 @@ library
                   literal: 0 @33
                   staticType: int
               rightParenthesis: ) @34
-            element: package:test/foo.dart::@class::A::@constructor::•
+            element: package:test/foo.dart::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -28848,7 +28848,7 @@ library
                   staticType: int
               rightParenthesis: ) @34
             element: ConstructorMember
-              base: package:test/foo.dart::@class::A::@constructor::•
+              base: package:test/foo.dart::@class::A::@constructor::new
               substitution: {T: int}
         constructors
           synthetic @-1
@@ -28902,7 +28902,7 @@ library
               leftParenthesis: ( @37
               rightParenthesis: ) @38
             element: ConstructorMember
-              base: package:test/foo.dart::@class::A::@constructor::•
+              base: package:test/foo.dart::@class::A::@constructor::new
               substitution: {T: int}
         constructors
           synthetic @-1
@@ -28944,8 +28944,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
       class D @73
         metadata
           Annotation
@@ -28958,7 +28958,7 @@ library
               leftParenthesis: ( @64
               rightParenthesis: ) @65
             element: ConstructorMember
-              base: self::@class::C::@constructor::•
+              base: self::@class::C::@constructor::new
               substitution: {T: dynamic}
         constructors
           synthetic @-1
@@ -28997,7 +28997,7 @@ library
                   literal: null @27
                   staticType: Null
               rightParenthesis: ) @31
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -29094,7 +29094,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29180,7 +29180,7 @@ library
                       literal: 100 @73
                       staticType: int
                   rightParenthesis: ) @76
-                element: self::@class::A::@constructor::•
+                element: self::@class::A::@constructor::new
             type: E
             constantInitializer
               InstanceCreationExpression
@@ -29191,7 +29191,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29207,7 +29207,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29227,7 +29227,7 @@ library
                       literal: 300 @91
                       staticType: int
                   rightParenthesis: ) @94
-                element: self::@class::A::@constructor::•
+                element: self::@class::A::@constructor::new
             type: E
             constantInitializer
               InstanceCreationExpression
@@ -29238,7 +29238,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29310,7 +29310,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29364,7 +29364,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29436,7 +29436,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29534,7 +29534,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -29628,7 +29628,7 @@ library
                       staticType: null
                     type: E<dynamic>
                   staticElement: ConstructorMember
-                    base: self::@enum::E::@constructor::•
+                    base: self::@enum::E::@constructor::new
                     substitution: {T: dynamic}
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
@@ -29694,7 +29694,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -29870,7 +29870,7 @@ library
             arguments: ArgumentList
               leftParenthesis: ( @37
               rightParenthesis: ) @38
-            element: dart:core::@class::Object::@constructor::•
+            element: dart:core::@class::Object::@constructor::new
         extendedType: A
     topLevelVariables
       static const a @6
@@ -31195,8 +31195,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
-            superConstructor: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
+            superConstructor: self::@class::A::@constructor::new
     mixins
       mixin M @33
         superclassConstraints
@@ -31259,7 +31259,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -31275,7 +31275,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -31299,7 +31299,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -32209,8 +32209,8 @@ library
                       staticElement: self::@getter::a
                       staticType: null
                     element: self::@getter::a
-                superConstructorParameter: self::@class::A::@constructor::•::@parameter::x
-            superConstructor: self::@class::A::@constructor::•
+                superConstructorParameter: self::@class::A::@constructor::new::@parameter::x
+            superConstructor: self::@class::A::@constructor::new
     topLevelVariables
       static const a @6
         type: dynamic
@@ -32325,8 +32325,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::D::@constructor::•
-            superConstructor: self::@class::D::@constructor::•
+                staticElement: self::@class::D::@constructor::new
+            superConstructor: self::@class::D::@constructor::new
       class D @48
         constructors
           synthetic @-1
@@ -32546,7 +32546,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -32562,7 +32562,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -32578,7 +32578,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -32985,7 +32985,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class alias C @51
         supertype: A<int>
         mixins
@@ -32998,9 +32998,9 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
 ''');
   }
@@ -33050,7 +33050,7 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: dart:core::@class::Object::@constructor::•
+                staticElement: dart:core::@class::Object::@constructor::new
       class Base @75
         interfaces
           A1<int>
@@ -33068,8 +33068,8 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::Base::@constructor::•
-            superConstructor: self::@class::Base::@constructor::•
+                staticElement: self::@class::Base::@constructor::new
+            superConstructor: self::@class::Base::@constructor::new
 ''');
   }
 
@@ -33097,7 +33097,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int*}
     mixins
       mixin M @35
@@ -33132,7 +33132,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int Function(String)}
     mixins
       mixin M @20
@@ -33169,7 +33169,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: List<int>}
     mixins
       mixin M @29
@@ -33204,7 +33204,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
     mixins
       mixin M @20
@@ -33243,7 +33243,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: package:test/a.dart::@class::A::@constructor::•
+              base: package:test/a.dart::@class::A::@constructor::new
               substitution: {T: int*}
 ''');
   }
@@ -33271,7 +33271,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: package:test/a.dart::@class::A::@constructor::•
+              base: package:test/a.dart::@class::A::@constructor::new
               substitution: {T: int*}
 ''');
   }
@@ -33327,9 +33327,9 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
-                staticElement: self::@class::I::@constructor::•
+                staticElement: self::@class::I::@constructor::new
             superConstructor: ConstructorMember
-              base: self::@class::I::@constructor::•
+              base: self::@class::I::@constructor::new
               substitution: {X: int}
     mixins
       mixin M1 @20
@@ -33377,7 +33377,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::S::@constructor::•
+              base: self::@class::S::@constructor::new
               substitution: {T3: String}
     mixins
       mixin M @6
@@ -33429,7 +33429,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::S::@constructor::•
+              base: self::@class::S::@constructor::new
               substitution: {T4: String}
     mixins
       mixin M @6
@@ -34392,7 +34392,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -34409,7 +34409,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -34813,7 +34813,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: T}
         methods
           f @75
@@ -34850,7 +34850,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
         methods
           m @68
             parameters
@@ -36068,12 +36068,12 @@ library
                   arguments
                     SimpleIdentifier
                       token: value @-1
-                      staticElement: self::@class::B::@constructor::•::@parameter::value
+                      staticElement: self::@class::B::@constructor::new::@parameter::value
                       staticType: T
                   rightParenthesis: ) @0
-                staticElement: self::@class::A::@constructor::•
+                staticElement: self::@class::A::@constructor::new
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: T}
       class C @78
         fields
@@ -36290,7 +36290,7 @@ library
         supertype: A
         constructors
           synthetic @-1
-            superConstructor: self::@class::A::@constructor::•
+            superConstructor: self::@class::A::@constructor::new
       class C @40
         typeParameters
           covariant T @42
@@ -36649,7 +36649,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -36776,7 +36776,7 @@ library
                         staticElement: self::@enum::E
                         staticType: null
                       type: E
-                    staticElement: self::@enum::E::@constructor::•
+                    staticElement: self::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -36836,7 +36836,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -36934,7 +36934,7 @@ library
                         staticElement: self::@enum::E
                         staticType: null
                       type: E
-                    staticElement: self::@enum::E::@constructor::•
+                    staticElement: self::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -37029,7 +37029,7 @@ library
                         staticElement: self::@enum::E
                         staticType: null
                       type: E
-                    staticElement: self::@enum::E::@constructor::•
+                    staticElement: self::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
@@ -37192,7 +37192,7 @@ library
                       staticElement: self::@enum::E
                       staticType: null
                     type: E
-                  staticElement: self::@enum::E::@constructor::•
+                  staticElement: self::@enum::E::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
@@ -39531,7 +39531,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
     typeAliases
       X @8
@@ -39563,7 +39563,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int}
     typeAliases
       X @8
@@ -39639,7 +39639,7 @@ library
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
-              base: self::@class::A::@constructor::•
+              base: self::@class::A::@constructor::new
               substitution: {T: int?}
     typeAliases
       X @8
@@ -40166,7 +40166,7 @@ library
                   superKeyword: super @30
                   staticType: dynamic
               rightParenthesis: ) @35
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -40206,7 +40206,7 @@ library
                   thisKeyword: this @30
                   staticType: dynamic
               rightParenthesis: ) @34
-            element: self::@class::A::@constructor::•
+            element: self::@class::A::@constructor::new
         constructors
           synthetic @-1
 ''');
@@ -41321,7 +41321,7 @@ library
                   staticType: null
                 type: A<int>
               staticElement: ConstructorMember
-                base: self::@class::A::@constructor::•
+                base: self::@class::A::@constructor::new
                 substitution: {T: int}
             argumentList: ArgumentList
               leftParenthesis: ( @46

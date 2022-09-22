@@ -48,6 +48,7 @@ import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// A concrete implementation of a [ClassElement].
@@ -832,7 +833,8 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
       implicitConstructor.nameOffset = -1;
 
       var containerRef = reference!.getChild('@constructor');
-      var implicitReference = containerRef.getChild(name);
+      var referenceName = name.ifNotEmptyOrElse('new');
+      var implicitReference = containerRef.getChild(referenceName);
       implicitConstructor.reference = implicitReference;
       implicitReference.element = implicitConstructor;
 
