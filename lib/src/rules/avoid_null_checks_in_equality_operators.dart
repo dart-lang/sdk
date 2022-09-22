@@ -56,14 +56,6 @@ bool _isComparingParameterWithNull(BinaryExpression node, Element? parameter) =>
 bool _isParameter(Expression expression, Element? parameter) =>
     expression.canonicalElement == parameter;
 
-bool _isParameterWithQuestion(AstNode node, Element? parameter) =>
-    (node is PropertyAccess &&
-        node.operator.type == TokenType.QUESTION_PERIOD &&
-        node.target.canonicalElement == parameter) ||
-    (node is MethodInvocation &&
-        node.operator?.type == TokenType.QUESTION_PERIOD &&
-        node.target.canonicalElement == parameter);
-
 bool _isParameterWithQuestionQuestion(
         BinaryExpression node, Element? parameter) =>
     node.operator.type == TokenType.QUESTION_QUESTION &&
@@ -83,6 +75,39 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
     var visitor =
         _Visitor(this, nnbdEnabled: context.isEnabled(Feature.non_nullable));
     registry.addMethodDeclaration(this, visitor);
+  }
+}
+
+class _BodyVisitor extends RecursiveAstVisitor {
+  final Element? parameter;
+  final LintRule rule;
+  _BodyVisitor(this.parameter, this.rule);
+
+  @override
+  visitBinaryExpression(BinaryExpression node) {
+    if (_isParameterWithQuestionQuestion(node, parameter) ||
+        _isComparingParameterWithNull(node, parameter)) {
+      rule.reportLint(node);
+    }
+    super.visitBinaryExpression(node);
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    if (node.operator?.type == TokenType.QUESTION_PERIOD &&
+        node.target.canonicalElement == parameter) {
+      rule.reportLint(node);
+    }
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  visitPropertyAccess(PropertyAccess node) {
+    if (node.operator.type == TokenType.QUESTION_PERIOD &&
+        node.target.canonicalElement == parameter) {
+      rule.reportLint(node);
+    }
+    super.visitPropertyAccess(node);
   }
 }
 
@@ -113,15 +138,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    bool checkIfParameterIsNull(AstNode node) =>
-        _isParameterWithQuestion(node, parameter) ||
-        (node is BinaryExpression &&
-            (_isParameterWithQuestionQuestion(node, parameter) ||
-                _isComparingParameterWithNull(node, parameter)));
-
-    node.body
-        .traverseNodesInDFS()
-        .where(checkIfParameterIsNull)
-        .forEach(rule.reportLint);
+    node.body.accept(_BodyVisitor(parameter, rule));
   }
 }
