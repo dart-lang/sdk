@@ -162,25 +162,79 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Returns the unknown type context (`?`) used in type inference.
   Type get unknownType;
 
-  /// Analyzes a cast pattern.  [node] is the pattern itself, [innerPattern] is
-  /// the sub-pattern, and [type] is the type to cast to.
+  /// Analyzes a cast pattern.  [innerPattern] is the sub-pattern] and [type] is
+  /// the type to cast to.
+  ///
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (Pattern innerPattern).
+  void analyzeCastPattern(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
+      Node innerPattern,
+      Type type) {
+    dispatchPattern(type, typeInfos, context, innerPattern);
+    // Stack: (Pattern)
+  }
+
+  /// Computes the type schema for a cast pattern.
   ///
   /// Stack effect: none.
-  PatternDispatchResult<Node, Expression, Variable, Type> analyzeCastPattern(
-      Node node, Node innerPattern, Type type) {
-    return new _CastPatternDispatchResult<Node, Expression, Variable, Type>(
-        this, node, dispatchPattern(innerPattern), type);
-  }
+  Type analyzeCastPatternSchema() => objectQuestionType;
 
   /// Analyzes a constant pattern.  [node] is the pattern itself, and
   /// [expression] is the constant expression.  Depending on the client's
   /// representation, [node] and [expression] might or might not be identical.
   ///
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (Expression).
+  void analyzeConstantPattern(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
+      Node node,
+      Expression expression) {
+    // Stack: ()
+    TypeAnalyzerErrors<Node, Node, Expression, Variable, Type>? errors =
+        this.errors;
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null) {
+      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+    }
+    Type staticType = analyzeExpression(expression, matchedType);
+    // Stack: (Expression)
+    if (errors != null && !options.patternsEnabled) {
+      Expression? switchScrutinee = context.getSwitchScrutinee(node);
+      if (switchScrutinee != null) {
+        bool nullSafetyEnabled = options.nullSafetyEnabled;
+        bool matches = nullSafetyEnabled
+            ? typeOperations.isSubtypeOf(staticType, matchedType)
+            : typeOperations.isAssignableTo(staticType, matchedType);
+        if (!matches) {
+          errors.caseExpressionTypeMismatch(
+              caseExpression: expression,
+              scrutinee: switchScrutinee,
+              caseExpressionType: staticType,
+              scrutineeType: matchedType,
+              nullSafetyEnabled: nullSafetyEnabled);
+        }
+      }
+    }
+  }
+
+  /// Computes the type schema for a constant pattern.
+  ///
   /// Stack effect: none.
-  PatternDispatchResult<Node, Expression, Variable, Type>
-      analyzeConstantPattern(Node node, Expression expression) {
-    return new _ConstantPatternDispatchResult<Node, Expression, Variable, Type>(
-        this, node, expression);
+  Type analyzeConstantPatternSchema() {
+    // Constant patterns are only allowed in refutable contexts, and refutable
+    // contexts don't propagate a type schema into the scrutinee.  So this
+    // code path is only reachable if the user's code contains errors.
+    errors?.assertInErrorRecovery();
+    return unknownType;
   }
 
   /// Analyzes an expression.  [node] is the expression to analyze, and
@@ -219,12 +273,10 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
     flow?.ifStatement_conditionBegin();
     Type initializerType = analyzeExpression(expression, unknownType);
     // Stack: (Expression)
-    PatternDispatchResult<Node, Expression, Variable, Type>
-        patternDispatchResult = dispatchPattern(pattern);
     Map<Variable, VariableTypeInfo<Node, Type>> typeInfos = {};
     // TODO(paulberry): rework handling of isFinal
-    patternDispatchResult.match(initializerType, typeInfos,
-        new MatchContext(isFinal: false, topPattern: pattern));
+    dispatchPattern(initializerType, typeInfos,
+        new MatchContext(isFinal: false, topPattern: pattern), pattern);
     // Stack: (Expression, Pattern)
     if (guard != null) {
       _checkGuardType(guard, analyzeExpression(guard, boolType));
@@ -273,24 +325,20 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       Node node, Node pattern, Expression initializer,
       {required bool isFinal, required bool isLate}) {
     // Stack: ()
-    PatternDispatchResult<Node, Expression, Variable, Type>
-        patternDispatchResult = dispatchPattern(pattern);
-    if (isLate &&
-        patternDispatchResult is! _VariablePatternDispatchResult<Object, Object,
-            Object, Object>) {
+    if (isLate && !isVariablePattern(pattern)) {
       errors?.patternDoesNotAllowLate(pattern);
     }
     if (isLate) {
       flow?.lateInitializer_begin(node);
     }
     Type initializerType =
-        analyzeExpression(initializer, patternDispatchResult.typeSchema);
+        analyzeExpression(initializer, dispatchPatternSchema(pattern));
     // Stack: (Expression)
     if (isLate) {
       flow?.lateInitializer_end();
     }
     Map<Variable, VariableTypeInfo<Node, Type>> typeInfos = {};
-    patternDispatchResult.match(
+    dispatchPattern(
         initializerType,
         typeInfos,
         new MatchContext(
@@ -298,7 +346,8 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
             isLate: isLate,
             initializer: initializer,
             irrefutableContext: node,
-            topPattern: pattern));
+            topPattern: pattern),
+        pattern);
     // Stack: (Expression, Pattern)
   }
 
@@ -317,16 +366,61 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// the list element type (if explicitly supplied), and [elements] is the
   /// list of subpatterns.
   ///
-  /// Stack effect: none.
-  PatternDispatchResult<Node, Expression, Variable, Type> analyzeListPattern(
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (n * Pattern) where n = elements.length.
+  Type analyzeListPattern(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
       Node node,
       {Type? elementType,
       required List<Node> elements}) {
-    return new _ListPatternDispatchResult<Node, Expression, Variable, Type>(
-        this,
-        node,
-        elementType,
-        [for (Node element in elements) dispatchPattern(element)]);
+    // Stack: ()
+    Type? matchedElementType = typeOperations.matchListType(matchedType);
+    if (matchedElementType == null) {
+      if (typeOperations.isDynamic(matchedType)) {
+        matchedElementType = dynamicType;
+      } else {
+        matchedElementType = objectQuestionType;
+      }
+    }
+    for (Node element in elements) {
+      dispatchPattern(matchedElementType, typeInfos, context, element);
+    }
+    // Stack: (n * Pattern) where n = elements.length
+    Type requiredType = listType(elementType ?? matchedElementType);
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null &&
+        !typeOperations.isAssignableTo(matchedType, requiredType)) {
+      errors?.patternTypeMismatchInIrrefutableContext(
+          pattern: node,
+          context: irrefutableContext,
+          matchedType: matchedType,
+          requiredType: requiredType);
+    }
+    return requiredType;
+  }
+
+  /// Computes the type schema for a list pattern.  [elementType] is the list
+  /// element type (if explicitly supplied), and [elements] is the list of
+  /// subpatterns.
+  ///
+  /// Stack effect: none.
+  Type analyzeListPatternSchema(
+      {Type? elementType, required List<Node> elements}) {
+    if (elementType == null) {
+      if (elements.isEmpty) {
+        return objectQuestionType;
+      }
+      elementType = dispatchPatternSchema(elements[0]);
+      for (int i = 1; i < elements.length; i++) {
+        elementType = typeOperations.glb(
+            elementType!, dispatchPatternSchema(elements[i]));
+      }
+    }
+    return listType(elementType!);
   }
 
   /// Analyzes a logical-or or logical-and pattern.  [node] is the pattern
@@ -334,24 +428,94 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// operator.  [isAnd] indicates whether [node] is a logical-or or a
   /// logical-and.
   ///
-  /// Stack effect: none.
-  PatternDispatchResult<Node, Expression, Variable, Type> analyzeLogicalPattern(
-      Node node, Node lhs, Node rhs,
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (Pattern left, Pattern right)
+  void analyzeLogicalPattern(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
+      Node node,
+      Node lhs,
+      Node rhs,
       {required bool isAnd}) {
-    return new _LogicalPatternDispatchResult<Node, Expression, Variable, Type>(
-        this, node, dispatchPattern(lhs), dispatchPattern(rhs), isAnd);
+    // Stack: ()
+    if (!isAnd) {
+      Node? irrefutableContext = context.irrefutableContext;
+      if (irrefutableContext != null) {
+        errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+        // Avoid cascading errors
+        context = context.makeRefutable();
+      }
+    }
+    dispatchPattern(matchedType, typeInfos, context, lhs);
+    // Stack: (Pattern left)
+    dispatchPattern(matchedType, typeInfos, context, rhs);
+    // Stack: (Pattern left, Pattern right)
+  }
+
+  /// Computes the type schema for a logical-or or logical-and pattern.  [lhs]
+  /// and [rhs] are the left and right sides of the `|` or `&` operator.
+  /// [isAnd] indicates whether [node] is a logical-or or a logical-and.
+  ///
+  /// Stack effect: none.
+  Type analyzeLogicalPatternSchema(Node lhs, Node rhs, {required bool isAnd}) {
+    if (isAnd) {
+      return typeOperations.glb(
+          dispatchPatternSchema(lhs), dispatchPatternSchema(rhs));
+    } else {
+      // Logical-or patterns are only allowed in refutable contexts, and
+      // refutable contexts don't propagate a type schema into the scrutinee.
+      // So this code path is only reachable if the user's code contains errors.
+      errors?.assertInErrorRecovery();
+      return unknownType;
+    }
   }
 
   /// Analyzes a null-check or null-assert pattern.  [node] is the pattern
   /// itself, [innerPattern] is the sub-pattern, and [isAssert] indicates
   /// whether this is a null-check or a null-assert pattern.
   ///
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
+  /// Stack effect: pushes (Pattern innerPattern).
+  void analyzeNullCheckOrAssertPattern(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
+      Node node,
+      Node innerPattern,
+      {required bool isAssert}) {
+    // Stack: ()
+    Type innerMatchedType = typeOperations.promoteToNonNull(matchedType);
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null && !isAssert) {
+      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      // Avoid cascading errors
+      context = context.makeRefutable();
+    }
+    dispatchPattern(innerMatchedType, typeInfos, context, innerPattern);
+    // Stack: (Pattern)
+  }
+
+  /// Computes the type schema for a null-check or null-assert pattern.
+  /// [innerPattern] is the sub-pattern and [isAssert] indicates whether this is
+  /// a null-check or a null-assert pattern.
+  ///
   /// Stack effect: none.
-  PatternDispatchResult<Node, Expression, Variable, Type>
-      analyzeNullCheckOrAssertPattern(Node node, Node innerPattern,
-          {required bool isAssert}) {
-    return new _NullCheckOrAssertPatternDispatchResult(
-        this, node, dispatchPattern(innerPattern), isAssert);
+  Type analyzeNullCheckOrAssertPatternSchema(Node innerPattern,
+      {required bool isAssert}) {
+    if (isAssert) {
+      return typeOperations.makeNullable(dispatchPatternSchema(innerPattern));
+    } else {
+      // Null-check patterns are only allowed in refutable contexts, and
+      // refutable contexts don't propagate a type schema into the scrutinee.
+      // So this code path is only reachable if the user's code contains errors.
+      errors?.assertInErrorRecovery();
+      return unknownType;
+    }
   }
 
   /// Analyzes an expression of the form `switch (expression) { cases }`.
@@ -374,13 +538,14 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
       Map<Variable, VariableTypeInfo<Node, Type>> typeInfos = {};
       Node? pattern = memberInfo.head.pattern;
       if (pattern != null) {
-        dispatchPattern(pattern).match(
+        dispatchPattern(
             expressionType,
             typeInfos,
             new MatchContext<Node, Expression>(
                 isFinal: false,
                 switchScrutinee: scrutinee,
-                topPattern: pattern));
+                topPattern: pattern),
+            pattern);
         // Stack: (Expression, i * ExpressionCase, Pattern)
         Expression? guard = memberInfo.head.guard;
         bool hasGuard = guard != null;
@@ -449,13 +614,14 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
           CaseHeadOrDefaultInfo<Node, Expression> head = heads[j];
           Node? pattern = head.pattern;
           if (pattern != null) {
-            dispatchPattern(pattern).match(
+            dispatchPattern(
                 scrutineeType,
                 typeInfos,
                 new MatchContext<Node, Expression>(
                     isFinal: false,
                     switchScrutinee: scrutinee,
-                    topPattern: pattern));
+                    topPattern: pattern),
+                pattern);
             // Stack: (Expression, numExecutionPaths * StatementCase,
             //         numHeads * CaseHead, Pattern),
             Expression? guard = head.guard;
@@ -543,16 +709,60 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// the variable, [declaredType] is the explicitly declared type (if present),
   /// and [isFinal] indicates whether the variable is final.
   ///
+  /// See [dispatchPattern] for the meanings of [matchedType], [typeInfos], and
+  /// [context].
+  ///
   /// If this is a wildcard pattern (it doesn't bind any variable), [variable]
   /// should be `null`.
   ///
   /// Stack effect: none.
-  PatternDispatchResult<Node, Expression, Variable, Type>
-      analyzeVariablePattern(Node node, Variable? variable, Type? declaredType,
-          {required bool isFinal}) {
-    return new _VariablePatternDispatchResult<Node, Expression, Variable, Type>(
-        this, node, variable, declaredType, isFinal);
+  Type analyzeVariablePattern(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
+      Node node,
+      Variable? variable,
+      Type? declaredType,
+      {required bool isFinal}) {
+    Type staticType =
+        declaredType ?? variableTypeFromInitializerType(matchedType);
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null &&
+        !typeOperations.isAssignableTo(matchedType, staticType)) {
+      errors?.patternTypeMismatchInIrrefutableContext(
+          pattern: node,
+          context: irrefutableContext,
+          matchedType: matchedType,
+          requiredType: staticType);
+    }
+    bool isImplicitlyTyped = declaredType == null;
+    if (variable != null) {
+      bool isFirstMatch = _recordTypeInfo(typeInfos,
+          pattern: node,
+          variable: variable,
+          staticType: staticType,
+          isImplicitlyTyped: isImplicitlyTyped);
+      if (isFirstMatch) {
+        flow?.declare(variable, false);
+        setVariableType(variable, staticType);
+        // TODO(paulberry): are we handling _isFinal correctly?
+        // TODO(paulberry): do we need to verify that all instances of a
+        // variable are final or all are not final?
+        flow?.initialize(variable, matchedType, context.getInitializer(node),
+            isFinal: context.isFinal || isFinal,
+            isLate: context.isLate,
+            isImplicitlyTyped: isImplicitlyTyped);
+      }
+    }
+    return staticType;
   }
+
+  /// Computes the type schema for a variable pattern.  [declaredType] is the
+  /// explicitly declared type (if present).
+  ///
+  /// Stack effect: none.
+  Type analyzeVariablePatternSchema(Type? declaredType) =>
+      declaredType ?? unknownType;
 
   /// Calls the appropriate `analyze` method according to the form of
   /// [expression], and then adjusts the stack as needed to combine any
@@ -567,9 +777,32 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
 
   /// Calls the appropriate `analyze` method according to the form of [pattern].
   ///
+  /// [matchedType] is the type of the thing being matched (for a variable
+  /// declaration, this is the type of the initializer or substructure thereof;
+  /// for a switch statement this is the type of the scrutinee or substructure
+  /// thereof).
+  ///
+  /// [typeInfos] is a data structure keeping track of the variable patterns
+  /// seen so far and their type information.
+  ///
+  /// [context] keeps track of other contextual information pertinent to the
+  /// match, such as whether it is late and/or final, whether there is an
+  /// initializer expression (and if so, what it is), and whether the match is
+  /// happening in an irrefutable context (and if so, what surrounding construct
+  /// causes it to be irrefutable).
+  ///
+  /// Stack effect: pushes (Pattern).
+  void dispatchPattern(
+      Type matchedType,
+      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
+      Node node);
+
+  /// Calls the appropriate `analyze...Schema` method according to the form of
+  /// [pattern].
+  ///
   /// Stack effect: none.
-  PatternDispatchResult<Node, Expression, Variable, Type> dispatchPattern(
-      Node pattern);
+  Type dispatchPatternSchema(Node pattern);
 
   /// Calls the appropriate `analyze` method according to the form of
   /// [statement], and then adjusts the stack as needed to combine any
@@ -629,22 +862,6 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   void handleCaseHead(Node node,
       {required int caseIndex, required int subIndex});
 
-  /// Called when matching a cast pattern.
-  ///
-  /// [node] is the AST node for the pattern and [matchedType] is the static
-  /// type of the expression being matched.
-  ///
-  /// Stack effect: pushes (Pattern).
-  void handleCastPattern(Node node, {required Type matchedType});
-
-  /// Called when matching a constant pattern.
-  ///
-  /// [node] is the AST node for the pattern and [matchedType] is the static
-  /// type of the expression being matched.
-  ///
-  /// Stack effect: pops (Expression) and pushes (Pattern).
-  void handleConstantPattern(Node node, {required Type matchedType});
-
   /// Called after visiting a `default` clause.
   ///
   /// [node] is the enclosing switch statement or switch expression and
@@ -652,27 +869,6 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   ///
   /// Stack effect: pushes (CaseHead).
   void handleDefault(Node node, int caseIndex);
-
-  /// Called when matching a list pattern.
-  ///
-  /// [node] is the AST node for the pattern, [numElements] is the number of
-  /// elements in the list pattern, [matchedType] is the static type of the
-  /// expression being matched, and [staticType] is the static type of the list
-  /// pattern.
-  ///
-  /// Stack effect: pops (numElements * Pattern) and pushes (Pattern).
-  void handleListPattern(Node node, int numElements,
-      {required Type matchedType, required Type requiredType});
-
-  /// Called when matching a logical-and or logical-or pattern.
-  ///
-  /// [node] is the AST node for the pattern, [isAnd] indicates whether it is a
-  /// logical-and or a logical-or pattern, and [matchedType] is the static type
-  /// of the expression being matched.
-  ///
-  /// Stack effect: pops (Pattern left, Pattern right) and pushes (Pattern).
-  void handleLogicalPattern(Node node,
-      {required bool isAnd, required Type matchedType});
 
   /// Called after visiting a merged statement case.
   ///
@@ -704,16 +900,6 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Stack effect: pushes (Statement).
   void handleNoStatement(Statement node);
 
-  /// Called when matching a null-check or null-assert pattern.
-  ///
-  /// [node] is the AST node for the pattern, [matchedType] is the static type
-  /// of the expression being matched, and [isAssert] indicates whether this is
-  /// a null-check or a null-assert pattern.
-  ///
-  /// Stack effect: pops (Pattern) and pushes (Pattern).
-  void handleNullCheckOrAssertPattern(Node node,
-      {required Type matchedType, required bool isAssert});
-
   /// Called after visiting the scrutinee part of a switch statement or switch
   /// expression.  This is a hook to allow the client to start exhaustiveness
   /// analysis.
@@ -726,22 +912,15 @@ mixin TypeAnalyzer<Node extends Object, Statement extends Node,
   /// Stack effect: none.
   void handleSwitchScrutinee(Type type);
 
-  /// Called when matching a variable pattern.
-  ///
-  /// [node] is the AST node for the pattern, [matchedType] is the static type
-  /// of the expression being matched, and [staticType] is the static type of
-  /// the variable.
-  ///
-  /// Stack effect: pushes (Pattern).
-  void handleVariablePattern(Node node,
-      {required Type matchedType, required Type staticType});
-
   /// Queries whether the switch statement or expression represented by [node]
   /// was exhaustive.  [expressionType] is the static type of the scrutinee.
   ///
   /// Will only be called if the switch statement or expression lacks a
   /// `default` clause.
   bool isSwitchExhaustive(Node node, Type expressionType);
+
+  /// Queries whether [pattern] is a variable pattern.
+  bool isVariablePattern(Node pattern);
 
   /// Returns the type `List`, with type parameter [elementType].
   Type listType(Type elementType);
@@ -955,333 +1134,4 @@ class VariableTypeInfo<Node extends Object, Type extends Object> {
 
   /// The static type of this variable.
   Type get staticType => _latestStaticType;
-}
-
-/// Specialization of [PatternDispatchResult] returned by
-/// [TypeAnalyzer.analyzeCastPattern]
-class _CastPatternDispatchResult<Node extends Object, Expression extends Node,
-        Variable extends Object, Type extends Object>
-    extends _PatternDispatchResultImpl<Node, Expression, Variable, Type> {
-  final PatternDispatchResult<Node, Expression, Variable, Type> _innerPattern;
-
-  final Type _type;
-
-  _CastPatternDispatchResult(
-      super._typeAnalyzer, super.node, this._innerPattern, this._type);
-
-  @override
-  Type get typeSchema => _typeAnalyzer.objectQuestionType;
-
-  @override
-  void match(
-      Type matchedType,
-      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    _innerPattern.match(_type, typeInfos, context);
-    // Stack: (Pattern)
-    _typeAnalyzer.handleCastPattern(node, matchedType: matchedType);
-    // Stack: (Pattern)
-  }
-}
-
-/// Specialization of [PatternDispatchResult] returned by
-/// [TypeAnalyzer.analyzeConstantPattern]
-class _ConstantPatternDispatchResult<Node extends Object,
-        Expression extends Node, Variable extends Object, Type extends Object>
-    extends _PatternDispatchResultImpl<Node, Expression, Variable, Type> {
-  /// The constant or literal expression.
-  ///
-  /// Depending on the client's representation, this might or might not be
-  /// identical to [node].
-  final Expression _expression;
-
-  _ConstantPatternDispatchResult(
-      super.typeAnalyzer, super.node, this._expression);
-
-  @override
-  Type get typeSchema {
-    // Constant patterns are only allowed in refutable contexts, and refutable
-    // contexts don't propagate a type schema into the scrutinee.  So this
-    // code path is only reachable if the user's code contains errors.
-    _typeAnalyzer.errors?.assertInErrorRecovery();
-    return _typeAnalyzer.unknownType;
-  }
-
-  @override
-  void match(
-      Type matchedType,
-      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    // Stack: ()
-    Node? irrefutableContext = context.irrefutableContext;
-    if (irrefutableContext != null) {
-      _typeAnalyzer.errors
-          ?.refutablePatternInIrrefutableContext(node, irrefutableContext);
-    }
-    Type staticType = _typeAnalyzer.analyzeExpression(_expression, matchedType);
-    // Stack: (Expression)
-    TypeAnalyzerErrors<Node, Node, Expression, Variable, Type>? errors =
-        _typeAnalyzer.errors;
-    TypeAnalyzerOptions options = _typeAnalyzer.options;
-    if (errors != null && !options.patternsEnabled) {
-      Expression? switchScrutinee = context.getSwitchScrutinee(node);
-      if (switchScrutinee != null) {
-        TypeOperations2<Type> typeOperations = _typeAnalyzer.typeOperations;
-        bool nullSafetyEnabled = options.nullSafetyEnabled;
-        bool matches = nullSafetyEnabled
-            ? typeOperations.isSubtypeOf(staticType, matchedType)
-            : typeOperations.isAssignableTo(staticType, matchedType);
-        if (!matches) {
-          errors.caseExpressionTypeMismatch(
-              caseExpression: _expression,
-              scrutinee: switchScrutinee,
-              caseExpressionType: staticType,
-              scrutineeType: matchedType,
-              nullSafetyEnabled: nullSafetyEnabled);
-        }
-      }
-    }
-    _typeAnalyzer.handleConstantPattern(node, matchedType: matchedType);
-    // Stack: (Pattern)
-  }
-}
-
-/// Specialization of [PatternDispatchResult] returned by
-/// [TypeAnalyzer.analyzeListPattern]
-class _ListPatternDispatchResult<Node extends Object, Expression extends Node,
-        Variable extends Object, Type extends Object>
-    extends _PatternDispatchResultImpl<Node, Expression, Variable, Type> {
-  final Type? _elementType;
-
-  final List<PatternDispatchResult<Node, Expression, Variable, Type>> _elements;
-
-  _ListPatternDispatchResult(
-      super.typeAnalyzer, super._node, this._elementType, this._elements);
-
-  @override
-  Type get typeSchema {
-    Type? elementType = _elementType;
-    if (elementType == null) {
-      if (_elements.isEmpty) {
-        return _typeAnalyzer.objectQuestionType;
-      }
-      elementType = _elements[0].typeSchema;
-      for (int i = 1; i < _elements.length; i++) {
-        elementType = _typeAnalyzer.typeOperations
-            .glb(elementType!, _elements[i].typeSchema);
-      }
-    }
-    return _typeAnalyzer.listType(elementType!);
-  }
-
-  @override
-  void match(
-      Type matchedType,
-      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    // Stack: ()
-    Type? elementType = _typeAnalyzer.typeOperations.matchListType(matchedType);
-    if (elementType == null) {
-      if (_typeAnalyzer.typeOperations.isDynamic(matchedType)) {
-        elementType = _typeAnalyzer.dynamicType;
-      } else {
-        elementType = _typeAnalyzer.objectQuestionType;
-      }
-    }
-    for (PatternDispatchResult<Node, Expression, Variable, Type> element
-        in _elements) {
-      element.match(elementType, typeInfos, context);
-    }
-    // Stack: (n * Pattern) where n = _elements.length
-    Type? requiredType = _typeAnalyzer.listType(_elementType ?? elementType);
-    Node? irrefutableContext = context.irrefutableContext;
-    if (irrefutableContext != null &&
-        !_typeAnalyzer.typeOperations
-            .isAssignableTo(matchedType, requiredType)) {
-      _typeAnalyzer.errors?.patternTypeMismatchInIrrefutableContext(
-          pattern: node,
-          context: irrefutableContext,
-          matchedType: matchedType,
-          requiredType: requiredType);
-    }
-    _typeAnalyzer.handleListPattern(node, _elements.length,
-        matchedType: matchedType, requiredType: requiredType);
-    // Stack: (Pattern)
-  }
-}
-
-/// Specialization of [PatternDispatchResult] returned by
-/// [TypeAnalyzer.analyzeLogicalPattern]
-class _LogicalPatternDispatchResult<Node extends Object,
-        Expression extends Node, Variable extends Object, Type extends Object>
-    extends _PatternDispatchResultImpl<Node, Expression, Variable, Type> {
-  final PatternDispatchResult<Node, Expression, Variable, Type> _lhs;
-
-  final PatternDispatchResult<Node, Expression, Variable, Type> _rhs;
-
-  final bool _isAnd;
-
-  _LogicalPatternDispatchResult(
-      super._typeAnalyzer, super.node, this._lhs, this._rhs, this._isAnd);
-
-  @override
-  Type get typeSchema {
-    if (_isAnd) {
-      return _typeAnalyzer.typeOperations.glb(_lhs.typeSchema, _rhs.typeSchema);
-    } else {
-      // Logical-or patterns are only allowed in refutable contexts, and
-      // refutable contexts don't propagate a type schema into the scrutinee.
-      // So this code path is only reachable if the user's code contains errors.
-      _typeAnalyzer.errors?.assertInErrorRecovery();
-      return _typeAnalyzer.unknownType;
-    }
-  }
-
-  @override
-  void match(
-      Type matchedType,
-      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    // Stack: ()
-    if (!_isAnd) {
-      Node? irrefutableContext = context.irrefutableContext;
-      if (irrefutableContext != null) {
-        _typeAnalyzer.errors
-            ?.refutablePatternInIrrefutableContext(node, irrefutableContext);
-        // Avoid cascading errors
-        context = context.makeRefutable();
-      }
-    }
-    _lhs.match(matchedType, typeInfos, context);
-    // Stack: (Pattern left)
-    _rhs.match(matchedType, typeInfos, context);
-    // Stack: (Pattern left, Pattern right)
-    _typeAnalyzer.handleLogicalPattern(node,
-        isAnd: _isAnd, matchedType: matchedType);
-    // Stack: (Pattern)
-  }
-}
-
-/// Specialization of [PatternDispatchResult] returned by
-/// [TypeAnalyzer.analyzeNullCheckOrAssertPattern]
-class _NullCheckOrAssertPatternDispatchResult<Node extends Object,
-        Expression extends Node, Variable extends Object, Type extends Object>
-    extends _PatternDispatchResultImpl<Node, Expression, Variable, Type> {
-  final PatternDispatchResult<Node, Expression, Variable, Type> _innerPattern;
-
-  final bool _isAssert;
-
-  _NullCheckOrAssertPatternDispatchResult(
-      super._typeAnalyzer, super.node, this._innerPattern, this._isAssert);
-
-  @override
-  Type get typeSchema {
-    if (_isAssert) {
-      return _typeAnalyzer.typeOperations
-          .makeNullable(_innerPattern.typeSchema);
-    } else {
-      // Null-check patterns are only allowed in refutable contexts, and
-      // refutable contexts don't propagate a type schema into the scrutinee.
-      // So this code path is only reachable if the user's code contains errors.
-      _typeAnalyzer.errors?.assertInErrorRecovery();
-      return _typeAnalyzer.unknownType;
-    }
-  }
-
-  @override
-  void match(
-      Type matchedType,
-      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    // Stack: ()
-    Type innerMatchedType =
-        _typeAnalyzer.typeOperations.promoteToNonNull(matchedType);
-    Node? irrefutableContext = context.irrefutableContext;
-    if (irrefutableContext != null && !_isAssert) {
-      _typeAnalyzer.errors
-          ?.refutablePatternInIrrefutableContext(node, irrefutableContext);
-      // Avoid cascading errors
-      context = context.makeRefutable();
-    }
-    _innerPattern.match(innerMatchedType, typeInfos, context);
-    // Stack: (Pattern)
-    _typeAnalyzer.handleNullCheckOrAssertPattern(node,
-        matchedType: matchedType, isAssert: _isAssert);
-    // Stack: (Pattern)
-  }
-}
-
-/// Common base class for all specializations of [PatternDispatchResult]
-/// returned by methods in [TypeAnalyzer].
-abstract class _PatternDispatchResultImpl<Node extends Object,
-        Expression extends Node, Variable extends Object, Type extends Object>
-    implements PatternDispatchResult<Node, Expression, Variable, Type> {
-  /// Pointer back to the [TypeAnalyzer].
-  final TypeAnalyzer<Node, Node, Expression, Variable, Type> _typeAnalyzer;
-
-  @override
-  final Node node;
-
-  _PatternDispatchResultImpl(this._typeAnalyzer, this.node);
-}
-
-/// Specialization of [PatternDispatchResult] returned by
-/// [TypeAnalyzer.analyzeVariablePattern]
-class _VariablePatternDispatchResult<Node extends Object,
-        Expression extends Node, Variable extends Object, Type extends Object>
-    extends _PatternDispatchResultImpl<Node, Expression, Variable, Type> {
-  final Variable? _variable;
-
-  final Type? _declaredType;
-
-  final bool _isFinal;
-
-  _VariablePatternDispatchResult(super._typeAnalyzer, super.node,
-      this._variable, this._declaredType, this._isFinal);
-
-  @override
-  Type get typeSchema => _declaredType ?? _typeAnalyzer.unknownType;
-
-  @override
-  void match(
-      Type matchedType,
-      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    // Stack: ()
-    Type staticType = _declaredType ??
-        _typeAnalyzer.variableTypeFromInitializerType(matchedType);
-    Node? irrefutableContext = context.irrefutableContext;
-    if (irrefutableContext != null &&
-        !_typeAnalyzer.typeOperations.isAssignableTo(matchedType, staticType)) {
-      _typeAnalyzer.errors?.patternTypeMismatchInIrrefutableContext(
-          pattern: node,
-          context: irrefutableContext,
-          matchedType: matchedType,
-          requiredType: staticType);
-    }
-    bool isImplicitlyTyped = _declaredType == null;
-    Variable? variable = _variable;
-    if (variable != null) {
-      bool isFirstMatch = _typeAnalyzer._recordTypeInfo(typeInfos,
-          pattern: node,
-          variable: variable,
-          staticType: staticType,
-          isImplicitlyTyped: isImplicitlyTyped);
-      if (isFirstMatch) {
-        _typeAnalyzer.flow?.declare(variable, false);
-        _typeAnalyzer.setVariableType(variable, staticType);
-        // TODO(paulberry): are we handling _isFinal correctly?
-        // TODO(paulberry): do we need to verify that all instances of a
-        // variable are final or all are not final?
-        _typeAnalyzer.flow?.initialize(
-            variable, matchedType, context.getInitializer(node),
-            isFinal: context.isFinal || _isFinal,
-            isLate: context.isLate,
-            isImplicitlyTyped: isImplicitlyTyped);
-      }
-    }
-    _typeAnalyzer.handleVariablePattern(node,
-        matchedType: matchedType, staticType: staticType);
-    // Stack: (Pattern)
-  }
 }

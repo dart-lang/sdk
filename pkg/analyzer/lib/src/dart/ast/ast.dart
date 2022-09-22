@@ -5,6 +5,8 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -1112,6 +1114,19 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryPattern(this);
 
   @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
     rightOperand.accept(visitor);
@@ -1517,6 +1532,19 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -2731,6 +2759,19 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
 
   @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
   }
@@ -3269,6 +3310,14 @@ abstract class DartPatternImpl extends AstNodeImpl implements DartPattern {
   // TODO(brianwilkerson) Remove this and implement it in subclasses when we
   //  have constants for pattern-related precedence values.
   Precedence get precedence => throw UnimplementedError();
+
+  DartType computePatternSchema(ResolverVisitor resolverVisitor);
+
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context);
 }
 
 /// A node that represents the declaration of one or more names. Each declared
@@ -4635,6 +4684,19 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtractorPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -7972,6 +8034,19 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
 
   @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
@@ -8164,6 +8239,19 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9384,6 +9472,19 @@ class ParenthesizedPatternImpl extends DartPatternImpl
       visitor.visitParenthesizedPattern(this);
 
   @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
   }
@@ -9813,6 +9914,19 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -10280,6 +10394,19 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
 
   @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
   }
@@ -10561,6 +10688,19 @@ class RelationalPatternImpl extends DartPatternImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -13236,6 +13376,19 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitVariablePattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  void resolvePattern(
+      ResolverVisitor resolverVisitor,
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {

@@ -968,6 +968,8 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   Pattern as_(String type) =>
       new _CastPattern(this, Type(type), location: computeLocation());
 
+  Type computeSchema(Harness h);
+
   Pattern or(Pattern other) =>
       _LogicalPattern(this, other, isAnd: false, location: computeLocation());
 
@@ -977,7 +979,11 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   @override
   String toString() => _debugString(needsKeywordOrType: true);
 
-  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h);
+  void visit(
+      Harness h,
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context);
 
   CaseHead when(Expression guard) =>
       _GuardedCaseHead(this, guard, location: location);
@@ -1245,6 +1251,8 @@ class _CastPattern extends Pattern {
 
   _CastPattern(this._inner, this._type, {required super.location}) : super._();
 
+  Type computeSchema(Harness h) => h.typeAnalyzer.analyzeCastPatternSchema();
+
   @override
   void preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
@@ -1252,8 +1260,18 @@ class _CastPattern extends Pattern {
   }
 
   @override
-  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) {
-    return h.typeAnalyzer.analyzeCastPattern(this, _inner, _type);
+  void visit(
+      Harness h,
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context) {
+    h.typeAnalyzer
+        .analyzeCastPattern(matchedType, typeInfos, context, _inner, _type);
+    h.irBuilder.atom(_type.type, Kind.type, location: location);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+        'castPattern', [Kind.pattern, Kind.type, Kind.type], Kind.pattern,
+        names: ['matchedType'], location: location);
   }
 
   @override
@@ -1513,15 +1531,26 @@ class _ConstantPattern extends Pattern {
 
   _ConstantPattern(this.constant, {required super.location}) : super._();
 
+  Type computeSchema(Harness h) =>
+      h.typeAnalyzer.analyzeConstantPatternSchema();
+
   @override
   void preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
     constant.preVisit(visitor);
   }
 
-  @override
-  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) =>
-      h.typeAnalyzer.analyzeConstantPattern(this, constant);
+  void visit(
+      Harness h,
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context) {
+    h.typeAnalyzer.analyzeConstantPattern(
+        matchedType, typeInfos, context, this, constant);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.apply('const', [Kind.expression, Kind.type], Kind.pattern,
+        names: ['matchedType'], location: location);
+  }
 
   @override
   _debugString({required bool needsKeywordOrType}) => constant.toString();
@@ -2040,6 +2069,9 @@ class _ListPattern extends Pattern {
   _ListPattern(this._elementType, this._elements, {required super.location})
       : super._();
 
+  Type computeSchema(Harness h) => h.typeAnalyzer
+      .analyzeListPatternSchema(elementType: _elementType, elements: _elements);
+
   @override
   void preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
@@ -2048,10 +2080,22 @@ class _ListPattern extends Pattern {
     }
   }
 
-  @override
-  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) {
-    return h.typeAnalyzer.analyzeListPattern(this,
+  void visit(
+      Harness h,
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context) {
+    var requiredType = h.typeAnalyzer.analyzeListPattern(
+        matchedType, typeInfos, context, this,
         elementType: _elementType, elements: _elements);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.atom(requiredType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+        'listPattern',
+        [...List.filled(_elements.length, Kind.pattern), Kind.type, Kind.type],
+        Kind.pattern,
+        names: ['matchedType', 'requiredType'],
+        location: location);
   }
 
   @override
@@ -2129,6 +2173,9 @@ class _LogicalPattern extends Pattern {
       {required this.isAnd, required super.location})
       : super._();
 
+  Type computeSchema(Harness h) =>
+      h.typeAnalyzer.analyzeLogicalPatternSchema(_lhs, _rhs, isAnd: isAnd);
+
   @override
   void preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
@@ -2148,9 +2195,18 @@ class _LogicalPattern extends Pattern {
     }
   }
 
-  @override
-  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) {
-    return h.typeAnalyzer.analyzeLogicalPattern(this, _lhs, _rhs, isAnd: isAnd);
+  void visit(
+      Harness h,
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context) {
+    h.typeAnalyzer.analyzeLogicalPattern(
+        matchedType, typeInfos, context, this, _lhs, _rhs,
+        isAnd: isAnd);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.apply(isAnd ? 'logicalAndPattern' : 'logicalOrPattern',
+        [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
+        names: ['matchedType'], location: location);
   }
 
   @override
@@ -2588,9 +2644,17 @@ class _MiniAstTypeAnalyzer
       _irBuilder.guard(expression, () => expression.visit(_harness, context));
 
   @override
-  PatternDispatchResult<Node, Expression, Var, Type> dispatchPattern(
+  void dispatchPattern(
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context,
       covariant Pattern node) {
-    return node.visit(_harness);
+    return node.visit(_harness, matchedType, typeInfos, context);
+  }
+
+  @override
+  Type dispatchPatternSchema(covariant Pattern node) {
+    return node.computeSchema(_harness);
   }
 
   @override
@@ -2645,47 +2709,8 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleCastPattern(covariant _CastPattern node,
-      {required Type matchedType}) {
-    _irBuilder.atom(node._type.type, Kind.type, location: node.location);
-    _irBuilder.atom(matchedType.type, Kind.type, location: node.location);
-    _irBuilder.apply(
-        'castPattern', [Kind.pattern, Kind.type, Kind.type], Kind.pattern,
-        names: ['matchedType'], location: node.location);
-  }
-
-  @override
-  void handleConstantPattern(Node node, {required Type matchedType}) {
-    _irBuilder.atom(matchedType.type, Kind.type, location: node.location);
-    _irBuilder.apply('const', [Kind.expression, Kind.type], Kind.pattern,
-        names: ['matchedType'], location: node.location);
-  }
-
-  @override
   void handleDefault(Node node, int caseIndex) {
     _irBuilder.atom('default', Kind.caseHead, location: node.location);
-  }
-
-  @override
-  void handleListPattern(Node node, int numElements,
-      {required Type matchedType, required Type requiredType}) {
-    _irBuilder.atom(matchedType.type, Kind.type, location: node.location);
-    _irBuilder.atom(requiredType.type, Kind.type, location: node.location);
-    _irBuilder.apply(
-        'listPattern',
-        [...List.filled(numElements, Kind.pattern), Kind.type, Kind.type],
-        Kind.pattern,
-        names: ['matchedType', 'requiredType'],
-        location: node.location);
-  }
-
-  @override
-  void handleLogicalPattern(Node node,
-      {required bool isAnd, required Type matchedType}) {
-    _irBuilder.atom(matchedType.type, Kind.type, location: node.location);
-    _irBuilder.apply(isAnd ? 'logicalAndPattern' : 'logicalOrPattern',
-        [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
-        names: ['matchedType'], location: node.location);
   }
 
   @override
@@ -2724,18 +2749,8 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleNullCheckOrAssertPattern(Node node,
-      {required Type matchedType, required bool isAssert}) {
-    _irBuilder.atom(matchedType.type, Kind.type, location: node.location);
-    _irBuilder.apply(isAssert ? 'nullAssertPattern' : 'nullCheckPattern',
-        [Kind.pattern, Kind.type], Kind.pattern,
-        names: ['matchedType'], location: node.location);
-  }
-
-  @override
   void handleSwitchScrutinee(Type type) {}
 
-  @override
   void handleVariablePattern(covariant _VariablePattern node,
       {required Type matchedType, required Type staticType}) {
     _irBuilder.atom(node.variable?.name ?? '_', Kind.variable,
@@ -2756,6 +2771,9 @@ class _MiniAstTypeAnalyzer
       covariant _SwitchStatement node, Type expressionType) {
     return node.isExhaustive;
   }
+
+  @override
+  bool isVariablePattern(Node pattern) => pattern is _VariablePattern;
 
   Type leastUpperBound(Type t1, Type t2) => _harness._lub(t1, t2);
 
@@ -2889,16 +2907,27 @@ class _NullCheckOrAssertPattern extends Pattern {
       {required super.location})
       : super._();
 
+  Type computeSchema(Harness h) => h.typeAnalyzer
+      .analyzeNullCheckOrAssertPatternSchema(_inner, isAssert: _isAssert);
+
   @override
   void preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
     _inner.preVisit(visitor, variableBinder);
   }
 
-  @override
-  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) {
-    return h.typeAnalyzer
-        .analyzeNullCheckOrAssertPattern(this, _inner, isAssert: _isAssert);
+  void visit(
+      Harness h,
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context) {
+    h.typeAnalyzer.analyzeNullCheckOrAssertPattern(
+        matchedType, typeInfos, context, this, _inner,
+        isAssert: _isAssert);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.apply(_isAssert ? 'nullAssertPattern' : 'nullCheckPattern',
+        [Kind.pattern, Kind.type], Kind.pattern,
+        names: ['matchedType'], location: location);
   }
 
   @override
@@ -3301,6 +3330,9 @@ class _VariablePattern extends Pattern {
       {this.isFinal = false, required super.location})
       : super._();
 
+  Type computeSchema(Harness h) =>
+      h.typeAnalyzer.analyzeVariablePatternSchema(declaredType);
+
   @override
   void preVisit(
       PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
@@ -3310,10 +3342,16 @@ class _VariablePattern extends Pattern {
     }
   }
 
-  @override
-  PatternDispatchResult<Node, Expression, Var, Type> visit(Harness h) {
-    return h.typeAnalyzer
-        .analyzeVariablePattern(this, variable, declaredType, isFinal: isFinal);
+  void visit(
+      Harness h,
+      Type matchedType,
+      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
+      MatchContext<Node, Expression> context) {
+    var staticType = h.typeAnalyzer.analyzeVariablePattern(
+        matchedType, typeInfos, context, this, variable, declaredType,
+        isFinal: isFinal);
+    h.typeAnalyzer.handleVariablePattern(this,
+        matchedType: matchedType, staticType: staticType);
   }
 
   @override
