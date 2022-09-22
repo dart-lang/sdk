@@ -351,6 +351,7 @@ class Address : public ValueObject {
       case Unknown:
         UNREACHABLE();
     }
+    return 0;
   }
 
   AddressType type() const { return type_; }
