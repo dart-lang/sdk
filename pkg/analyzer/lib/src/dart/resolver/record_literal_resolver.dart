@@ -116,6 +116,7 @@ class RecordLiteralResolver {
 
   void _resolveField(Expression field, DartType? contextType) {
     _resolver.analyzeExpression(field, contextType);
+    _resolver.popRewrite();
   }
 
   void _resolveFields(RecordLiteralImpl node, DartType? contextType) {

@@ -36,9 +36,9 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
     final node = this.node;
     final String name;
     if (node is MethodDeclaration) {
-      name = node.name2.lexeme;
+      name = node.name.lexeme;
     } else if (node is VariableDeclaration) {
-      name = node.name2.lexeme;
+      name = node.name.lexeme;
     } else {
       return;
     }
@@ -120,7 +120,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
 
     final debugFillProperties = classDeclaration.members
         .whereType<MethodDeclaration>()
-        .where((e) => e.name2.lexeme == 'debugFillProperties')
+        .where((e) => e.name.lexeme == 'debugFillProperties')
         .singleOrNull;
     if (debugFillProperties == null) {
       var location = utils.prepareNewMethodLocation(classDeclaration);

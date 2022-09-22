@@ -47,6 +47,9 @@ class ResolutionResult {
   /// The [FunctionType] referenced with `call`.
   final FunctionType? callFunctionType;
 
+  /// The field referenced in a [RecordType].
+  final RecordTypeField? recordField;
+
   /// Initialize a newly created result to represent resolving a single
   /// reading and / or writing result.
   ResolutionResult({
@@ -55,6 +58,7 @@ class ResolutionResult {
     this.setter,
     this.needsSetterError = true,
     this.callFunctionType,
+    this.recordField,
   }) : state = _ResolutionResultState.single;
 
   /// Initialize a newly created result with no elements and the given [state].
@@ -63,7 +67,8 @@ class ResolutionResult {
         needsGetterError = true,
         setter = null,
         needsSetterError = true,
-        callFunctionType = null;
+        callFunctionType = null,
+        recordField = null;
 
   /// Return `true` if this result represents the case where multiple ambiguous
   /// elements were found.

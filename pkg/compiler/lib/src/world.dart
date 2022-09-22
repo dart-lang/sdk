@@ -46,6 +46,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   @override
   NativeData get nativeData;
 
+  @override
   InterceptorData get interceptorData;
 
   @override
@@ -91,19 +92,23 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   Sorter get sorter;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
+  @override
   bool isImplemented(ClassEntity cls);
 
   /// Returns the most specific subclass of [cls] (including [cls]) that is
   /// directly instantiated or a superclass of all directly instantiated
   /// subclasses. If [cls] is not instantiated, `null` is returned.
+  @override
   ClassEntity getLubOfInstantiatedSubclasses(ClassEntity cls);
 
   /// Returns the most specific subtype of [cls] (including [cls]) that is
   /// directly instantiated or a superclass of all directly instantiated
   /// subtypes. If no subtypes of [cls] are instantiated, `null` is returned.
+  @override
   ClassEntity getLubOfInstantiatedSubtypes(ClassEntity cls);
 
   /// Returns an iterable over the common supertypes of the [classes].
+  @override
   Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes);
 
   /// Returns an iterable over the live mixin applications that mixin [cls].
@@ -115,21 +120,26 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   bool isUsedAsMixin(ClassEntity cls);
 
   /// Returns `true` if any live class that mixes in [cls] implements [type].
+  @override
   bool hasAnySubclassOfMixinUseThatImplements(
       ClassEntity cls, ClassEntity type);
 
   /// Returns `true` if any live class that mixes in [mixin] is also a subclass
   /// of [superclass].
+  @override
   bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin);
 
   /// Returns `true` if [cls] or any superclass mixes in [mixin].
+  @override
   bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin);
 
   /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
   /// of a mixin application of [y].
+  @override
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y);
 
   /// Returns `true` if any subclass of [superclass] implements [type].
+  @override
   bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type);
 
   /// Returns `true` if a call of [selector] on [cls] and/or subclasses/subtypes
@@ -171,11 +181,13 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   ///
   /// If we're calling bar on an object of type A we do need the handler because
   /// we may have to call B.noSuchMethod since B does not implement bar.
+  @override
   bool needsNoSuchMethod(ClassEntity cls, Selector selector, ClassQuery query);
 
   /// Returns whether [element] will be the one used at runtime when being
   /// invoked on an instance of [cls]. [name] is used to ensure library
   /// privacy is taken into account.
+  @override
   bool hasElementIn(ClassEntity cls, Name name, MemberEntity element);
 
   /// Returns `true` if the field [element] is known to be effectively final.
@@ -188,6 +200,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   /// Every implementation of `Closure` has a 'call' method with its own
   /// signature so it cannot be modelled by a [FunctionEntity]. Also,
   /// call-methods for tear-off are not part of the element model.
+  @override
   bool includesClosureCallInDomain(Selector selector, AbstractValue receiver,
       AbstractValueDomain abstractValueDomain);
 
@@ -213,6 +226,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   /// on the given [receiver] using the [abstractValueDomain]. The returned elements may include noSuchMethod
   /// handlers that are potential targets indirectly through the noSuchMethod
   /// mechanism.
+  @override
   Iterable<MemberEntity> locateMembersInDomain(Selector selector,
       AbstractValue receiver, AbstractValueDomain abstractValueDomain);
 

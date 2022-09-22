@@ -7025,7 +7025,7 @@ class C {
       assertType(node.declaredElement2!.type, 'C Function(int)');
       expect(node.returnType.staticElement, same(cElement));
       expect(node.returnType.staticType, isNull);
-      expect(node.name2, isNull);
+      expect(node.name, isNull);
     }
 
     // named constructor
@@ -8526,7 +8526,7 @@ main() {
   List<Statement> _getMainStatements(ResolvedUnitResult result) {
     for (var declaration in result.unit.declarations) {
       if (declaration is FunctionDeclaration &&
-          declaration.name2.lexeme == 'main') {
+          declaration.name.lexeme == 'main') {
         var body = declaration.functionExpression.body as BlockFunctionBody;
         return body.block.statements;
       }

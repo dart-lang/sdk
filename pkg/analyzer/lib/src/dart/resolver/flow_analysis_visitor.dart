@@ -61,7 +61,7 @@ class FlowAnalysisDataForTesting {
 /// be extracted.
 class FlowAnalysisHelper {
   /// The reused instance for creating new [FlowAnalysis] instances.
-  final TypeSystemOperations _typeOperations;
+  final TypeSystemOperations typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
   AssignedVariables<AstNode, PromotableElement>? assignedVariables;
@@ -90,7 +90,7 @@ class FlowAnalysisHelper {
             respectImplicitlyTypedVarInitializers:
                 featureSet.isEnabled(Feature.constructor_tearoffs));
 
-  FlowAnalysisHelper._(this._typeOperations, this.dataForTesting,
+  FlowAnalysisHelper._(this.typeOperations, this.dataForTesting,
       {required this.isNonNullableByDefault,
       required this.respectImplicitlyTypedVarInitializers});
 
@@ -246,11 +246,11 @@ class FlowAnalysisHelper {
     }
     flow = isNonNullableByDefault
         ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-                DartType>(_typeOperations, assignedVariables!,
+                DartType>(typeOperations, assignedVariables!,
             respectImplicitlyTypedVarInitializers:
                 respectImplicitlyTypedVarInitializers)
         : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-            DartType>.legacy(_typeOperations, assignedVariables!);
+            DartType>.legacy(typeOperations, assignedVariables!);
   }
 
   void topLevelDeclaration_exit() {
@@ -378,7 +378,7 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
 }
 
 class TypeSystemOperations
-    with TypeOperations<DartType>
+    with TypeOperations<DartType>, TypeOperations2<DartType>
     implements Operations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
 
@@ -401,6 +401,19 @@ class TypeSystemOperations
   }
 
   @override
+  DartType glb(DartType type1, DartType type2) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  bool isAssignableTo(DartType fromType, DartType toType) {
+    return typeSystem.isAssignableTo(fromType, toType);
+  }
+
+  @override
+  bool isDynamic(DartType type) => type.isDynamic;
+
+  @override
   bool isNever(DartType type) {
     return typeSystem.isBottom(type);
   }
@@ -417,6 +430,21 @@ class TypeSystemOperations
 
   @override
   bool isTypeParameterType(DartType type) => type is TypeParameterType;
+
+  @override
+  DartType lub(DartType type1, DartType type2) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType makeNullable(DartType type) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DartType? matchListType(DartType type) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
 
   @override
   DartType promoteToNonNull(DartType type) {

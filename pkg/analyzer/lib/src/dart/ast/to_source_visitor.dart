@@ -190,7 +190,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.macroKeyword, suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('class ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeParameters);
     _visitNode(node.extendsClause, prefix: ' ');
     _visitNode(node.withClause, prefix: ' ');
@@ -207,7 +207,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.abstractKeyword, suffix: ' ');
     _visitToken(node.macroKeyword, suffix: ' ');
     sink.write('class ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeParameters);
     sink.write(' = ');
     _visitNode(node.superclass);
@@ -264,7 +264,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.factoryKeyword, suffix: ' ');
     _visitNode(node.returnType);
-    _visitToken(node.name2, prefix: '.');
+    _visitToken(node.name, prefix: '.');
     _visitNode(node.parameters);
     _visitNodeList(node.initializers, prefix: ' : ', separator: ', ');
     _visitNode(node.redirectedConstructor, prefix: ' = ');
@@ -363,7 +363,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.arguments);
   }
 
@@ -371,7 +371,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitEnumDeclaration(EnumDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('enum ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeParameters);
     _visitNode(node.withClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
@@ -426,7 +426,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.extensionKeyword, suffix: ' ');
     _visitToken(node.typeKeyword, suffix: ' ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeParameters);
     sink.write(' ');
     _visitToken(node.onKeyword);
@@ -581,7 +581,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitNode(node.returnType, suffix: ' ');
     _visitToken(node.propertyKeyword, suffix: ' ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.functionExpression);
   }
 
@@ -615,7 +615,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('typedef ');
     _visitNode(node.returnType, suffix: ' ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
     sink.write(';');
@@ -650,7 +650,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('typedef ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeParameters);
     sink.write(' = ');
     _visitNode(node.type);
@@ -849,7 +849,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.returnType, suffix: ' ');
     _visitToken(node.propertyKeyword, suffix: ' ');
     _visitToken(node.operatorKeyword, suffix: ' ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     if (!node.isGetter) {
       _visitNode(node.typeParameters);
       _visitNode(node.parameters);
@@ -870,7 +870,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('mixin ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.typeParameters);
     _visitNode(node.onClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
@@ -1328,7 +1328,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     if (varianceKeyword != null) {
       sink.write('${varianceKeyword.lexeme} ');
     }
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.bound, prefix: ' extends ');
   }
 
@@ -1342,7 +1342,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.name2);
+    _visitToken(node.name);
     _visitNode(node.initializer, prefix: ' = ');
   }
 

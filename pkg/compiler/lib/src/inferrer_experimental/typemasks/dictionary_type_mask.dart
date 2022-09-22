@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of masks;
 
 /// A [DictionaryTypeMask] is a [TypeMask] for a specific allocation
@@ -20,25 +18,19 @@ class DictionaryTypeMask extends MapTypeMask {
   // The underlying key/value map of this dictionary.
   final Map<String, TypeMask> _typeMap;
 
-  const DictionaryTypeMask(
-      TypeMask forwardTo,
-      ir.Node allocationNode,
-      MemberEntity allocationElement,
-      TypeMask keyType,
-      TypeMask valueType,
-      this._typeMap)
-      : super(forwardTo, allocationNode, allocationElement, keyType, valueType);
+  const DictionaryTypeMask(super.forwardTo, super._allocationNode,
+      super.allocationElement, super.keyType, super.valueType, this._typeMap);
 
   /// Deserializes a [DictionaryTypeMask] object from [source].
   factory DictionaryTypeMask.readFromDataSource(
       DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
-    MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask keyType = TypeMask.readFromDataSource(source, domain);
-    TypeMask valueType = TypeMask.readFromDataSource(source, domain);
-    Map<String, TypeMask> typeMap =
-        source.readStringMap(() => TypeMask.readFromDataSource(source, domain));
+    final forwardTo = TypeMask.readFromDataSource(source, domain);
+    final allocationElement = source.readMemberOrNull();
+    final keyType = TypeMask.readFromDataSource(source, domain);
+    final valueType = TypeMask.readFromDataSource(source, domain);
+    final typeMap = source
+        .readStringMap(() => TypeMask.readFromDataSource(source, domain))!;
     source.end(tag);
     return DictionaryTypeMask(
         forwardTo, null, allocationElement, keyType, valueType, typeMap);
@@ -60,7 +52,7 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   @override
-  DictionaryTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+  DictionaryTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -78,19 +70,15 @@ class DictionaryTypeMask extends MapTypeMask {
   }
 
   @override
-  bool get isDictionary => true;
-  @override
   bool get isExact => true;
 
   bool containsKey(String key) => _typeMap.containsKey(key);
 
-  TypeMask getValueForKey(String key) => _typeMap[key];
+  TypeMask? getValueForKey(String key) => _typeMap[key];
 
   @override
-  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {bool isNullable, bool hasLateSentinel}) {
-    assert(isNullable != null);
-    assert(hasLateSentinel != null);
+  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
+      {required bool isNullable, required bool hasLateSentinel}) {
     if (other is DictionaryTypeMask) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       TypeMask newKeyType = keyType.union(other.keyType, domain);
@@ -103,7 +91,7 @@ class DictionaryTypeMask extends MapTypeMask {
       });
       other._typeMap.forEach((k, v) {
         if (_typeMap.containsKey(k)) {
-          mappings[k] = v.union(_typeMap[k], domain);
+          mappings[k] = v.union(_typeMap[k]!, domain);
         } else {
           mappings[k] = v.nullable();
         }
@@ -111,9 +99,7 @@ class DictionaryTypeMask extends MapTypeMask {
       return DictionaryTypeMask(
           newForwardTo, null, null, newKeyType, newValueType, mappings);
     }
-    if (other is MapTypeMask &&
-        (other.keyType != null) &&
-        (other.valueType != null)) {
+    if (other is MapTypeMask) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       TypeMask newKeyType = keyType.union(other.keyType, domain);
       TypeMask newValueType = valueType.union(other.valueType, domain);

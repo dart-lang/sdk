@@ -18,23 +18,23 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
 
   void appendClassMemberName(ClassMember member) {
     if (member is MethodDeclaration) {
-      appendName(names.classMemberNames, member.name2);
+      appendName(names.classMemberNames, member.name);
     } else if (member is FieldDeclaration) {
       for (VariableDeclaration field in member.fields.variables) {
-        appendName(names.classMemberNames, field.name2);
+        appendName(names.classMemberNames, field.name);
       }
     }
   }
 
   void appendTopLevelName(CompilationUnitMember member) {
     if (member is NamedCompilationUnitMember) {
-      appendName(names.topLevelNames, member.name2);
+      appendName(names.topLevelNames, member.name);
       if (member is ClassDeclaration) {
         member.members.forEach(appendClassMemberName);
       }
       if (member is EnumDeclaration) {
         for (var constant in member.constants) {
-          appendName(names.classMemberNames, constant.name2);
+          appendName(names.classMemberNames, constant.name);
         }
         member.members.forEach(appendClassMemberName);
       }
@@ -43,7 +43,7 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
       }
     } else if (member is TopLevelVariableDeclaration) {
       for (VariableDeclaration variable in member.variables.variables) {
-        appendName(names.topLevelNames, variable.name2);
+        appendName(names.topLevelNames, variable.name);
       }
     }
   }

@@ -60,9 +60,9 @@ class DuplicateDefinitionVerifier {
     var staticSetters = <String, Element>{};
 
     for (EnumConstantDeclaration constant in node.constants) {
-      _checkDuplicateIdentifier(staticGetters, constant.name2,
+      _checkDuplicateIdentifier(staticGetters, constant.name,
           element: constant.declaredElement2!);
-      _checkValuesDeclarationInEnum(constant.name2);
+      _checkValuesDeclarationInEnum(constant.name);
     }
 
     for (var member in node.members) {
@@ -86,7 +86,7 @@ class DuplicateDefinitionVerifier {
         }
       } else if (member is FieldDeclaration) {
         for (var field in member.fields.variables) {
-          var identifier = field.name2;
+          var identifier = field.name;
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
             identifier,
@@ -98,12 +98,12 @@ class DuplicateDefinitionVerifier {
       } else if (member is MethodDeclaration) {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
-          member.name2,
+          member.name,
           element: member.declaredElement2!,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
         if (!(member.isStatic && member.isSetter)) {
-          _checkValuesDeclarationInEnum2(member.name2);
+          _checkValuesDeclarationInEnum2(member.name);
         }
       }
     }
@@ -111,15 +111,15 @@ class DuplicateDefinitionVerifier {
     if (enumName == 'values') {
       _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
-        node.name2,
+        node.name,
       );
     }
 
     for (var constant in node.constants) {
-      if (constant.name2.lexeme == enumName) {
+      if (constant.name.lexeme == enumName) {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
-          constant.name2,
+          constant.name,
         );
       }
     }
@@ -195,7 +195,7 @@ class DuplicateDefinitionVerifier {
     for (var member in node.members) {
       if (member is FieldDeclaration) {
         for (var field in member.fields.variables) {
-          var identifier = field.name2;
+          var identifier = field.name;
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
             identifier,
@@ -206,7 +206,7 @@ class DuplicateDefinitionVerifier {
       } else if (member is MethodDeclaration) {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
-          member.name2,
+          member.name,
           element: member.declaredElement2!,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
@@ -218,7 +218,7 @@ class DuplicateDefinitionVerifier {
       if (member is FieldDeclaration) {
         if (member.isStatic) {
           for (var field in member.fields.variables) {
-            var identifier = field.name2;
+            var identifier = field.name;
             var name = identifier.lexeme;
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
@@ -232,7 +232,7 @@ class DuplicateDefinitionVerifier {
         }
       } else if (member is MethodDeclaration) {
         if (member.isStatic) {
-          var identifier = member.name2;
+          var identifier = member.name;
           var name = identifier.lexeme;
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {
@@ -252,7 +252,7 @@ class DuplicateDefinitionVerifier {
   void checkForVariables(VariableDeclarationList node) {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (VariableDeclaration variable in node.variables) {
-      _checkDuplicateIdentifier(definedNames, variable.name2,
+      _checkDuplicateIdentifier(definedNames, variable.name,
           element: variable.declaredElement2!);
     }
   }
@@ -281,13 +281,13 @@ class DuplicateDefinitionVerifier {
     for (Statement statement in statements) {
       if (statement is VariableDeclarationStatement) {
         for (VariableDeclaration variable in statement.variables.variables) {
-          _checkDuplicateIdentifier(definedNames, variable.name2,
+          _checkDuplicateIdentifier(definedNames, variable.name,
               element: variable.declaredElement2!);
         }
       } else if (statement is FunctionDeclarationStatement) {
         _checkDuplicateIdentifier(
           definedNames,
-          statement.functionDeclaration.name2,
+          statement.functionDeclaration.name,
           element: statement.functionDeclaration.declaredElement2!,
         );
       }
@@ -298,7 +298,7 @@ class DuplicateDefinitionVerifier {
   void checkTypeParameters(TypeParameterList node) {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (TypeParameter parameter in node.typeParameters) {
-      _checkDuplicateIdentifier(definedNames, parameter.name2,
+      _checkDuplicateIdentifier(definedNames, parameter.name,
           element: parameter.declaredElement2!);
     }
   }
@@ -354,17 +354,17 @@ class DuplicateDefinitionVerifier {
     }
     for (CompilationUnitMember member in node.declarations) {
       if (member is ExtensionDeclaration) {
-        var identifier = member.name2;
+        var identifier = member.name;
         if (identifier != null) {
           _checkDuplicateIdentifier(definedGetters, identifier,
               element: member.declaredElement2!, setterScope: definedSetters);
         }
       } else if (member is NamedCompilationUnitMember) {
-        _checkDuplicateIdentifier(definedGetters, member.name2,
+        _checkDuplicateIdentifier(definedGetters, member.name,
             element: member.declaredElement2!, setterScope: definedSetters);
       } else if (member is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in member.variables.variables) {
-          _checkDuplicateIdentifier(definedGetters, variable.name2,
+          _checkDuplicateIdentifier(definedGetters, variable.name,
               element: variable.declaredElement2!, setterScope: definedSetters);
         }
       }
@@ -385,7 +385,7 @@ class DuplicateDefinitionVerifier {
           // [member] is erroneous; do not count it as a possible duplicate.
           continue;
         }
-        var name = member.name2?.lexeme ?? '';
+        var name = member.name?.lexeme ?? '';
         if (name == 'new') {
           name = '';
         }
@@ -403,7 +403,7 @@ class DuplicateDefinitionVerifier {
         for (VariableDeclaration field in member.fields.variables) {
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
-            field.name2,
+            field.name,
             element: field.declaredElement2!,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
@@ -411,7 +411,7 @@ class DuplicateDefinitionVerifier {
       } else if (member is MethodDeclaration) {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
-          member.name2,
+          member.name,
           element: member.declaredElement2!,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
@@ -431,7 +431,7 @@ class DuplicateDefinitionVerifier {
       if (member is FieldDeclaration) {
         if (member.isStatic) {
           for (VariableDeclaration field in member.fields.variables) {
-            final identifier = field.name2;
+            final identifier = field.name;
             String name = identifier.lexeme;
             if (instanceGetters.containsKey(name) ||
                 instanceSetters.containsKey(name)) {
@@ -445,7 +445,7 @@ class DuplicateDefinitionVerifier {
         }
       } else if (member is MethodDeclaration) {
         if (member.isStatic) {
-          final identifier = member.name2;
+          final identifier = member.name;
           String name = identifier.lexeme;
           if (instanceGetters.containsKey(name) ||
               instanceSetters.containsKey(name)) {

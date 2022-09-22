@@ -105,7 +105,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     if (declaration != null) {
       // For getters/setters, the type must come before the property keyword,
       // not the name.
-      final token = node.propertyKeyword ?? node.name2;
+      final token = node.propertyKeyword ?? node.name;
       _computer._addTypePrefix(token, declaration.returnType);
     }
   }
@@ -121,7 +121,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
 
     final declaration = node.declaredElement2;
     if (declaration != null) {
-      _computer._addTypePrefix(node.name2, declaration.returnType);
+      _computer._addTypePrefix(node.name, declaration.returnType);
     }
   }
 

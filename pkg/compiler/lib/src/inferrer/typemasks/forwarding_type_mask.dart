@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of masks;
 
 /// A type mask that wraps another one, and delegates all its
@@ -27,21 +25,6 @@ abstract class ForwardingTypeMask extends TypeMask {
   AbstractBool get isLateSentinel => forwardTo.isLateSentinel;
   @override
   bool get isExact => forwardTo.isExact;
-
-  @override
-  bool get isUnion => false;
-  @override
-  bool get isContainer => false;
-  @override
-  bool get isSet => false;
-  @override
-  bool get isMap => false;
-  @override
-  bool get isDictionary => false;
-  @override
-  bool get isValue => false;
-  @override
-  bool get isForwarding => true;
 
   @override
   bool isInMask(TypeMask other, JClosedWorld closedWorld) {
@@ -94,7 +77,7 @@ abstract class ForwardingTypeMask extends TypeMask {
   }
 
   @override
-  ClassEntity singleClass(JClosedWorld closedWorld) {
+  ClassEntity? singleClass(JClosedWorld closedWorld) {
     return forwardTo.singleClass(closedWorld);
   }
 
@@ -118,8 +101,8 @@ abstract class ForwardingTypeMask extends TypeMask {
         forwardTo.union(other, domain);
   }
 
-  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-          {bool isNullable, bool hasLateSentinel}) =>
+  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
+          {required bool isNullable, required bool hasLateSentinel}) =>
       null;
 
   @override
@@ -148,7 +131,7 @@ abstract class ForwardingTypeMask extends TypeMask {
   }
 
   @override
-  MemberEntity locateSingleMember(Selector selector, CommonMasks domain) {
+  MemberEntity? locateSingleMember(Selector selector, CommonMasks domain) {
     return forwardTo.locateSingleMember(selector, domain);
   }
 
@@ -168,12 +151,11 @@ abstract class AllocationTypeMask extends ForwardingTypeMask {
 
   // The [ir.Node] where this type mask was created. This value is not used
   // after type inference and therefore does not need to be serialized by
-  // subclasses. Using it outside of type inference may cause an exception to be
-  // thrown.
-  ir.Node /*?*/ get allocationNode;
+  // subclasses. It will always be null outside of the global inference phase.
+  ir.Node? get allocationNode;
 
   // The [Entity] where this type mask was created.
-  MemberEntity get allocationElement;
+  MemberEntity? get allocationElement;
 
   @override
   bool operator ==(other) {

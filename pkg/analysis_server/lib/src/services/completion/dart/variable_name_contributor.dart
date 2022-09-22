@@ -66,7 +66,7 @@ class VariableNameContributor extends DartCompletionContributor {
           var varDeclarations = varDeclarationList.variables;
           if (varDeclarations.length == 1) {
             var declaration = varDeclarations.first;
-            strName = declaration.name2.lexeme;
+            strName = declaration.name.lexeme;
           }
         }
       }

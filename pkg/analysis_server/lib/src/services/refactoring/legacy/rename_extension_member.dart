@@ -213,7 +213,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.name2.lexeme == name) {
+    if (node.name.lexeme == name) {
       final element = node.declaredElement2;
       if (element is FunctionElement) {
         elements.add(element);
@@ -237,7 +237,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.name2.lexeme == name) {
+    if (node.name.lexeme == name) {
       final element = node.declaredElement2;
       if (element is LocalVariableElement) {
         elements.add(element);

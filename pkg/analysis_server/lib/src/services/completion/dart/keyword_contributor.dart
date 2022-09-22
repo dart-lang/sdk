@@ -146,7 +146,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     final entity = this.entity;
     // Don't suggest class name
-    if (entity == node.name2) {
+    if (entity == node.name) {
       return;
     }
     if (entity == node.rightBracket) {
@@ -266,7 +266,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    if (entity == node.name2) {
+    if (entity == node.name) {
       return;
     }
 
@@ -298,7 +298,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     // Don't suggest extension name
-    if (entity == node.name2) {
+    if (entity == node.name) {
       return;
     }
     if (entity == node.rightBracket) {
@@ -492,7 +492,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // If the cursor is at the beginning of the declaration, include the
     // compilation unit keywords.  See dartbug.com/41039.
-    if (entity == node.returnType || entity == node.name2) {
+    if (entity == node.returnType || entity == node.name) {
       _addSuggestion(Keyword.DYNAMIC);
       _addSuggestion(Keyword.VOID);
     }
@@ -615,7 +615,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
           _addSuggestion2(SYNC_STAR);
         }
       }
-    } else if (entity == node.returnType || entity == node.name2) {
+    } else if (entity == node.returnType || entity == node.name) {
       // If the cursor is at the beginning of the declaration, include the class
       // body keywords.  See dartbug.com/41039.
       _addClassBodyKeywords();
@@ -643,7 +643,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     final entity = this.entity;
     // Don't suggest mixin name
-    if (entity == node.name2) {
+    if (entity == node.name) {
       return;
     }
     if (entity == node.rightBracket) {

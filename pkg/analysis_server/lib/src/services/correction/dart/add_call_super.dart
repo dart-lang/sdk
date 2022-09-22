@@ -37,7 +37,7 @@ class AddCallSuper extends CorrectionProducer {
         ?.declaredElement2;
     if (classElement == null) return;
 
-    var name = methodDeclaration.name2.lexeme;
+    var name = methodDeclaration.name.lexeme;
     var nameObj = Name(classElement.library.source.uri, name);
     var overridden = InheritanceManager3().getInherited2(classElement, nameObj);
     if (overridden == null) return;

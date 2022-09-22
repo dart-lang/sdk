@@ -76,7 +76,7 @@ class ConvertIntoFinalField extends CorrectionProducer {
       if (returnType != null) {
         code += ' ${utils.getNodeText(returnType)}';
       }
-      code += ' ${getter.name2.lexeme}';
+      code += ' ${getter.name.lexeme}';
       if (expression is! NullLiteral) {
         code += ' = ${utils.getNodeText(expression)}';
       }

@@ -578,7 +578,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         for (VariableDeclaration variableDeclaration
             in member.fields.variables) {
           if (isEnumDeclaration &&
-              variableDeclaration.name2.lexeme == 'values') {
+              variableDeclaration.name.lexeme == 'values') {
             continue;
           }
           var initializer = variableDeclaration.initializer;
@@ -599,7 +599,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                   CompileTimeErrorCode
                       .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
                   constKeyword,
-                  [variableDeclaration.name2.lexeme]);
+                  [variableDeclaration.name.lexeme]);
             }
           }
         }
@@ -664,7 +664,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateSwitchStatement_nullSafety(SwitchStatement node) {
-    var switchType = node.expression.typeOrThrow;
     for (var switchMember in node.members) {
       if (switchMember is SwitchCase) {
         Expression expression = switchMember.expression;
@@ -690,15 +689,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
             expression,
             [expressionType],
-          );
-        }
-
-        if (!_typeSystem.isSubtypeOf(expressionType, switchType)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode
-                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
-            expression,
-            [expressionType, switchType],
           );
         }
       }

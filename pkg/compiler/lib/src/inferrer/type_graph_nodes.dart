@@ -1318,7 +1318,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
             inferrer.returnsMapValueType(localSelector, typeMask)) {
           if (abstractValueDomain.isDictionary(typeMask)) {
             AbstractValue arg = arguments!.positional[0].type;
-            ConstantValue value = abstractValueDomain.getPrimitiveValue(arg);
+            final value = abstractValueDomain.getPrimitiveValue(arg);
             if (value is StringConstantValue) {
               String key = value.stringValue;
               if (abstractValueDomain.containsDictionaryKey(typeMask, key)) {
@@ -1664,7 +1664,7 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
   final int? originalLength;
 
   /// The length after the container has been traced.
-  late int inferredLength;
+  int? inferredLength;
 
   ListTypeInformation(
       AbstractValueDomain abstractValueDomain,

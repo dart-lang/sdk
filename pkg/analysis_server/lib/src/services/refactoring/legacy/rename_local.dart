@@ -35,7 +35,7 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _checkDeclaration(
       declaredElement: node.declaredElement2!,
-      nameToken: node.name2,
+      nameToken: node.name,
     );
 
     super.visitFunctionDeclaration(node);
@@ -70,7 +70,7 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     _checkDeclaration(
       declaredElement: node.declaredElement2!,
-      nameToken: node.name2,
+      nameToken: node.name,
     );
 
     super.visitVariableDeclaration(node);

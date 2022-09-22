@@ -116,6 +116,42 @@ SimpleIdentifier
 ''');
   }
 
+  test_inExtension_onRecordType_fromTypeParameterBound_named() async {
+    await assertNoErrorsInCode('''
+extension E<T extends ({int foo})> on T {
+  void f() {
+    foo;
+  }
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_inExtension_onRecordType_fromTypeParameterBound_positional() async {
+    await assertNoErrorsInCode(r'''
+extension E<T extends (int, String)> on T {
+  void f() {
+    $0;
+  }
+}
+''');
+
+    final node = findNode.simple(r'$0;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: $0
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
   test_inExtension_onRecordType_named() async {
     await assertNoErrorsInCode('''
 extension E on ({int foo}) {

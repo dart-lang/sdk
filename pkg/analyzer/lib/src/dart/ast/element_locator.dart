@@ -121,7 +121,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
       // Constructor Elements
       var returnType = parent.returnType;
       if (identical(returnType, node)) {
-        var name = parent.name2;
+        var name = parent.name;
         if (name != null) {
           return parent.declaredElement2;
         }
@@ -129,7 +129,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
         if (element is InterfaceElement) {
           return element.unnamedConstructor;
         }
-      } else if (parent.name2 == node.endToken) {
+      } else if (parent.name == node.endToken) {
         return parent.declaredElement2;
       }
     } else if (parent is LibraryIdentifier) {

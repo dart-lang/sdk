@@ -61,7 +61,7 @@ class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAdjacentStrings(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitAdjacentStrings(this, contextType: contextType);
   }
 
@@ -483,7 +483,7 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAsExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitAsExpression(this, contextType: contextType);
   }
 
@@ -752,7 +752,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
       visitor.visitAssignmentExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitAssignmentExpression(this, contextType: contextType);
   }
 
@@ -984,7 +984,7 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitAwaitExpression(this, contextType: contextType);
   }
 
@@ -1062,7 +1062,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitBinaryExpression(this, contextType: contextType);
   }
 
@@ -1280,7 +1280,7 @@ class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBooleanLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitBooleanLiteral(this, contextType: contextType);
   }
 
@@ -1423,7 +1423,7 @@ class CascadeExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitCascadeExpression(this, contextType: contextType);
   }
 
@@ -1842,7 +1842,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.macroKeyword,
     required this.augmentKeyword,
     required this.classKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required ExtendsClauseImpl? extendsClause,
     required WithClauseImpl? withClause,
@@ -1917,7 +1917,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('macroKeyword', macroKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('classKeyword', classKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('extendsClause', extendsClause)
     ..addNode('withClause', withClause)
@@ -2006,7 +2006,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required super.comment,
     required super.metadata,
     required super.typedefKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required this.abstractKeyword,
@@ -2063,7 +2063,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('typedefKeyword', typedefKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addToken('abstractKeyword', abstractKeyword)
@@ -2572,7 +2572,7 @@ class ConditionalExpressionImpl extends ExpressionImpl
       visitor.visitConditionalExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitConditionalExpression(this, contextType: contextType);
   }
 
@@ -2788,7 +2788,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// The name of the constructor, or `null` if the constructor being declared
   /// is unnamed.
   @override
-  Token? name2;
+  Token? name;
 
   /// The parameters associated with the constructor.
   FormalParameterListImpl _parameters;
@@ -2819,7 +2819,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   /// [comment] and [metadata] can be `null` if the constructor does not have
   /// the corresponding attribute. The [constKeyword] can be `null` if the
   /// constructor cannot be used to create a constant. The [factoryKeyword] can
-  /// be `null` if the constructor is not a factory. The [period] and [name2] can
+  /// be `null` if the constructor is not a factory. The [period] and [name] can
   /// both be `null` if the constructor is not a named constructor. The
   /// [separator] can be `null` if the constructor does not have any
   /// initializers and does not redirect to a different constructor. The list of
@@ -2835,7 +2835,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     required this.factoryKeyword,
     required IdentifierImpl returnType,
     required this.period,
-    required this.name2,
+    required this.name,
     required FormalParameterListImpl parameters,
     required this.separator,
     required List<ConstructorInitializer>? initializers,
@@ -2874,6 +2874,10 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   NodeListImpl<ConstructorInitializer> get initializers => _initializers;
 
+  @Deprecated('Use name instead')
+  @override
+  Token? get name2 => name;
+
   @override
   FormalParameterListImpl get parameters => _parameters;
 
@@ -2903,7 +2907,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addToken('factoryKeyword', factoryKeyword)
     ..addNode('returnType', returnType)
     ..addToken('period', period)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('parameters', parameters)
     ..addToken('separator', separator)
     ..addNodeList('initializers', initializers)
@@ -3135,7 +3139,7 @@ class ConstructorReferenceImpl extends CommentReferableExpressionImpl
       visitor.visitConstructorReference(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitConstructorReference(this, contextType: contextType);
   }
 
@@ -3666,7 +3670,7 @@ class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoubleLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitDoubleLiteral(this, contextType: contextType);
   }
 
@@ -3803,7 +3807,7 @@ class EnumConstantArgumentsImpl extends AstNodeImpl
 class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
   @override
-  final Token name2;
+  final Token name;
 
   @override
   FieldElement? declaredElement2;
@@ -3820,21 +3824,25 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   EnumConstantDeclarationImpl({
     required super.comment,
     required super.metadata,
-    required this.name2,
+    required this.name,
     required this.arguments,
   }) {
     _becomeParentOf(arguments);
   }
 
   @override
-  Token get endToken => arguments?.endToken ?? name2;
+  Token get endToken => arguments?.endToken ?? name;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name2;
+  Token get firstTokenAfterCommentAndMetadata => name;
+
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('arguments', arguments);
 
   @override
@@ -3900,7 +3908,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.enumKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
@@ -3957,7 +3965,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   // TODO(brianwilkerson) Add commas?
   ChildEntities get _childEntities => super._childEntities
     ..addToken('enumKeyword', enumKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('withClause', withClause)
     ..addNode('implementsClause', implementsClause)
@@ -4236,7 +4244,7 @@ abstract class ExpressionImpl extends AstNodeImpl
   /// Note: most code shouldn't call this method directly, but should instead
   /// call [ResolverVisitor.analyzeExpression], which has some special logic for
   /// handling dynamic contexts.
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType);
+  void resolveExpression(ResolverVisitor resolver, DartType contextType);
 }
 
 /// An expression used as a statement.
@@ -4364,7 +4372,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   HideClauseImpl? _hideClause;
 
   @override
-  Token? name2;
+  Token? name;
 
   /// The show clause for the extension or `null` if the declaration does not
   /// show any elements.
@@ -4397,7 +4405,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required super.metadata,
     required this.extensionKeyword,
     required this.typeKeyword,
-    required this.name2,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required this.onKeyword,
     required TypeAnnotationImpl extendedType,
@@ -4438,6 +4446,10 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   NodeListImpl<ClassMember> get members => _members;
 
+  @Deprecated('Use name instead')
+  @override
+  Token? get name2 => name;
+
   @override
   ShowClauseImpl? get showClause => _showClause;
 
@@ -4455,7 +4467,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('extensionKeyword', extensionKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addToken('onKeyword', onKeyword)
     ..addNode('extendedType', extendedType)
@@ -4561,7 +4573,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitExtensionOverride(this, contextType: contextType);
   }
 
@@ -5091,6 +5103,7 @@ class ForElementImpl extends CollectionElementImpl implements ForElement {
   void resolveElement(
       ResolverVisitor resolver, CollectionLiteralContext? context) {
     resolver.visitForElement(this, context: context);
+    resolver.pushRewrite(null);
   }
 
   @override
@@ -5625,7 +5638,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.externalKeyword,
     required TypeAnnotationImpl? returnType,
     required this.propertyKeyword,
-    required super.name2,
+    required super.name,
     required FunctionExpressionImpl functionExpression,
   })  : _returnType = returnType,
         _functionExpression = functionExpression {
@@ -5642,7 +5655,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
         externalKeyword ??
         _returnType?.beginToken ??
         propertyKeyword ??
-        name2;
+        name;
   }
 
   @override
@@ -5672,7 +5685,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('externalKeyword', externalKeyword)
     ..addNode('returnType', returnType)
     ..addToken('propertyKeyword', propertyKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('functionExpression', functionExpression);
 
   @override
@@ -5814,7 +5827,7 @@ class FunctionExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitFunctionExpression(this, contextType: contextType);
   }
 
@@ -5883,7 +5896,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
       visitor.visitFunctionExpressionInvocation(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitFunctionExpressionInvocation(this, contextType: contextType);
   }
 
@@ -5952,7 +5965,7 @@ class FunctionReferenceImpl extends CommentReferableExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitFunctionReference(this, contextType: contextType);
   }
 
@@ -5995,7 +6008,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
     required super.metadata,
     required super.typedefKeyword,
     required TypeAnnotationImpl? returnType,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl parameters,
     required super.semicolon,
@@ -6032,7 +6045,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   ChildEntities get _childEntities => super._childEntities
     ..addToken('typedefKeyword', typedefKeyword)
     ..addNode('returnType', returnType)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('parameters', parameters)
     ..addToken('semicolon', semicolon);
@@ -6308,7 +6321,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
     required super.comment,
     required super.metadata,
     required super.typedefKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required TypeAnnotationImpl type,
@@ -6353,7 +6366,7 @@ class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
     ..addToken('typedefKeyword', typedefKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addNode('type', type);
@@ -6554,6 +6567,7 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   void resolveElement(
       ResolverVisitor resolver, CollectionLiteralContext? context) {
     resolver.visitIfElement(this, context: context);
+    resolver.pushRewrite(null);
   }
 
   @override
@@ -6775,7 +6789,7 @@ class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitImplicitCallReference(this, contextType: contextType);
   }
 
@@ -7098,7 +7112,7 @@ class IndexExpressionImpl extends ExpressionImpl
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitIndexExpression(this, contextType: contextType);
   }
 
@@ -7212,7 +7226,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
       visitor.visitInstanceCreationExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitInstanceCreationExpression(this, contextType: contextType);
   }
 
@@ -7277,7 +7291,7 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIntegerLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitIntegerLiteral(this, contextType: contextType);
   }
 
@@ -7560,7 +7574,7 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIsExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitIsExpression(this, contextType: contextType);
   }
 
@@ -7831,7 +7845,7 @@ class LibraryIdentifierImpl extends IdentifierImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryIdentifier(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitLibraryIdentifier(this, contextType: contextType);
   }
 
@@ -7901,7 +7915,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitListLiteral(this, contextType: contextType);
   }
 
@@ -8052,6 +8066,7 @@ class MapLiteralEntryImpl extends CollectionElementImpl
   void resolveElement(
       ResolverVisitor resolver, CollectionLiteralContext? context) {
     resolver.visitMapLiteralEntry(this, context: context);
+    resolver.pushRewrite(null);
   }
 
   @override
@@ -8195,7 +8210,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
   Token? operatorKeyword;
 
   @override
-  Token name2;
+  Token name;
 
   /// The type parameters associated with the method, or `null` if the method is
   /// not a generic method.
@@ -8233,7 +8248,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
     required TypeAnnotationImpl? returnType,
     required this.propertyKeyword,
     required this.operatorKeyword,
-    required this.name2,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl? parameters,
     required FunctionBodyImpl body,
@@ -8262,7 +8277,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
     return Token.lexicallyFirst(externalKeyword, modifierKeyword) ??
         _returnType?.beginToken ??
         Token.lexicallyFirst(propertyKeyword, operatorKeyword) ??
-        name2;
+        name;
   }
 
   @override
@@ -8283,6 +8298,10 @@ class MethodDeclarationImpl extends ClassMemberImpl
 
   @override
   bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
+
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
 
   @override
   FormalParameterListImpl? get parameters => _parameters;
@@ -8312,7 +8331,7 @@ class MethodDeclarationImpl extends ClassMemberImpl
     ..addNode('returnType', returnType)
     ..addToken('propertyKeyword', propertyKeyword)
     ..addToken('operatorKeyword', operatorKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('parameters', parameters)
     ..addNode('body', body);
 
@@ -8472,7 +8491,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitMethodInvocation(this, contextType: contextType);
   }
 
@@ -8540,7 +8559,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.augmentKeyword,
     required this.mixinKeyword,
-    required super.name2,
+    required super.name,
     required TypeParameterListImpl? typeParameters,
     required OnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
@@ -8592,7 +8611,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
     ..addNode('onClause', onClause)
     ..addNode('implementsClause', implementsClause)
@@ -8618,16 +8637,20 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     implements NamedCompilationUnitMember {
   /// The name of the member being declared.
   @override
-  Token name2;
+  Token name;
 
-  /// Initialize a newly created compilation unit member with the given [name2].
+  /// Initialize a newly created compilation unit member with the given [name].
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// does not have the corresponding attribute.
   NamedCompilationUnitMemberImpl({
     required super.comment,
     required super.metadata,
-    required this.name2,
+    required this.name,
   });
+
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
 }
 
 /// An expression that has a name associated with it. They are used in method
@@ -8693,7 +8716,7 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitNamedExpression(this, contextType: contextType);
   }
 
@@ -9170,7 +9193,7 @@ class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitNullLiteral(this, contextType: contextType);
   }
 
@@ -9311,7 +9334,7 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
       visitor.visitParenthesizedExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitParenthesizedExpression(this, contextType: contextType);
   }
 
@@ -9747,7 +9770,7 @@ class PostfixExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitPostfixExpression(this, contextType: contextType);
   }
 
@@ -9874,7 +9897,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixedIdentifier(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitPrefixedIdentifier(this, contextType: contextType);
   }
 
@@ -9953,7 +9976,7 @@ class PrefixExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitPrefixExpression(this, contextType: contextType);
   }
 
@@ -10072,7 +10095,7 @@ class PropertyAccessImpl extends CommentReferableExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitPropertyAccess(this, contextType: contextType);
   }
 
@@ -10133,7 +10156,7 @@ class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitRecordLiteral(this, contextType: contextType);
   }
 
@@ -10575,7 +10598,7 @@ class RethrowExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitRethrowExpression(this, contextType: contextType);
   }
 
@@ -10755,7 +10778,7 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitSetOrMapLiteral(this, contextType: contextType);
   }
 
@@ -11171,7 +11194,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   }
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitSimpleIdentifier(this, contextType: contextType);
   }
 
@@ -11250,7 +11273,7 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleStringLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitSimpleStringLiteral(this, contextType: contextType);
   }
 
@@ -11315,6 +11338,7 @@ class SpreadElementImpl extends AstNodeImpl
   void resolveElement(
       ResolverVisitor resolver, CollectionLiteralContext? context) {
     resolver.visitSpreadElement(this, context: context);
+    resolver.pushRewrite(null);
   }
 
   @override
@@ -11427,7 +11451,7 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitStringInterpolation(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitStringInterpolation(this, contextType: contextType);
   }
 
@@ -11661,7 +11685,7 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitSuperExpression(this, contextType: contextType);
   }
 
@@ -12273,7 +12297,7 @@ class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSymbolLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitSymbolLiteral(this, contextType: contextType);
   }
 
@@ -12312,7 +12336,7 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitThisExpression(this, contextType: contextType);
   }
 
@@ -12366,7 +12390,7 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitThrowExpression(this, contextType: contextType);
   }
 
@@ -12552,7 +12576,7 @@ abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.typedefKeyword,
-    required super.name2,
+    required super.name,
     required this.semicolon,
   });
 
@@ -12706,7 +12730,7 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeLiteral(this);
 
   @override
-  void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
+  void resolveExpression(ResolverVisitor resolver, DartType contextType) {
     resolver.visitTypeLiteral(this, contextType: contextType);
   }
 
@@ -12724,7 +12748,7 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
 ///    typeParameterVariance ::= 'out' | 'inout' | 'in'
 class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
-  Token name2;
+  Token name;
 
   /// The token representing the variance modifier keyword, or `null` if
   /// there is no explicit variance modifier, meaning legacy covariance.
@@ -12749,7 +12773,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeParameterImpl({
     required super.comment,
     required super.metadata,
-    required this.name2,
+    required this.name,
     required this.extendsKeyword,
     required TypeAnnotationImpl? bound,
     this.varianceKeyword,
@@ -12767,17 +12791,21 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   Token get endToken {
     if (_bound == null) {
-      return name2;
+      return name;
     }
     return _bound!.endToken;
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name2;
+  Token get firstTokenAfterCommentAndMetadata => name;
+
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
 
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addToken('extendsKeyword', extendsKeyword)
     ..addNode('bound', bound);
 
@@ -12928,7 +12956,7 @@ class UriValidationCode {
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
-  Token name2;
+  Token name;
 
   @override
   VariableElement? declaredElement2;
@@ -12951,7 +12979,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   /// Initialize a newly created variable declaration. The [equals] and
   /// [initializer] can be `null` if there is no initializer.
   VariableDeclarationImpl({
-    required this.name2,
+    required this.name,
     required this.equals,
     required ExpressionImpl? initializer,
   })  : _initializer = initializer,
@@ -12979,11 +13007,11 @@ class VariableDeclarationImpl extends DeclarationImpl
     if (_initializer != null) {
       return _initializer!.endToken;
     }
-    return name2;
+    return name;
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name2;
+  Token get firstTokenAfterCommentAndMetadata => name;
 
   @override
   ExpressionImpl? get initializer => _initializer;
@@ -13010,9 +13038,13 @@ class VariableDeclarationImpl extends DeclarationImpl
     return parent is VariableDeclarationList && parent.isLate;
   }
 
+  @Deprecated('Use name instead')
+  @override
+  Token get name2 => name;
+
   @override
   ChildEntities get _childEntities => super._childEntities
-    ..addToken('name', name2)
+    ..addToken('name', name)
     ..addToken('equals', equals)
     ..addNode('initializer', initializer);
 

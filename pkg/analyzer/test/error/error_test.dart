@@ -38,13 +38,13 @@ class ErrorCodeValuesTest extends ParserTestCase {
         var extendsClause = declaration.extendsClause;
         if (extendsClause != null &&
             extendsClause.superclass.name.name == 'ErrorCode') {
-          String className = declaration.name2.lexeme;
+          String className = declaration.name.lexeme;
           for (ClassMember member in declaration.members) {
             if (member is FieldDeclaration && member.isStatic) {
               var fields = member.fields;
               if ((fields.type == null ? bad() : true) &&
                   fields.type!.toSource() == className) {
-                String fieldName = fields.variables[0].name2.lexeme;
+                String fieldName = fields.variables[0].name.lexeme;
                 declaredCodes.add('$className.$fieldName');
               }
             }
@@ -61,7 +61,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
     TopLevelVariableDeclaration declaration = listingUnit.declarations
         .whereType<TopLevelVariableDeclaration>()
         .firstWhere((member) =>
-            member.variables.variables[0].name2.lexeme == 'errorCodeValues');
+            member.variables.variables[0].name.lexeme == 'errorCodeValues');
     var listLiteral =
         declaration.variables.variables[0].initializer as ListLiteral;
     for (var element in listLiteral.elements.cast<PrefixedIdentifier>()) {

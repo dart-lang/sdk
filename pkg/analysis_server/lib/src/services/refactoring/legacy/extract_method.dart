@@ -1068,7 +1068,7 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _addPatterns(
-      nameToken: node.name2,
+      nameToken: node.name,
       element: node.declaredElement2,
     );
 
@@ -1335,7 +1335,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
         // declared local elements
         var range = ref._visibleRangeMap[element];
         if (range != null) {
-          final name = node.name2.lexeme;
+          final name = node.name.lexeme;
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
           ranges.add(range);
         }

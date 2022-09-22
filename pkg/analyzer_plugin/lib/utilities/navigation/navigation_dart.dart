@@ -186,7 +186,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement2);
     super.visitClassDeclaration(node);
   }
 
@@ -279,7 +279,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // For a default constructor, override the class name to be the declaration
     // itself rather than linking to the class.
-    var nameToken = node.name2;
+    var nameToken = node.name;
     if (nameToken == null) {
       computer._addRegionForNode(node.returnType, node.declaredElement2);
     } else {
@@ -337,7 +337,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegionForToken(node.name2, node.constructorElement);
+    computer._addRegionForToken(node.name, node.constructorElement);
 
     var arguments = node.arguments;
     if (arguments != null) {
@@ -375,7 +375,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement2);
     super.visitFunctionDeclaration(node);
   }
 
@@ -404,7 +404,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement2);
     super.visitMethodDeclaration(node);
   }
 
@@ -508,13 +508,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement2);
     super.visitTypeParameter(node);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    computer._addRegionForToken(node.name2, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement2);
     super.visitVariableDeclaration(node);
   }
 

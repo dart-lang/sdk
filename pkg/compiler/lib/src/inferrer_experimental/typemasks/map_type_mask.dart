@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of masks;
 
 /// A [MapTypeMask] is a [TypeMask] for a specific allocation
@@ -17,12 +15,12 @@ class MapTypeMask extends AllocationTypeMask {
   @override
   final TypeMask forwardTo;
 
-  final ir.Node /*?*/ _allocationNode;
+  final ir.Node? _allocationNode;
   @override
-  ir.Node get allocationNode => _allocationNode /*!*/;
+  ir.Node? get allocationNode => _allocationNode;
 
   @override
-  final MemberEntity allocationElement;
+  final MemberEntity? allocationElement;
 
   // The value type of this map.
   final TypeMask valueType;
@@ -37,10 +35,10 @@ class MapTypeMask extends AllocationTypeMask {
   factory MapTypeMask.readFromDataSource(
       DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
-    MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask keyType = TypeMask.readFromDataSource(source, domain);
-    TypeMask valueType = TypeMask.readFromDataSource(source, domain);
+    final forwardTo = TypeMask.readFromDataSource(source, domain);
+    final allocationElement = source.readMemberOrNull();
+    final keyType = TypeMask.readFromDataSource(source, domain);
+    final valueType = TypeMask.readFromDataSource(source, domain);
     source.end(tag);
     return MapTypeMask(forwardTo, null, allocationElement, keyType, valueType);
   }
@@ -58,7 +56,7 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   @override
-  MapTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+  MapTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -75,22 +73,12 @@ class MapTypeMask extends AllocationTypeMask {
   }
 
   @override
-  bool get isContainer => false;
-  @override
-  bool get isMap => true;
-  @override
   bool get isExact => true;
 
   @override
-  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {bool isNullable, bool hasLateSentinel}) {
-    assert(isNullable != null);
-    assert(hasLateSentinel != null);
-    if (other is MapTypeMask &&
-        keyType != null &&
-        other.keyType != null &&
-        valueType != null &&
-        other.valueType != null) {
+  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
+      {required bool isNullable, required bool hasLateSentinel}) {
+    if (other is MapTypeMask) {
       TypeMask newKeyType = keyType.union(other.keyType, domain);
       TypeMask newValueType = valueType.union(other.valueType, domain);
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);

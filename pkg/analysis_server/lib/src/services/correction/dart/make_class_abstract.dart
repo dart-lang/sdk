@@ -23,7 +23,7 @@ class MakeClassAbstract extends CorrectionProducer {
     if (enclosingClass == null) {
       return;
     }
-    _className = enclosingClass.name2.lexeme;
+    _className = enclosingClass.name.lexeme;
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
           enclosingClass.classKeyword.offset, 'abstract ');

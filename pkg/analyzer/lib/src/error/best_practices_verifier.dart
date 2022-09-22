@@ -304,9 +304,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (undefinedParam != null) {
         String? name;
         if (parent is FunctionDeclaration) {
-          name = parent.name2.lexeme;
+          name = parent.name.lexeme;
         } else if (parent is MethodDeclaration) {
-          name = parent.name2.lexeme;
+          name = parent.name.lexeme;
         }
         if (name != null) {
           var paramName = undefinedParam is SimpleStringLiteral
@@ -506,8 +506,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           // always named, so we can safely assume
           // `overriddenElement.enclosingElement3.name` is non-`null`.
           _errorReporter.reportErrorForToken(
-              HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, field.name2, [
-            field.name2.lexeme,
+              HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, field.name, [
+            field.name.lexeme,
             overriddenElement.enclosingElement3.displayName
           ]);
         }
@@ -546,7 +546,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // Return types are inferred only on non-recursive local functions.
       if (node.parent is CompilationUnit && !node.isSetter) {
         _checkStrictInferenceReturnType(
-            node.returnType, node, node.name2.lexeme);
+            node.returnType, node, node.name.lexeme);
       }
       _checkStrictInferenceInParameters(node.functionExpression.parameters,
           body: node.functionExpression.body);
@@ -583,7 +583,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _checkStrictInferenceReturnType(node.returnType, node, node.name2.lexeme);
+    _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
     _checkStrictInferenceInParameters(node.parameters);
     super.visitFunctionTypeAlias(node);
   }
@@ -609,7 +609,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     if (node.functionType != null) {
       _checkStrictInferenceReturnType(
-          node.functionType!.returnType, node, node.name2.lexeme);
+          node.functionType!.returnType, node, node.name.lexeme);
     }
     super.visitGenericTypeAlias(node);
   }
@@ -684,7 +684,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
       if (!node.isSetter && !elementIsOverride) {
         _checkStrictInferenceReturnType(
-            node.returnType, node, node.name2.lexeme);
+            node.returnType, node, node.name.lexeme);
       }
       if (!elementIsOverride) {
         _checkStrictInferenceInParameters(node.parameters, body: node.body);
@@ -701,8 +701,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // always named, so we can safely assume
         // `overriddenElement.enclosingElement3.name` is non-`null`.
         _errorReporter.reportErrorForToken(
-            HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, node.name2, [
-          node.name2.lexeme,
+            HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, node.name, [
+          node.name.lexeme,
           overriddenElement.enclosingElement3.displayName
         ]);
       }
@@ -1064,8 +1064,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           definedOrInheritedNonFinalInstanceFields(
               element, HashSet<InterfaceElement>());
       if (nonFinalFields.isNotEmpty) {
-        _errorReporter.reportErrorForToken(HintCode.MUST_BE_IMMUTABLE,
-            node.name2, [nonFinalFields.join(', ')]);
+        _errorReporter.reportErrorForToken(
+            HintCode.MUST_BE_IMMUTABLE, node.name, [nonFinalFields.join(', ')]);
       }
     }
   }
@@ -1137,8 +1137,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // Note that null return types are expected to be flagged by other analyses.
     var returnType = decl.returnType?.type;
     if (returnType is VoidType) {
-      _errorReporter.reportErrorForToken(HintCode.INVALID_FACTORY_METHOD_DECL,
-          decl.name2, [decl.name2.lexeme]);
+      _errorReporter.reportErrorForToken(
+          HintCode.INVALID_FACTORY_METHOD_DECL, decl.name, [decl.name.lexeme]);
       return;
     }
 
@@ -1167,7 +1167,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     _errorReporter.reportErrorForToken(
-        HintCode.INVALID_FACTORY_METHOD_IMPL, decl.name2, [decl.name2.lexeme]);
+        HintCode.INVALID_FACTORY_METHOD_IMPL, decl.name, [decl.name.lexeme]);
   }
 
   void _checkForInvalidSealedSuperclass(NamedCompilationUnitMember node) {
@@ -1331,13 +1331,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (functionNode is FunctionDeclaration) {
       _errorReporter.reportErrorForToken(
         HintCode.MISSING_RETURN,
-        functionNode.name2,
+        functionNode.name,
         [returnType],
       );
     } else if (functionNode is MethodDeclaration) {
       _errorReporter.reportErrorForToken(
         HintCode.MISSING_RETURN,
-        functionNode.name2,
+        functionNode.name,
         [returnType],
       );
     } else {
@@ -1472,7 +1472,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   ///
   /// Return `true` if and only if a hint code is generated on the passed node.
   bool _checkForUnnecessaryNoSuchMethod(MethodDeclaration node) {
-    if (node.name2.lexeme != FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
+    if (node.name.lexeme != FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
       return false;
     }
     bool isNonObjectNoSuchMethodInvocation(Expression? invocation) {
@@ -1495,7 +1495,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (body is ExpressionFunctionBody) {
       if (isNonObjectNoSuchMethodInvocation(body.expression)) {
         _errorReporter.reportErrorForToken(
-            HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name2);
+            HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
         return true;
       }
     } else if (body is BlockFunctionBody) {
@@ -1505,7 +1505,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (returnStatement is ReturnStatement &&
             isNonObjectNoSuchMethodInvocation(returnStatement.expression)) {
           _errorReporter.reportErrorForToken(
-              HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name2);
+              HintCode.UNNECESSARY_NO_SUCH_METHOD, node.name);
           return true;
         }
       }
@@ -1921,7 +1921,7 @@ class _InvalidAccessVerifier {
 
       if (node.leftOperand is SuperExpression) {
         var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
-        if (methodDeclaration?.name2.lexeme == operator.lexeme) {
+        if (methodDeclaration?.name.lexeme == operator.lexeme) {
           return;
         }
       }
@@ -2052,7 +2052,7 @@ class _InvalidAccessVerifier {
           parent is PropertyAccess && parent.target is SuperExpression) {
         var methodDeclaration =
             grandparent?.thisOrAncestorOfType<MethodDeclaration>();
-        if (methodDeclaration?.name2.lexeme == identifier.name) {
+        if (methodDeclaration?.name.lexeme == identifier.name) {
           validOverride = true;
         }
       }

@@ -224,7 +224,7 @@ class MakeVariableNullable extends CorrectionProducer {
   Future<void> _updateVariableType(ChangeBuilder builder,
       VariableDeclarationList declarationList, DartType newType) async {
     var variable = declarationList.variables[0];
-    _variableName = variable.name2.lexeme;
+    _variableName = variable.name.lexeme;
     await builder.addDartFileEdit(file, (builder) {
       var keyword = declarationList.keyword;
       if (keyword != null && keyword.type == Keyword.VAR) {

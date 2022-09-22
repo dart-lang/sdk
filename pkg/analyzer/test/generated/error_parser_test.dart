@@ -852,7 +852,7 @@ class Foo {
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name2.lexeme, 'A');
+    expect(clazz.name.lexeme, 'A');
   }
 
   void test_expectedToken_semicolonMissingAfterExpression() {
@@ -888,7 +888,7 @@ class Foo {
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name2.lexeme, 'A');
+    expect(clazz.name.lexeme, 'A');
   }
 
   void test_expectedToken_whileMissingInDoStatement() {

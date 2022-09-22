@@ -147,7 +147,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     final variables = declarationList.variables;
     final variable = variables[0];
     // Ensure that the selection is not after the name of the variable.
-    if (selectionOffset > variable.name2.end) {
+    if (selectionOffset > variable.name.end) {
       return;
     }
     // Ensure that there is an initializer to get the type from.

@@ -33,17 +33,17 @@ class DartUnitHoverComputer {
 
     SyntacticEntity? locationEntity;
     if (node is NamedCompilationUnitMember) {
-      locationEntity = node.name2;
+      locationEntity = node.name;
     } else if (node is Expression) {
       locationEntity = node;
     } else if (node is ExtensionDeclaration) {
-      locationEntity = node.name2;
+      locationEntity = node.name;
     } else if (node is FormalParameter) {
       locationEntity = node.name;
     } else if (node is MethodDeclaration) {
-      locationEntity = node.name2;
+      locationEntity = node.name;
     } else if (node is VariableDeclaration) {
-      locationEntity = node.name2;
+      locationEntity = node.name;
     }
     if (locationEntity == null) {
       return null;

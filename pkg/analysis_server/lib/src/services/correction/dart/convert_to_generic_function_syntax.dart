@@ -76,7 +76,7 @@ class ConvertToGenericFunctionSyntax extends CorrectionProducer {
     }
 
     var functionName = utils.getRangeText(
-        range.startEnd(node.name2, node.typeParameters ?? node.name2));
+        range.startEnd(node.name, node.typeParameters ?? node.name));
     var parameters = utils.getNodeText(node.parameters);
     String replacement;
     if (returnType == null) {

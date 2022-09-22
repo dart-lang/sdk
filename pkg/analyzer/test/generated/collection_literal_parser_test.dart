@@ -97,7 +97,7 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
     expect(second.rightParenthesis.lexeme, ')');
     var forLoopParts = second.forLoopParts as ForPartsWithDeclarations;
     VariableDeclaration forLoopVar = forLoopParts.variables.variables[0];
-    expect(forLoopVar.name2.lexeme, 'x');
+    expect(forLoopVar.name.lexeme, 'x');
     var condition = forLoopParts.condition as BinaryExpression;
     var rightOperand = condition.rightOperand as IntegerLiteral;
     expect(rightOperand.value, 10);

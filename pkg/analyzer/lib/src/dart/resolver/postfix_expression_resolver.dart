@@ -208,7 +208,7 @@ class PostfixExpressionResolver {
     }
 
     _resolver.analyzeExpression(operand, contextType);
-    operand = node.operand;
+    operand = _resolver.popRewrite()!;
 
     var operandType = operand.typeOrThrow;
 

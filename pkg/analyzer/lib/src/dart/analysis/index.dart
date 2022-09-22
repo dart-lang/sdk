@@ -565,7 +565,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (node.extendsClause == null) {
       final objectElement = declaredElement.supertype?.element2;
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
-          node.name2.offset, 0, true);
+          node.name.offset, 0, true);
     }
     recordIsAncestorOf(declaredElement);
     super.visitClassDeclaration(node);
@@ -655,7 +655,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         offset = constructorSelector.period.offset;
         length = constructorSelector.name.end - offset;
       } else {
-        offset = node.name2.end;
+        offset = node.name.end;
         length = 0;
       }
       recordRelationOffset(
@@ -675,7 +675,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _addSubtype(
-      node.name2.lexeme,
+      node.name.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
       memberNodes: node.members,
@@ -942,10 +942,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
     for (ClassMember member in memberNodes) {
       if (member is MethodDeclaration && !member.isStatic) {
-        addMemberName(member.name2);
+        addMemberName(member.name);
       } else if (member is FieldDeclaration && !member.isStatic) {
         for (var field in member.fields.variables) {
-          addMemberName(field.name2);
+          addMemberName(field.name);
         }
       }
     }
@@ -958,7 +958,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
-    _addSubtype(node.name2.lexeme,
+    _addSubtype(node.name.lexeme,
         superclass: node.extendsClause?.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
@@ -967,7 +967,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
-    _addSubtype(node.name2.lexeme,
+    _addSubtype(node.name.lexeme,
         superclass: node.superclass,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
@@ -976,7 +976,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /// Record the given mixin as a subclass of its direct superclasses.
   void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
-    _addSubtype(node.name2.lexeme,
+    _addSubtype(node.name.lexeme,
         onClause: node.onClause,
         implementsClause: node.implementsClause,
         memberNodes: node.members);

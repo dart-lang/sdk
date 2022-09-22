@@ -470,7 +470,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.name2 != null) {
+    if (node.name != null) {
       final declaredElement = node.declaredElement2!;
       _visitConstructorElement(declaredElement);
     }

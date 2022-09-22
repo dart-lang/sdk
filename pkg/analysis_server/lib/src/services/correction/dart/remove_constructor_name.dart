@@ -27,7 +27,7 @@ class RemoveConstructorName extends CorrectionProducer {
     final node = this.node;
     if (node is ConstructorDeclaration) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.startStart(node.period!, node.name2!.next!));
+        builder.addDeletion(range.startStart(node.period!, node.name!.next!));
       });
     } else if (node is SimpleIdentifier) {
       // The '.' in ".new"

@@ -382,7 +382,7 @@ class AstBuilder extends StackListener {
     var typeParameter = TypeParameterImpl(
       comment: comment,
       metadata: metadata,
-      name2: name.token,
+      name: name.token,
       extendsKeyword: null,
       bound: null,
     );
@@ -911,7 +911,7 @@ class AstBuilder extends StackListener {
       factoryKeyword: null,
       returnType: ast.simpleIdentifier(prefixOrName.token),
       period: period,
-      name2: nameOrNull?.token,
+      name: nameOrNull?.token,
       parameters: parameters,
       separator: separator,
       initializers: initializers,
@@ -1002,7 +1002,7 @@ class AstBuilder extends StackListener {
         factoryKeyword: factoryKeyword,
         returnType: ast.simpleIdentifier(returnType.token),
         period: period,
-        name2: name?.token,
+        name: name?.token,
         parameters: parameters,
         separator: separator,
         initializers: null,
@@ -1142,7 +1142,7 @@ class AstBuilder extends StackListener {
         returnType: returnType,
         propertyKeyword: getOrSet,
         operatorKeyword: operatorKeyword,
-        name2: nameId.token,
+        name: nameId.token,
         typeParameters: typeParameters,
         parameters: parameters,
         body: body,
@@ -1476,7 +1476,7 @@ class AstBuilder extends StackListener {
         returnType: null,
         propertyKeyword: null,
         operatorKeyword: null,
-        name2: methodName.token,
+        name: methodName.token,
         typeParameters: typeParameters,
         parameters: parameters,
         body: body,
@@ -1532,7 +1532,7 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifierImpl;
     push(
       VariableDeclarationImpl(
-        name2: name.token,
+        name: name.token,
         equals: equals,
         initializer: initializer,
       ),
@@ -2044,7 +2044,7 @@ class AstBuilder extends StackListener {
       variable = node;
     } else if (node is SimpleIdentifierImpl) {
       variable = VariableDeclarationImpl(
-        name2: node.token,
+        name: node.token,
         equals: null,
         initializer: null,
       );
@@ -2236,7 +2236,7 @@ class AstBuilder extends StackListener {
       externalKeyword: null,
       returnType: returnType,
       propertyKeyword: null,
-      name2: name.token,
+      name: name.token,
       functionExpression: functionExpression,
     );
     push(
@@ -2406,7 +2406,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         typedefKeyword: classKeyword,
-        name2: name.token,
+        name: name.token,
         typeParameters: typeParameters,
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
@@ -2864,7 +2864,7 @@ class AstBuilder extends StackListener {
         externalKeyword: externalKeyword,
         returnType: returnType,
         propertyKeyword: getOrSet,
-        name2: name.token,
+        name: name.token,
         functionExpression: FunctionExpressionImpl(
           typeParameters: typeParameters,
           parameters: parameters,
@@ -2918,7 +2918,7 @@ class AstBuilder extends StackListener {
           metadata: metadata,
           typedefKeyword: typedefKeyword,
           returnType: returnType,
-          name2: name.token,
+          name: name.token,
           typeParameters: typeParameters,
           parameters: parameters,
           semicolon: semicolon,
@@ -2941,7 +2941,7 @@ class AstBuilder extends StackListener {
           comment: comment,
           metadata: metadata,
           typedefKeyword: typedefKeyword,
-          name2: name.token,
+          name: name.token,
           typeParameters: templateParameters,
           equals: equals,
           type: type,
@@ -3007,7 +3007,7 @@ class AstBuilder extends StackListener {
     // TODO(ahe): Don't push initializers, instead install them.
     push(
       VariableDeclarationImpl(
-        name2: identifier.token,
+        name: identifier.token,
         equals: equals,
         initializer: initializer,
       ),
@@ -3454,7 +3454,7 @@ class AstBuilder extends StackListener {
       constant = EnumConstantDeclarationImpl(
         comment: constant.documentationComment,
         metadata: constant.metadata,
-        name2: constant.name2,
+        name: constant.name,
         arguments: EnumConstantArgumentsImpl(
           typeArguments: typeArguments,
           constructorSelector: constructorSelector,
@@ -3671,7 +3671,7 @@ class AstBuilder extends StackListener {
           metadata: variableList.metadata,
           keyword: variableList.keyword,
           type: variableList.type as TypeAnnotationImpl?,
-          name: variableList.variables.first.name2,
+          name: variableList.variables.first.name,
         ),
         inKeyword: inKeyword,
         iterable: iterable,
@@ -3774,7 +3774,7 @@ class AstBuilder extends StackListener {
         EnumConstantDeclarationImpl(
           comment: comment,
           metadata: metadata,
-          name2: token,
+          name: token,
           arguments: null,
         ),
       );
@@ -4198,7 +4198,7 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifierImpl;
     push(
       VariableDeclarationImpl(
-        name2: name.token,
+        name: name.token,
         equals: null,
         initializer: null,
       ),
@@ -4879,7 +4879,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       macroKeyword: macroKeyword,
       augmentKeyword: augmentKeyword,
       classKeyword: classKeyword,
-      name2: name,
+      name: name,
       typeParameters: typeParameters,
       extendsClause: extendsClause,
       withClause: withClause,
@@ -4943,7 +4943,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       comment: comment,
       metadata: metadata,
       enumKeyword: enumKeyword,
-      name2: name,
+      name: name,
       typeParameters: typeParameters,
       withClause: withClause,
       implementsClause: implementsClause,
@@ -4982,7 +4982,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       metadata: metadata,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
-      name2: name,
+      name: name,
       typeParameters: typeParameters,
       onKeyword: onKeyword,
       extendedType: extendedType,
@@ -5021,7 +5021,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       metadata: metadata,
       augmentKeyword: augmentKeyword,
       mixinKeyword: mixinKeyword,
-      name2: name,
+      name: name,
       typeParameters: typeParameters,
       onClause: onClause,
       implementsClause: implementsClause,

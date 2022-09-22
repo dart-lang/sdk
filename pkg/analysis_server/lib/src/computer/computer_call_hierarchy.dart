@@ -332,7 +332,7 @@ class DartCallHierarchyComputer {
         }
       }
     } else if (node is ConstructorDeclaration) {
-      final name = node.name2;
+      final name = node.name;
       if (name != null && offset < name.offset) {
         return null;
       }

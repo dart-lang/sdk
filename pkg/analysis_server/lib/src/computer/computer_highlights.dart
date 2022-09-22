@@ -665,7 +665,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.name2, HighlightRegionType.CLASS);
+    computer._addRegion_token(node.name, HighlightRegionType.CLASS);
     super.visitClassDeclaration(node);
   }
 
@@ -684,7 +684,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         node.factoryKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(
-      node.name2,
+      node.name,
       HighlightRegionType.CONSTRUCTOR,
       semanticTokenType: SemanticTokenTypes.method,
       semanticTokenModifiers: {
@@ -759,7 +759,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     computer._addRegion_token(
-      node.name2,
+      node.name,
       HighlightRegionType.ENUM_CONSTANT,
     );
     node.visitChildren(this);
@@ -768,7 +768,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     computer._addRegion_token(node.enumKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.name2, HighlightRegionType.ENUM);
+    computer._addRegion_token(node.name, HighlightRegionType.ENUM);
     super.visitEnumDeclaration(node);
   }
 
@@ -796,7 +796,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     computer._addRegion_token(
         node.extensionKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.name2, HighlightRegionType.EXTENSION);
+    computer._addRegion_token(node.name, HighlightRegionType.EXTENSION);
     computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
     super.visitExtensionDeclaration(node);
   }
@@ -811,7 +811,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     for (final variable in node.fields.variables) {
       computer._addRegion_token(
-        variable.name2,
+        variable.name,
         node.isStatic
             ? HighlightRegionType.STATIC_FIELD_DECLARATION
             : HighlightRegionType.INSTANCE_FIELD_DECLARATION,
@@ -896,7 +896,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     } else {
       nameType = HighlightRegionType.LOCAL_FUNCTION_DECLARATION;
     }
-    computer._addRegion_token(node.name2, nameType);
+    computer._addRegion_token(node.name, nameType);
 
     super.visitFunctionDeclaration(node);
   }
@@ -906,7 +906,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.typedefKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
-        node.name2, HighlightRegionType.FUNCTION_TYPE_ALIAS);
+        node.name, HighlightRegionType.FUNCTION_TYPE_ALIAS);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -935,7 +935,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     } else {
       nameType = HighlightRegionType.TYPE_ALIAS;
     }
-    computer._addRegion_token(node.name2, nameType);
+    computer._addRegion_token(node.name, nameType);
 
     super.visitGenericTypeAlias(node);
   }
@@ -1079,7 +1079,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
           ? HighlightRegionType.STATIC_METHOD_DECLARATION
           : HighlightRegionType.INSTANCE_METHOD_DECLARATION;
     }
-    computer._addRegion_token(node.name2, nameType);
+    computer._addRegion_token(node.name, nameType);
 
     super.visitMethodDeclaration(node);
   }
@@ -1301,7 +1301,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     for (final variable in node.variables.variables) {
       computer._addRegion_token(
-        variable.name2,
+        variable.name,
         HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION,
       );
     }
@@ -1320,7 +1320,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    computer._addRegion_token(node.name2, HighlightRegionType.TYPE_PARAMETER);
+    computer._addRegion_token(node.name, HighlightRegionType.TYPE_PARAMETER);
     super.visitTypeParameter(node);
   }
 
@@ -1336,7 +1336,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     for (final variable in node.variables.variables) {
       final element = variable.declaredElement2 as LocalVariableElement;
       computer._addRegion_token(
-        variable.name2,
+        variable.name,
         element.type is DynamicType
             ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
             : HighlightRegionType.LOCAL_VARIABLE_DECLARATION,

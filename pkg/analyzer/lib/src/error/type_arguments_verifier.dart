@@ -131,7 +131,7 @@ class TypeArgumentsVerifier {
       bound = substitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
-        final errorTarget = typeArgumentNodes?[i] ?? node.name2;
+        final errorTarget = typeArgumentNodes?[i] ?? node.name;
         _errorReporter.reportErrorForOffset(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           errorTarget.offset,

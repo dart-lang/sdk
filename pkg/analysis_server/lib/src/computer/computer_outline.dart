@@ -96,7 +96,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
         ElementKind.CLASS,
@@ -111,7 +111,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newClassTypeAlias(ClassTypeAlias node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
         ElementKind.CLASS_TYPE_ALIAS,
@@ -130,7 +130,7 @@ class DartUnitOutlineComputer {
     var name = returnType.name;
     var offset = returnType.offset;
     var length = returnType.length;
-    var constructorNameToken = constructor.name2;
+    var constructorNameToken = constructor.name;
     var isPrivate = false;
     if (constructorNameToken != null) {
       var constructorName = constructorNameToken.lexeme;
@@ -153,7 +153,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newEnumConstant(EnumConstantDeclaration node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
         ElementKind.ENUM_CONSTANT,
@@ -166,7 +166,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newEnumOutline(EnumDeclaration node, List<Outline> children) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
         ElementKind.ENUM,
@@ -180,7 +180,7 @@ class DartUnitOutlineComputer {
 
   Outline _newExtensionOutline(
       ExtensionDeclaration node, List<Outline> extensionContents) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken?.lexeme ?? '';
     var element = Element(
         ElementKind.EXTENSION,
@@ -197,7 +197,7 @@ class DartUnitOutlineComputer {
 
   Outline _newFunctionOutline(FunctionDeclaration function, bool isStatic) {
     var returnType = function.returnType;
-    var nameToken = function.name2;
+    var nameToken = function.name;
     var name = nameToken.lexeme;
     var functionExpression = function.functionExpression;
     var parameters = functionExpression.parameters;
@@ -229,7 +229,7 @@ class DartUnitOutlineComputer {
 
   Outline _newFunctionTypeAliasOutline(FunctionTypeAlias node) {
     var returnType = node.returnType;
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
     var parameters = node.parameters;
     var parametersStr = _safeToSource(parameters);
@@ -248,7 +248,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newGenericTypeAliasOutline(GenericTypeAlias node) {
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
 
     var aliasedType = node.type;
@@ -280,7 +280,7 @@ class DartUnitOutlineComputer {
 
   Outline _newMethodOutline(MethodDeclaration method) {
     var returnType = method.returnType;
-    var nameToken = method.name2;
+    var nameToken = method.name;
     var name = nameToken.lexeme;
     var parameters = method.parameters;
     ElementKind kind;
@@ -311,7 +311,7 @@ class DartUnitOutlineComputer {
 
   Outline _newMixinOutline(MixinDeclaration node, List<Outline> mixinContents) {
     node.firstTokenAfterCommentAndMetadata;
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var name = nameToken.lexeme;
     var element = Element(
         ElementKind.MIXIN,
@@ -334,7 +334,7 @@ class DartUnitOutlineComputer {
 
   Outline _newVariableOutline(String typeName, ElementKind kind,
       VariableDeclaration variable, bool isStatic) {
-    var nameToken = variable.name2;
+    var nameToken = variable.name;
     var name = nameToken.lexeme;
     var element = Element(
         kind,

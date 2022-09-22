@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -92,7 +93,7 @@ class TypedLiteralResolver {
   }
 
   void resolveListLiteral(ListLiteralImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     InterfaceType? listType;
     GenericInferrer? inferrer;
 
@@ -106,7 +107,7 @@ class TypedLiteralResolver {
       }
     } else {
       inferrer = _inferListTypeDownwards(node, contextType: contextType);
-      if (contextType != null) {
+      if (contextType is! UnknownInferredType) {
         var typeArguments = inferrer.partialInfer();
         listType = _typeProvider.listElement.instantiate(
             typeArguments: typeArguments, nullabilitySuffix: _noneOrStarSuffix);
@@ -126,7 +127,7 @@ class TypedLiteralResolver {
   }
 
   void resolveSetOrMapLiteral(SetOrMapLiteral node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     (node as SetOrMapLiteralImpl).becomeUnresolved();
     var typeArguments = node.typeArguments?.arguments;
 
@@ -472,7 +473,7 @@ class TypedLiteralResolver {
 
   InterfaceType? _inferListTypeUpwards(
       GenericInferrer inferrer, ListLiteral node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
@@ -486,7 +487,9 @@ class TypedLiteralResolver {
         'element', genericElementType, ParameterKind.POSITIONAL);
     List<ParameterElement> parameters =
         List.filled(elementTypes.length, syntheticParameter);
-    if (_strictInference && parameters.isEmpty && contextType == null) {
+    if (_strictInference &&
+        parameters.isEmpty &&
+        contextType is UnknownInferredType) {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
@@ -606,11 +609,12 @@ class TypedLiteralResolver {
       List<CollectionElement> elements, CollectionLiteralContext? context) {
     for (var element in elements) {
       (element as CollectionElementImpl).resolveElement(_resolver, context);
+      _resolver.popRewrite();
     }
   }
 
   void _resolveListLiteral2(GenericInferrer? inferrer, ListLiteralImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var typeArguments = node.typeArguments?.arguments;
 
     // If we have explicit arguments, use them.
@@ -645,7 +649,7 @@ class TypedLiteralResolver {
 
   void _resolveSetOrMapLiteral2(GenericInferrer? inferrer,
       _LiteralResolution literalResolution, SetOrMapLiteralImpl node,
-      {required DartType? contextType}) {
+      {required DartType contextType}) {
     var typeArguments = node.typeArguments?.arguments;
 
     // If we have type arguments, use them.
@@ -688,7 +692,7 @@ class TypedLiteralResolver {
     }
     if (_strictInference &&
         _getSetOrMapElements(node).isEmpty &&
-        contextType == null) {
+        contextType is UnknownInferredType) {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.

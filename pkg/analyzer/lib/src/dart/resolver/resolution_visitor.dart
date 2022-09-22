@@ -1205,7 +1205,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _buildLocalFunctionElement(
       covariant FunctionDeclarationStatementImpl statement) {
     var node = statement.functionDeclaration;
-    var nameToken = node.name2;
+    var nameToken = node.name;
     var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
     node.declaredElement2 = element;
     _define(element);
@@ -1218,7 +1218,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var isLate = variableList.isLate;
     for (var variable in variableList.variables) {
       variable as VariableDeclarationImpl;
-      var nameToken = variable.name2;
+      var nameToken = variable.name;
 
       LocalVariableElementImpl element;
       if (isConst && variable.initializer != null) {
@@ -1250,7 +1250,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     for (var typeParameter in typeParameterList.typeParameters) {
       typeParameter as TypeParameterImpl;
-      var name = typeParameter.name2;
+      var name = typeParameter.name;
 
       TypeParameterElementImpl element;
       if (_elementWalker != null) {

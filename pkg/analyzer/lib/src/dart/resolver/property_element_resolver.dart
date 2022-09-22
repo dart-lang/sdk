@@ -238,12 +238,21 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead) {
       var readLookup = LexicalLookup.resolveGetter(scopeLookupResult) ??
           _resolver.thisLookupGetter(node);
+
       final callFunctionType = readLookup?.callFunctionType;
       if (callFunctionType != null) {
         return PropertyElementResolverResult(
           functionTypeCallType: callFunctionType,
         );
       }
+
+      final recordField = readLookup?.recordField;
+      if (recordField != null) {
+        return PropertyElementResolverResult(
+          recordField: recordField,
+        );
+      }
+
       readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
@@ -450,24 +459,6 @@ class PropertyElementResolver with ScopeHelpers {
       return PropertyElementResolverResult();
     }
 
-    if (targetType is RecordType) {
-      final name = propertyName.name;
-      final field = targetType.fieldByName(name);
-      if (field != null) {
-        if (hasWrite) {
-          AssignmentVerifier(_definingLibrary, errorReporter).verify(
-            node: propertyName,
-            requested: null,
-            recovery: null,
-            receiverType: targetType,
-          );
-        }
-        return PropertyElementResolverResult(
-          recordField: field,
-        );
-      }
-    }
-
     var result = _resolver.typePropertyResolver.resolve(
       receiver: target,
       receiverType: targetType,
@@ -511,6 +502,7 @@ class PropertyElementResolver with ScopeHelpers {
       readElementRecovery: result.setter,
       writeElementRequested: result.setter,
       writeElementRecovery: result.getter,
+      recordField: result.recordField,
     );
   }
 

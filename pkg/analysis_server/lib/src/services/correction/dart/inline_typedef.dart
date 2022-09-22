@@ -41,7 +41,7 @@ class InlineTypedef extends CorrectionProducer {
     List<FormalParameter> parameters;
     if (node is FunctionTypeAlias) {
       returnType = node.returnType;
-      _name = node.name2.lexeme;
+      _name = node.name.lexeme;
       typeParameters = node.typeParameters;
       parameters = node.parameters.parameters;
     } else if (node is GenericTypeAlias) {
@@ -53,7 +53,7 @@ class InlineTypedef extends CorrectionProducer {
         return;
       }
       returnType = functionType.returnType;
-      _name = node.name2.lexeme;
+      _name = node.name.lexeme;
       typeParameters = functionType.typeParameters;
       parameters = functionType.parameters.parameters;
     } else {

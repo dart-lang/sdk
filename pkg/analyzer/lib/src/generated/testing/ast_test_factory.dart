@@ -77,8 +77,7 @@ class AstTestFactory {
           augmentKeyword:
               isAugmentation ? TokenFactory.tokenFromString('augment') : null,
           classKeyword: TokenFactory.tokenFromKeyword(Keyword.CLASS),
-          name2:
-              TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, name),
+          name: TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, name),
           typeParameters: typeParameters as TypeParameterListImpl?,
           extendsClause: extendsClause as ExtendsClauseImpl?,
           withClause: withClause as WithClauseImpl?,
@@ -157,7 +156,7 @@ class AstTestFactory {
         returnType: returnType as IdentifierImpl,
         period:
             name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
-        name2: name == null ? null : identifier3(name).token,
+        name: name == null ? null : identifier3(name).token,
         parameters: parameters as FormalParameterListImpl,
         separator: initializers.isEmpty
             ? null
@@ -206,7 +205,7 @@ class AstTestFactory {
         typeKeyword: isExtensionTypeDeclaration
             ? TokenFactory.tokenFromString('type')
             : null,
-        name2: identifier3(name).token,
+        name: identifier3(name).token,
         typeParameters: typeParameters as TypeParameterListImpl?,
         onKeyword: TokenFactory.tokenFromKeyword(Keyword.ON),
         extendedType: extendedType as TypeAnnotationImpl,
@@ -455,7 +454,7 @@ class AstTestFactory {
             property == null ? null : TokenFactory.tokenFromKeyword(property),
         operatorKeyword:
             operator == null ? null : TokenFactory.tokenFromKeyword(operator),
-        name2: name.token,
+        name: name.token,
         typeParameters: null,
         parameters: parameters as FormalParameterListImpl?,
         body: EmptyFunctionBodyImpl(
@@ -757,7 +756,7 @@ class AstTestFactory {
   static TypeParameterImpl typeParameter(String name) => TypeParameterImpl(
         comment: null,
         metadata: null,
-        name2: identifier3(name).token,
+        name: identifier3(name).token,
         extendsKeyword: null,
         bound: null,
       );
@@ -768,7 +767,7 @@ class AstTestFactory {
       TypeParameterImpl(
         comment: null,
         metadata: null,
-        name2: identifier3(name).token,
+        name: identifier3(name).token,
         extendsKeyword: null,
         bound: null,
         varianceKeyword: TokenFactory.tokenFromString(varianceLexeme),
@@ -795,7 +794,7 @@ class AstTestFactory {
 
   static VariableDeclarationImpl variableDeclaration(String name) =>
       VariableDeclarationImpl(
-        name2: identifier3(name).token,
+        name: identifier3(name).token,
         equals: null,
         initializer: null,
       );
@@ -803,7 +802,7 @@ class AstTestFactory {
   static VariableDeclarationImpl variableDeclaration2(
           String name, Expression initializer) =>
       VariableDeclarationImpl(
-        name2: identifier3(name).token,
+        name: identifier3(name).token,
         equals: TokenFactory.tokenFromType(TokenType.EQ),
         initializer: initializer as ExpressionImpl,
       );

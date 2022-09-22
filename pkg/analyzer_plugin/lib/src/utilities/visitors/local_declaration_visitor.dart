@@ -132,7 +132,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
-        declaredLocalVar(varDecl.name2, varList.type,
+        declaredLocalVar(varDecl.name, varList.type,
             varDecl.declaredElement2 as LocalVariableElement);
       }
     }
@@ -149,7 +149,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
-        declaredLocalVar(varDecl.name2, varList.type,
+        declaredLocalVar(varDecl.name, varList.type,
             varDecl.declaredElement2 as LocalVariableElement);
       }
     }
@@ -322,14 +322,14 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
           var varList = stmt.variables;
           for (var varDecl in varList.variables) {
             if (varDecl.end < offset) {
-              declaredLocalVar(varDecl.name2, varList.type,
+              declaredLocalVar(varDecl.name, varList.type,
                   varDecl.declaredElement2 as LocalVariableElement);
             }
           }
         } else if (stmt is FunctionDeclarationStatement) {
           var declaration = stmt.functionDeclaration;
           if (declaration.offset < offset) {
-            var name = declaration.name2.lexeme;
+            var name = declaration.name.lexeme;
             if (name.isNotEmpty) {
               declaredFunction(declaration);
               _visitTypeParameters(

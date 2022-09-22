@@ -68,7 +68,7 @@ class CreateMethod extends CorrectionProducer {
       final classElement = classDecl.declaredElement2!;
 
       var missingEquals = memberDecl is FieldDeclaration ||
-          (memberDecl as MethodDeclaration).name2.lexeme == 'hashCode';
+          (memberDecl as MethodDeclaration).name.lexeme == 'hashCode';
       ExecutableElement? element;
       if (missingEquals) {
         _memberName = '==';

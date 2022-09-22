@@ -160,6 +160,7 @@ class LibraryAnalyzer {
         var canResolveNode = resolverVisitor.prepareForResolving(nodeToResolve);
         if (canResolveNode) {
           nodeToResolve.accept(resolverVisitor);
+          resolverVisitor.checkIdle();
           return AnalysisForCompletionResult(
             parsedUnit: parsedUnit,
             resolvedNodes: [nodeToResolve],

@@ -39,7 +39,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     _check(
       parameters: node.constructorElement?.parameters,
       arguments: node.arguments?.argumentList.arguments ?? <Expression>[],
-      errorNode: node.name2,
+      errorNode: node.name,
     );
   }
 

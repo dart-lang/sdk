@@ -225,9 +225,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (checkTripleShift && node.isOperator && node.name2.lexeme == '>>>') {
+    if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
       _errorReporter.reportErrorForToken(
-          HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name2);
+          HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
     }
     super.visitMethodDeclaration(node);
   }

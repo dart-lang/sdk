@@ -173,11 +173,11 @@ Map<String, Map<String, VariableDeclaration>> _findErrorDeclarations() {
         .unit;
     for (var declaration in unit.declarations) {
       if (declaration is! ClassDeclaration) continue;
-      var className = declaration.name2.lexeme;
+      var className = declaration.name.lexeme;
       for (var member in declaration.members) {
         if (member is! FieldDeclaration) continue;
         for (var variable in member.fields.variables) {
-          (result[className] ??= {})[variable.name2.lexeme] = variable;
+          (result[className] ??= {})[variable.name.lexeme] = variable;
         }
       }
     }

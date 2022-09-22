@@ -1465,6 +1465,11 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   /// Return the name of the constructor, or `null` if the constructor being
   /// declared is unnamed.
+  Token? get name;
+
+  /// Return the name of the constructor, or `null` if the constructor being
+  /// declared is unnamed.
+  @Deprecated('Use name instead')
   Token? get name2;
 
   /// Return the parameters associated with the constructor.
@@ -1840,6 +1845,10 @@ abstract class EnumConstantDeclaration implements Declaration {
   ConstructorElement? get constructorElement;
 
   /// Return the name of the constant.
+  Token get name;
+
+  /// Return the name of the constant.
+  @Deprecated('Use name instead')
   Token get name2;
 }
 
@@ -2041,6 +2050,11 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
 
   /// Return the name of the extension, or `null` if the extension does not have
   /// a name.
+  Token? get name;
+
+  /// Return the name of the extension, or `null` if the extension does not have
+  /// a name.
+  @Deprecated('Use name instead')
   Token? get name2;
 
   /// Return the token representing the 'on' keyword.
@@ -3510,6 +3524,10 @@ abstract class MethodDeclaration implements ClassMember {
   Token? get modifierKeyword;
 
   /// Return the name of the method.
+  Token get name;
+
+  /// Return the name of the method.
+  @Deprecated('Use name instead')
   Token get name2;
 
   /// Return the token representing the 'operator' keyword, or `null` if this
@@ -3684,6 +3702,10 @@ abstract class MixinOrAugmentationDeclaration
 /// Clients may not extend, implement or mix-in this class.
 abstract class NamedCompilationUnitMember implements CompilationUnitMember {
   /// Return the name of the member being declared.
+  Token get name;
+
+  /// Return the name of the member being declared.
+  @Deprecated('Use name instead')
   Token get name2;
 }
 
@@ -5170,6 +5192,10 @@ abstract class TypeParameter implements Declaration {
   Token? get extendsKeyword;
 
   /// Return the name of the type parameter.
+  Token get name;
+
+  /// Return the name of the type parameter.
+  @Deprecated('Use name instead')
   Token get name2;
 }
 
@@ -5242,6 +5268,10 @@ abstract class VariableDeclaration implements Declaration {
   bool get isLate;
 
   /// Return the name of the variable being declared.
+  Token get name;
+
+  /// Return the name of the variable being declared.
+  @Deprecated('Use name instead')
   Token get name2;
 }
 

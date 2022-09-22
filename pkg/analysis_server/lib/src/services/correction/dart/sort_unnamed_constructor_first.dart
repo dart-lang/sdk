@@ -32,11 +32,11 @@ class SortUnnamedConstructorFirst extends CorrectionProducer {
             .firstWhereOrNull((child) => child is ConstructorDeclaration)
         as ConstructorDeclaration?;
     if (firstConstructor == null ||
-        firstConstructor.name2 == null ||
-        firstConstructor.name2?.lexeme == 'new') return;
+        firstConstructor.name == null ||
+        firstConstructor.name?.lexeme == 'new') return;
 
     final unnamedConstructor = clazz.childEntities.firstWhereOrNull(
-            (child) => child is ConstructorDeclaration && child.name2 == null)
+            (child) => child is ConstructorDeclaration && child.name == null)
         as ConstructorDeclaration?;
     if (unnamedConstructor == null) return;
 

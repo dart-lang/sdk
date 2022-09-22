@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of masks;
 
 class ValueTypeMask extends ForwardingTypeMask {
@@ -22,7 +20,7 @@ class ValueTypeMask extends ForwardingTypeMask {
       DataSourceReader source, CommonMasks domain) {
     source.begin(tag);
     TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
-    ConstantValue constant = source.readConstant();
+    final constant = source.readConstant() as PrimitiveConstantValue;
     source.end(tag);
     return ValueTypeMask(forwardTo, constant);
   }
@@ -38,7 +36,7 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   @override
-  ValueTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+  ValueTypeMask withFlags({bool? isNullable, bool? hasLateSentinel}) {
     isNullable ??= this.isNullable;
     hasLateSentinel ??= this.hasLateSentinel;
     if (isNullable == this.isNullable &&
@@ -52,13 +50,8 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   @override
-  bool get isValue => true;
-
-  @override
-  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
-      {bool isNullable, bool hasLateSentinel}) {
-    assert(isNullable != null);
-    assert(hasLateSentinel != null);
+  TypeMask? _unionSpecialCases(TypeMask other, CommonMasks domain,
+      {required bool isNullable, required bool hasLateSentinel}) {
     if (other is ValueTypeMask &&
         forwardTo.withoutFlags() == other.forwardTo.withoutFlags() &&
         value == other.value) {

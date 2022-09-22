@@ -9,7 +9,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -906,7 +905,7 @@ class MethodInvocationResolver with ScopeHelpers {
       typeArguments: node.typeArguments,
       argumentList: node.argumentList,
     );
-    NodeReplacer.replace(node, invocation);
+    _resolver.replaceExpression(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
     _resolver.flowAnalysis.transferTestData(node, invocation);
   }

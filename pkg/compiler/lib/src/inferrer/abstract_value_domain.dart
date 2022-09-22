@@ -236,7 +236,8 @@ abstract class AbstractValueDomain {
   /// interpreted as nullable. This is passed as `false` for is-tests and `true`
   /// for as-checks and other contexts (e.g. parameter checks).
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      {ClassRelation classRelation = ClassRelation.subtype, bool nullable});
+      {ClassRelation classRelation = ClassRelation.subtype,
+      required bool nullable});
 
   /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);
@@ -304,7 +305,7 @@ abstract class AbstractValueDomain {
 
   /// Returns the [ClassEntity] if this [value] is a non-null instance of an
   /// exact class at runtime, and `null` otherwise.
-  ClassEntity getExactClass(covariant AbstractValue value);
+  ClassEntity? getExactClass(covariant AbstractValue value);
 
   /// Returns an [AbstractBool] that describes whether [value] is `null` at
   /// runtime.
@@ -449,9 +450,9 @@ abstract class AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular map allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createContainerValue(
-      AbstractValue originalValue,
-      Object allocationNode,
-      MemberEntity allocationElement,
+      AbstractValue? originalValue,
+      Object? allocationNode,
+      MemberEntity? allocationElement,
       AbstractValue elementType,
       int? length);
 
@@ -462,7 +463,7 @@ abstract class AbstractValueDomain {
   /// Return the known length of [value] if it represents a container value
   /// at runtime. Returns `null` if the length is unknown or if [value] doesn't
   /// represent a container value at runtime.
-  int getContainerLength(AbstractValue value);
+  int? getContainerLength(AbstractValue value);
 
   /// Returns `true` if [value] represents a set value at runtime.
   bool isSet(covariant AbstractValue value);
@@ -473,9 +474,9 @@ abstract class AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular set allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createSetValue(
-      AbstractValue originalValue,
-      Object allocationNode,
-      MemberEntity allocationElement,
+      AbstractValue? originalValue,
+      Object? allocationNode,
+      MemberEntity? allocationElement,
       AbstractValue elementType);
 
   /// Returns the element type of [value] if it represents a set value at
@@ -491,9 +492,9 @@ abstract class AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular map allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createMapValue(
-      AbstractValue originalValue,
-      Object allocationNode,
-      MemberEntity allocationElement,
+      AbstractValue? originalValue,
+      Object? allocationNode,
+      MemberEntity? allocationElement,
       AbstractValue key,
       AbstractValue value);
 
@@ -515,9 +516,9 @@ abstract class AbstractValueDomain {
   /// The [allocationNode] is used to identify this particular map allocation.
   /// The [allocationElement] is used only for debugging.
   AbstractValue createDictionaryValue(
-      AbstractValue originalValue,
-      Object allocationNode,
-      MemberEntity allocationElement,
+      AbstractValue? originalValue,
+      Object? allocationNode,
+      MemberEntity? allocationElement,
       AbstractValue key,
       AbstractValue value,
       Map<String, AbstractValue> mappings);
@@ -543,21 +544,21 @@ abstract class AbstractValueDomain {
   ///
   /// Specializations are created through [createPrimitiveValue],
   /// [createMapValue], [createDictionaryValue] and [createContainerValue].
-  AbstractValue getGeneralization(AbstractValue value);
+  AbstractValue? getGeneralization(AbstractValue value);
 
   /// Return the object identifying the allocation of [value] if it is an
   /// allocation based specialization. Otherwise returns `null`.
   ///
   /// Allocation based specializations are created through [createMapValue],
   /// [createDictionaryValue] and [createContainerValue]
-  Object getAllocationNode(AbstractValue value);
+  Object? getAllocationNode(AbstractValue value);
 
   /// Return the allocation element of [value] if it is an allocation based
   /// specialization. Otherwise returns `null`.
   ///
   /// Allocation based specializations are created through [createMapValue],
   /// [createDictionaryValue] and [createContainerValue]
-  MemberEntity getAllocationElement(AbstractValue value);
+  MemberEntity? getAllocationElement(AbstractValue value);
 
   /// Returns `true` if [value] a known primitive JavaScript value at runtime.
   bool isPrimitiveValue(covariant AbstractValue value);
@@ -570,7 +571,7 @@ abstract class AbstractValueDomain {
   /// Returns the primitive JavaScript value of [value] if it represents a
   /// primitive JavaScript value at runtime, value at runtime. Returns `null`
   /// otherwise.
-  PrimitiveConstantValue getPrimitiveValue(covariant AbstractValue value);
+  PrimitiveConstantValue? getPrimitiveValue(covariant AbstractValue value);
 
   /// Compute the type of all potential receivers of the set of live [members].
   AbstractValue computeReceiver(Iterable<MemberEntity> members);
@@ -589,7 +590,7 @@ abstract class AbstractValueDomain {
   /// Returns the [AbstractValue] for the [parameterType] of a native
   /// method. May return `null`, for example, if [parameterType] is not modelled
   /// precisely by an [AbstractValue].
-  AbstractValue getAbstractValueForNativeMethodParameterType(DartType type);
+  AbstractValue? getAbstractValueForNativeMethodParameterType(DartType type);
 
   /// Returns an [AbstractBool] that describes if the set of runtime values of
   /// [subset] are known to all be in the set of runtime values of [superset].
@@ -599,7 +600,7 @@ abstract class AbstractValueDomain {
   /// [receiver].
   ///
   /// Returns `null` if 0 or more than 1 member can be hit at runtime.
-  MemberEntity locateSingleMember(AbstractValue receiver, Selector selector);
+  MemberEntity? locateSingleMember(AbstractValue receiver, Selector selector);
 
   /// Returns an [AbstractBool] that describes if [value] is known to be an
   /// indexable JavaScript value at runtime.

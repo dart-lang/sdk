@@ -284,7 +284,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
             MatchInfo(e.nameOffset + e.nameLength, 0, MatchKind.DECLARATION));
       } else {
         var offset = node.period!.offset;
-        var length = node.name2!.end - offset;
+        var length = node.name!.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       }
     }
@@ -333,7 +333,7 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         offset = constructorSelector.period.offset;
         length = constructorSelector.name.end - offset;
       } else {
-        offset = node.name2.end;
+        offset = node.name.end;
         length = 0;
       }
       var kind = node.arguments == null
