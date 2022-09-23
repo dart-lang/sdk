@@ -111,7 +111,7 @@ abstract class KFunction extends KMember
   @override
   final AsyncMarker asyncMarker;
 
-  KFunction(super.library, KClass super.enclosingClass, super.name,
+  KFunction(super.library, super.enclosingClass, super.name,
       this.parameterStructure, this.asyncMarker,
       {super.isStatic, this.isExternal = false});
 }
@@ -199,7 +199,7 @@ class KGetter extends KFunction {
   @override
   final bool isAbstract;
 
-  KGetter(KLibrary library, KClass enclosingClass, Name name,
+  KGetter(KLibrary library, KClass? enclosingClass, Name name,
       AsyncMarker asyncMarker,
       {required bool isStatic,
       required bool isExternal,
@@ -219,7 +219,7 @@ class KSetter extends KFunction {
   @override
   final bool isAbstract;
 
-  KSetter(KLibrary library, KClass enclosingClass, Name name,
+  KSetter(KLibrary library, KClass? enclosingClass, Name name,
       {required bool isStatic,
       required bool isExternal,
       required this.isAbstract})
@@ -243,7 +243,7 @@ class KField extends KMember implements FieldEntity, IndexedField {
   @override
   final bool isConst;
 
-  KField(super.library, KClass super.enclosingClass, super.name,
+  KField(super.library, super.enclosingClass, super.name,
       {required super.isStatic,
       required this.isAssignable,
       required this.isConst});

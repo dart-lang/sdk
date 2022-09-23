@@ -707,13 +707,29 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  PatternDispatchResult<AstNode, Expression, PromotableElement, DartType>
-      dispatchPattern(AstNode pattern) {
-    if (pattern is Expression) {
-      return analyzeConstantPattern(pattern, pattern);
+  void dispatchPattern(
+      DartType matchedType,
+      Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
+      MatchContext<AstNode, Expression> context,
+      AstNode node) {
+    if (node is DartPatternImpl) {
+      node.resolvePattern(this, matchedType, typeInfos, context);
     } else {
-      throw UnimplementedError('TODO(paulberry): ${pattern.runtimeType}');
+      // This can occur inside conventional switch statements, since
+      // [SwitchCase] points directly to an [Expression] rather than to a
+      // [ConstantPattern].  So we mimic what
+      // [ConstantPatternImpl.resolvePattern] would do.
+      analyzeConstantPattern(
+          matchedType, typeInfos, context, node, node as Expression);
+      // Stack: (Expression)
+      popRewrite();
+      // Stack: ()
     }
+  }
+
+  @override
+  DartType dispatchPatternSchema(covariant DartPatternImpl node) {
+    return node.computePatternSchema(this);
   }
 
   @override
@@ -783,33 +799,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void handleCastPattern(AstNode node,
-      {required DartType matchedType, DartType? staticType}) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void handleConstantPattern(AstNode node, {required DartType matchedType}) {
-    // Stack: (Expression)
-    popRewrite();
-    // Stack: ()
-  }
-
-  @override
   void handleDefault(covariant SwitchStatement node, int caseIndex) {
     switchExhaustiveness!.visitSwitchMember(node.members[caseIndex]);
-  }
-
-  @override
-  void handleListPattern(AstNode node, int numElements,
-      {required DartType matchedType, required DartType requiredType}) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
-  void handleLogicalPattern(AstNode node,
-      {required bool isAnd, required DartType matchedType}) {
-    throw UnimplementedError('TODO(paulberry)');
   }
 
   @override
@@ -835,20 +826,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void handleNullCheckOrAssertPattern(AstNode node,
-      {required DartType matchedType, required bool isAssert}) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
-
-  @override
   void handleSwitchScrutinee(DartType type) {
     switchExhaustiveness = SwitchExhaustiveness(type);
-  }
-
-  @override
-  void handleVariablePattern(AstNode node,
-      {required DartType matchedType, DartType? staticType}) {
-    throw UnimplementedError('TODO(paulberry)');
   }
 
   /// If generic function instantiation should be performed on `expression`,
@@ -910,6 +889,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   bool isSwitchExhaustive(AstNode node, DartType expressionType) =>
       switchExhaustiveness!.isExhaustive;
+
+  @override
+  bool isVariablePattern(AstNode pattern) => pattern is VariablePattern;
 
   @override
   DartType listType(DartType elementType) {

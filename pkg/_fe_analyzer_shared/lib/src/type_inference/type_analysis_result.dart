@@ -106,40 +106,6 @@ class MatchContext<Node extends Object, Expression extends Node> {
           topPattern: topPattern);
 }
 
-/// Data structure returned by the [TypeAnalyzer] `analyze` methods for
-/// patterns.
-abstract class PatternDispatchResult<Node extends Object,
-    Expression extends Node, Variable extends Object, Type extends Object> {
-  /// The AST node for this pattern.
-  Node get node;
-
-  /// The type schema for this pattern.
-  Type get typeSchema;
-
-  /// Called by the [TypeAnalyzer] when an attempt is made to match this
-  /// pattern.
-  ///
-  /// [matchedType] is the type of the thing being matched (for a variable
-  /// declaration, this is the type of the initializer or substructure thereof;
-  /// for a switch statement this is the type of the scrutinee or substructure
-  /// thereof).
-  ///
-  /// [typeInfos] is a data structure keeping track of the variable patterns
-  /// seen so far and their type information.
-  ///
-  /// [context] keeps track of other contextual information pertinent to the
-  /// match, such as whether it is late and/or final, whether there is an
-  /// initializer expression (and if so, what it is), and whether the match is
-  /// happening in an irrefutable context (and if so, what surrounding construct
-  /// causes it to be irrefutable).
-  ///
-  /// Stack effect (see [TypeAnalyzer] for explanation): pushes (Pattern).
-  void match(
-      Type matchedType,
-      Map<Variable, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context);
-}
-
 /// Container for the result of running type analysis on an expression that does
 /// not contain any null shorting.
 class SimpleTypeAnalysisResult<Type extends Object>

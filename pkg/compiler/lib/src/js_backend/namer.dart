@@ -2345,6 +2345,7 @@ abstract class ModularNamer implements interfaces.ModularNamer {
 
   /// Returns the string that is to be used as the result of a call to
   /// [JS_GET_NAME] at [node] with argument [name].
+  @override
   jsAst.Name getNameForJsGetName(Spannable spannable, JsGetName name) {
     switch (name) {
       case JsGetName.GETTER_PREFIX:

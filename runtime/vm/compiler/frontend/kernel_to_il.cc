@@ -873,6 +873,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   V(LinkedHashBase_getIndex, LinkedHashBase_index)                             \
   V(LinkedHashBase_getUsedData, LinkedHashBase_used_data)                      \
   V(ObjectArrayLength, Array_length)                                           \
+  V(Record_fieldNames, Record_field_names)                                     \
+  V(Record_numFields, Record_num_fields)                                       \
   V(SuspendState_getFunctionData, SuspendState_function_data)                  \
   V(SuspendState_getThenCallback, SuspendState_then_callback)                  \
   V(SuspendState_getErrorCallback, SuspendState_error_callback)                \
@@ -908,6 +910,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
   const MethodRecognizer::Kind kind = function.recognized_kind();
 
   switch (kind) {
+    case MethodRecognizer::kRecord_fieldAt:
     case MethodRecognizer::kSuspendState_clone:
     case MethodRecognizer::kSuspendState_resume:
     case MethodRecognizer::kTypedData_ByteDataView_factory:
@@ -1072,6 +1075,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
   const MethodRecognizer::Kind kind = function.recognized_kind();
   switch (kind) {
+    case MethodRecognizer::kRecord_fieldAt:
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += LoadIndexed(
+          kRecordCid, /*index_scale*/ compiler::target::kCompressedWordSize);
+      break;
     case MethodRecognizer::kSuspendState_clone: {
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));

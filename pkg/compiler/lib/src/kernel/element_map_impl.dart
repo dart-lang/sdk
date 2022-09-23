@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
@@ -38,7 +36,7 @@ import '../js_backend/annotations.dart';
 import '../js_backend/backend_impact.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/custom_elements_analysis.dart';
-import '../js_backend/namer.dart';
+import '../js_backend/namer_interfaces.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/locals.dart';
@@ -55,9 +53,9 @@ import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/world_impact.dart';
 
-import 'element_map.dart';
 import 'element_map_interfaces.dart' as interfaces
     show
+        ForeignKind,
         KernelElementEnvironment,
         KernelToElementMapForClassHierarchy,
         KernelToElementMapForEnv,
@@ -66,6 +64,7 @@ import 'element_map_interfaces.dart' as interfaces
         KernelToElementMapForNativeData,
         KernelToElementMapForDeferredLoading,
         KernelToElementMapForJsModel;
+import 'element_map_migrated.dart';
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
@@ -89,16 +88,16 @@ class KernelToElementMap
   final Environment _environment;
   final NativeBasicDataBuilder nativeBasicDataBuilder =
       NativeBasicDataBuilder();
-  NativeBasicData /*?*/ _nativeBasicData;
-  /*late final*/ KCommonElements /*!*/ _commonElements;
-  /*late final*/ KernelElementEnvironment /*!*/ _elementEnvironment;
-  /*late final*/ DartTypeConverter _typeConverter;
-  /*late final*/ KernelDartTypes /*!*/ _types;
-  ir.CoreTypes /*?*/ _coreTypes;
-  ir.TypeEnvironment /*?*/ _typeEnvironment;
-  ir.ClassHierarchy /*?*/ _classHierarchy;
-  Dart2jsConstantEvaluator /*?*/ _constantEvaluator;
-  /*late final*/ ConstantValuefier _constantValuefier;
+  NativeBasicData? _nativeBasicData;
+  late final KCommonElements _commonElements;
+  late final KernelElementEnvironment _elementEnvironment;
+  late final DartTypeConverter _typeConverter;
+  late final KernelDartTypes _types;
+  ir.CoreTypes? _coreTypes;
+  ir.TypeEnvironment? _typeEnvironment;
+  ir.ClassHierarchy? _classHierarchy;
+  Dart2jsConstantEvaluator? _constantEvaluator;
+  late final ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
   @override
@@ -138,10 +137,10 @@ class KernelToElementMap
   final Map<ir.Field, IndexedField> fieldMap = {};
   final Map<ir.TreeNode, Local> localFunctionMap = {};
 
-  BehaviorBuilder _nativeBehaviorBuilder;
+  BehaviorBuilder? _nativeBehaviorBuilder;
 
-  Map<KMember, Map<ir.Expression, TypeMap>> typeMapsForTesting;
-  Map<ir.Member, ImpactData> impactDataForTesting;
+  Map<KMember, Map<ir.Expression, TypeMap>>? typeMapsForTesting;
+  Map<ir.Member, ImpactData>? impactDataForTesting;
 
   KernelToElementMap(this.reporter, this._environment, this.options) {
     _elementEnvironment = KernelElementEnvironment(this);
@@ -162,17 +161,19 @@ class KernelToElementMap
   @override
   KCommonElements get commonElements => _commonElements;
 
-  FunctionEntity get _mainFunction {
-    return env.mainMethod != null ? getMethodInternal(env.mainMethod) : null;
-  }
-
-  LibraryEntity get _mainLibrary {
+  FunctionEntity? get _mainFunction {
     return env.mainMethod != null
-        ? getLibraryInternal(env.mainMethod.enclosingLibrary)
+        ? getMethodInternal(env.mainMethod as ir.Procedure)
         : null;
   }
 
-  SourceSpan getSourceSpan(Spannable spannable, Entity currentElement) {
+  LibraryEntity? get _mainLibrary {
+    return env.mainMethod != null
+        ? getLibraryInternal(env.mainMethod!.enclosingLibrary)
+        : null;
+  }
+
+  SourceSpan getSourceSpan(Spannable spannable, Entity? currentElement) {
     SourceSpan fromSpannable(Spannable spannable) {
       if (spannable is IndexedLibrary &&
           spannable.libraryIndex < libraries.length) {
@@ -181,12 +182,10 @@ class KernelToElementMap
       } else if (spannable is IndexedClass &&
           spannable.classIndex < classes.length) {
         KClassData data = classes.getData(spannable);
-        assert(data != null, "No data for $spannable in $this");
         return computeSourceSpanFromTreeNode(data.node);
       } else if (spannable is IndexedMember &&
           spannable.memberIndex < members.length) {
         KMemberData data = members.getData(spannable);
-        assert(data != null, "No data for $spannable in $this");
         return computeSourceSpanFromTreeNode(data.node);
       } else if (spannable is KLocalFunction) {
         return getSourceSpan(spannable.memberContext, currentElement);
@@ -198,11 +197,11 @@ class KernelToElementMap
 
     SourceSpan sourceSpan = fromSpannable(spannable);
     if (sourceSpan.isKnown) return sourceSpan;
-    return fromSpannable(currentElement);
+    return fromSpannable(currentElement!);
   }
 
-  LibraryEntity lookupLibrary(Uri uri) {
-    KLibraryEnv libraryEnv = env.lookupLibrary(uri);
+  LibraryEntity? lookupLibrary(Uri uri) {
+    KLibraryEnv? libraryEnv = env.lookupLibrary(uri);
     if (libraryEnv == null) return null;
     return getLibraryInternal(libraryEnv.library, libraryEnv);
   }
@@ -213,11 +212,11 @@ class KernelToElementMap
     return libraryEnv.library.name ?? '';
   }
 
-  MemberEntity lookupLibraryMember(IndexedLibrary library, String name,
+  MemberEntity? lookupLibraryMember(IndexedLibrary library, String name,
       {bool setter = false}) {
     assert(checkFamily(library));
     KLibraryEnv libraryEnv = libraries.getEnv(library);
-    ir.Member member = libraryEnv.lookupMember(name, setter: setter);
+    ir.Member? member = libraryEnv.lookupMember(name, setter: setter);
     return member != null ? getMember(member) : null;
   }
 
@@ -230,10 +229,10 @@ class KernelToElementMap
     });
   }
 
-  ClassEntity lookupClass(IndexedLibrary library, String name) {
+  ClassEntity? lookupClass(IndexedLibrary library, String name) {
     assert(checkFamily(library));
     KLibraryEnv libraryEnv = libraries.getEnv(library);
-    KClassEnv classEnv = libraryEnv.lookupClass(name);
+    KClassEnv? classEnv = libraryEnv.lookupClass(name);
     if (classEnv != null) {
       return getClassInternal(classEnv.cls, classEnv);
     }
@@ -262,20 +261,20 @@ class KernelToElementMap
   /// environment, not ensuring the computation of the class members, can result
   /// in a live member being present in the J-model but unavailable when queried
   /// as a member of its enclosing class.
-  ClassEntity getClassForMemberInternal(ir.Class node) {
-    ClassEntity cls = getClassInternal(node);
+  IndexedClass getClassForMemberInternal(ir.Class node) {
+    final cls = getClassInternal(node);
     classes.getEnv(cls).ensureMembers(this);
     return cls;
   }
 
-  MemberEntity lookupClassMember(IndexedClass cls, Name name,
+  MemberEntity? lookupClassMember(IndexedClass cls, Name name,
       {bool setter = false}) {
     assert(checkFamily(cls));
     KClassEnv classEnv = classes.getEnv(cls);
     return classEnv.lookupMember(this, name);
   }
 
-  ConstructorEntity lookupConstructor(IndexedClass cls, String name) {
+  ConstructorEntity? lookupConstructor(IndexedClass cls, String name) {
     assert(checkFamily(cls));
     KClassEnv classEnv = classes.getEnv(cls);
     return classEnv.lookupConstructor(this, name);
@@ -297,7 +296,7 @@ class KernelToElementMap
   ClassEntity getClass(ir.Class node) => getClassInternal(node);
 
   @override
-  InterfaceType getSuperType(IndexedClass cls) {
+  InterfaceType? getSuperType(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
@@ -306,14 +305,14 @@ class KernelToElementMap
 
   /// Returns the superclass of [cls] if any.
   @override
-  ClassEntity getSuperClass(ClassEntity cls) {
-    return getSuperType(cls)?.element;
+  ClassEntity? getSuperClass(ClassEntity cls) {
+    return getSuperType(cls as IndexedClass)?.element;
   }
 
   void _ensureCallType(ClassEntity cls, KClassData data) {
     assert(checkFamily(cls));
     if (data is KClassDataImpl && !data.isCallTypeComputed) {
-      MemberEntity callMember =
+      MemberEntity? callMember =
           _elementEnvironment.lookupClassMember(cls, Names.call);
       if (callMember is FunctionEntity &&
           callMember.isFunction &&
@@ -371,7 +370,7 @@ class KernelToElementMap
         data.instantiationToBounds = getInterfaceType(ir.instantiateToBounds(
             coreTypes.legacyRawType(node),
             coreTypes.objectClass,
-            node.enclosingLibrary));
+            node.enclosingLibrary) as ir.InterfaceType);
       }
     }
   }
@@ -388,7 +387,7 @@ class KernelToElementMap
       ir.Class node = data.node;
 
       if (node.supertype == null) {
-        data.orderedTypeSet = OrderedTypeSet.singleton(data.thisType);
+        data.orderedTypeSet = OrderedTypeSet.singleton(data.thisType!);
         data.isMixinApplication = false;
         data.interfaces = const <InterfaceType>[];
       } else {
@@ -401,16 +400,18 @@ class KernelToElementMap
 
         InterfaceType processSupertype(ir.Supertype supertypeNode) {
           supertypeNode = classHierarchy.getClassAsInstanceOf(
-              node, supertypeNode.classNode);
+              node, supertypeNode.classNode)!;
           InterfaceType supertype =
               _typeConverter.visitSupertype(supertypeNode);
           canonicalSupertypes.add(supertype);
-          IndexedClass superclass = supertype.element;
+          IndexedClass superclass = supertype.element as IndexedClass;
           KClassData superdata = classes.getData(superclass);
           _ensureSupertypes(superclass, superdata);
-          for (InterfaceType supertype in superdata.orderedTypeSet.supertypes) {
-            ir.Supertype canonicalSupertype = classHierarchy
-                .getClassAsInstanceOf(node, getClassNode(supertype.element));
+          for (InterfaceType supertype
+              in superdata.orderedTypeSet!.supertypes!) {
+            ir.Supertype? canonicalSupertype =
+                classHierarchy.getClassAsInstanceOf(
+                    node, getClassNode(supertype.element as IndexedClass));
             if (canonicalSupertype != null) {
               supertype = _typeConverter.visitSupertype(canonicalSupertype);
             } else {
@@ -446,21 +447,22 @@ class KernelToElementMap
           // Set superclass to `Object`.
           supertype = _commonElements.objectType;
         } else {
-          supertype = processSupertype(node.supertype);
+          supertype = processSupertype(node.supertype!);
         }
         if (supertype == _commonElements.objectType) {
           ClassEntity defaultSuperclass =
               _commonElements.getDefaultSuperclass(cls, nativeBasicData);
           data.supertype = _elementEnvironment.getRawType(defaultSuperclass);
-          assert(data.supertype.typeArguments.isEmpty,
+          assert(data.supertype!.typeArguments.isEmpty,
               "Generic default supertypes are not supported");
-          canonicalSupertypes.add(data.supertype);
+          canonicalSupertypes.add(data.supertype!);
         } else {
           data.supertype = supertype;
         }
         if (node.mixedInType != null) {
           data.isMixinApplication = true;
-          interfaces.add(data.mixedInType = processSupertype(node.mixedInType));
+          interfaces
+              .add(data.mixedInType = processSupertype(node.mixedInType!));
         } else {
           data.isMixinApplication = false;
         }
@@ -522,15 +524,16 @@ class KernelToElementMap
     ClassEntity sourceClass = source.enclosingClass;
     ConstructorEntity target = getConstructor(targetNode);
     ClassEntity targetClass = target.enclosingClass;
-    IndexedClass superClass = getSuperType(sourceClass)?.element;
+    IndexedClass? superClass =
+        getSuperType(sourceClass as IndexedClass)?.element as IndexedClass?;
     if (superClass == targetClass) {
       return target;
     }
 
     /// This path is needed for synthetically injected superclasses like
     /// `Interceptor` and `LegacyJavaScriptObject`.
-    KClassEnv env = classes.getEnv(superClass);
-    ConstructorEntity constructor = env.lookupConstructor(this, target.name);
+    KClassEnv env = classes.getEnv(superClass!);
+    ConstructorEntity? constructor = env.lookupConstructor(this, target.name);
     if (constructor != null) {
       return constructor;
     }
@@ -551,7 +554,7 @@ class KernelToElementMap
 
   /// Returns the [TypeVariableType] corresponding to [type].
   TypeVariableType getTypeVariableType(ir.TypeParameterType type) =>
-      getDartType(type).withoutNullability;
+      getDartType(type).withoutNullability as TypeVariableType;
 
   List<DartType> getDartTypes(List<ir.DartType> types) {
     List<DartType> list = <DartType>[];
@@ -564,7 +567,7 @@ class KernelToElementMap
   /// Returns the [InterfaceType] corresponding to [type].
   @override
   InterfaceType getInterfaceType(ir.InterfaceType type) =>
-      _typeConverter.visitType(type).withoutNullability;
+      _typeConverter.visitType(type).withoutNullability as InterfaceType;
 
   /// Returns the [FunctionType] of the [node].
   @override
@@ -600,13 +603,14 @@ class KernelToElementMap
     List<String> namedParameters = <String>[];
     Set<String> requiredNamedParameters = <String>{};
     List<DartType> namedParameterTypes = <DartType>[];
-    List<ir.VariableDeclaration> sortedNamedParameters =
-        node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
+    List<ir.VariableDeclaration> sortedNamedParameters = node.namedParameters
+        .toList()
+      ..sort((a, b) => a.name!.compareTo(b.name!));
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
-      namedParameters.add(variable.name);
+      namedParameters.add(variable.name!);
       namedParameterTypes.add(getParameterType(variable));
       if (variable.isRequired) {
-        requiredNamedParameters.add(variable.name);
+        requiredNamedParameters.add(variable.name!);
       }
     }
     List<FunctionTypeVariable> typeVariables;
@@ -649,7 +653,7 @@ class KernelToElementMap
   @override
   DartType substByContext(DartType type, InterfaceType context) {
     return types.subst(context.typeArguments,
-        getThisType(context.element).typeArguments, type);
+        getThisType(context.element as IndexedClass).typeArguments, type);
   }
 
   /// Returns the type of the `call` method on 'type'.
@@ -657,13 +661,13 @@ class KernelToElementMap
   /// If [type] doesn't have a `call` member or has a non-method `call` member,
   /// `null` is returned.
   @override
-  FunctionType getCallType(InterfaceType type) {
-    IndexedClass cls = type.element;
+  FunctionType? getCallType(InterfaceType type) {
+    IndexedClass cls = type.element as IndexedClass;
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureCallType(cls, data);
     if (data.callType != null) {
-      return substByContext(data.callType, type);
+      return substByContext(data.callType!, type) as FunctionType?;
     }
     return null;
   }
@@ -673,10 +677,10 @@ class KernelToElementMap
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureThisAndRawType(cls, data);
-    return data.thisType;
+    return data.thisType!;
   }
 
-  InterfaceType _getJsInteropType(IndexedClass cls) {
+  InterfaceType? _getJsInteropType(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureJsInteropType(cls, data);
@@ -687,32 +691,31 @@ class KernelToElementMap
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureThisAndRawType(cls, data);
-    return data.rawType;
+    return data.rawType!;
   }
 
   InterfaceType _getClassInstantiationToBounds(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureClassInstantiationToBounds(cls, data);
-    return data.instantiationToBounds;
+    return data.instantiationToBounds!;
   }
 
   DartType _getFieldType(IndexedField field) {
     assert(checkFamily(field));
-    KFieldData data = members.getData(field);
+    KFieldData data = members.getData(field) as KFieldData;
     return data.getFieldType(this);
   }
 
   FunctionType _getFunctionType(IndexedFunction function) {
     assert(checkFamily(function));
-    KFunctionData data = members.getData(function);
+    KFunctionData data = members.getData(function) as KFunctionData;
     return data.getFunctionType(this);
   }
 
-  List<TypeVariableType> /*!*/ _getFunctionTypeVariables(
-      IndexedFunction function) {
+  List<TypeVariableType> _getFunctionTypeVariables(IndexedFunction function) {
     assert(checkFamily(function));
-    KFunctionData data = members.getData(function);
+    KFunctionData data = members.getData(function) as KFunctionData;
     return data.getFunctionTypeVariables(this);
   }
 
@@ -737,7 +740,7 @@ class KernelToElementMap
   //     class B = Object with A;
   //     class C = Object with B;
   @override
-  ClassEntity getAppliedMixin(IndexedClass cls) {
+  ClassEntity? getAppliedMixin(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
@@ -761,18 +764,18 @@ class KernelToElementMap
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    data.orderedTypeSet.supertypes.forEach(f);
+    data.orderedTypeSet!.supertypes!.forEach(f);
   }
 
-  void _forEachMixin(IndexedClass cls, void f(ClassEntity mixin)) {
-    assert(checkFamily(cls));
+  void _forEachMixin(IndexedClass? cls, void f(ClassEntity mixin)) {
+    assert(checkFamily(cls!));
     while (cls != null) {
       KClassData data = classes.getData(cls);
       _ensureSupertypes(cls, data);
       if (data.mixedInType != null) {
-        f(data.mixedInType.element);
+        f(data.mixedInType!.element);
       }
-      cls = data.supertype?.element;
+      cls = data.supertype?.element as IndexedClass?;
     }
   }
 
@@ -807,34 +810,35 @@ class KernelToElementMap
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
     if (data.supertype != null) {
-      _forEachClassMember(data.supertype.element, f);
+      _forEachClassMember(data.supertype!.element as IndexedClass, f);
     }
   }
 
   @override
-  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
+  InterfaceType? asInstanceOf(InterfaceType type, ClassEntity cls) {
     assert(checkFamily(cls));
-    OrderedTypeSet orderedTypeSet = getOrderedTypeSet(type.element);
-    InterfaceType /*?*/ supertype =
-        orderedTypeSet.asInstanceOf(cls, getHierarchyDepth(cls));
+    OrderedTypeSet orderedTypeSet =
+        getOrderedTypeSet(type.element as IndexedClass);
+    InterfaceType? supertype = orderedTypeSet.asInstanceOf(
+        cls, getHierarchyDepth(cls as IndexedClass));
     if (supertype != null) {
-      supertype = substByContext(supertype, type);
+      supertype = substByContext(supertype, type) as InterfaceType?;
     }
     return supertype;
   }
 
   @override
-  OrderedTypeSet /*!*/ getOrderedTypeSet(IndexedClass cls) {
+  OrderedTypeSet getOrderedTypeSet(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.orderedTypeSet;
+    return data.orderedTypeSet!;
   }
 
   /// Returns all supertypes of [cls].
   @override
   Iterable<InterfaceType> getSuperTypes(ClassEntity cls) {
-    return getOrderedTypeSet(cls).supertypes;
+    return getOrderedTypeSet(cls as IndexedClass).supertypes!;
   }
 
   /// Returns the hierarchy depth of [cls].
@@ -843,38 +847,38 @@ class KernelToElementMap
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.orderedTypeSet.maxDepth;
+    return data.orderedTypeSet!.maxDepth;
   }
 
   @override
-  Iterable<InterfaceType> /*!*/ getInterfaces(IndexedClass cls) {
+  Iterable<InterfaceType> getInterfaces(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
     assert(data.interfaces != null);
-    return data.interfaces;
+    return data.interfaces!;
   }
 
   /// Returns the defining node for [member].
   @override
-  ir.Member getMemberNode(covariant IndexedMember member) {
+  ir.Member getMemberNode(MemberEntity member) {
     assert(checkFamily(member));
-    return members.getData(member).node;
+    return members.getData(member as IndexedMember).node;
   }
 
   /// Returns the defining node for [cls].
-  ir.Class getClassNode(covariant IndexedClass cls) {
+  ir.Class getClassNode(ClassEntity cls) {
     assert(checkFamily(cls));
-    return classes.getData(cls).node;
+    return classes.getData(cls as IndexedClass).node;
   }
 
   /// Return the [ImportEntity] corresponding to [node].
   @override
-  ImportEntity getImport(ir.LibraryDependency node) {
+  ImportEntity? getImport(ir.LibraryDependency? node) {
     if (node == null) return null;
-    ir.Library library = node.parent;
+    ir.Library library = node.enclosingLibrary;
     KLibraryData data = libraries.getData(getLibraryInternal(library));
-    return data.imports[node];
+    return data.imports![node];
   }
 
   /// Returns the core types for the underlying kernel model.
@@ -893,14 +897,15 @@ class KernelToElementMap
   @override
   ir.StaticTypeContext getStaticTypeContext(MemberEntity member) {
     // TODO(johnniwinther): Cache the static type context.
-    return ir.StaticTypeContext(getMemberNode(member), typeEnvironment);
+    return ir.StaticTypeContext(
+        getMemberNode(member as IndexedMember), typeEnvironment);
   }
 
   @override
   Dart2jsConstantEvaluator get constantEvaluator {
     return _constantEvaluator ??=
         Dart2jsConstantEvaluator(env.mainComponent, typeEnvironment,
-            (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+            (ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
       reportLocatedMessage(reporter, message, context);
     },
             environment: _environment,
@@ -911,7 +916,7 @@ class KernelToElementMap
 
   @override
   Name getName(ir.Name name, {bool setter = false}) {
-    return Name(name.text, name.isPrivate ? name.library.importUri : null,
+    return Name(name.text, name.isPrivate ? name.library!.importUri : null,
         isSetter: setter);
   }
 
@@ -933,12 +938,13 @@ class KernelToElementMap
     int typeParameters = node.typeParameters.length;
     List<String> namedParameters = <String>[];
     Set<String> requiredNamedParameters = <String>{};
-    List<ir.VariableDeclaration> sortedNamedParameters =
-        node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
+    List<ir.VariableDeclaration> sortedNamedParameters = node.namedParameters
+        .toList()
+      ..sort((a, b) => a.name!.compareTo(b.name!));
     for (var variable in sortedNamedParameters) {
-      namedParameters.add(variable.name);
+      namedParameters.add(variable.name!);
       if (variable.isRequired && !options.useLegacySubtyping) {
-        requiredNamedParameters.add(variable.name);
+        requiredNamedParameters.add(variable.name!);
       }
     }
     return ParameterStructure(
@@ -975,35 +981,34 @@ class KernelToElementMap
 
   Selector getGetterSelector(ir.Name irName) {
     Name name =
-        Name(irName.text, irName.isPrivate ? irName.library.importUri : null);
+        Name(irName.text, irName.isPrivate ? irName.library!.importUri : null);
     return Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name =
-        Name(irName.text, irName.isPrivate ? irName.library.importUri : null);
+        Name(irName.text, irName.isPrivate ? irName.library!.importUri : null);
     return Selector.setter(name);
   }
 
   /// Looks up [typeName] for use in the spec-string of a `JS` call.
   // TODO(johnniwinther): Use this in [NativeBehavior] instead of calling
   // the `ForeignResolver`.
-  TypeLookup typeLookup({bool resolveAsRaw = true}) {
-    return resolveAsRaw
-        ? (_cachedTypeLookupRaw ??= _typeLookup(resolveAsRaw: true))
-        : (_cachedTypeLookupFull ??= _typeLookup(resolveAsRaw: false));
+  TypeLookup typeLookup({required bool resolveAsRaw}) {
+    return resolveAsRaw ? _cachedTypeLookupRaw : _cachedTypeLookupFull;
   }
 
-  TypeLookup _cachedTypeLookupRaw;
-  TypeLookup _cachedTypeLookupFull;
+  late final TypeLookup _cachedTypeLookupRaw = _typeLookup(resolveAsRaw: true);
+  late final TypeLookup _cachedTypeLookupFull =
+      _typeLookup(resolveAsRaw: false);
 
-  TypeLookup _typeLookup({bool resolveAsRaw = true}) {
-    bool cachedMayLookupInMain;
+  TypeLookup _typeLookup({required bool resolveAsRaw}) {
+    bool? cachedMayLookupInMain;
 
-    DartType lookup(String typeName, {bool required}) {
-      DartType findInLibrary(LibraryEntity library) {
+    DartType lookup(String typeName, {bool? required}) {
+      DartType? findInLibrary(LibraryEntity? library) {
         if (library != null) {
-          ClassEntity cls = elementEnvironment.lookupClass(library, typeName);
+          ClassEntity? cls = elementEnvironment.lookupClass(library, typeName);
           if (cls != null) {
             // TODO(johnniwinther): Align semantics.
             return resolveAsRaw
@@ -1014,7 +1019,7 @@ class KernelToElementMap
         return null;
       }
 
-      DartType findIn(Uri uri) {
+      DartType? findIn(Uri uri) {
         return findInLibrary(elementEnvironment.lookupLibrary(uri));
       }
 
@@ -1023,9 +1028,9 @@ class KernelToElementMap
       // TODO(johnniwinther): Cache more results to avoid redundant lookups?
       cachedMayLookupInMain ??=
           // Tests permit lookup outside of dart: libraries.
-          allowedNativeTest(elementEnvironment.mainLibrary.canonicalUri);
-      DartType type;
-      if (cachedMayLookupInMain) {
+          allowedNativeTest(elementEnvironment.mainLibrary!.canonicalUri);
+      DartType? type;
+      if (cachedMayLookupInMain!) {
         type ??= findInLibrary(elementEnvironment.mainLibrary);
       }
       type ??= findIn(Uris.dart_core);
@@ -1044,17 +1049,17 @@ class KernelToElementMap
       type ??= findIn(Uris.dart_typed_data);
       type ??= findIn(Uris.dart__rti);
       type ??= findIn(Uris.dart_mirrors);
-      if (type == null && required) {
+      if (type == null && required!) {
         reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
             MessageKind.GENERIC, {'text': "Type '$typeName' not found."});
       }
-      return type;
+      return type!;
     }
 
     return lookup;
   }
 
-  String /*?*/ _getStringArgument(ir.StaticInvocation node, int index) {
+  String? _getStringArgument(ir.StaticInvocation node, int index) {
     return node.arguments.positional[index].accept(Stringifier());
   }
 
@@ -1068,14 +1073,14 @@ class KernelToElementMap
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
       return NativeBehavior();
     }
-    String specString = _getStringArgument(node, 0);
+    String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
       return NativeBehavior();
     }
 
-    String codeString = _getStringArgument(node, 1);
+    String? codeString = _getStringArgument(node, 1);
     if (codeString == null) {
       reporter.reportErrorMessage(
           CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
@@ -1106,7 +1111,7 @@ class KernelToElementMap
           CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
       return NativeBehavior();
     }
-    String specString = _getStringArgument(node, 0);
+    String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
@@ -1142,7 +1147,7 @@ class KernelToElementMap
           "JS embedded global has more than 2 arguments.");
       return NativeBehavior();
     }
-    String specString = _getStringArgument(node, 0);
+    String? specString = _getStringArgument(node, 0);
     if (specString == null) {
       reporter.internalError(
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
@@ -1157,15 +1162,15 @@ class KernelToElementMap
   }
 
   /// Returns the [js.Name] for the `JsGetName` [constant] value.
-  js.Name getNameForJsGetName(ConstantValue constant, Namer namer) {
-    int index = extractEnumIndexFromConstantValue(
+  js.Name? getNameForJsGetName(ConstantValue constant, ModularNamer namer) {
+    int? index = extractEnumIndexFromConstantValue(
         constant, commonElements.jsGetNameEnum);
     if (index == null) return null;
     return namer.getNameForJsGetName(
         CURRENT_ELEMENT_SPANNABLE, JsGetName.values[index]);
   }
 
-  int extractEnumIndexFromConstantValue(
+  int? extractEnumIndexFromConstantValue(
       ConstantValue constant, ClassEntity classElement) {
     if (constant is ConstructedConstantValue) {
       if (constant.type.element == classElement) {
@@ -1181,8 +1186,8 @@ class KernelToElementMap
 
   /// Computes the [ConstantValue] for the constant [expression].
   @override
-  ConstantValue getConstantValue(
-      ir.StaticTypeContext staticTypeContext, ir.Expression node,
+  ConstantValue? getConstantValue(
+      ir.StaticTypeContext staticTypeContext, ir.Expression? node,
       {bool requireConstant = true,
       bool implicitNull = false,
       bool checkCasts = true}) {
@@ -1193,7 +1198,7 @@ class KernelToElementMap
       }
       return NullConstantValue();
     }
-    ir.Constant constant = constantEvaluator.evaluateOrNull(
+    ir.Constant? constant = constantEvaluator.evaluateOrNull(
         staticTypeContext, node,
         requireConstant: requireConstant);
     if (constant == null) {
@@ -1217,12 +1222,12 @@ class KernelToElementMap
   List<ConstantValue> getMetadata(
       ir.StaticTypeContext staticTypeContext, List<ir.Expression> annotations) {
     if (annotations.isEmpty) return const <ConstantValue>[];
-    List<ConstantValue /*!*/ > metadata = <ConstantValue>[];
+    List<ConstantValue> metadata = <ConstantValue>[];
     annotations.forEach((ir.Expression node) {
       // We skip the implicit cast checks for metadata to avoid circular
       // dependencies in the js-interop class registration.
       metadata
-          .add(getConstantValue(staticTypeContext, node, checkCasts: false));
+          .add(getConstantValue(staticTypeContext, node, checkCasts: false)!);
     });
     return metadata;
   }
@@ -1231,27 +1236,25 @@ class KernelToElementMap
   /// `super.noSuchMethod` invocation within [cls].
   @override
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
-    while (cls != null) {
-      cls = elementEnvironment.getSuperClass(cls);
-      MemberEntity member =
-          elementEnvironment.lookupLocalClassMember(cls, Names.noSuchMethod_);
+    while (true) {
+      ClassEntity? superclass = elementEnvironment.getSuperClass(cls);
+      if (superclass == null) break;
+      MemberEntity? member = elementEnvironment.lookupLocalClassMember(
+          superclass, Names.noSuchMethod_);
       if (member != null && !member.isAbstract) {
-        if (member.isFunction) {
-          FunctionEntity function = member;
-          if (function.parameterStructure.positionalParameters >= 1) {
-            return function;
+        if (member is KMethod) {
+          if (member.parameterStructure.positionalParameters >= 1) {
+            return member;
           }
         }
         // If [member] is not a valid `noSuchMethod` the target is
         // `Object.superNoSuchMethod`.
         break;
       }
+      cls = superclass;
     }
-    FunctionEntity function = elementEnvironment.lookupLocalClassMember(
-        commonElements.objectClass, Names.noSuchMethod_);
-    assert(function != null,
-        failedAt(cls, "No super noSuchMethod found for class $cls."));
-    return function;
+    return elementEnvironment.lookupLocalClassMember(
+        commonElements.objectClass, Names.noSuchMethod_)! as FunctionEntity;
   }
 
   Iterable<LibraryEntity> get libraryListInternal {
@@ -1264,17 +1267,18 @@ class KernelToElementMap
     return libraryMap.values;
   }
 
-  LibraryEntity getLibraryInternal(ir.Library node, [KLibraryEnv libraryEnv]) {
+  IndexedLibrary getLibraryInternal(ir.Library node,
+      [KLibraryEnv? libraryEnv]) {
     return libraryMap[node] ??= _getLibraryCreate(node, libraryEnv);
   }
 
-  LibraryEntity _getLibraryCreate(ir.Library node, KLibraryEnv libraryEnv) {
+  IndexedLibrary _getLibraryCreate(ir.Library node, KLibraryEnv? libraryEnv) {
     assert(
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
         "library for $node.");
     Uri canonicalUri = node.importUri;
-    String name = node.name;
+    String? name = node.name;
     if (name == null) {
       // Use the file name as script name.
       String path = canonicalUri.path;
@@ -1282,22 +1286,24 @@ class KernelToElementMap
     }
     IndexedLibrary library =
         createLibrary(name, canonicalUri, node.isNonNullableByDefault);
-    return libraries.register(library, KLibraryData(node),
-        libraryEnv ?? env.lookupLibrary(canonicalUri));
+    return libraries.register<IndexedLibrary, KLibraryData, KLibraryEnv>(
+        library,
+        KLibraryData(node),
+        libraryEnv ?? env.lookupLibrary(canonicalUri)!);
   }
 
-  ClassEntity getClassInternal(ir.Class node, [KClassEnv classEnv]) {
+  IndexedClass getClassInternal(ir.Class node, [KClassEnv? classEnv]) {
     return classMap[node] ??= _getClassCreate(node, classEnv);
   }
 
-  ClassEntity _getClassCreate(ir.Class node, KClassEnv classEnv) {
+  IndexedClass _getClassCreate(ir.Class node, KClassEnv? classEnv) {
     assert(
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
         "class for $node.");
-    KLibrary library = getLibraryInternal(node.enclosingLibrary);
+    KLibrary library = getLibraryInternal(node.enclosingLibrary) as KLibrary;
     if (classEnv == null) {
-      classEnv = libraries.getEnv(library).lookupClass(node.name);
+      classEnv = libraries.getEnv(library).lookupClass(node.name)!;
     }
     IndexedClass cls =
         createClass(library, node.name, isAbstract: node.isAbstract);
@@ -1305,42 +1311,44 @@ class KernelToElementMap
   }
 
   TypeVariableEntity getTypeVariableInternal(ir.TypeParameter node) {
-    return typeVariableMap[node] ??= _getTypeVariableCreate(node);
+    return typeVariableMap[node] ??= _getTypeVariableCreate(node)!;
   }
 
-  TypeVariableEntity _getTypeVariableCreate(ir.TypeParameter node) {
+  TypeVariableEntity? _getTypeVariableCreate(ir.TypeParameter node) {
     assert(
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
         "type variable for $node.");
-    if (node.parent is ir.Class) {
-      ir.Class cls = node.parent;
+    final parent = node.parent;
+    if (parent is ir.Class) {
+      ir.Class cls = parent;
       int index = cls.typeParameters.indexOf(node);
       return typeVariables.register(
-          createTypeVariable(getClassInternal(cls), node.name, index),
+          createTypeVariable(getClassInternal(cls), node.name!, index),
           KTypeVariableData(node));
     }
-    if (node.parent is ir.FunctionNode) {
-      ir.FunctionNode func = node.parent;
+    if (parent is ir.FunctionNode) {
+      ir.FunctionNode func = parent;
       int index = func.typeParameters.indexOf(node);
-      if (func.parent is ir.Constructor) {
-        ir.Constructor constructor = func.parent;
+      final funcParent = func.parent;
+      if (funcParent is ir.Constructor) {
+        ir.Constructor constructor = funcParent;
         ir.Class cls = constructor.enclosingClass;
         return getTypeVariableInternal(cls.typeParameters[index]);
-      } else if (func.parent is ir.Procedure) {
-        ir.Procedure procedure = func.parent;
+      } else if (funcParent is ir.Procedure) {
+        ir.Procedure procedure = funcParent;
         if (procedure.kind == ir.ProcedureKind.Factory) {
-          ir.Class cls = procedure.enclosingClass;
+          ir.Class cls = procedure.enclosingClass!;
           return getTypeVariableInternal(cls.typeParameters[index]);
         } else {
           return typeVariables.register(
               createTypeVariable(
-                  getMethodInternal(procedure), node.name, index),
+                  getMethodInternal(procedure), node.name!, index),
               KTypeVariableData(node));
         }
-      } else if (func.parent is ir.LocalFunction) {
+      } else if (funcParent is ir.LocalFunction) {
         // Ensure that local function type variables have been created.
-        getLocalFunction(func.parent);
+        getLocalFunction(funcParent);
         return typeVariableMap[node];
       } else {
         throw UnsupportedError('Unsupported function type parameter parent '
@@ -1350,17 +1358,18 @@ class KernelToElementMap
     throw UnsupportedError('Unsupported type parameter type node $node.');
   }
 
-  ConstructorEntity getConstructorInternal(ir.Member node) {
+  IndexedConstructor getConstructorInternal(ir.Member node) {
     return constructorMap[node] ??= _getConstructorCreate(node);
   }
 
-  ConstructorEntity _getConstructorCreate(ir.Member node) {
+  IndexedConstructor _getConstructorCreate(ir.Member node) {
     assert(
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
         "constructor for $node.");
     ir.FunctionNode functionNode;
-    ClassEntity enclosingClass = getClassForMemberInternal(node.enclosingClass);
+    final enclosingClass =
+        getClassForMemberInternal(node.enclosingClass!) as KClass;
     Name name = getName(node.name);
     bool isExternal = node.isExternal;
 
@@ -1392,25 +1401,26 @@ class KernelToElementMap
         constructor, KConstructorDataImpl(node, functionNode));
   }
 
-  FunctionEntity getMethodInternal(ir.Procedure /*!*/ node) {
+  IndexedFunction getMethodInternal(ir.Procedure node) {
     // [_getMethodCreate] inserts the created function in [methodMap] so we
     // don't need to use ??= here.
     return methodMap[node] ?? _getMethodCreate(node);
   }
 
-  FunctionEntity /*!*/ _getMethodCreate(ir.Procedure node) {
+  IndexedFunction _getMethodCreate(ir.Procedure node) {
     assert(
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
         "function for $node.");
-    FunctionEntity function;
-    LibraryEntity library;
-    ClassEntity enclosingClass;
+    late IndexedFunction function;
+    KLibrary library;
+    KClass? enclosingClass;
     if (node.enclosingClass != null) {
-      enclosingClass = getClassForMemberInternal(node.enclosingClass);
+      enclosingClass =
+          getClassForMemberInternal(node.enclosingClass!) as KClass;
       library = enclosingClass.library;
     } else {
-      library = getLibraryInternal(node.enclosingLibrary);
+      library = getLibraryInternal(node.enclosingLibrary) as KLibrary;
     }
     Name name = getName(node.name);
     bool isStatic = node.isStatic;
@@ -1447,22 +1457,23 @@ class KernelToElementMap
     return function;
   }
 
-  FieldEntity getFieldInternal(ir.Field node) {
+  IndexedField getFieldInternal(ir.Field node) {
     return fieldMap[node] ??= _getFieldCreate(node);
   }
 
-  FieldEntity _getFieldCreate(ir.Field node) {
+  IndexedField _getFieldCreate(ir.Field node) {
     assert(
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
         "field for $node.");
-    LibraryEntity library;
-    ClassEntity enclosingClass;
+    KLibrary library;
+    KClass? enclosingClass;
     if (node.enclosingClass != null) {
-      enclosingClass = getClassForMemberInternal(node.enclosingClass);
+      enclosingClass =
+          getClassForMemberInternal(node.enclosingClass!) as KClass;
       library = enclosingClass.library;
     } else {
-      library = getLibraryInternal(node.enclosingLibrary);
+      library = getLibraryInternal(node.enclosingLibrary) as KLibrary;
     }
     Name name = getName(node.name);
     bool isStatic = node.isStatic;
@@ -1534,13 +1545,13 @@ class KernelToElementMap
 
     if (impactBuilderData.typeMapsForTesting != null) {
       typeMapsForTesting ??= {};
-      typeMapsForTesting[member] = impactBuilderData.typeMapsForTesting;
+      typeMapsForTesting![member] = impactBuilderData.typeMapsForTesting!;
     }
     ImpactData impactData = impactBuilderData.impactData;
     memberData.staticTypes = impactBuilderData.cachedStaticTypes;
     if (retainDataForTesting) {
       impactDataForTesting ??= {};
-      impactDataForTesting[node] = impactData;
+      impactDataForTesting![node] = impactData;
     }
     KernelImpactConverter converter = KernelImpactConverter(
         this,
@@ -1561,33 +1572,31 @@ class KernelToElementMap
   }
 
   StaticTypeCache getCachedStaticTypes(KMember member) {
-    StaticTypeCache staticTypes = members.getData(member).staticTypes;
-    assert(staticTypes != null, "No static types cached for $member.");
-    return staticTypes;
+    return members.getData(member).staticTypes!;
   }
 
-  Map<ir.Expression, TypeMap> getTypeMapsForTesting(KMember member) {
-    return typeMapsForTesting[member];
+  Map<ir.Expression, TypeMap>? getTypeMapsForTesting(KMember member) {
+    return typeMapsForTesting![member];
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].
   ir.Procedure lookupProcedure(KFunction method) {
-    return members.getData(method).node;
+    return members.getData(method).node as ir.Procedure;
   }
 
   /// Returns the [ir.Library] corresponding to [library].
   ir.Library getLibraryNode(LibraryEntity library) {
-    return libraries.getData(library).library;
+    return libraries.getData(library as IndexedLibrary).library;
   }
 
   /// Returns the [Local] corresponding to the local function [node].
   @override
-  Local getLocalFunction(ir.LocalFunction node) {
-    KLocalFunction localFunction = localFunctionMap[node];
+  KLocalFunction getLocalFunction(ir.LocalFunction? node) {
+    KLocalFunction? localFunction = localFunctionMap[node!] as KLocalFunction?;
     if (localFunction == null) {
-      MemberEntity memberContext;
-      Entity executableContext;
-      ir.TreeNode parent = node.parent;
+      late MemberEntity memberContext;
+      late Entity executableContext;
+      ir.TreeNode? parent = node.parent;
       while (parent != null) {
         if (parent is ir.Member) {
           executableContext = memberContext = getMember(parent);
@@ -1601,8 +1610,8 @@ class KernelToElementMap
         }
         parent = parent.parent;
       }
-      String name;
-      ir.FunctionNode function;
+      String? name;
+      late ir.FunctionNode function;
       if (node is ir.FunctionDeclaration) {
         name = node.variable.name;
         function = node.function;
@@ -1615,7 +1624,7 @@ class KernelToElementMap
       List<KLocalTypeVariable> typeVariables = <KLocalTypeVariable>[];
       for (ir.TypeParameter typeParameter in function.typeParameters) {
         typeVariables.add(typeVariableMap[typeParameter] =
-            KLocalTypeVariable(localFunction, typeParameter.name, index));
+            KLocalTypeVariable(localFunction, typeParameter.name!, index));
         index++;
       }
       index = 0;
@@ -1636,10 +1645,10 @@ class KernelToElementMap
   bool implementsFunction(IndexedClass cls) {
     assert(checkFamily(cls));
     KClassData data = classes.getData(cls);
-    OrderedTypeSet orderedTypeSet = data.orderedTypeSet;
-    InterfaceType supertype = orderedTypeSet.asInstanceOf(
+    OrderedTypeSet orderedTypeSet = data.orderedTypeSet!;
+    InterfaceType? supertype = orderedTypeSet.asInstanceOf(
         commonElements.functionClass,
-        getHierarchyDepth(commonElements.functionClass));
+        getHierarchyDepth(commonElements.functionClass as IndexedClass));
     if (supertype != null) {
       return true;
     }
@@ -1648,26 +1657,27 @@ class KernelToElementMap
 
   /// Compute the kind of foreign helper function called by [node], if any.
   @override
-  ForeignKind getForeignKind(ir.StaticInvocation node) {
+  interfaces.ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
       switch (node.target.name.text) {
         case Identifiers.JS:
-          return ForeignKind.JS;
+          return interfaces.ForeignKind.JS;
         case Identifiers.JS_BUILTIN:
-          return ForeignKind.JS_BUILTIN;
+          return interfaces.ForeignKind.JS_BUILTIN;
         case Identifiers.JS_EMBEDDED_GLOBAL:
-          return ForeignKind.JS_EMBEDDED_GLOBAL;
+          return interfaces.ForeignKind.JS_EMBEDDED_GLOBAL;
         case Identifiers.JS_INTERCEPTOR_CONSTANT:
-          return ForeignKind.JS_INTERCEPTOR_CONSTANT;
+          return interfaces.ForeignKind.JS_INTERCEPTOR_CONSTANT;
       }
     }
-    return ForeignKind.NONE;
+    return interfaces.ForeignKind.NONE;
   }
 
   /// Computes the [InterfaceType] referenced by a call to the
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
   @override
-  InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node) {
+  InterfaceType? getInterfaceTypeForJsInterceptorCall(
+      ir.StaticInvocation node) {
     if (node.arguments.positional.length != 1 ||
         node.arguments.named.isNotEmpty) {
       reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
@@ -1675,12 +1685,13 @@ class KernelToElementMap
     }
     ir.Node argument = node.arguments.positional.first;
     if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
-      return getInterfaceType(argument.type);
+      return getInterfaceType(argument.type as ir.InterfaceType);
     } else if (argument is ir.ConstantExpression &&
         argument.constant is ir.TypeLiteralConstant) {
-      ir.TypeLiteralConstant constant = argument.constant;
+      ir.TypeLiteralConstant constant =
+          argument.constant as ir.TypeLiteralConstant;
       if (constant.type is ir.InterfaceType) {
-        return getInterfaceType(constant.type);
+        return getInterfaceType(constant.type as ir.InterfaceType);
       }
     }
     return null;
@@ -1691,7 +1702,7 @@ class KernelToElementMap
   @override
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
       Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
-      {bool isJsInterop}) {
+      {required bool isJsInterop}) {
     DartType type = getDartType(field.type);
     return nativeBehaviorBuilder.buildFieldLoadBehavior(type,
         createsAnnotations, returnsAnnotations, typeLookup(resolveAsRaw: false),
@@ -1712,8 +1723,8 @@ class KernelToElementMap
   @override
   NativeBehavior getNativeBehaviorForMethod(ir.Member member,
       Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
-      {bool isJsInterop}) {
-    DartType type;
+      {required bool isJsInterop}) {
+    late DartType type;
     if (member is ir.Procedure) {
       type = getFunctionType(member.function);
     } else if (member is ir.Constructor) {
@@ -1721,8 +1732,8 @@ class KernelToElementMap
     } else {
       failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected method node $member.");
     }
-    return nativeBehaviorBuilder.buildMethodBehavior(type, createsAnnotations,
-        returnsAnnotations, typeLookup(resolveAsRaw: false),
+    return nativeBehaviorBuilder.buildMethodBehavior(type as FunctionType,
+        createsAnnotations, returnsAnnotations, typeLookup(resolveAsRaw: false),
         isJsInterop: isJsInterop);
   }
 
@@ -1731,73 +1742,68 @@ class KernelToElementMap
     return KLibrary(name, canonicalUri, isNonNullableByDefault);
   }
 
-  IndexedClass createClass(LibraryEntity library, String name,
-      {/*required*/ bool isAbstract}) {
+  IndexedClass createClass(KLibrary library, String name,
+      {required bool isAbstract}) {
     return KClass(library, name, isAbstract: isAbstract);
   }
 
-  TypeVariableEntity createTypeVariable(
+  KTypeVariable createTypeVariable(
       Entity typeDeclaration, String name, int index) {
     return KTypeVariable(typeDeclaration, name, index);
   }
 
-  IndexedConstructor createGenerativeConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {/*required*/ bool isExternal, /*required*/ bool isConst}) {
+  IndexedConstructor createGenerativeConstructor(
+      KClass enclosingClass, Name name, ParameterStructure parameterStructure,
+      {required bool isExternal, required bool isConst}) {
     return KGenerativeConstructor(enclosingClass, name, parameterStructure,
         isExternal: isExternal, isConst: isConst);
   }
 
   // TODO(dart2js-team): Rename isFromEnvironmentConstructor to
   // isEnvironmentConstructor: Here, and everywhere in the compiler.
-  IndexedConstructor createFactoryConstructor(ClassEntity enclosingClass,
-      Name name, ParameterStructure parameterStructure,
-      {/*required*/ bool isExternal,
-      /*required*/ bool isConst,
-      /*required*/ bool isFromEnvironmentConstructor}) {
+  IndexedConstructor createFactoryConstructor(
+      KClass enclosingClass, Name name, ParameterStructure parameterStructure,
+      {required bool isExternal,
+      required bool isConst,
+      required bool isFromEnvironmentConstructor}) {
     return KFactoryConstructor(enclosingClass, name, parameterStructure,
         isExternal: isExternal,
         isConst: isConst,
         isFromEnvironmentConstructor: isFromEnvironmentConstructor);
   }
 
-  IndexedFunction createGetter(LibraryEntity library,
-      ClassEntity enclosingClass, Name name, AsyncMarker asyncMarker,
-      {/*required*/ bool isStatic,
-      /*required*/ bool isExternal,
-      /*required*/ bool isAbstract}) {
+  IndexedFunction createGetter(KLibrary library, KClass? enclosingClass,
+      Name name, AsyncMarker asyncMarker,
+      {required bool isStatic,
+      required bool isExternal,
+      required bool isAbstract}) {
     return KGetter(library, enclosingClass, name, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
-  IndexedFunction createMethod(
-      LibraryEntity library,
-      ClassEntity enclosingClass,
-      Name name,
-      ParameterStructure parameterStructure,
-      AsyncMarker asyncMarker,
-      {/*required*/ bool isStatic,
-      /*required*/ bool isExternal,
-      /*required*/ bool isAbstract}) {
+  IndexedFunction createMethod(KLibrary library, KClass? enclosingClass,
+      Name name, ParameterStructure parameterStructure, AsyncMarker asyncMarker,
+      {required bool isStatic,
+      required bool isExternal,
+      required bool isAbstract}) {
     return KMethod(
         library, enclosingClass, name, parameterStructure, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
   IndexedFunction createSetter(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {/*required*/ bool isStatic,
-      /*required*/ bool isExternal,
-      /*required*/ bool isAbstract}) {
+      KLibrary library, KClass? enclosingClass, Name name,
+      {required bool isStatic,
+      required bool isExternal,
+      required bool isAbstract}) {
     return KSetter(library, enclosingClass, name,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
-  IndexedField createField(
-      LibraryEntity library, ClassEntity enclosingClass, Name name,
-      {/*required*/ bool isStatic,
-      /*required*/ bool isAssignable,
-      /*required*/ bool isConst}) {
+  IndexedField createField(KLibrary library, KClass? enclosingClass, Name name,
+      {required bool isStatic,
+      required bool isAssignable,
+      required bool isConst}) {
     return KField(library, enclosingClass, name,
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
@@ -1813,37 +1819,37 @@ class KernelElementEnvironment extends ElementEnvironment
   DartType get dynamicType => elementMap.types.dynamicType();
 
   @override
-  LibraryEntity get mainLibrary => elementMap._mainLibrary;
+  LibraryEntity? get mainLibrary => elementMap._mainLibrary;
 
   @override
-  FunctionEntity get mainFunction => elementMap._mainFunction;
+  FunctionEntity? get mainFunction => elementMap._mainFunction;
 
   @override
   Iterable<LibraryEntity> get libraries => elementMap.libraryListInternal;
 
   @override
   String getLibraryName(LibraryEntity library) {
-    return elementMap._getLibraryName(library);
+    return elementMap._getLibraryName(library as IndexedLibrary);
   }
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
-    return elementMap.getThisType(cls);
+    return elementMap.getThisType(cls as IndexedClass);
   }
 
   @override
   InterfaceType getJsInteropType(ClassEntity cls) {
-    return elementMap._getJsInteropType(cls);
+    return elementMap._getJsInteropType(cls as IndexedClass)!;
   }
 
   @override
   InterfaceType getRawType(ClassEntity cls) {
-    return elementMap._getRawType(cls);
+    return elementMap._getRawType(cls as IndexedClass);
   }
 
   @override
   InterfaceType getClassInstantiationToBounds(ClassEntity cls) =>
-      elementMap._getClassInstantiationToBounds(cls);
+      elementMap._getClassInstantiationToBounds(cls as IndexedClass);
 
   @override
   bool isGenericClass(ClassEntity cls) {
@@ -1852,23 +1858,23 @@ class KernelElementEnvironment extends ElementEnvironment
 
   @override
   bool isMixinApplication(ClassEntity cls) {
-    return elementMap._isMixinApplication(cls);
+    return elementMap._isMixinApplication(cls as IndexedClass);
   }
 
   @override
   bool isUnnamedMixinApplication(ClassEntity cls) {
-    return elementMap._isUnnamedMixinApplication(cls);
+    return elementMap._isUnnamedMixinApplication(cls as IndexedClass);
   }
 
   @override
   DartType getTypeVariableBound(TypeVariableEntity typeVariable) {
     if (typeVariable is KLocalTypeVariable) return typeVariable.bound;
-    return elementMap.getTypeVariableBound(typeVariable);
+    return elementMap.getTypeVariableBound(typeVariable as IndexedTypeVariable);
   }
 
   @override
   List<Variance> getTypeVariableVariances(ClassEntity cls) {
-    return elementMap.getTypeVariableVariances(cls);
+    return elementMap.getTypeVariableVariances(cls as IndexedClass);
   }
 
   @override
@@ -1879,17 +1885,17 @@ class KernelElementEnvironment extends ElementEnvironment
 
   @override
   FunctionType getFunctionType(FunctionEntity function) {
-    return elementMap._getFunctionType(function);
+    return elementMap._getFunctionType(function as IndexedFunction);
   }
 
   @override
   List<TypeVariableType> getFunctionTypeVariables(FunctionEntity function) {
-    return elementMap._getFunctionTypeVariables(function);
+    return elementMap._getFunctionTypeVariables(function as IndexedFunction);
   }
 
   @override
   DartType getFieldType(FieldEntity field) {
-    return elementMap._getFieldType(field);
+    return elementMap._getFieldType(field as IndexedField);
   }
 
   @override
@@ -1898,9 +1904,10 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  ConstructorEntity lookupConstructor(ClassEntity cls, String name,
+  ConstructorEntity? lookupConstructor(ClassEntity cls, String name,
       {bool required = false}) {
-    ConstructorEntity constructor = elementMap.lookupConstructor(cls, name);
+    ConstructorEntity? constructor =
+        elementMap.lookupConstructor(cls as IndexedClass, name);
     if (constructor == null && required) {
       throw failedAt(
           CURRENT_ELEMENT_SPANNABLE,
@@ -1911,9 +1918,10 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  MemberEntity lookupLocalClassMember(ClassEntity cls, Name name,
+  MemberEntity? lookupLocalClassMember(ClassEntity cls, Name name,
       {bool required = false}) {
-    MemberEntity member = elementMap.lookupClassMember(cls, name);
+    MemberEntity? member =
+        elementMap.lookupClassMember(cls as IndexedClass, name);
     if (member == null && required) {
       throw failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '$name' was not found in ${cls.name}.");
@@ -1922,13 +1930,14 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  ClassEntity getSuperClass(ClassEntity cls,
+  ClassEntity? getSuperClass(ClassEntity cls,
       {bool skipUnnamedMixinApplications = false}) {
     assert(elementMap.checkFamily(cls));
-    ClassEntity superclass = elementMap.getSuperType(cls)?.element;
+    ClassEntity? superclass =
+        elementMap.getSuperType(cls as IndexedClass)?.element;
     if (skipUnnamedMixinApplications) {
       while (superclass != null &&
-          elementMap._isUnnamedMixinApplication(superclass)) {
+          elementMap._isUnnamedMixinApplication(superclass as IndexedClass)) {
         superclass = elementMap.getSuperType(superclass)?.element;
       }
     }
@@ -1937,42 +1946,42 @@ class KernelElementEnvironment extends ElementEnvironment
 
   @override
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype)) {
-    elementMap._forEachSupertype(cls, f);
+    elementMap._forEachSupertype(cls as IndexedClass, f);
   }
 
   @override
   void forEachMixin(ClassEntity cls, void f(ClassEntity mixin)) {
-    elementMap._forEachMixin(cls, f);
+    elementMap._forEachMixin(cls as IndexedClass, f);
   }
 
   @override
   void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member)) {
-    elementMap._forEachLocalClassMember(cls, f);
+    elementMap._forEachLocalClassMember(cls as IndexedClass, f);
   }
 
   @override
   void forEachClassMember(
       ClassEntity cls, void f(ClassEntity declarer, MemberEntity member)) {
-    elementMap._forEachClassMember(cls, f);
+    elementMap._forEachClassMember(cls as IndexedClass, f);
   }
 
   @override
   void forEachConstructor(
       ClassEntity cls, void f(ConstructorEntity constructor)) {
-    elementMap._forEachConstructor(cls, f);
+    elementMap._forEachConstructor(cls as IndexedClass, f);
   }
 
   @override
   void forEachLibraryMember(
       LibraryEntity library, void f(MemberEntity member)) {
-    elementMap._forEachLibraryMember(library, f);
+    elementMap._forEachLibraryMember(library as IndexedLibrary, f);
   }
 
   @override
-  MemberEntity lookupLibraryMember(LibraryEntity library, String name,
+  MemberEntity? lookupLibraryMember(LibraryEntity library, String name,
       {bool setter = false, bool required = false}) {
-    MemberEntity member =
-        elementMap.lookupLibraryMember(library, name, setter: setter);
+    MemberEntity? member = elementMap
+        .lookupLibraryMember(library as IndexedLibrary, name, setter: setter);
     if (member == null && required) {
       failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The member '${name}' was not found in library '${library.name}'.");
@@ -1981,9 +1990,9 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  ClassEntity lookupClass(LibraryEntity library, String name,
+  ClassEntity? lookupClass(LibraryEntity library, String name,
       {bool required = false}) {
-    ClassEntity cls = elementMap.lookupClass(library, name);
+    ClassEntity? cls = elementMap.lookupClass(library as IndexedLibrary, name);
     if (cls == null && required) {
       failedAt(CURRENT_ELEMENT_SPANNABLE,
           "The class '$name'  was not found in library '${library.name}'.");
@@ -1993,12 +2002,12 @@ class KernelElementEnvironment extends ElementEnvironment
 
   @override
   void forEachClass(LibraryEntity library, void f(ClassEntity cls)) {
-    elementMap._forEachClass(library, f);
+    elementMap._forEachClass(library as IndexedLibrary, f);
   }
 
   @override
-  LibraryEntity lookupLibrary(Uri uri, {bool required = false}) {
-    LibraryEntity library = elementMap.lookupLibrary(uri);
+  LibraryEntity? lookupLibrary(Uri uri, {bool required = false}) {
+    LibraryEntity? library = elementMap.lookupLibrary(uri);
     if (library == null && required) {
       failedAt(CURRENT_ELEMENT_SPANNABLE, "The library '$uri' was not found.");
     }
@@ -2024,15 +2033,15 @@ class KernelElementEnvironment extends ElementEnvironment
   @override
   bool isEnumClass(ClassEntity cls) {
     assert(elementMap.checkFamily(cls));
-    KClassData classData = elementMap.classes.getData(cls);
+    KClassData classData = elementMap.classes.getData(cls as IndexedClass);
     return classData.isEnumClass;
   }
 
   @override
-  ClassEntity getEffectiveMixinClass(ClassEntity cls) {
+  ClassEntity? getEffectiveMixinClass(ClassEntity cls) {
     if (!isMixinApplication(cls)) return null;
     do {
-      cls = elementMap.getAppliedMixin(cls);
+      cls = elementMap.getAppliedMixin(cls as IndexedClass)!;
     } while (isMixinApplication(cls));
     return cls;
   }
@@ -2040,14 +2049,14 @@ class KernelElementEnvironment extends ElementEnvironment
   @override
   bool isLateBackingField(covariant IndexedField field) {
     assert(elementMap.checkFamily(field));
-    KFieldData fieldData = elementMap.members.getData(field);
+    KFieldData fieldData = elementMap.members.getData(field) as KFieldData;
     return fieldData.isLateBackingField;
   }
 
   @override
   bool isLateFinalBackingField(covariant IndexedField field) {
     assert(elementMap.checkFamily(field));
-    KFieldData fieldData = elementMap.members.getData(field);
+    KFieldData fieldData = elementMap.members.getData(field) as KFieldData;
     return fieldData.isLateFinalBackingField;
   }
 }
@@ -2057,36 +2066,36 @@ class KernelNativeMemberResolver {
 
   final KernelToElementMap _elementMap;
   final NativeBasicData _nativeBasicData;
-  final NativeDataBuilder _nativeDataBuilder;
+  final NativeDataBuilder? _nativeDataBuilder;
 
   KernelNativeMemberResolver(
       this._elementMap, this._nativeBasicData, this._nativeDataBuilder);
 
   /// Computes whether [node] is native or JsInterop.
   void resolveNativeMember(ir.Member node, IrAnnotationData annotationData) {
-    assert(annotationData != null);
     bool isJsInterop = _isJsInteropMember(node);
     if (node is ir.Procedure || node is ir.Constructor) {
-      FunctionEntity method = _elementMap.getMember(node);
+      FunctionEntity method = _elementMap.getMember(node) as FunctionEntity;
       bool isNative = _processMethodAnnotations(node, annotationData);
       if (isNative || isJsInterop) {
         NativeBehavior behavior = _computeNativeMethodBehavior(
-            method, annotationData,
+            method as KFunction, annotationData,
             isJsInterop: isJsInterop);
-        _nativeDataBuilder.setNativeMethodBehavior(method, behavior);
+        _nativeDataBuilder!.setNativeMethodBehavior(method, behavior);
       }
     } else if (node is ir.Field) {
-      FieldEntity field = _elementMap.getMember(node);
+      FieldEntity field = _elementMap.getMember(node) as FieldEntity;
       bool isNative = _processFieldAnnotations(node, annotationData);
       if (isNative || isJsInterop) {
         NativeBehavior fieldLoadBehavior = _computeNativeFieldLoadBehavior(
-            field, annotationData,
+            field as KField, annotationData,
             isJsInterop: isJsInterop);
         NativeBehavior fieldStoreBehavior =
             _computeNativeFieldStoreBehavior(field);
-        _nativeDataBuilder.setNativeFieldLoadBehavior(field, fieldLoadBehavior);
-        _nativeDataBuilder.setNativeFieldStoreBehavior(
-            field, fieldStoreBehavior);
+        _nativeDataBuilder!
+            .setNativeFieldLoadBehavior(field, fieldLoadBehavior);
+        _nativeDataBuilder!
+            .setNativeFieldStoreBehavior(field, fieldStoreBehavior);
       }
     }
   }
@@ -2095,10 +2104,9 @@ class KernelNativeMemberResolver {
   /// attributes. Returns `true` of [method] is native.
   bool _processFieldAnnotations(
       ir.Field node, IrAnnotationData annotationData) {
-    assert(annotationData != null);
     if (node.isInstanceMember &&
         _nativeBasicData
-            .isNativeClass(_elementMap.getClass(node.enclosingClass))) {
+            .isNativeClass(_elementMap.getClass(node.enclosingClass!))) {
       // Exclude non-instance (static) fields - they are not really native and
       // are compiled as isolate globals.  Access of a property of a constructor
       // function or a non-method property in the prototype chain, must be coded
@@ -2106,7 +2114,7 @@ class KernelNativeMemberResolver {
       _setNativeName(node, annotationData);
       return true;
     } else {
-      String name = _findJsNameFromAnnotation(node, annotationData);
+      String? name = _findJsNameFromAnnotation(node, annotationData);
       if (name != null) {
         failedAt(
             computeSourceSpanFromTreeNode(node),
@@ -2121,11 +2129,10 @@ class KernelNativeMemberResolver {
   /// attributes. Returns `true` of [method] is native.
   bool _processMethodAnnotations(
       ir.Member node, IrAnnotationData annotationData) {
-    assert(annotationData != null);
     if (_isNativeMethod(node, annotationData)) {
       if (node.enclosingClass != null && !node.isInstanceMember) {
         if (!_nativeBasicData
-            .isNativeClass(_elementMap.getClass(node.enclosingClass))) {
+            .isNativeClass(_elementMap.getClass(node.enclosingClass!))) {
           _elementMap.reporter.reportErrorMessage(
               computeSourceSpanFromTreeNode(node),
               MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS);
@@ -2143,9 +2150,9 @@ class KernelNativeMemberResolver {
   /// Sets the native name of [element], either from an annotation, or
   /// defaulting to the Dart name.
   void _setNativeName(ir.Member node, IrAnnotationData annotationData) {
-    String name = _findJsNameFromAnnotation(node, annotationData);
+    String? name = _findJsNameFromAnnotation(node, annotationData);
     name ??= node.name.text;
-    _nativeDataBuilder.setNativeMemberName(_elementMap.getMember(node), name);
+    _nativeDataBuilder!.setNativeMemberName(_elementMap.getMember(node), name);
   }
 
   /// Sets the native name of the static native method [element], using the
@@ -2158,10 +2165,10 @@ class KernelNativeMemberResolver {
   ///    the method with the @Native name of the enclosing class.
   void _setNativeNameForStaticMethod(
       ir.Member node, IrAnnotationData annotationData) {
-    String name = _findJsNameFromAnnotation(node, annotationData);
+    String? name = _findJsNameFromAnnotation(node, annotationData);
     name ??= node.name.text;
     if (_isIdentifier(name)) {
-      ClassEntity cls = _elementMap.getClass(node.enclosingClass);
+      ClassEntity cls = _elementMap.getClass(node.enclosingClass!);
       List<String> nativeNames = _nativeBasicData.getNativeTagsOfClass(cls);
       if (nativeNames.length != 1) {
         failedAt(
@@ -2169,10 +2176,11 @@ class KernelNativeMemberResolver {
             'Unable to determine a native name for the enclosing class, '
             'options: $nativeNames');
       }
-      _nativeDataBuilder.setNativeMemberName(
+      _nativeDataBuilder!.setNativeMemberName(
           _elementMap.getMember(node), '${nativeNames[0]}.$name');
     } else {
-      _nativeDataBuilder.setNativeMemberName(_elementMap.getMember(node), name);
+      _nativeDataBuilder!
+          .setNativeMemberName(_elementMap.getMember(node), name);
     }
   }
 
@@ -2180,22 +2188,20 @@ class KernelNativeMemberResolver {
 
   /// Returns the JSName annotation string or `null` if no JSName annotation is
   /// present.
-  String _findJsNameFromAnnotation(
+  String? _findJsNameFromAnnotation(
       ir.Member node, IrAnnotationData annotationData) {
-    assert(annotationData != null);
     return annotationData.getNativeMemberName(node);
   }
 
   NativeBehavior _computeNativeFieldStoreBehavior(covariant KField field) {
-    ir.Field node = _elementMap.getMemberNode(field);
+    ir.Field node = _elementMap.getMemberNode(field) as ir.Field;
     return _elementMap.getNativeBehaviorForFieldStore(node);
   }
 
   NativeBehavior _computeNativeFieldLoadBehavior(
       KField field, IrAnnotationData annotationData,
-      {bool isJsInterop}) {
-    assert(annotationData != null);
-    ir.Field node = _elementMap.getMemberNode(field);
+      {required bool isJsInterop}) {
+    ir.Field node = _elementMap.getMemberNode(field) as ir.Field;
     Iterable<String> createsAnnotations =
         annotationData.getCreatesAnnotations(node);
     Iterable<String> returnsAnnotations =
@@ -2207,8 +2213,7 @@ class KernelNativeMemberResolver {
 
   NativeBehavior _computeNativeMethodBehavior(
       KFunction function, IrAnnotationData annotationData,
-      {bool isJsInterop}) {
-    assert(annotationData != null);
+      {required bool isJsInterop}) {
     ir.Member node = _elementMap.getMemberNode(function);
     Iterable<String> createsAnnotations =
         annotationData.getCreatesAnnotations(node);
@@ -2220,7 +2225,6 @@ class KernelNativeMemberResolver {
   }
 
   bool _isNativeMethod(ir.Member node, IrAnnotationData annotationData) {
-    assert(annotationData != null);
     if (!maybeEnableNative(node.enclosingLibrary.importUri)) return false;
     bool hasNativeBody = annotationData.hasNativeBody(node);
     // TODO(rileyporter): Move this check on non-native external usage to

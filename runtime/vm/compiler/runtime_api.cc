@@ -546,6 +546,8 @@ word Instance::DataOffsetFor(intptr_t cid) {
       return OneByteString::data_offset();
     case kTwoByteStringCid:
       return TwoByteString::data_offset();
+    case kRecordCid:
+      return Record::field_offset(0);
     default:
       UNIMPLEMENTED();
       return Array::data_offset();

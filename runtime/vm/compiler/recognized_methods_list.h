@@ -20,6 +20,9 @@ namespace dart {
   V(_List, []=, ObjectArraySetIndexed, 0x050cd2ba)                             \
   V(_GrowableList, ._withData, GrowableArrayAllocateWithData, 0x1947d8a1)      \
   V(_GrowableList, []=, GrowableArraySetIndexed, 0x050cd2ba)                   \
+  V(_Record, get:_fieldNames, Record_fieldNames, 0x68e5459d)                   \
+  V(_Record, get:_numFields, Record_numFields, 0x7bc20792)                     \
+  V(_Record, _fieldAt, Record_fieldAt, 0xb49cb873)                             \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0x1623dc34)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 0x177ffe2a)                  \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 0x2e40964f)                  \

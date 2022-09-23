@@ -108,7 +108,7 @@ abstract class KernelToElementMapForDeferredLoading {
       {bool requireConstant = true,
       bool implicitNull = false,
       bool checkCasts = true});
-  ImportEntity getImport(ir.LibraryDependency? node);
+  ImportEntity? getImport(ir.LibraryDependency? node);
   ir.Member getMemberNode(MemberEntity member);
   ir.StaticTypeContext getStaticTypeContext(MemberEntity member);
 }

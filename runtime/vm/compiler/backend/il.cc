@@ -6351,6 +6351,7 @@ Representation LoadIndexedInstr::RepresentationOfArrayElement(
     intptr_t array_cid) {
   switch (array_cid) {
     case kImmutableArrayCid:
+    case kRecordCid:
     case kTypeArgumentsCid:
       return kTagged;
     case kExternalOneByteStringCid:

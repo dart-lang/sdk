@@ -559,7 +559,7 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
   }
 
   @override
-  ConstantValue toBackendConstant(ConstantValue constant,
+  ConstantValue /*?*/ toBackendConstant(ConstantValue /*?*/ constant,
       {bool allowNull = false}) {
     if (constant == null) {
       if (!allowNull) {

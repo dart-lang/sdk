@@ -4140,6 +4140,7 @@ static OperandSize OperandSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
+    case kRecordCid:
     case kTypeArgumentsCid:
       return kObjectBytes;
     case kOneByteStringCid:
