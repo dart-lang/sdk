@@ -86,6 +86,7 @@ import '../scope.dart';
 import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
+import '../uri_offset.dart';
 import '../util/helpers.dart';
 import '../uris.dart';
 import 'diet_listener.dart' show DietListener;
@@ -229,7 +230,7 @@ class SourceLoader extends Loader {
 
   int byteCount = 0;
 
-  Uri? currentUriForCrashReporting;
+  UriOffset? currentUriForCrashReporting;
 
   ClassBuilder? _macroClassBuilder;
 
@@ -285,6 +286,16 @@ class SourceLoader extends Loader {
 
   void clearLibraryBuilders() {
     _builders.clear();
+  }
+
+  /// Run [f] with [uri] and [fileOffset] as the current uri/offset used for
+  /// reporting crashes.
+  T withUriForCrashReporting<T>(Uri uri, int fileOffset, T Function() f) {
+    UriOffset? oldUriForCrashReporting = currentUriForCrashReporting;
+    currentUriForCrashReporting = new UriOffset(uri, fileOffset);
+    T result = f();
+    currentUriForCrashReporting = oldUriForCrashReporting;
+    return result;
   }
 
   @override
@@ -659,7 +670,8 @@ class SourceLoader extends Loader {
   Future<Null> buildBodies(List<SourceLibraryBuilder> libraryBuilders) async {
     assert(_coreLibrary != null);
     for (SourceLibraryBuilder library in libraryBuilders) {
-      currentUriForCrashReporting = library.importUri;
+      currentUriForCrashReporting =
+          new UriOffset(library.importUri, TreeNode.noOffset);
       await buildBody(library);
     }
     // Workaround: This will return right away but avoid a "semi leak"
@@ -1006,7 +1018,8 @@ severity: $severity
     _ensureCoreLibrary();
     while (_unparsedLibraries.isNotEmpty) {
       SourceLibraryBuilder library = _unparsedLibraries.removeFirst();
-      currentUriForCrashReporting = library.importUri;
+      currentUriForCrashReporting =
+          new UriOffset(library.importUri, TreeNode.noOffset);
       await buildOutline(library);
     }
     currentUriForCrashReporting = null;

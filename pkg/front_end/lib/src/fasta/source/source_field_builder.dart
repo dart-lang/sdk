@@ -481,35 +481,38 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       return fieldType;
     }
 
-    InferredType implicitFieldType = fieldType as InferredType;
-    DartType inferredType = implicitFieldType.computeType(hierarchy);
-    if (fieldType is InferredType) {
-      // `fieldType` may have changed if a circularity was detected when
-      // [inferredType] was computed.
-      if (!libraryBuilder.isNonNullableByDefault) {
-        inferredType = legacyErasure(inferredType);
-      }
-      type.registerInferredType(inferredType);
+    return libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset,
+        () {
+      InferredType implicitFieldType = fieldType as InferredType;
+      DartType inferredType = implicitFieldType.computeType(hierarchy);
+      if (fieldType is InferredType) {
+        // `fieldType` may have changed if a circularity was detected when
+        // [inferredType] was computed.
+        if (!libraryBuilder.isNonNullableByDefault) {
+          inferredType = legacyErasure(inferredType);
+        }
+        type.registerInferredType(inferredType);
 
-      IncludesTypeParametersNonCovariantly? needsCheckVisitor;
-      if (parent is ClassBuilder) {
-        Class enclosingClass = classBuilder!.cls;
-        if (enclosingClass.typeParameters.isNotEmpty) {
-          needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
-              enclosingClass.typeParameters,
-              // We are checking the field type as if it is the type of the
-              // parameter of the implicit setter and this is a contravariant
-              // position.
-              initialVariance: Variance.contravariant);
+        IncludesTypeParametersNonCovariantly? needsCheckVisitor;
+        if (parent is ClassBuilder) {
+          Class enclosingClass = classBuilder!.cls;
+          if (enclosingClass.typeParameters.isNotEmpty) {
+            needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
+                enclosingClass.typeParameters,
+                // We are checking the field type as if it is the type of the
+                // parameter of the implicit setter and this is a contravariant
+                // position.
+                initialVariance: Variance.contravariant);
+          }
+        }
+        if (needsCheckVisitor != null) {
+          if (fieldType.accept(needsCheckVisitor)) {
+            _fieldEncoding.setGenericCovariantImpl();
+          }
         }
       }
-      if (needsCheckVisitor != null) {
-        if (fieldType.accept(needsCheckVisitor)) {
-          _fieldEncoding.setGenericCovariantImpl();
-        }
-      }
-    }
-    return fieldType;
+      return fieldType;
+    });
   }
 
   @override

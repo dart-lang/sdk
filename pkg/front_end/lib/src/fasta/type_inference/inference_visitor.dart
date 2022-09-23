@@ -35,6 +35,7 @@ import '../kernel/late_lowering.dart' as late_lowering;
 import '../names.dart';
 import '../problems.dart' show unhandled;
 import '../source/source_library_builder.dart';
+import '../uri_offset.dart';
 import 'closure_context.dart';
 import 'for_in.dart';
 import 'inference_helper.dart';
@@ -233,7 +234,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   /// Computes uri and offset for [node] for internal errors in a way that is
   /// safe for both top-level and full inference.
-  _UriOffset _computeUriOffset(TreeNode node) {
+  UriOffset _computeUriOffset(TreeNode node) {
     Uri uri;
     int fileOffset;
     if (!isTopLevel) {
@@ -252,12 +253,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         fileOffset = TreeNode.noOffset;
       }
     }
-    return new _UriOffset(uri, fileOffset);
+    return new UriOffset(uri, fileOffset);
   }
 
   ExpressionInferenceResult _unhandledExpression(
       Expression node, DartType typeContext) {
-    _UriOffset uriOffset = _computeUriOffset(node);
+    UriOffset uriOffset = _computeUriOffset(node);
     unhandled("${node.runtimeType}", "InferenceVisitor", uriOffset.fileOffset,
         uriOffset.uri);
   }
@@ -479,7 +480,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult _unhandledStatement(Statement node) {
-    _UriOffset uriOffset = _computeUriOffset(node);
+    UriOffset uriOffset = _computeUriOffset(node);
     return unhandled("${node.runtimeType}", "InferenceVisitor",
         uriOffset.fileOffset, uriOffset.uri);
   }
@@ -1364,7 +1365,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (syntheticAssignment is InvalidExpression || hasProblem) {
       return new InvalidForInVariable(syntheticAssignment);
     } else {
-      _UriOffset uriOffset = _computeUriOffset(syntheticAssignment!);
+      UriOffset uriOffset = _computeUriOffset(syntheticAssignment!);
       return unhandled(
           "${syntheticAssignment.runtimeType}",
           "handleForInStatementWithoutVariable",
@@ -7453,13 +7454,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     }
   }
-}
-
-class _UriOffset {
-  final Uri uri;
-  final int fileOffset;
-
-  _UriOffset(this.uri, this.fileOffset);
 }
 
 /// Offset and type information collection in [InferenceVisitor.inferMapEntry].
