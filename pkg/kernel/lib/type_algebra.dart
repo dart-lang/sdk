@@ -312,7 +312,7 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
 
   @override
   bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}).");
   }
 
   @override

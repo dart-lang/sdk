@@ -315,29 +315,31 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_hasFormalsInferred) return;
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
-        if (formal.type is InferableTypeBuilder) {
-          if (formal.isInitializingFormal) {
-            formal.finalizeInitializingFormal(classBuilder, hierarchy);
+      libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset, () {
+        for (FormalParameterBuilder formal in formals!) {
+          if (formal.type is InferableTypeBuilder) {
+            if (formal.isInitializingFormal) {
+              formal.finalizeInitializingFormal(classBuilder, hierarchy);
+            }
           }
         }
-      }
 
-      if (_hasSuperInitializingFormals) {
-        List<Initializer>? initializers;
-        if (beginInitializers != null) {
-          BodyBuilder bodyBuilder = libraryBuilder.loader
-              .createBodyBuilderForOutlineExpression(libraryBuilder,
-                  classBuilder, this, classBuilder.scope, fileUri);
-          if (isConst) {
-            bodyBuilder.constantContext = ConstantContext.required;
+        if (_hasSuperInitializingFormals) {
+          List<Initializer>? initializers;
+          if (beginInitializers != null) {
+            BodyBuilder bodyBuilder = libraryBuilder.loader
+                .createBodyBuilderForOutlineExpression(libraryBuilder,
+                    classBuilder, this, classBuilder.scope, fileUri);
+            if (isConst) {
+              bodyBuilder.constantContext = ConstantContext.required;
+            }
+            initializers = bodyBuilder.parseInitializers(beginInitializers!,
+                doFinishConstructor: false);
           }
-          initializers = bodyBuilder.parseInitializers(beginInitializers!,
-              doFinishConstructor: false);
+          finalizeSuperInitializingFormals(
+              hierarchy, _superParameterDefaultValueCloners, initializers);
         }
-        finalizeSuperInitializingFormals(
-            hierarchy, _superParameterDefaultValueCloners, initializers);
-      }
+      });
     }
     _hasFormalsInferred = true;
   }

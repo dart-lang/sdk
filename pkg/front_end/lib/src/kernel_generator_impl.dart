@@ -32,6 +32,7 @@ import 'fasta/kernel/macro/macro.dart';
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 import 'fasta/source/source_loader.dart' show SourceLoader;
+import 'fasta/uri_offset.dart';
 import 'fasta/uri_translator.dart' show UriTranslator;
 
 /// Implementation for the
@@ -120,7 +121,10 @@ Future<CompilerResult> generateKernelInternal(
           includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes,
           retainDataForTesting: retainDataForTesting);
     }
-  }, () => sourceLoader?.currentUriForCrashReporting ?? options.inputs.first);
+  },
+      () =>
+          sourceLoader?.currentUriForCrashReporting ??
+          new UriOffset(options.inputs.first, TreeNode.noOffset));
 }
 
 Future<CompilerResult> _buildInternal(

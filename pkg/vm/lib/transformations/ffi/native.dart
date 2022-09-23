@@ -70,7 +70,7 @@ class FfiNativeTransformer extends FfiTransformer {
         super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex);
 
-  ConstantExpression? _tryGetFfiNativeAnnotation(Member node) {
+  ConstantExpression? tryGetFfiNativeAnnotation(Member node) {
     for (final Expression annotation in node.annotations) {
       if (annotation is! ConstantExpression) {
         continue;
@@ -443,26 +443,13 @@ class FfiNativeTransformer extends FfiTransformer {
     List<Expression> argumentList, {
     required bool checkReceiverForNullptr,
   }) {
-    if (!_verifySignatures(
-        node, dartFunctionType, ffiFunctionType, annotationOffset)) {
-      return node;
-    }
+    final wrappedDartFunctionType = checkFfiType(
+        node, dartFunctionType, ffiFunctionType, isLeaf, annotationOffset);
 
-    // int Function(Pointer<Void>)
-    final wrappedDartFunctionType =
-        _wrapFunctionType(dartFunctionType, ffiFunctionType);
-
-    final nativeType = InterfaceType(
-        nativeFunctionClass, Nullability.legacy, [ffiFunctionType]);
-    try {
-      ensureNativeTypeValid(nativeType, node);
-      ensureNativeTypeToDartType(nativeType, wrappedDartFunctionType, node,
-          allowHandle: true);
-      ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
-    } on FfiStaticTypeError {
-      // It's OK to swallow the exception because the diagnostics issued will
-      // cause compilation to fail. By continuing, we can report more
-      // diagnostics before compilation ends.
+    if (wrappedDartFunctionType == null) {
+      // It's OK to continue because the diagnostics issued will cause
+      // compilation to fail. By continuing, we can report more diagnostics
+      // before compilation ends.
       return node;
     }
 
@@ -609,7 +596,7 @@ class FfiNativeTransformer extends FfiTransformer {
     // Only transform functions that are external and have FfiNative annotation:
     //   @FfiNative<Double Function(Double)>('Math_sqrt')
     //   external double _square_root(double x);
-    final ffiNativeAnnotation = _tryGetFfiNativeAnnotation(node);
+    final ffiNativeAnnotation = tryGetFfiNativeAnnotation(node);
     if (ffiNativeAnnotation == null) {
       return node;
     }
@@ -638,5 +625,39 @@ class FfiNativeTransformer extends FfiTransformer {
 
     return _transformStaticFunction(node, ffiFunctionType, nativeFunctionName,
         isLeaf, ffiNativeAnnotation.fileOffset);
+  }
+
+  /// Checks whether the FFI function type is valid and reports any errors.
+  /// Returns the Dart function type for the FFI function if the type is valid.
+  ///
+  /// For example, for FFI function type `Int8 Function(Double)`, this returns
+  /// `int Function(double)`.
+  FunctionType? checkFfiType(Procedure node, FunctionType dartFunctionType,
+      FunctionType ffiFunctionType, bool isLeaf, int annotationOffset) {
+    if (!_verifySignatures(
+        node, dartFunctionType, ffiFunctionType, annotationOffset)) {
+      return null;
+    }
+
+    // int Function(Pointer<Void>)
+    final wrappedDartFunctionType =
+        _wrapFunctionType(dartFunctionType, ffiFunctionType);
+
+    final nativeType = InterfaceType(
+        nativeFunctionClass, Nullability.legacy, [ffiFunctionType]);
+
+    try {
+      ensureNativeTypeValid(nativeType, node);
+      ensureNativeTypeToDartType(nativeType, wrappedDartFunctionType, node,
+          allowHandle: true);
+      ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
+    } on FfiStaticTypeError {
+      // It's OK to swallow the exception because the diagnostics issued will
+      // cause compilation to fail. By continuing, we can report more
+      // diagnostics before compilation ends.
+      return null;
+    }
+
+    return wrappedDartFunctionType;
   }
 }
