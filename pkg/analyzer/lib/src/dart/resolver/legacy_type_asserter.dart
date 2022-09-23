@@ -50,7 +50,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
 
   @override
   void visitClassMember(ClassMember node) {
-    final element = node.declaredElement2;
+    final element = node.declaredElement;
     if (element is ExecutableElement) {
       _assertLegacyType(element.type);
     }
@@ -66,7 +66,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    _assertLegacyType(node.declaredElement2?.type);
+    _assertLegacyType(node.declaredElement?.type);
     super.visitDeclaredIdentifier(node);
   }
 
@@ -85,7 +85,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    _assertLegacyType(node.declaredElement2?.type);
+    _assertLegacyType(node.declaredElement?.type);
     super.visitFunctionDeclaration(node);
   }
 
@@ -110,7 +110,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    _assertLegacyType(node.declaredElement2?.type);
+    _assertLegacyType(node.declaredElement?.type);
     super.visitVariableDeclaration(node);
   }
 

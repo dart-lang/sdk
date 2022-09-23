@@ -42,7 +42,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
     final parent = node.parent;
     final classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (node is VariableDeclaration) {
-      await _compute(classDeclaration, node.declaredElement2, builder);
+      await _compute(classDeclaration, node.declaredElement, builder);
     } else if (node is SimpleIdentifier &&
         parent is ConstructorFieldInitializer) {
       await _compute(classDeclaration, node.staticElement, builder);
@@ -68,7 +68,7 @@ class RemoveAbstract extends CorrectionProducerWithDiagnostic {
           continue;
         }
         for (var variable in variables) {
-          if (variable.declaredElement2 == fieldElement) {
+          if (variable.declaredElement == fieldElement) {
             var abstractKeyword = member.abstractKeyword;
             if (abstractKeyword != null) {
               await builder.addDartFileEdit(file, (builder) {

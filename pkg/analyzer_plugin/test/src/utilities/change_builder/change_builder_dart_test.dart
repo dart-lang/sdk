@@ -855,7 +855,7 @@ class MyClass {}''';
           initializerWriter: () {
             builder.write('null');
           },
-          type: A.declaredElement2?.instantiate(
+          type: A.declaredElement?.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.star,
           ),
@@ -883,7 +883,7 @@ class MyClass {}''';
       builder.addInsertion(11, (builder) {
         builder.writeLocalVariableDeclaration(
           'foo',
-          type: A.declaredElement2?.instantiate(
+          type: A.declaredElement?.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.star,
           ),
@@ -920,7 +920,7 @@ class MyClass {}''';
         builder.writeLocalVariableDeclaration(
           'foo',
           isFinal: true,
-          type: A.declaredElement2?.instantiate(
+          type: A.declaredElement?.instantiate(
             typeArguments: [],
             nullabilitySuffix: NullabilitySuffix.star,
           ),
@@ -2001,7 +2001,7 @@ class C extends B {}
     var classC = unit.declarations[2] as ClassDeclaration;
     var builder = DartLinkedEditBuilderImpl(MockEditBuilderImpl());
     builder.addSuperTypesAsSuggestions(
-      classC.declaredElement2?.instantiate(
+      classC.declaredElement?.instantiate(
         typeArguments: [],
         nullabilitySuffix: NullabilitySuffix.star,
       ),

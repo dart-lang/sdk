@@ -347,7 +347,7 @@ class _EnumDescription {
   /// description of the conversion work to be done. Otherwise, return `null`.
   static _EnumDescription? fromClass(ClassDeclaration node) {
     // The class must be a concrete class.
-    var classElement = node.declaredElement2;
+    var classElement = node.declaredElement;
     if (classElement == null || classElement.isAbstract) {
       return null;
     }
@@ -516,7 +516,7 @@ class _EnumDescription {
     var constructors = _Constructors();
     for (var member in classDeclaration.members) {
       if (member is ConstructorDeclaration) {
-        var constructor = member.declaredElement2;
+        var constructor = member.declaredElement;
         if (constructor is ConstructorElement) {
           if (!classElement.isPrivate && !constructor.isPrivate) {
             // Public constructor in public enum.
@@ -550,7 +550,7 @@ class _EnumDescription {
         var fields = fieldList.variables;
         if (member.isStatic) {
           for (var field in fields) {
-            var fieldElement = field.declaredElement2;
+            var fieldElement = field.declaredElement;
             if (fieldElement is FieldElement) {
               var fieldType = fieldElement.type;
               // The field can be converted to be an enum constant if it
@@ -597,7 +597,7 @@ class _EnumDescription {
               // Non-final instance field.
               return null;
             }
-            var fieldElement = field.declaredElement2;
+            var fieldElement = field.declaredElement;
             if (fieldElement is FieldElement) {
               var fieldType = fieldElement.type;
               if (fieldElement.name == 'index' && fieldType.isDartCoreInt) {
@@ -723,7 +723,7 @@ class _NonEnumVisitor extends _BaseVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement2;
+    var element = node.declaredElement;
     if (element == null) {
       throw _CannotConvertException('Unresolved');
     }

@@ -27,7 +27,7 @@ class SuperFormalContributor extends DartCompletionContributor {
       return;
     }
 
-    var constructorElement = constructor.declaredElement2;
+    var constructorElement = constructor.declaredElement;
     constructorElement as ConstructorElementImpl;
 
     var superConstructor = constructorElement.superConstructor;

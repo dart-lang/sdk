@@ -569,7 +569,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
           }
         }
       } else if (parent is MethodDeclaration) {
-        type = parent.declaredElement2?.returnType;
+        type = parent.declaredElement?.returnType;
         if (type != null && type.isVoid) {
           optype.includeVoidReturnSuggestions = true;
         }

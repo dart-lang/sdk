@@ -38,7 +38,7 @@ class AddExplicitCast extends CorrectionProducer {
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.writeType!;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
-      toType = parent.declaredElement2!.type;
+      toType = parent.declaredElement!.type;
     } else if (parent is ArgumentList) {
       var staticType = target.staticParameterElement?.type;
       if (staticType == null) return;

@@ -244,7 +244,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _namedTypeResolver.enclosingClass = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -279,7 +279,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     ClassElementImpl element = _elementWalker!.getClass();
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _namedTypeResolver.enclosingClass = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -306,8 +306,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElementImpl element = _elementWalker!.getConstructor();
-    (node as ConstructorDeclarationImpl).declaredElement2 = element;
-    node.declaredElement2 = element;
+    (node as ConstructorDeclarationImpl).declaredElement = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -337,7 +337,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
     var element = LocalVariableElementImpl(nameToken.lexeme, nameToken.offset);
     _elementHolder.enclose(element);
-    node.declaredElement2 = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -412,7 +412,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitEnumConstantDeclaration(
       covariant EnumConstantDeclarationImpl node) {
     var element = _elementWalker!.getVariable() as ConstFieldElementImpl;
-    node.declaredElement2 = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -429,7 +429,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     EnumElementImpl element = _elementWalker!.getEnum();
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _namedTypeResolver.enclosingClass = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
@@ -467,8 +467,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var element = _elementWalker!.getExtension();
-    (node as ExtensionDeclarationImpl).declaredElement2 = element;
-    node.declaredElement2 = element;
+    (node as ExtensionDeclarationImpl).declaredElement = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -550,9 +550,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element = node.isGetter || node.isSetter
           ? _elementWalker!.getAccessor()
           : _elementWalker!.getFunction();
-      node.declaredElement2 = element;
+      node.declaredElement = element;
     } else {
-      element = node.declaredElement2 as ExecutableElementImpl;
+      element = node.declaredElement as ExecutableElementImpl;
 
       _setCodeRange(element, node);
       setElementDocumentationComment(element, node);
@@ -650,7 +650,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     var element = _elementWalker!.getTypedef();
-    node.declaredElement2 = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -764,7 +764,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
     var element = _elementWalker!.getTypedef();
-    node.declaredElement2 = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -868,7 +868,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     ExecutableElementImpl element = node.isGetter || node.isSetter
         ? _elementWalker!.getAccessor()
         : _elementWalker!.getFunction();
-    node.declaredElement2 = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -903,7 +903,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var element = _elementWalker!.getMixin();
-    node.declaredElement2 = element;
+    node.declaredElement = element;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -1101,7 +1101,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    var element = node.declaredElement2 as TypeParameterElementImpl;
+    var element = node.declaredElement as TypeParameterElementImpl;
 
     _setOrCreateMetadataElements(element, node.metadata);
 
@@ -1121,9 +1121,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     VariableElementImpl element;
     if (_elementWalker != null) {
       element = _elementWalker!.getVariable();
-      node.declaredElement2 = element;
+      node.declaredElement = element;
     } else {
-      var localElement = node.declaredElement2 as LocalVariableElementImpl;
+      var localElement = node.declaredElement as LocalVariableElementImpl;
       element = localElement;
 
       var varList = node.parent as VariableDeclarationList;
@@ -1165,7 +1165,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var variables = node.variables;
     for (var i = 0; i < variables.length; i++) {
       var variable = variables[i];
-      var element = variable.declaredElement2 as ElementImpl;
+      var element = variable.declaredElement as ElementImpl;
       _setOrCreateMetadataElements(element, annotations, visitNodes: false);
 
       var offset = (i == 0 ? node.parent! : variable).offset;
@@ -1207,7 +1207,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var node = statement.functionDeclaration;
     var nameToken = node.name;
     var element = FunctionElementImpl(nameToken.lexeme, nameToken.offset);
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _define(element);
     _elementHolder.enclose(element);
   }
@@ -1232,7 +1232,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           nameToken.offset,
         );
       }
-      variable.declaredElement2 = element;
+      variable.declaredElement = element;
       _elementHolder.enclose(element);
       _define(element);
 
@@ -1261,7 +1261,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
         _setCodeRange(element, typeParameter);
       }
-      typeParameter.declaredElement2 = element;
+      typeParameter.declaredElement = element;
       _define(element);
       _setOrCreateMetadataElements(element, typeParameter.metadata);
     }

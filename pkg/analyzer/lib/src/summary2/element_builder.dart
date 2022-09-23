@@ -99,7 +99,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
@@ -133,7 +133,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
@@ -179,7 +179,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.constantInitializers = node.initializers;
     }
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addConstructor(element);
@@ -206,7 +206,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addEnum(name, element);
@@ -407,7 +407,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var refName = name ?? '${_nextUnnamedExtensionId++}';
@@ -479,7 +479,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _enclosingContext.addNonSyntheticField(element);
 
       _linker.elementNodes[element] = variable;
-      variable.declaredElement2 = element;
+      variable.declaredElement = element;
     }
     _buildType(node.fields.type);
   }
@@ -586,7 +586,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(executableElement, node);
     _setDocumentation(executableElement, node);
 
-    node.declaredElement2 = executableElement;
+    node.declaredElement = executableElement;
     _linker.elementNodes[executableElement] = node;
 
     _buildExecutableElementChildren(
@@ -616,7 +616,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
@@ -724,7 +724,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addTypeAlias(name, element);
@@ -837,7 +837,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(executableElement, node);
     _setDocumentation(executableElement, node);
 
-    node.declaredElement2 = executableElement;
+    node.declaredElement = executableElement;
     _linker.elementNodes[executableElement] = node;
 
     _buildExecutableElementChildren(
@@ -860,7 +860,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _setCodeRange(element, node);
     _setDocumentation(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addMixin(name, element);
@@ -1066,7 +1066,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       _linker.elementNodes[element] = variable;
       _enclosingContext.addTopLevelVariable(name, element);
-      variable.declaredElement2 = element;
+      variable.declaredElement = element;
 
       var getter = element.getter;
       if (getter is PropertyAccessorElementImpl) {
@@ -1098,7 +1098,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 
-    node.declaredElement2 = element;
+    node.declaredElement = element;
     _linker.elementNodes[element] = node;
     _enclosingContext.addTypeParameter(name, element);
 
@@ -1120,7 +1120,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   void _buildClass(ClassDeclaration node) {
-    var element = node.declaredElement2 as ClassElementImpl;
+    var element = node.declaredElement as ClassElementImpl;
     var hasConstConstructor = node.members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
@@ -1165,7 +1165,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   void _buildMixin(MixinDeclaration node) {
-    var element = node.declaredElement2 as MixinElementImpl;
+    var element = node.declaredElement as MixinElementImpl;
     var hasConstConstructor = node.members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });

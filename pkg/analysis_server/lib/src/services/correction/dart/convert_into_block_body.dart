@@ -96,9 +96,9 @@ class ConvertIntoBlockBody extends CorrectionProducer {
 
   ExecutableElement? _getFunctionElement(AstNode? node) {
     if (node is MethodDeclaration) {
-      return node.declaredElement2;
+      return node.declaredElement;
     } else if (node is ConstructorDeclaration) {
-      return node.declaredElement2;
+      return node.declaredElement;
     } else if (node is FunctionExpression) {
       return node.declaredElement;
     }

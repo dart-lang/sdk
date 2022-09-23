@@ -19,7 +19,7 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
       return;
     }
 
-    var targetClassElement = targetClassNode.declaredElement2!;
+    var targetClassElement = targetClassNode.declaredElement!;
     var superType = targetClassElement.supertype;
     if (superType == null) {
       return;

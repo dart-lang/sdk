@@ -117,7 +117,7 @@ abstract class CorrectionProducer extends SingleCorrectionProducer {
     if (parent is VariableDeclaration) {
       var variableDeclaration = parent;
       if (variableDeclaration.initializer == expression) {
-        var variableElement = variableDeclaration.declaredElement2;
+        var variableElement = variableDeclaration.declaredElement;
         if (variableElement != null) {
           return variableElement.type;
         }

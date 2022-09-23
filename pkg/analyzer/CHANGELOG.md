@@ -1,5 +1,6 @@
 ## 5.1.0-dev
-* Deprecated `get name2`, use `get name` instead.
+* Deprecated `AstNode.name2`, use `name` instead.
+* Deprecated `AstNode.declaredElement2`, use `declaredElement` instead.
 
 ## 5.0.0
 * Removed deprecated methods from AST.

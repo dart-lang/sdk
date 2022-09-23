@@ -57,7 +57,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     if (offsetNode is SimpleIdentifier) {
       element = offsetNode.staticElement;
     } else if (offsetNode is VariableDeclaration) {
-      element = offsetNode.declaredElement2;
+      element = offsetNode.declaredElement;
     }
 
     if (element is! LocalVariableElement) {
@@ -178,7 +178,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     if (offsetNode is SimpleIdentifier) {
       element = offsetNode.staticElement;
     } else if (offsetNode is VariableDeclaration) {
-      element = offsetNode.declaredElement2;
+      element = offsetNode.declaredElement;
     }
 
     if (element is! LocalVariableElement) {

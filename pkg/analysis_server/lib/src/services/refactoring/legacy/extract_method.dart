@@ -442,9 +442,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // method of class
     InterfaceElement? interfaceElement;
     if (parent is ClassDeclaration) {
-      interfaceElement = parent.declaredElement2!;
+      interfaceElement = parent.declaredElement!;
     } else if (parent is EnumDeclaration) {
-      interfaceElement = parent.declaredElement2!;
+      interfaceElement = parent.declaredElement!;
     }
     if (interfaceElement != null) {
       return validateCreateMethod(searchEngine,
@@ -1069,7 +1069,7 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     _addPatterns(
       nameToken: node.name,
-      element: node.declaredElement2,
+      element: node.declaredElement,
     );
 
     super.visitVariableDeclaration(node);
@@ -1321,7 +1321,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
   visitVariableDeclaration(VariableDeclaration node) {
     var nodeRange = range.node(node);
     if (ref.selectionRange.covers(nodeRange)) {
-      final element = node.declaredElement2!;
+      final element = node.declaredElement!;
 
       // remember, if assigned and used after selection
       if (ref._isUsedAfterSelection(element)) {

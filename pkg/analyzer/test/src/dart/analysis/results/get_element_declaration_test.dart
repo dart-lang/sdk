@@ -25,7 +25,7 @@ mixin GetElementDeclarationMixin implements PubPackageResolutionTest {
     await resolveTestCode(r'''
 class A {}
 ''');
-    var element = findNode.classDeclaration('A').declaredElement2!;
+    var element = findNode.classDeclaration('A').declaredElement!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
@@ -37,7 +37,7 @@ class A {} // 1
 class A {} // 2
 ''');
     {
-      var element = findNode.classDeclaration('A {} // 1').declaredElement2!;
+      var element = findNode.classDeclaration('A {} // 1').declaredElement!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ClassDeclaration;
       expect(node.name.lexeme, 'A');
@@ -48,7 +48,7 @@ class A {} // 2
     }
 
     {
-      var element = findNode.classDeclaration('A {} // 2').declaredElement2!;
+      var element = findNode.classDeclaration('A {} // 2').declaredElement!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ClassDeclaration;
       expect(node.name.lexeme, 'A');
@@ -78,7 +78,7 @@ part 'a.dart';
     await resolveTestCode('''
 class {}
 ''');
-    var element = findNode.classDeclaration('class {}').declaredElement2!;
+    var element = findNode.classDeclaration('class {}').declaredElement!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
     expect(node.name.lexeme, '');
@@ -112,14 +112,14 @@ class A {
 }
 ''');
     {
-      var unnamed = findNode.constructor('A();').declaredElement2!;
+      var unnamed = findNode.constructor('A();').declaredElement!;
       var result = await getElementDeclaration(unnamed);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
     }
 
     {
-      var named = findNode.constructor('A.named();').declaredElement2!;
+      var named = findNode.constructor('A.named();').declaredElement!;
       var result = await getElementDeclaration(named);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
@@ -134,7 +134,7 @@ class A {
 }
 ''');
     {
-      var element = findNode.constructor('A.named(); // 1').declaredElement2!;
+      var element = findNode.constructor('A.named(); // 1').declaredElement!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
@@ -145,7 +145,7 @@ class A {
     }
 
     {
-      var element = findNode.constructor('A.named(); // 2').declaredElement2!;
+      var element = findNode.constructor('A.named(); // 2').declaredElement!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name!.lexeme, 'named');
@@ -164,7 +164,7 @@ class A {
 }
 ''');
     {
-      var element = findNode.constructor('A(); // 1').declaredElement2!;
+      var element = findNode.constructor('A(); // 1').declaredElement!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
@@ -175,7 +175,7 @@ class A {
     }
 
     {
-      var element = findNode.constructor('A(); // 2').declaredElement2!;
+      var element = findNode.constructor('A(); // 2').declaredElement!;
       var result = await getElementDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
@@ -221,7 +221,7 @@ enum MyEnum {a, b, c}
     await resolveTestCode(r'''
 extension E on int {}
 ''');
-    var element = findNode.extensionDeclaration('E').declaredElement2!;
+    var element = findNode.extensionDeclaration('E').declaredElement!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ExtensionDeclaration;
     expect(node.name!.lexeme, 'E');

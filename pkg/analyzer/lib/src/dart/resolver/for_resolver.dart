@@ -133,13 +133,12 @@ class ForResolver {
         elementType != null &&
         loopVariable.type == null) {
       var loopVariableElement =
-          loopVariable.declaredElement2 as LocalVariableElementImpl;
+          loopVariable.declaredElement as LocalVariableElementImpl;
       loopVariableElement.type = elementType;
     }
 
     if (loopVariable != null) {
-      _resolver.flowAnalysis.flow
-          ?.declare(loopVariable.declaredElement2!, true);
+      _resolver.flowAnalysis.flow?.declare(loopVariable.declaredElement!, true);
     }
 
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);

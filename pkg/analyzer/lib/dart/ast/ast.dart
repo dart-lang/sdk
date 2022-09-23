@@ -967,6 +967,10 @@ abstract class ClassAugmentationDeclaration
   Token get augmentKeyword;
 
   @override
+  ClassAugmentationElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
+  @override
   ClassAugmentationElement? get declaredElement2;
 }
 
@@ -979,6 +983,10 @@ abstract class ClassAugmentationDeclaration
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
+  @override
+  ClassElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
   @override
   ClassElement? get declaredElement2;
 
@@ -1033,6 +1041,10 @@ abstract class ClassOrAugmentationDeclaration
   Token get classKeyword;
 
   @override
+  ClassOrAugmentationElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
+  @override
   ClassOrAugmentationElement? get declaredElement2;
 
   /// Returns the `extends` clause for this class, or `null` if the class
@@ -1077,6 +1089,10 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// defining an abstract class.
   Token? get abstractKeyword;
 
+  @override
+  ClassElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
   @override
   ClassElement? get declaredElement2;
 
@@ -1451,6 +1467,10 @@ abstract class ConstructorDeclaration implements ClassMember {
   Token? get constKeyword;
 
   @override
+  ConstructorElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
+  @override
   ConstructorElement? get declaredElement2;
 
   /// Return the token for the 'external' keyword to the given [token].
@@ -1653,6 +1673,12 @@ abstract class Declaration implements AnnotatedNode {
   /// Return the element associated with this declaration, or `null` if either
   /// this node corresponds to a list of declarations or if the AST structure
   /// has not been resolved.
+  Element? get declaredElement;
+
+  /// Return the element associated with this declaration, or `null` if either
+  /// this node corresponds to a list of declarations or if the AST structure
+  /// has not been resolved.
+  @Deprecated('Use declaredElement instead')
   Element? get declaredElement2;
 }
 
@@ -1663,6 +1689,10 @@ abstract class Declaration implements AnnotatedNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DeclaredIdentifier implements Declaration {
+  @override
+  LocalVariableElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
   @override
   LocalVariableElement? get declaredElement2;
 
@@ -1865,6 +1895,10 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   NodeList<EnumConstantDeclaration> get constants;
 
   @override
+  EnumElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
+  @override
   EnumElement? get declaredElement2;
 
   /// Return the 'enum' keyword.
@@ -2029,6 +2063,10 @@ abstract class ExtendsClause implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionDeclaration implements CompilationUnitMember {
+  @override
+  ExtensionElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
   @override
   ExtensionElement? get declaredElement2;
 
@@ -2617,6 +2655,10 @@ abstract class FunctionBody implements AstNode {
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionDeclaration implements NamedCompilationUnitMember {
   @override
+  ExecutableElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
+  @override
   ExecutableElement? get declaredElement2;
 
   /// Return the token representing the 'external' keyword, or `null` if this is
@@ -2735,6 +2777,10 @@ abstract class FunctionReference
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAlias implements TypeAlias {
+  @override
+  TypeAliasElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
   @override
   TypeAliasElement? get declaredElement2;
 
@@ -3502,6 +3548,10 @@ abstract class MethodDeclaration implements ClassMember {
   FunctionBody get body;
 
   @override
+  ExecutableElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
+  @override
   ExecutableElement? get declaredElement2;
 
   /// Return the token for the 'external' keyword, or `null` if the constructor
@@ -3629,6 +3679,10 @@ abstract class MixinAugmentationDeclaration
   Token get augmentKeyword;
 
   @override
+  MixinAugmentationElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
+  @override
   MixinAugmentationElement? get declaredElement2;
 }
 
@@ -3640,6 +3694,10 @@ abstract class MixinAugmentationDeclaration
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
+  @override
+  MixinElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
   @override
   MixinElement? get declaredElement2;
 
@@ -3673,6 +3731,10 @@ abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
 @experimental
 abstract class MixinOrAugmentationDeclaration
     implements NamedCompilationUnitMember {
+  @override
+  MixinOrAugmentationElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
   @override
   MixinOrAugmentationElement? get declaredElement2;
 
@@ -5189,6 +5251,10 @@ abstract class TypeParameter implements Declaration {
   TypeAnnotation? get bound;
 
   @override
+  TypeParameterElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
+  @override
   TypeParameterElement? get declaredElement2;
 
   /// Return the token representing the 'extends' keyword, or `null` if there is
@@ -5248,6 +5314,10 @@ abstract class UriBasedDirective implements Directive {
 // Consider changing the class hierarchy so that [VariableDeclaration] does not
 // extend [Declaration].
 abstract class VariableDeclaration implements Declaration {
+  @override
+  VariableElement? get declaredElement;
+
+  @Deprecated('Use declaredElement instead')
   @override
   VariableElement? get declaredElement2;
 

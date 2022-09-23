@@ -241,7 +241,7 @@ class _SurroundWithSetState extends _SurroundWith {
     var classDeclaration =
         node.parent?.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration != null &&
-        flutter.isState(classDeclaration.declaredElement2)) {
+        flutter.isState(classDeclaration.declaredElement)) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(statementsRange, (builder) {
           builder.write(indentOld);

@@ -307,10 +307,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
     final Element? element;
     if (selectedNode is FunctionDeclaration) {
-      element = selectedNode.declaredElement2;
+      element = selectedNode.declaredElement;
       isDeclaration = true;
     } else if (selectedNode is MethodDeclaration) {
-      element = selectedNode.declaredElement2;
+      element = selectedNode.declaredElement;
       isDeclaration = true;
     } else if (selectedNode is SimpleIdentifier) {
       element = selectedNode.writeOrReadElement;
@@ -360,10 +360,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
     final Element? element;
     if (selectedNode is FunctionDeclaration) {
-      element = selectedNode.declaredElement2;
+      element = selectedNode.declaredElement;
       isDeclaration = true;
     } else if (selectedNode is MethodDeclaration) {
-      element = selectedNode.declaredElement2;
+      element = selectedNode.declaredElement;
       isDeclaration = true;
     } else if (selectedNode is SimpleIdentifier) {
       element = selectedNode.writeOrReadElement;
@@ -809,7 +809,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     final nameRange = range.token(node.name);
     if (bodyRange.covers(nameRange)) {
-      final declaredElement = node.declaredElement2;
+      final declaredElement = node.declaredElement;
       if (declaredElement != null) {
         result.addVariable(declaredElement, nameRange);
       }

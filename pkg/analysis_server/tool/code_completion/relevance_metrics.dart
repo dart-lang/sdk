@@ -967,7 +967,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // There are no completions.
     data.recordPercentage(
         'Methods with type parameters', node.typeParameters != null);
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     if (!element.isStatic && element.enclosingElement3 is InterfaceElement) {
       var overriddenMembers = inheritanceManager.getOverridden2(
           element.enclosingElement3 as InterfaceElement,
@@ -1487,12 +1487,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var node = reference;
     while (node != null) {
       if (node is MethodDeclaration) {
-        if (node.declaredElement2 == function) {
+        if (node.declaredElement == function) {
           return depth;
         }
         depth++;
       } else if (node is ConstructorDeclaration) {
-        if (node.declaredElement2 == function) {
+        if (node.declaredElement == function) {
           return depth;
         }
         depth++;

@@ -45,7 +45,7 @@ class EnumConstantConstructorContributor extends DartCompletionContributor {
       return;
     }
 
-    var enumElement = enumDeclaration.declaredElement2!;
+    var enumElement = enumDeclaration.declaredElement!;
     for (var constructor in enumElement.constructors) {
       builder.suggestConstructor(
         constructor,

@@ -32,7 +32,7 @@ mixin M {
     assertElementName(gElement, 'g', offset: 20);
 
     var gNode = findNode.methodDeclaration('g =>');
-    expect(gNode.declaredElement2, same(gElement));
+    expect(gNode.declaredElement, same(gElement));
 
     var fields = element.fields;
     expect(fields, hasLength(1));
@@ -55,7 +55,7 @@ mixin M {
     assertElementName(fooElement, 'foo', offset: 17);
 
     var fooNode = findNode.methodDeclaration('foo()');
-    expect(fooNode.declaredElement2, same(fooElement));
+    expect(fooNode.declaredElement, same(fooElement));
   }
 
   test_accessor_setter() async {
@@ -74,7 +74,7 @@ mixin M {
     assertElementName(sElement, 's=', offset: 21);
 
     var gNode = findNode.methodDeclaration('s(int _)');
-    expect(gNode.declaredElement2, same(sElement));
+    expect(gNode.declaredElement, same(sElement));
 
     var fields = element.fields;
     expect(fields, hasLength(1));
@@ -201,7 +201,7 @@ mixin M<T> {
     assertEnclosingElement(tElement, element);
 
     var tNode = findNode.typeParameter('T> {');
-    assertElement(tNode.declaredElement2, tElement);
+    assertElement(tNode.declaredElement, tElement);
 
     var fields = element.fields;
     expect(fields, hasLength(1));
@@ -211,7 +211,7 @@ mixin M<T> {
     assertEnclosingElement(fElement, element);
 
     var fNode = findNode.variableDeclaration('f;');
-    assertElement(fNode.declaredElement2, fElement);
+    assertElement(fNode.declaredElement, fElement);
 
     assertNamedType(findNode.namedType('T f'), tElement, 'T');
 

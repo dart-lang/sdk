@@ -45,7 +45,7 @@ main() {
     ]);
 
     var xRef = findNode.declaredIdentifier('x in');
-    expect(xRef.declaredElement2, isNotNull);
+    expect(xRef.declaredElement, isNotNull);
 
     var pRef = findNode.simple('p) {}');
     assertElement(pRef, findElement.prefix('p'));

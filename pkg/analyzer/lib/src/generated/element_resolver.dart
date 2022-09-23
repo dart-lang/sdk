@@ -128,7 +128,7 @@ class ElementResolver {
   }
 
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorElement element = node.declaredElement2!;
+    ConstructorElement element = node.declaredElement!;
     if (element is ConstructorElementImpl) {
       var redirectedNode = node.redirectedConstructor;
       if (redirectedNode != null) {

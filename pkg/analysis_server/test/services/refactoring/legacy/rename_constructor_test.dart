@@ -568,7 +568,7 @@ enum E {
 
 class _RenameConstructorTest extends RenameRefactoringTest {
   void _createConstructorDeclarationRefactoring(String search) {
-    var element = findNode.constructor(search).declaredElement2;
+    var element = findNode.constructor(search).declaredElement;
     createRenameRefactoringForElement(element);
   }
 

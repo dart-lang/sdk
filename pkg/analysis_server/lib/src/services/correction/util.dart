@@ -262,13 +262,13 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
 ExecutableElement? getEnclosingExecutableElement(AstNode input) {
   for (var node in input.withParents) {
     if (node is FunctionDeclaration) {
-      return node.declaredElement2;
+      return node.declaredElement;
     }
     if (node is ConstructorDeclaration) {
-      return node.declaredElement2;
+      return node.declaredElement;
     }
     if (node is MethodDeclaration) {
-      return node.declaredElement2;
+      return node.declaredElement;
     }
   }
   return null;
@@ -1607,7 +1607,7 @@ class _LocalElementsCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    final element = node.declaredElement2;
+    final element = node.declaredElement;
     if (element is LocalVariableElement) {
       elements.add(element);
     }

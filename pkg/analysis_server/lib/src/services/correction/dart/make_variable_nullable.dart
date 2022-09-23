@@ -61,7 +61,7 @@ class MakeVariableNullable extends CorrectionProducer {
         if (statement is VariableDeclarationStatement) {
           var variableList = statement.variables;
           for (var declaration in variableList.variables) {
-            if (declaration.declaredElement2 == variable) {
+            if (declaration.declaredElement == variable) {
               return variableList;
             }
           }
@@ -199,7 +199,7 @@ class MakeVariableNullable extends CorrectionProducer {
       return;
     }
 
-    var oldType = parent.declaredElement2!.type;
+    var oldType = parent.declaredElement!.type;
     if (oldType is! InterfaceTypeImpl) {
       return;
     }

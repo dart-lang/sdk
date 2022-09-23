@@ -38,12 +38,12 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitClassDeclaration(ClassDeclaration node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
   Element? visitClassTypeAlias(ClassTypeAlias node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
@@ -53,7 +53,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitConstructorDeclaration(ConstructorDeclaration node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
@@ -70,12 +70,12 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
   Element? visitEnumDeclaration(EnumDeclaration node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
@@ -85,7 +85,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitExtensionDeclaration(ExtensionDeclaration node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
@@ -95,17 +95,17 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitFunctionDeclaration(FunctionDeclaration node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
   Element? visitFunctionTypeAlias(FunctionTypeAlias node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
   Element? visitGenericTypeAlias(GenericTypeAlias node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
@@ -123,14 +123,14 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
       if (identical(returnType, node)) {
         var name = parent.name;
         if (name != null) {
-          return parent.declaredElement2;
+          return parent.declaredElement;
         }
         var element = node.staticElement;
         if (element is InterfaceElement) {
           return element.unnamedConstructor;
         }
       } else if (parent.name == node.endToken) {
-        return parent.declaredElement2;
+        return parent.declaredElement;
       }
     } else if (parent is LibraryIdentifier) {
       var grandParent = parent.parent;
@@ -168,7 +168,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitMethodDeclaration(MethodDeclaration node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
@@ -178,7 +178,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitMixinDeclaration(MixinDeclaration node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
@@ -219,11 +219,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitTypeParameter(TypeParameter node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
   Element? visitVariableDeclaration(VariableDeclaration node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 }

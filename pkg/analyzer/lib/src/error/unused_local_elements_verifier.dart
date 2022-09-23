@@ -72,7 +72,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     var enclosingClassOld = _enclosingClass;
     try {
-      _enclosingClass = node.declaredElement2;
+      _enclosingClass = node.declaredElement;
       super.visitClassDeclaration(node);
     } finally {
       _enclosingClass = enclosingClassOld;
@@ -81,7 +81,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     var redirectedConstructor = node.redirectedConstructor;
     if (redirectedConstructor != null) {
       var redirectedElement = redirectedConstructor.staticElement;
@@ -126,7 +126,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     var enclosingExecOld = _enclosingExec;
     try {
-      _enclosingExec = node.declaredElement2;
+      _enclosingExec = node.declaredElement;
       super.visitFunctionDeclaration(node);
     } finally {
       _enclosingExec = enclosingExecOld;
@@ -176,7 +176,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     var enclosingExecOld = _enclosingExec;
     try {
-      _enclosingExec = node.declaredElement2;
+      _enclosingExec = node.declaredElement;
       super.visitMethodDeclaration(node);
     } finally {
       _enclosingExec = enclosingExecOld;
@@ -462,7 +462,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    final declaredElement = node.declaredElement2!;
+    final declaredElement = node.declaredElement!;
     _visitClassElement(declaredElement);
 
     super.visitClassDeclaration(node);
@@ -471,7 +471,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.name != null) {
-      final declaredElement = node.declaredElement2!;
+      final declaredElement = node.declaredElement!;
       _visitConstructorElement(declaredElement);
     }
 
@@ -480,13 +480,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    _visitLocalVariableElement(node.declaredElement2!);
+    _visitLocalVariableElement(node.declaredElement!);
     super.visitDeclaredIdentifier(node);
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    final declaredElement = node.declaredElement2 as FieldElement;
+    final declaredElement = node.declaredElement as FieldElement;
     _visitFieldElement(declaredElement);
 
     super.visitEnumConstantDeclaration(node);
@@ -494,7 +494,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    final declaredElement = node.declaredElement2!;
+    final declaredElement = node.declaredElement!;
     _visitClassElement(declaredElement);
 
     super.visitEnumDeclaration(node);
@@ -504,7 +504,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     for (final field in node.fields.variables) {
       _visitFieldElement(
-        field.declaredElement2 as FieldElement,
+        field.declaredElement as FieldElement,
       );
     }
 
@@ -526,7 +526,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     for (final variable in node.variables.variables) {
       _visitLocalVariableElement(
-        variable.declaredElement2 as LocalVariableElement,
+        variable.declaredElement as LocalVariableElement,
       );
     }
 
@@ -535,7 +535,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    final declaredElement = node.declaredElement2;
+    final declaredElement = node.declaredElement;
     if (declaredElement is FunctionElement) {
       _visitFunctionElement(declaredElement);
     } else if (declaredElement is PropertyAccessorElement) {
@@ -547,7 +547,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    final declaredElement = node.declaredElement2!;
+    final declaredElement = node.declaredElement!;
     _visitTypeAliasElement(declaredElement);
 
     super.visitFunctionTypeAlias(node);
@@ -555,7 +555,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    final declaredElement = node.declaredElement2 as TypeAliasElement;
+    final declaredElement = node.declaredElement as TypeAliasElement;
     _visitTypeAliasElement(declaredElement);
 
     super.visitGenericTypeAlias(node);
@@ -563,7 +563,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    final declaredElement = node.declaredElement2;
+    final declaredElement = node.declaredElement;
     if (declaredElement is MethodElement) {
       _visitMethodElement(declaredElement);
     } else if (declaredElement is PropertyAccessorElement) {
@@ -575,7 +575,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    final declaredElement = node.declaredElement2!;
+    final declaredElement = node.declaredElement!;
     _visitClassElement(declaredElement);
 
     super.visitMixinDeclaration(node);
@@ -611,7 +611,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (final variable in node.variables.variables) {
       _visitTopLevelVariableElement(
-        variable.declaredElement2 as TopLevelVariableElement,
+        variable.declaredElement as TopLevelVariableElement,
       );
     }
 
@@ -622,7 +622,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (final variable in node.variables.variables) {
       _visitLocalVariableElement(
-        variable.declaredElement2 as LocalVariableElement,
+        variable.declaredElement as LocalVariableElement,
       );
     }
 
