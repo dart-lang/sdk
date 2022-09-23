@@ -63,13 +63,13 @@ class SimpleParserTest extends FastaParserTestCase {
     return classDecl.implementsClause!;
   }
 
-  LibraryIdentifier parseLibraryIdentifier(String name) {
+  LibraryIdentifier? parseLibraryIdentifier(String name) {
     createParser('library $name;');
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
     expect(unit.directives, hasLength(1));
     var directive = unit.directives[0] as LibraryDirective;
-    return directive.name;
+    return directive.name2;
   }
 
   /// Parse the given [content] as a sequence of statements by enclosing it in a
@@ -1468,7 +1468,7 @@ void main() {final c = C<int, int Function(String)>();}
 
   void test_parseLibraryIdentifier_builtin() {
     String name = "deferred";
-    LibraryIdentifier identifier = parseLibraryIdentifier(name);
+    LibraryIdentifier identifier = parseLibraryIdentifier(name)!;
     expectNotNullIfNoErrors(identifier);
     assertNoErrors();
     expect(identifier.name, name);
@@ -1484,7 +1484,7 @@ void main() {final c = C<int, int Function(String)>();}
 
   void test_parseLibraryIdentifier_multiple() {
     String name = "a.b.c";
-    LibraryIdentifier identifier = parseLibraryIdentifier(name);
+    LibraryIdentifier identifier = parseLibraryIdentifier(name)!;
     expectNotNullIfNoErrors(identifier);
     assertNoErrors();
     expect(identifier.name, name);
@@ -1492,7 +1492,7 @@ void main() {final c = C<int, int Function(String)>();}
 
   void test_parseLibraryIdentifier_pseudo() {
     String name = "await";
-    LibraryIdentifier identifier = parseLibraryIdentifier(name);
+    LibraryIdentifier identifier = parseLibraryIdentifier(name)!;
     expectNotNullIfNoErrors(identifier);
     assertNoErrors();
     expect(identifier.name, name);
@@ -1501,7 +1501,7 @@ void main() {final c = C<int, int Function(String)>();}
 
   void test_parseLibraryIdentifier_single() {
     String name = "a";
-    LibraryIdentifier identifier = parseLibraryIdentifier(name);
+    LibraryIdentifier identifier = parseLibraryIdentifier(name)!;
     expectNotNullIfNoErrors(identifier);
     assertNoErrors();
     expect(identifier.name, name);

@@ -1275,9 +1275,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     LibraryNameEnd data = new LibraryNameEnd(ParserAstType.END,
-        libraryKeyword: libraryKeyword, semicolon: semicolon);
+        libraryKeyword: libraryKeyword, semicolon: semicolon, hasName: hasName);
     seen(data);
   }
 
@@ -4960,15 +4960,19 @@ class LibraryNameBegin extends ParserAstNode {
 class LibraryNameEnd extends ParserAstNode {
   final Token libraryKeyword;
   final Token semicolon;
+  final bool hasName;
 
   LibraryNameEnd(ParserAstType type,
-      {required this.libraryKeyword, required this.semicolon})
+      {required this.libraryKeyword,
+      required this.semicolon,
+      required this.hasName})
       : super("LibraryName", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "libraryKeyword": libraryKeyword,
         "semicolon": semicolon,
+        "hasName": hasName,
       };
 }
 

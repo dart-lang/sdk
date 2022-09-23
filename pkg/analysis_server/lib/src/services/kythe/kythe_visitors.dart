@@ -432,12 +432,9 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
           }
         }
 
-        var start = 0;
-        var end = 0;
-        if (libraryDirective != null) {
-          start = libraryDirective.name.offset;
-          end = libraryDirective.name.end;
-        }
+        final libraryName = libraryDirective?.name2;
+        final start = libraryName?.offset ?? 0;
+        final end = libraryName?.end ?? 0;
 
         // package node
         var packageVName = addNodeAndFacts(schema.PACKAGE_KIND,

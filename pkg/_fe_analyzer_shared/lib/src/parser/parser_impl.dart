@@ -654,17 +654,23 @@ class Parser {
 
   /// ```
   /// libraryDirective:
-  ///   'library' qualified ';'
+  ///   'library' qualified? ';'
   /// ;
   /// ```
   Token parseLibraryName(Token libraryKeyword) {
     assert(optional('library', libraryKeyword));
     listener.beginUncategorizedTopLevelDeclaration(libraryKeyword);
     listener.beginLibraryName(libraryKeyword);
-    Token token = parseQualified(libraryKeyword, IdentifierContext.libraryName,
-        IdentifierContext.libraryNameContinuation);
-    token = ensureSemicolon(token);
-    listener.endLibraryName(libraryKeyword, token);
+    Token token = libraryKeyword.next!;
+    bool hasName = !optional(';', token);
+    if (hasName) {
+      token = parseQualified(libraryKeyword, IdentifierContext.libraryName,
+          IdentifierContext.libraryNameContinuation);
+      token = ensureSemicolon(token);
+    } else {
+      token = ensureSemicolon(libraryKeyword);
+    }
+    listener.endLibraryName(libraryKeyword, token, hasName);
     return token;
   }
 

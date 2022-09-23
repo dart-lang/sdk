@@ -1387,11 +1387,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     indent--;
     seen(libraryKeyword);
     seen(semicolon);
-    doPrint('endLibraryName(' '$libraryKeyword, ' '$semicolon)');
+    doPrint('endLibraryName(' '$libraryKeyword, ' '$semicolon, ' '$hasName)');
   }
 
   @override

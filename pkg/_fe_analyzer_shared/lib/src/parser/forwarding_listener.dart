@@ -973,8 +973,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
-    listener?.endLibraryName(libraryKeyword, semicolon);
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
+    listener?.endLibraryName(libraryKeyword, semicolon, hasName);
   }
 
   @override

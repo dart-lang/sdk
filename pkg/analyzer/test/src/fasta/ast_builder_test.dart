@@ -748,6 +748,42 @@ LibraryAugmentationDirective
 ''');
   }
 
+  void test_library_with_name() {
+    var parseResult = parseStringWithErrors(r'''
+library name.and.dots;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.library('library');
+    assertParsedNodeText(node, r'''
+LibraryDirective
+  libraryKeyword: library
+  name: LibraryIdentifier
+    components
+      SimpleIdentifier
+        token: name
+      SimpleIdentifier
+        token: and
+      SimpleIdentifier
+        token: dots
+  semicolon: ;
+''');
+  }
+
+  void test_library_without_name() {
+    var parseResult = parseStringWithErrors(r'''
+library;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.library('library');
+    assertParsedNodeText(node, r'''
+LibraryDirective
+  libraryKeyword: library
+  semicolon: ;
+''');
+  }
+
   void test_mixin_implementsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C {}

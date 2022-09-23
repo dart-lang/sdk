@@ -181,7 +181,7 @@ class UnlinkedLibraryAugmentationDirective {
 }
 
 class UnlinkedLibraryDirective {
-  final String name;
+  final String? name;
 
   UnlinkedLibraryDirective({
     required this.name,
@@ -191,12 +191,12 @@ class UnlinkedLibraryDirective {
     SummaryDataReader reader,
   ) {
     return UnlinkedLibraryDirective(
-      name: reader.readStringUtf8(),
+      name: reader.readOptionalStringUtf8(),
     );
   }
 
   void write(BufferedSink sink) {
-    sink.writeStringUtf8(name);
+    sink.writeOptionalStringUtf8(name);
   }
 }
 

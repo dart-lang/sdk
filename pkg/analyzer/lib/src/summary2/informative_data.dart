@@ -1423,8 +1423,11 @@ class _InformativeDataWriter {
     for (var directive in unit.directives) {
       firstDirective ??= directive;
       if (directive is LibraryDirective) {
-        nameOffset = directive.name.offset;
-        nameLength = directive.name.length;
+        final libraryName = directive.name2;
+        if (libraryName != null) {
+          nameOffset = libraryName.offset;
+          nameLength = libraryName.length;
+        }
         break;
       }
     }

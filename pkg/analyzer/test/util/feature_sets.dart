@@ -32,6 +32,11 @@ class FeatureSets {
     flags: [],
   );
 
+  static final FeatureSet language_2_19 = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.19.0'),
+    flags: [],
+  );
+
   static final FeatureSet latest = FeatureSet.latestLanguageVersion();
 
   static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
@@ -43,6 +48,7 @@ class FeatureSets {
       EnableString.named_arguments_anywhere,
       EnableString.records,
       EnableString.super_parameters,
+      EnableString.unnamed_libraries,
     ],
   );
 

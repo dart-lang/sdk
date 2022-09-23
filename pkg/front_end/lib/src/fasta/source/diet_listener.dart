@@ -438,9 +438,11 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     debugEvent("endLibraryName");
-    pop(); // Name.
+    if (hasName) {
+      pop(); // Name.
+    }
     pop(); // Annotations.
   }
 

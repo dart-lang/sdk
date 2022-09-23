@@ -670,7 +670,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitLibraryDirective(LibraryDirective node) {
     _directive(node);
     _token(node.libraryKeyword);
-    node.name.accept(this);
+    node.name2?.accept(this);
     _token(node.semicolon);
   }
 

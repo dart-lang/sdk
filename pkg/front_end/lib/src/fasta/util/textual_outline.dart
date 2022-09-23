@@ -768,7 +768,7 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     unsortableElementStartToChunk[libraryKeyword] =
         new _LibraryNameChunk(libraryKeyword, semicolon);
   }

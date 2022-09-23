@@ -7804,7 +7804,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   Token libraryKeyword;
 
   /// The name of the library being defined.
-  LibraryIdentifierImpl _name;
+  LibraryIdentifierImpl? _name;
 
   /// The semicolon terminating the directive.
   @override
@@ -7817,7 +7817,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
     required super.comment,
     required super.metadata,
     required this.libraryKeyword,
-    required LibraryIdentifierImpl name,
+    required LibraryIdentifierImpl? name,
     required this.semicolon,
   }) : _name = name {
     _becomeParentOf(_name);
@@ -7830,16 +7830,20 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
 
   @override
-  LibraryIdentifierImpl get name => _name;
+  @Deprecated('Use name2')
+  LibraryIdentifierImpl get name => _name!;
 
-  set name(LibraryIdentifier name) {
-    _name = _becomeParentOf(name as LibraryIdentifierImpl);
+  set name(LibraryIdentifier? name) {
+    _name = _becomeParentOf(name as LibraryIdentifierImpl?);
   }
+
+  @override
+  LibraryIdentifierImpl? get name2 => _name;
 
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('libraryKeyword', libraryKeyword)
-    ..addNode('name', name)
+    ..addNode('name', name2)
     ..addToken('semicolon', semicolon);
 
   @override
@@ -7848,7 +7852,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _name.accept(visitor);
+    _name?.accept(visitor);
   }
 }
 

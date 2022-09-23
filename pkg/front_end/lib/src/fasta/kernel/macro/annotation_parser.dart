@@ -1309,7 +1309,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     _unexpected();
   }
 
