@@ -38,7 +38,7 @@ import '../js_backend/annotations.dart';
 import '../js_backend/backend_impact.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/custom_elements_analysis.dart';
-import '../js_backend/namer.dart';
+import '../js_backend/namer_interfaces.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/locals.dart';
@@ -55,9 +55,9 @@ import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/world_impact.dart';
 
-import 'element_map.dart';
 import 'element_map_interfaces.dart' as interfaces
     show
+        ForeignKind,
         KernelElementEnvironment,
         KernelToElementMapForClassHierarchy,
         KernelToElementMapForEnv,
@@ -66,6 +66,7 @@ import 'element_map_interfaces.dart' as interfaces
         KernelToElementMapForNativeData,
         KernelToElementMapForDeferredLoading,
         KernelToElementMapForJsModel;
+import 'element_map_migrated.dart';
 import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
@@ -1157,7 +1158,7 @@ class KernelToElementMap
   }
 
   /// Returns the [js.Name] for the `JsGetName` [constant] value.
-  js.Name getNameForJsGetName(ConstantValue constant, Namer namer) {
+  js.Name getNameForJsGetName(ConstantValue constant, ModularNamer namer) {
     int index = extractEnumIndexFromConstantValue(
         constant, commonElements.jsGetNameEnum);
     if (index == null) return null;
@@ -1648,20 +1649,20 @@ class KernelToElementMap
 
   /// Compute the kind of foreign helper function called by [node], if any.
   @override
-  ForeignKind getForeignKind(ir.StaticInvocation node) {
+  interfaces.ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
       switch (node.target.name.text) {
         case Identifiers.JS:
-          return ForeignKind.JS;
+          return interfaces.ForeignKind.JS;
         case Identifiers.JS_BUILTIN:
-          return ForeignKind.JS_BUILTIN;
+          return interfaces.ForeignKind.JS_BUILTIN;
         case Identifiers.JS_EMBEDDED_GLOBAL:
-          return ForeignKind.JS_EMBEDDED_GLOBAL;
+          return interfaces.ForeignKind.JS_EMBEDDED_GLOBAL;
         case Identifiers.JS_INTERCEPTOR_CONSTANT:
-          return ForeignKind.JS_INTERCEPTOR_CONSTANT;
+          return interfaces.ForeignKind.JS_INTERCEPTOR_CONSTANT;
       }
     }
-    return ForeignKind.NONE;
+    return interfaces.ForeignKind.NONE;
   }
 
   /// Computes the [InterfaceType] referenced by a call to the
