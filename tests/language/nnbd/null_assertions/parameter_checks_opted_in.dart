@@ -23,6 +23,7 @@ foo6b<T extends FutureOr<S>, S extends U, U extends int>(T a) {}
 
 void Function(int) bar() => (int x) {};
 
+/// Base class.
 class A {
   int get getterSetterPair => 0;
   set getterSetterPair(int i) => null;
@@ -37,10 +38,26 @@ class A {
   static void staticMethod(String s) => print(s);
 }
 
+/// Overrides the getters but inherits the setters.
 class B extends A {
-  // Overrides the getters but not the setters.
   @override
   int get getterSetterPair => 999;
   @override
   int get field => 999;
+}
+
+/// Overrides the setters.
+class C extends A {
+  @override
+  set getterSetterPair(int i) => null;
+  @override
+  set setterOnly(String s) => null;
+  @override
+  set field(int i) => null;
+}
+
+/// Overrides field with a field
+class D extends A {
+  @override
+  int field = 10;
 }
