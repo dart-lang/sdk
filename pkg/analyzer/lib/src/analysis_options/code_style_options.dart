@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:collection/collection.dart';
 
 /// The concrete implementation of [CodeStyleOptions].
 class CodeStyleOptionsImpl implements CodeStyleOptions {
@@ -34,15 +33,36 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get useRelativeUris => _isLintEnabled('prefer_relative_imports');
 
   @override
-  String preferredQuoteForUris(List<ImportDirective> directives) {
+  String preferredQuoteForUris(List<NamespaceDirective> directives) {
     var lintQuote = _lintQuote();
     if (lintQuote != null) {
       return lintQuote;
     }
-    var uri = directives.firstOrNull?.uri;
-    var doubleQuote = uri is SimpleStringLiteral &&
-        uri.literal.value().toString().startsWith('"');
-    return doubleQuote ? '"' : "'";
+    var singleCount = 0;
+    var doubleCount = 0;
+
+    void add(SimpleStringLiteral literal) {
+      var lexeme = literal.literal.lexeme;
+      if (lexeme.startsWith('"')) {
+        doubleCount++;
+      } else {
+        singleCount++;
+      }
+    }
+
+    for (var directive in directives) {
+      var uri = directive.uri;
+      if (uri is SimpleStringLiteral) {
+        add(uri);
+      } else if (uri is AdjacentStrings) {
+        for (var string in uri.strings) {
+          if (string is SimpleStringLiteral) {
+            add(string);
+          }
+        }
+      }
+    }
+    return doubleCount > singleCount ? '"' : "'";
   }
 
   /// Return `true` if the lint with the given [name] is enabled.

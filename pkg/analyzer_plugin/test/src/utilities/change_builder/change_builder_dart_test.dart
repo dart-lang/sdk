@@ -2100,6 +2100,51 @@ import 'dart:aaa';
     );
   }
 
+  Future<void> test_directive_adjacent_strings() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import 'dart:' "async";
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:' "async";
+''',
+    );
+  }
+
+  Future<void> test_directive_common_double_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:async";
+import "dart:math";
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import "dart:aaa";
+import "dart:async";
+import "dart:math";
+import 'dart:bbb';
+''',
+    );
+  }
+
+  Future<void> test_directive_common_single_quote() async {
+    await _assertImportLibrary(
+      initialCode: '''
+import "dart:math";
+import 'dart:bbb';
+''',
+      uriList: ['dart:aaa'],
+      expectedCode: '''
+import 'dart:aaa';
+import "dart:math";
+import 'dart:bbb';
+''',
+    );
+  }
+
   Future<void> test_directive_double_quote() async {
     await _assertImportLibrary(
       initialCode: '''
