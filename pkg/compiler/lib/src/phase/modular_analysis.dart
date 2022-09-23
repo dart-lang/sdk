@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
@@ -44,7 +42,7 @@ KernelToElementMap _createElementMap(
   final annotationProcessor = KernelAnnotationProcessor(
       elementMap, elementMap.nativeBasicDataBuilder, irAnnotationData);
   for (final uri in libraries) {
-    LibraryEntity library = elementMap.elementEnvironment.lookupLibrary(uri);
+    LibraryEntity library = elementMap.elementEnvironment.lookupLibrary(uri)!;
     if (maybeEnableNative(library.canonicalUri)) {
       annotationProcessor.extractNativeAnnotations(library);
     }
