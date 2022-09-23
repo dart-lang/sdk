@@ -2172,12 +2172,6 @@ class Wrong<T> {
     expect(parameter.name, isNotNull);
   }
 
-  void test_missingNameInLibraryDirective() {
-    CompilationUnit unit = parseCompilationUnit("library;",
-        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 1)]);
-    expect(unit, isNotNull);
-  }
-
   void test_missingNameInPartOfDirective() {
     CompilationUnit unit = parseCompilationUnit("part of;",
         errors: [expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 1)]);
@@ -2835,6 +2829,18 @@ main() {
   void test_unexpectedToken_semicolonBetweenCompilationUnitMembers() {
     parseCompilationUnit("int x; ; int y;",
         errors: [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1)]);
+  }
+
+  void test_unnamedLibraryDirective() {
+    CompilationUnit unit = parseCompilationUnit("library;",
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 7)]);
+    expect(unit, isNotNull);
+  }
+
+  void test_unnamedLibraryDirective_enabled() {
+    CompilationUnit unit = parseCompilationUnit("library;",
+        featureSet: FeatureSets.latestWithExperiments);
+    expect(unit, isNotNull);
   }
 
   void test_unterminatedString_at_eof() {

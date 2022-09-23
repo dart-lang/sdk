@@ -399,17 +399,20 @@ class AstTestFactory {
       astFactory.labeledStatement(labels, statement);
 
   static LibraryDirectiveImpl libraryDirective(
-          List<Annotation> metadata, LibraryIdentifier libraryName) =>
+          List<Annotation> metadata, LibraryIdentifier? libraryName) =>
       LibraryDirectiveImpl(
         comment: null,
         metadata: metadata,
         libraryKeyword: TokenFactory.tokenFromKeyword(Keyword.LIBRARY),
-        name: libraryName as LibraryIdentifierImpl,
+        name: libraryName as LibraryIdentifierImpl?,
         semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
       );
 
-  static LibraryDirectiveImpl libraryDirective2(String libraryName) =>
-      libraryDirective(<Annotation>[], libraryIdentifier2([libraryName]));
+  static LibraryDirectiveImpl libraryDirective2(String? libraryName) =>
+      libraryDirective(
+        <Annotation>[],
+        libraryName == null ? null : libraryIdentifier2([libraryName]),
+      );
 
   static LibraryIdentifierImpl libraryIdentifier(
           List<SimpleIdentifier> components) =>

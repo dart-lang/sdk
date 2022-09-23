@@ -141,6 +141,9 @@ class AstBuilder extends StackListener {
   /// `true` if records are enabled
   final bool enableRecords;
 
+  /// `true` if unnamed-library behavior is enabled
+  final bool enableUnnamedLibraries;
+
   final FeatureSet _featureSet;
 
   final LineInfo _lineInfo;
@@ -163,6 +166,8 @@ class AstBuilder extends StackListener {
         enableEnhancedEnums = _featureSet.isEnabled(Feature.enhanced_enums),
         enableMacros = _featureSet.isEnabled(Feature.macros),
         enableRecords = _featureSet.isEnabled(Feature.records),
+        enableUnnamedLibraries =
+            _featureSet.isEnabled(Feature.unnamedLibraries),
         uri = uri ?? fileUri;
 
   @override
@@ -2131,13 +2136,20 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     assert(optional('library', libraryKeyword));
     assert(optional(';', semicolon));
     debugEvent("LibraryName");
 
-    var libraryName = pop() as List<SimpleIdentifier>;
-    var name = ast.libraryIdentifier(libraryName);
+    var libraryName = hasName ? pop() as List<SimpleIdentifier>? : null;
+
+    if (!hasName && !enableUnnamedLibraries) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.unnamed_libraries,
+        startToken: libraryKeyword,
+      );
+    }
+    var name = libraryName == null ? null : ast.libraryIdentifier(libraryName);
     var metadata = pop() as List<Annotation>?;
     var comment = _findComment(metadata, libraryKeyword);
     directives.add(

@@ -915,7 +915,7 @@ class AstComparator implements AstVisitor<bool> {
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.libraryKeyword, other.libraryKeyword) &&
-        isEqualNodes(node.name, other.name) &&
+        isEqualNodes(node.name2, other.name2) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
 
@@ -2780,7 +2780,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitLibraryDirective(covariant LibraryDirectiveImpl node) {
-    if (identical(node.name, _oldNode)) {
+    if (identical(node.name2, _oldNode)) {
       node.name = _newNode as LibraryIdentifier;
       return true;
     }

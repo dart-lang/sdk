@@ -227,6 +227,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 14),
       experimentReleasedVersion: const Version(2, 14));
 
+  static const ExperimentalFlag unnamedLibraries = const ExperimentalFlag(
+      name: 'unnamed-libraries',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(2, 19),
+      experimentEnabledVersion: const Version(2, 19),
+      experimentReleasedVersion: const Version(2, 19));
+
   static const ExperimentalFlag valueClass = const ExperimentalFlag(
       name: 'value-class',
       isEnabledByDefault: false,
@@ -378,6 +386,10 @@ class GlobalFeatures {
   GlobalFeature get tripleShift =>
       _tripleShift ??= _computeGlobalFeature(ExperimentalFlag.tripleShift);
 
+  GlobalFeature? _unnamedLibraries;
+  GlobalFeature get unnamedLibraries => _unnamedLibraries ??=
+      _computeGlobalFeature(ExperimentalFlag.unnamedLibraries);
+
   GlobalFeature? _valueClass;
   GlobalFeature get valueClass =>
       _valueClass ??= _computeGlobalFeature(ExperimentalFlag.valueClass);
@@ -515,6 +527,11 @@ class LibraryFeatures {
       _tripleShift ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.tripleShift, canonicalUri, libraryVersion);
 
+  LibraryFeature? _unnamedLibraries;
+  LibraryFeature get unnamedLibraries =>
+      _unnamedLibraries ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.unnamedLibraries, canonicalUri, libraryVersion);
+
   LibraryFeature? _valueClass;
   LibraryFeature get valueClass =>
       _valueClass ??= globalFeatures._computeLibraryFeature(
@@ -572,6 +589,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.testExperiment;
     case "triple-shift":
       return ExperimentalFlag.tripleShift;
+    case "unnamed-libraries":
+      return ExperimentalFlag.unnamedLibraries;
     case "value-class":
       return ExperimentalFlag.valueClass;
     case "variance":
@@ -619,6 +638,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.testExperiment:
       ExperimentalFlag.testExperiment.isEnabledByDefault,
   ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift.isEnabledByDefault,
+  ExperimentalFlag.unnamedLibraries:
+      ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
   ExperimentalFlag.valueClass: ExperimentalFlag.valueClass.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
 };

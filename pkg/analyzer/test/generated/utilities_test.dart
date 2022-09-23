@@ -1238,7 +1238,7 @@ library foo;
       destination: node,
       source: node,
       childAccessors: [
-        (node) => node.name,
+        (node) => node.name2!,
       ],
     );
   }

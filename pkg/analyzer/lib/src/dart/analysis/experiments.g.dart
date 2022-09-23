@@ -40,6 +40,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.super_parameters: ExperimentalFeatures.super_parameters,
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
+  EnableString.unnamed_libraries: ExperimentalFeatures.unnamed_libraries,
   EnableString.value_class: ExperimentalFeatures.value_class,
   EnableString.variance: ExperimentalFeatures.variance,
 };
@@ -109,6 +110,9 @@ class EnableString {
 
   /// String to enable the experiment "triple-shift"
   static const String triple_shift = 'triple-shift';
+
+  /// String to enable the experiment "unnamed-libraries"
+  static const String unnamed_libraries = 'unnamed-libraries';
 
   /// String to enable the experiment "value-class"
   static const String value_class = 'value-class';
@@ -333,8 +337,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.14.0'),
   );
 
-  static final value_class = ExperimentalFeature(
+  static final unnamed_libraries = ExperimentalFeature(
     index: 21,
+    enableString: EnableString.unnamed_libraries,
+    isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
+    isExpired: IsExpired.unnamed_libraries,
+    documentation: 'Unnamed libraries',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final value_class = ExperimentalFeature(
+    index: 22,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -344,7 +358,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 22,
+    index: 23,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -420,6 +434,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = true;
 
+  /// Default state of the experiment "unnamed-libraries"
+  static const bool unnamed_libraries = false;
+
   /// Default state of the experiment "value-class"
   static const bool value_class = false;
 
@@ -493,6 +510,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "triple-shift"
   static const bool triple_shift = true;
+
+  /// Expiration status of the experiment "unnamed-libraries"
+  static const bool unnamed_libraries = false;
 
   /// Expiration status of the experiment "value-class"
   static const bool value_class = false;
@@ -573,6 +593,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "triple-shift"
   bool get triple_shift => isEnabled(ExperimentalFeatures.triple_shift);
+
+  /// Current state for the flag "unnamed-libraries"
+  bool get unnamed_libraries =>
+      isEnabled(ExperimentalFeatures.unnamed_libraries);
 
   /// Current state for the flag "value-class"
   bool get value_class => isEnabled(ExperimentalFeatures.value_class);

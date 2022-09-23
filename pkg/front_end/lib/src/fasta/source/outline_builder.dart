@@ -832,14 +832,20 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     debugEvent("endLibraryName");
-    popCharOffset();
-    Object? name = pop();
+    Object? name = null;
+    if (hasName) {
+      popCharOffset();
+      name = pop();
+    }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    if (name is! ParserRecovery) {
+    if (name != null && name is! ParserRecovery) {
       libraryBuilder.name =
-          flattenName(name!, offsetForToken(libraryKeyword), uri);
+          flattenName(name, offsetForToken(libraryKeyword), uri);
+    } else {
+      reportIfNotEnabled(
+          libraryFeatures.unnamedLibraries, semicolon.charOffset, noLength);
     }
     libraryBuilder.metadata = metadata;
   }

@@ -871,7 +871,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
-      'name': node.name,
+      'name': node.name2,
     });
     super.visitLibraryDirective(node);
   }

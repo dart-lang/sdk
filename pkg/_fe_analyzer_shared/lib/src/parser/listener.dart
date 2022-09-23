@@ -968,7 +968,7 @@ class Listener implements UnescapeErrorListener {
   /// Handle the end of a library directive.  Substructures:
   /// - Metadata
   /// - Library name (a qualified identifier)
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     logEvent("LibraryName");
   }
 

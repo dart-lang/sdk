@@ -1121,32 +1121,32 @@ Function(int, String) v;
     expect(directive, TypeMatcher<LibraryDirective>());
     var libraryDirective = directive as LibraryDirective;
     expect(libraryDirective.libraryKeyword, isNotNull);
-    expect(libraryDirective.name, isNotNull);
+    expect(libraryDirective.name2, isNotNull);
     expect(libraryDirective.semicolon, isNotNull);
   }
 
   void test_parseDirective_library_1_component() {
     createParser("library a;");
     var lib = parseFullDirective() as LibraryDirective;
-    expect(lib.name.components, hasLength(1));
-    expect(lib.name.components[0].name, 'a');
+    expect(lib.name2!.components, hasLength(1));
+    expect(lib.name2!.components[0].name, 'a');
   }
 
   void test_parseDirective_library_2_components() {
     createParser("library a.b;");
     var lib = parseFullDirective() as LibraryDirective;
-    expect(lib.name.components, hasLength(2));
-    expect(lib.name.components[0].name, 'a');
-    expect(lib.name.components[1].name, 'b');
+    expect(lib.name2!.components, hasLength(2));
+    expect(lib.name2!.components[0].name, 'a');
+    expect(lib.name2!.components[1].name, 'b');
   }
 
   void test_parseDirective_library_3_components() {
     createParser("library a.b.c;");
     var lib = parseFullDirective() as LibraryDirective;
-    expect(lib.name.components, hasLength(3));
-    expect(lib.name.components[0].name, 'a');
-    expect(lib.name.components[1].name, 'b');
-    expect(lib.name.components[2].name, 'c');
+    expect(lib.name2!.components, hasLength(3));
+    expect(lib.name2!.components[0].name, 'a');
+    expect(lib.name2!.components[1].name, 'b');
+    expect(lib.name2!.components[2].name, 'c');
   }
 
   void test_parseDirective_library_annotation() {
@@ -1157,7 +1157,7 @@ Function(int, String) v;
     expect(directive, TypeMatcher<LibraryDirective>());
     var libraryDirective = directive as LibraryDirective;
     expect(libraryDirective.libraryKeyword, isNotNull);
-    expect(libraryDirective.name, isNotNull);
+    expect(libraryDirective.name2, isNotNull);
     expect(libraryDirective.semicolon, isNotNull);
     expect(libraryDirective.metadata, hasLength(1));
     expect(libraryDirective.metadata[0].name.name, 'A');
@@ -1172,10 +1172,16 @@ Function(int, String) v;
     expect(directive, TypeMatcher<LibraryDirective>());
     var libraryDirective = directive as LibraryDirective;
     expect(libraryDirective.libraryKeyword, isNotNull);
-    expect(libraryDirective.name, isNotNull);
+    expect(libraryDirective.name2, isNotNull);
     expect(libraryDirective.semicolon, isNotNull);
     expect(libraryDirective.metadata, hasLength(1));
     expect(libraryDirective.metadata[0].name.name, 'A');
+  }
+
+  void test_parseDirective_library_unnamed() {
+    createParser("library;");
+    var lib = parseFullDirective() as LibraryDirective;
+    expect(lib.name2, isNull);
   }
 
   void test_parseDirective_library_withDocumentationComment() {
@@ -1904,7 +1910,7 @@ enum E {
     expect(directive, isNotNull);
     assertNoErrors();
     expect(directive.libraryKeyword, isNotNull);
-    expect(directive.name, isNotNull);
+    expect(directive.name2, isNotNull);
     expect(directive.semicolon, isNotNull);
   }
 

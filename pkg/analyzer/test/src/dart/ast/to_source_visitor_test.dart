@@ -638,6 +638,13 @@ void f() {}
     _assertSource("", AstTestFactory.compilationUnit());
   }
 
+  void test_visitCompilationUnit_libraryWithoutName() {
+    _assertSource(
+      "library ;",
+      AstTestFactory.compilationUnit3([AstTestFactory.libraryDirective2(null)]),
+    );
+  }
+
   void test_visitCompilationUnit_script() {
     _assertSource(
         "!#/bin/dartvm", AstTestFactory.compilationUnit5("!#/bin/dartvm"));

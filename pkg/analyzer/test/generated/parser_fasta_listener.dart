@@ -1021,9 +1021,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
+  void endLibraryName(Token libraryKeyword, Token semicolon, bool hasName) {
     end('LibraryName');
-    super.endLibraryName(libraryKeyword, semicolon);
+    super.endLibraryName(libraryKeyword, semicolon, hasName);
   }
 
   @override

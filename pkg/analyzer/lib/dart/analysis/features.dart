@@ -66,6 +66,9 @@ abstract class Feature {
   static final nonfunction_type_aliases =
       ExperimentalFeatures.nonfunction_type_aliases;
 
+  /// Feature information for unnamed libraries.
+  static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
+
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;
 

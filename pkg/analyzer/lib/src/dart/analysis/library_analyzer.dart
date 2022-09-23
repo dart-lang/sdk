@@ -704,7 +704,7 @@ class LibraryAnalyzer {
         directive.element = containerElement;
       } else if (directive is LibraryDirectiveImpl) {
         directive.element = containerElement;
-        libraryNameNode = directive.name;
+        libraryNameNode = directive.name2;
       } else if (directive is PartDirectiveImpl) {
         if (containerKind is LibraryFileKind &&
             containerElement is LibraryElementImpl) {

@@ -3334,7 +3334,7 @@ abstract class LibraryAugmentationDirective implements UriBasedDirective {
 /// A library directive.
 ///
 ///    libraryDirective ::=
-///        [Annotation] 'library' [Identifier] ';'
+///        [Annotation] 'library' [LibraryIdentifier]? ';'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LibraryDirective implements Directive {
@@ -3342,7 +3342,11 @@ abstract class LibraryDirective implements Directive {
   Token get libraryKeyword;
 
   /// Return the name of the library being defined.
+  @Deprecated('Use name2')
   LibraryIdentifier get name;
+
+  /// Return the name of the library being defined.
+  LibraryIdentifier? get name2;
 
   /// Return the semicolon terminating the directive.
   Token get semicolon;

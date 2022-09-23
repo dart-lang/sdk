@@ -872,7 +872,7 @@ class FileState {
         }
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
-          name: directive.name.name,
+          name: directive.name2?.name,
         );
       } else if (directive is PartDirective) {
         parts.add(
