@@ -2377,7 +2377,7 @@ void Assembler::PushNativeCalleeSavedRegisters() {
 
 void Assembler::PopNativeCalleeSavedRegisters() {
   // Restore the bottom 64-bits of callee-saved V registers.
-  bool pop_single = (kAbiPreservedFpuRegCount & 1) == 1;
+  bool pop_single = (kAbiPreservedFpuRegCount & 1) != 0;
   VRegister vprev = kNoVRegister;
   for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
     const VRegister r = static_cast<VRegister>(i);
@@ -2397,7 +2397,7 @@ void Assembler::PopNativeCalleeSavedRegisters() {
   // register when it is not holding a pool-pointer since we are returning to
   // C++ code. We also skip the dart stack pointer SP, since we are still
   // using it as the stack pointer.
-  pop_single = (kAbiPreservedCpuRegCount & 1) == 1;
+  pop_single = (kAbiPreservedCpuRegCount & 1) != 0;
   Register prev = kNoRegister;
   for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
     Register r = static_cast<Register>(i);
