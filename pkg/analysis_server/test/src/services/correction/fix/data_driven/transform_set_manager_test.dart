@@ -21,7 +21,27 @@ void main() {
 class TransformSetManagerTest extends AbstractContextTest {
   TransformSetManager manager = TransformSetManager.instance;
 
-  void test_twoFiles() async {
+  Future<void> test_twoFiles_onePackage() async {
+    var folder = '$workspaceRootPath/p1/lib/fix_data';
+
+    _addDataFileIn('$folder/one.yaml', 'p1');
+    _addDataFileIn('$folder/deep/dive/two.yaml', 'p1');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1'),
+    );
+
+    addSource('/home/test/pubspec.yaml', '');
+
+    var testFile = convertPath('$testPackageLibPath/test.dart');
+    addSource(testFile, '');
+    var result = await (await session).getResolvedLibraryValid(testFile);
+    var sets = manager.forLibrary(result.element);
+    expect(sets, hasLength(2));
+  }
+
+  Future<void> test_twoFiles_twoPackages() async {
     _addDataFile('p1');
     _addDataFile('p2');
 
@@ -40,7 +60,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     expect(sets, hasLength(2));
   }
 
-  void test_zeroFiles() async {
+  Future<void> test_zeroFiles() async {
     // addTestPackageDependency('p1', '/.pub-cache/p1');
     // addTestPackageDependency('p2', '/.pub-cache/p2');
     addSource('/home/test/pubspec.yaml', '');
@@ -52,7 +72,12 @@ class TransformSetManagerTest extends AbstractContextTest {
   }
 
   void _addDataFile(String packageName) {
-    newFile('$workspaceRootPath/$packageName/lib/fix_data.yaml', '''
+    _addDataFileIn(
+        '$workspaceRootPath/$packageName/lib/fix_data.yaml', packageName);
+  }
+
+  void _addDataFileIn(String path, String packageName) {
+    newFile(path, '''
 version: 1
 transforms:
 - title: 'Rename A'
