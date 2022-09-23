@@ -431,17 +431,21 @@ class Intrinsifier {
       w.StorageType receiverType = translator.builtinTypes[cls]!;
       switch (receiverType) {
         case w.NumType.i32:
-          assert(name == "toIntSigned" || name == "toIntUnsigned");
           codeGen.wrap(receiver, w.NumType.i32);
           switch (name) {
             case "toIntSigned":
               b.i64_extend_i32_s();
-              break;
+              return w.NumType.i64;
             case "toIntUnsigned":
               b.i64_extend_i32_u();
-              break;
+              return w.NumType.i64;
+            case "toBool":
+              b.i32_const(0);
+              b.i32_ne();
+              return w.NumType.i32;
+            default:
+              throw 'Unknown i32 conversion to $receiverType';
           }
-          return w.NumType.i64;
         case w.NumType.i64:
           assert(name == "toInt");
           codeGen.wrap(receiver, w.NumType.i64);
@@ -991,9 +995,40 @@ class Intrinsifier {
       w.StorageType targetType = translator.builtinTypes[cls]!;
       switch (targetType) {
         case w.NumType.i32:
-          codeGen.wrap(value, w.NumType.i64);
-          b.i32_wrap_i64();
-          return w.NumType.i32;
+          switch (name) {
+            case "fromInt":
+              codeGen.wrap(value, w.NumType.i64);
+              b.i32_wrap_i64();
+              return w.NumType.i32;
+            case "int8FromInt":
+              codeGen.wrap(value, w.NumType.i64);
+              b.i32_wrap_i64();
+              b.i32_extend8_s();
+              return w.NumType.i32;
+            case "uint8FromInt":
+              codeGen.wrap(value, w.NumType.i64);
+              b.i32_wrap_i64();
+              b.i32_const(0xFF);
+              b.i32_and();
+              return w.NumType.i32;
+            case "int16FromInt":
+              codeGen.wrap(value, w.NumType.i64);
+              b.i32_wrap_i64();
+              b.i32_extend16_s();
+              return w.NumType.i32;
+            case "uint16FromInt":
+              codeGen.wrap(value, w.NumType.i64);
+              b.i32_wrap_i64();
+              b.i32_const(0xFFFF);
+              b.i32_and();
+              return w.NumType.i32;
+            case "fromBool":
+              codeGen.wrap(value, w.NumType.i32);
+              return w.NumType.i32;
+            default:
+              throw 'Unhandled WasmI32 factory: $name';
+          }
+
         case w.NumType.i64:
           codeGen.wrap(value, w.NumType.i64);
           return w.NumType.i64;

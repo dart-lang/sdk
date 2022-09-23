@@ -26,6 +26,7 @@ import 'package:vm/transformations/ffi/definitions.dart'
 import 'package:vm/transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
 
+import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
@@ -171,6 +172,8 @@ class WasmTarget extends Target {
     if (transitiveImportingDartFfi == null) {
       logger?.call("Skipped ffi transformation");
     } else {
+      wasmFfiNativeTrans.transformLibraries(component, coreTypes, hierarchy,
+          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       transformFfiDefinitions.transformLibraries(
           component,
           coreTypes,

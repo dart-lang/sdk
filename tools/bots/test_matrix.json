@@ -181,6 +181,7 @@
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
       "out/ReleaseX64/dart2wasm_outline.dill",
       "out/ReleaseX64/dart2wasm_platform.dill",
+      "out/ReleaseX64/wasm/",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -206,8 +207,7 @@
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
-      "tools/",
-      "xcodebuild/ReleaseX64/dart"
+      "tools/"
     ],
     "front-end": [
       ".dart_tool/package_config.json",
