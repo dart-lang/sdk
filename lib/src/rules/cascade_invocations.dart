@@ -266,12 +266,41 @@ class _CascadableExpression {
       !_hasCriticalDependencies(expressionBox);
 
   bool _hasCriticalDependencies(_CascadableExpression expressionBox) {
-    bool isCriticalNode(AstNode node) =>
-        node.canonicalElement == expressionBox.element;
-    return expressionBox.isCritical &&
-        criticalNodes.any((node) =>
-            isCriticalNode(node) ||
-            node.traverseNodesInDFS().any(isCriticalNode));
+    if (!expressionBox.isCritical) return false;
+
+    for (var node in criticalNodes) {
+      if (_NodeVisitor(expressionBox).isOrHasCriticalNode(node)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
+
+class _NodeVisitor extends GeneralizingAstVisitor {
+  final _CascadableExpression expressionBox;
+
+  bool foundCriticalNode = false;
+  _NodeVisitor(this.expressionBox);
+
+  bool isCriticalNode(AstNode node) =>
+      node.canonicalElement == expressionBox.element;
+
+  bool isOrHasCriticalNode(AstNode node) {
+    if (isCriticalNode(node)) return true;
+    node.accept(this);
+    return foundCriticalNode;
+  }
+
+  @override
+  visitNode(AstNode node) {
+    if (foundCriticalNode) return;
+    foundCriticalNode = isCriticalNode(node);
+
+    if (!foundCriticalNode) {
+      super.visitNode(node);
+    }
   }
 }
 
