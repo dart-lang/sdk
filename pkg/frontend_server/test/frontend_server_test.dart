@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
 // ignore_for_file: empty_catches
 
 import 'dart:async';
@@ -41,12 +40,12 @@ class _MockedBinaryPrinterFactory implements BinaryPrinterFactory {
 
 typedef VerifyCompile = void Function(String entryPoint, ArgResults opts);
 typedef VerifyInvalidate = void Function(Uri uri);
-typedef VerifyRecompileDelta = void Function(String entryPoint);
+typedef VerifyRecompileDelta = void Function(String? entryPoint);
 typedef Verify = void Function();
 
 nopVerifyCompile(String entryPoint, ArgResults opts) {}
 nopVerifyInvalidate(Uri uri) {}
-nopVerifyRecompileDelta(String entryPoint) {}
+nopVerifyRecompileDelta(String? entryPoint) {}
 nopVerify() {}
 
 class _MockedCompiler implements CompilerInterface {
@@ -63,7 +62,7 @@ class _MockedCompiler implements CompilerInterface {
   }
 
   @override
-  Future<Null> recompileDelta({String entryPoint}) async {
+  Future<Null> recompileDelta({String? entryPoint}) async {
     verifyRecompileDelta(entryPoint);
   }
 
@@ -81,7 +80,7 @@ class _MockedCompiler implements CompilerInterface {
   Future<bool> compile(
     String entryPoint,
     ArgResults opts, {
-    IncrementalCompiler generator,
+    IncrementalCompiler? generator,
   }) async {
     verifyCompile(entryPoint, opts);
     return true;
@@ -105,7 +104,7 @@ class _MockedIncrementalCompiler implements IncrementalCompiler {
   bool get initialized => false;
 
   @override
-  Future<IncrementalCompilerResult> compile({List<Uri> entryPoints}) async {
+  Future<IncrementalCompilerResult> compile({List<Uri>? entryPoints}) async {
     return Future<IncrementalCompilerResult>.value(
         IncrementalCompilerResult(Component()));
   }
@@ -292,7 +291,7 @@ void main() async {
         expect(uri.path, contains('file${counter++}.dart'));
         invalidated += 1;
       };
-      final verifyR = (String entryPoint) {
+      final verifyR = (String? entryPoint) {
         expect(invalidated, equals(2));
         expect(entryPoint, equals(null));
         recompileDeltaCalled.sendPort.send(true);
@@ -319,7 +318,7 @@ void main() async {
     test('recompile one file with widget cache does not fail', () async {
       final recompileDeltaCalled = ReceivePort();
       bool invalidated = false;
-      final verifyR = (String entryPoint) {
+      final verifyR = (String? entryPoint) {
         expect(invalidated, equals(true));
         expect(entryPoint, equals(null));
         recompileDeltaCalled.sendPort.send(true);
@@ -355,7 +354,7 @@ void main() async {
         expect(uri.path, contains('file${counter++}.dart'));
         invalidated += 1;
       };
-      final verifyR = (String entryPoint) {
+      final verifyR = (String? entryPoint) {
         expect(invalidated, equals(2));
         expect(entryPoint, equals('file2.dart'));
         recompileDeltaCalled.sendPort.send(true);
@@ -438,7 +437,7 @@ void main() async {
         expect(uri.path, contains('file${counter++}.dart'));
         invalidate += 1;
       };
-      final verifyR = (String entryPoint) {
+      final verifyR = (String? entryPoint) {
         expect(compile, equals(true));
         expect(invalidate, equals(2));
         expect(acceptDelta, equals(true));
@@ -474,7 +473,7 @@ void main() async {
       '--incremental',
     ];
 
-    Directory tempDir;
+    late Directory tempDir;
     setUp(() {
       tempDir = Directory.systemTemp.createTempSync();
     });
@@ -490,7 +489,7 @@ void main() async {
       final IOSink ioSink = IOSink(stdoutStreamController.sink);
       ReceivePort receivedResult = ReceivePort();
 
-      String boundaryKey;
+      String? boundaryKey;
       stdoutStreamController.stream
           .transform(utf8.decoder)
           .transform(const LineSplitter())
@@ -501,7 +500,7 @@ void main() async {
             boundaryKey = s.substring(RESULT_OUTPUT_SPACE.length);
           }
         } else {
-          if (s.startsWith(boundaryKey)) {
+          if (s.startsWith(boundaryKey!)) {
             boundaryKey = null;
             receivedResult.sendPort.send(true);
           }
@@ -563,7 +562,7 @@ void main() async {
         computePlatformBinariesLocation().resolve('ddc_sdk.dill');
     final sdkRoot = computePlatformBinariesLocation();
 
-    Directory tempDir;
+    late Directory tempDir;
     setUp(() {
       var systemTempDir = Directory.systemTemp;
       tempDir = systemTempDir.createTempSync('frontendServerTest');
@@ -619,7 +618,7 @@ void main() async {
           frontendServer.compileExpression('2+2', file.uri, isStatic: null);
           count += 1;
         } else if (count == 1) {
-          expect(result.errorsCount, isNull);
+          expect(result.errorsCount, equals(0));
           // Previous request should have failed because isStatic was blank
           expect(compiledResult.status, isNull);
 
@@ -693,7 +692,7 @@ void main() async {
         } else if (count == 2) {
           // Third request is to 'compile-expression-to-js' that fails
           // due to non-web target
-          expect(result.errorsCount, isNull);
+          expect(result.errorsCount, equals(0));
           expect(compiledResult.status, isNull);
 
           frontendServer.compileExpression('2+2', file.uri, isStatic: false);
@@ -1552,9 +1551,9 @@ class BarState extends State<FizzWidget> {
 
     group('http uris', () {
       var host = 'localhost';
-      File dillFile;
-      int port;
-      HttpServer server;
+      late File dillFile;
+      late int port;
+      late HttpServer server;
 
       setUp(() async {
         dillFile = File('${tempDir.path}/app.dill');
@@ -1726,7 +1725,7 @@ class BarState extends State<FizzWidget> {
 
         test('OK', () async {
           await runWithServer((requestChannel) async {
-            await requestChannel.sendRequest<Uint8List>('dill.put', {
+            await requestChannel.sendRequest<Uint8List?>('dill.put', {
               'uri': 'vm:dill',
               'bytes': Uint8List(256),
             });
@@ -1755,7 +1754,7 @@ class BarState extends State<FizzWidget> {
 
         test('OK', () async {
           await runWithServer((requestChannel) async {
-            await requestChannel.sendRequest<Uint8List>('dill.remove', {
+            await requestChannel.sendRequest<Uint8List?>('dill.remove', {
               'uri': 'vm:dill',
             });
           });
@@ -1907,7 +1906,7 @@ void main(List<String> arguments, SendPort sendPort) {
 
     test('compile to JavaScript weak null safety', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("// @dart = 2.9\nmain() {\n}\n");
+      file.writeAsStringSync("main() {\n}\n");
       var packages = File('${tempDir.path}/.dart_tool/package_config.json')
         ..createSync()
         ..writeAsStringSync(jsonEncode({
@@ -1939,7 +1938,7 @@ void main(List<String> arguments, SendPort sendPort) {
     test('compile to JavaScript weak null safety then non-existent file',
         () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
-      file.writeAsStringSync("// @dart = 2.9\nmain() {\n}\n");
+      file.writeAsStringSync("main() {\n}\n");
       var packages = File('${tempDir.path}/.dart_tool/package_config.json')
         ..createSync()
         ..writeAsStringSync(jsonEncode({
@@ -2970,7 +2969,7 @@ e() {
     }, timeout: Timeout.factor(8));
 
     test('compile with(out) warning', () async {
-      Future runTest({bool hideWarnings}) async {
+      Future runTest({bool hideWarnings = true}) async {
         var file = File('${tempDir.path}/foo.dart')..createSync();
         file.writeAsStringSync("""
 main() {}
@@ -3045,10 +3044,10 @@ Uri computePlatformBinariesLocation() {
 }
 
 class CompilationResult {
-  String filename;
-  int errorsCount;
+  late String filename;
+  int errorsCount = 0;
 
-  CompilationResult.parse(String filenameAndErrorCount) {
+  CompilationResult.parse(String? filenameAndErrorCount) {
     if (filenameAndErrorCount == null) {
       return;
     }
@@ -3063,10 +3062,10 @@ class OutputParser {
   bool expectSources = true;
   StreamController<Result> _receivedResults;
 
-  List<String> _receivedSources;
-  String _boundaryKey;
+  List<String>? _receivedSources;
+  String? _boundaryKey;
 
-  bool _readingSources;
+  bool _readingSources = false;
   OutputParser(this._receivedResults);
 
   void listener(String s) {
@@ -3080,7 +3079,8 @@ class OutputParser {
       return;
     }
 
-    if (s.startsWith(_boundaryKey)) {
+    var bKey = _boundaryKey!;
+    if (s.startsWith(bKey)) {
       // First boundaryKey separates compiler output from list of sources
       // (if we expect list of sources, which is indicated by receivedSources
       // being not null)
@@ -3091,29 +3091,29 @@ class OutputParser {
       // Second boundaryKey indicates end of frontend server response
       expectSources = true;
       _receivedResults.add(Result(
-          s.length > _boundaryKey.length
-              ? s.substring(_boundaryKey.length + 1)
+          s.length > bKey.length
+              ? s.substring(bKey.length + 1)
               : null,
-          _receivedSources));
+          _receivedSources!));
       _boundaryKey = null;
     } else {
       if (_readingSources) {
         if (_receivedSources == null) {
           _receivedSources = <String>[];
         }
-        _receivedSources.add(s);
+        _receivedSources!.add(s);
       }
     }
   }
 }
 
 class Result {
-  String status;
+  String? status;
   List<String> sources;
 
   Result(this.status, this.sources);
 
-  void expectNoErrors({String filename}) {
+  void expectNoErrors({String? filename}) {
     var result = CompilationResult.parse(status);
     expect(result.errorsCount, equals(0));
     if (filename != null) {
@@ -3225,10 +3225,10 @@ class FrontendServer {
   /// [boundaryKey] is used as the boundary-key in the communication with the
   /// frontend server.
   // TODO(johnniwinther): Use (required) named arguments.
-  void recompile(Uri invalidatedUri,
+  void recompile(Uri? invalidatedUri,
       {String boundaryKey = 'abc',
-      List<Uri> invalidatedUris,
-      String entryPoint}) {
+      List<Uri>? invalidatedUris,
+      String? entryPoint}) {
     invalidatedUris ??= [if (invalidatedUri != null) invalidatedUri];
     outputParser.expectSources = true;
     inputStreamController.add('recompile '
@@ -3251,7 +3251,7 @@ class FrontendServer {
   /// frontend server.
   // TODO(johnniwinther): Use (required) named arguments.
   void compileExpression(String expression, Uri library,
-      {String boundaryKey = 'abc', String className = '', bool isStatic}) {
+      {String boundaryKey = 'abc', String className = '', bool? isStatic}) {
     // 'compile-expression <boundarykey>
     // expression
     // definitions (one per line)
