@@ -861,15 +861,15 @@ class KernelToElementMap
 
   /// Returns the defining node for [member].
   @override
-  ir.Member getMemberNode(covariant IndexedMember member) {
+  ir.Member getMemberNode(MemberEntity member) {
     assert(checkFamily(member));
-    return members.getData(member).node;
+    return members.getData(member as IndexedMember).node;
   }
 
   /// Returns the defining node for [cls].
-  ir.Class getClassNode(covariant IndexedClass cls) {
+  ir.Class getClassNode(ClassEntity cls) {
     assert(checkFamily(cls));
-    return classes.getData(cls).node;
+    return classes.getData(cls as IndexedClass).node;
   }
 
   /// Return the [ImportEntity] corresponding to [node].
