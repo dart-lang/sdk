@@ -14,7 +14,7 @@
 none:
   libraries: {}
 
-vm:
+vm_common:
   libraries:
     _builtin:
       uri: "_internal/vm/bin/builtin.dart"
@@ -139,11 +139,6 @@ vm:
     nativewrappers:
       uri: "html/dartium/nativewrappers.dart"
 
-    cli:
-      uri: "cli/cli.dart"
-      patches:
-        - "_internal/vm/bin/cli_patch.dart"
-
     typed_data:
       uri: "typed_data/typed_data.dart"
       patches: "_internal/vm/lib/typed_data_patch.dart"
@@ -153,6 +148,15 @@ vm:
 
     vmservice_io:
       uri: "_internal/vm/bin/vmservice_io.dart"
+
+vm:
+  include:
+    - target: "vm_common"
+  libraries:
+    cli:
+      uri: "cli/cli.dart"
+      patches:
+        - "_internal/vm/bin/cli_patch.dart"
 
 wasm:
   libraries:
