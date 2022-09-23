@@ -648,10 +648,12 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
     StackFrameIterator frames_iterator(top_exit_frame_info(), validation_policy,
                                        this, cross_thread_policy);
     StackFrame* frame = frames_iterator.NextFrame();
+    visitor->set_gc_root_type("frame");
     while (frame != nullptr) {
       frame->VisitObjectPointers(visitor);
       frame = frames_iterator.NextFrame();
     }
+    visitor->clear_gc_root_type();
   } else {
     // We are not on the mutator thread.
     RELEASE_ASSERT(top_exit_frame_info() == 0);
