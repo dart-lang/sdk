@@ -782,9 +782,12 @@ class SuggestionBuilder {
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
       if (Flutter.instance.isWidget(element.enclosingElement3)) {
+        var codeStyleOptions = request
+            .analysisSession.analysisContext.analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.
-        var defaultValue =
-            getDefaultStringParameterValue(parameter, withNullability: false);
+        var defaultValue = getDefaultStringParameterValue(
+            parameter, codeStyleOptions,
+            withNullability: false);
         // TODO(devoncarew): Should we remove the check here? We would then
         // suggest values for param types like closures.
         if (defaultValue != null && defaultValue.text == '[]') {

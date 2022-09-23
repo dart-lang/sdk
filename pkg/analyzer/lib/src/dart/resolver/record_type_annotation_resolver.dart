@@ -46,6 +46,8 @@ class RecordTypeAnnotationResolver {
 
   /// Report any fields in the record type [node] that use an invalid name.
   void reportInvalidFieldNames(RecordTypeAnnotationImpl node) {
+    var positionalFields = node.positionalFields;
+    var positionalCount = positionalFields.length;
     for (var field in node.fields) {
       var nameToken = field.name;
       if (nameToken != null) {
@@ -53,9 +55,18 @@ class RecordTypeAnnotationResolver {
         if (name.startsWith('_')) {
           errorReporter.reportErrorForToken(
               CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, nameToken);
-        } else if (positionalFieldName.hasMatch(name)) {
-          errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameToken);
+        } else if (positionalCount > 0 && positionalFieldName.hasMatch(name)) {
+          var indexString = name.substring(1);
+          if (indexString.length == 1 || !indexString.startsWith('0')) {
+            var index = int.tryParse(indexString);
+            if (index != null &&
+                index < positionalCount &&
+                positionalFields.indexOf(field) != index) {
+              errorReporter.reportErrorForToken(
+                  CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
+                  nameToken);
+            }
+          }
         } else {
           var objectElement = typeProvider.objectElement;
           if (objectElement.getGetter(name) != null ||
