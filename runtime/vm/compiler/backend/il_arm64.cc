@@ -7,6 +7,7 @@
 
 #include "vm/compiler/backend/il.h"
 
+#include "platform/memory_sanitizer.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/locations.h"
@@ -1294,7 +1295,36 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // Reserve space for the arguments that go on the stack (if any), then align.
-  __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
+  intptr_t stack_space = marshaller_.RequiredStackSpaceInBytes();
+  __ ReserveAlignedFrameSpace(stack_space);
+#if defined(USING_MEMORY_SANITIZER)
+  {
+    RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs & ~(1 << SP),
+                                     kAbiVolatileFpuRegs);
+    __ mov(temp1, SP);
+    __ PushRegisters(kVolatileRegisterSet);
+
+    // Outgoing arguments passed on the stack to the foreign function.
+    __ mov(R0, temp1);
+    __ LoadImmediate(R1, stack_space);
+    __ CallCFunction(
+        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+
+    // Incoming Dart arguments to this trampoline are potentially used as local
+    // handles.
+    __ mov(R0, is_leaf_ ? FPREG : saved_fp_or_sp);
+    __ LoadImmediate(R1, (kParamEndSlotFromFp + InputCount()) * kWordSize);
+    __ CallCFunction(
+        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+
+    // Outgoing arguments passed by register to the foreign function.
+    __ LoadImmediate(R0, InputCount());
+    __ CallCFunction(compiler::Address(
+        THR, kMsanUnpoisonParamRuntimeEntry.OffsetFromThread()));
+
+    __ PopRegisters(kVolatileRegisterSet);
+  }
+#endif
 
   EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, temp2);
 

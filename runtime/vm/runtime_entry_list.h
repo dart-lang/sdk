@@ -107,8 +107,10 @@ namespace dart {
   V(ApiLocalScope*, EnterHandleScope, Thread*)                                 \
   V(void, ExitHandleScope, Thread*)                                            \
   V(LocalHandle*, AllocateHandle, ApiLocalScope*)                              \
-  V(void, TsanLoadAcquire, uword /* address */)                                \
-  V(void, TsanStoreRelease, uword /* address */)
+  V(void, MsanUnpoison, void*, size_t)                                         \
+  V(void, MsanUnpoisonParam, size_t)                                           \
+  V(void, TsanLoadAcquire, void*)                                              \
+  V(void, TsanStoreRelease, void*)
 
 }  // namespace dart
 
