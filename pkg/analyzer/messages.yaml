@@ -7005,7 +7005,9 @@ CompileTimeErrorCode:
     comment: No parameters.
   INVALID_FIELD_NAME_POSITIONAL:
     sharedName: INVALID_FIELD_NAME
-    problemMessage: Record field names can't be a dollar sign followed by digits because those are used to access positional fields.
+    problemMessage: |-
+      Record field names can't be a dollar sign followed by an integer when the
+      integer is the index of a positional field.
     correctionMessage: Try using a different name for the field.
     comment: No parameters.
   INVALID_IMPLEMENTATION_OVERRIDE:

@@ -49,6 +49,12 @@ class RecordLiteralResolver {
   /// Report any fields in the record literal [node] that use an invalid name.
   void reportInvalidFieldNames(RecordLiteralImpl node) {
     var fields = node.fields;
+    var positionalCount = 0;
+    for (var field in fields) {
+      if (field is! NamedExpression) {
+        positionalCount++;
+      }
+    }
     for (var field in fields) {
       if (field is NamedExpression) {
         var nameNode = field.name.label;
@@ -56,9 +62,15 @@ class RecordLiteralResolver {
         if (name.startsWith('_')) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, nameNode);
-        } else if (positionalFieldName.hasMatch(name)) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameNode);
+        } else if (positionalCount > 0 && positionalFieldName.hasMatch(name)) {
+          var indexString = name.substring(1);
+          if (indexString.length == 1 || !indexString.startsWith('0')) {
+            var index = int.tryParse(indexString);
+            if (index != null && index < positionalCount) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameNode);
+            }
+          }
         } else {
           var objectElement = _resolver.typeProvider.objectElement;
           if (objectElement.getGetter(name) != null ||
