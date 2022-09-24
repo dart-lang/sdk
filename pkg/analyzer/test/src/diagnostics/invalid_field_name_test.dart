@@ -27,6 +27,17 @@ var r = (hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
     ]);
   }
 
+  void test_fromObject_withPositional() async {
+    await assertErrorsInCode(r'''
+var r = (0, hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
+''', [
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 12, 8),
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 25, 12),
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 42, 11),
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 58, 8),
+    ]);
+  }
+
   void test_positional_named_conflict() async {
     await assertErrorsInCode(r'''
 var r = (0, $0: 2);

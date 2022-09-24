@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -14,9 +15,6 @@ import 'package:analyzer/src/error/codes.g.dart';
 
 /// Helper for resolving [RecordTypeAnnotation]s.
 class RecordTypeAnnotationResolver {
-  /// A regular expression used to match positional field names.
-  static final RegExp positionalFieldName = RegExp(r'^\$[0-9]+$');
-
   final TypeProviderImpl typeProvider;
   final ErrorReporter errorReporter;
 
@@ -55,24 +53,23 @@ class RecordTypeAnnotationResolver {
         if (name.startsWith('_')) {
           errorReporter.reportErrorForToken(
               CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, nameToken);
-        } else if (positionalCount > 0 && positionalFieldName.hasMatch(name)) {
-          var indexString = name.substring(1);
-          if (indexString.length == 1 || !indexString.startsWith('0')) {
-            var index = int.tryParse(indexString);
-            if (index != null &&
-                index < positionalCount &&
+        } else {
+          final index = RecordTypeExtension.positionalFieldIndex(name);
+          if (index != null) {
+            if (index < positionalCount &&
                 positionalFields.indexOf(field) != index) {
               errorReporter.reportErrorForToken(
                   CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
                   nameToken);
             }
-          }
-        } else {
-          var objectElement = typeProvider.objectElement;
-          if (objectElement.getGetter(name) != null ||
-              objectElement.getMethod(name) != null) {
-            errorReporter.reportErrorForToken(
-                CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, nameToken);
+          } else {
+            var objectElement = typeProvider.objectElement;
+            if (objectElement.getGetter(name) != null ||
+                objectElement.getMethod(name) != null) {
+              errorReporter.reportErrorForToken(
+                  CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
+                  nameToken);
+            }
           }
         }
       }
