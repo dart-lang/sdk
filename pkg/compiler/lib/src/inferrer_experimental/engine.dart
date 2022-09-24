@@ -50,6 +50,7 @@ import 'types.dart';
 class InferrerEngine implements interfaces.InferrerEngine {
   /// A set of selector names that [List] implements, that we know return their
   /// element type.
+  @override
   final Set<Selector> returnsListElementTypeSet = Set<Selector>.from(<Selector>[
     Selector.getter(const PublicName('first')),
     Selector.getter(const PublicName('last')),
@@ -261,6 +262,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     return abstractValueDomain.isMap(mask) && selector.isIndex;
   }
 
+  @override
   void analyzeListAndEnqueue(ListTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
@@ -277,6 +279,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     _workQueue.add(info.elementType);
   }
 
+  @override
   void analyzeSetAndEnqueue(SetTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
@@ -294,6 +297,7 @@ class InferrerEngine implements interfaces.InferrerEngine {
     _workQueue.add(info.elementType);
   }
 
+  @override
   void analyzeMapAndEnqueue(MapTypeInformation info) {
     if (info.analyzed) return;
     info.analyzed = true;
