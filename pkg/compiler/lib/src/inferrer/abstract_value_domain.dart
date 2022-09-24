@@ -544,7 +544,7 @@ abstract class AbstractValueDomain {
   ///
   /// Specializations are created through [createPrimitiveValue],
   /// [createMapValue], [createDictionaryValue] and [createContainerValue].
-  AbstractValue? getGeneralization(AbstractValue value);
+  AbstractValue? getGeneralization(AbstractValue? value);
 
   /// Return the object identifying the allocation of [value] if it is an
   /// allocation based specialization. Otherwise returns `null`.
