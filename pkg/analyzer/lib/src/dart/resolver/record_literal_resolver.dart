@@ -16,9 +16,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [RecordLiteral]s.
 class RecordLiteralResolver {
-  /// A regular expression used to match positional field names.
-  static final RegExp positionalFieldName = RegExp(r'^\$[0-9]+$');
-
   final ResolverVisitor _resolver;
 
   RecordLiteralResolver({
@@ -62,21 +59,21 @@ class RecordLiteralResolver {
         if (name.startsWith('_')) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, nameNode);
-        } else if (positionalCount > 0 && positionalFieldName.hasMatch(name)) {
-          var indexString = name.substring(1);
-          if (indexString.length == 1 || !indexString.startsWith('0')) {
-            var index = int.tryParse(indexString);
-            if (index != null && index < positionalCount) {
+        } else {
+          final index = RecordTypeExtension.positionalFieldIndex(name);
+          if (index != null) {
+            if (index < positionalCount) {
               errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameNode);
             }
-          }
-        } else {
-          var objectElement = _resolver.typeProvider.objectElement;
-          if (objectElement.getGetter(name) != null ||
-              objectElement.getMethod(name) != null) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, nameNode);
+          } else {
+            var objectElement = _resolver.typeProvider.objectElement;
+            if (objectElement.getGetter(name) != null ||
+                objectElement.getMethod(name) != null) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
+                  nameNode);
+            }
           }
         }
       }
