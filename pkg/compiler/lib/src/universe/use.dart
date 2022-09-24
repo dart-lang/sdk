@@ -52,7 +52,7 @@ class DynamicUse {
             "${selector.callStructure.typeArgumentCount} but "
             "${_typeArguments?.length ?? 0} were passed.");
 
-  DynamicUse withReceiverConstraint(Object otherReceiverConstraint) {
+  DynamicUse withReceiverConstraint(Object? otherReceiverConstraint) {
     if (otherReceiverConstraint == receiverConstraint) {
       return this;
     }

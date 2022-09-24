@@ -180,14 +180,14 @@ mixin _HashBase on _HashAbstractBase {
     return (maskedHash == 0) ? (size >> 1) : maskedHash * (size >> 1);
   }
 
-  // Quadratic probing.
+  // Linear probing.
   static int _firstProbe(int fullHash, int sizeMask) {
     final int i = fullHash & sizeMask;
     // Light, fast shuffle to mitigate bad hashCode (e.g., sequential).
     return ((i << 1) + i) & sizeMask;
   }
 
-  static int _nextProbe(int i, int incr, int sizeMask) => (i + incr) & sizeMask;
+  static int _nextProbe(int i, int sizeMask) => (i + 1) & sizeMask;
 
   // A self-loop is used to mark a deleted key or value.
   static bool _isDeleted(List<Object?> data, Object? keyOrValue) =>
@@ -334,11 +334,6 @@ mixin _ImmutableLinkedHashMapMixin<K, V>
   }
 
   void _createIndex() {
-    // Because we use quadratic (actually triangle number) probing it is
-    // important that the size is a power of two (otherwise we could fail to
-    // find an empty slot).  This is described in Knuth's The Art of Computer
-    // Programming Volume 2, Chapter 6.4, exercise 20 (solution in the
-    // appendix, 2nd edition).
     final size =
         _roundUpToPowerOfTwo(max(_data.length, _HashBase._INITIAL_INDEX_SIZE));
     final newIndex = new Uint32List(size);
@@ -476,7 +471,6 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int firstDeleted = -1;
     int pair = index[i];
-    int probeDistance = 1;
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair == _HashBase._DELETED_PAIR) {
         if (firstDeleted < 0) {
@@ -491,8 +485,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
           }
         }
       }
-      i = _HashBase._nextProbe(i, probeDistance, sizeMask);
-      probeDistance += 1;
+      i = _HashBase._nextProbe(i, sizeMask);
       pair = index[i];
     }
     return firstDeleted >= 0 ? -firstDeleted : -i;
@@ -546,7 +539,6 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int pair = _index[i];
-    int probeDistance = 1;
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int entry = hashPattern ^ pair;
@@ -562,8 +554,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
           }
         }
       }
-      i = _HashBase._nextProbe(i, probeDistance, sizeMask);
-      probeDistance += 1;
+      i = _HashBase._nextProbe(i, sizeMask);
       pair = _index[i];
     }
     return null;
@@ -578,7 +569,6 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int pair = _index[i];
-    int probeDistance = 1;
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int entry = hashPattern ^ pair;
@@ -589,8 +579,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
           }
         }
       }
-      i = _HashBase._nextProbe(i, probeDistance, sizeMask);
-      probeDistance += 1;
+      i = _HashBase._nextProbe(i, sizeMask);
       pair = _index[i];
     }
     return _data;
@@ -854,7 +843,6 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int firstDeleted = -1;
     int pair = _index[i];
-    int probeDistance = 1;
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair == _HashBase._DELETED_PAIR) {
         if (firstDeleted < 0) {
@@ -866,8 +854,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
           return false;
         }
       }
-      i = _HashBase._nextProbe(i, probeDistance, sizeMask);
-      probeDistance += 1;
+      i = _HashBase._nextProbe(i, sizeMask);
       pair = _index[i];
     }
     if (_usedData == _data.length) {
@@ -892,7 +879,6 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int pair = _index[i];
-    int probeDistance = 1;
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
@@ -900,8 +886,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
           return _data[d]; // Note: Must return the existing key.
         }
       }
-      i = _HashBase._nextProbe(i, probeDistance, sizeMask);
-      probeDistance += 1;
+      i = _HashBase._nextProbe(i, sizeMask);
       pair = _index[i];
     }
     return _data;
@@ -922,7 +907,6 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
     int i = _HashBase._firstProbe(fullHash, sizeMask);
     int pair = _index[i];
-    int probeDistance = 1;
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
@@ -933,8 +917,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
           return true;
         }
       }
-      i = _HashBase._nextProbe(i, probeDistance, sizeMask);
-      probeDistance += 1;
+      i = _HashBase._nextProbe(i, sizeMask);
       pair = _index[i];
     }
     return false;
@@ -945,11 +928,6 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
 
   // This method is called by [_rehashObjects] (see above).
   void _regenerateIndex() {
-    // Because we use quadratic (actually triangle number) probing it is
-    // important that the size is a power of two (otherwise we could fail to
-    // find an empty slot).  This is described in Knuth's The Art of Computer
-    // Programming Volume 2, Chapter 6.4, exercise 20 (solution in the
-    // appendix, 2nd edition).
     final size =
         _roundUpToPowerOfTwo(max(_data.length, _HashBase._INITIAL_INDEX_SIZE));
     _index = _data.length == 0 ? _uninitializedIndex : new Uint32List(size);
@@ -1035,11 +1013,6 @@ mixin _ImmutableLinkedHashSetMixin<E>
   }
 
   void _createIndex() {
-    // Because we use quadratic (actually triangle number) probing it is
-    // important that the size is a power of two (otherwise we could fail to
-    // find an empty slot).  This is described in Knuth's The Art of Computer
-    // Programming Volume 2, Chapter 6.4, exercise 20 (solution in the
-    // appendix, 2nd edition).
     final size = _roundUpToPowerOfTwo(
         max(_data.length * 2, _HashBase._INITIAL_INDEX_SIZE));
     final index = new Uint32List(size);
@@ -1057,7 +1030,6 @@ mixin _ImmutableLinkedHashSetMixin<E>
 
       int i = _HashBase._firstProbe(fullHash, sizeMask);
       int pair = index[i];
-      int probeDistance = 1;
       while (pair != _HashBase._UNUSED_PAIR) {
         assert(pair != _HashBase._DELETED_PAIR);
 
@@ -1067,8 +1039,7 @@ mixin _ImmutableLinkedHashSetMixin<E>
           assert(!_equals(key, _data[d]));
         }
 
-        i = _HashBase._nextProbe(i, probeDistance, sizeMask);
-        probeDistance += 1;
+        i = _HashBase._nextProbe(i, sizeMask);
         pair = index[i];
       }
 

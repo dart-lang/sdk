@@ -50,9 +50,9 @@ class FieldFormalContributor extends DartCompletionContributor {
     InterfaceElement? enclosingClass;
     var constructorParent = constructor.parent;
     if (constructorParent is ClassDeclaration) {
-      enclosingClass = constructorParent.declaredElement2;
+      enclosingClass = constructorParent.declaredElement;
     } else if (constructorParent is EnumDeclaration) {
-      enclosingClass = constructorParent.declaredElement2;
+      enclosingClass = constructorParent.declaredElement;
     } else {
       return;
     }

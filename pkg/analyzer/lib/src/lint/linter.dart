@@ -336,7 +336,7 @@ class LinterContextImpl implements LinterContext {
 
   @override
   bool canBeConstConstructor(covariant ConstructorDeclarationImpl node) {
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
 
     final classElement = element.enclosingElement3;
     if (classElement is ClassElement && classElement.hasNonFinalField) {

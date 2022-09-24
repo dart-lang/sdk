@@ -86,14 +86,14 @@ class AddNullCheck extends CorrectionProducer {
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.writeType;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
-      toType = parent.declaredElement2?.type;
+      toType = parent.declaredElement?.type;
     } else if (parent is ArgumentList) {
       toType = target.staticParameterElement?.type;
     } else if (parent is IndexExpression) {
       toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {
       toType =
-          typeProvider.iterableType(parent.loopVariable.declaredElement2!.type);
+          typeProvider.iterableType(parent.loopVariable.declaredElement!.type);
     } else if (parent is ForEachPartsWithIdentifier) {
       toType = typeProvider.iterableType(parent.identifier.typeOrThrow);
     } else if (parent is SpreadElement) {

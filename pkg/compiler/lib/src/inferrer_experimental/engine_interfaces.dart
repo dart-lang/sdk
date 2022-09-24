@@ -24,6 +24,7 @@ abstract class InferrerEngine {
   InferredDataBuilder get inferredDataBuilder;
   FunctionEntity get mainElement;
   NoSuchMethodData get noSuchMethodData;
+  Set<Selector> get returnsListElementTypeSet;
 
   TypeInformation typeOfNativeBehavior(NativeBehavior nativeBehavior);
   bool canFieldBeUsedForGlobalOptimizations(FieldEntity element);
@@ -40,4 +41,7 @@ abstract class InferrerEngine {
       {required bool remove, bool addToQueue = true});
   bool returnsListElementType(Selector selector, AbstractValue mask);
   bool returnsMapValueType(Selector selector, AbstractValue mask);
+  void analyzeListAndEnqueue(ListTypeInformation info);
+  void analyzeSetAndEnqueue(SetTypeInformation info);
+  void analyzeMapAndEnqueue(MapTypeInformation info);
 }

@@ -18,7 +18,7 @@ import 'codegen_protocol_constants.dart' as codegen_protocol_constants;
 import 'to_html.dart' as to_html;
 
 /// Generate all targets.
-void main() async {
+Future<void> main() async {
   var script = Platform.script.toFilePath(windows: Platform.isWindows);
   var pkgPath = normalize(join(dirname(script), '..', '..'));
   await GeneratedContent.generateAll(pkgPath, allTargets);

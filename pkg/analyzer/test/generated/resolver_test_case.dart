@@ -94,7 +94,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
-    if (node.declaredElement2 is LibraryElement) {
+    if (node.declaredElement is LibraryElement) {
       _wrongTypedNodes.add(node);
     }
   }

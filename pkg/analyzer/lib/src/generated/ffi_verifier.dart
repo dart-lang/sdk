@@ -86,7 +86,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (className == _structClassName || className == _unionClassName) {
           inCompound = true;
           compound = node;
-          if (node.declaredElement2!.isEmptyStruct) {
+          if (node.declaredElement!.isEmptyStruct) {
             _errorReporter.reportErrorForToken(
                 FfiCode.EMPTY_STRUCT, node.name, [node.name.lexeme, className]);
           }
@@ -148,13 +148,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (inCompound) {
-      if (node.declaredElement2!.typeParameters.isNotEmpty) {
+      if (node.declaredElement!.typeParameters.isNotEmpty) {
         _errorReporter.reportErrorForToken(
             FfiCode.GENERIC_STRUCT_SUBCLASS, node.name, [node.name.lexeme]);
       }
       final implementsClause = node.implementsClause;
       if (implementsClause != null) {
-        final compoundType = node.declaredElement2!.thisType;
+        final compoundType = node.declaredElement!.thisType;
         final structType = compoundType.superclass!;
         final ffiLibrary = structType.element2.library;
         final finalizableElement = ffiLibrary.getClass(_finalizableClassName)!;
@@ -194,7 +194,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     _checkFfiNative(
       errorNode: node,
       annotations: node.metadata,
-      declarationElement: node.declaredElement2!,
+      declarationElement: node.declaredElement!,
       formalParameterList: node.functionExpression.parameters,
     );
     super.visitFunctionDeclaration(node);
@@ -246,7 +246,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     _checkFfiNative(
         errorNode: node,
         annotations: node.metadata,
-        declarationElement: node.declaredElement2!,
+        declarationElement: node.declaredElement!,
         formalParameterList: node.parameters);
     super.visitMethodDeclaration(node);
   }

@@ -24,11 +24,11 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
   /// name matches [search].
   DecoratedType decoratedFunctionType(String search) =>
       variables.decoratedElementType(
-          findNode.functionDeclaration(search).declaredElement2!);
+          findNode.functionDeclaration(search).declaredElement!);
 
   DecoratedType? decoratedTypeParameterBound(String search) =>
       variables.decoratedTypeParameterBound(
-          findNode.typeParameter(search).declaredElement2!);
+          findNode.typeParameter(search).declaredElement!);
 
   Future<void> test_catch_clause_with_stacktrace_with_on() async {
     await analyze('''
@@ -685,7 +685,7 @@ class C {
 }
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -696,7 +696,7 @@ class C {
 }
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -708,7 +708,7 @@ class C {
 }
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -725,7 +725,7 @@ class C {
             .fieldDeclaration('f')
             .fields
             .variables[0]
-            .declaredElement2!),
+            .declaredElement!),
         same(decoratedType));
   }
 
@@ -1377,7 +1377,7 @@ var x = [1];
             .topLevelVariableDeclaration('x')
             .variables
             .variables[0]
-            .declaredElement2!)
+            .declaredElement!)
         .typeArguments[0]!
         .node!;
     expect(node.hintActions, isEmpty);
@@ -1392,7 +1392,7 @@ var x = 1;
             .topLevelVariableDeclaration('x')
             .variables
             .variables[0]
-            .declaredElement2!)
+            .declaredElement!)
         .node!;
     expect(node.hintActions, isEmpty);
   }
@@ -1548,7 +1548,7 @@ main() {
 }
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1559,7 +1559,7 @@ main() {
 }
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1571,7 +1571,7 @@ main() {
 }
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1582,7 +1582,7 @@ main() {
 }
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.returnType!.node!.displayName,
         'return type of main.x (test.dart:2:7)');
   }
@@ -1594,7 +1594,7 @@ main() {
 }
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.typeArguments[0]!.node!.displayName,
         'type argument 0 of main.x (test.dart:2:7)');
     expect(decoratedType.typeArguments[1]!.node!.displayName,
@@ -1915,7 +1915,7 @@ int f() => 0;
 var x;
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 
@@ -1924,7 +1924,7 @@ var x;
 var x = 1;
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
@@ -1934,7 +1934,7 @@ dynamic f() {}
 var x = f();
 ''');
     var decoratedType = variables.decoratedElementType(
-        findNode.variableDeclaration('x').declaredElement2!);
+        findNode.variableDeclaration('x').declaredElement!);
     expect(decoratedType.node!.isImmutable, false);
   }
 

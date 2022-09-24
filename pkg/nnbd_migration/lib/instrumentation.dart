@@ -96,7 +96,7 @@ class CodeReference {
       if (nodeName != null) {
         parts.add(nodeName);
       } else if (parts.isEmpty && node is VariableDeclarationList) {
-        parts.add(node.variables.first.declaredElement2!.name);
+        parts.add(node.variables.first.declaredElement!.name);
       }
       node = node.parent;
     }
@@ -106,9 +106,9 @@ class CodeReference {
 
   static String? _computeNodeDeclarationName(AstNode node) {
     if (node is ExtensionDeclaration) {
-      return node.declaredElement2?.name ?? '<unnamed extension>';
+      return node.declaredElement?.name ?? '<unnamed extension>';
     } else if (node is Declaration) {
-      var name = node.declaredElement2?.name;
+      var name = node.declaredElement?.name;
       return name == '' ? '<unnamed>' : name;
     } else {
       return null;

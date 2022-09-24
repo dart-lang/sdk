@@ -65,7 +65,7 @@ class CreateMethod extends CorrectionProducer {
     }
     final classDecl = memberDecl.thisOrAncestorOfType<ClassDeclaration>();
     if (classDecl != null) {
-      final classElement = classDecl.declaredElement2!;
+      final classElement = classDecl.declaredElement!;
 
       var missingEquals = memberDecl is FieldDeclaration ||
           (memberDecl as MethodDeclaration).name.lexeme == 'hashCode';

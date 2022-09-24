@@ -31,14 +31,14 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _currentClass = node.declaredElement2;
+    _currentClass = node.declaredElement;
     super.visitClassDeclaration(node);
     _currentClass = null;
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _currentClass = node.declaredElement2;
+    _currentClass = node.declaredElement;
     super.visitEnumDeclaration(node);
     _currentClass = null;
   }
@@ -46,7 +46,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
-      var fieldElement = field.declaredElement2 as FieldElement;
+      var fieldElement = field.declaredElement as FieldElement;
       if (fieldElement.hasOverride) {
         var getter = fieldElement.getter;
         if (getter != null && _isOverride(getter)) continue;
@@ -64,7 +64,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     if (element.hasOverride && !_isOverride(element)) {
       if (element is MethodElement) {
         _errorReporter.reportErrorForToken(
@@ -89,7 +89,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _currentClass = node.declaredElement2;
+    _currentClass = node.declaredElement;
     super.visitMixinDeclaration(node);
     _currentClass = null;
   }

@@ -29,7 +29,7 @@ class BulkFixDetails {
           .getResolvedUnit(file.absolute.path) as ResolvedUnitResult;
       for (var classDecl
           in resolvedFile.unit.declarations.whereType<ClassDeclaration>()) {
-        var classElement = classDecl.declaredElement2;
+        var classElement = classDecl.declaredElement;
         if (classElement != null &&
             classElement.allSupertypes.any(
                 (element) => element.element2.name == 'CorrectionProducer')) {

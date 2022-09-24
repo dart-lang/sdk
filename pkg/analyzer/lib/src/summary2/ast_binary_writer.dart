@@ -870,7 +870,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
       f();
     } else {
       var elements = node.typeParameters
-          .map((typeParameter) => typeParameter.declaredElement2!)
+          .map((typeParameter) => typeParameter.declaredElement!)
           .toList();
       _sink.localElements.withElements(elements, () {
         f();

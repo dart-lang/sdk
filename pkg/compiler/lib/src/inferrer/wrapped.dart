@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
@@ -13,7 +11,7 @@ import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
-import '../world.dart';
+import '../world_interfaces.dart';
 import 'abstract_value_domain.dart';
 import 'abstract_value_strategy.dart';
 
@@ -25,9 +23,7 @@ class WrappedAbstractValue implements AbstractValue {
   bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! WrappedAbstractValue) return false;
-    WrappedAbstractValue otherWrapped = other;
-    return other is WrappedAbstractValue &&
-        _abstractValue == otherWrapped._abstractValue;
+    return _abstractValue == other._abstractValue;
   }
 
   @override
@@ -39,11 +35,11 @@ class WrappedAbstractValue implements AbstractValue {
   String toString() => _abstractValue.toString();
 }
 
-AbstractValue unwrapOrNull(WrappedAbstractValue wrapped) {
+AbstractValue? unwrapOrNull(WrappedAbstractValue? wrapped) {
   return wrapped?._abstractValue;
 }
 
-WrappedAbstractValue wrapOrNull(AbstractValue abstractValue) {
+WrappedAbstractValue? wrapOrNull(AbstractValue? abstractValue) {
   return abstractValue == null ? null : WrappedAbstractValue(abstractValue);
 }
 
@@ -88,7 +84,7 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       _abstractValueDomain.isJsIndexable(value._abstractValue);
 
   @override
-  MemberEntity locateSingleMember(
+  MemberEntity? locateSingleMember(
           covariant WrappedAbstractValue receiver, Selector selector) =>
       _abstractValueDomain.locateSingleMember(
           receiver._abstractValue, selector);
@@ -115,7 +111,7 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       WrappedAbstractValue(_abstractValueDomain.computeReceiver(members));
 
   @override
-  PrimitiveConstantValue getPrimitiveValue(
+  PrimitiveConstantValue? getPrimitiveValue(
           covariant WrappedAbstractValue value) =>
       _abstractValueDomain.getPrimitiveValue(value._abstractValue);
 
@@ -131,17 +127,17 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       _abstractValueDomain.isPrimitiveValue(value._abstractValue);
 
   @override
-  MemberEntity getAllocationElement(covariant WrappedAbstractValue value) =>
+  MemberEntity? getAllocationElement(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.getAllocationElement(value._abstractValue);
 
   @override
-  Object getAllocationNode(covariant WrappedAbstractValue value) =>
+  Object? getAllocationNode(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.getAllocationNode(value._abstractValue);
 
   @override
   AbstractValue getGeneralization(covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(
-          _abstractValueDomain.getGeneralization(unwrapOrNull(value)));
+          _abstractValueDomain.getGeneralization(unwrapOrNull(value))!);
 
   @override
   bool isSpecializationOf(covariant WrappedAbstractValue specialization,
@@ -162,14 +158,14 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue createDictionaryValue(
-      covariant WrappedAbstractValue originalValue,
-      Object allocationNode,
-      MemberEntity allocationElement,
+      covariant WrappedAbstractValue? originalValue,
+      Object? allocationNode,
+      MemberEntity? allocationElement,
       covariant WrappedAbstractValue key,
       covariant WrappedAbstractValue value,
       covariant Map<String, AbstractValue> mappings) {
     return WrappedAbstractValue(_abstractValueDomain.createDictionaryValue(
-        originalValue._abstractValue,
+        originalValue?._abstractValue,
         allocationNode,
         allocationElement,
         key._abstractValue,
@@ -195,13 +191,13 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue createMapValue(
-          covariant WrappedAbstractValue originalValue,
-          Object allocationNode,
-          MemberEntity allocationElement,
+          covariant WrappedAbstractValue? originalValue,
+          Object? allocationNode,
+          MemberEntity? allocationElement,
           covariant WrappedAbstractValue key,
           covariant WrappedAbstractValue value) =>
       WrappedAbstractValue(_abstractValueDomain.createMapValue(
-          originalValue._abstractValue,
+          originalValue?._abstractValue,
           allocationNode,
           allocationElement,
           key._abstractValue,
@@ -218,12 +214,12 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue createSetValue(
-          covariant WrappedAbstractValue originalValue,
-          Object allocationNode,
-          MemberEntity allocationElement,
+          covariant WrappedAbstractValue? originalValue,
+          Object? allocationNode,
+          MemberEntity? allocationElement,
           covariant WrappedAbstractValue elementType) =>
       WrappedAbstractValue(_abstractValueDomain.createSetValue(
-          originalValue._abstractValue,
+          originalValue?._abstractValue,
           allocationNode,
           allocationElement,
           elementType._abstractValue));
@@ -233,7 +229,7 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       _abstractValueDomain.isSet(value._abstractValue);
 
   @override
-  int getContainerLength(covariant WrappedAbstractValue value) =>
+  int? getContainerLength(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.getContainerLength(value._abstractValue);
 
   @override
@@ -243,13 +239,13 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue createContainerValue(
-          covariant WrappedAbstractValue originalValue,
-          Object allocationNode,
-          MemberEntity allocationElement,
+          covariant WrappedAbstractValue? originalValue,
+          Object? allocationNode,
+          MemberEntity? allocationElement,
           covariant WrappedAbstractValue elementType,
-          int length) =>
+          int? length) =>
       WrappedAbstractValue(_abstractValueDomain.createContainerValue(
-          originalValue._abstractValue,
+          originalValue?._abstractValue,
           allocationNode,
           allocationElement,
           elementType._abstractValue,
@@ -266,7 +262,7 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
           _abstractValueDomain.computeAbstractValueForConstant(value));
 
   @override
-  AbstractValue getAbstractValueForNativeMethodParameterType(DartType type) {
+  AbstractValue? getAbstractValueForNativeMethodParameterType(DartType type) {
     return wrapOrNull(_abstractValueDomain
         .getAbstractValueForNativeMethodParameterType(type));
   }
@@ -410,7 +406,7 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       _abstractValueDomain.isLateSentinel(value._abstractValue);
 
   @override
-  ClassEntity getExactClass(covariant WrappedAbstractValue value) =>
+  ClassEntity? getExactClass(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.getExactClass(value._abstractValue);
 
   @override
@@ -492,7 +488,7 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
   @override
   AbstractValueWithPrecision createFromStaticType(DartType type,
       {ClassRelation classRelation = ClassRelation.subtype,
-      /* required */ bool nullable}) {
+      required bool nullable}) {
     var unwrapped = _abstractValueDomain.createFromStaticType(type,
         classRelation: classRelation, nullable: nullable);
     return AbstractValueWithPrecision(
@@ -627,7 +623,7 @@ class WrappedSelectorStrategy implements SelectorConstraintsStrategy {
 
   @override
   UniverseSelectorConstraints createSelectorConstraints(
-      Selector selector, Object initialConstraint) {
+      Selector selector, Object? initialConstraint) {
     return WrappedUniverseSelectorConstraints(
         _selectorConstraintsStrategy.createSelectorConstraints(
             selector,
@@ -640,8 +636,8 @@ class WrappedSelectorStrategy implements SelectorConstraintsStrategy {
   bool appliedUnnamed(DynamicUse dynamicUse, MemberEntity member,
       covariant JClosedWorld world) {
     return _selectorConstraintsStrategy.appliedUnnamed(
-        dynamicUse.withReceiverConstraint(
-            unwrapOrNull(dynamicUse.receiverConstraint)),
+        dynamicUse.withReceiverConstraint(unwrapOrNull(
+            dynamicUse.receiverConstraint as WrappedAbstractValue?)),
         member,
         world);
   }
@@ -653,7 +649,7 @@ class WrappedUniverseSelectorConstraints
   const WrappedUniverseSelectorConstraints(this._universeSelectorConstraints);
 
   @override
-  bool addReceiverConstraint(Object constraint) =>
+  bool addReceiverConstraint(Object? constraint) =>
       _universeSelectorConstraints.addReceiverConstraint(constraint == null
           ? null
           : (constraint as WrappedAbstractValue)._abstractValue);

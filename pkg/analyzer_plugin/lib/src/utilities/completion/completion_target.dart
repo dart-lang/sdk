@@ -123,9 +123,9 @@ class CompletionTarget {
     final unitMember =
         containingNode.thisOrAncestorOfType<CompilationUnitMember>();
     if (unitMember is ClassDeclaration) {
-      return unitMember.declaredElement2;
+      return unitMember.declaredElement;
     } else if (unitMember is MixinDeclaration) {
-      return unitMember.declaredElement2;
+      return unitMember.declaredElement;
     } else {
       return null;
     }
@@ -134,7 +134,7 @@ class CompletionTarget {
   /// The enclosing [ExtensionElement], or `null` if not in an extension.
   late final ExtensionElement? enclosingExtensionElement = containingNode
       .thisOrAncestorOfType<ExtensionDeclaration>()
-      ?.declaredElement2;
+      ?.declaredElement;
 
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
   /// the [entryPoint].

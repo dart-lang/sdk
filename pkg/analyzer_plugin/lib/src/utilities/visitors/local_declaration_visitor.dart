@@ -128,12 +128,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
       declaredLocalVar(
-          loopVariable.name, loopVariable.type, loopVariable.declaredElement2!);
+          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
         declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement2 as LocalVariableElement);
+            varDecl.declaredElement as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -145,12 +145,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
       declaredLocalVar(
-          loopVariable.name, loopVariable.type, loopVariable.declaredElement2!);
+          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
         declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement2 as LocalVariableElement);
+            varDecl.declaredElement as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -323,7 +323,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
           for (var varDecl in varList.variables) {
             if (varDecl.end < offset) {
               declaredLocalVar(varDecl.name, varList.type,
-                  varDecl.declaredElement2 as LocalVariableElement);
+                  varDecl.declaredElement as LocalVariableElement);
             }
           }
         } else if (stmt is FunctionDeclarationStatement) {

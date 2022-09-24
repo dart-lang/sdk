@@ -46,7 +46,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement2!,
+          classElement: declaration.declaredElement!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
@@ -61,7 +61,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement2!,
+          classElement: declaration.declaredElement!,
           implementsClause: declaration.implementsClause,
           superclass: declaration.superclass,
           withClause: declaration.withClause,
@@ -75,7 +75,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement2!,
+          classElement: declaration.declaredElement!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           withClause: declaration.withClause,
@@ -89,7 +89,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement2!,
+          classElement: declaration.declaredElement!,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
@@ -215,7 +215,7 @@ class _ClassVerifier {
       if (member is FieldDeclaration) {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
-          var fieldElement = field.declaredElement2 as FieldElement;
+          var fieldElement = field.declaredElement as FieldElement;
           _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
           if (!member.isStatic && classElement is! EnumElement) {
@@ -231,7 +231,7 @@ class _ClassVerifier {
           continue;
         }
 
-        _checkDeclaredMember(member.name, libraryUri, member.declaredElement2,
+        _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalConcreteEnumMemberDeclaration(member.name);
@@ -928,7 +928,7 @@ class _ClassVerifier {
   }
 
   bool _reportNoCombinedSuperSignature(MethodDeclaration node) {
-    var element = node.declaredElement2;
+    var element = node.declaredElement;
     if (element is MethodElementImpl) {
       var inferenceError = element.typeInferenceError;
       if (inferenceError?.kind ==

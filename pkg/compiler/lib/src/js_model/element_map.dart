@@ -90,6 +90,7 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   Name getName(ir.Name name);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS] function.
+  @override
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 
   /// Computes the [native.NativeBehavior] for a call to the [JS_BUILTIN]

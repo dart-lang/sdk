@@ -186,7 +186,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegionForToken(node.name, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement);
     super.visitClassDeclaration(node);
   }
 
@@ -281,10 +281,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     // itself rather than linking to the class.
     var nameToken = node.name;
     if (nameToken == null) {
-      computer._addRegionForNode(node.returnType, node.declaredElement2);
+      computer._addRegionForNode(node.returnType, node.declaredElement);
     } else {
       node.returnType.accept(this);
-      computer._addRegionForToken(nameToken, node.declaredElement2);
+      computer._addRegionForToken(nameToken, node.declaredElement);
     }
     node.parameters.accept(this);
     node.initializers.accept(this);
@@ -326,7 +326,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (node.type == null) {
       var token = node.keyword;
       if (token != null && token.keyword == Keyword.VAR) {
-        var inferredType = node.declaredElement2?.type;
+        var inferredType = node.declaredElement?.type;
         if (inferredType is InterfaceType) {
           computer._addRegionForToken(token, inferredType.element2);
         }
@@ -375,7 +375,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    computer._addRegionForToken(node.name, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement);
     super.visitFunctionDeclaration(node);
   }
 
@@ -404,7 +404,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    computer._addRegionForToken(node.name, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement);
     super.visitMethodDeclaration(node);
   }
 
@@ -508,13 +508,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    computer._addRegionForToken(node.name, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement);
     super.visitTypeParameter(node);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    computer._addRegionForToken(node.name, node.declaredElement2);
+    computer._addRegionForToken(node.name, node.declaredElement);
     super.visitVariableDeclaration(node);
   }
 
@@ -524,14 +524,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     /// the given list of [variables], or `null` if not all variable have the
     /// same inferred type.
     Element? getCommonElement(List<VariableDeclaration> variables) {
-      final firstType = variables[0].declaredElement2?.type;
+      final firstType = variables[0].declaredElement?.type;
       if (firstType is! InterfaceType) {
         return null;
       }
 
       var firstElement = firstType.element2;
       for (var i = 1; i < variables.length; i++) {
-        final type = variables[i].declaredElement2?.type;
+        final type = variables[i].declaredElement?.type;
         if (type is! InterfaceType) {
           return null;
         }

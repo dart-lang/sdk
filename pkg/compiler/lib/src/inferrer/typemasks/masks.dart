@@ -898,7 +898,7 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  AbstractValue? getGeneralization(AbstractValue value) {
+  AbstractValue? getGeneralization(AbstractValue? value) {
     return value is AllocationTypeMask ? value.forwardTo : null;
   }
 

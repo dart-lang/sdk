@@ -36,7 +36,7 @@ class AddKeyToConstructors extends CorrectionProducer {
         return;
       }
       var className = node.name.lexeme;
-      var constructors = node.declaredElement2?.supertype?.constructors;
+      var constructors = node.declaredElement?.supertype?.constructors;
       if (constructors == null) {
         return;
       }

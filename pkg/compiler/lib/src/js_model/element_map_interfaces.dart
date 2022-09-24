@@ -11,6 +11,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
+import '../native/behavior.dart';
 import '../universe/selector.dart';
 import 'closure_migrated.dart';
 
@@ -33,6 +34,7 @@ abstract class JsToElementMap {
 
   Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
       KernelScopeInfo info, MemberEntity member);
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 }
 
 abstract class JsKernelToElementMap implements JsToElementMap, IrToElementMap {}

@@ -7,6 +7,7 @@
 
 #include "vm/compiler/backend/il.h"
 
+#include "platform/memory_sanitizer.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/locations.h"
@@ -1457,6 +1458,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Reserve space for the arguments that go on the stack (if any), then align.
   __ ReserveAlignedFrameSpace(marshaller_.RequiredStackSpaceInBytes());
+#if defined(USING_MEMORY_SANITIZER)
+  UNIMPLEMENTED();
+#endif
 
   EmitParamMoves(compiler, is_leaf_ ? FPREG : saved_fp_or_sp, temp1, temp2);
 

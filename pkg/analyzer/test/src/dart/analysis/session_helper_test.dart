@@ -89,7 +89,7 @@ class A {}
 class A {}
 class B {}
 ''');
-    var element = findNode.classDeclaration('A').declaredElement2!;
+    var element = findNode.classDeclaration('A').declaredElement!;
     var resolvedUnit = (await helper.getResolvedUnitByElement(element))!;
     expect(resolvedUnit.unit.declarations, hasLength(2));
   }

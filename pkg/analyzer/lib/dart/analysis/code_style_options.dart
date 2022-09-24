@@ -16,7 +16,7 @@ abstract class CodeStyleOptions {
   /// Return `true` if local variables should be `final` whenever possible.
   bool get makeLocalsFinal;
 
-  /// Return the preferred quote based on the enabled lints,otherwise a single
+  /// Return the preferred quote based on the enabled lints, otherwise a single
   /// quote.
   String get preferredQuoteForStrings;
 
@@ -33,6 +33,6 @@ abstract class CodeStyleOptions {
   bool get useRelativeUris;
 
   /// Return the preferred quote based on the enabled lints, otherwise based
-  /// on the first directive, otherwise a single quote.
-  String preferredQuoteForUris(List<ImportDirective> directives);
+  /// on the most common quote, otherwise a single quote.
+  String preferredQuoteForUris(List<NamespaceDirective> directives);
 }

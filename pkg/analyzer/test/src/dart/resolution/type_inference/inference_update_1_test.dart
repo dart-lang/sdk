@@ -106,7 +106,7 @@ test() {
                 'List<dynamic> Function(int Function()))');
     assertType(findNode.simpleParameter('h)').declaredElement!.type,
         _isEnabled ? 'int Function()' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement2!.type,
+    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
         _isEnabled ? 'List<int>' : 'List<dynamic>');
   }
 
@@ -153,7 +153,7 @@ test() {
             : 'List<Object?> Function(List<Object?> Function(int), int Function())');
     assertType(findNode.simpleParameter('x)').declaredElement!.type,
         _isEnabled ? 'int' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement2!.type,
+    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
         _isEnabled ? 'List<int>' : 'List<Object?>');
   }
 
@@ -176,7 +176,7 @@ test() {
             : 'List<Object?> Function(int Function(), List<Object?> Function(int))');
     assertType(findNode.simpleParameter('x)').declaredElement!.type,
         _isEnabled ? 'int' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement2!.type,
+    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
         _isEnabled ? 'List<int>' : 'List<Object?>');
   }
 
@@ -199,7 +199,7 @@ test() {
             : 'List<Object?> Function(int, List<Object?> Function(int))');
     assertType(findNode.simpleParameter('x)').declaredElement!.type,
         _isEnabled ? 'int' : 'Object?');
-    assertType(findNode.variableDeclaration('a =').declaredElement2!.type,
+    assertType(findNode.variableDeclaration('a =').declaredElement!.type,
         _isEnabled ? 'List<int>' : 'List<Object?>');
   }
 

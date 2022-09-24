@@ -973,17 +973,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     if (parent is ClassDeclaration) {
-      forClassElement(parent.declaredElement2!);
+      forClassElement(parent.declaredElement!);
       return true;
     }
 
     if (parent is ExtensionDeclaration) {
-      enclosingExtension = parent.declaredElement2!;
+      enclosingExtension = parent.declaredElement!;
       return true;
     }
 
     if (parent is MixinDeclaration) {
-      forClassElement(parent.declaredElement2!);
+      forClassElement(parent.declaredElement!);
       return true;
     }
 
@@ -1429,7 +1429,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     //
     var outerType = enclosingClass;
     try {
-      enclosingClass = node.declaredElement2;
+      enclosingClass = node.declaredElement;
       checkUnreachableNode(node);
       node.visitChildren(this);
       elementResolver.visitClassDeclaration(node);
@@ -1527,11 +1527,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.executableDeclaration_enter(node, node.parameters,
         isClosure: false);
 
-    var returnType = node.declaredElement2!.type.returnType;
+    var returnType = node.declaredElement!.type.returnType;
 
     var outerFunction = _enclosingFunction;
     try {
-      _enclosingFunction = node.declaredElement2;
+      _enclosingFunction = node.declaredElement;
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -1690,7 +1690,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.metadata.accept(this);
     checkUnreachableNode(node);
 
-    var element = node.declaredElement2 as ConstFieldElementImpl;
+    var element = node.declaredElement as ConstFieldElementImpl;
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpression) {
       var constructorName = initializer.constructorName;
@@ -1770,7 +1770,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     //
     var outerType = enclosingClass;
     try {
-      enclosingClass = node.declaredElement2;
+      enclosingClass = node.declaredElement;
       checkUnreachableNode(node);
       node.visitChildren(this);
       elementResolver.visitEnumDeclaration(node);
@@ -1830,7 +1830,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var outerExtension = enclosingExtension;
     try {
-      enclosingExtension = node.declaredElement2!;
+      enclosingExtension = node.declaredElement!;
       checkUnreachableNode(node);
       node.visitChildren(this);
       elementResolver.visitExtensionDeclaration(node);
@@ -1924,11 +1924,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       isClosure: isLocal,
     );
 
-    var functionType = node.declaredElement2!.type;
+    var functionType = node.declaredElement!.type;
 
     var outerFunction = _enclosingFunction;
     try {
-      _enclosingFunction = node.declaredElement2;
+      _enclosingFunction = node.declaredElement;
       checkUnreachableNode(node);
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
@@ -2235,11 +2235,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.executableDeclaration_enter(node, node.parameters,
         isClosure: false);
 
-    DartType returnType = node.declaredElement2!.returnType;
+    DartType returnType = node.declaredElement!.returnType;
 
     var outerFunction = _enclosingFunction;
     try {
-      _enclosingFunction = node.declaredElement2;
+      _enclosingFunction = node.declaredElement;
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
@@ -2315,7 +2315,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     //
     var outerType = enclosingClass;
     try {
-      enclosingClass = node.declaredElement2!;
+      enclosingClass = node.declaredElement!;
       checkUnreachableNode(node);
       node.visitChildren(this);
       elementResolver.visitMixinDeclaration(node);
@@ -2792,7 +2792,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitVariableDeclaration(VariableDeclaration node) {
     _variableDeclarationResolver.resolve(node as VariableDeclarationImpl);
 
-    var declaredElement = node.declaredElement2!;
+    var declaredElement = node.declaredElement!;
 
     var initializer = node.initializer;
     var parent = node.parent as VariableDeclarationList;
@@ -2856,7 +2856,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void _checkTopLevelCycle(VariableDeclaration node) {
-    var element = node.declaredElement2;
+    var element = node.declaredElement;
     if (element is! PropertyInducingElementImpl) {
       return;
     }
@@ -3326,7 +3326,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     Scope outerScope = nameScope;
     try {
-      ClassElement element = node.declaredElement2!;
+      ClassElement element = node.declaredElement!;
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(
@@ -3361,7 +3361,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
-      ClassElement element = node.declaredElement2!;
+      ClassElement element = node.declaredElement!;
       nameScope = InterfaceScope(
         TypeParameterScope(nameScope, element.typeParameters),
         element,
@@ -3394,7 +3394,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
     Scope outerScope = nameScope;
     try {
-      ConstructorElement element = node.declaredElement2!;
+      ConstructorElement element = node.declaredElement!;
 
       node.metadata.accept(this);
       node.returnType.accept(this);
@@ -3434,7 +3434,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    _define(node.declaredElement2!);
+    _define(node.declaredElement!);
     super.visitDeclaredIdentifier(node);
   }
 
@@ -3458,7 +3458,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitEnumDeclaration(EnumDeclaration node) {
     Scope outerScope = nameScope;
     try {
-      final element = node.declaredElement2!;
+      final element = node.declaredElement!;
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(
@@ -3497,7 +3497,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     Scope outerScope = nameScope;
     try {
-      ExtensionElement element = node.declaredElement2!;
+      ExtensionElement element = node.declaredElement!;
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(
@@ -3570,7 +3570,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         parent.declaredElement!.parameters,
       );
     } else if (parent is FunctionTypeAlias) {
-      var aliasedElement = parent.declaredElement2!.aliasedElement;
+      var aliasedElement = parent.declaredElement!.aliasedElement;
       var functionElement = aliasedElement as GenericFunctionTypeElement;
       nameScope = FormalParameterScope(
         nameScope,
@@ -3579,7 +3579,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     } else if (parent is MethodDeclaration) {
       nameScope = FormalParameterScope(
         nameScope,
-        parent.declaredElement2!.parameters,
+        parent.declaredElement!.parameters,
       );
     }
   }
@@ -3617,10 +3617,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       _enclosingClosure = node.parent is FunctionDeclarationStatement
-          ? node.declaredElement2
+          ? node.declaredElement
           : null;
       node.metadata.accept(this);
-      var element = node.declaredElement2!;
+      var element = node.declaredElement!;
       nameScope = TypeParameterScope(
         nameScope,
         element.typeParameters,
@@ -3674,7 +3674,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
-      var element = node.declaredElement2!;
+      var element = node.declaredElement!;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       visitFunctionTypeAliasInScope(node);
     } finally {
@@ -3748,7 +3748,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
-      var element = node.declaredElement2 as TypeAliasElement;
+      var element = node.declaredElement as TypeAliasElement;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       _setNodeNameScope(node, nameScope);
       visitGenericTypeAliasInScope(node);
@@ -3796,7 +3796,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
-      ExecutableElement element = node.declaredElement2!;
+      ExecutableElement element = node.declaredElement!;
       nameScope = TypeParameterScope(
         nameScope,
         element.typeParameters,
@@ -3838,7 +3838,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     Scope outerScope = nameScope;
     try {
-      final element = node.declaredElement2!;
+      final element = node.declaredElement!;
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
@@ -3996,7 +3996,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     super.visitVariableDeclaration(node);
 
     if (node.parent!.parent is ForParts) {
-      _define(node.declaredElement2!);
+      _define(node.declaredElement!);
     }
   }
 

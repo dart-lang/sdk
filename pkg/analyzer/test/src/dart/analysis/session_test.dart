@@ -595,14 +595,14 @@ class B2 extends X {}
     expect(aNode.name.lexeme, 'A');
     expect(aNode.offset, 16);
     expect(aNode.length, 16);
-    expect(aNode.declaredElement2!.name, 'A');
+    expect(aNode.declaredElement!.name, 'A');
 
     var bDeclaration = resolvedLibrary.getElementDeclaration(bClass)!;
     var bNode = bDeclaration.node as ClassDeclaration;
     expect(bNode.name.lexeme, 'B');
     expect(bNode.offset, 19);
     expect(bNode.length, 16);
-    expect(bNode.declaredElement2!.name, 'B');
+    expect(bNode.declaredElement!.name, 'B');
   }
 
   test_getResolvedLibrary_getElementDeclaration_notThisLibrary() async {
@@ -635,7 +635,7 @@ int foo = 0;
     expect(fooNode.name.lexeme, 'foo');
     expect(fooNode.offset, 4);
     expect(fooNode.length, 7);
-    expect(fooNode.declaredElement2!.name, 'foo');
+    expect(fooNode.declaredElement!.name, 'foo');
 
     // Synthetic elements don't have nodes.
     expect(resolvedLibrary.getElementDeclaration(fooElement.getter!), isNull);

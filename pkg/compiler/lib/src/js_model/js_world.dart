@@ -83,6 +83,7 @@ class JsClosedWorld implements JClosedWorld {
   @override
   final ClassHierarchy classHierarchy;
 
+  @override
   final JsKernelToElementMap elementMap;
   @override
   final RuntimeTypesNeed rtiNeed;

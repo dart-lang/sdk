@@ -206,7 +206,7 @@ void test(List<A> listA, List<B> listB) {
         String vSearch, String vType, String fSearch, String fType) {
       var node = findNode.declaredIdentifier(vSearch);
 
-      var element = node.declaredElement2 as LocalVariableElement;
+      var element = node.declaredElement as LocalVariableElement;
       assertType(element.type, vType);
 
       var invocation = findNode.methodInvocation(fSearch);
@@ -266,11 +266,11 @@ var y = {};
 ''';
     await resolveTestCode(code);
     var xNode = findNode.variableDeclaration('x = ');
-    var xElement = xNode.declaredElement2!;
+    var xElement = xNode.declaredElement!;
     assertType(xElement.type, 'List<dynamic>');
 
     var yNode = findNode.variableDeclaration('y = ');
-    var yElement = yNode.declaredElement2!;
+    var yElement = yNode.declaredElement!;
     assertType(yElement.type, 'Map<dynamic, dynamic>');
   }
 
@@ -281,11 +281,11 @@ var y = {null: null};
 ''';
     await resolveTestCode(code);
     var xNode = findNode.variableDeclaration('x = ');
-    var xElement = xNode.declaredElement2!;
+    var xElement = xNode.declaredElement!;
     assertType(xElement.type, 'List<Null>');
 
     var yNode = findNode.variableDeclaration('y = ');
-    var yElement = yNode.declaredElement2!;
+    var yElement = yNode.declaredElement!;
     assertType(yElement.type, 'Map<Null, Null>');
   }
 
@@ -320,11 +320,11 @@ main() {
 ''';
     await resolveTestCode(code);
     var xNode = findNode.variableDeclaration('x = ');
-    var xElement = xNode.declaredElement2!;
+    var xElement = xNode.declaredElement!;
     expect(xElement.type, VoidTypeImpl.instance);
 
     var yNode = findNode.variableDeclaration('y = ');
-    var yElement = yNode.declaredElement2!;
+    var yElement = yNode.declaredElement!;
     expect(yElement.type, VoidTypeImpl.instance);
   }
 
@@ -338,11 +338,11 @@ main() {
 ''';
     await resolveTestCode(code);
     var xNode = findNode.variableDeclaration('x = ');
-    var xElement = xNode.declaredElement2!;
+    var xElement = xNode.declaredElement!;
     expect(xElement.type, VoidTypeImpl.instance);
 
     var yNode = findNode.variableDeclaration('y = ');
-    var yElement = yNode.declaredElement2!;
+    var yElement = yNode.declaredElement!;
     expect(yElement.type, VoidTypeImpl.instance);
   }
 

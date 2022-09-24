@@ -818,7 +818,7 @@ class CommonMasks implements AbstractValueDomain {
   Map<TypeMask, AbstractBool> _isInterceptorCacheSecondChance = {};
 
   @override
-  bool isMap(TypeMask value) => value is ValueTypeMask;
+  bool isMap(TypeMask value) => value is MapTypeMask;
 
   @override
   bool isSet(TypeMask value) => value is SetTypeMask;
@@ -898,7 +898,7 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  AbstractValue? getGeneralization(AbstractValue value) {
+  AbstractValue? getGeneralization(AbstractValue? value) {
     return value is AllocationTypeMask ? value.forwardTo : null;
   }
 

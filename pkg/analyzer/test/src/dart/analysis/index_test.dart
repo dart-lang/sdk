@@ -362,11 +362,11 @@ main() {
 ''');
 
     var intMethod = findNode.methodDeclaration('foo() {} // int');
-    assertThat(intMethod.declaredElement2!)
+    assertThat(intMethod.declaredElement!)
         .isInvokedAt('foo(); // int ref', true);
 
     var doubleMethod = findNode.methodDeclaration('foo() {} // double');
-    assertThat(doubleMethod.declaredElement2!)
+    assertThat(doubleMethod.declaredElement!)
         .isInvokedAt('foo(); // double ref', true);
   }
 
@@ -1559,16 +1559,16 @@ main() {
 
     var intGetter = findNode.methodDeclaration('0; // int getter');
     var intSetter = findNode.methodDeclaration('{} // int setter');
-    assertThat(intGetter.declaredElement2!)
+    assertThat(intGetter.declaredElement!)
         .isReferencedAt('foo; // int getter ref', true);
-    assertThat(intSetter.declaredElement2!)
+    assertThat(intSetter.declaredElement!)
         .isReferencedAt('foo = 0; // int setter ref', true);
 
     var doubleGetter = findNode.methodDeclaration('0; // double getter');
     var doubleSetter = findNode.methodDeclaration('{} // double setter');
-    assertThat(doubleGetter.declaredElement2!)
+    assertThat(doubleGetter.declaredElement!)
         .isReferencedAt('foo; // double getter ref', true);
-    assertThat(doubleSetter.declaredElement2!)
+    assertThat(doubleSetter.declaredElement!)
         .isReferencedAt('foo = 0; // double setter ref', true);
   }
 

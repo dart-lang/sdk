@@ -368,13 +368,13 @@ class FeatureComputer {
             : (node as ForElement).forLoopParts;
         if (loopParts is ForPartsWithDeclarations) {
           for (var declaredVariable in loopParts.variables.variables.reversed) {
-            if (declaredVariable.declaredElement2 == variable) {
+            if (declaredVariable.declaredElement == variable) {
               return distance;
             }
             distance++;
           }
         } else if (loopParts is ForEachPartsWithDeclaration) {
-          if (loopParts.loopVariable.declaredElement2 == variable) {
+          if (loopParts.loopVariable.declaredElement == variable) {
             return distance;
           }
           distance++;
@@ -386,7 +386,7 @@ class FeatureComputer {
           var index = variables.indexOf(node);
           for (var i = index - 1; i >= 0; i--) {
             var declaredVariable = variables[i];
-            if (declaredVariable.declaredElement2 == variable) {
+            if (declaredVariable.declaredElement == variable) {
               return distance;
             }
             distance++;
@@ -414,7 +414,7 @@ class FeatureComputer {
           if (statement is VariableDeclarationStatement) {
             for (var declaredVariable
                 in statement.variables.variables.reversed) {
-              if (declaredVariable.declaredElement2 == variable) {
+              if (declaredVariable.declaredElement == variable) {
                 return distance;
               }
               distance++;

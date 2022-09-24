@@ -420,7 +420,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitClassDeclaration(ClassDeclaration node) {
     var outerClass = _enclosingClass;
     try {
-      var element = node.declaredElement2 as ClassElementImpl;
+      var element = node.declaredElement as ClassElementImpl;
       _isInNativeClass = node.nativeClause != null;
       _enclosingClass = element;
 
@@ -447,7 +447,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _checkForMainFunction1(node.name, node.declaredElement2!);
+      _checkForMainFunction1(node.name, node.declaredElement!);
       _reportMacroApplicationErrors(
         annotations: node.metadata,
         macroErrors: element.macroApplicationErrors,
@@ -472,10 +472,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     var outerClassElement = _enclosingClass;
     try {
-      _enclosingClass = node.declaredElement2 as ClassElementImpl;
+      _enclosingClass = node.declaredElement as ClassElementImpl;
       _checkClassInheritance(
           node, node.superclass, node.withClause, node.implementsClause);
-      _checkForMainFunction1(node.name, node.declaredElement2!);
+      _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
       _enclosingClass = outerClassElement;
@@ -512,7 +512,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     _withEnclosingExecutable(element, () {
       _checkForNonConstGenerativeEnumConstructor(node);
       _checkForInvalidModifierOnBody(
@@ -595,7 +595,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitEnumDeclaration(EnumDeclaration node) {
     var outerClass = _enclosingClass;
     try {
-      var element = node.declaredElement2 as EnumElementImpl;
+      var element = node.declaredElement as EnumElementImpl;
       _enclosingClass = element;
       _duplicateDefinitionVerifier.checkEnum(node);
 
@@ -612,7 +612,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _constructorFieldsVerifier.enterEnum(node, element);
       _checkForFinalNotInitializedInClass(node.members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _checkForMainFunction1(node.name, node.declaredElement2!);
+      _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, element);
 
       GetterSetterTypesVerifier(
@@ -652,7 +652,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    var element = node.declaredElement2!;
+    var element = node.declaredElement!;
     _enclosingExtension = element;
     _duplicateDefinitionVerifier.checkExtension(node);
     _checkForConflictingExtensionTypeVariableErrorCodes();
@@ -718,7 +718,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
-    if (_checkForEachParts(node, loopVariable.declaredElement2)) {
+    if (_checkForEachParts(node, loopVariable.declaredElement)) {
       if (loopVariable.isConst) {
         errorReporter.reportErrorForToken(
             CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE,
@@ -753,7 +753,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement functionElement = node.declaredElement2!;
+    ExecutableElement functionElement = node.declaredElement!;
     if (functionElement.enclosingElement3 is! CompilationUnitElement) {
       _hiddenElements!.declare(functionElement);
     }
@@ -768,8 +768,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForImplicitDynamicReturn(node.name, node.declaredElement2!);
-      _checkForMainFunction1(node.name, node.declaredElement2!);
+      _checkForImplicitDynamicReturn(node.name, node.declaredElement!);
+      _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMainFunction2(node);
       super.visitFunctionDeclaration(node);
     });
@@ -816,9 +816,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    _checkForMainFunction1(node.name, node.declaredElement2!);
+    _checkForMainFunction1(node.name, node.declaredElement!);
     _checkForTypeAliasCannotReferenceItself(
-        node.name, node.declaredElement2 as TypeAliasElementImpl);
+        node.name, node.declaredElement as TypeAliasElementImpl);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -853,9 +853,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    _checkForMainFunction1(node.name, node.declaredElement2!);
+    _checkForMainFunction1(node.name, node.declaredElement!);
     _checkForTypeAliasCannotReferenceItself(
-        node.name, node.declaredElement2 as TypeAliasElementImpl);
+        node.name, node.declaredElement as TypeAliasElementImpl);
     super.visitGenericTypeAlias(node);
   }
 
@@ -946,7 +946,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    _withEnclosingExecutable(node.declaredElement2!, () {
+    _withEnclosingExecutable(node.declaredElement!, () {
       var returnType = node.returnType;
       if (node.isSetter) {
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
@@ -964,7 +964,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionDeclaresMemberOfObject(node);
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
-      _checkForImplicitDynamicReturn(node.name, node.declaredElement2!);
+      _checkForImplicitDynamicReturn(node.name, node.declaredElement!);
       _checkForWrongTypeParameterVarianceInMethod(node);
       super.visitMethodDeclaration(node);
     });
@@ -994,7 +994,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(scheglov) Verify for all mixin errors.
     var outerClass = _enclosingClass;
     try {
-      _enclosingClass = node.declaredElement2!;
+      _enclosingClass = node.declaredElement!;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkMixin(node);
@@ -1012,7 +1012,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _checkForConflictingClassMembers();
       _checkForFinalNotInitializedInClass(members);
-      _checkForMainFunction1(node.name, node.declaredElement2!);
+      _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
@@ -1273,7 +1273,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkForNotInitializedNonNullableVariable(node.variables, true);
 
     for (var variable in node.variables.variables) {
-      _checkForMainFunction1(variable.name, variable.declaredElement2!);
+      _checkForMainFunction1(variable.name, variable.declaredElement!);
     }
 
     super.visitTopLevelVariableDeclaration(node);
@@ -1312,7 +1312,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var initializerNode = node.initializer;
     // do checks
     _checkForImplicitDynamicIdentifier(node, nameToken,
-        variable: node.declaredElement2!);
+        variable: node.declaredElement!);
     _checkForAbstractOrExternalVariableInitializer(node);
     // visit initializer
     String name = nameToken.lexeme;
@@ -1328,7 +1328,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     AstNode grandparent = node.parent!.parent!;
     if (grandparent is! TopLevelVariableDeclaration &&
         grandparent is! FieldDeclaration) {
-      VariableElement element = node.declaredElement2!;
+      VariableElement element = node.declaredElement!;
       // There is no hidden elements if we are outside of a function body,
       // which will happen for variables declared in control flow elements.
       _hiddenElements?.declare(element);
@@ -1418,7 +1418,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForAbstractOrExternalVariableInitializer(
       VariableDeclaration node) {
-    var declaredElement = node.declaredElement2;
+    var declaredElement = node.declaredElement;
     if (node.initializer != null) {
       if (declaredElement is FieldElement) {
         if (declaredElement.isAbstract) {
@@ -1520,7 +1520,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DartType redirectedReturnType = redirectedType.returnType;
 
     // Report specific problem when return type is incompatible
-    FunctionType constructorType = declaration.declaredElement2!.type;
+    FunctionType constructorType = declaration.declaredElement!.type;
     DartType constructorReturnType = constructorType.returnType;
     if (!typeSystem.isAssignableTo(
         redirectedReturnType, constructorReturnType)) {
@@ -1925,7 +1925,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
-    var element = node.declaredElement2 as InterfaceElement;
+    var element = node.declaredElement as InterfaceElement;
 
     var analysisSession = _currentLibrary.session;
     var errors = analysisSession.classHierarchy.errors(element);
@@ -1992,7 +1992,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // [declaration] is a redirecting constructor via a redirecting
         // initializer.
         _checkForRedirectToNonConstConstructor(
-          declaration.declaredElement2!,
+          declaration.declaredElement!,
           initializer.staticElement,
           initializer.constructorName ?? initializer.thisKeyword,
         );
@@ -2720,7 +2720,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               variable.name,
               [variable.name.lexeme]);
         } else {
-          var variableElement = variable.declaredElement2;
+          var variableElement = variable.declaredElement;
           if (variableElement is FieldElement &&
               (variableElement.isAbstract || variableElement.isExternal)) {
             // Abstract and external fields can't be initialized, so no error.
@@ -3804,7 +3804,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_isEnclosingClassFfiUnion) return;
 
     for (var field in fields.variables) {
-      var fieldElement = field.declaredElement2 as FieldElement;
+      var fieldElement = field.declaredElement as FieldElement;
       if (fieldElement.isAbstract || fieldElement.isExternal) continue;
       if (field.initializer != null) continue;
 
@@ -4058,7 +4058,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var redirectedElement = redirectedConstructor.staticElement;
     _checkForRedirectToNonConstConstructor(
-      declaration.declaredElement2!,
+      declaration.declaredElement!,
       redirectedElement,
       redirectedConstructor,
     );
@@ -4298,7 +4298,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (elementToNode == null) {
           elementToNode = {};
           for (var parameter in parameters) {
-            elementToNode[parameter.declaredElement2!] = parameter;
+            elementToNode[parameter.declaredElement!] = parameter;
           }
         }
 
@@ -4311,7 +4311,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             current = null;
           }
           if (step == parameters.length) {
-            var element = parameter.declaredElement2!;
+            var element = parameter.declaredElement!;
             // This error can only occur if there is a bound, so we can saefly
             // assume `element.bound` is non-`null`.
             errorReporter.reportErrorForToken(
@@ -4745,7 +4745,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // variance is added to the interface.
         if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
           var fields = node.fields;
-          var fieldElement = fields.variables.first.declaredElement2!;
+          var fieldElement = fields.variables.first.declaredElement!;
           var fieldName = fields.variables.first.name;
           Variance fieldVariance = Variance(typeParameter, fieldElement.type);
 
@@ -5264,7 +5264,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (fieldDeclaration is FieldDeclaration) {
         for (VariableDeclaration field in fieldDeclaration.fields.variables) {
           if (field.initializer == null) {
-            fields.add(field.declaredElement2 as FieldElement);
+            fields.add(field.declaredElement as FieldElement);
           }
         }
       }

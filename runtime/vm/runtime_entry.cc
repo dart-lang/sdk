@@ -4,6 +4,7 @@
 
 #include "vm/runtime_entry.h"
 
+#include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
@@ -3901,6 +3902,15 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_AllocateHandle));
 
+#if defined(USING_MEMORY_SANITIZER)
+#define MSAN_UNPOISON_RANGE reinterpret_cast<RuntimeFunction>(&__msan_unpoison)
+#define MSAN_UNPOISON_PARAM                                                    \
+  reinterpret_cast<RuntimeFunction>(&__msan_unpoison_param)
+#else
+#define MSAN_UNPOISON_RANGE nullptr
+#define MSAN_UNPOISON_PARAM nullptr
+#endif
+
 #if defined(USING_THREAD_SANITIZER)
 #define TSAN_ACQUIRE reinterpret_cast<RuntimeFunction>(&__tsan_acquire)
 #define TSAN_RELEASE reinterpret_cast<RuntimeFunction>(&__tsan_release)
@@ -3908,6 +3918,19 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
 #define TSAN_ACQUIRE nullptr
 #define TSAN_RELEASE nullptr
 #endif
+
+// These runtime entries are defined even when not using MSAN / TSAN to keep
+// offsets on Thread consistent.
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(MsanUnpoison,
+                              /*argument_count=*/2,
+                              /*is_float=*/false,
+                              MSAN_UNPOISON_RANGE);
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(MsanUnpoisonParam,
+                              /*argument_count=*/1,
+                              /*is_float=*/false,
+                              MSAN_UNPOISON_PARAM);
 
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanLoadAcquire,
                               /*argument_count=*/1,

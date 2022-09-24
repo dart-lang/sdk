@@ -1334,7 +1334,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (final variable in node.variables.variables) {
-      final element = variable.declaredElement2 as LocalVariableElement;
+      final element = variable.declaredElement as LocalVariableElement;
       computer._addRegion_token(
         variable.name,
         element.type is DynamicType

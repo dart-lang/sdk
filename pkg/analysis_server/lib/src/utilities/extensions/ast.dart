@@ -24,7 +24,7 @@ extension AstNodeExtensions on AstNode {
   ExtensionElement? get enclosingExtensionElement {
     for (final node in withParents) {
       if (node is ExtensionDeclaration) {
-        return node.declaredElement2;
+        return node.declaredElement;
       }
     }
     return null;
@@ -46,9 +46,9 @@ extension AstNodeExtensions on AstNode {
   InterfaceElement? get enclosingInterfaceElement {
     for (final node in withParents) {
       if (node is ClassDeclaration) {
-        return node.declaredElement2;
+        return node.declaredElement;
       } else if (node is MixinDeclaration) {
-        return node.declaredElement2;
+        return node.declaredElement;
       }
     }
     return null;

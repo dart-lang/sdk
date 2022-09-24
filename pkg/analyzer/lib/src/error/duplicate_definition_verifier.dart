@@ -45,12 +45,12 @@ class DuplicateDefinitionVerifier {
   }
 
   void checkClass(ClassDeclaration node) {
-    _checkClassMembers(node.declaredElement2!, node.members);
+    _checkClassMembers(node.declaredElement!, node.members);
   }
 
   /// Check that there are no members with the same name.
   void checkEnum(EnumDeclaration node) {
-    var enumElement = node.declaredElement2!;
+    var enumElement = node.declaredElement!;
     var enumName = enumElement.name;
 
     var constructorNames = <String>{};
@@ -61,14 +61,14 @@ class DuplicateDefinitionVerifier {
 
     for (EnumConstantDeclaration constant in node.constants) {
       _checkDuplicateIdentifier(staticGetters, constant.name,
-          element: constant.declaredElement2!);
+          element: constant.declaredElement!);
       _checkValuesDeclarationInEnum(constant.name);
     }
 
     for (var member in node.members) {
       if (member is ConstructorDeclaration) {
         if (member.returnType.name == enumElement.name) {
-          var name = member.declaredElement2!.name;
+          var name = member.declaredElement!.name;
           if (!constructorNames.add(name)) {
             if (name.isEmpty) {
               _errorReporter.reportErrorForName(
@@ -90,7 +90,7 @@ class DuplicateDefinitionVerifier {
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
             identifier,
-            element: field.declaredElement2!,
+            element: field.declaredElement!,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
           _checkValuesDeclarationInEnum(identifier);
@@ -99,7 +99,7 @@ class DuplicateDefinitionVerifier {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
           member.name,
-          element: member.declaredElement2!,
+          element: member.declaredElement!,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
         if (!(member.isStatic && member.isSetter)) {
@@ -199,7 +199,7 @@ class DuplicateDefinitionVerifier {
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
             identifier,
-            element: field.declaredElement2!,
+            element: field.declaredElement!,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
         }
@@ -207,7 +207,7 @@ class DuplicateDefinitionVerifier {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
           member.name,
-          element: member.declaredElement2!,
+          element: member.declaredElement!,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
       }
@@ -253,12 +253,12 @@ class DuplicateDefinitionVerifier {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (VariableDeclaration variable in node.variables) {
       _checkDuplicateIdentifier(definedNames, variable.name,
-          element: variable.declaredElement2!);
+          element: variable.declaredElement!);
     }
   }
 
   void checkMixin(MixinDeclaration node) {
-    _checkClassMembers(node.declaredElement2!, node.members);
+    _checkClassMembers(node.declaredElement!, node.members);
   }
 
   /// Check that all of the parameters have unique names.
@@ -282,13 +282,13 @@ class DuplicateDefinitionVerifier {
       if (statement is VariableDeclarationStatement) {
         for (VariableDeclaration variable in statement.variables.variables) {
           _checkDuplicateIdentifier(definedNames, variable.name,
-              element: variable.declaredElement2!);
+              element: variable.declaredElement!);
         }
       } else if (statement is FunctionDeclarationStatement) {
         _checkDuplicateIdentifier(
           definedNames,
           statement.functionDeclaration.name,
-          element: statement.functionDeclaration.declaredElement2!,
+          element: statement.functionDeclaration.declaredElement!,
         );
       }
     }
@@ -299,7 +299,7 @@ class DuplicateDefinitionVerifier {
     Map<String, Element> definedNames = HashMap<String, Element>();
     for (TypeParameter parameter in node.typeParameters) {
       _checkDuplicateIdentifier(definedNames, parameter.name,
-          element: parameter.declaredElement2!);
+          element: parameter.declaredElement!);
     }
   }
 
@@ -357,15 +357,15 @@ class DuplicateDefinitionVerifier {
         var identifier = member.name;
         if (identifier != null) {
           _checkDuplicateIdentifier(definedGetters, identifier,
-              element: member.declaredElement2!, setterScope: definedSetters);
+              element: member.declaredElement!, setterScope: definedSetters);
         }
       } else if (member is NamedCompilationUnitMember) {
         _checkDuplicateIdentifier(definedGetters, member.name,
-            element: member.declaredElement2!, setterScope: definedSetters);
+            element: member.declaredElement!, setterScope: definedSetters);
       } else if (member is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in member.variables.variables) {
           _checkDuplicateIdentifier(definedGetters, variable.name,
-              element: variable.declaredElement2!, setterScope: definedSetters);
+              element: variable.declaredElement!, setterScope: definedSetters);
         }
       }
     }
@@ -404,7 +404,7 @@ class DuplicateDefinitionVerifier {
           _checkDuplicateIdentifier(
             member.isStatic ? staticGetters : instanceGetters,
             field.name,
-            element: field.declaredElement2!,
+            element: field.declaredElement!,
             setterScope: member.isStatic ? staticSetters : instanceSetters,
           );
         }
@@ -412,7 +412,7 @@ class DuplicateDefinitionVerifier {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
           member.name,
-          element: member.declaredElement2!,
+          element: member.declaredElement!,
           setterScope: member.isStatic ? staticSetters : instanceSetters,
         );
       }

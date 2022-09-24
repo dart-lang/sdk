@@ -1164,7 +1164,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       bool explicitTypeNeeded = false;
       for (var variableDeclaration in node.variables) {
         var neededType = _fixBuilder
-            ._computeMigratedType(variableDeclaration.declaredElement2!);
+            ._computeMigratedType(variableDeclaration.declaredElement!);
         neededTypes.add(neededType);
         var inferredType = variableDeclaration.initializer?.staticType ??
             _fixBuilder.typeProvider.dynamicType;
@@ -1202,7 +1202,7 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
     // Check if the nullability node for a single variable declaration has been
     // declared to be late.
     if (node.variables.length == 1) {
-      var variableElement = node.variables.single.declaredElement2!;
+      var variableElement = node.variables.single.declaredElement!;
       var lateCondition = _fixBuilder._variables!
           .decoratedElementType(variableElement)
           .node!

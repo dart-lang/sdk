@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
@@ -11,7 +9,7 @@ import '../elements/entities.dart';
 import '../util/util.dart' show Setlet;
 import '../inferrer/abstract_value_domain.dart';
 import 'debug.dart' as debug;
-import 'engine.dart';
+import 'engine_interfaces.dart';
 import 'type_graph_nodes.dart';
 
 // A set of selectors we know do not escape the elements inside the
@@ -104,6 +102,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   static const int MAX_ANALYSIS_COUNT =
       int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
+  // TODO(natebiggs): We allow null here to maintain current functionality
+  // but we should verify we actually need to allow it.
   final Setlet<MemberEntity> analyzedElements = Setlet<MemberEntity>();
 
   TracerVisitor(this.tracedType, this.inferrer);
@@ -130,7 +130,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   final Setlet<TypeInformation> flowsInto = Setlet<TypeInformation>();
 
   // The current [TypeInformation] in the analysis.
-  TypeInformation currentUser;
+  TypeInformation? currentUser;
   bool continueAnalyzing = true;
 
   void addNewEscapeInformation(TypeInformation info) {
@@ -157,13 +157,13 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     // as well as the operations done on all these [TypeInformation]s.
     addNewEscapeInformation(tracedType);
     while (!workList.isEmpty) {
-      currentUser = workList.removeLast();
-      if (_wouldBeTooManyUsers(currentUser.users)) {
+      final user = currentUser = workList.removeLast();
+      if (_wouldBeTooManyUsers(user.users)) {
         bailout('Too many users');
         break;
       }
-      for (TypeInformation info in currentUser.users) {
-        analyzedElements.add(info.owner);
+      for (final info in user.users) {
+        analyzedElements.add(info.owner!);
         info.accept(this);
       }
       while (!listsToAnalyze.isEmpty) {
@@ -283,8 +283,8 @@ abstract class TracerVisitor implements TypeInformationVisitor {
             if (user.receiver != flow) return;
             if (inferrer.returnsListElementTypeSet.contains(user.selector)) {
               addNewEscapeInformation(user);
-            } else if (!doesNotEscapeListSet.contains(user.selector.name)) {
-              bailout('Escape from a list via [${user.selector.name}]');
+            } else if (!doesNotEscapeListSet.contains(user.selector?.name)) {
+              bailout('Escape from a list via [${user.selector?.name}]');
             }
           }
         });
@@ -301,10 +301,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         flow.users.forEach((TypeInformation user) {
           if (user is DynamicCallSiteTypeInformation) {
             if (user.receiver != flow) return;
-            if (user.selector.isIndex) {
+            final selector = user.selector!;
+            if (selector.isIndex) {
               addNewEscapeInformation(user);
-            } else if (!doesNotEscapeSetSet.contains(user.selector.name)) {
-              bailout('Escape from a set via [${user.selector.name}]');
+            } else if (!doesNotEscapeSetSet.contains(selector.name)) {
+              bailout('Escape from a set via [${selector.name}]');
             }
           }
         });
@@ -321,10 +322,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         flow.users.forEach((TypeInformation user) {
           if (user is DynamicCallSiteTypeInformation) {
             if (user.receiver != flow) return;
-            if (user.selector.isIndex) {
+            final selector = user.selector!;
+            if (selector.isIndex) {
               addNewEscapeInformation(user);
-            } else if (!doesNotEscapeMapSet.contains(user.selector.name)) {
-              bailout('Escape from a map via [${user.selector.name}]');
+            } else if (!doesNotEscapeMapSet.contains(selector.name)) {
+              bailout('Escape from a map via [${selector.name}]');
             }
           }
         });
@@ -336,23 +338,25 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   /// what list adding means has to stay in sync with
   /// [isParameterOfListAddingMethod].
   bool mightAddToContainer(DynamicCallSiteTypeInformation info) {
-    if (info.arguments == null) return false;
-    if (info.arguments.named.isNotEmpty) return false;
-    String selectorName = info.selector.name;
-    List<TypeInformation> arguments = info.arguments.positional;
-    if (arguments.length == 1) {
-      return (selectorName == 'add' && currentUser == arguments[0]);
+    final arguments = info.arguments;
+    if (arguments == null) return false;
+    if (arguments.named.isNotEmpty) return false;
+    String selectorName = info.selector!.name;
+    List<TypeInformation> positionalArguments = arguments.positional;
+    if (positionalArguments.length == 1) {
+      return (selectorName == 'add' && currentUser == positionalArguments[0]);
     } else if (arguments.length == 2) {
-      return (selectorName == 'insert' && currentUser == arguments[1]);
+      return (selectorName == 'insert' &&
+          currentUser == positionalArguments[1]);
     }
     return false;
   }
 
   bool isIndexSetArgument(DynamicCallSiteTypeInformation info, int index) {
-    String selectorName = info.selector.name;
+    final selectorName = info.selector!.name;
     if (selectorName != '[]=') return false;
-    assert(info.arguments.length == 2);
-    List<TypeInformation> arguments = info.arguments.positional;
+    assert(info.arguments!.length == 2);
+    List<TypeInformation> arguments = info.arguments!.positional;
     return currentUser == arguments[index];
   }
 
@@ -371,7 +375,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   void bailoutIfReaches(bool predicate(ParameterTypeInformation e)) {
-    for (var user in currentUser.users) {
+    for (var user in currentUser!.users) {
       if (user is ParameterTypeInformation) {
         if (predicate(user)) {
           bailout('Reached suppressed parameter without precise receiver');
@@ -385,11 +389,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   void visitDynamicCallSiteTypeInformation(
       DynamicCallSiteTypeInformation info) {
     void addsToContainer(AbstractValue mask) {
-      Object allocationNode =
+      final allocationNode =
           inferrer.abstractValueDomain.getAllocationNode(mask);
       if (allocationNode != null) {
-        ListTypeInformation list =
-            inferrer.types.allocatedLists[allocationNode];
+        final list = inferrer.types.allocatedLists[allocationNode]
+            as ListTypeInformation;
         listsToAnalyze.add(list);
       } else {
         // The [mask] is a union of two containers, and we lose track of where
@@ -399,10 +403,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
 
     void addsToMapValue(AbstractValue mask) {
-      Object allocationNode =
+      final allocationNode =
           inferrer.abstractValueDomain.getAllocationNode(mask);
       if (allocationNode != null) {
-        MapTypeInformation map = inferrer.types.allocatedMaps[allocationNode];
+        final map =
+            inferrer.types.allocatedMaps[allocationNode] as MapTypeInformation;
         mapsToAnalyze.add(map);
       } else {
         // The [mask] is a union. See comment for [mask] above.
@@ -461,9 +466,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       }
     }
 
+    final arguments = info.arguments;
     if (info.targetsIncludeComplexNoSuchMethod(inferrer) &&
-        info.arguments != null &&
-        info.arguments.contains(currentUser)) {
+        arguments != null &&
+        arguments.contains(currentUser)) {
       bailout('Passed to noSuchMethod');
     }
 
@@ -485,7 +491,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         inferrer.closedWorld.commonElements.jsArrayClass) {
       return false;
     }
-    String name = parameterInfo.method.name;
+    final name = parameterInfo.method.name;
     return (name == '[]=') || (name == 'add') || (name == 'insert');
   }
 
@@ -498,7 +504,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
         inferrer.closedWorld.commonElements.mapLiteralClass) {
       return false;
     }
-    String name = parameterInfo.method.name;
+    final name = parameterInfo.method.name;
     return (name == '[]=');
   }
 
@@ -513,7 +519,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (element.isInstanceMember && element.name == Identifiers.call) {
       return true;
     }
-    ClassEntity cls = element.enclosingClass;
+    final cls = element.enclosingClass;
     return cls != null && cls.isClosure;
   }
 
@@ -525,8 +531,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (isClosure(info.member)) {
       bailout('Returned from a closure');
     }
-    if (info.member.isField &&
-        !inferrer.canFieldBeUsedForGlobalOptimizations(info.member)) {
+
+    final member = info.member;
+    if (member is FieldEntity &&
+        !inferrer.canFieldBeUsedForGlobalOptimizations(member)) {
       bailout('Escape to code that has special backend treatment');
     }
     addNewEscapeInformation(info);

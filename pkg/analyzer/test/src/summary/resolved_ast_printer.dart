@@ -214,7 +214,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -225,7 +225,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -283,7 +283,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -338,7 +338,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -408,7 +408,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         _writeElement('constructorElement', node.constructorElement);
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -419,7 +419,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -463,7 +463,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -485,7 +485,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -556,8 +556,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
-        _writeType('declaredElementType', node.declaredElement2!.type);
+        _writeElement('declaredElement', node.declaredElement);
+        _writeType('declaredElementType', node.declaredElement!.type);
       }
     });
   }
@@ -612,7 +612,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -650,7 +650,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -825,8 +825,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
-        _writeType('declaredElementType', node.declaredElement2!.type);
+        _writeElement('declaredElement', node.declaredElement);
+        _writeType('declaredElementType', node.declaredElement!.type);
       }
     });
   }
@@ -849,7 +849,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -1202,7 +1202,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -1239,7 +1239,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -1258,7 +1258,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement2);
+        _writeElement('declaredElement', node.declaredElement);
       }
     });
   }
@@ -1746,7 +1746,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   ) {
     final parametersParent = node.parentFormalParameterList.parent;
     if (parametersParent is ConstructorDeclaration) {
-      final declaredElement = parametersParent.declaredElement2!;
+      final declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;
     } else if (parametersParent is FormalParameter) {
       final declaredElement = parametersParent.declaredElement!;
@@ -1758,7 +1758,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       final declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;
     } else if (parametersParent is MethodDeclaration) {
-      final declaredElement = parametersParent.declaredElement2!;
+      final declaredElement = parametersParent.declaredElement!;
       return declaredElement.parameters;
     }
     throw UnimplementedError(
