@@ -216,6 +216,7 @@ client's
 clil
 clock
 cls
+cm
 cn
 cnt
 co
@@ -390,6 +391,7 @@ dispatched
 distribute
 diverged
 divided
+dm
 doc
 docs
 doesn\'t
@@ -880,6 +882,7 @@ nil
 nine
 nj
 nk
+nm
 nnbd
 node's
 nomenclature

@@ -17,6 +17,7 @@ import '../base_debug_adapter.dart';
 import '../exceptions.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
+import '../progress_reporter.dart';
 import '../protocol_common.dart';
 import '../protocol_converter.dart';
 import '../protocol_generated.dart';
@@ -112,6 +113,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
+    bool? sendCustomProgressEvents,
   }) : super(
           name: name,
           cwd: cwd,
@@ -124,6 +126,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
+          sendCustomProgressEvents: sendCustomProgressEvents,
         );
 
   DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
@@ -170,6 +173,11 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   /// libraries.
   final bool? debugSdkLibraries;
 
+  /// Whether to send custom progress events for long-running operations.
+  ///
+  /// If `false` or `null`, will send standard DAP progress notifications.
+  final bool? sendCustomProgressEvents;
+
   /// Whether external package libraries should be marked as debuggable.
   ///
   /// Treated as `false` if null, which means "step in" will not step into
@@ -213,6 +221,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.evaluateGettersInDebugViews,
     required this.evaluateToStringInDebugViews,
     required this.sendLogsToClient,
+    this.sendCustomProgressEvents = false,
   });
 
   DartCommonLaunchAttachRequestArguments.fromMap(Map<String, Object?> obj)
@@ -229,7 +238,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
             obj['evaluateGettersInDebugViews'] as bool?,
         evaluateToStringInDebugViews =
             obj['evaluateToStringInDebugViews'] as bool?,
-        sendLogsToClient = obj['sendLogsToClient'] as bool?;
+        sendLogsToClient = obj['sendLogsToClient'] as bool?,
+        sendCustomProgressEvents = obj['sendCustomProgressEvents'] as bool?;
 
   Map<String, Object?> toJson() => {
         if (restart != null) 'restart': restart,
@@ -246,6 +256,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         if (evaluateToStringInDebugViews != null)
           'evaluateToStringInDebugViews': evaluateToStringInDebugViews,
         if (sendLogsToClient != null) 'sendLogsToClient': sendLogsToClient,
+        if (sendCustomProgressEvents != null)
+          'sendCustomProgressEvents': sendCustomProgressEvents,
       };
 }
 
@@ -632,6 +644,26 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       }),
       eventType: 'dart.debuggerUris',
     );
+  }
+
+  /// Starts reporting progress to the client for a single operation.
+  ///
+  /// The returned [DapProgressReporter] can be used to send updated messages
+  /// and to complete progress (hiding the progress notification).
+  ///
+  /// Clients will use [title] as a prefix for all updates, appending [message]
+  /// in the form:
+  ///
+  /// title: message
+  ///
+  /// When `update` is called, the new message will replace the previous
+  /// message but the title prefix will remain.
+  DapProgressReporter startProgressNotification(
+    String id,
+    String title, {
+    String? message,
+  }) {
+    return DapProgressReporter.start(this, id, title, message: message);
   }
 
   /// Process any existing isolates that may have been created before the
@@ -2165,6 +2197,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
+    bool? sendCustomProgressEvents,
   }) : super(
           restart: restart,
           name: name,
@@ -2176,6 +2209,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
+          sendCustomProgressEvents: sendCustomProgressEvents,
         );
 
   DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)

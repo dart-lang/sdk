@@ -12,5 +12,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: RecordLiteral @ org-dartlang-testcase:///issue50004.dart:6:7 -> RecordConstant(const (1, const <int*>[42]))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///issue50004.dart:6:12 -> RecordConstant(const (1, const <int*>[42]))
 Extra constant evaluation: evaluated: 1, effectively constant: 1

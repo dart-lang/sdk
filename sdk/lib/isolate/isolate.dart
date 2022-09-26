@@ -293,9 +293,9 @@ class Isolate {
   /// The entry-point function is invoked in the new isolate with [message]
   /// as the only argument.
   ///
-  /// The function must be such that it can be called with a single argument,
-  /// that is, a function which accepts at least one positional parameter
-  /// and has at most one required positional parameter.
+  /// The [entryPoint] function must be able to be called with a single
+  /// argument,that is, a function which accepts at least one positional
+  /// parameter and has at most one required positional parameter.
   /// The function may accept any number of optional parameters,
   /// as long as it *can* be called with just a single argument.
   ///

@@ -197,6 +197,28 @@ class DapTestClient {
     return _eventController.stream.where((e) => e.event == event);
   }
 
+  /// Returns a stream for standard progress events.
+  Stream<Event> standardProgressEvents() {
+    const standardProgressEvents = {
+      'progressStart',
+      'progressUpdate',
+      'progressEnd'
+    };
+    return _eventController.stream
+        .where((e) => standardProgressEvents.contains(e.event));
+  }
+
+  /// Returns a stream for custom Dart progress events.
+  Stream<Event> customProgressEvents() {
+    const customProgressEvents = {
+      'dart.progressStart',
+      'dart.progressUpdate',
+      'dart.progressEnd'
+    };
+    return _eventController.stream
+        .where((e) => customProgressEvents.contains(e.event));
+  }
+
   /// Records a handler for when the server sends a [request] request.
   void handleRequest(
     String request,
@@ -217,12 +239,14 @@ class DapTestClient {
   Future<Response> initialize({
     String exceptionPauseMode = 'None',
     bool? supportsRunInTerminalRequest,
+    bool? supportsProgressReporting,
   }) async {
     final responses = await Future.wait([
       event('initialized'),
       sendRequest(InitializeRequestArguments(
         adapterID: 'test',
         supportsRunInTerminalRequest: supportsRunInTerminalRequest,
+        supportsProgressReporting: supportsProgressReporting,
       )),
       sendRequest(
         SetExceptionBreakpointsArguments(
@@ -248,6 +272,7 @@ class DapTestClient {
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
+    bool? sendCustomProgressEvents,
   }) {
     return sendRequest(
       DartLaunchRequestArguments(
@@ -267,6 +292,7 @@ class DapTestClient {
         // to the client-side logger, so force logging on which sends VM Service
         // traffic in a custom event.
         sendLogsToClient: sendLogsToClient ?? captureVmServiceTraffic,
+        sendCustomProgressEvents: sendCustomProgressEvents,
       ),
       // We can't automatically pick the command when using a custom type
       // (DartLaunchRequestArguments).

@@ -16,6 +16,7 @@ import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
@@ -355,6 +356,61 @@ TypeBuilder substituteRange(
     if (changed) {
       return new FunctionTypeBuilder(returnType, variables, formals,
           type.nullabilityBuilder, type.fileUri, type.charOffset);
+    }
+    return type;
+  } else if (type is RecordTypeBuilder) {
+    bool changed = false;
+
+    List<RecordTypeFieldBuilder>? positional = type.positionalFields != null
+        ? new List<RecordTypeFieldBuilder>.of(type.positionalFields!)
+        : null;
+    List<RecordTypeFieldBuilder>? named = type.namedFields != null
+        ? new List<RecordTypeFieldBuilder>.of(type.namedFields!)
+        : null;
+    if (positional != null) {
+      for (int i = 0; i < positional.length; i++) {
+        RecordTypeFieldBuilder positionalFieldBuilder = positional[i];
+        TypeBuilder positionalFieldType = substituteRange(
+            positionalFieldBuilder.type,
+            upperSubstitution,
+            lowerSubstitution,
+            unboundTypes,
+            unboundTypeVariables,
+            variance: variance);
+        if (positionalFieldType != positionalFieldBuilder.type) {
+          positional[i] = new RecordTypeFieldBuilder(
+              positionalFieldBuilder.metadata,
+              positionalFieldType,
+              positionalFieldBuilder.name,
+              positionalFieldBuilder.charOffset);
+          changed = true;
+        }
+      }
+    }
+    if (named != null) {
+      for (int i = 0; i < named.length; i++) {
+        RecordTypeFieldBuilder namedFieldBuilder = named[i];
+        TypeBuilder namedFieldType = substituteRange(
+            namedFieldBuilder.type,
+            upperSubstitution,
+            lowerSubstitution,
+            unboundTypes,
+            unboundTypeVariables,
+            variance: variance);
+        if (namedFieldType != namedFieldBuilder.type) {
+          named[i] = new RecordTypeFieldBuilder(
+              namedFieldBuilder.metadata,
+              namedFieldType,
+              namedFieldBuilder.name,
+              namedFieldBuilder.charOffset);
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      return new RecordTypeBuilder(positional, named, type.nullabilityBuilder,
+          type.fileUri, type.charOffset);
     }
     return type;
   }

@@ -20,6 +20,6 @@ const (#C4, {c:#C5})
 }
 
 Extra constant evaluation status:
-Evaluated: RecordLiteral @ org-dartlang-testcase:///structurally_constant.dart:6:9 -> RecordConstant(const (0, 1))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///structurally_constant.dart:7:31 -> RecordConstant(const (const <String*>[], {c: "foo"}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///structurally_constant.dart:6:3 -> RecordConstant(const (0, 1))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///structurally_constant.dart:7:3 -> RecordConstant(const (const <String*>[], {c: "foo"}))
 Extra constant evaluation: evaluated: 4, effectively constant: 2

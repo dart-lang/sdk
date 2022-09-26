@@ -93,9 +93,19 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
     final debug = !(args.noDebug ?? false);
     if (debug) {
+      final progress = startProgressNotification(
+        "launch",
+        "Debugger",
+        message: "Starting…",
+      );
       vmServiceInfoFile = generateVmServiceInfoFile();
-      unawaited(waitForVmServiceInfoFile(logger, vmServiceInfoFile)
-          .then((uri) => connectDebugger(uri)));
+      unawaited(
+        waitForVmServiceInfoFile(logger, vmServiceInfoFile).then((uri) async {
+          progress.update(message: "Connecting…");
+          await connectDebugger(uri);
+          progress.end();
+        }),
+      );
     }
 
     final vmArgs = <String>[

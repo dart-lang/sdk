@@ -7367,6 +7367,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<Object> originalElementOrder = node.originalElementOrder;
     List<VariableDeclaration>? hoistedExpressions;
 
+    List<DartType>? positionalTypeContexts;
+    Map<String, DartType>? namedTypeContexts;
+    if (typeContext is RecordType &&
+        typeContext.positional.length == positional.length &&
+        typeContext.named.length == named.length) {
+      bool sameNames = true;
+      for (int i = 0; sameNames && i < named.length; i++) {
+        if (typeContext.named[i].name != named[i].name) {
+          sameNames = false;
+        }
+      }
+      if (sameNames) {
+        positionalTypeContexts = typeContext.positional;
+        namedTypeContexts = <String, DartType>{};
+        for (NamedType namedType in typeContext.named) {
+          namedTypeContexts[namedType.name] = namedType.type;
+        }
+      }
+    }
+
     List<DartType> positionalTypes;
     // ignore: UNUSED_LOCAL_VARIABLE
     List<NamedType> namedTypes;
@@ -7376,11 +7396,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       namedTypes = [];
       for (int index = 0; index < positional.length; index++) {
         Expression expression = positional[index];
-        ExpressionInferenceResult expressionResult = inferExpression(
-            expression,
-            // TODO(johnniwinther,cstefantsova): Provide the right type context.
-            const UnknownType(),
-            true);
+        ExpressionInferenceResult expressionResult = inferExpression(expression,
+            positionalTypeContexts?[index] ?? const UnknownType(), true);
         positionalTypes.add(expressionResult.inferredType);
         positional[index] = expressionResult.expression;
       }
@@ -7421,9 +7438,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (element is NamedExpression) {
           ExpressionInferenceResult expressionResult = inferExpression(
               element.value,
-              // TODO(johnniwinther,cstefantsova): Provide the right type
-              //  context.
-              const UnknownType(),
+              namedTypeContexts?[element.name] ?? const UnknownType(),
               true);
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.inferredType;
@@ -7449,9 +7464,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         } else {
           ExpressionInferenceResult expressionResult = inferExpression(
               element as Expression,
-              // TODO(johnniwinther,cstefantsova): Provide the right type
-              //  context.
-              const UnknownType(),
+              positionalTypeContexts?[positionalIndex] ?? const UnknownType(),
               true);
           Expression expression = expressionResult.expression;
           DartType type = expressionResult.inferredType;

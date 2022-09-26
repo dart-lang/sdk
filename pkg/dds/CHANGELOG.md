@@ -1,3 +1,8 @@
+# 2.4.0
+- [DAP] Added support for sending progress notifications via `DartDebugAdapter.startProgressNotification`.
+  Standard progress events are sent when a clients sets `supportsProgressReporting: true` in its capabilities,
+  unless `sendCustomProgressEvents: true` is included in launch configuration, in which case prefixed (`dart.`) custom notifications will be sent instead.
+
 # 2.3.1
 - Fixed issue where DDS wasn't correctly handling `Sentinel` responses in `IsolateManager.initialize()`.
 
