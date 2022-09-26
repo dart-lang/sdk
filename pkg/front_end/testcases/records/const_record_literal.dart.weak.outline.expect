@@ -21,12 +21,12 @@ static field dynamic h;
 
 
 Extra constant evaluation status:
-Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:5:15 -> RecordConstant(const (1, 2))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:6:15 -> RecordConstant(const ({a: 1, b: 2}))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:7:15 -> RecordConstant(const ({a: 1, b: 2}))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:8:15 -> RecordConstant(const (1, {b: 2}))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:9:15 -> RecordConstant(const ({a: const (1, 2), b: const ({a: 1, b: 2})}))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:10:15 -> RecordConstant(const ({a: const (1, 2), b: const ({a: 1, b: 2})}))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:11:15 -> RecordConstant(const (const (1, 2), {b: const (1, {b: 2})}))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:12:15 -> RecordConstant(const (const ({a: const (1, 2), b: const ({a: 1, b: 2})}), const (1, 2)))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:5:19 -> RecordConstant(const (1, 2))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:6:20 -> RecordConstant(const ({a: 1, b: 2}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:7:20 -> RecordConstant(const ({a: 1, b: 2}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:8:20 -> RecordConstant(const (1, {b: 2}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:9:20 -> RecordConstant(const ({a: const (1, 2), b: const ({a: 1, b: 2})}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:10:20 -> RecordConstant(const ({a: const (1, 2), b: const ({a: 1, b: 2})}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:11:20 -> RecordConstant(const (const (1, 2), {b: const (1, {b: 2})}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:12:19 -> RecordConstant(const (const ({a: const (1, 2), b: const ({a: 1, b: 2})}), const (1, 2)))
 Extra constant evaluation: evaluated: 8, effectively constant: 8

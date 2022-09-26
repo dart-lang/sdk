@@ -98,8 +98,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
 
     List<DartType>? newPositional = null;
     for (int i = 0; i < node.positional.length; i++) {
-      DartType? newType = visitType(node.positional[i],
-          Variance.combine(variance, Variance.contravariant));
+      DartType? newType = visitType(node.positional[i], variance);
       if (newType != null) {
         newPositional ??= node.positional.toList(growable: false);
         newPositional[i] = newType;
@@ -107,8 +106,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
     }
     List<NamedType>? newNamed = null;
     for (int i = 0; i < node.named.length; i++) {
-      DartType? newType = visitType(node.named[i].type,
-          Variance.combine(variance, Variance.contravariant));
+      DartType? newType = visitType(node.named[i].type, variance);
       NamedType? newNamedType = createNamedType(node.named[i], newType);
       if (newNamedType != null) {
         newNamed ??= node.named.toList(growable: false);
