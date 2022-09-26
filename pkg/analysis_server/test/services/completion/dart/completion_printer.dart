@@ -74,6 +74,8 @@ class CompletionResponsePrinter {
         return 'library';
       } else if (elementKind == ElementKind.PARAMETER) {
         return 'parameter';
+      } else if (elementKind == ElementKind.SETTER) {
+        return 'setter';
       } else if (elementKind == ElementKind.TOP_LEVEL_VARIABLE) {
         return 'topLevelVariable';
       } else if (elementKind == ElementKind.TYPE_ALIAS) {
@@ -90,6 +92,8 @@ class CompletionResponsePrinter {
         return 'extensionInvocation';
       } else if (elementKind == ElementKind.FUNCTION) {
         return 'functionInvocation';
+      } else if (elementKind == ElementKind.METHOD) {
+        return 'methodInvocation';
       }
       throw UnimplementedError('elementKind: $elementKind');
     } else if (kind == CompletionSuggestionKind.IMPORT) {
@@ -155,6 +159,18 @@ class CompletionResponsePrinter {
     }
   }
 
+  void _writeIsNotImported(CompletionSuggestion suggestion) {
+    if (configuration.withIsNotImported) {
+      _writelnWithIndent('isNotImported: ${suggestion.isNotImported}');
+    }
+  }
+
+  void _writeLibraryUri(CompletionSuggestion suggestion) {
+    if (configuration.withLibraryUri) {
+      _writelnWithIndent('libraryUri: ${suggestion.libraryUri}');
+    }
+  }
+
   void _writelnWithIndent(String line) {
     buffer.write(_indent);
     buffer.writeln(line);
@@ -216,6 +232,8 @@ class CompletionResponsePrinter {
       _writeDisplayText(suggestion);
       _writeDocumentation(suggestion);
       _writeElement(suggestion);
+      _writeIsNotImported(suggestion);
+      _writeLibraryUri(suggestion);
       _writeRelevance(suggestion);
       _writeReturnType(suggestion);
       _writeSelection(suggestion);
@@ -264,7 +282,9 @@ class Configuration {
   bool withDisplayText;
   bool withDocumentation;
   bool withElement;
+  bool withIsNotImported;
   bool withKind;
+  bool withLibraryUri;
   bool withRelevance;
   bool withReplacement;
   bool withReturnType;
@@ -276,7 +296,9 @@ class Configuration {
     this.withDisplayText = false,
     this.withDocumentation = false,
     this.withElement = false,
+    this.withIsNotImported = false,
     this.withKind = true,
+    this.withLibraryUri = false,
     this.withReplacement = true,
     this.withRelevance = false,
     this.withReturnType = false,
