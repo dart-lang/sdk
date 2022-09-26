@@ -2507,6 +2507,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     RecordTypeAnnotationNamedField node,
   ) {
     node.visitChildren(this);
+    elementResolver.visitRecordTypeAnnotationNamedField(node);
   }
 
   @override
@@ -2521,6 +2522,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     RecordTypeAnnotationPositionalField node,
   ) {
     node.visitChildren(this);
+    elementResolver.visitRecordTypeAnnotationPositionalField(node);
   }
 
   @override

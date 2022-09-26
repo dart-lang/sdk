@@ -272,6 +272,72 @@ part of 'test.dart';
     _assertAtFoo42();
   }
 
+  test_location_recordTypeAnnotation_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int f;
+  const A(this.f);
+}
+
+({@A(0) int f1, String f2}) f() => throw 0;
+''');
+    final node = findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@class::A::@constructor::new::@parameter::f
+        staticType: int
+    rightParenthesis: )
+  element: self::@class::A::@constructor::new
+''');
+    _assertAnnotationValueText(node, r'''
+A
+  f: int 0
+''');
+  }
+
+  test_location_recordTypeAnnotation_positional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int f;
+  const A(this.f);
+}
+
+(int, @A(0) String) f() => throw 0;
+''');
+    final node = findNode.annotation('@A');
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@class::A::@constructor::new::@parameter::f
+        staticType: int
+    rightParenthesis: )
+  element: self::@class::A::@constructor::new
+''');
+    _assertAnnotationValueText(node, r'''
+A
+  f: int 0
+''');
+  }
+
   test_optIn_fromOptOut_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

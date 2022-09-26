@@ -299,6 +299,18 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
+  void visitRecordTypeAnnotationNamedField(
+    RecordTypeAnnotationNamedField node,
+  ) {
+    _resolveAnnotations(node.metadata);
+  }
+
+  void visitRecordTypeAnnotationPositionalField(
+    RecordTypeAnnotationPositionalField node,
+  ) {
+    _resolveAnnotations(node.metadata);
+  }
+
   void visitRedirectingConstructorInvocation(
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
