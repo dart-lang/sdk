@@ -972,7 +972,7 @@ main() {
           forInvocation.argumentList.arguments[0] as FunctionExpression;
 
       var closureElement = closure.declaredElement as FunctionElementImpl;
-      expect(closureElement.enclosingElement3, same(mainElement));
+      expect(closureElement.enclosingElement, same(mainElement));
 
       ParameterElement itemElement = closureElement.parameters[0];
       itemElement1 = itemElement;
@@ -1013,7 +1013,7 @@ main() {
           forInvocation.argumentList.arguments[0] as FunctionExpression;
 
       var closureElement = closure.declaredElement as FunctionElementImpl;
-      expect(closureElement.enclosingElement3, same(mainElement));
+      expect(closureElement.enclosingElement, same(mainElement));
 
       ParameterElement itemElement = closureElement.parameters[0];
       expect(itemElement, isNot(same(itemElement1)));
@@ -1056,7 +1056,7 @@ void foo(List<T> Function<T>() createList) {}
     assertType(closure, 'List<T> Function<T>()');
 
     var closureElement = closure.declaredElement as FunctionElementImpl;
-    expect(closureElement.enclosingElement3, findElement.function('main'));
+    expect(closureElement.enclosingElement, findElement.function('main'));
     assertType(closureElement.returnType, 'List<T>');
     expect(closureElement.parameters, isEmpty);
 
@@ -1702,7 +1702,7 @@ main(MyEnum e) {
 
     var methodElement = invocation.methodName.staticElement as MethodElement;
     expect(methodElement.name, 'toString');
-    expect(methodElement.enclosingElement3, same(objectElement));
+    expect(methodElement.enclosingElement, same(objectElement));
   }
 
   test_error_unresolvedTypeAnnotation() async {

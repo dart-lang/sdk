@@ -60,7 +60,7 @@ class AddLate extends CorrectionProducer {
           getter.isSynthetic &&
           !getter.variable.isSynthetic &&
           getter.variable.setter == null &&
-          getter.enclosingElement3 is InterfaceElement) {
+          getter.enclosingElement is InterfaceElement) {
         var declarationResult =
             await sessionHelper.getElementDeclaration(getter.variable);
         if (declarationResult == null) {

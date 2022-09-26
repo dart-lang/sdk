@@ -286,7 +286,7 @@ class Search {
     } else if (element is PropertyInducingElement) {
       return _searchReferences_Field(element, searchedFiles);
     } else if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
-      if (element.enclosingElement3 is ExecutableElement) {
+      if (element.enclosingElement is ExecutableElement) {
         return _searchReferences_Local(
             element, (n) => n is Block, searchedFiles);
       }
@@ -434,7 +434,7 @@ class Search {
     // Prepare the element name.
     String name = element.displayName;
     if (element is ConstructorElement) {
-      name = element.enclosingElement3.displayName;
+      name = element.enclosingElement.displayName;
     }
 
     // Prepare the list of files that reference the element name.
@@ -683,7 +683,7 @@ class Search {
     ));
     if (parameter.isNamed ||
         parameter.isOptionalPositional ||
-        parameter.enclosingElement3 is ConstructorElement) {
+        parameter.enclosingElement is ConstructorElement) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;
@@ -939,7 +939,7 @@ class _FindCompilationUnitDeclarations {
       return;
     }
 
-    var enclosing = element.enclosingElement3;
+    var enclosing = element.enclosingElement;
 
     String? className;
     String? mixinName;

@@ -1,3 +1,6 @@
+## 5.2.0-dev
+* Deprecated `Element.enclosingElement3`, use `enclosingElement` instead.
+
 ## 5.1.0
 * Deprecated `AstNode.name2`, use `name` instead.
 * Deprecated `AstNode.declaredElement2`, use `declaredElement` instead.

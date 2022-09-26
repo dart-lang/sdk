@@ -557,7 +557,7 @@ class _ClassVerifier {
                     .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
                 derivedOptionalNodes[i],
                 [
-                  baseExecutable.enclosingElement3.displayName,
+                  baseExecutable.enclosingElement.displayName,
                   baseExecutable.displayName,
                   name
                 ],
@@ -586,7 +586,7 @@ class _ClassVerifier {
                   .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
               derivedOptionalNodes[i],
               [
-                baseExecutable.enclosingElement3.displayName,
+                baseExecutable.enclosingElement.displayName,
                 baseExecutable.displayName
               ],
             );
@@ -711,7 +711,7 @@ class _ClassVerifier {
       ) {
         var member = concreteMap[Name(libraryUri, memberName)];
         if (member != null) {
-          var enclosingClass = member.enclosingElement3 as InterfaceElement;
+          var enclosingClass = member.enclosingElement as InterfaceElement;
           if (enclosingClass is! ClassElement || filter(enclosingClass)) {
             reporter.reportErrorForToken(
               CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
@@ -752,7 +752,7 @@ class _ClassVerifier {
         reporter.reportErrorForToken(
           CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
           classNameToken,
-          [inherited.enclosingElement3.name!],
+          [inherited.enclosingElement.name!],
         );
       }
     }
@@ -837,13 +837,13 @@ class _ClassVerifier {
         token,
         [
           name.name,
-          conflict.getter.enclosingElement3.name!,
-          conflict.method.enclosingElement3.name!
+          conflict.getter.enclosingElement.name!,
+          conflict.method.enclosingElement.name!
         ],
       );
     } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates.map((candidate) {
-        var className = candidate.enclosingElement3.name;
+        var className = candidate.enclosingElement.name;
         var typeStr = candidate.type.getDisplayString(
           withNullability: _isNonNullableByDefault,
         );
@@ -879,7 +879,7 @@ class _ClassVerifier {
       }
 
       var elementName = element.displayName;
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       var enclosingName = enclosingElement.displayName;
       var description = "$prefix$enclosingName.$elementName";
 

@@ -201,7 +201,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     ResolutionReader reader,
     ElementImpl element,
   ) {
-    var enclosing = element.enclosingElement3;
+    var enclosing = element.enclosingElement;
     if (enclosing is InterfaceElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
@@ -273,7 +273,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement3,
+      unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.supertype = reader._readOptionalInterfaceType();
@@ -297,7 +297,7 @@ class ExtensionElementLinkedData
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement3,
+      unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.extendedType = reader.readRequiredType();
@@ -1558,7 +1558,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement3,
+      unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
@@ -1642,7 +1642,7 @@ class ResolutionReader {
       // TODO(scheglov) why to check for empty? If we have this flags.
       if (arguments.isNotEmpty) {
         var typeParameters =
-            (element.enclosingElement3 as TypeParameterizedElement)
+            (element.enclosingElement as TypeParameterizedElement)
                 .typeParameters;
         var substitution = Substitution.fromPairs(typeParameters, arguments);
         element =

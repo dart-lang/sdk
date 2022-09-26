@@ -26,7 +26,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement3;
+      interfaceElement = element.enclosingElement;
     }
     if (interfaceElement == null) {
       return const <TargetKind>{};
@@ -69,21 +69,21 @@ extension ElementExtension on Element {
       return true;
     }
 
-    var ancestor = enclosingElement3;
+    var ancestor = enclosingElement;
     if (ancestor is InterfaceElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement3;
+      ancestor = ancestor.enclosingElement;
     } else if (ancestor is ExtensionElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement3;
+      ancestor = ancestor.enclosingElement;
     }
 
     return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement3.hasDoNotStore;
+        ancestor.enclosingElement.hasDoNotStore;
   }
 
   /// Return `true` if this element is an instance member of a class or mixin.
@@ -95,7 +95,7 @@ extension ElementExtension on Element {
   /// [PropertyAccessorElement]s.
   bool get isInstanceMember {
     var this_ = this;
-    var enclosing = this_.enclosingElement3;
+    var enclosing = this_.enclosingElement;
     if (enclosing is InterfaceElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
@@ -106,7 +106,7 @@ extension ElementExtension on Element {
 
 extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
-    return this is ConstructorElement && enclosingElement3 is EnumElementImpl;
+    return this is ConstructorElement && enclosingElement is EnumElementImpl;
   }
 }
 

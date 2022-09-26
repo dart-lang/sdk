@@ -203,7 +203,7 @@ class Flutter {
 
   /// Return the presentation for the given Flutter `Widget` creation [node].
   String? getWidgetPresentationText(InstanceCreationExpression node) {
-    var element = node.constructorName.staticElement?.enclosingElement3;
+    var element = node.constructorName.staticElement?.enclosingElement;
     if (!isWidget(element)) {
       return null;
     }
@@ -521,7 +521,7 @@ class Flutter {
   /// Return `true` if the given [expr] is a constructor invocation for a
   /// class that has the Flutter class `Widget` as a superclass.
   bool isWidgetCreation(InstanceCreationExpression? expr) {
-    var element = expr?.constructorName.staticElement?.enclosingElement3;
+    var element = expr?.constructorName.staticElement?.enclosingElement;
     return isWidget(element);
   }
 
