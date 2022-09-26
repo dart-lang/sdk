@@ -326,7 +326,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// Ensures that the type of [member] has been computed.
   void ensureMemberType(Member member) {
     if (member is Constructor) {
-      inferConstructorParameterTypes(member);
+      _inferConstructorParameterTypes(member);
     }
     TypeDependency? typeDependency = engine.typeDependencies.remove(member);
     if (typeDependency != null) {
@@ -336,7 +336,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// Ensures that all parameter types of [constructor] have been inferred.
-  void inferConstructorParameterTypes(Constructor target) {
+  void _inferConstructorParameterTypes(Constructor target) {
     SourceConstructorBuilder? constructor = engine.beingInferred[target];
     if (constructor != null) {
       // There is a cyclic dependency where inferring the types of the
