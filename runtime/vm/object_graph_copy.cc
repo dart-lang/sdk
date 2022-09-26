@@ -263,13 +263,18 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
 }
 
 DART_FORCE_INLINE
-ObjectPtr AllocateObject(intptr_t cid, intptr_t size) {
+ObjectPtr AllocateObject(intptr_t cid,
+                         intptr_t size,
+                         intptr_t allocated_bytes) {
 #if defined(DART_COMPRESSED_POINTERS)
   const bool compressed = true;
 #else
   const bool compressed = false;
 #endif
-  return Object::Allocate(cid, size, Heap::kNew, compressed);
+  const intptr_t kLargeMessageThreshold = 16 * MB;
+  const Heap::Space space =
+      allocated_bytes > kLargeMessageThreshold ? Heap::kOld : Heap::kNew;
+  return Object::Allocate(cid, size, space, compressed);
 }
 
 DART_FORCE_INLINE
@@ -744,6 +749,7 @@ class SlowForwardMap : public ForwardMapBase {
 
  private:
   friend class SlowObjectCopy;
+  friend class SlowObjectCopyBase;
   friend class ObjectGraphCopier;
 
   IdentityMap* map_;
@@ -1204,7 +1210,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     if (size == 0) {
       size = from.ptr().untag()->HeapSize();
     }
-    to_ = AllocateObject(cid, size);
+    to_ = AllocateObject(cid, size, slow_forward_map_.allocated_bytes);
     UpdateLengthField(cid, from.ptr(), to_.ptr());
     slow_forward_map_.Insert(from, to_, size);
     ObjectPtr to = to_.ptr();

@@ -634,7 +634,7 @@ class Object {
   };
 
  protected:
-  friend ObjectPtr AllocateObject(intptr_t, intptr_t);
+  friend ObjectPtr AllocateObject(intptr_t, intptr_t, intptr_t);
 
   // Used for extracting the C++ vtable during bringup.
   Object() : ptr_(null_) {}
