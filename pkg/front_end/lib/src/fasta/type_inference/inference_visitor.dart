@@ -869,7 +869,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitConstructorInvocation(
       ConstructorInvocation node, DartType typeContext) {
-    inferConstructorParameterTypes(node.target);
+    ensureMemberType(node.target);
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
     FunctionType functionType = node.target.function
         .computeThisFunctionType(libraryBuilder.nonNullable);
@@ -1183,12 +1183,50 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         result.inferredType, result.applyResult(resultNode));
   }
 
+  /// Returns the function type of [constructor] when called through [typedef].
+  FunctionType _computeAliasedConstructorFunctionType(
+      Constructor constructor, Typedef typedef) {
+    ensureMemberType(constructor);
+    FunctionNode function = constructor.function;
+    // We need create a copy of the list of type parameters, otherwise
+    // transformations like erasure don't work.
+    List<TypeParameter> classTypeParametersCopy =
+        new List.of(constructor.enclosingClass.typeParameters);
+    List<TypeParameter> typedefTypeParametersCopy =
+        new List.of(typedef.typeParameters);
+    List<DartType> asTypeArguments =
+        getAsTypeArguments(typedefTypeParametersCopy, libraryBuilder.library);
+    TypedefType typedefType = new TypedefType(
+        typedef, libraryBuilder.library.nonNullable, asTypeArguments);
+    DartType unaliasedTypedef = typedefType.unalias;
+    assert(unaliasedTypedef is InterfaceType,
+        "[typedef] is assumed to resolve to an interface type");
+    InterfaceType targetType = unaliasedTypedef as InterfaceType;
+    Substitution substitution = Substitution.fromPairs(
+        classTypeParametersCopy, targetType.typeArguments);
+    List<DartType> positional = function.positionalParameters
+        .map((VariableDeclaration decl) =>
+            substitution.substituteType(decl.type))
+        .toList(growable: false);
+    List<NamedType> named = function.namedParameters
+        .map((VariableDeclaration decl) => new NamedType(
+            decl.name!, substitution.substituteType(decl.type),
+            isRequired: decl.isRequired))
+        .toList(growable: false);
+    named.sort();
+    return new FunctionType(
+        positional, typedefType.unalias, libraryBuilder.library.nonNullable,
+        namedParameters: named,
+        typeParameters: typedefTypeParametersCopy,
+        requiredParameterCount: function.requiredParameterCount);
+  }
+
   ExpressionInferenceResult visitTypeAliasedConstructorInvocation(
       TypeAliasedConstructorInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
-    FunctionType calleeType = node.target.function
-        .computeAliasedConstructorFunctionType(typedef, libraryBuilder.library);
+    FunctionType calleeType =
+        _computeAliasedConstructorFunctionType(node.target, typedef);
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
     InvocationInferenceResult result = inferInvocation(this, typeContext,
         node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
@@ -1207,12 +1245,51 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         result.inferredType, result.applyResult(resultNode));
   }
 
+  /// Returns the function type of [factory] when called through [typedef].
+  FunctionType _computeAliasedFactoryFunctionType(
+      Procedure factory, Typedef typedef) {
+    assert(factory.isFactory, "Only run this method on a factory");
+    ensureMemberType(factory);
+    FunctionNode function = factory.function;
+    // We need create a copy of the list of type parameters, otherwise
+    // transformations like erasure don't work.
+    List<TypeParameter> classTypeParametersCopy =
+        new List.of(function.typeParameters);
+    List<TypeParameter> typedefTypeParametersCopy =
+        new List.of(typedef.typeParameters);
+    List<DartType> asTypeArguments =
+        getAsTypeArguments(typedefTypeParametersCopy, libraryBuilder.library);
+    TypedefType typedefType = new TypedefType(
+        typedef, libraryBuilder.library.nonNullable, asTypeArguments);
+    DartType unaliasedTypedef = typedefType.unalias;
+    assert(unaliasedTypedef is InterfaceType,
+        "[typedef] is assumed to resolve to an interface type");
+    InterfaceType targetType = unaliasedTypedef as InterfaceType;
+    Substitution substitution = Substitution.fromPairs(
+        classTypeParametersCopy, targetType.typeArguments);
+    List<DartType> positional = function.positionalParameters
+        .map((VariableDeclaration decl) =>
+            substitution.substituteType(decl.type))
+        .toList(growable: false);
+    List<NamedType> named = function.namedParameters
+        .map((VariableDeclaration decl) => new NamedType(
+            decl.name!, substitution.substituteType(decl.type),
+            isRequired: decl.isRequired))
+        .toList(growable: false);
+    named.sort();
+    return new FunctionType(
+        positional, typedefType.unalias, libraryBuilder.library.nonNullable,
+        namedParameters: named,
+        typeParameters: typedefTypeParametersCopy,
+        requiredParameterCount: function.requiredParameterCount);
+  }
+
   ExpressionInferenceResult visitTypeAliasedFactoryInvocation(
       TypeAliasedFactoryInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
-    FunctionType calleeType = node.target.function
-        .computeAliasedFactoryFunctionType(typedef, libraryBuilder.library);
+    FunctionType calleeType =
+        _computeAliasedFactoryFunctionType(node.target, typedef);
     calleeType = replaceReturnType(calleeType, calleeType.returnType.unalias);
     InvocationInferenceResult result = inferInvocation(this, typeContext,
         node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
@@ -6181,7 +6258,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   InitializerInferenceResult visitRedirectingInitializer(
       RedirectingInitializer node) {
-    inferConstructorParameterTypes(node.target);
+    ensureMemberType(node.target);
     List<TypeParameter> classTypeParameters =
         node.target.enclosingClass.typeParameters;
     List<DartType> typeArguments = new List<DartType>.generate(
@@ -6405,7 +6482,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   InitializerInferenceResult visitSuperInitializer(SuperInitializer node) {
-    inferConstructorParameterTypes(node.target);
+    ensureMemberType(node.target);
     Substitution substitution = Substitution.fromSupertype(
         classHierarchy.getClassAsInstanceOf(
             thisType!.classNode, node.target.enclosingClass)!);
