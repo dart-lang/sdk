@@ -2186,6 +2186,14 @@ class _InstanceCreationEvaluator {
       String? variableName =
           argumentCount < 1 ? null : firstArgument?.toStringValue();
       if (definingClass == typeProvider.boolElement) {
+        // Special case: https://github.com/dart-lang/sdk/issues/50045
+        if (variableName == 'dart.library.js_util') {
+          return DartObjectImpl(
+            typeSystem,
+            typeProvider.boolType,
+            BoolState.UNKNOWN_VALUE,
+          );
+        }
         return FromEnvironmentEvaluator(typeSystem, _declaredVariables)
             .getBool2(variableName, _namedValues, _constructor);
       } else if (definingClass == typeProvider.intElement) {
