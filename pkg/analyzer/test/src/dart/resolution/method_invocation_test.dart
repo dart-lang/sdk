@@ -505,6 +505,117 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_record_defined_extension() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String) {
+  void foo(int a) {}
+}
+
+void f((int, String) r) {
+  r.foo(0);
+}
+''');
+
+    final node = findNode.methodInvocation('r.foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extension::E::@method::foo::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_recordQ_defined_extension() async {
+    await assertNoErrorsInCode(r'''
+extension E on (int, String)? {
+  void foo(int a) {}
+}
+
+void f((int, String)? r) {
+  r.foo(0);
+}
+''');
+
+    final node = findNode.methodInvocation('r.foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: self::@extension::E::@method::foo::@parameter::a
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_recordQ_notDefined_extension() async {
+    await assertErrorsInCode(r'''
+extension E on (int, String) {
+  void foo(int a) {}
+}
+
+void f((int, String)? r) {
+  r.foo(0);
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          86, 3),
+    ]);
+
+    final node = findNode.methodInvocation('r.foo(0)');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: r
+    staticElement: self::@function::f::@parameter::r
+    staticType: (int, String)?
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
   test_hasReceiver_typeAlias_staticMethod() async {
     await assertNoErrorsInCode(r'''
 class A {

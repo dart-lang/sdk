@@ -764,6 +764,12 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
+    final recordField = result.recordField;
+    if (recordField != null) {
+      return _rewriteAsFunctionExpressionInvocation(node, recordField.type,
+          contextType: contextType);
+    }
+
     var target = result.getter;
     if (target != null) {
       nameNode.staticElement = target;

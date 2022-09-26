@@ -192,6 +192,115 @@ class B {
       type: 'bool?',
     );
   }
+
+  test_record_field_named() async {
+    await assertNoErrorsInCode(r'''
+void f(({void Function(int) foo}) r) {
+  r.foo(0);
+}
+''');
+
+    final node = findNode.functionExpressionInvocation('(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: ({void Function(int) foo})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: void Function(int)
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: root::@parameter::
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_record_field_positional_rewrite() async {
+    await assertNoErrorsInCode(r'''
+void f((void Function(int),) r) {
+  r.$0(0);
+}
+''');
+
+    final node = findNode.functionExpressionInvocation('(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: r
+      staticElement: self::@function::f::@parameter::r
+      staticType: (void Function(int))
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $0
+      staticElement: <null>
+      staticType: void Function(int)
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: root::@parameter::
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_record_field_positional_withParenthesis() async {
+    await assertNoErrorsInCode(r'''
+void f((void Function(int),) r) {
+  (r.$0)(0);
+}
+''');
+
+    final node = findNode.functionExpressionInvocation('(0)');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: PropertyAccess
+      target: SimpleIdentifier
+        token: r
+        staticElement: self::@function::f::@parameter::r
+        staticType: (void Function(int))
+      operator: .
+      propertyName: SimpleIdentifier
+        token: $0
+        staticElement: <null>
+        staticType: void Function(int)
+      staticType: void Function(int)
+    rightParenthesis: )
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        parameter: root::@parameter::
+        staticType: int
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
 }
 
 @reflectiveTest
