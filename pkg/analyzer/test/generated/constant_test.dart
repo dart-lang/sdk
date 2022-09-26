@@ -53,6 +53,18 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
     await _assertValueInt(74 ^ 42, "74 ^ 42");
   }
 
+  /// See https://github.com/dart-lang/sdk/issues/50045
+  test_bool_fromEnvironment_dartLibraryJsUtil() async {
+    await resolveTestCode('''
+const x = bool.fromEnvironment('dart.library.js_util');
+''');
+
+    _assertTopVarConstValue('x', r'''
+bool <unknown>
+  variable: self::@variable::x
+''');
+  }
+
   test_conditionalExpression_unknownCondition_dynamic() async {
     await assertErrorsInCode('''
 const bool kIsWeb = identical(0, 0.0);

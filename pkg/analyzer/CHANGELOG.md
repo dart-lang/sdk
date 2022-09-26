@@ -1,4 +1,4 @@
-## 5.1.0-dev
+## 5.1.0
 * Deprecated `AstNode.name2`, use `name` instead.
 * Deprecated `AstNode.declaredElement2`, use `declaredElement` instead.
 

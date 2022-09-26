@@ -975,7 +975,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
-    node.visitChildren(this);
+    _withElementWalker(null, () {
+      node.visitChildren(this);
+    });
+
     _recordTypeResolver.resolve(node);
   }
 

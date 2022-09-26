@@ -31,6 +31,9 @@ class DartObjectPrinter {
           ),
         );
         sink.writeln(' <unknown>');
+      } else if (type.isDartCoreBool) {
+        sink.write('bool ');
+        sink.writeln(object.toBoolValue());
       } else if (type.isDartCoreDouble) {
         sink.write('double ');
         sink.writeln(object.toDoubleValue());
