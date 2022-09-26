@@ -12,7 +12,7 @@ import 'common/test_helper.dart';
 
 void testFunction() {
   // Use functions from various packages, so we can get coverage for them.
-  print(sqrt(123)); // dart:math
+  print(Point(123, 456)); // dart:math
   print(anything); // package:test/test.dart
   print(decodeBase64("SGkh")); // package:vm_service/vm_service.dart
   print(removeAdjacentDuplicates([])); // common/service_test_common.dart
@@ -71,11 +71,11 @@ var tests = <IsolateTest>[
   ),
   filterTestContains(
     ['dart:math'],
-    ['dart:math'],
+    ['dart:math/point.dart'],
   ),
   filterTestContains(
-    ['package:test/', 'package:vm'],
-    ['package:test/test.dart', 'package:vm_service/vm_service.dart'],
+    ['package:vm'],
+    ['package:vm_service/src/vm_service.dart'],
   ),
   resumeIsolate,
 ];
