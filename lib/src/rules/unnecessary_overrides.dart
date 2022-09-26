@@ -103,7 +103,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     // 'noSuchMethod' is mandatory to proxify.
-    if (node.name2.lexeme == 'noSuchMethod') return;
+    if (node.name.lexeme == 'noSuchMethod') return;
 
     // It's ok to override to have better documentation.
     if (node.documentationComment != null) return;
@@ -137,13 +137,13 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    rule.reportLintForToken(declaration.name2);
+    rule.reportLintForToken(declaration.name);
   }
 
   /// Returns whether [declaration] is annotated with any metadata (other than
   /// `@override` or `@Override`).
   bool _addsMetadata() {
-    var metadata = declaration.declaredElement2?.metadata;
+    var metadata = declaration.declaredElement?.metadata;
     if (metadata != null) {
       for (var annotation in metadata) {
         if (annotation.isOverride) continue;
@@ -162,7 +162,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   /// This indicates that [_inheritedMethod] may have been overridden in order
   /// to expand its visibility.
   bool _makesPublicFromProtected() {
-    var declaredElement = declaration.declaredElement2;
+    var declaredElement = declaration.declaredElement;
     if (declaredElement == null) return false;
     if (declaredElement.hasProtected) {
       return false;
@@ -171,7 +171,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   }
 
   bool _haveSameDeclaration() {
-    var declaredElement = declaration.declaredElement2;
+    var declaredElement = declaration.declaredElement;
     if (declaredElement == null) {
       return false;
     }
@@ -252,7 +252,7 @@ class _UnnecessaryOperatorOverrideVisitor
   @override
   void visitBinaryExpression(BinaryExpression node) {
     var parameters = declaration.parameters?.parameters;
-    if (node.operator.type == declaration.name2.type &&
+    if (node.operator.type == declaration.name.type &&
         parameters != null &&
         parameters.length == 1 &&
         parameters.first.declaredElement ==
@@ -268,7 +268,7 @@ class _UnnecessaryOperatorOverrideVisitor
   void visitPrefixExpression(PrefixExpression node) {
     var parameters = declaration.parameters?.parameters;
     if (parameters != null &&
-        node.operator.type == declaration.name2.type &&
+        node.operator.type == declaration.name.type &&
         parameters.isEmpty) {
       var operand = node.operand.unParenthesized;
       if (operand is SuperExpression) {

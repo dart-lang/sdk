@@ -262,7 +262,7 @@ class _Visitor extends SimpleAstVisitor {
 
   void _reportLint(ConstructorDeclaration node, List<String> identifiers) {
     if (identifiers.isEmpty) return;
-    var target = node.name2 ?? node.returnType;
+    var target = node.name ?? node.returnType;
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
       rule.reportLintForOffset(target.offset, target.length,

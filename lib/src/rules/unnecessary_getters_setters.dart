@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Build getter/setter maps
     for (var method in members.whereType<MethodDeclaration>()) {
-      var methodName = method.name2.lexeme;
+      var methodName = method.name.lexeme;
       if (method.isGetter) {
         getters[methodName] = method;
       } else if (method.isSetter) {
@@ -97,15 +97,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitGetterSetter(MethodDeclaration getter, MethodDeclaration? setter) {
     if (setter == null) return;
-    var getterElement = getter.declaredElement2;
-    var setterElement = setter.declaredElement2;
+    var getterElement = getter.declaredElement;
+    var setterElement = setter.declaredElement;
     if (getterElement == null || setterElement == null) return;
     if (isSimpleSetter(setter) &&
         isSimpleGetter(getter) &&
         getterElement.metadata.isEmpty &&
         setterElement.metadata.isEmpty) {
       // Just flag the getter (https://github.com/dart-lang/linter/issues/2851)
-      rule.reportLintForToken(getter.name2);
+      rule.reportLintForToken(getter.name);
     }
   }
 }

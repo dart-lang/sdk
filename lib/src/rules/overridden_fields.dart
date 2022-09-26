@@ -124,11 +124,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var variable in node.fields.variables) {
-      var declaredElement = variable.declaredElement2;
+      var declaredElement = variable.declaredElement;
       if (declaredElement != null) {
         var field = _getOverriddenMember(declaredElement);
         if (field != null && !field.isAbstract) {
-          rule.reportLintForToken(variable.name2);
+          rule.reportLintForToken(variable.name);
         }
       }
     }

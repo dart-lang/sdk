@@ -368,7 +368,7 @@ class ScoreCard {
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'fix_internal.dart');
     var fixProcessor = cu.declarations.firstWhere(
-        (m) => m is ClassDeclaration && m.name2.lexeme == 'FixProcessor');
+        (m) => m is ClassDeclaration && m.name.lexeme == 'FixProcessor');
 
     var collector = _BulkFixCollector();
     fixProcessor.accept(collector);
@@ -383,7 +383,7 @@ class ScoreCard {
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'lint_names.dart');
     var lintNamesClass = cu.declarations.firstWhere(
-        (m) => m is ClassDeclaration && m.name2.lexeme == 'LintNames');
+        (m) => m is ClassDeclaration && m.name.lexeme == 'LintNames');
 
     var collector = _FixCollector();
     lintNamesClass.accept(collector);
@@ -412,7 +412,7 @@ class _BulkFixCollector extends _LintNameCollector {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var field in node.fields.variables) {
-      if (field.name2.lexeme == 'lintProducerMap') {
+      if (field.name.lexeme == 'lintProducerMap') {
         var initializer = field.initializer;
         if (initializer is SetOrMapLiteral) {
           for (var element in initializer.elements) {
@@ -451,7 +451,7 @@ class _FixCollector extends _LintNameCollector {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var v in node.fields.variables) {
-      addLint(v.name2.lexeme);
+      addLint(v.name.lexeme);
     }
   }
 }

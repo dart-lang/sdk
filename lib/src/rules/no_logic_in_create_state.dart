@@ -81,13 +81,13 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.name2.lexeme != 'createState') {
+    if (node.name.lexeme != 'createState') {
       return;
     }
 
     var parent = node.parent;
     if (parent is! ClassDeclaration ||
-        !isStatefulWidget(parent.declaredElement2)) {
+        !isStatefulWidget(parent.declaredElement)) {
       return;
     }
     var body = node.body;

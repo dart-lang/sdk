@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    _check(node.name2);
+    _check(node.name);
   }
 
   @override

@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isStatic) return;
 
     for (var field in node.fields.variables) {
-      check(field.declaredElement2, field.name2);
+      check(field.declaredElement, field.name);
     }
   }
 
@@ -107,6 +107,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isStatic) return;
 
-    check(node.declaredElement2, node.name2);
+    check(node.declaredElement, node.name);
   }
 }

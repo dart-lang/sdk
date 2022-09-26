@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (member.isSetter &&
           member.lookUpInheritedConcreteSetter() == null &&
           member.lookUpGetter() == null) {
-        rule.reportLintForToken(member.name2);
+        rule.reportLintForToken(member.name);
       }
     }
   }

@@ -63,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var declaredElement = node.declaredElement2;
+    var declaredElement = node.declaredElement;
     if (declaredElement != null && !declaredElement.isPrivate) {
       var parametersToLint =
           node.parameters.parameters.where(_isFormalParameterToLint);
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    var declaredElement = node.declaredElement2;
+    var declaredElement = node.declaredElement;
     if (declaredElement != null && !declaredElement.isPrivate) {
       var parametersToLint = node.functionExpression.parameters?.parameters
           .where(_isFormalParameterToLint);
@@ -87,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var declaredElement = node.declaredElement2;
+    var declaredElement = node.declaredElement;
     if (declaredElement != null &&
         !node.isSetter &&
         !declaredElement.isPrivate &&

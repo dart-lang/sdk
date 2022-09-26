@@ -103,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // only const class
     var parent = node.parent;
     if (parent is ClassDeclaration) {
-      var declaredElement = parent.declaredElement2;
+      var declaredElement = parent.declaredElement;
       if (declaredElement == null) {
         return;
       }

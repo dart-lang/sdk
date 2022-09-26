@@ -60,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     if (node.initializer is FunctionExpression) {
       var function = node.thisOrAncestorOfType<FunctionBody>();
-      var declaredElement = node.declaredElement2;
+      var declaredElement = node.declaredElement;
       if (function == null) {
         // When there is no enclosing function body, this is a variable
         // definition for a field or a top-level variable, which should only

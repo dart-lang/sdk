@@ -90,17 +90,17 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    thisType = node.declaredElement2?.thisType;
+    thisType = node.declaredElement?.thisType;
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    thisType = node.declaredElement2?.thisType;
+    thisType = node.declaredElement?.thisType;
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    var extendedType = node.declaredElement2?.extendedType;
+    var extendedType = node.declaredElement?.extendedType;
     // Might not be InterfaceType. Ex: visiting an extension on a dynamic type.
     thisType = extendedType is InterfaceType ? extendedType : null;
   }

@@ -110,19 +110,19 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     for (var variable in node.variables.variables) {
-      checkIdentifier(variable.name2);
+      checkIdentifier(variable.name);
     }
   }
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    checkIdentifier(node.functionDeclaration.name2);
+    checkIdentifier(node.functionDeclaration.name);
   }
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
-      checkIdentifier(variable.name2);
+      checkIdentifier(variable.name);
     }
   }
 }

@@ -120,7 +120,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
-    var type = node.declaredElement2?.thisType;
+    var type = node.declaredElement?.thisType;
     if (!type.implementsInterface('Diagnosticable', '')) {
       return;
     }
@@ -130,23 +130,23 @@ class _Visitor extends SimpleAstVisitor {
       if (member is MethodDeclaration && member.isGetter) {
         if (!member.isStatic &&
             !skipForDiagnostic(
-              element: member.declaredElement2,
-              name: member.name2,
+              element: member.declaredElement,
+              name: member.name,
               type: member.returnType?.type,
             )) {
-          properties.add(member.name2);
+          properties.add(member.name);
         }
       } else if (member is FieldDeclaration) {
         for (var v in member.fields.variables) {
-          var declaredElement = v.declaredElement2;
+          var declaredElement = v.declaredElement;
           if (declaredElement != null &&
               !declaredElement.isStatic &&
               !skipForDiagnostic(
                 element: declaredElement,
-                name: v.name2,
+                name: v.name,
                 type: declaredElement.type,
               )) {
-            properties.add(v.name2);
+            properties.add(v.name);
           }
         }
       }

@@ -154,7 +154,7 @@ extension ClassElementExtension on ClassElement {
 
 extension ClassMemberListExtension on List<ClassMember> {
   MethodDeclaration? getMethod(String name) => whereType<MethodDeclaration>()
-      .firstWhereOrNull((node) => node.name2.lexeme == name);
+      .firstWhereOrNull((node) => node.name.lexeme == name);
 }
 
 extension ConstructorElementExtension on ConstructorElement {
@@ -290,11 +290,11 @@ extension MethodDeclarationExtension on MethodDeclaration {
 
   /// Returns whether this method is an override of a method in any supertype.
   bool get isOverride {
-    var name = declaredElement2?.name;
+    var name = declaredElement?.name;
     if (name == null) {
       return false;
     }
-    var parentElement = declaredElement2?.enclosingElement3;
+    var parentElement = declaredElement?.enclosingElement3;
     if (parentElement is! InterfaceElement) {
       return false;
     }
@@ -316,41 +316,41 @@ extension MethodDeclarationExtension on MethodDeclaration {
   }
 
   PropertyAccessorElement? lookUpGetter() {
-    var declaredElement = declaredElement2;
+    var declaredElement = this.declaredElement;
     if (declaredElement == null) {
       return null;
     }
     var parent = declaredElement.enclosingElement3;
     if (parent is InterfaceElement) {
-      return parent.lookUpGetter(name2.lexeme, declaredElement.library);
+      return parent.lookUpGetter(name.lexeme, declaredElement.library);
     }
     if (parent is ExtensionElement) {
-      return parent.getGetter(name2.lexeme);
+      return parent.getGetter(name.lexeme);
     }
     return null;
   }
 
   PropertyAccessorElement? lookUpInheritedConcreteGetter() {
-    var declaredElement = declaredElement2;
+    var declaredElement = this.declaredElement;
     if (declaredElement == null) {
       return null;
     }
     var parent = declaredElement.enclosingElement3;
     if (parent is InterfaceElement) {
       return parent.lookUpInheritedConcreteGetter(
-          name2.lexeme, declaredElement.library);
+          name.lexeme, declaredElement.library);
     }
     // Extensions don't inherit.
     return null;
   }
 
   MethodElement? lookUpInheritedConcreteMethod() {
-    var declaredElement = declaredElement2;
+    var declaredElement = this.declaredElement;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedConcreteMethod(
-            name2.lexeme, declaredElement.library);
+            name.lexeme, declaredElement.library);
       }
     }
     // Extensions don't inherit.
@@ -358,12 +358,12 @@ extension MethodDeclarationExtension on MethodDeclaration {
   }
 
   PropertyAccessorElement? lookUpInheritedConcreteSetter() {
-    var declaredElement = declaredElement2;
+    var declaredElement = this.declaredElement;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedConcreteSetter(
-            name2.lexeme, declaredElement.library);
+            name.lexeme, declaredElement.library);
       }
     }
     // Extensions don't inherit.
@@ -371,12 +371,12 @@ extension MethodDeclarationExtension on MethodDeclaration {
   }
 
   MethodElement? lookUpInheritedMethod() {
-    var declaredElement = declaredElement2;
+    var declaredElement = this.declaredElement;
     if (declaredElement != null) {
       var parent = declaredElement.enclosingElement3;
       if (parent is InterfaceElement) {
         return parent.lookUpInheritedMethod(
-            name2.lexeme, declaredElement.library);
+            name.lexeme, declaredElement.library);
       }
     }
     return null;

@@ -76,26 +76,26 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    check(node.name2);
+    check(node.name);
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    check(node.name2);
+    check(node.name);
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    check(node.name2);
+    check(node.name);
   }
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    check(node.name2);
+    check(node.name);
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    check(node.name2);
+    check(node.name);
   }
 }

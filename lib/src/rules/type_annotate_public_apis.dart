@@ -82,12 +82,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (!isPrivate(node.name2) &&
+    if (!isPrivate(node.name) &&
         // Only report on top-level functions, not those declared within the
         // scope of another function.
         node.parent is CompilationUnit) {
       if (node.returnType == null && !node.isSetter) {
-        rule.reportLintForToken(node.name2);
+        rule.reportLintForToken(node.name);
       } else {
         node.functionExpression.parameters?.accept(v);
       }
@@ -96,9 +96,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (!isPrivate(node.name2)) {
+    if (!isPrivate(node.name)) {
       if (node.returnType == null) {
-        rule.reportLintForToken(node.name2);
+        rule.reportLintForToken(node.name);
       } else {
         node.parameters.accept(v);
       }
@@ -107,9 +107,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (!isPrivate(node.name2)) {
+    if (!isPrivate(node.name)) {
       if (node.returnType == null && !node.isSetter) {
-        rule.reportLintForToken(node.name2);
+        rule.reportLintForToken(node.name);
       } else {
         node.parameters?.accept(v);
       }
@@ -148,10 +148,10 @@ class _VisitorHelper extends RecursiveAstVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (!isPrivate(node.name2) &&
+    if (!isPrivate(node.name) &&
         !node.isConst &&
         !(node.isFinal && hasInferredType(node))) {
-      rule.reportLintForToken(node.name2);
+      rule.reportLintForToken(node.name);
     }
   }
 }

@@ -124,7 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    if (node.name2.type != TokenType.EQ_EQ || parameters.length != 1) {
+    if (node.name.type != TokenType.EQ_EQ || parameters.length != 1) {
       return;
     }
 

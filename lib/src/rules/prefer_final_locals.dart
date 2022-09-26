@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (variable.equals == null || variable.initializer == null) {
         return;
       }
-      var declaredElement = variable.declaredElement2;
+      var declaredElement = variable.declaredElement;
       if (declaredElement != null &&
           function.isPotentiallyMutatedInScope(declaredElement)) {
         return;

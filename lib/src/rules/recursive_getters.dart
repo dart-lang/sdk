@@ -91,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // getters have null arguments, methods have parameters, could be empty.
     if (node.functionExpression.parameters != null) return;
 
-    _verifyElement(node.functionExpression, node.declaredElement2);
+    _verifyElement(node.functionExpression, node.declaredElement);
   }
 
   @override
@@ -99,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // getters have null arguments, methods have parameters, could be empty.
     if (node.parameters != null) return;
 
-    _verifyElement(node.body, node.declaredElement2);
+    _verifyElement(node.body, node.declaredElement);
   }
 
   void _verifyElement(AstNode node, ExecutableElement? element) {

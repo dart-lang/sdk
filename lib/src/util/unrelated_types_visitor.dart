@@ -55,13 +55,13 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
     } else {
       for (AstNode? parent = node; parent != null; parent = parent.parent) {
         if (parent is ClassDeclaration) {
-          targetType = parent.declaredElement2?.thisType;
+          targetType = parent.declaredElement?.thisType;
           break;
         } else if (parent is MixinDeclaration) {
-          targetType = parent.declaredElement2?.thisType;
+          targetType = parent.declaredElement?.thisType;
           break;
         } else if (parent is EnumDeclaration) {
-          targetType = parent.declaredElement2?.thisType;
+          targetType = parent.declaredElement?.thisType;
           break;
         } else if (parent is ExtensionDeclaration) {
           targetType = parent.extendedType.type;

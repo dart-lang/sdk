@@ -125,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.name2.lexeme == 'registerNodeProcessors') {
+    if (node.name.lexeme == 'registerNodeProcessors') {
       node.body.accept(_BodyVisitor(rule));
     }
   }

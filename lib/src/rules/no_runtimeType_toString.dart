@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (n is MixinDeclaration) return true;
         if (n is ClassDeclaration && n.abstractKeyword != null) return true;
         if (n is ExtensionDeclaration) {
-          var declaredElement = n.declaredElement2;
+          var declaredElement = n.declaredElement;
           if (declaredElement != null) {
             var extendedType = declaredElement.extendedType;
             if (extendedType is InterfaceType) {

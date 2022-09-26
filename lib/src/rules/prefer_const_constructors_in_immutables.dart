@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var element = node.declaredElement2;
+    var element = node.declaredElement;
     if (element == null) {
       return;
     }
@@ -92,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
-    var declaredElement = node.declaredElement2;
+    var declaredElement = node.declaredElement;
     if (declaredElement == null) {
       return false;
     }

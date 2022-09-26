@@ -80,10 +80,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      var returnType = node.declaredElement2?.returnType;
+      var returnType = node.declaredElement?.returnType;
       if (returnType is InterfaceType &&
           // ignore: cast_nullable_to_non_nullable
-          returnType.element2 == (parent as Declaration).declaredElement2) {
+          returnType.element2 == (parent as Declaration).declaredElement) {
       } else {
         return;
       }
@@ -102,7 +102,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     } else if (body is ExpressionFunctionBody) {
       if (body.expression is ThisExpression) {
-        rule.reportLintForToken(node.name2);
+        rule.reportLintForToken(node.name);
       }
     }
   }

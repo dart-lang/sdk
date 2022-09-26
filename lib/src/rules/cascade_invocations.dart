@@ -65,7 +65,7 @@ Element? _getElementFromVariableDeclarationStatement(
       // In such a case, we should not return any cascadable element here.
       return null;
     }
-    return variable.declaredElement2;
+    return variable.declaredElement;
   }
   return null;
 }

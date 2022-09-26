@@ -168,7 +168,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var variable in fields.variables) {
-      var element = variable.declaredElement2;
+      var element = variable.declaredElement;
 
       if (element is PropertyInducingElement &&
           element.isPrivate &&

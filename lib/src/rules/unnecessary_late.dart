@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var variable in node.variables) {
       if (variable.initializer != null) {
-        rule.reportLintForToken(variable.name2);
+        rule.reportLintForToken(variable.name);
       }
     }
   }

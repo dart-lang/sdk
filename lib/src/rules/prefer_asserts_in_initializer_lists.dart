@@ -140,12 +140,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _classAndSuperClasses = _ClassAndSuperClasses(node.declaredElement2);
+    _classAndSuperClasses = _ClassAndSuperClasses(node.declaredElement);
   }
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var declaredElement = node.declaredElement2;
+    var declaredElement = node.declaredElement;
     if (declaredElement == null || declaredElement.isFactory) return;
 
     var body = node.body;

@@ -57,19 +57,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var classElement = node.declaredElement2;
+    var classElement = node.declaredElement;
     if (classElement != null &&
         classElement.isPublic &&
         hasWidgetAsAscendant(classElement) &&
         classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
-      rule.reportLintForToken(node.name2);
+      rule.reportLintForToken(node.name);
     }
     super.visitClassDeclaration(node);
   }
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var constructorElement = node.declaredElement2;
+    var constructorElement = node.declaredElement;
     if (constructorElement == null) {
       return;
     }
@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           }
           return false;
         })) {
-      var errorNode = node.name2 ?? node.returnType;
+      var errorNode = node.name ?? node.returnType;
       rule.reportLintForOffset(errorNode.offset, errorNode.length);
     }
     super.visitConstructorDeclaration(node);

@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor {
     var variables = node.variables;
     if (variables.length > 1) {
       var secondVariable = variables[1];
-      rule.reportLintForToken(secondVariable.name2);
+      rule.reportLintForToken(secondVariable.name);
     }
   }
 }

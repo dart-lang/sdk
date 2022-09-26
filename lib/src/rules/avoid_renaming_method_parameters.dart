@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parentNode is! Declaration) {
       return;
     }
-    var parentElement = parentNode.declaredElement2;
+    var parentElement = parentNode.declaredElement;
     // Note: there are no override semantics with extension methods.
     if (parentElement is! InterfaceElement) {
       return;
@@ -96,7 +96,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (classElement.isPrivate) return;
 
     var parentMethod = classElement.lookUpInheritedMethod(
-        node.name2.lexeme, classElement.library);
+        node.name.lexeme, classElement.library);
 
     if (parentMethod == null) return;
 

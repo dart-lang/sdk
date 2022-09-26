@@ -158,7 +158,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
           leftElement.enclosingElement3 ==
-              node.declaredElement2?.enclosingElement3 &&
+              node.declaredElement?.enclosingElement3 &&
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) &&
                   !(rightElement as ParameterElement).isNamed ||

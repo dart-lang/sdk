@@ -289,7 +289,7 @@ class ScoreCard {
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'assist.dart');
     var assistKindClass = cu.declarations.firstWhere(
-        (m) => m is ClassDeclaration && m.name2.lexeme == 'DartAssistKind');
+        (m) => m is ClassDeclaration && m.name.lexeme == 'DartAssistKind');
 
     var collector = _AssistCollector();
     assistKindClass.accept(collector);
@@ -304,7 +304,7 @@ class ScoreCard {
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'lint_names.dart');
     var lintNamesClass = cu.declarations.firstWhere(
-        (m) => m is ClassDeclaration && m.name2.lexeme == 'LintNames');
+        (m) => m is ClassDeclaration && m.name.lexeme == 'LintNames');
 
     var collector = _FixCollector();
     lintNamesClass.accept(collector);
@@ -337,7 +337,7 @@ class _FixCollector extends GeneralizingAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var v in node.fields.variables) {
-      var name = v.name2.lexeme;
+      var name = v.name.lexeme;
       lintNames.add(name);
       if (!registeredLintNames.contains(name)) {
         print('WARNING: unrecognized lint in fixes: $name');

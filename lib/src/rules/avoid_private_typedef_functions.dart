@@ -65,7 +65,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _countAndReport(node.name2);
+    _countAndReport(node.name);
   }
 
   @override
@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.typeParameters != null) {
       return;
     }
-    _countAndReport(node.name2);
+    _countAndReport(node.name);
   }
 
   void _countAndReport(Token identifier) {
