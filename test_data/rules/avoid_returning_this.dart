@@ -8,9 +8,9 @@
 
 class A {
   int x = 0;
-  A badAddOne() { // LINT
+  A badAddOne() {
     x++;
-    return this;
+    return this; // LINT
   }
 
   Object goodAddOne1() { // OK it is ok because it does not return an A type.
@@ -22,8 +22,8 @@ class A {
     x++;
     return this.x;
   }
-  A getThing() { // LINT
-    return this;
+  A getThing() {
+    return this; // LINT
   }
 
   B doSomething() { // OK it is ok because it does not return an A type.
@@ -50,31 +50,31 @@ class B extends A{
     return this;
   }
 
-  B badAddOne2() { // LINT
+  B badAddOne2() {
     x++;
-    return this;
+    return this; // LINT
   }
 
-  B badOne3() { // LINT
+  B badOne3() {
     int a() {
       return 1;
     }
     x = a();
-    return this;
+    return this; // LINT
   }
 
-  B badOne4() { // LINT
+  B badOne4() {
     int a() => 1;
     x = a();
-    return this;
+    return this; // LINT
   }
 
-  B badOne5() { // LINT
+  B badOne5() {
     final a = () {
       return 1;
     };
     x = a();
-    return this;
+    return this; // LINT
   }
 }
 
@@ -94,8 +94,8 @@ class D implements C<D> {
     return this;
   }
 
-  D _m() { // LINT
-    return this;
+  D _m() {
+    return this; // LINT
   }
 }
 class E implements C<E> {

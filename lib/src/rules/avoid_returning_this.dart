@@ -45,10 +45,7 @@ var buffer = StringBuffer()
 
 bool _isFunctionExpression(AstNode node) => node is FunctionExpression;
 
-bool _isReturnStatement(AstNode node) => node is ReturnStatement;
-
-bool _returnsThis(AstNode node) =>
-    (node as ReturnStatement).expression is ThisExpression;
+bool _returnsThis(ReturnStatement node) => node.expression is ThisExpression;
 
 class AvoidReturningThis extends LintRule {
   AvoidReturningThis()
@@ -99,9 +96,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (body is BlockFunctionBody) {
       var returnStatements = body.block
           .traverseNodesInDFS(excludeCriteria: _isFunctionExpression)
-          .where(_isReturnStatement);
+          .whereType<ReturnStatement>();
       if (returnStatements.isNotEmpty && returnStatements.every(_returnsThis)) {
-        rule.reportLintForToken(node.name2);
+        rule.reportLint(returnStatements.first.expression);
       }
     } else if (body is ExpressionFunctionBody) {
       if (body.expression is ThisExpression) {
