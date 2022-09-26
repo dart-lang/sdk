@@ -76,11 +76,12 @@ class SourceReport {
   bool ShouldSkipFunction(const Function& func);
   bool ShouldSkipField(const Field& field);
   bool ShouldCoverageSkipCallSite(const ICData* ic_data);
-  intptr_t GetScriptIndex(const Script& script, bool bypass_filters = false);
+  intptr_t GetScriptIndex(const Script& script);
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
   intptr_t GetTokenPosOrLine(const Script& script,
                              const TokenPosition& token_pos);
-  bool LibraryMatchesFilters(const Library& lib);
+  bool ShouldFiltersIncludeScript(const Script& script);
+  bool ShouldFiltersIncludeUrl(const String& url);
 
   void PrintCallSitesData(JSONObject* jsobj,
                           const Function& func,

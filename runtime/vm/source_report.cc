@@ -192,8 +192,28 @@ bool SourceReport::ShouldSkipField(const Field& field) {
   return false;
 }
 
-intptr_t SourceReport::GetScriptIndex(const Script& script,
-                                      bool bypass_filters) {
+bool SourceReport::ShouldFiltersIncludeUrl(const String& url) {
+  String& filter = String::Handle(zone());
+  const intptr_t num_filters = library_filters_.Length();
+  for (intptr_t i = 0; i < num_filters; ++i) {
+    filter ^= library_filters_.At(i);
+    if (url.StartsWith(filter)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool SourceReport::ShouldFiltersIncludeScript(const Script& script) {
+  if (library_filters_.IsNull()) return true;
+  String& url = String::Handle(zone(), script.url());
+  if (ShouldFiltersIncludeUrl(url)) return true;
+  const Library& lib = Library::Handle(zone(), script.FindLibrary());
+  url ^= lib.url();
+  return ShouldFiltersIncludeUrl(url);
+}
+
+intptr_t SourceReport::GetScriptIndex(const Script& script) {
   ScriptTableEntry wrapper;
   const String& url = String::Handle(zone(), script.url());
   wrapper.key = &url;
@@ -202,14 +222,15 @@ intptr_t SourceReport::GetScriptIndex(const Script& script,
   if (pair != NULL) {
     return pair->index;
   }
-  if (!library_filters_.IsNull() && !bypass_filters) {
-    return -1;
-  }
   ScriptTableEntry* tmp = new ScriptTableEntry();
   tmp->key = &url;
-  tmp->index = next_script_index_++;
   tmp->script = wrapper.script;
-  script_table_entries_.Add(tmp);
+  if (ShouldFiltersIncludeScript(script)) {
+    tmp->index = next_script_index_++;
+    script_table_entries_.Add(tmp);
+  } else {
+    tmp->index = -1;
+  }
   script_table_.Insert(tmp);
   ASSERT(script_table_entries_.length() == next_script_index_);
 #if defined(DEBUG)
@@ -665,19 +686,6 @@ void SourceReport::VisitClosures(JSONArray* jsarr) {
   });
 }
 
-bool SourceReport::LibraryMatchesFilters(const Library& lib) {
-  const String& url = String::Handle(zone(), lib.url());
-  String& filter = String::Handle(zone());
-  const intptr_t num_filters = library_filters_.Length();
-  for (intptr_t i = 0; i < num_filters; ++i) {
-    filter ^= library_filters_.At(i);
-    if (url.StartsWith(filter)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 void SourceReport::PrintJSON(JSONStream* js,
                              const Script& script,
                              TokenPosition start_pos,
@@ -692,24 +700,8 @@ void SourceReport::PrintJSON(JSONStream* js,
     const GrowableObjectArray& libs = GrowableObjectArray::Handle(
         zone(), thread()->isolate_group()->object_store()->libraries());
 
-    Library& lib = Library::Handle(zone());
-    if (!library_filters_.IsNull()) {
-      // If we have library filters, pre-fill GetScriptIndex with all the
-      // scripts from the libraries that pass the filters. Later calls to
-      // GetScriptIndex will ignore any scripts that are missing.
-      for (intptr_t i = 0; i < libs.Length(); i++) {
-        lib ^= libs.At(i);
-        if (LibraryMatchesFilters(lib)) {
-          Script& script = Script::Handle(zone());
-          const Array& scripts = Array::Handle(zone(), lib.LoadedScripts());
-          for (intptr_t j = 0; j < scripts.Length(); j++) {
-            script ^= scripts.At(j);
-            GetScriptIndex(script, true /* bypass_filters */);
-          }
-        }
-      }
-    }
     // We only visit the libraries which actually load the specified script.
+    Library& lib = Library::Handle(zone());
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
       if (script.IsNull() || ScriptIsLoadedByLibrary(script, lib)) {
