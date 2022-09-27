@@ -312,6 +312,16 @@ abstract class ContextResolutionTest
   }
 }
 
+class PatternsResolutionTest extends PubPackageResolutionTest {
+  @override
+  List<String> get experiments {
+    return [
+      ...super.experiments,
+      EnableString.patterns,
+    ];
+  }
+}
+
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
     return contextFor(testFile).analysisOptions as AnalysisOptionsImpl;
