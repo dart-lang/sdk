@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.19 Add support for super parameters, named arguments everywhere, and
+// records.
+//
 // v0.18 Add support for enhanced `enum` declarations.
 //
 // v0.17 (58d917e7573c359580ade43845004dbbc62220d5) Correct `uri` to allow
@@ -293,6 +296,7 @@ normalFormalParameterNoMetadata
     :    functionFormalParameter
     |    fieldFormalParameter
     |    simpleFormalParameter
+    |    superFormalParameter
     ;
 
 // NB: It is an anomaly that a functionFormalParameter cannot be FINAL.
@@ -308,6 +312,10 @@ simpleFormalParameter
 // NB: It is an anomaly that VAR can be a return type (`var this.x()`).
 fieldFormalParameter
     :    finalConstVarOrType? THIS '.' identifier (formalParameterPart '?'?)?
+    ;
+
+superFormalParameter
+    :    type? SUPER '.' identifier (formalParameterPart '?'?)?
     ;
 
 defaultFormalParameter
@@ -561,6 +569,7 @@ literal
     |    symbolLiteral
     |    setOrMapLiteral
     |    listLiteral
+    |    recordLiteral
     ;
 
 nullLiteral
@@ -587,11 +596,25 @@ stringLiteralWithoutInterpolation
     ;
 
 setOrMapLiteral
-    : CONST? typeArguments? LBRACE elements? RBRACE
+    :    CONST? typeArguments? LBRACE elements? RBRACE
     ;
 
 listLiteral
-    : CONST? typeArguments? '[' elements? ']'
+    :    CONST? typeArguments? '[' elements? ']'
+    ;
+
+recordLiteral
+    :    CONST? recordLiteralNoConst
+    ;
+
+recordLiteralNoConst
+    :    '(' expression ',' ')'
+    |    '(' label expression ','? ')'
+    |    '(' recordField ',' recordField (',' recordField)* ','? ')'
+    ;
+
+recordField
+    :    label? expression
     ;
 
 elements
@@ -693,12 +716,11 @@ arguments
     ;
 
 argumentList
-    :    namedArgument (',' namedArgument)*
-    |    expressionList (',' namedArgument)*
+    :    argument (',' argument)*
     ;
 
-namedArgument
-    :    label expression
+argument
+    :    label? expression
     ;
 
 cascade
@@ -1185,11 +1207,13 @@ type
 
 typeNotVoid
     :    functionType '?'?
+    |    recordType '?'?
     |    typeNotVoidNotFunction
     ;
 
 typeNotFunction
     :    typeNotVoidNotFunction
+    |    recordType '?'?
     |    VOID
     ;
 
@@ -1208,6 +1232,28 @@ typeArguments
 
 typeList
     :    type (',' type)*
+    ;
+
+recordType
+    :    '(' recordTypeFields ',' recordTypeNamedFields ')'
+    |    '(' recordTypeFields ','? ')'
+    |    '(' recordTypeNamedFields? ')'
+    ;
+
+recordTypeFields
+    :    recordTypeField (',' recordTypeField)*
+    ;
+
+recordTypeField
+    :    metadata type identifier?
+    ;
+
+recordTypeNamedFields
+    :    LBRACE recordTypeNamedField (',' recordTypeNamedField)* ','? RBRACE
+    ;
+
+recordTypeNamedField
+    :    metadata typedIdentifier
     ;
 
 typeNotVoidNotFunctionList
