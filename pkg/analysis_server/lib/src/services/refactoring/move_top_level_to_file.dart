@@ -25,10 +25,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
 
   @override
   List<CommandParameter> get parameters => [
-        CommandParameter(
-          label: 'Move to:',
-          type: CommandParameterType.filePath,
-          defaultValue: defaultFilePath,
+        SaveUriCommandParameter(
+          parameterLabel: 'Move to:',
+          parameterTitle: 'Select a file to move to',
+          actionLabel: 'Move',
+          defaultValue: Uri.file(defaultFilePath),
         ),
       ];
 
@@ -75,16 +76,19 @@ class MoveTopLevelToFile extends RefactoringProducer {
 
   @override
   Future<void> compute(
-      List<String> commandArguments, ChangeBuilder builder) async {
+      List<Object?> commandArguments, ChangeBuilder builder) async {
     var member = _memberToMove;
     if (member == null) {
       return;
     }
     var sourcePath = member.containingFile;
-    var destinationFilePath = commandArguments[0];
-    var destinationUri = result.session.uriConverter
+    // TODO(dantup): Add refactor-specific validation for incoming arguments.
+    var destinationUri = Uri.parse(commandArguments[0] as String);
+    var destinationFilePath = destinationUri.toFilePath();
+
+    var importUri = result.session.uriConverter
         .pathToUri(destinationFilePath, containingPath: sourcePath);
-    if (destinationUri == null) {
+    if (importUri == null) {
       return;
     }
     await builder.addDartFileEdit(destinationFilePath, (builder) {

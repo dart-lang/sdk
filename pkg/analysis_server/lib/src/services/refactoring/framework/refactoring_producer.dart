@@ -73,7 +73,7 @@ abstract class RefactoringProducer {
 
   /// Given the [commandArguments] associated with the command, use the
   /// [builder] to generate the edits necessary to apply this refactoring.
-  Future<void> compute(List<String> commandArguments, ChangeBuilder builder);
+  Future<void> compute(List<Object?> commandArguments, ChangeBuilder builder);
 
   /// Return `true` if this refactoring is available in the given context.
   bool isAvailable();

@@ -8,6 +8,7 @@ import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
+import 'generate_all.dart';
 import 'meta_model.dart';
 
 final formatter = DartFormatter();
@@ -839,22 +840,38 @@ void _writeFromJsonConstructor(
       ..outdent()
       ..writeIndentedln('}');
   }
-  for (final field in allFields) {
-    // Add a local variable to allow type promotion (and avoid multiple lookups).
-    final localName = _makeValidIdentifier(field.name);
-    final localNameJson = '${localName}Json';
-    buffer.writeIndentedln("final $localNameJson = json['${field.name}'];");
-    buffer.writeIndented('final $localName = ');
-    _writeFromJsonCode(buffer, field.type, localNameJson,
-        allowsNull: field.allowsNull || field.allowsUndefined);
-    buffer.writeln(';');
+  if (interface.abstract) {
+    buffer.writeIndentedln(
+      "throw ArgumentError("
+      "'Supplied map is not valid for any subclass of ${interface.name}'"
+      ");",
+    );
+  } else {
+    for (final field in allFields) {
+      // Add a local variable to allow type promotion (and avoid multiple lookups).
+      final localName = _makeValidIdentifier(field.name);
+      final localNameJson = '${localName}Json';
+      buffer.writeIndentedln("final $localNameJson = json['${field.name}'];");
+      buffer.writeIndented('final $localName = ');
+      _writeFromJsonCode(buffer, field.type, localNameJson,
+          allowsNull: field.allowsNull || field.allowsUndefined);
+      buffer.writeln(';');
+    }
+    buffer
+      ..writeIndented('return ${interface.name}(')
+      ..write(allFields.map((field) => '${field.name}: ${field.name}, ').join())
+      ..writeln(');');
   }
   buffer
-    ..writeIndented('return ${interface.name}(')
-    ..write(allFields.map((field) => '${field.name}: ${field.name}, ').join())
-    ..writeln(');')
     ..outdent()
     ..writeIndented('}');
+}
+
+void _writeGetter(IndentableStringBuffer buffer, AbstractGetter getter) {
+  _writeDocCommentsAndAnnotations(buffer, getter);
+  buffer
+    ..writeIndented(getter.type.dartTypeWithTypeArgs)
+    ..writeln(' get ${getter.name};');
 }
 
 void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
@@ -901,7 +918,9 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   final isPrivate = interface.name.startsWith('_');
   _writeDocCommentsAndAnnotations(buffer, interface);
 
-  buffer.writeIndented('class ${interface.name} ');
+  buffer
+    ..writeIndented(interface.abstract ? 'abstract ' : '')
+    ..write('class ${interface.name} ');
   final allBaseTypes =
       interface.baseTypes.map((t) => t.dartTypeWithTypeArgs).toList();
   allBaseTypes.add('ToJsonable');
@@ -919,7 +938,10 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   // Handle Consts and Fields separately, since we need to include superclass
   // Fields.
   final consts = interface.members.whereType<Constant>().toList();
+  final getters = interface.members.whereType<AbstractGetter>().toList();
   final fields = _getAllFields(interface);
+  _writeMembers(buffer, interface, getters);
+  buffer.writeln();
   _writeMembers(buffer, interface, consts);
   buffer.writeln();
   _writeMembers(buffer, interface, fields);
@@ -971,6 +993,8 @@ void _writeMember(
     _writeField(buffer, interface, member);
   } else if (member is Constant) {
     _writeConst(buffer, member);
+  } else if (member is AbstractGetter) {
+    _writeGetter(buffer, member);
   } else {
     throw 'Unknown type';
   }
