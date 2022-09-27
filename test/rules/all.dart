@@ -33,6 +33,7 @@ import 'discarded_futures_test.dart' as discarded_futures;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
 import 'hash_and_equals_test.dart' as hash_and_equals;
+import 'library_names_test.dart' as library_names;
 import 'library_private_types_in_public_api_test.dart'
     as library_private_types_in_public_api;
 import 'literal_only_boolean_expressions_test.dart'
@@ -106,6 +107,7 @@ void main() {
   file_names.main();
   flutter_style_todos.main();
   hash_and_equals.main();
+  library_names.main();
   library_private_types_in_public_api.main();
   literal_only_boolean_expressions.main();
   missing_whitespace_between_adjacent_strings.main();
