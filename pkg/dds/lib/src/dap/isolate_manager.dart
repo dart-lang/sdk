@@ -922,7 +922,11 @@ class ThreadInfo {
         // We can't leave dangling completers here because others may already
         // be waiting on them, so propagate the error to them.
         completers.forEach((uri, completer) => completer.completeError(e));
-        rethrow;
+
+        // Don't rethrow here, because it will cause these completers futures
+        // to not have error handlers attached which can cause their errors to
+        // go unhandled. Instead, these completers futures will be returned
+        // below and awaited by the caller (which will propogate the errors).
       }
     }
 
