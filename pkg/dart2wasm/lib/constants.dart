@@ -12,7 +12,7 @@ import 'package:dart2wasm/translator.dart';
 import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart' show substitute, Substitution;
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -698,6 +698,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   @override
   ConstantInfo? visitStaticTearOffConstant(StaticTearOffConstant constant) {
     Procedure member = constant.targetReference.asProcedure;
+    Constant functionTypeConstant = TypeLiteralConstant(
+        member.function.computeThisFunctionType(Nullability.nonNullable));
+    ensureConstant(functionTypeConstant);
     ClosureImplementation closure = translator.getTearOffClosure(member);
     w.StructType struct = closure.representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
@@ -709,6 +712,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i32_const(initialIdentityHash);
       b.global_get(translator.globals.dummyGlobal); // Dummy context
       b.global_get(closure.vtable);
+      constants.instantiateConstant(
+          function, b, functionTypeConstant, this.types.nonNullableTypeType);
       b.struct_new(struct);
     });
   }
@@ -720,8 +725,17 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     List<ConstantInfo> types = constant.types
         .map((c) => ensureConstant(TypeLiteralConstant(c))!)
         .toList();
-    ClosureImplementation tearOffClosure = translator
-        .getTearOffClosure(tearOffConstant.targetReference.asProcedure);
+    Procedure tearOffProcedure = tearOffConstant.targetReference.asProcedure;
+    FunctionType tearOffFunctionType = tearOffProcedure.function
+        .computeThisFunctionType(Nullability.nonNullable);
+    FunctionType instantiatedFunctionType = Substitution.fromPairs(
+            tearOffFunctionType.typeParameters, constant.types)
+        .substituteType(tearOffFunctionType) as FunctionType;
+    Constant functionTypeConstant =
+        TypeLiteralConstant(instantiatedFunctionType);
+    ensureConstant(functionTypeConstant);
+    ClosureImplementation tearOffClosure =
+        translator.getTearOffClosure(tearOffProcedure);
     int positionalCount = tearOffConstant.function.positionalParameters.length;
     List<String> names =
         tearOffConstant.function.namedParameters.map((p) => p.name!).toList();
@@ -771,7 +785,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       }
 
       void makeVtable() {
-        // TODO(joshualitt): Generate function type metadata here.
         for (int posArgCount = 0;
             posArgCount <= positionalCount;
             posArgCount++) {
@@ -787,6 +800,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       b.i32_const(initialIdentityHash);
       b.global_get(translator.globals.dummyGlobal); // Dummy context
       makeVtable();
+      constants.instantiateConstant(
+          function, b, functionTypeConstant, this.types.nonNullableTypeType);
       b.struct_new(struct);
     });
   }

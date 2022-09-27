@@ -659,12 +659,6 @@ class _TypeUniverse {
       return true;
     }
 
-    // TODO(joshualitt): This is not correct, but it is necessary until we fully
-    // implement RTI for FunctionTypes.
-    if (isFunctionType(s) && (t.isFunction || t.isGenericFunction)) {
-      return true;
-    }
-
     // Positional Function Types + Named Function Types:
     if (s.isGenericFunction && t.isGenericFunction) {
       // TODO(joshualitt): Implement case.

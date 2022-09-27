@@ -716,6 +716,13 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSubstitutions(b);
         case "_getTypeNames":
           return translator.types.makeTypeNames(b);
+        case "_getFunctionTypeRuntimeType":
+          Expression object = node.arguments.positional[0];
+          w.StructType closureBase =
+              translator.closureLayouter.closureBaseStruct;
+          codeGen.wrap(object, w.RefType.def(closureBase, nullable: true));
+          b.struct_get(closureBase, FieldIndex.closureRuntimeType);
+          return translator.types.typeClassInfo.nonNullableType;
         case "_getInterfaceTypeRuntimeType":
           Expression object = node.arguments.positional[0];
           Expression typeArguments = node.arguments.positional[1];

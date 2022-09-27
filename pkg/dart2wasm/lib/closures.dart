@@ -115,7 +115,6 @@ class ClosureLayouter extends RecursiveVisitor {
   Set<Constant> visitedConstants = Set.identity();
 
   // Base struct for vtables.
-  // TODO(joshualitt): Add function type metadata here.
   late final w.StructType vtableBaseStruct = m.addStructType("#VtableBase");
 
   // Base struct for closures.
@@ -129,13 +128,15 @@ class ClosureLayouter extends RecursiveVisitor {
     //  - An identity hash
     //  - A context reference (used for `this` in tear-offs)
     //  - A vtable reference
+    //  - A type
     return m.addStructType("#ClosureBase",
         fields: [
           w.FieldType(w.NumType.i32),
           w.FieldType(w.NumType.i32),
           w.FieldType(w.RefType.data(nullable: false)),
           w.FieldType(w.RefType.def(vtableStruct, nullable: false),
-              mutable: false)
+              mutable: false),
+          w.FieldType(typeType, mutable: false)
         ],
         superType: superType);
   }

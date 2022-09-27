@@ -801,7 +801,6 @@ class Translator {
         w.RefType.def(representation.vtableStruct, nullable: false),
         mutable: false));
     w.Instructions ib = vtable.initializer;
-    // TODO(joshualitt): Generate function type metadata here.
     for (int posArgCount = 0; posArgCount <= positionalCount; posArgCount++) {
       fillVtableEntry(ib, posArgCount, const []);
     }
