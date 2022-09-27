@@ -310,9 +310,8 @@ inline ElementType* Zone::Realloc(ElementType* old_data,
           reinterpret_cast<uword>(old_data) + (new_len * kElementSize);
       // ...and there is sufficient space.
       if (new_end <= limit_) {
-        ASSERT(new_len >= old_len);
         position_ = Utils::RoundUp(new_end, kAlignment);
-        size_ += (new_end - old_end);
+        size_ += static_cast<intptr_t>(new_len - old_len);
         return old_data;
       }
     }
