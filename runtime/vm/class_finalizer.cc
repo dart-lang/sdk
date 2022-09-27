@@ -659,6 +659,11 @@ void ClassFinalizer::FillAndFinalizeTypeArguments(
             AbstractType& unfinalized_type = AbstractType::Handle(zone);
             if (super_type_arg.IsTypeRef()) {
               unfinalized_type = TypeRef::Cast(super_type_arg).type();
+              if (unfinalized_type.IsFinalized()) {
+                super_type_arg.SetIsFinalized();
+                arguments.SetTypeAt(i, super_type_arg);
+                continue;
+              }
             } else {
               ASSERT(super_type_arg.IsType());
               unfinalized_type = super_type_arg.ptr();
@@ -755,10 +760,13 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       // is_being_finalized mark bit.
       return type.ptr();
     }
+    type.SetIsBeingFinalized();
     AbstractType& ref_type =
         AbstractType::Handle(zone, TypeRef::Cast(type).type());
     ref_type = FinalizeType(ref_type, finalization, pending_types);
+    ASSERT(ref_type.IsFinalized());
     TypeRef::Cast(type).set_type(ref_type);
+    ASSERT(type.IsFinalized());
     return type.ptr();
   }
 
@@ -1563,7 +1571,7 @@ class CidRewriteVisitor : public ObjectVisitor {
           Map(param->untag()->parameterized_class_id_);
     } else if (obj->IsType()) {
       TypePtr type = Type::RawCast(obj);
-      type->untag()->type_class_id_ = Map(type->untag()->type_class_id_);
+      type->untag()->set_type_class_id(Map(type->untag()->type_class_id()));
     } else {
       intptr_t old_cid = obj->GetClassId();
       intptr_t new_cid = Map(old_cid);
@@ -1619,7 +1627,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 // In the Dart VM heap the following instances directly use cids for the
 // computation of canonical hash codes:
 //
-//    * TypePtr (due to UntaggedType::type_class_id_)
+//    * TypePtr (due to UntaggedType::type_class_id)
 //    * TypeParameterPtr (due to UntaggedTypeParameter::parameterized_class_id_)
 //
 // The following instances use cids for the computation of canonical hash codes

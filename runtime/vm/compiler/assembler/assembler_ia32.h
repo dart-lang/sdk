@@ -766,6 +766,9 @@ class Assembler : public AssemblerBase {
   void LslImmediate(Register dst, int32_t shift) {
     shll(dst, Immediate(shift));
   }
+  void LsrImmediate(Register dst, int32_t shift) override {
+    shrl(dst, Immediate(shift));
+  }
 
   void CompareImmediate(Register reg, int32_t immediate) {
     cmpl(reg, Immediate(immediate));
@@ -878,15 +881,17 @@ class Assembler : public AssemblerBase {
     cmpxchgl(address, reg);
   }
 
-  void CompareFunctionTypeNullabilityWith(Register type,
-                                          int8_t value) override {
-    cmpb(FieldAddress(type,
-                      compiler::target::FunctionType::nullability_offset()),
-         Immediate(value));
+  void LoadAbstractTypeNullability(Register dst, Register type) override {
+    movzxb(dst,
+           FieldAddress(type, compiler::target::AbstractType::flags_offset()));
+    andl(dst,
+         Immediate(compiler::target::UntaggedAbstractType::kNullabilityMask));
   }
-  void CompareTypeNullabilityWith(Register type, int8_t value) override {
-    cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
-         Immediate(value));
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch) override {
+    LoadAbstractTypeNullability(scratch, type);
+    cmpl(scratch, Immediate(value));
   }
 
   void EnterFrame(intptr_t frame_space);

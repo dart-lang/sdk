@@ -8165,12 +8165,25 @@ class TypeArguments : public Instance {
 // Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Instance {
  public:
-  virtual bool IsFinalized() const;
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const;
-  virtual void SetIsBeingFinalized() const;
+  static intptr_t flags_offset() {
+    return OFFSET_OF(UntaggedAbstractType, flags_);
+  }
 
-  virtual Nullability nullability() const;
+  bool IsFinalized() const {
+    const auto state = type_state();
+    return (state == UntaggedAbstractType::kFinalizedInstantiated) ||
+           (state == UntaggedAbstractType::kFinalizedUninstantiated);
+  }
+  void SetIsFinalized() const;
+  bool IsBeingFinalized() const {
+    return type_state() == UntaggedAbstractType::kBeingFinalized;
+  }
+  void SetIsBeingFinalized() const;
+
+  Nullability nullability() const {
+    return static_cast<Nullability>(
+        UntaggedAbstractType::NullabilityBits::decode(untag()->flags_));
+  }
   // Returns true if type has '?' nullability suffix, or it is a
   // built-in type which is always nullable (Null, dynamic or void).
   bool IsNullable() const { return nullability() == Nullability::kNullable; }
@@ -8462,44 +8475,32 @@ class AbstractType : public Instance {
                                const AbstractType& other_type,
                                TypeEquality kind) const;
 
+  UntaggedAbstractType::TypeState type_state() const {
+    return static_cast<UntaggedAbstractType::TypeState>(
+        UntaggedAbstractType::TypeStateBits::decode(untag()->flags_));
+  }
+  void set_flags(uint32_t value) const;
+  void set_type_state(UntaggedAbstractType::TypeState value) const;
+  void set_nullability(Nullability value) const;
+
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Instance);
   friend class Class;
   friend class Function;
   friend class TypeArguments;
+  friend class TypeRef;
 };
 
 // A Type consists of a class, possibly parameterized with type
 // arguments. Example: C<T1, T2>.
 class Type : public AbstractType {
  public:
-  static intptr_t type_class_id_offset() {
-    return OFFSET_OF(UntaggedType, type_class_id_);
-  }
   static intptr_t arguments_offset() {
     return OFFSET_OF(UntaggedType, arguments_);
   }
-  static intptr_t type_state_offset() {
-    return OFFSET_OF(UntaggedType, type_state_);
-  }
   static intptr_t hash_offset() { return OFFSET_OF(UntaggedType, hash_); }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedType, nullability_);
-  }
-  virtual bool IsFinalized() const {
-    return (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) ||
-           (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return untag()->type_state_ == UntaggedType::kBeingFinalized;
-  }
-  virtual void SetIsBeingFinalized() const;
   virtual bool HasTypeClass() const {
     ASSERT(type_class_id() != kIllegalCid);
     return true;
-  }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
   }
   TypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const;
@@ -8616,11 +8617,6 @@ class Type : public AbstractType {
   // in ClassIdTagType. This allows us to guard against that case, instead of
   // silently truncating the cid.
   void set_type_class_id(intptr_t id) const;
-  void set_type_state(uint8_t state) const;
-  void set_nullability(Nullability value) const {
-    ASSERT(!IsCanonical());
-    StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
-  }
 
   static TypePtr New(Heap::Space space = Heap::kOld);
 
@@ -8648,28 +8644,10 @@ class FunctionType : public AbstractType {
   using PackedNumOptionalParameters =
       UntaggedFunctionType::PackedNumOptionalParameters;
 
-  static intptr_t type_state_offset() {
-    return OFFSET_OF(UntaggedFunctionType, type_state_);
-  }
   static intptr_t hash_offset() {
     return OFFSET_OF(UntaggedFunctionType, hash_);
   }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedFunctionType, nullability_);
-  }
-  virtual bool IsFinalized() const {
-    return (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) ||
-           (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return untag()->type_state_ == UntaggedType::kBeingFinalized;
-  }
-  virtual void SetIsBeingFinalized() const;
   virtual bool HasTypeClass() const { return false; }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
-  }
   FunctionTypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const { return kIllegalCid; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
@@ -8919,12 +8897,6 @@ class FunctionType : public AbstractType {
  private:
   void SetHash(intptr_t value) const;
 
-  void set_type_state(uint8_t state) const;
-  void set_nullability(Nullability value) const {
-    ASSERT(!IsCanonical());
-    StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
-  }
-
   static FunctionTypePtr New(Heap::Space space);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(FunctionType, AbstractType);
@@ -8938,26 +8910,8 @@ class FunctionType : public AbstractType {
 // names of the named fields.
 class RecordType : public AbstractType {
  public:
-  static intptr_t type_state_offset() {
-    return OFFSET_OF(UntaggedRecordType, type_state_);
-  }
   static intptr_t hash_offset() { return OFFSET_OF(UntaggedRecordType, hash_); }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedRecordType, nullability_);
-  }
-  virtual bool IsFinalized() const {
-    return (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) ||
-           (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return untag()->type_state_ == UntaggedType::kBeingFinalized;
-  }
-  virtual void SetIsBeingFinalized() const;
   virtual bool HasTypeClass() const { return false; }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
-  }
   RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const { return kIllegalCid; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
@@ -9021,11 +8975,6 @@ class RecordType : public AbstractType {
  private:
   void SetHash(intptr_t value) const;
 
-  void set_type_state(uint8_t state) const;
-  void set_nullability(Nullability value) const {
-    ASSERT(!IsCanonical());
-    StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
-  }
   void set_field_types(const Array& value) const;
   void set_field_names(const Array& value) const;
 
@@ -9046,19 +8995,6 @@ class TypeRef : public AbstractType {
  public:
   static intptr_t type_offset() { return OFFSET_OF(UntaggedTypeRef, type_); }
 
-  virtual bool IsFinalized() const {
-    const AbstractType& ref_type = AbstractType::Handle(type());
-    return !ref_type.IsNull() && ref_type.IsFinalized();
-  }
-  virtual bool IsBeingFinalized() const {
-    const AbstractType& ref_type = AbstractType::Handle(type());
-    return ref_type.IsNull() || ref_type.IsBeingFinalized();
-  }
-  virtual Nullability nullability() const {
-    const AbstractType& ref_type = AbstractType::Handle(type());
-    ASSERT(!ref_type.IsNull());
-    return ref_type.nullability();
-  }
   virtual bool HasTypeClass() const {
     return (type() != AbstractType::null()) &&
            AbstractType::Handle(type()).HasTypeClass();
@@ -9123,23 +9059,6 @@ class TypeRef : public AbstractType {
 // to the ObjectType.
 class TypeParameter : public AbstractType {
  public:
-  virtual bool IsFinalized() const {
-    return UntaggedTypeParameter::FinalizedBit::decode(untag()->flags_);
-  }
-  virtual void SetIsFinalized() const;
-  virtual bool IsBeingFinalized() const {
-    return UntaggedTypeParameter::BeingFinalizedBit::decode(untag()->flags_);
-  }
-  virtual void SetIsBeingFinalized() const;
-  static intptr_t flags_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, flags_);
-  }
-  static intptr_t nullability_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, nullability_);
-  }
-  virtual Nullability nullability() const {
-    return static_cast<Nullability>(untag()->nullability_);
-  }
   TypeParameterPtr ToNullability(Nullability value, Heap::Space space) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
@@ -9232,8 +9151,6 @@ class TypeParameter : public AbstractType {
 
   void set_parameterized_class(const Class& value) const;
   void set_name(const String& value) const;
-  void set_flags(uint8_t flags) const;
-  void set_nullability(Nullability value) const;
 
   static TypeParameterPtr New();
 

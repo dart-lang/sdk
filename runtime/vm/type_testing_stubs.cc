@@ -1066,22 +1066,26 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
   if (strict_null_safety) {
     __ BranchIf(NOT_EQUAL, &check_subtype_type_class_ids);
     // If non-nullable Object, then the subtype must be legacy or non-nullable.
-    __ CompareTypeNullabilityWith(
+    __ CompareAbstractTypeNullabilityWith(
         TTSInternalRegs::kSuperTypeArgumentReg,
-        static_cast<int8_t>(Nullability::kNonNullable));
+        static_cast<int8_t>(Nullability::kNonNullable),
+        TTSInternalRegs::kScratchReg);
     __ BranchIf(NOT_EQUAL, &is_subtype);
     __ Comment("Checking for legacy or non-nullable instance type argument");
     compiler::Label subtype_is_type;
     UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
                        TTSInternalRegs::kScratchReg, &subtype_is_type);
-    __ CompareFunctionTypeNullabilityWith(
+    __ CompareAbstractTypeNullabilityWith(
         TTSInternalRegs::kSubTypeArgumentReg,
-        static_cast<int8_t>(Nullability::kNullable));
+        static_cast<int8_t>(Nullability::kNullable),
+        TTSInternalRegs::kScratchReg);
     __ BranchIf(EQUAL, check_failed);
     __ Jump(&is_subtype);
     __ Bind(&subtype_is_type);
-    __ CompareTypeNullabilityWith(TTSInternalRegs::kSubTypeArgumentReg,
-                                  static_cast<int8_t>(Nullability::kNullable));
+    __ CompareAbstractTypeNullabilityWith(
+        TTSInternalRegs::kSubTypeArgumentReg,
+        static_cast<int8_t>(Nullability::kNullable),
+        TTSInternalRegs::kScratchReg);
     __ BranchIf(EQUAL, check_failed);
     __ Jump(&is_subtype);
   } else {
@@ -1107,15 +1111,17 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
     compiler::Label supertype_is_type;
     UnwrapAbstractType(assembler, TTSInternalRegs::kSuperTypeArgumentReg,
                        TTSInternalRegs::kScratchReg, &supertype_is_type);
-    __ CompareFunctionTypeNullabilityWith(
+    __ CompareAbstractTypeNullabilityWith(
         TTSInternalRegs::kSuperTypeArgumentReg,
-        static_cast<int8_t>(Nullability::kNonNullable));
+        static_cast<int8_t>(Nullability::kNonNullable),
+        TTSInternalRegs::kScratchReg);
     __ BranchIf(EQUAL, check_failed);
     __ Jump(&is_subtype, compiler::Assembler::kNearJump);
     __ Bind(&supertype_is_type);
-    __ CompareTypeNullabilityWith(
+    __ CompareAbstractTypeNullabilityWith(
         TTSInternalRegs::kSuperTypeArgumentReg,
-        static_cast<int8_t>(Nullability::kNonNullable));
+        static_cast<int8_t>(Nullability::kNonNullable),
+        TTSInternalRegs::kScratchReg);
     __ BranchIf(EQUAL, check_failed);
   }
 
@@ -1165,9 +1171,10 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
   if (type.IsObjectType() || type.IsDartFunctionType()) {
     if (strict_null_safety && type.IsNonNullable()) {
       // Nullable types cannot be a subtype of a non-nullable type.
-      __ CompareFunctionTypeNullabilityWith(
+      __ CompareAbstractTypeNullabilityWith(
           TTSInternalRegs::kSubTypeArgumentReg,
-          compiler::target::Nullability::kNullable);
+          static_cast<int8_t>(Nullability::kNullable),
+          TTSInternalRegs::kScratchReg);
       __ BranchIf(EQUAL, check_failed);
     }
     // No further checks needed for non-nullable Object or Function.
@@ -1183,8 +1190,10 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
   __ Bind(&sub_is_type);
   if (strict_null_safety && type.IsNonNullable()) {
     // Nullable types cannot be a subtype of a non-nullable type in strict mode.
-    __ CompareTypeNullabilityWith(TTSInternalRegs::kSubTypeArgumentReg,
-                                  compiler::target::Nullability::kNullable);
+    __ CompareAbstractTypeNullabilityWith(
+        TTSInternalRegs::kSubTypeArgumentReg,
+        static_cast<int8_t>(Nullability::kNullable),
+        TTSInternalRegs::kScratchReg);
     __ BranchIf(EQUAL, check_failed);
     // Fall through to bottom type checks.
   }

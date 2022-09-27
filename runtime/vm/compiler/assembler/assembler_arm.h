@@ -441,17 +441,17 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP));
   }
 
-  void CompareFunctionTypeNullabilityWith(Register type,
-                                          int8_t value) override {
-    EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
-    ldrb(TMP, FieldAddress(
-                  type, compiler::target::FunctionType::nullability_offset()));
-    cmp(TMP, Operand(value));
+  void LoadAbstractTypeNullability(Register dst, Register type) override {
+    ldrb(dst,
+         FieldAddress(type, compiler::target::AbstractType::flags_offset()));
+    and_(dst, dst,
+         Operand(compiler::target::UntaggedAbstractType::kNullabilityMask));
   }
-  void CompareTypeNullabilityWith(Register type, int8_t value) override {
-    EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
-    ldrb(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
-    cmp(TMP, Operand(value));
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch) override {
+    LoadAbstractTypeNullability(scratch, type);
+    cmp(scratch, Operand(value));
   }
 
   // Misc. functionality
@@ -868,6 +868,13 @@ class Assembler : public AssemblerBase {
   }
   void LslImmediate(Register rd, int32_t shift) {
     LslImmediate(rd, rd, shift);
+  }
+  void LsrImmediate(Register rd, Register rn, int32_t shift) {
+    ASSERT((shift >= 0) && (shift < kBitsPerInt32));
+    Lsr(rd, rn, Operand(shift));
+  }
+  void LsrImmediate(Register rd, int32_t shift) override {
+    LsrImmediate(rd, rd, shift);
   }
 
   // Test rn and immediate. May clobber IP.

@@ -312,50 +312,27 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
   __ LoadClassId(InstantiateTypeABI::kScratchReg,
                  InstantiateTypeABI::kResultTypeReg);
 
-  // The loaded value from the TAV can be [Type], [FunctionType] or [TypeRef].
+  // Handle/unwrap TypeRefs in runtime.
+  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kTypeRefCid);
+  __ BranchIf(EQUAL, &runtime_call);
 
-  // Handle [Type]s.
-  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kTypeCid);
-  __ BranchIf(NOT_EQUAL, &type_parameter_value_is_not_type);
   switch (nullability) {
     case Nullability::kNonNullable:
       __ Ret();
       break;
     case Nullability::kNullable:
-      __ CompareTypeNullabilityWith(
+      __ CompareAbstractTypeNullabilityWith(
           InstantiateTypeABI::kResultTypeReg,
-          static_cast<int8_t>(Nullability::kNullable));
+          static_cast<int8_t>(Nullability::kNullable),
+          InstantiateTypeABI::kScratchReg);
       __ BranchIf(NOT_EQUAL, &runtime_call);
       __ Ret();
       break;
     case Nullability::kLegacy:
-      __ CompareTypeNullabilityWith(
+      __ CompareAbstractTypeNullabilityWith(
           InstantiateTypeABI::kResultTypeReg,
-          static_cast<int8_t>(Nullability::kNonNullable));
-      __ BranchIf(EQUAL, &runtime_call);
-      __ Ret();
-  }
-
-  // TODO(dartbug.com/49719)
-  // Handle [FunctionType]s.
-  __ Bind(&type_parameter_value_is_not_type);
-  __ CompareImmediate(InstantiateTypeABI::kScratchReg, kFunctionTypeCid);
-  __ BranchIf(NOT_EQUAL, &runtime_call);
-  switch (nullability) {
-    case Nullability::kNonNullable:
-      __ Ret();
-      break;
-    case Nullability::kNullable:
-      __ CompareFunctionTypeNullabilityWith(
-          InstantiateTypeABI::kResultTypeReg,
-          static_cast<int8_t>(Nullability::kNullable));
-      __ BranchIf(NOT_EQUAL, &runtime_call);
-      __ Ret();
-      break;
-    case Nullability::kLegacy:
-      __ CompareFunctionTypeNullabilityWith(
-          InstantiateTypeABI::kResultTypeReg,
-          static_cast<int8_t>(Nullability::kNonNullable));
+          static_cast<int8_t>(Nullability::kNonNullable),
+          InstantiateTypeABI::kScratchReg);
       __ BranchIf(EQUAL, &runtime_call);
       __ Ret();
   }
@@ -520,8 +497,9 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
   if (null_safety) {
     // Instance type isn't a top type if non-nullable in null safe mode.
-    __ CompareTypeNullabilityWith(
-        scratch1_reg, static_cast<int8_t>(Nullability::kNonNullable));
+    __ CompareAbstractTypeNullabilityWith(
+        scratch1_reg, static_cast<int8_t>(Nullability::kNonNullable),
+        scratch2_reg);
     __ BranchIf(EQUAL, &done, compiler::Assembler::kNearJump);
   }
   __ Bind(&is_top_type);
@@ -619,8 +597,9 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     compiler::Label is_not_type;
     __ CompareClassId(kCurrentTypeReg, kTypeCid, kScratchReg);
     __ BranchIf(NOT_EQUAL, &is_not_type, compiler::Assembler::kNearJump);
-    __ CompareTypeNullabilityWith(
-        kCurrentTypeReg, static_cast<int8_t>(Nullability::kNonNullable));
+    __ CompareAbstractTypeNullabilityWith(
+        kCurrentTypeReg, static_cast<int8_t>(Nullability::kNonNullable),
+        kScratchReg);
     __ BranchIf(NOT_EQUAL, &is_assignable);
     // FutureOr is a special case because it may have the non-nullable bit set,
     // but FutureOr<T> functions as the union of T and Future<T>, so it must be
@@ -644,11 +623,9 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     __ Bind(&is_not_type);
     // Null is assignable to a type parameter only if it is nullable or if the
     // instantiation is nullable.
-    __ LoadFieldFromOffset(
-        kScratchReg, kCurrentTypeReg,
-        compiler::target::TypeParameter::nullability_offset(), kByte);
-    __ CompareImmediate(kScratchReg,
-                        static_cast<int8_t>(Nullability::kNonNullable));
+    __ CompareAbstractTypeNullabilityWith(
+        kCurrentTypeReg, static_cast<int8_t>(Nullability::kNonNullable),
+        kScratchReg);
     __ BranchIf(NOT_EQUAL, &is_assignable);
 
     // Don't set kScratchReg in here as on IA32, that's the function TAV reg.
@@ -878,10 +855,15 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
 
   // Check whether this [Type] is instantiated/uninstantiated.
   __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                         target::Type::type_state_offset(), kByte);
+                         target::AbstractType::flags_offset(), kByte);
+  __ AndImmediate(
+      TypeTestABI::kScratchReg,
+      Utils::NBitMask<int32_t>(target::UntaggedAbstractType::kTypeStateBits)
+          << target::UntaggedAbstractType::kTypeStateShift);
   __ CompareImmediate(
       TypeTestABI::kScratchReg,
-      target::UntaggedAbstractType::kTypeStateFinalizedInstantiated);
+      target::UntaggedAbstractType::kTypeStateFinalizedInstantiated
+          << target::UntaggedAbstractType::kTypeStateShift);
   __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
 
   // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.

@@ -4046,10 +4046,6 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
   }
 };
 
-// Used to pack nullability into other serialized values.
-static constexpr intptr_t kNullabilityBitSize = 2;
-static constexpr intptr_t kNullabilityBitMask = (1 << kNullabilityBitSize) - 1;
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeSerializationCluster
     : public CanonicalSetSerializationCluster<
@@ -4073,9 +4069,9 @@ class TypeSerializationCluster
 
     PushFromTo(type);
 
-    ASSERT(type->untag()->type_class_id_ != kIllegalCid);
+    ASSERT(type->untag()->type_class_id() != kIllegalCid);
     ClassPtr type_class =
-        s->isolate_group()->class_table()->At(type->untag()->type_class_id_);
+        s->isolate_group()->class_table()->At(type->untag()->type_class_id());
     s->Push(type_class);
   }
 
@@ -4108,7 +4104,7 @@ class TypeSerializationCluster
   // Keep in sync with Type::Canonicalize.
   virtual bool IsInCanonicalSet(Serializer* s, TypePtr type) {
     ClassPtr type_class =
-        s->isolate_group()->class_table()->At(type->untag()->type_class_id_);
+        s->isolate_group()->class_table()->At(type->untag()->type_class_id());
     if (type_class->untag()->declaration_type() != type) {
       return true;
     }
@@ -4123,25 +4119,12 @@ class TypeSerializationCluster
 #if defined(DART_PRECOMPILER)
     if (FLAG_write_v8_snapshot_profile_to != nullptr) {
       ClassPtr type_class =
-          s->isolate_group()->class_table()->At(type->untag()->type_class_id_);
+          s->isolate_group()->class_table()->At(type->untag()->type_class_id());
       s->AttributePropertyRef(type_class, "<type_class>");
     }
 #endif
     WriteFromTo(type);
-    COMPILE_ASSERT(
-        std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
-    s->WriteUnsigned(type->untag()->type_class_id_);
-    ASSERT(type->untag()->type_state_ < (1 << UntaggedType::kTypeStateBitSize));
-    ASSERT(type->untag()->nullability_ < (1 << kNullabilityBitSize));
-    static_assert(UntaggedType::kTypeStateBitSize + kNullabilityBitSize <=
-                      kBitsPerByte * sizeof(uint8_t),
-                  "Cannot pack type_state_ and nullability_ into a uint8_t");
-    const uint8_t combined =
-        (type->untag()->type_state_ << kNullabilityBitSize) |
-        type->untag()->nullability_;
-    ASSERT_EQUAL(type->untag()->type_state_, combined >> kNullabilityBitSize);
-    ASSERT_EQUAL(type->untag()->nullability_, combined & kNullabilityBitMask);
-    s->Write<uint8_t>(combined);
+    s->WriteUnsigned(type->untag()->flags_);
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4170,12 +4153,7 @@ class TypeDeserializationCluster
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
                                      mark_canonical);
       d.ReadFromTo(type);
-      COMPILE_ASSERT(
-          std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
-      type->untag()->type_class_id_ = d.ReadUnsigned();
-      const uint8_t combined = d.Read<uint8_t>();
-      type->untag()->type_state_ = combined >> kNullabilityBitSize;
-      type->untag()->nullability_ = combined & kNullabilityBitMask;
+      type->untag()->flags_ = d.ReadUnsigned();
     }
   }
 
@@ -4257,19 +4235,8 @@ class FunctionTypeSerializationCluster
   void WriteFunctionType(Serializer* s, FunctionTypePtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    ASSERT(type->untag()->type_state_ <
-           (1 << UntaggedFunctionType::kTypeStateBitSize));
-    ASSERT(type->untag()->nullability_ < (1 << kNullabilityBitSize));
-    static_assert(
-        UntaggedFunctionType::kTypeStateBitSize + kNullabilityBitSize <=
-            kBitsPerByte * sizeof(uint8_t),
-        "Cannot pack type_state_ and nullability_ into a uint8_t");
-    const uint8_t combined =
-        (type->untag()->type_state_ << kNullabilityBitSize) |
-        type->untag()->nullability_;
-    ASSERT_EQUAL(type->untag()->type_state_, combined >> kNullabilityBitSize);
-    ASSERT_EQUAL(type->untag()->nullability_, combined & kNullabilityBitMask);
-    s->Write<uint8_t>(combined);
+    ASSERT(Utils::IsUint(8, type->untag()->flags_));
+    s->Write<uint8_t>(type->untag()->flags_);
     s->Write<uint32_t>(type->untag()->packed_parameter_counts_);
     s->Write<uint16_t>(type->untag()->packed_type_parameter_counts_);
   }
@@ -4300,9 +4267,7 @@ class FunctionTypeDeserializationCluster
       Deserializer::InitializeHeader(
           type, kFunctionTypeCid, FunctionType::InstanceSize(), mark_canonical);
       d.ReadFromTo(type);
-      const uint8_t combined = d.Read<uint8_t>();
-      type->untag()->type_state_ = combined >> kNullabilityBitSize;
-      type->untag()->nullability_ = combined & kNullabilityBitMask;
+      type->untag()->flags_ = d.Read<uint8_t>();
       type->untag()->packed_parameter_counts_ = d.Read<uint32_t>();
       type->untag()->packed_type_parameter_counts_ = d.Read<uint16_t>();
     }
@@ -4386,18 +4351,8 @@ class RecordTypeSerializationCluster
   void WriteRecordType(Serializer* s, RecordTypePtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
-    ASSERT(type->untag()->type_state_ <
-           (1 << UntaggedRecordType::kTypeStateBitSize));
-    ASSERT(type->untag()->nullability_ < (1 << kNullabilityBitSize));
-    static_assert(UntaggedRecordType::kTypeStateBitSize + kNullabilityBitSize <=
-                      kBitsPerByte * sizeof(uint8_t),
-                  "Cannot pack type_state_ and nullability_ into a uint8_t");
-    const uint8_t combined =
-        (type->untag()->type_state_ << kNullabilityBitSize) |
-        type->untag()->nullability_;
-    ASSERT_EQUAL(type->untag()->type_state_, combined >> kNullabilityBitSize);
-    ASSERT_EQUAL(type->untag()->nullability_, combined & kNullabilityBitMask);
-    s->Write<uint8_t>(combined);
+    ASSERT(Utils::IsUint(8, type->untag()->flags_));
+    s->Write<uint8_t>(type->untag()->flags_);
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4425,9 +4380,7 @@ class RecordTypeDeserializationCluster
       Deserializer::InitializeHeader(
           type, kRecordTypeCid, RecordType::InstanceSize(), mark_canonical);
       d.ReadFromTo(type);
-      const uint8_t combined = d.Read<uint8_t>();
-      type->untag()->type_state_ = combined >> kNullabilityBitSize;
-      type->untag()->nullability_ = combined & kNullabilityBitMask;
+      type->untag()->flags_ = d.Read<uint8_t>();
     }
   }
 
@@ -4534,16 +4487,20 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
     }
 
     TypeRef& type_ref = TypeRef::Handle(d->zone());
+    AbstractType& type = AbstractType::Handle(d->zone());
     Code& stub = Code::Handle(d->zone());
+    const bool includes_code = Snapshot::IncludesCode(d->kind());
 
-    if (Snapshot::IncludesCode(d->kind())) {
-      for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-        type_ref ^= refs.At(id);
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      type_ref ^= refs.At(id);
+
+      // Refresh finalization state and nullability.
+      type = type_ref.type();
+      type_ref.set_type(type);
+
+      if (includes_code) {
         type_ref.UpdateTypeTestingStubEntryPoint();
-      }
-    } else {
-      for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-        type_ref ^= refs.At(id);
+      } else {
         stub = TypeTestingStubGenerator::DefaultCodeForType(type_ref);
         type_ref.InitializeTypeTestingStubNonAtomic(stub);
       }
@@ -4599,16 +4556,8 @@ class TypeParameterSerializationCluster
     s->Write<int32_t>(type->untag()->parameterized_class_id_);
     s->Write<uint8_t>(type->untag()->base_);
     s->Write<uint8_t>(type->untag()->index_);
-    ASSERT(type->untag()->flags_ < (1 << UntaggedTypeParameter::kFlagsBitSize));
-    ASSERT(type->untag()->nullability_ < (1 << kNullabilityBitSize));
-    static_assert(UntaggedTypeParameter::kFlagsBitSize + kNullabilityBitSize <=
-                      kBitsPerByte * sizeof(uint8_t),
-                  "Cannot pack flags_ and nullability_ into a uint8_t");
-    const uint8_t combined = (type->untag()->flags_ << kNullabilityBitSize) |
-                             type->untag()->nullability_;
-    ASSERT_EQUAL(type->untag()->flags_, combined >> kNullabilityBitSize);
-    ASSERT_EQUAL(type->untag()->nullability_, combined & kNullabilityBitMask);
-    s->Write<uint8_t>(combined);
+    ASSERT(Utils::IsUint(8, type->untag()->flags_));
+    s->Write<uint8_t>(type->untag()->flags_);
   }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4641,9 +4590,7 @@ class TypeParameterDeserializationCluster
       type->untag()->parameterized_class_id_ = d.Read<int32_t>();
       type->untag()->base_ = d.Read<uint8_t>();
       type->untag()->index_ = d.Read<uint8_t>();
-      const uint8_t combined = d.Read<uint8_t>();
-      type->untag()->flags_ = combined >> kNullabilityBitSize;
-      type->untag()->nullability_ = combined & kNullabilityBitMask;
+      type->untag()->flags_ = d.Read<uint8_t>();
     }
   }
 

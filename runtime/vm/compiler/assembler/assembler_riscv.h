@@ -846,8 +846,10 @@ class Assembler : public MicroAssembler {
 
   void CompareWithMemoryValue(Register value, Address address);
 
-  void CompareFunctionTypeNullabilityWith(Register type, int8_t value) override;
-  void CompareTypeNullabilityWith(Register type, int8_t value) override;
+  void LoadAbstractTypeNullability(Register dst, Register type) override;
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch) override;
 
   // Debugging and bringup support.
   void Breakpoint() override { trap(); }
@@ -985,6 +987,9 @@ class Assembler : public MicroAssembler {
                     OperandSize sz = kWordBytes);
   void LslImmediate(Register rd, int32_t shift) {
     slli(rd, rd, shift);
+  }
+  void LsrImmediate(Register rd, int32_t shift) override {
+    srli(rd, rd, shift);
   }
   void TestImmediate(Register rn, intx_t imm, OperandSize sz = kWordBytes);
   void CompareImmediate(Register rn, intx_t imm, OperandSize sz = kWordBytes);

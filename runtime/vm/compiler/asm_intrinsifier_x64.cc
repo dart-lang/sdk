@@ -1341,8 +1341,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ movzxb(RCX, FieldAddress(RCX, target::Type::nullability_offset()));
-  __ movzxb(RDX, FieldAddress(RDX, target::Type::nullability_offset()));
+  __ LoadAbstractTypeNullability(RCX, RCX);
+  __ LoadAbstractTypeNullability(RDX, RDX);
   __ cmpq(RCX, RDX);
   __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
   // Fall through to equal case if nullability is strictly equal.
