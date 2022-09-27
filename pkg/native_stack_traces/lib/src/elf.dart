@@ -777,16 +777,19 @@ class StringTable extends Section implements DwarfContainerStringTable {
   }
 }
 
+/// An enumeration of recognized symbol binding values used by the ELF format.
 enum SymbolBinding {
   STB_LOCAL,
   STB_GLOBAL,
   STB_WEAK,
 }
 
+/// An enumeration of recognized symbol types used by the ELF format.
 enum SymbolType {
   STT_NOTYPE,
   STT_OBJECT,
   STT_FUNC,
+  STT_SECTION,
 }
 
 enum SymbolVisibility {
@@ -1087,6 +1090,17 @@ class Elf extends DwarfContainer {
     return null;
   }
 
+  /// Returns an iterable of the symbols in the dynamic symbol table(s).
+  /// The ordering of the symbols is not guaranteed.
+  Iterable<Symbol> get dynamicSymbols sync* {
+    for (final section in namedSections('.dynsym')) {
+      final dynsym = section as SymbolTable;
+      for (final symbol in dynsym.values) {
+        yield symbol;
+      }
+    }
+  }
+
   /// Reverse lookup of the static symbol that contains the given virtual
   /// address. Returns null if no static symbol matching the address is found.
   @override
@@ -1107,6 +1121,17 @@ class Elf extends DwarfContainer {
       }
     }
     return bestSym;
+  }
+
+  /// Returns an iterable of the symbols in the static symbol table(s).
+  /// The ordering of the symbols is not guaranteed.
+  Iterable<Symbol> get staticSymbols sync* {
+    for (final section in namedSections('.symtab')) {
+      final symtab = section as SymbolTable;
+      for (final symbol in symtab.values) {
+        yield symbol;
+      }
+    }
   }
 
   /// Creates an [Elf] from the data pointed to by [reader].

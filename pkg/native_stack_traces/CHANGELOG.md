@@ -1,3 +1,7 @@
+## 0.5.3
+
+- Exported more ELF utilities for use in Dart tests.
+
 ## 0.5.2
 
 - Adjusted logic for finding the DWARF MachO file in a dSYM.
