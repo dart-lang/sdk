@@ -272,6 +272,21 @@ String f() {
 ''');
   }
 
+  Future<void> test_generic_setLiteral_recordType() async {
+    await resolveTestCode('''
+Set f() {
+  Set<(int, int)> s = {};
+  return s;
+}
+''');
+    await assertHasFix('''
+Set f() {
+  var s = <(int, int)>{};
+  return s;
+}
+''');
+  }
+
   Future<void> test_simple() async {
     await resolveTestCode('''
 String f() {
@@ -313,6 +328,21 @@ String f() {
 String f() {
   final s = '';
   return s;
+}
+''');
+  }
+
+  Future<void> test_simple_recordType() async {
+    await resolveTestCode(r'''
+String f() {
+  (int, String) r = (3, '');
+  return r.$1;
+}
+''');
+    await assertHasFix(r'''
+String f() {
+  var r = (3, '');
+  return r.$1;
 }
 ''');
   }
