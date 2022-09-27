@@ -23,16 +23,16 @@ abstract class Foo extends core::Object {
 class Bar extends self::Foo implements pri::Fisk {
   synthetic constructor •() → self::Bar*
     ;
-  no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
-    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
+  no-such-method-forwarder method _hest() → void
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 class Baz extends self::Foo implements pri::Fisk {
   synthetic constructor •() → self::Baz*
     ;
   method _hest() → dynamic
     ;
-  no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
-    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
+  no-such-method-forwarder method _hest() → void
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 static method main() → dynamic
   ;
@@ -61,12 +61,12 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///private_module.dart:11:8 -> SymbolConstant(#_hest)
-Evaluated: ListLiteral @ org-dartlang-testcase:///private_module.dart:11:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///private_module.dart:11:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///private_module.dart:11:8 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///private_module.dart:11:8 -> SymbolConstant(#_hest)
-Evaluated: ListLiteral @ org-dartlang-testcase:///private_module.dart:11:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///private_module.dart:11:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///private_module.dart:11:8 -> MapConstant(const <Symbol*, dynamic>{})
-Extra constant evaluation: evaluated: 16, effectively constant: 8
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///private.dart:16:7 -> SymbolConstant(#_hest)
+Evaluated: ListLiteral @ org-dartlang-testcase:///private.dart:16:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///private.dart:16:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///private.dart:16:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///private.dart:18:7 -> SymbolConstant(#_hest)
+Evaluated: ListLiteral @ org-dartlang-testcase:///private.dart:18:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///private.dart:18:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///private.dart:18:7 -> MapConstant(const <Symbol*, dynamic>{})
+Extra constant evaluation: evaluated: 18, effectively constant: 8

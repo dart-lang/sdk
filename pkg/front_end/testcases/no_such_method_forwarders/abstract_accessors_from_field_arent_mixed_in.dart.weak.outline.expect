@@ -66,11 +66,11 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:12:7 -> SymbolConstant(#foo)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:12:7 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:12:7 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:12:7 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:12:7 -> SymbolConstant(#foo=)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:12:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:12:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:15:7 -> SymbolConstant(#foo)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:15:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:15:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:15:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:15:7 -> SymbolConstant(#foo=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:15:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_accessors_from_field_arent_mixed_in.dart:15:7 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 21, effectively constant: 7

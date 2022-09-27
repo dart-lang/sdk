@@ -8,8 +8,8 @@ import "org-dartlang-testcase:///private_method_tearoff_lib.dart";
 class Foo extends core::Object implements pri::Bar {
   synthetic constructor •() → self::Foo
     ;
-  no-such-method-forwarder method /* from org-dartlang-testcase:///private_method_tearoff_lib.dart */ _f() → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_f, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
+  no-such-method-forwarder method _f() → void
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_f, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 class Baz extends self::Foo {
   synthetic constructor •() → self::Baz
@@ -33,8 +33,8 @@ static method baz(pri::Bar bar) → void
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> SymbolConstant(#_f)
-Evaluated: ListLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> MapConstant(const <Symbol*, dynamic>{})
-Extra constant evaluation: evaluated: 8, effectively constant: 4
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///private_method_tearoff.dart:11:7 -> SymbolConstant(#_f)
+Evaluated: ListLiteral @ org-dartlang-testcase:///private_method_tearoff.dart:11:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///private_method_tearoff.dart:11:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///private_method_tearoff.dart:11:7 -> MapConstant(const <Symbol*, dynamic>{})
+Extra constant evaluation: evaluated: 9, effectively constant: 4

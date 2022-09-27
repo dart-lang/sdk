@@ -102,6 +102,7 @@ cafebabe
 calloc
 camel
 capitalized
+carefully
 categorization
 causal
 cb
@@ -362,12 +363,14 @@ insights
 instrument
 insufficient
 intdiv
+interactions
 interactive
 interchangeable
 internet
 interpolate
 introducer
 inv
+involves
 ioo
 ish
 it'll
@@ -486,6 +489,7 @@ partfoo
 party
 pause
 paused
+pays
 pc
 periodic
 periodically
@@ -560,6 +564,7 @@ risky
 rk
 row
 rows
+ruin
 runtimes
 rv
 sanitize
@@ -598,6 +603,7 @@ smoke
 snull
 somehow
 sorter
+soundly
 spans
 spell
 spellcheck
@@ -694,6 +700,7 @@ untransformed
 untrimmed
 unusual
 unversioned
+upgrade
 upload
 upward
 uuid

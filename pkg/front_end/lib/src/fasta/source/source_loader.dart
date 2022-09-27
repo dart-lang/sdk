@@ -2706,7 +2706,7 @@ abstract class pragma {
 class AbstractClassInstantiationError {}
 
 class NoSuchMethodError {
-  NoSuchMethodError.withInvocation(receiver, invocation);
+  factory NoSuchMethodError.withInvocation(receiver, invocation) => throw '';
 }
 
 class StackTrace {}

@@ -201,9 +201,9 @@ class CoreTypes {
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   late final Library? mirrorsLibrary = index.tryGetLibrary('dart:mirrors');
 
-  late final Constructor noSuchMethodErrorDefaultConstructor =
+  late final Procedure noSuchMethodErrorDefaultConstructor =
       // TODO(regis): Replace 'withInvocation' with '' after dart2js is fixed.
-      index.getConstructor('dart:core', 'NoSuchMethodError', 'withInvocation');
+      index.getProcedure('dart:core', 'NoSuchMethodError', 'withInvocation');
 
   late final Class deprecatedNullClass = index.getClass('dart:core', 'Null');
 

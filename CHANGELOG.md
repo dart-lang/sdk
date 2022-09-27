@@ -39,6 +39,21 @@
 [#49635]: https://github.com/dart-lang/sdk/issues/49635
 [#49878]: https://github.com/dart-lang/sdk/issues/49878
 
+- **Breaking Change** [#49687][]: Don't delegate inaccessible private names to
+  `noSuchMethod`. If a concrete class implements an interface containing a
+  member with a name that's private to different library, and does not inherit
+  an implementation of that interface member, a invocation of that member will
+  result in an exception getting thrown.  Previously, such attempts would result
+  in the call being diverted to the `noSuchMethod` method.
+
+  This change closes a loophole in Dart's privacy system, where another library
+  can provide a different implementation of a supposedly private member using
+  `noSuchMethod`, and paves the way for a future implementation of promotion for
+  private final fields (see [#2020][]).
+
+[#49687]: https://github.com/dart-lang/sdk/issues/49687
+[#2020]: https://github.com/dart-lang/language/issues/2020
+
 ### Libraries
 
 #### `dart:convert`

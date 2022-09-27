@@ -618,6 +618,7 @@ histogram
 history
 hit
 hoc
+holes
 hook
 hopefully
 horizontal
@@ -1393,6 +1394,7 @@ superinterfaces
 supernode
 supers
 suppose
+surprising
 suspended
 svg
 sw
