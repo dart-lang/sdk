@@ -150,7 +150,7 @@ class InferableTypeBuilder extends OmittedTypeBuilder
       } else {
         registerInferredType(const DynamicType());
       }
-      assert(hasType);
+      assert(hasType, "No type computed for $this");
     }
     return type;
   }
