@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library compiler.src.inferrer.map_tracer;
 
 import '../common/names.dart';
 import '../elements/entities.dart';
-import '../universe/selector.dart' show Selector;
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
@@ -43,7 +40,7 @@ class MapTracerVisitor extends TracerVisitor {
   // this map.
   List<MapTypeInformation> mapInputs = <MapTypeInformation>[];
 
-  MapTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
+  MapTracerVisitor(super.tracedType, super.inferrer);
 
   /// Returns [true] if the analysis completed successfully, [false]
   /// if it bailed out. In the former case, [keyInputs] and
@@ -51,12 +48,14 @@ class MapTracerVisitor extends TracerVisitor {
   /// flow into the key and value types of this map.
   bool run() {
     analyze();
-    MapTypeInformation map = tracedType;
+    final map = tracedType as MapTypeInformation;
     if (continueAnalyzing) {
       map.addFlowsIntoTargets(flowsInto);
       return true;
     }
-    keyInputs = valueInputs = mapInputs = null;
+    keyInputs.clear();
+    valueInputs.clear();
+    mapInputs.clear();
     return false;
   }
 
@@ -78,15 +77,16 @@ class MapTracerVisitor extends TracerVisitor {
   @override
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
-    Selector selector = info.selector;
-    String selectorName = selector.name;
+    final selector = info.selector!;
+    final selectorName = selector.name;
+    final arguments = info.arguments;
     if (currentUser == info.receiver) {
       if (!okMapSelectorsSet.contains(selectorName)) {
         if (selector.isCall) {
           if (selectorName == 'addAll') {
             // All keys and values from the argument flow into
             // the map.
-            TypeInformation map = info.arguments.positional[0];
+            TypeInformation map = arguments!.positional[0];
             if (map is MapTypeInformation) {
               inferrer.analyzeMapAndEnqueue(map);
               mapInputs.add(map);
@@ -105,7 +105,7 @@ class MapTracerVisitor extends TracerVisitor {
             // to go to dynamic.
             // TODO(herhut,16507): Use return type of closure in
             // Map.putIfAbsent.
-            keyInputs.add(info.arguments.positional[0]);
+            keyInputs.add(arguments!.positional[0]);
             valueInputs.add(inferrer.types.dynamicType);
           } else {
             // It would be nice to handle [Map.keys] and [Map.values], too.
@@ -117,8 +117,8 @@ class MapTracerVisitor extends TracerVisitor {
             return;
           }
         } else if (selector.isIndexSet) {
-          keyInputs.add(info.arguments.positional[0]);
-          valueInputs.add(info.arguments.positional[1]);
+          keyInputs.add(arguments!.positional[0]);
+          valueInputs.add(arguments.positional[1]);
         } else if (!selector.isIndex) {
           bailout('Map used in a not-ok selector [$selectorName]');
           return;

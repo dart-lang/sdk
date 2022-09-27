@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library compiler.src.inferrer.set_tracer;
 
 import '../common/names.dart';
 import '../elements/entities.dart';
-import '../universe/selector.dart' show Selector;
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
@@ -69,19 +66,19 @@ Set<String> okSetSelectorSet = Set<String>.from(const <String>[
 class SetTracerVisitor extends TracerVisitor {
   List<TypeInformation> inputs = <TypeInformation>[];
 
-  SetTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
+  SetTracerVisitor(super.tracedType, super.inferrer);
 
   /// Returns [true] if the analysis completed successfully, [false] if it
   /// bailed out. In the former case, [inputs] holds a list of
   /// [TypeInformation] nodes that flow into the element type of this set.
   bool run() {
     analyze();
-    SetTypeInformation set = tracedType;
+    final set = tracedType as SetTypeInformation;
     if (continueAnalyzing) {
       set.addFlowsIntoTargets(flowsInto);
       return true;
     }
-    inputs = null;
+    inputs.clear();
     return false;
   }
 
@@ -103,14 +100,15 @@ class SetTracerVisitor extends TracerVisitor {
   @override
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
-    Selector selector = info.selector;
-    String selectorName = selector.name;
+    final selector = info.selector!;
+    final selectorName = selector.name;
+    final arguments = info.arguments;
     if (currentUser == info.receiver) {
       if (!okSetSelectorSet.contains(selectorName)) {
         if (selector.isCall) {
           switch (selectorName) {
             case 'add':
-              inputs.add(info.arguments.positional[0]);
+              inputs.add(arguments!.positional[0]);
               break;
             case 'addAll':
               // TODO(fishythefish): Extract type argument from type

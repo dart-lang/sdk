@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library compiler.src.inferrer.list_tracer;
 
 import '../common/names.dart';
 import '../elements/entities.dart';
 import '../native/behavior.dart';
-import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Setlet;
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
@@ -136,14 +133,14 @@ class ListTracerVisitor extends TracerVisitor {
   Set<TypeInformation> inputs = Setlet<TypeInformation>();
   bool callsGrowableMethod = false;
 
-  ListTracerVisitor(tracedType, inferrer) : super(tracedType, inferrer);
+  ListTracerVisitor(super.tracedType, super.inferrer);
 
   /// Returns [true] if the analysis completed successfully, [false] if it
   /// bailed out. In the former case, [inputs] holds a list of
   /// [TypeInformation] nodes that flow into the element type of this list.
   bool run() {
     analyze();
-    ListTypeInformation list = tracedType;
+    final list = tracedType as ListTypeInformation;
     if (continueAnalyzing) {
       if (!callsGrowableMethod && list.inferredLength == null) {
         list.inferredLength = list.originalLength;
@@ -152,7 +149,7 @@ class ListTracerVisitor extends TracerVisitor {
       return true;
     } else {
       callsGrowableMethod = true;
-      inputs = null;
+      inputs.clear();
       return false;
     }
   }
@@ -181,26 +178,27 @@ class ListTracerVisitor extends TracerVisitor {
   @override
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
-    Selector selector = info.selector;
+    final selector = info.selector!;
     String selectorName = selector.name;
+    final arguments = info.arguments;
     if (currentUser == info.receiver) {
       if (!okListSelectorsSet.contains(selectorName)) {
         if (selector.isCall) {
-          int positionalLength = info.arguments.positional.length;
+          int positionalLength = arguments!.positional.length;
           if (selectorName == 'add') {
             if (positionalLength == 1) {
-              inputs.add(info.arguments.positional[0]);
+              inputs.add(arguments.positional[0]);
             }
           } else if (selectorName == 'insert') {
             if (positionalLength == 2) {
-              inputs.add(info.arguments.positional[1]);
+              inputs.add(arguments.positional[1]);
             }
           } else {
             bailout('Used in a not-ok selector');
             return;
           }
         } else if (selector.isIndexSet) {
-          inputs.add(info.arguments.positional[1]);
+          inputs.add(arguments!.positional[1]);
         } else if (!selector.isIndex) {
           bailout('Used in a not-ok selector');
           return;
