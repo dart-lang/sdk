@@ -12,7 +12,7 @@ import '../elements/names.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../universe/selector.dart';
-import '../world.dart' show JClosedWorld;
+import '../world_interfaces.dart' show JClosedWorld;
 import 'logging.dart';
 import 'nodes.dart';
 import 'types.dart';

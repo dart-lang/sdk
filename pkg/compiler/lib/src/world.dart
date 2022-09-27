@@ -86,6 +86,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   @override
   ClosureData get closureDataLookup;
 
+  @override
   OutputUnitData get outputUnitData;
 
   /// The [Sorter] used for sorting elements in the generated code.
