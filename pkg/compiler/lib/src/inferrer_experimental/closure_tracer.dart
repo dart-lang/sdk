@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library compiler.src.inferrer.closure_tracer;
 
 import '../common/names.dart' show Identifiers, Names;
 import '../elements/entities.dart';
-import '../universe/selector.dart' show Selector;
 import 'debug.dart' as debug;
-import 'engine.dart';
+import 'engine_interfaces.dart';
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
@@ -29,7 +26,8 @@ class ClosureTracerVisitor extends TracerVisitor {
   }
 
   @override
-  ApplyableTypeInformation get tracedType => super.tracedType;
+  ApplyableTypeInformation get tracedType =>
+      super.tracedType as ApplyableTypeInformation;
 
   void run() {
     analyze();
@@ -44,7 +42,7 @@ class ClosureTracerVisitor extends TracerVisitor {
     }
   }
 
-  void _tagAsFunctionApplyTarget([String reason]) {
+  void _tagAsFunctionApplyTarget([String? reason]) {
     tracedType.mightBePassedToFunctionApply = true;
     if (debug.VERBOSE) {
       print("Closure $tracedType might be passed to apply: $reason");
@@ -56,7 +54,7 @@ class ClosureTracerVisitor extends TracerVisitor {
   }
 
   void _analyzeCall(CallSiteTypeInformation info) {
-    Selector selector = info.selector;
+    final selector = info.selector!;
     tracedElements.forEach((FunctionEntity functionElement) {
       if (!selector.callStructure
           .signatureApplies(functionElement.parameterStructure)) {
@@ -83,24 +81,28 @@ class ClosureTracerVisitor extends TracerVisitor {
     super.visitStaticCallSiteTypeInformation(info);
     MemberEntity called = info.calledElement;
     if (inferrer.closedWorld.commonElements.isForeign(called)) {
-      String name = called.name;
+      final name = called.name!;
       if (name == Identifiers.JS || name == Identifiers.DART_CLOSURE_TO_JS) {
         bailout('Used in JS ${info.debugName}');
       } else if (name == Identifiers.RAW_DART_FUNCTION_REF) {
         bailout('Escaped raw function reference');
       }
     }
+
+    final selector = info.selector;
     if (called.isGetter &&
-        info.selector != null &&
-        info.selector.isCall &&
+        selector != null &&
+        selector.isCall &&
         inferrer.types.getInferredTypeOfMember(called) == currentUser) {
       // This node can be a closure call as well. For example, `foo()`
       // where `foo` is a getter.
       _registerCallForLaterAnalysis(info);
     }
+
+    final arguments = info.arguments;
     if (_checkIfFunctionApply(called) &&
-        info.arguments != null &&
-        info.arguments.contains(currentUser)) {
+        arguments != null &&
+        arguments.contains(currentUser)) {
       _tagAsFunctionApplyTarget("static call");
     }
   }
@@ -115,8 +117,9 @@ class ClosureTracerVisitor extends TracerVisitor {
   @override
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
-    if (info.selector.isCall) {
-      if (info.arguments.contains(currentUser)) {
+    final selector = info.selector!;
+    if (selector.isCall) {
+      if (info.arguments!.contains(currentUser)) {
         if (info.hasClosureCallTargets ||
             info.concreteTargets.any((element) => !element.isFunction)) {
           bailout('Passed to a closure');
@@ -127,8 +130,7 @@ class ClosureTracerVisitor extends TracerVisitor {
       } else if (info.concreteTargets.any(_checkIfCurrentUser)) {
         _registerCallForLaterAnalysis(info);
       }
-    } else if (info.selector.isGetter &&
-        info.selector.memberName == Names.call) {
+    } else if (selector.isGetter && selector.memberName == Names.call) {
       // We are potentially tearing off ourself here
       addNewEscapeInformation(info);
     }
@@ -143,9 +145,11 @@ class StaticTearOffClosureTracerVisitor extends ClosureTracerVisitor {
   @override
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
+
+    final selector = info.selector;
     if (info.calledElement == tracedElements.first &&
-        info.selector != null &&
-        info.selector.isGetter) {
+        selector != null &&
+        selector.isGetter) {
       addNewEscapeInformation(info);
     }
   }
