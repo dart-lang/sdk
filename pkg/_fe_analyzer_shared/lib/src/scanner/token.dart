@@ -516,7 +516,7 @@ class SimpleToken implements Token {
    * token.
    */
   @override
-  int get offset => _typeAndOffset >> 8;
+  int get offset => (_typeAndOffset >> 8) - 1;
 
   /**
    * Set the offset from the beginning of the file to the first character in
@@ -525,7 +525,9 @@ class SimpleToken implements Token {
   @override
   void set offset(int value) {
     assert(_tokenTypesByIndex.length < 256);
-    _typeAndOffset = (value << 8) | (_typeAndOffset & 0xff);
+    // See https://github.com/dart-lang/sdk/issues/50048 for details.
+    assert(value >= -1);
+    _typeAndOffset = ((value + 1) << 8) | (_typeAndOffset & 0xff);
   }
 
   /**
@@ -551,7 +553,10 @@ class SimpleToken implements Token {
    * Initialize a newly created token to have the given [type] and [offset].
    */
   SimpleToken(TokenType type, int offset, [this._precedingComment])
-      : _typeAndOffset = ((offset << 8) | type.index) {
+      : _typeAndOffset = (((offset + 1) << 8) | type.index) {
+    // See https://github.com/dart-lang/sdk/issues/50048 for details.
+    assert(offset >= -1);
+
     // Assert the encoding of the [type] is fully reversible.
     assert(type.index < 256 && _tokenTypesByIndex.length < 256);
     assert(identical(offset, this.offset));
