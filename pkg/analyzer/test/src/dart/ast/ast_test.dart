@@ -298,8 +298,28 @@ class C {
     assertInContext("C()}", true);
   }
 
+  @FailingTest(reason: 'not yet implemented')
   test_inConstantContext_instanceCreation_switch_true() {
     parse('''
+f(v) {
+  switch (v) {
+  case const C():
+    break;
+  }
+}
+class C {
+  const C();
+}
+''');
+    assertInContext("C()", true);
+  }
+
+  @failingTest
+  test_inConstantContext_instanceCreation_switch_true_language218() {
+    // Expected: true
+    //   Actual: <false>
+    parse('''
+// @dart=2.18
 f(v) {
   switch (v) {
   case C():
@@ -459,8 +479,26 @@ final x = const (0, [1]);
     assertInContext('[1]', true);
   }
 
+  @FailingTest(reason: 'not yet implemented')
   test_inConstantContext_listLiteral_switch_true() {
     parse('''
+f(v) {
+  switch (v) {
+  case const []:
+    break;
+  }
+}
+''');
+    assertInContext("[]", true);
+  }
+
+  @failingTest
+  test_inConstantContext_listLiteral_switch_true_language218() {
+    // Expected: <Instance of 'ExpressionImpl'>
+    //   Actual: ListPatternImpl:<[]>
+    //    Which: is not an instance of 'ExpressionImpl'
+    parse('''
+// @dart=2.18
 f(v) {
   switch (v) {
   case []:
@@ -569,8 +607,26 @@ f() {
     assertInContext("{'d", true);
   }
 
+  @FailingTest(reason: 'not yet implemented')
   test_inConstantContext_mapLiteral_switch_true() {
     parse('''
+f(v) {
+  switch (v) {
+  case const {}:
+    break;
+  }
+}
+''');
+    assertInContext("{}", true);
+  }
+
+  @failingTest
+  test_inConstantContext_mapLiteral_switch_true_language218() {
+    // Expected: <Instance of 'ExpressionImpl'>
+    //   Actual: MapPatternImpl:<{}>
+    //    Which: is not an instance of 'ExpressionImpl'
+    parse('''
+// @dart=2.18
 f(v) {
   switch (v) {
   case {}:

@@ -46,6 +46,7 @@ class FeatureSets {
       EnableString.extension_types,
       EnableString.macros,
       EnableString.named_arguments_anywhere,
+      EnableString.patterns,
       EnableString.records,
       EnableString.super_parameters,
       EnableString.unnamed_libraries,
