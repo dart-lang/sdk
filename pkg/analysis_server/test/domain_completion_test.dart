@@ -7,12 +7,11 @@ import 'dart:async';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:analyzer_utilities/check/check.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +22,6 @@ import 'services/completion/dart/completion_check.dart';
 import 'services/completion/dart/completion_printer.dart' as printer;
 import 'services/completion/dart/text_expectations.dart';
 import 'src/plugin/plugin_manager_test.dart';
-import 'utils/change_check.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -36,6 +34,29 @@ void main() {
 @reflectiveTest
 class CompletionDomainHandlerGetSuggestionDetails2Test
     extends PubPackageAnalysisServerTest {
+  void assertDetailsText(
+    CompletionGetSuggestionDetails2Result result,
+    String expected, {
+    bool printIfFailed = true,
+  }) {
+    final buffer = StringBuffer();
+    _SuggestionDetailsPrinter(
+      resourceProvider: resourceProvider,
+      fileDisplayMap: {testFile: 'testFile'},
+      buffer: buffer,
+      result: result,
+    ).writeResult();
+    final actual = buffer.toString();
+
+    if (actual != expected) {
+      if (printIfFailed) {
+        print(actual);
+      }
+      TextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
   Future<void> test_alreadyImported() async {
     await _configureWithWorkspaceRoot();
 
@@ -45,9 +66,11 @@ void f() {
   Rand^
 }
 ''', completion: 'Random', libraryUri: 'dart:math');
-    check(details)
-      ..completion.isEqualTo('Random')
-      ..change.edits.isEmpty;
+
+    assertDetailsText(details, r'''
+completion: Random
+  change
+''');
   }
 
   Future<void> test_import_dart() async {
@@ -58,17 +81,14 @@ void f() {
   R^
 }
 ''', completion: 'Random', libraryUri: 'dart:math');
-    check(details)
-      ..completion.isEqualTo('Random')
-      ..change
-          .hasFileEdit(testFile.path)
-          .appliedTo(testFileContent)
-          .isEqualTo(r'''
-import 'dart:math';
 
-void f() {
-  R
-}
+    assertDetailsText(details, r'''
+completion: Random
+  change
+    testFile
+      offset: 0
+      length: 0
+      replacement: import 'dart:math';\n\n
 ''');
   }
 
@@ -96,17 +116,14 @@ void f() {
   T^
 }
 ''', completion: 'Test', libraryUri: 'package:aaa/a.dart');
-    check(details)
-      ..completion.isEqualTo('Test')
-      ..change
-          .hasFileEdit(testFile.path)
-          .appliedTo(testFileContent)
-          .isEqualTo(r'''
-import 'package:aaa/a.dart';
 
-void f() {
-  T
-}
+    assertDetailsText(details, r'''
+completion: Test
+  change
+    testFile
+      offset: 0
+      length: 0
+      replacement: import 'package:aaa/a.dart';\n\n
 ''');
   }
 
@@ -122,17 +139,14 @@ void f() {
   T^
 }
 ''', completion: 'Test', libraryUri: 'package:test/a.dart');
-    check(details)
-      ..completion.isEqualTo('Test')
-      ..change
-          .hasFileEdit(testFile.path)
-          .appliedTo(testFileContent)
-          .isEqualTo(r'''
-import 'package:test/a.dart';
 
-void f() {
-  T
-}
+    assertDetailsText(details, r'''
+completion: Test
+  change
+    testFile
+      offset: 0
+      length: 0
+      replacement: import 'package:test/a.dart';\n\n
 ''');
   }
 
@@ -2944,21 +2958,67 @@ class RequestWithFutureResponse {
   }
 }
 
-extension on CheckTarget<CompletionGetSuggestionDetails2Result> {
-  @useResult
-  CheckTarget<SourceChange> get change {
-    return nest(
-      value.change,
-      (selected) => 'has change ${valueStr(selected)}',
-    );
+class _SuggestionDetailsPrinter {
+  final StringBuffer buffer;
+  final CompletionGetSuggestionDetails2Result result;
+  final ResourceProvider resourceProvider;
+  final Map<File, String> fileDisplayMap;
+
+  String _indent = '';
+
+  _SuggestionDetailsPrinter({
+    required this.buffer,
+    required this.result,
+    required this.resourceProvider,
+    required this.fileDisplayMap,
+  });
+
+  void writeResult() {
+    _writelnWithIndent('completion: ${result.completion}');
+    _withIndent(() {
+      _writeChange(result.change);
+    });
   }
 
-  @useResult
-  CheckTarget<String> get completion {
-    return nest(
-      value.completion,
-      (selected) => 'has completion ${valueStr(selected)}',
-    );
+  void _withIndent(void Function() f) {
+    var indent = _indent;
+    _indent = '$_indent  ';
+    f();
+    _indent = indent;
+  }
+
+  void _writeChange(SourceChange change) {
+    _writelnWithIndent('change');
+    _withIndent(() {
+      for (final fileEdit in change.edits) {
+        _writeSourceFileEdit(fileEdit);
+      }
+    });
+  }
+
+  void _writelnWithIndent(String line) {
+    buffer.write(_indent);
+    buffer.writeln(line);
+  }
+
+  void _writeSourceEdit(SourceEdit edit) {
+    _writelnWithIndent('offset: ${edit.offset}');
+    _writelnWithIndent('length: ${edit.length}');
+
+    final replacementStr = edit.replacement.replaceAll('\n', r'\n');
+    _writelnWithIndent('replacement: $replacementStr');
+  }
+
+  void _writeSourceFileEdit(SourceFileEdit fileEdit) {
+    final file = resourceProvider.getFile(fileEdit.file);
+    final fileStr = fileDisplayMap[file] ?? fail('No display name: $file');
+    _writelnWithIndent(fileStr);
+
+    _withIndent(() {
+      for (final edit in fileEdit.edits) {
+        _writeSourceEdit(edit);
+      }
+    });
   }
 }
 
