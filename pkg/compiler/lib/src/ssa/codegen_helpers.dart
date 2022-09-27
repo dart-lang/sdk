@@ -9,7 +9,7 @@ import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show JClosedWorld;
+import '../world_interfaces.dart' show JClosedWorld;
 import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
 

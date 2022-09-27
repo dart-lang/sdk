@@ -7,6 +7,7 @@ import 'package:compiler/src/js_model/element_map_interfaces.dart';
 import 'closure.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'common/elements.dart';
+import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'elements/entities.dart';
 import 'elements/names.dart';
 import 'elements/types.dart';
@@ -36,6 +37,8 @@ abstract class JClosedWorld implements World {
   AnnotationsData get annotationsData;
 
   ClosureData get closureDataLookup;
+
+  OutputUnitData get outputUnitData;
 
   InterceptorData get interceptorData;
 

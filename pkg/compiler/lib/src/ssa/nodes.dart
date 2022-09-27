@@ -26,7 +26,7 @@ import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world.dart' show JClosedWorld;
+import '../world_interfaces.dart' show JClosedWorld;
 import 'invoke_dynamic_specializers.dart';
 import 'validate.dart';
 

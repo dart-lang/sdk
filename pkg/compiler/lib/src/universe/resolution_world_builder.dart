@@ -25,7 +25,7 @@ import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../options.dart';
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart' show World;
+import '../world_interfaces.dart' show World;
 import 'call_structure.dart';
 import 'class_hierarchy.dart' show ClassHierarchyBuilder;
 import 'class_set.dart';
