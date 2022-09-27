@@ -15,7 +15,7 @@ dumps. Example:
 
   # obtain symbol data from first binary in /tmp/nm1.dump
   cd $CHECKOUT1_SRC
-  ninja -C out/Release binary_size_tool
+  buildtools/ninja/ninja -C out/Release binary_size_tool
   tools/binary_size/run_binary_size_analysis \
       --library <path_to_library>
       --destdir /tmp/throwaway
@@ -23,7 +23,7 @@ dumps. Example:
 
   # obtain symbol data from second binary in /tmp/nm2.dump
   cd $CHECKOUT2_SRC
-  ninja -C out/Release binary_size_tool
+  buildtools/ninja/ninja -C out/Release binary_size_tool
   tools/binary_size/run_binary_size_analysis \
       --library <path_to_library>
       --destdir /tmp/throwaway

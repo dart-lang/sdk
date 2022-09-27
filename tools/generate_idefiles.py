@@ -12,6 +12,7 @@ analysis_options.yaml for the Dart analyzer.
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -76,7 +77,8 @@ def GenerateCompileCommands(options):
         # Remove ninja prepend on Windows.
         # This is not fully correct, as now it fails to find a sysroot for
         # Windows. However, clangd completely fails with the `-t` flag.
-        command = command.replace("ninja -t msvc -e environment.x64 --", "")
+        command = re.sub(r"([^\s]*)ninja -t msvc -e environment.x64 --", "",
+                         command)
 
         # Add sysroot from out\DebugX64\environment.x64 on Windows.
         # TODO(dacoharkes): Fetch the paths from that file.
