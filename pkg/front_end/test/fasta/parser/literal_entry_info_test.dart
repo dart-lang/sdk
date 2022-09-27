@@ -1056,7 +1056,7 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, [Token? case_]) {
     calls.add('handleParenthesizedCondition $token');
   }
 

@@ -1947,7 +1947,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, [Token? case_]) {
     _unknown();
   }
 

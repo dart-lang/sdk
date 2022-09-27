@@ -2430,9 +2430,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
-    ParenthesizedConditionHandle data =
-        new ParenthesizedConditionHandle(ParserAstType.HANDLE, token: token);
+  void handleParenthesizedCondition(Token token, [Token? case_]) {
+    ParenthesizedConditionHandle data = new ParenthesizedConditionHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        case_: case_);
     seen(data);
   }
 
@@ -7036,13 +7038,16 @@ class InvalidOperatorNameHandle extends ParserAstNode {
 
 class ParenthesizedConditionHandle extends ParserAstNode {
   final Token token;
+  final Token? case_;
 
-  ParenthesizedConditionHandle(ParserAstType type, {required this.token})
+  ParenthesizedConditionHandle(ParserAstType type,
+      {required this.token, this.case_})
       : super("ParenthesizedCondition", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+        "case_": case_,
       };
 }
 

@@ -6068,7 +6068,14 @@ class Parser {
     return token;
   }
 
-  Token ensureParenthesizedCondition(Token token) {
+  /// Parses an expression inside parentheses that represents the condition part
+  /// of an if-statement, if-element, do-while statement, or while statement, or
+  /// the scrutinee part of a switch statement.  [token] is the token before
+  /// where the `(` is expected.
+  ///
+  /// [allowCase] indicates whether the condition may optionally be followed
+  /// by a caseHead.
+  Token ensureParenthesizedCondition(Token token, {bool allowCase = false}) {
     Token openParen = token.next!;
     if (!optional('(', openParen)) {
       // Recover
@@ -6077,15 +6084,18 @@ class Parser {
       openParen = rewriter.insertParens(token, /* includeIdentifier = */ false);
     }
     token = parseExpressionInParenthesisRest(openParen);
-    listener.handleParenthesizedCondition(openParen);
     return token;
   }
 
-  /// Parse either a parenthesized expression or a record literal.
-  /// If [constKeywordForRecord] is non-null it is forced to be a record
-  /// literal and an error will be issued if there is no trailing comma.
+  /// Parse either a parenthesized expression or a record literal, or a
+  /// parenthesized pattern or record pattern.  If [constKeywordForRecord] is
+  /// non-null it is forced to be a record literal and an error will be issued
+  /// if there is no trailing comma.
+  ///
+  /// [forPattern] indicates whether a pattern is being parsed.
   Token parseParenthesizedExpressionOrRecordLiteral(
-      Token token, Token? constKeywordForRecord) {
+      Token token, Token? constKeywordForRecord,
+      {bool forPattern = false}) {
     Token begin = token.next!;
     assert(optional('(', begin));
     listener.beginParenthesizedExpressionOrRecordLiteral(begin);
@@ -6147,12 +6157,20 @@ class Parser {
     return token;
   }
 
-  Token parseExpressionInParenthesisRest(Token token) {
+  /// Parses an expression inside parentheses that represents the condition part
+  /// of an if-statement, if-element, do-while statement, or while statement, or
+  /// the scrutinee part of a switch statement.  [token] is the `(` token.
+  ///
+  /// [allowCase] indicates whether the condition may optionally be followed by
+  /// a caseHead.
+  Token parseExpressionInParenthesisRest(Token token,
+      {bool allowCase = false}) {
     assert(optional('(', token));
     BeginToken begin = token as BeginToken;
     token = parseExpression(token);
     token = ensureCloseParen(token, begin);
     assert(optional(')', token));
+    listener.handleParenthesizedCondition(begin);
     return token;
   }
 
@@ -6286,6 +6304,8 @@ class Parser {
 
   /// This method parses the portion of a set or map literal that starts with
   /// the left curly brace when there are no leading type arguments.
+  ///
+  /// [forPattern] indicates whether an expression or pattern should be parsed.
   Token parseLiteralSetOrMapSuffix(Token token, Token? constKeyword) {
     Token leftBrace = token = token.next!;
     assert(optional('{', leftBrace));
@@ -6976,11 +6996,16 @@ class Parser {
   ///   label expression
   /// ;
   /// ```
-  Token parseArguments(Token token) {
-    return parseArgumentsRest(token.next!);
+  ///
+  /// [forPattern] indicates whether an expression or pattern is being
+  /// parsed.
+  Token parseArguments(Token token, {bool forPattern = false}) {
+    return parseArgumentsRest(token.next!, forPattern: forPattern);
   }
 
-  Token parseArgumentsRest(Token token) {
+  /// Parses the rest of an arguments list, where [token] is the `(`.
+  /// [forPattern] indicates whether an expression or pattern is being parsed.
+  Token parseArgumentsRest(Token token, {bool forPattern = false}) {
     Token begin = token;
     assert(optional('(', begin));
     listener.beginArguments(begin);

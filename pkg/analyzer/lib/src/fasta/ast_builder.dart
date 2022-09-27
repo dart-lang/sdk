@@ -4271,7 +4271,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleParenthesizedCondition(Token leftParenthesis) {
+  void handleParenthesizedCondition(Token leftParenthesis, [Token? case_]) {
     push(_ParenthesizedCondition(leftParenthesis, pop() as ExpressionImpl));
   }
 

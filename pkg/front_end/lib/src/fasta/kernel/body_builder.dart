@@ -2258,7 +2258,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, [Token? case_]) {
     assert(checkState(token, [
       unionOfKinds([
         ValueKinds.Expression,

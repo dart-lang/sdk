@@ -2575,9 +2575,10 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, [Token? case_]) {
     seen(token);
-    doPrint('handleParenthesizedCondition(' '$token)');
+    seen(case_);
+    doPrint('handleParenthesizedCondition(' '$token, ' '$case_)');
   }
 
   @override

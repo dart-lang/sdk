@@ -1784,7 +1784,7 @@ class Listener implements UnescapeErrorListener {
   /// - do while loop
   /// - switch statement
   /// - while loop
-  void handleParenthesizedCondition(Token token) {
+  void handleParenthesizedCondition(Token token, [Token? case_]) {
     logEvent("ParenthesizedCondition");
   }
 
