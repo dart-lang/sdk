@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:json_rpc_2/error_code.dart' as jsonRpcErrors;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
@@ -2099,13 +2100,22 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     try {
       return await func();
     } on vm.RPCError catch (e) {
-      // If we're been asked to shut down while this request was occurring,
-      // it's normal to get kServiceDisappeared so we should handle this
-      // silently.
-      if (isTerminating && e.code == RpcErrorCodes.kServiceDisappeared) {
-        return null;
+      // If we've been asked to shut down while this request was occurring,
+      // it's normal to get some types of errors from in-flight VM Service
+      // requests and we should handle them silently.
+      if (isTerminating) {
+        // kServiceDisappeared is thrown sometimes when services disappear.
+        if (e.code == RpcErrorCodes.kServiceDisappeared) {
+          return null;
+        }
+        // SERVER_ERROR can occur when DDS completes any outstanding requests
+        // with "The client closed with pending request".
+        if (e.code == jsonRpcErrors.SERVER_ERROR) {
+          return null;
+        }
       }
 
+      // Otherwise, it's an unexpected/unknown failure and should be rethrown.
       rethrow;
     }
   }
