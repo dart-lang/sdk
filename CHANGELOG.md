@@ -1,3 +1,23 @@
+## 2.18.2 - 2022-09-28
+
+This is a patch release that:
+
+- fixes incorrect behavior in `Uri.parse`.
+- fixes a compiler crash (issue [#50052][]).
+
+### Libraries
+
+#### `dart:core`
+
+- The `Uri` class will parse a backslash in the path or the authority separator
+  of a URI as a forward slash. This affects the `Uri` constructor's `path`
+  parameter, and the `Uri.parse` method.
+  This change was made to not diverge as much from the browser `URL` behavior.
+  The Dart `Uri` class is still not an implementation of the same standard
+  as the browser's `URL` implementation.
+
+[#50052]: https://github.com/dart-lang/sdk/issues/50052
+
 ## 2.18.1 - 2022-09-14
 
 This is a patch release that fixes a crash caused by incorrect type inference
