@@ -148,7 +148,7 @@ vars = {
   "source_span_rev": "ff03af16474ce91c89eb3bc28182866f4cb6dfb0",
   "sse_rev": "00084c43684ddaf7e09c19c5364c4a27eb04efda",
   "stack_trace_rev": "17f09c2c6845bb31c7c385acecce5befb8527a13",
-  "stream_channel_rev": "63831cb74c5a413da893bda0fa4a80b5cb567076",
+  "stream_channel_rev": "a5129ca44322a7024074ca38fb98e343dcb638c7",
   "string_scanner_rev": "2d84b16d8ae03c3a8c2417b71abe0fe6de7d8bf6",
   "sync_http_rev": "f5c1f18f579752112870fa2f1860470d28c6f605",
   "term_glyph_rev": "ec7cf7bb51ebb7d55760a1359f6697690dbc06ba",
