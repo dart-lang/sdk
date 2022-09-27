@@ -44,6 +44,7 @@ alive
 allocate
 allocator
 altered
+ambiguities
 analogous
 analogy
 analyzes
@@ -365,6 +366,7 @@ destructure
 destructuring
 deterministic
 dev
+developed
 device
 dictates
 diff
@@ -769,6 +771,7 @@ ld
 leafp
 leeway
 left's
+legitimately
 len
 lets
 letting
@@ -1440,6 +1443,7 @@ tick
 ticker
 tid
 ties
+tighter
 tiki
 tilde
 till
@@ -1547,6 +1551,7 @@ unsortable
 unsound
 unsubstituted
 untouched
+unusual
 unwrapper
 unwraps
 unwritten

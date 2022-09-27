@@ -1601,32 +1601,41 @@ class TestParser extends Parser {
   }
 
   @override
-  Token ensureParenthesizedCondition(Token token) {
-    doPrint('ensureParenthesizedCondition(' '$token)');
+  Token ensureParenthesizedCondition(Token token, {required bool allowCase}) {
+    doPrint(
+        'ensureParenthesizedCondition(' '$token, ' 'allowCase: $allowCase)');
     indent++;
-    var result = super.ensureParenthesizedCondition(token);
+    var result =
+        super.ensureParenthesizedCondition(token, allowCase: allowCase);
     indent--;
     return result;
   }
 
   @override
   Token parseParenthesizedExpressionOrRecordLiteral(
-      Token token, Token? constKeywordForRecord) {
+      Token token, Token? constKeywordForRecord,
+      {bool forPattern = false}) {
     doPrint('parseParenthesizedExpressionOrRecordLiteral('
         '$token, '
-        '$constKeywordForRecord)');
+        '$constKeywordForRecord, '
+        'forPattern: $forPattern)');
     indent++;
     var result = super.parseParenthesizedExpressionOrRecordLiteral(
-        token, constKeywordForRecord);
+        token, constKeywordForRecord,
+        forPattern: forPattern);
     indent--;
     return result;
   }
 
   @override
-  Token parseExpressionInParenthesisRest(Token token) {
-    doPrint('parseExpressionInParenthesisRest(' '$token)');
+  Token parseExpressionInParenthesisRest(Token token,
+      {required bool allowCase}) {
+    doPrint('parseExpressionInParenthesisRest('
+        '$token, '
+        'allowCase: $allowCase)');
     indent++;
-    var result = super.parseExpressionInParenthesisRest(token);
+    var result =
+        super.parseExpressionInParenthesisRest(token, allowCase: allowCase);
     indent--;
     return result;
   }
@@ -1863,19 +1872,19 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseArguments(Token token) {
-    doPrint('parseArguments(' '$token)');
+  Token parseArguments(Token token, {bool forPattern = false}) {
+    doPrint('parseArguments(' '$token, ' 'forPattern: $forPattern)');
     indent++;
-    var result = super.parseArguments(token);
+    var result = super.parseArguments(token, forPattern: forPattern);
     indent--;
     return result;
   }
 
   @override
-  Token parseArgumentsRest(Token token) {
-    doPrint('parseArgumentsRest(' '$token)');
+  Token parseArgumentsRest(Token token, {bool forPattern = false}) {
+    doPrint('parseArgumentsRest(' '$token, ' 'forPattern: $forPattern)');
     indent++;
-    var result = super.parseArgumentsRest(token);
+    var result = super.parseArgumentsRest(token, forPattern: forPattern);
     indent--;
     return result;
   }
@@ -2597,6 +2606,51 @@ class TestParser extends Parser {
     doPrint('isLinkText(' '$comment, ' '$rightIndex)');
     indent++;
     var result = super.isLinkText(comment, rightIndex);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePattern(Token token, {int precedence = 1}) {
+    doPrint('parsePattern(' '$token, ' 'precedence: $precedence)');
+    indent++;
+    var result = super.parsePattern(token, precedence: precedence);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePrimaryPattern(Token token) {
+    doPrint('parsePrimaryPattern(' '$token)');
+    indent++;
+    var result = super.parsePrimaryPattern(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseVariablePattern(Token token, {TypeInfo typeInfo = noType}) {
+    doPrint('parseVariablePattern(' '$token, ' 'typeInfo: $typeInfo)');
+    indent++;
+    var result = super.parseVariablePattern(token, typeInfo: typeInfo);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseListPatternSuffix(Token token) {
+    doPrint('parseListPatternSuffix(' '$token)');
+    indent++;
+    var result = super.parseListPatternSuffix(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseMapPatternSuffix(Token token) {
+    doPrint('parseMapPatternSuffix(' '$token)');
+    indent++;
+    var result = super.parseMapPatternSuffix(token);
     indent--;
     return result;
   }

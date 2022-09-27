@@ -91,6 +91,10 @@ class FindNode {
     return _node(search, (n) => n is CascadeExpression);
   }
 
+  CaseClause caseClause(String search) {
+    return _node(search, (n) => n is CaseClause);
+  }
+
   CastPattern castPattern(String search) {
     return _node(search, (n) => n is CastPattern);
   }

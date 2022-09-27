@@ -88,7 +88,7 @@ Usage: dart runtime/tools/wiki/xref_extractor/bin/main.dart <path-to-cquery>
 /// same input C++ files and this greatly confuses cquery.
 Future<void> generateCompileCommands() async {
   print('Extracting compilation commands from build files for ReleaseX64');
-  final result = await Process.run('ninja', [
+  final result = await Process.run('buildtools/ninja/ninja', [
     '-C',
     '${Platform.isMacOS ? 'xcodebuild' : 'out'}/ReleaseX64',
     '-t',

@@ -14,7 +14,7 @@ import 'parser_impl.dart' show Parser;
 
 import 'type_info_impl.dart';
 
-import 'util.dart' show isOneOf, optional;
+import 'util.dart' show isOneOf, isOneOfOrEof, optional;
 
 /// [TypeInfo] provides information collected by [computeType]
 /// about a particular type reference.
@@ -348,6 +348,34 @@ TypeInfo computeType(final Token token, bool required,
   return noType;
 }
 
+/// Computes the [TypeInfo] for a variable pattern.
+///
+/// This is similar to [computeType], but has special logic to account for an
+/// ambiguity that arises in patterns due to the fact that `as` can either be
+/// an identifier or the operator in a castPattern.
+TypeInfo computeVariablePatternType(Token token) {
+  TypeInfo typeInfo = computeType(token, /* required = */ false);
+  Token afterType = typeInfo.skipType(token);
+  if (!identical(afterType, token)) {
+    Token next = afterType.next!;
+    if (next.isIdentifier) {
+      if (optional('as', next)) {
+        // We've seen `TYPE as`.  `as` is a built-in identifier, so this
+        // *could* be a variable pattern.  Or it could be that TYPE should
+        // have been parsed as a pattern.  It's probably not a variable
+        // pattern (since `as` is an unusual variable name), so we'll only
+        // treat it as a variable pattern if the token following `as` is
+        // something that could legitimately follow a variable pattern (and
+        // hence couldn't introduce a type).
+        if (!mayFollowVariablePattern(next.next!)) {
+          return noType;
+        }
+      }
+    }
+  }
+  return typeInfo;
+}
+
 /// Called by the parser to obtain information about a possible group of type
 /// parameters or type arguments that follow [token].
 /// This does not modify the token stream.
@@ -406,6 +434,23 @@ TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
       ? typeArg
       : noTypeParamOrArg;
 }
+
+/// Determines whether [token] can validly follow a variable pattern.
+bool mayFollowVariablePattern(Token token) =>
+    isOneOfOrEof(token, _allowedTokensAfterVariablePattern);
+
+const Set<String> _allowedTokensAfterVariablePattern = {
+  ',',
+  ':',
+  '|',
+  '&',
+  ')',
+  '}',
+  ']',
+  'as',
+  '?',
+  '!'
+};
 
 /// Indicates whether the given [token] is allowed to follow a list of type
 /// arguments used as a selector after an expression.
