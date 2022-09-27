@@ -419,7 +419,8 @@ class FastaParserTestCase
     );
     AstBuilder astBuilder = AstBuilder(errorReporter, source.uri, true,
         featureSet!, LineInfo.fromContent(content));
-    fasta.Parser parser = fasta.Parser(astBuilder);
+    fasta.Parser parser = fasta.Parser(astBuilder,
+        allowPatterns: featureSet!.isEnabled(Feature.patterns));
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
     parser.parseUnit(_fastaTokens);
@@ -1507,6 +1508,18 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 ///
 /// Intended to be mixed in to parser test case classes.
 mixin ParserTestHelpers {
+  ExpectedError error(ErrorCode code, int offset, int length,
+          {Pattern? correctionContains,
+          String? text,
+          List<Pattern> messageContains = const [],
+          List<ExpectedContextMessage> contextMessages =
+              const <ExpectedContextMessage>[]}) =>
+      ExpectedError(code, offset, length,
+          correctionContains: correctionContains,
+          message: text,
+          messageContains: messageContains,
+          expectedContextMessages: contextMessages);
+
   void expectCommentText(Comment? comment, String expectedText) {
     comment!;
     expect(comment.beginToken, same(comment.endToken));

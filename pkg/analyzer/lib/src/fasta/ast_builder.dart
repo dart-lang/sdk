@@ -773,6 +773,19 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endBinaryPattern(Token operatorToken) {
+    assert(operatorToken.isOperator);
+    debugEvent("BinaryPattern");
+
+    var right = pop() as DartPatternImpl;
+    var left = pop() as DartPatternImpl;
+    push(
+      BinaryPatternImpl(
+          leftOperand: left, operator: operatorToken, rightOperand: right),
+    );
+  }
+
+  @override
   void endBlock(
       int count, Token leftBracket, Token rightBracket, BlockKind blockKind) {
     assert(optional('{', leftBracket));
@@ -1964,7 +1977,7 @@ class AstBuilder extends StackListener {
         ifKeyword: ifToken,
         leftParenthesis: condition.leftParenthesis,
         condition: condition.expression,
-        caseClause: null,
+        caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
         thenStatement: thenPart,
         elseKeyword: elseToken,
@@ -2732,6 +2745,15 @@ class AstBuilder extends StackListener {
           member.colon,
           statements ?? member.statements,
         );
+      } else if (member is SwitchPatternCaseImpl) {
+        return SwitchPatternCaseImpl(
+          labels: labels ?? member.labels,
+          keyword: member.keyword,
+          pattern: member.pattern,
+          whenClause: member.whenClause,
+          colon: member.colon,
+          statements: statements ?? member.statements,
+        );
       } else {
         throw UnimplementedError('(${member.runtimeType}) $member');
       }
@@ -3168,9 +3190,30 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("CaseMatch");
 
-    var expression = pop() as Expression;
-    push(ast.switchCase(
-        <Label>[], caseKeyword, expression, colon, <Statement>[]));
+    if (_featureSet.isEnabled(Feature.patterns)) {
+      var pattern = pop() as DartPatternImpl;
+      push(SwitchPatternCaseImpl(
+          labels: <Label>[],
+          keyword: caseKeyword,
+          pattern: pattern,
+          whenClause: null,
+          colon: colon,
+          statements: <Statement>[]));
+    } else {
+      var expression = pop() as Expression;
+      push(ast.switchCase(
+          <Label>[], caseKeyword, expression, colon, <Statement>[]));
+    }
+  }
+
+  @override
+  void handleCastPattern(Token asOperator) {
+    assert(optional('as', asOperator));
+    debugEvent("CastPattern");
+
+    var type = pop() as TypeAnnotationImpl;
+    var pattern = pop() as DartPatternImpl;
+    push(CastPatternImpl(pattern: pattern, asToken: asOperator, type: type));
   }
 
   @override
@@ -3353,6 +3396,12 @@ class AstBuilder extends StackListener {
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {
     push(referenceSource);
     push(referenceOffset);
+  }
+
+  @override
+  void handleConstantPattern(Token? constKeyword) {
+    push(ConstantPatternImpl(
+        constKeyword: constKeyword, expression: pop() as ExpressionImpl));
   }
 
   @override
@@ -3639,6 +3688,34 @@ class AstBuilder extends StackListener {
 
     push(hideClause ?? NullValue.HideClause);
     push(showClause ?? NullValue.ShowClause);
+  }
+
+  @override
+  void handleExtractorPattern(
+      Token firstIdentifierToken, Token? dot, Token? secondIdentifierToken) {
+    debugEvent("ExtractorPattern");
+
+    var arguments = pop() as _ExtractorPatternFields;
+    var typeArguments = pop() as TypeArgumentListImpl?;
+    var firstIdentifier = SimpleIdentifierImpl(firstIdentifierToken);
+    var typeName = dot == null
+        ? firstIdentifier
+        : PrefixedIdentifierImpl(
+            firstIdentifier, dot, SimpleIdentifierImpl(secondIdentifierToken!));
+    push(ExtractorPatternImpl(
+        typeName: typeName,
+        typeArguments: typeArguments,
+        leftParenthesis: arguments.leftParenthesis,
+        fields: arguments.fields,
+        rightParenthesis: arguments.rightParenthesis));
+  }
+
+  @override
+  void handleExtractorPatternFields(
+      int count, Token beginToken, Token endToken) {
+    debugEvent("ExtractorPatternFields");
+    var fields = popTypedList2<RecordPatternField>(count);
+    push(_ExtractorPatternFields(beginToken, endToken, fields));
   }
 
   @override
@@ -3978,6 +4055,21 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleListPattern(int count, Token leftBracket, Token rightBracket) {
+    assert(optional('[', leftBracket));
+    assert(optional(']', rightBracket));
+    debugEvent("ListPattern");
+
+    var elements = popTypedList2<DartPattern>(count);
+    var typeArguments = pop() as TypeArgumentListImpl?;
+    push(ListPatternImpl(
+        typeArguments: typeArguments,
+        leftBracket: leftBracket,
+        elements: elements,
+        rightBracket: rightBracket));
+  }
+
+  @override
   void handleLiteralBool(Token token) {
     bool value = identical(token.stringValue, "true");
     assert(value || identical(token.stringValue, "false"));
@@ -4081,6 +4173,29 @@ class AstBuilder extends StackListener {
       elements: elements,
       rightBracket: rightBrace,
     ));
+  }
+
+  @override
+  void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
+    debugEvent('MapPattern');
+
+    var entries = popTypedList2<MapPatternEntry>(count);
+    var typeArguments = pop() as TypeArgumentListImpl?;
+    push(MapPatternImpl(
+        typeArguments: typeArguments,
+        leftBracket: leftBrace,
+        entries: entries,
+        rightBracket: rightBrace));
+  }
+
+  @override
+  void handleMapPatternEntry(Token colon, Token endToken) {
+    assert(optional(':', colon));
+    debugEvent("MapPatternEntry");
+
+    var value = pop() as DartPatternImpl;
+    var key = pop() as ExpressionImpl;
+    push(MapPatternEntryImpl(key: key, separator: colon, value: value));
   }
 
   @override
@@ -4253,6 +4368,23 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleNullAssertPattern(Token bang) {
+    debugEvent("NullAssertPattern");
+    push(PostfixPatternImpl(operand: pop() as DartPatternImpl, operator: bang));
+  }
+
+  @override
+  void handleNullCheckPattern(Token question) {
+    debugEvent('NullCheckPattern');
+    if (!_featureSet.isEnabled(Feature.patterns)) {
+      // TODO(paulberry): report the appropriate error
+      throw UnimplementedError('Patterns not enabled');
+    }
+    push(PostfixPatternImpl(
+        operand: pop() as DartPatternImpl, operator: question));
+  }
+
+  @override
   void handleOperator(Token operatorToken) {
     assert(operatorToken.isUserDefinableOperator);
     debugEvent("Operator");
@@ -4271,8 +4403,42 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleParenthesizedCondition(Token leftParenthesis, [Token? case_]) {
-    push(_ParenthesizedCondition(leftParenthesis, pop() as ExpressionImpl));
+  void handleParenthesizedCondition(Token leftParenthesis, Token? case_) {
+    ExpressionImpl condition;
+    CaseClauseImpl? caseClause;
+    if (case_ != null) {
+      // TODO(paulberry): what about a guard?
+      var pattern = pop() as DartPatternImpl;
+      caseClause = CaseClauseImpl(
+          caseKeyword: case_, pattern: pattern, whenClause: null);
+    }
+    condition = pop() as ExpressionImpl;
+    push(_ParenthesizedCondition(leftParenthesis, condition, caseClause));
+  }
+
+  @override
+  void handleParenthesizedPattern(Token leftParenthesis) {
+    assert(optional('(', leftParenthesis));
+    debugEvent("ParenthesizedPattern");
+
+    var pattern = pop() as DartPatternImpl;
+    push(ParenthesizedPatternImpl(
+        leftParenthesis: leftParenthesis,
+        pattern: pattern,
+        rightParenthesis: leftParenthesis.endGroup!));
+  }
+
+  @override
+  void handlePatternField(Token? colon) {
+    debugEvent("PatternField");
+
+    var pattern = pop() as DartPatternImpl;
+    RecordPatternFieldNameImpl? fieldName;
+    if (colon != null) {
+      var name = (pop() as SimpleIdentifier?)?.token;
+      fieldName = RecordPatternFieldNameImpl(name: name, colon: colon);
+    }
+    push(RecordPatternFieldImpl(fieldName: fieldName, pattern: pattern));
   }
 
   @override
@@ -4293,6 +4459,17 @@ class AstBuilder extends StackListener {
       // TODO(paulberry): implement.
       logEvent('Qualified with >1 dot');
     }
+  }
+
+  @override
+  void handleRecordPattern(Token token, int count) {
+    debugEvent("RecordPattern");
+
+    var fields = popTypedList2<RecordPatternField>(count);
+    push(RecordPatternImpl(
+        leftParenthesis: token,
+        fields: fields,
+        rightParenthesis: token.endGroup!));
   }
 
   @override
@@ -4436,6 +4613,13 @@ class AstBuilder extends StackListener {
         );
       }
     }
+  }
+
+  @override
+  void handleRelationalPattern(Token token) {
+    debugEvent("RelationalPattern");
+    push(RelationalPatternImpl(
+        operator: token, operand: pop() as ExpressionImpl));
   }
 
   @override
@@ -4620,6 +4804,17 @@ class AstBuilder extends StackListener {
 
     var value = pop() as ExpressionImpl;
     push(_ParameterDefaultValue(equals, value));
+  }
+
+  @override
+  void handleVariablePattern(Token? keyword, Token variable) {
+    debugEvent('VariablePattern');
+    if (!_featureSet.isEnabled(Feature.patterns)) {
+      // TODO(paulberry): report the appropriate error
+      throw UnimplementedError('Patterns not enabled');
+    }
+    var type = pop() as TypeAnnotationImpl?;
+    push(VariablePatternImpl(keyword: keyword, type: type, name: variable));
   }
 
   @override
@@ -5007,6 +5202,17 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   }
 }
 
+/// Temporary representation of the fields of an extractor used internally by
+/// the [AstBuilder].
+class _ExtractorPatternFields {
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+  final List<RecordPatternField> fields;
+
+  _ExtractorPatternFields(
+      this.leftParenthesis, this.rightParenthesis, this.fields);
+}
+
 class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token mixinKeyword;
@@ -5121,8 +5327,10 @@ class _ParameterDefaultValue {
 class _ParenthesizedCondition {
   final Token leftParenthesis;
   final ExpressionImpl expression;
+  final CaseClauseImpl? caseClause;
 
-  _ParenthesizedCondition(this.leftParenthesis, this.expression);
+  _ParenthesizedCondition(
+      this.leftParenthesis, this.expression, this.caseClause);
 
   Token get rightParenthesis => leftParenthesis.endGroup!;
 }

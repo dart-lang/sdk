@@ -1515,6 +1515,7 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   CastPatternImpl(
       {required this.pattern, required this.asToken, required this.type}) {
+    _becomeParentOf(pattern);
     _becomeParentOf(type);
   }
 
@@ -1548,6 +1549,7 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   @override
   void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
     type.accept(visitor);
   }
 }

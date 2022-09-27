@@ -89,6 +89,17 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleExtractorPatternFields(
+      int count, Token beginToken, Token endToken) {
+    seen(beginToken);
+    seen(endToken);
+    doPrint('handleExtractorPatternFields('
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
+  }
+
+  @override
   void handleAsyncModifier(Token? asyncToken, Token? starToken) {
     seen(asyncToken);
     seen(starToken);
@@ -1402,6 +1413,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleMapPatternEntry(Token colon, Token endToken) {
+    seen(colon);
+    seen(endToken);
+    doPrint('handleMapPatternEntry(' '$colon, ' '$endToken)');
+  }
+
+  @override
   void beginLiteralString(Token token) {
     seen(token);
     doPrint('beginLiteralString(' '$token)');
@@ -1981,6 +1999,25 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNullAssertPattern(Token bang) {
+    seen(bang);
+    doPrint('handleNullAssertPattern(' '$bang)');
+  }
+
+  @override
+  void handleNullCheckPattern(Token question) {
+    seen(question);
+    doPrint('handleNullCheckPattern(' '$question)');
+  }
+
+  @override
+  void handleVariablePattern(Token? keyword, Token variable) {
+    seen(keyword);
+    seen(variable);
+    doPrint('handleVariablePattern(' '$keyword, ' '$variable)');
+  }
+
+  @override
   void handleNoName(Token token) {
     seen(token);
     doPrint('handleNoName(' '$token)');
@@ -2193,6 +2230,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleCastPattern(Token operator) {
+    seen(operator);
+    doPrint('handleCastPattern(' '$operator)');
+  }
+
+  @override
   void handleAssignmentExpression(Token token) {
     seen(token);
     doPrint('handleAssignmentExpression(' '$token)');
@@ -2210,6 +2253,20 @@ class ParserTestListener implements Listener {
     indent--;
     seen(token);
     doPrint('endBinaryExpression(' '$token)');
+  }
+
+  @override
+  void beginBinaryPattern(Token token) {
+    seen(token);
+    doPrint('beginBinaryPattern(' '$token)');
+    indent++;
+  }
+
+  @override
+  void endBinaryPattern(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endBinaryPattern(' '$token)');
   }
 
   @override
@@ -2461,6 +2518,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleListPattern(int count, Token leftBracket, Token rightBracket) {
+    seen(leftBracket);
+    seen(rightBracket);
+    doPrint('handleListPattern(' '$count, ' '$leftBracket, ' '$rightBracket)');
+  }
+
+  @override
   void handleLiteralSetOrMap(
     int count,
     Token leftBrace,
@@ -2480,6 +2544,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
+    seen(leftBrace);
+    seen(rightBrace);
+    doPrint('handleMapPattern(' '$count, ' '$leftBrace, ' '$rightBrace)');
+  }
+
+  @override
   void handleLiteralNull(Token token) {
     seen(token);
     doPrint('handleLiteralNull(' '$token)');
@@ -2495,6 +2566,12 @@ class ParserTestListener implements Listener {
   void handleNamedArgument(Token colon) {
     seen(colon);
     doPrint('handleNamedArgument(' '$colon)');
+  }
+
+  @override
+  void handlePatternField(Token? colon) {
+    seen(colon);
+    doPrint('handlePatternField(' '$colon)');
   }
 
   @override
@@ -2575,7 +2652,7 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, [Token? case_]) {
+  void handleParenthesizedCondition(Token token, Token? case_) {
     seen(token);
     seen(case_);
     doPrint('handleParenthesizedCondition(' '$token, ' '$case_)');
@@ -2597,10 +2674,40 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleRecordPattern(Token token, int count) {
+    seen(token);
+    doPrint('handleRecordPattern(' '$token, ' '$count)');
+  }
+
+  @override
   void endParenthesizedExpression(Token token) {
     indent--;
     seen(token);
     doPrint('endParenthesizedExpression(' '$token)');
+  }
+
+  @override
+  void handleParenthesizedPattern(Token token) {
+    seen(token);
+    doPrint('handleParenthesizedPattern(' '$token)');
+  }
+
+  @override
+  void handleConstantPattern(Token? constKeyword) {
+    seen(constKeyword);
+    doPrint('handleConstantPattern(' '$constKeyword)');
+  }
+
+  @override
+  void handleExtractorPattern(
+      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    seen(firstIdentifier);
+    seen(dot);
+    seen(secondIdentifier);
+    doPrint('handleExtractorPattern('
+        '$firstIdentifier, '
+        '$dot, '
+        '$secondIdentifier)');
   }
 
   @override
@@ -2680,6 +2787,12 @@ class ParserTestListener implements Listener {
   void handleUnaryPrefixExpression(Token token) {
     seen(token);
     doPrint('handleUnaryPrefixExpression(' '$token)');
+  }
+
+  @override
+  void handleRelationalPattern(Token token) {
+    seen(token);
+    doPrint('handleRelationalPattern(' '$token)');
   }
 
   @override

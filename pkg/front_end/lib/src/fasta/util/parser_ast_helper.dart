@@ -54,6 +54,17 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleExtractorPatternFields(
+      int count, Token beginToken, Token endToken) {
+    ExtractorPatternFieldsHandle data = new ExtractorPatternFieldsHandle(
+        ParserAstType.HANDLE,
+        count: count,
+        beginToken: beginToken,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
   void handleAsyncModifier(Token? asyncToken, Token? starToken) {
     AsyncModifierHandle data = new AsyncModifierHandle(ParserAstType.HANDLE,
         asyncToken: asyncToken, starToken: starToken);
@@ -1289,6 +1300,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleMapPatternEntry(Token colon, Token endToken) {
+    MapPatternEntryHandle data = new MapPatternEntryHandle(ParserAstType.HANDLE,
+        colon: colon, endToken: endToken);
+    seen(data);
+  }
+
+  @override
   void beginLiteralString(Token token) {
     LiteralStringBegin data =
         new LiteralStringBegin(ParserAstType.BEGIN, token: token);
@@ -1820,6 +1838,27 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleNullAssertPattern(Token bang) {
+    NullAssertPatternHandle data =
+        new NullAssertPatternHandle(ParserAstType.HANDLE, bang: bang);
+    seen(data);
+  }
+
+  @override
+  void handleNullCheckPattern(Token question) {
+    NullCheckPatternHandle data =
+        new NullCheckPatternHandle(ParserAstType.HANDLE, question: question);
+    seen(data);
+  }
+
+  @override
+  void handleVariablePattern(Token? keyword, Token variable) {
+    VariablePatternHandle data = new VariablePatternHandle(ParserAstType.HANDLE,
+        keyword: keyword, variable: variable);
+    seen(data);
+  }
+
+  @override
   void handleNoName(Token token) {
     NoNameHandle data = new NoNameHandle(ParserAstType.HANDLE, token: token);
     seen(data);
@@ -2025,6 +2064,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleCastPattern(Token operator) {
+    CastPatternHandle data =
+        new CastPatternHandle(ParserAstType.HANDLE, operator: operator);
+    seen(data);
+  }
+
+  @override
   void handleAssignmentExpression(Token token) {
     AssignmentExpressionHandle data =
         new AssignmentExpressionHandle(ParserAstType.HANDLE, token: token);
@@ -2042,6 +2088,20 @@ abstract class AbstractParserAstListener implements Listener {
   void endBinaryExpression(Token token) {
     BinaryExpressionEnd data =
         new BinaryExpressionEnd(ParserAstType.END, token: token);
+    seen(data);
+  }
+
+  @override
+  void beginBinaryPattern(Token token) {
+    BinaryPatternBegin data =
+        new BinaryPatternBegin(ParserAstType.BEGIN, token: token);
+    seen(data);
+  }
+
+  @override
+  void endBinaryPattern(Token token) {
+    BinaryPatternEnd data =
+        new BinaryPatternEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
@@ -2303,6 +2363,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleListPattern(int count, Token leftBracket, Token rightBracket) {
+    ListPatternHandle data = new ListPatternHandle(ParserAstType.HANDLE,
+        count: count, leftBracket: leftBracket, rightBracket: rightBracket);
+    seen(data);
+  }
+
+  @override
   void handleLiteralSetOrMap(
     int count,
     Token leftBrace,
@@ -2316,6 +2383,13 @@ abstract class AbstractParserAstListener implements Listener {
         constKeyword: constKeyword,
         rightBrace: rightBrace,
         hasSetEntry: hasSetEntry);
+    seen(data);
+  }
+
+  @override
+  void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
+    MapPatternHandle data = new MapPatternHandle(ParserAstType.HANDLE,
+        count: count, leftBrace: leftBrace, rightBrace: rightBrace);
     seen(data);
   }
 
@@ -2337,6 +2411,13 @@ abstract class AbstractParserAstListener implements Listener {
   void handleNamedArgument(Token colon) {
     NamedArgumentHandle data =
         new NamedArgumentHandle(ParserAstType.HANDLE, colon: colon);
+    seen(data);
+  }
+
+  @override
+  void handlePatternField(Token? colon) {
+    PatternFieldHandle data =
+        new PatternFieldHandle(ParserAstType.HANDLE, colon: colon);
     seen(data);
   }
 
@@ -2430,7 +2511,7 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleParenthesizedCondition(Token token, [Token? case_]) {
+  void handleParenthesizedCondition(Token token, Token? case_) {
     ParenthesizedConditionHandle data = new ParenthesizedConditionHandle(
         ParserAstType.HANDLE,
         token: token,
@@ -2454,9 +2535,41 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleRecordPattern(Token token, int count) {
+    RecordPatternHandle data = new RecordPatternHandle(ParserAstType.HANDLE,
+        token: token, count: count);
+    seen(data);
+  }
+
+  @override
   void endParenthesizedExpression(Token token) {
     ParenthesizedExpressionEnd data =
         new ParenthesizedExpressionEnd(ParserAstType.END, token: token);
+    seen(data);
+  }
+
+  @override
+  void handleParenthesizedPattern(Token token) {
+    ParenthesizedPatternHandle data =
+        new ParenthesizedPatternHandle(ParserAstType.HANDLE, token: token);
+    seen(data);
+  }
+
+  @override
+  void handleConstantPattern(Token? constKeyword) {
+    ConstantPatternHandle data = new ConstantPatternHandle(ParserAstType.HANDLE,
+        constKeyword: constKeyword);
+    seen(data);
+  }
+
+  @override
+  void handleExtractorPattern(
+      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    ExtractorPatternHandle data = new ExtractorPatternHandle(
+        ParserAstType.HANDLE,
+        firstIdentifier: firstIdentifier,
+        dot: dot,
+        secondIdentifier: secondIdentifier);
     seen(data);
   }
 
@@ -2540,6 +2653,13 @@ abstract class AbstractParserAstListener implements Listener {
   void handleUnaryPrefixExpression(Token token) {
     UnaryPrefixExpressionHandle data =
         new UnaryPrefixExpressionHandle(ParserAstType.HANDLE, token: token);
+    seen(data);
+  }
+
+  @override
+  void handleRelationalPattern(Token token) {
+    RelationalPatternHandle data =
+        new RelationalPatternHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
@@ -2738,6 +2858,23 @@ class ArgumentsEnd extends ParserAstNode {
   ArgumentsEnd(ParserAstType type,
       {required this.count, required this.beginToken, required this.endToken})
       : super("Arguments", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "count": count,
+        "beginToken": beginToken,
+        "endToken": endToken,
+      };
+}
+
+class ExtractorPatternFieldsHandle extends ParserAstNode {
+  final int count;
+  final Token beginToken;
+  final Token endToken;
+
+  ExtractorPatternFieldsHandle(ParserAstType type,
+      {required this.count, required this.beginToken, required this.endToken})
+      : super("ExtractorPatternFields", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4993,6 +5130,21 @@ class LiteralMapEntryHandle extends ParserAstNode {
       };
 }
 
+class MapPatternEntryHandle extends ParserAstNode {
+  final Token colon;
+  final Token endToken;
+
+  MapPatternEntryHandle(ParserAstType type,
+      {required this.colon, required this.endToken})
+      : super("MapPatternEntry", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "colon": colon,
+        "endToken": endToken,
+      };
+}
+
 class LiteralStringBegin extends ParserAstNode {
   final Token token;
 
@@ -5962,6 +6114,45 @@ class NonNullAssertExpressionHandle extends ParserAstNode {
       };
 }
 
+class NullAssertPatternHandle extends ParserAstNode {
+  final Token bang;
+
+  NullAssertPatternHandle(ParserAstType type, {required this.bang})
+      : super("NullAssertPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "bang": bang,
+      };
+}
+
+class NullCheckPatternHandle extends ParserAstNode {
+  final Token question;
+
+  NullCheckPatternHandle(ParserAstType type, {required this.question})
+      : super("NullCheckPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "question": question,
+      };
+}
+
+class VariablePatternHandle extends ParserAstNode {
+  final Token? keyword;
+  final Token variable;
+
+  VariablePatternHandle(ParserAstType type,
+      {this.keyword, required this.variable})
+      : super("VariablePattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "keyword": keyword,
+        "variable": variable,
+      };
+}
+
 class NoNameHandle extends ParserAstNode {
   final Token token;
 
@@ -6327,6 +6518,18 @@ class AsOperatorHandle extends ParserAstNode {
       };
 }
 
+class CastPatternHandle extends ParserAstNode {
+  final Token operator;
+
+  CastPatternHandle(ParserAstType type, {required this.operator})
+      : super("CastPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "operator": operator,
+      };
+}
+
 class AssignmentExpressionHandle extends ParserAstNode {
   final Token token;
 
@@ -6356,6 +6559,30 @@ class BinaryExpressionEnd extends ParserAstNode {
 
   BinaryExpressionEnd(ParserAstType type, {required this.token})
       : super("BinaryExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class BinaryPatternBegin extends ParserAstNode {
+  final Token token;
+
+  BinaryPatternBegin(ParserAstType type, {required this.token})
+      : super("BinaryPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class BinaryPatternEnd extends ParserAstNode {
+  final Token token;
+
+  BinaryPatternEnd(ParserAstType type, {required this.token})
+      : super("BinaryPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -6819,6 +7046,25 @@ class LiteralListHandle extends ParserAstNode {
       };
 }
 
+class ListPatternHandle extends ParserAstNode {
+  final int count;
+  final Token leftBracket;
+  final Token rightBracket;
+
+  ListPatternHandle(ParserAstType type,
+      {required this.count,
+      required this.leftBracket,
+      required this.rightBracket})
+      : super("ListPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "count": count,
+        "leftBracket": leftBracket,
+        "rightBracket": rightBracket,
+      };
+}
+
 class LiteralSetOrMapHandle extends ParserAstNode {
   final int count;
   final Token leftBrace;
@@ -6841,6 +7087,23 @@ class LiteralSetOrMapHandle extends ParserAstNode {
         "constKeyword": constKeyword,
         "rightBrace": rightBrace,
         "hasSetEntry": hasSetEntry,
+      };
+}
+
+class MapPatternHandle extends ParserAstNode {
+  final int count;
+  final Token leftBrace;
+  final Token rightBrace;
+
+  MapPatternHandle(ParserAstType type,
+      {required this.count, required this.leftBrace, required this.rightBrace})
+      : super("MapPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "count": count,
+        "leftBrace": leftBrace,
+        "rightBrace": rightBrace,
       };
 }
 
@@ -6876,6 +7139,18 @@ class NamedArgumentHandle extends ParserAstNode {
 
   NamedArgumentHandle(ParserAstType type, {required this.colon})
       : super("NamedArgument", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "colon": colon,
+      };
+}
+
+class PatternFieldHandle extends ParserAstNode {
+  final Token? colon;
+
+  PatternFieldHandle(ParserAstType type, {this.colon})
+      : super("PatternField", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7081,6 +7356,21 @@ class RecordLiteralEnd extends ParserAstNode {
       };
 }
 
+class RecordPatternHandle extends ParserAstNode {
+  final Token token;
+  final int count;
+
+  RecordPatternHandle(ParserAstType type,
+      {required this.token, required this.count})
+      : super("RecordPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+        "count": count,
+      };
+}
+
 class ParenthesizedExpressionEnd extends ParserAstNode {
   final Token token;
 
@@ -7090,6 +7380,47 @@ class ParenthesizedExpressionEnd extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+      };
+}
+
+class ParenthesizedPatternHandle extends ParserAstNode {
+  final Token token;
+
+  ParenthesizedPatternHandle(ParserAstType type, {required this.token})
+      : super("ParenthesizedPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class ConstantPatternHandle extends ParserAstNode {
+  final Token? constKeyword;
+
+  ConstantPatternHandle(ParserAstType type, {this.constKeyword})
+      : super("ConstantPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "constKeyword": constKeyword,
+      };
+}
+
+class ExtractorPatternHandle extends ParserAstNode {
+  final Token firstIdentifier;
+  final Token? dot;
+  final Token? secondIdentifier;
+
+  ExtractorPatternHandle(ParserAstType type,
+      {required this.firstIdentifier, this.dot, this.secondIdentifier})
+      : super("ExtractorPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "firstIdentifier": firstIdentifier,
+        "dot": dot,
+        "secondIdentifier": secondIdentifier,
       };
 }
 
@@ -7234,6 +7565,18 @@ class UnaryPrefixExpressionHandle extends ParserAstNode {
 
   UnaryPrefixExpressionHandle(ParserAstType type, {required this.token})
       : super("UnaryPrefixExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class RelationalPatternHandle extends ParserAstNode {
+  final Token token;
+
+  RelationalPatternHandle(ParserAstType type, {required this.token})
+      : super("RelationalPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {

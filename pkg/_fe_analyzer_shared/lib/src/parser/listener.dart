@@ -52,6 +52,13 @@ class Listener implements UnescapeErrorListener {
     logEvent("Arguments");
   }
 
+  /// Called after the parser has consumed a sequence of patternFields that
+  /// forms the arguments to an extractorPattern
+  void handleExtractorPatternFields(
+      int count, Token beginToken, Token endToken) {
+    logEvent("ExtractorPatternFields");
+  }
+
   /// Handle async modifiers `async`, `async*`, `sync`.
   void handleAsyncModifier(Token? asyncToken, Token? starToken) {
     logEvent("AsyncModifier");
@@ -976,6 +983,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralMapEntry");
   }
 
+  /// Called after the parser has consumed a mapPatternEntry, consisting of an
+  /// expression, a colon, and a pattern.
+  void handleMapPatternEntry(Token colon, Token endToken) {
+    logEvent("MapPatternEntry");
+  }
+
   void beginLiteralString(Token token) {}
 
   void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {}
@@ -1371,6 +1384,25 @@ class Listener implements UnescapeErrorListener {
     logEvent("NonNullAssertExpression");
   }
 
+  /// Called after the parser has consumed a null-assert pattern, consisting of
+  /// a pattern followed by a `!` operator.
+  void handleNullAssertPattern(Token bang) {
+    logEvent("NullAssertPattern");
+  }
+
+  /// Called after the parser has consumed a null-check pattern, consisting of a
+  /// pattern followed by a `?` operator.
+  void handleNullCheckPattern(Token question) {
+    logEvent('NullCheckPattern');
+  }
+
+  /// Called after the parser has consumed a variable pattern, consisting of an
+  /// optional `var` or `final` keyword, an optional type annotation, and a
+  /// variable name identifier.
+  void handleVariablePattern(Token? keyword, Token variable) {
+    logEvent('VariablePattern');
+  }
+
   void handleNoName(Token token) {
     logEvent("NoName");
   }
@@ -1518,6 +1550,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("AsOperator");
   }
 
+  /// Called after the parser has consumed a cast pattern, consisting of a
+  /// pattern, `as` operator, and type annotation.
+  void handleCastPattern(Token operator) {
+    logEvent('CastPattern');
+  }
+
   void handleAssignmentExpression(Token token) {
     logEvent("AssignmentExpression");
   }
@@ -1530,6 +1568,15 @@ class Listener implements UnescapeErrorListener {
 
   void endBinaryExpression(Token token) {
     logEvent("BinaryExpression");
+  }
+
+  /// Called when the parser has consumed the operator of a binary pattern.
+  void beginBinaryPattern(Token token) {}
+
+  /// Called when the parser has consumed a binary pattern, consisting of a LHS
+  /// pattern, `&` or `|` operator, and a RHS pattern.
+  void endBinaryPattern(Token token) {
+    logEvent("BinaryPattern");
   }
 
   /// Called for `.`, `?.` and `..`.
@@ -1706,6 +1753,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralList");
   }
 
+  /// Called after the parser has consumed a list pattern, consisting of a `[`,
+  /// a comma-separated sequence of patterns, and a `]`.
+  void handleListPattern(int count, Token leftBracket, Token rightBracket) {
+    logEvent("ListPattern");
+  }
+
   void handleLiteralSetOrMap(
     int count,
     Token leftBrace,
@@ -1718,6 +1771,12 @@ class Listener implements UnescapeErrorListener {
     logEvent('LiteralSetOrMap');
   }
 
+  /// Called after the parser has consumed a map pattern, consisting of a `{`,
+  /// a comma-separated sequence of mapPatternEntry, and a `}`.
+  void handleMapPattern(int count, Token leftBrace, Token rightBrace) {
+    logEvent('MapPattern');
+  }
+
   void handleLiteralNull(Token token) {
     logEvent("LiteralNull");
   }
@@ -1728,6 +1787,12 @@ class Listener implements UnescapeErrorListener {
 
   void handleNamedArgument(Token colon) {
     logEvent("NamedArgument");
+  }
+
+  /// Called after the parser has consumed a patternField, consisting of an
+  /// optional identifier, optional `:`, and a pattern.
+  void handlePatternField(Token? colon) {
+    logEvent("PatternField");
   }
 
   void handleNamedRecordField(Token colon) {
@@ -1784,7 +1849,7 @@ class Listener implements UnescapeErrorListener {
   /// - do while loop
   /// - switch statement
   /// - while loop
-  void handleParenthesizedCondition(Token token, [Token? case_]) {
+  void handleParenthesizedCondition(Token token, Token? case_) {
     logEvent("ParenthesizedCondition");
   }
 
@@ -1797,11 +1862,38 @@ class Listener implements UnescapeErrorListener {
     logEvent("RecordLiteral");
   }
 
+  /// Called after the parser has consumed a record pattern, consisting of a
+  /// `(`, a comma-separated sequence of patternFields, and a `)`.
+  void handleRecordPattern(Token token, int count) {
+    logEvent("RecordPattern");
+  }
+
   /// End a parenthesized expression.
   /// These may be within the condition expression of a control structure
   /// but will not be the condition of a control structure.
   void endParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
+  }
+
+  /// Called after the parser has consumed a parenthesized pattern, consisting
+  /// of a `(`, a pattern, and a `)`.
+  void handleParenthesizedPattern(Token token) {
+    logEvent("ParenthesizedPattern");
+  }
+
+  /// Called after the parser has consumed a constant pattern, consisting of an
+  /// optional `const` and an expression.
+  void handleConstantPattern(Token? constKeyword) {
+    logEvent("ConstantPattern");
+  }
+
+  /// Called after the parser has consumed an extractor pattern, consisting of
+  /// an identifier, optional dot and second identifier, optional type
+  /// arguments, and a parenthesized list of extractor pattern fields (see
+  /// [handleExtractorPatternFields]).
+  void handleExtractorPattern(
+      Token firstIdentifier, Token? dot, Token? secondIdentifier) {
+    logEvent("ExtractorPattern");
   }
 
   /// Handle a construct of the form "identifier.identifier" occurring in a part
@@ -1849,6 +1941,12 @@ class Listener implements UnescapeErrorListener {
 
   void handleUnaryPrefixExpression(Token token) {
     logEvent("UnaryPrefixExpression");
+  }
+
+  /// Called after the parser has consumed a relational pattern, consisting of
+  /// an equality operator or relational operator, followed by an expression.
+  void handleRelationalPattern(Token token) {
+    logEvent("RelationalPattern");
   }
 
   void handleUnaryPrefixAssignmentExpression(Token token) {

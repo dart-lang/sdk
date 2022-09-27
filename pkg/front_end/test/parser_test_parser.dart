@@ -1601,7 +1601,7 @@ class TestParser extends Parser {
   }
 
   @override
-  Token ensureParenthesizedCondition(Token token, {bool allowCase = false}) {
+  Token ensureParenthesizedCondition(Token token, {required bool allowCase}) {
     doPrint(
         'ensureParenthesizedCondition(' '$token, ' 'allowCase: $allowCase)');
     indent++;
@@ -1629,7 +1629,7 @@ class TestParser extends Parser {
 
   @override
   Token parseExpressionInParenthesisRest(Token token,
-      {bool allowCase = false}) {
+      {required bool allowCase}) {
     doPrint('parseExpressionInParenthesisRest('
         '$token, '
         'allowCase: $allowCase)');
@@ -2606,6 +2606,51 @@ class TestParser extends Parser {
     doPrint('isLinkText(' '$comment, ' '$rightIndex)');
     indent++;
     var result = super.isLinkText(comment, rightIndex);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePattern(Token token, {int precedence = 1}) {
+    doPrint('parsePattern(' '$token, ' 'precedence: $precedence)');
+    indent++;
+    var result = super.parsePattern(token, precedence: precedence);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parsePrimaryPattern(Token token) {
+    doPrint('parsePrimaryPattern(' '$token)');
+    indent++;
+    var result = super.parsePrimaryPattern(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseVariablePattern(Token token, {TypeInfo typeInfo = noType}) {
+    doPrint('parseVariablePattern(' '$token, ' 'typeInfo: $typeInfo)');
+    indent++;
+    var result = super.parseVariablePattern(token, typeInfo: typeInfo);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseListPatternSuffix(Token token) {
+    doPrint('parseListPatternSuffix(' '$token)');
+    indent++;
+    var result = super.parseListPatternSuffix(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseMapPatternSuffix(Token token) {
+    doPrint('parseMapPatternSuffix(' '$token)');
+    indent++;
+    var result = super.parseMapPatternSuffix(token);
     indent--;
     return result;
   }

@@ -2258,7 +2258,10 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleParenthesizedCondition(Token token, [Token? case_]) {
+  void handleParenthesizedCondition(Token token, Token? case_) {
+    if (case_ != null) {
+      throw new UnimplementedError('TODO(paulberry)');
+    }
     assert(checkState(token, [
       unionOfKinds([
         ValueKinds.Expression,
