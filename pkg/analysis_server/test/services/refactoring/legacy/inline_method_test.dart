@@ -536,6 +536,24 @@ void f() {
 ''');
   }
 
+  Future<void> test_function_hasReturn_hasReturnType_hasTypeParameters() async {
+    await indexTestUnit(r'''
+num test<T extends num>(T a, T b) {
+  return a + b;
+}
+void f() {
+  print(test(1, 2));
+}
+''');
+    _createRefactoring('test');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  print(1 + 2);
+}
+''');
+  }
+
   Future<void> test_function_hasReturn_noExpression() async {
     await indexTestUnit(r'''
 test(a, b) {
@@ -905,6 +923,26 @@ void f() {
 }
 ''');
     _createRefactoring('(a, b) {');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  print(1);
+  print(2);
+}
+''');
+  }
+
+  Future<void> test_function_startOfTypeParameterList() async {
+    await indexTestUnit(r'''
+test<T>(a, b) {
+  print(a);
+  print(b);
+}
+void f() {
+  test(1, 2);
+}
+''');
+    _createRefactoring('<T>');
     // validate change
     return _assertSuccessfulRefactoring(r'''
 void f() {

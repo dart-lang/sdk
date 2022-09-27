@@ -55,7 +55,9 @@ String _getMethodSourceForInvocation(
     // prepare argument
     Expression? argument;
     for (var arg in arguments) {
-      if (arg.staticParameterElement == parameter) {
+      // Compare using names because parameter elements may not be the same
+      // instance for methods with generic type arguments.
+      if (arg.staticParameterElement?.name == parameter.name) {
         argument = arg;
         break;
       }

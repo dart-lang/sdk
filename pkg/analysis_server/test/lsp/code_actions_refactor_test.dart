@@ -702,11 +702,7 @@ void f() {
         codeAction, withoutMarkers(content), expectedContent);
   }
 
-  @failingTest
   Future<void> test_inlineMethod_function_startOfTypeParameterList() async {
-    // TODO(dantup): This refactor fails for this code even with an offset
-    //  that's not at the end of the name.
-    //  'No argument for the parameter "a".'
     const content = '''
 test[[]]<T>(T a, T b) {
   print(a);
@@ -766,11 +762,7 @@ class A {
         codeAction, withoutMarkers(content), expectedContent);
   }
 
-  @failingTest
   Future<void> test_inlineMethod_method_startOfTypeParameterList() async {
-    // TODO(dantup): This refactor fails for this code even with an offset
-    //  that's not at the end of the name.
-    //  'No argument for the parameter "a".'
     const content = '''
 class A {
   test[[]]<T>(T a, T b) {
@@ -780,12 +772,14 @@ class A {
   void f() {
     test(1, 2);
   }
-  }
+}
     ''';
     const expectedContent = '''
-void f() {
-  print(1);
-  print(2);
+class A {
+  void f() {
+    print(1);
+    print(2);
+  }
 }
     ''';
     newFile(mainFilePath, withoutMarkers(content));
