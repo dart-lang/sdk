@@ -1116,6 +1116,12 @@ void AssemblyImageWriter::Finalize() {
   if (debug_elf_ != nullptr) {
     debug_elf_->Finalize();
   }
+
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
+    defined(DART_TARGET_OS_FUCHSIA)
+  // Non-executable stack.
+  assembly_stream_->WriteString(".section .note.GNU-stack,\"\"\n");
+#endif
 }
 
 static void AddAssemblerIdentifier(BaseTextBuffer* printer, const char* label) {
