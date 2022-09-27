@@ -2,6 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(DART_HOST_OS_WINDOWS)
+#include <Psapi.h>
+#include <Windows.h>
+#include <combaseapi.h>
+#include <stdio.h>
+#include <tchar.h>
+#endif
+
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/exceptions.h"
@@ -15,7 +24,7 @@
 
 namespace dart {
 
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) || defined(DART_PRECOMPILER)
 
 DART_NORETURN static void SimulatorUnsupported() {
   Exceptions::ThrowUnsupportedError(
@@ -41,7 +50,7 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_providesSymbol, 0, 2) {
   SimulatorUnsupported();
 }
 
-#else  // defined(USING_SIMULATOR)
+#else  // defined(USING_SIMULATOR) || defined(DART_PRECOMPILER)
 
 static void* LoadDynamicLibrary(const char* library_file) {
   char* error = nullptr;
@@ -56,9 +65,60 @@ static void* LoadDynamicLibrary(const char* library_file) {
   return handle;
 }
 
+#if defined(DART_HOST_OS_WINDOWS)
+// On windows, nullptr signals trying a lookup in all loaded modules.
+const nullptr_t kWindowsDynamicLibraryProcessPtr = nullptr;
+
+void* co_task_mem_alloced = nullptr;
+
+void* LookupSymbolInProcess(const char* symbol, char** error) {
+  // Force loading ole32.dll.
+  if (co_task_mem_alloced == nullptr) {
+    co_task_mem_alloced = CoTaskMemAlloc(sizeof(intptr_t));
+    CoTaskMemFree(co_task_mem_alloced);
+  }
+
+  HANDLE current_process =
+      OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE,
+                  GetCurrentProcessId());
+  if (current_process == nullptr) {
+    *error = OS::SCreate(nullptr, "Failed to open current process.");
+    return nullptr;
+  }
+
+  HMODULE modules[1024];
+  DWORD cb_needed;
+  if (EnumProcessModules(current_process, modules, sizeof(modules),
+                         &cb_needed) != 0) {
+    for (intptr_t i = 0; i < (cb_needed / sizeof(HMODULE)); i++) {
+      if (auto result =
+              reinterpret_cast<void*>(GetProcAddress(modules[i], symbol))) {
+        CloseHandle(current_process);
+        return result;
+      }
+    }
+  }
+  CloseHandle(current_process);
+
+  *error = OS::SCreate(
+      nullptr,
+      "None of the loaded modules contained the requested symbol '%s'.",
+      symbol);
+  return nullptr;
+}
+#endif
+
 static void* ResolveSymbol(void* handle, const char* symbol) {
   char* error = nullptr;
-  void* result = Utils::ResolveSymbolInDynamicLibrary(handle, symbol, &error);
+#if !defined(DART_HOST_OS_WINDOWS)
+  void* const result =
+      Utils::ResolveSymbolInDynamicLibrary(handle, symbol, &error);
+#else
+  void* const result =
+      handle == kWindowsDynamicLibraryProcessPtr
+          ? LookupSymbolInProcess(symbol, &error)
+          : Utils::ResolveSymbolInDynamicLibrary(handle, symbol, &error);
+#endif
   if (error != nullptr) {
     const String& msg = String::Handle(String::NewFormatted(
         "Failed to lookup symbol '%s': %s", symbol, error));
@@ -70,7 +130,15 @@ static void* ResolveSymbol(void* handle, const char* symbol) {
 
 static bool SymbolExists(void* handle, const char* symbol) {
   char* error = nullptr;
+#if !defined(DART_HOST_OS_WINDOWS)
   Utils::ResolveSymbolInDynamicLibrary(handle, symbol, &error);
+#else
+  if (handle == nullptr) {
+    LookupSymbolInProcess(symbol, &error);
+  } else {
+    Utils::ResolveSymbolInDynamicLibrary(handle, symbol, &error);
+  }
+#endif
   if (error != nullptr) {
     free(error);
     return false;
@@ -91,8 +159,7 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_processLibrary, 0, 0) {
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
   return DynamicLibrary::New(RTLD_DEFAULT);
 #else
-  Exceptions::ThrowUnsupportedError(
-      "DynamicLibrary.process is not available on this platform.");
+  return DynamicLibrary::New(kWindowsDynamicLibraryProcessPtr);
 #endif
 }
 
