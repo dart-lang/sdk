@@ -123,6 +123,14 @@ external double nonFfiReturnType(int v);
     ]);
   }
 
+  test_FfiNativePointerParameter() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<Void Function(Pointer)>('free')
+external void posixFree(Pointer pointer);
+''');
+  }
+
   test_FfiNativeTooFewParameters() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

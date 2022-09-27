@@ -385,11 +385,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
 
       // Arguments can only be Pointer if the class extends
-      // NativeFieldWrapperClass1.
+      // Pointer or NativeFieldWrapperClass1.
       for (var i = 0; i < formalParameters.length; i++) {
         if (ffiParameterTypes[i].isPointer) {
-          final type = formalParameters[i].declaredElement!.type;
-          if (!_extendsNativeFieldWrapperClass1(type as InterfaceType)) {
+          final type =
+              formalParameters[i].declaredElement!.type as InterfaceType;
+          if (!type.isPointer && !_extendsNativeFieldWrapperClass1(type)) {
             _errorReporter.reportErrorForNode(
                 FfiCode
                     .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
