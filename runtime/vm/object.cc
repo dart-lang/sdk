@@ -17483,7 +17483,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
     if (FLAG_write_protect_code) {
       uword address = UntaggedObject::ToAddr(instrs.ptr());
       // Check if a dual mapping exists.
-      instrs = Instructions::RawCast(OldPage::ToExecutable(instrs.ptr()));
+      instrs = Instructions::RawCast(Page::ToExecutable(instrs.ptr()));
       uword exec_address = UntaggedObject::ToAddr(instrs.ptr());
       const bool use_dual_mapping = exec_address != address;
       ASSERT(use_dual_mapping == FLAG_dual_map_code);

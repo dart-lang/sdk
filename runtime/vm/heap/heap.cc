@@ -88,10 +88,10 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
 
   // It is possible a GC doesn't clear enough space.
   // In that case, we must fall through and allocate into old space.
-  return AllocateOld(thread, size, OldPage::kData);
+  return AllocateOld(thread, size, Page::kData);
 }
 
-uword Heap::AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type) {
+uword Heap::AllocateOld(Thread* thread, intptr_t size, Page::PageType type) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (!thread->force_growth()) {
     CollectForDebugging(thread);
@@ -221,7 +221,7 @@ bool Heap::OldContains(uword addr) const {
 }
 
 bool Heap::CodeContains(uword addr) const {
-  return old_space_.Contains(addr, OldPage::kExecutable);
+  return old_space_.Contains(addr, Page::kExecutable);
 }
 
 bool Heap::DataContains(uword addr) const {
@@ -346,14 +346,14 @@ void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 InstructionsPtr Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
   // Only executable pages can have RawInstructions objects.
-  ObjectPtr raw_obj = old_space_.FindObject(visitor, OldPage::kExecutable);
+  ObjectPtr raw_obj = old_space_.FindObject(visitor, Page::kExecutable);
   ASSERT((raw_obj == Object::null()) ||
          (raw_obj->GetClassId() == kInstructionsCid));
   return static_cast<InstructionsPtr>(raw_obj);
 }
 
 ObjectPtr Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  return old_space_.FindObject(visitor, OldPage::kData);
+  return old_space_.FindObject(visitor, Page::kData);
 }
 
 ObjectPtr Heap::FindNewObject(FindObjectVisitor* visitor) {
@@ -432,7 +432,7 @@ void Heap::NotifyIdle(int64_t deadline) {
   }
 
   if (OS::GetCurrentMonotonicMicros() < deadline) {
-    SemiSpace::ClearCache();
+    Page::ClearCache();
   }
 }
 
@@ -707,19 +707,6 @@ void Heap::Init(IsolateGroup* isolate_group,
   std::unique_ptr<Heap> heap(new Heap(isolate_group, is_vm_isolate,
                                       max_new_gen_words, max_old_gen_words));
   isolate_group->set_heap(std::move(heap));
-}
-
-const char* Heap::RegionName(Space space) {
-  switch (space) {
-    case kNew:
-      return "dart-newspace";
-    case kOld:
-      return "dart-oldspace";
-    case kCode:
-      return "dart-codespace";
-    default:
-      UNREACHABLE();
-  }
 }
 
 void Heap::AddRegionsToObjectSet(ObjectSet* set) const {

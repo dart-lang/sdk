@@ -2759,7 +2759,7 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT_EQ(1, Smi::Cast(result).Value());
   // Switch to the writeable but non-executable view of the instructions.
-  instructions ^= OldPage::ToWritable(instructions.ptr());
+  instructions ^= Page::ToWritable(instructions.ptr());
   payload_start = instructions.PayloadStart();
   EXPECT_EQ(instructions.ptr(), Instructions::FromPayloadStart(payload_start));
   // Hook up Code and Instructions objects.

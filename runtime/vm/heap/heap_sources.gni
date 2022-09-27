@@ -17,6 +17,8 @@ heap_sources = [
   "heap.h",
   "marker.cc",
   "marker.h",
+  "page.cc",
+  "page.h",
   "pages.cc",
   "pages.h",
   "pointer_block.cc",

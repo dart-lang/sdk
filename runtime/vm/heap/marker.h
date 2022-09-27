@@ -20,7 +20,7 @@ class ObjectPointerVisitor;
 class PageSpace;
 template <bool sync>
 class MarkingVisitorBase;
-class NewPage;
+class Page;
 class Thread;
 
 // The class GCMarker is used to mark reachable old generation objects as part
@@ -73,7 +73,7 @@ class GCMarker {
   GCLinkedLists global_list_;
   MarkingVisitorBase<true>** visitors_;
 
-  NewPage* new_page_;
+  Page* new_page_;
   Monitor root_slices_monitor_;
   RelaxedAtomic<intptr_t> root_slices_started_;
   intptr_t root_slices_finished_;

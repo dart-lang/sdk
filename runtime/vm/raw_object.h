@@ -3108,7 +3108,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class ReversePc;
   template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
   friend class CanonicalSetDeserializationCluster;
-  friend class OldPage;
+  friend class Page;
   friend class FastObjectCopy;  // For initializing fields.
   friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };

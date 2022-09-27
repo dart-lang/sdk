@@ -760,12 +760,12 @@ intptr_t UntaggedImmutableLinkedHashSet::VisitImmutableLinkedHashSetPointers(
 }
 
 void UntaggedObject::RememberCard(ObjectPtr const* slot) {
-  OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
+  Page::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
 }
 
 #if defined(DART_COMPRESSED_POINTERS)
 void UntaggedObject::RememberCard(CompressedObjectPtr const* slot) {
-  OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
+  Page::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
 }
 #endif
 
@@ -777,7 +777,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void,
   ObjectPtr object = static_cast<ObjectPtr>(object_in);
   ASSERT(object->IsOldObject());
   ASSERT(object->untag()->IsCardRemembered());
-  OldPage::Of(object)->RememberCard(slot);
+  Page::Of(object)->RememberCard(slot);
 }
 END_LEAF_RUNTIME_ENTRY
 

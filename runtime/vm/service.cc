@@ -4592,10 +4592,8 @@ static void AddVMMappings(JSONArray* rss_children) {
       // [anon:dart-*] - as labelled (Android)
       if ((strcmp(property, "Rss:") == 0) && (size != 0) &&
           (strcmp(path, "(deleted)") != 0) && (strcmp(path, "[heap]") != 0) &&
-          (strcmp(path, "") != 0) &&
-          (strcmp(path, "[anon:dart-newspace]") != 0) &&
-          (strcmp(path, "[anon:dart-oldspace]") != 0) &&
-          (strcmp(path, "[anon:dart-codespace]") != 0) &&
+          (strcmp(path, "") != 0) && (strcmp(path, "[anon:dart-heap]") != 0) &&
+          (strcmp(path, "[anon:dart-code]") != 0) &&
           (strcmp(path, "[anon:dart-profiler]") != 0) &&
           (strcmp(path, "[anon:dart-timeline]") != 0) &&
           (strcmp(path, "[anon:dart-zone]") != 0)) {
@@ -4680,9 +4678,9 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
 
       {
         JSONObject semi(&vm_children);
-        semi.AddProperty("name", "SemiSpace Cache");
+        semi.AddProperty("name", "Page Cache");
         semi.AddProperty("description", "Cached heap regions");
-        intptr_t size = SemiSpace::CachedSize();
+        intptr_t size = Page::CachedSize();
         vm_size += size;
         semi.AddProperty64("size", size);
         JSONArray(&semi, "children");
