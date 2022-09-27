@@ -226,7 +226,7 @@ class AnalyzerConverter {
         // in either or both of these cases?
         ) {
       final type = element.type;
-      if (type is InterfaceType && type.element2 == element.enclosingElement3) {
+      if (type is InterfaceType && type.element2 == element.enclosingElement) {
         return plugin.ElementKind.ENUM_CONSTANT;
       }
     }
@@ -326,15 +326,15 @@ class AnalyzerConverter {
     if (currentElement is analyzer.CompilationUnitElement) {
       return currentElement;
     }
-    if (currentElement.enclosingElement3 is analyzer.LibraryElement) {
-      currentElement = currentElement.enclosingElement3;
+    if (currentElement.enclosingElement is analyzer.LibraryElement) {
+      currentElement = currentElement.enclosingElement;
     }
     if (currentElement is analyzer.LibraryElement) {
       return currentElement.definingCompilationUnit;
     }
     for (;
         currentElement != null;
-        currentElement = currentElement.enclosingElement3) {
+        currentElement = currentElement.enclosingElement) {
       if (currentElement is analyzer.CompilationUnitElement) {
         return currentElement;
       }

@@ -43,7 +43,7 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
       return;
     }
     // should have "isNotEmpty"
-    var propertyTarget = propertyElement.enclosingElement3;
+    var propertyTarget = propertyElement.enclosingElement;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;

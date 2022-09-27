@@ -215,7 +215,7 @@ class ConstantEvaluationEngine {
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     if (constant is ConstFieldElementImpl && constant.isEnumConstant) {
-      var enclosing = constant.enclosingElement3;
+      var enclosing = constant.enclosingElement;
       if (enclosing is EnumElementImpl) {
         if (enclosing.name == 'values') {
           return;
@@ -275,7 +275,7 @@ class ConstantEvaluationEngine {
             }
           }
         }
-        for (FieldElement field in constant.enclosingElement3.fields) {
+        for (FieldElement field in constant.enclosingElement.fields) {
           // Note: non-static const isn't allowed but we handle it anyway so
           // that we won't be confused by incorrect code.
           if ((field.isFinal || field.isConst) &&
@@ -389,7 +389,7 @@ class ConstantEvaluationEngine {
       return null;
     }
     var typeProvider = constructor.library.typeProvider;
-    if (constructor.enclosingElement3 == typeProvider.symbolElement) {
+    if (constructor.enclosingElement == typeProvider.symbolElement) {
       // The dart:core.Symbol has a const factory constructor that redirects
       // to dart:_internal.Symbol.  That in turn redirects to an external
       // const constructor, which we won't be able to evaluate.
@@ -413,7 +413,7 @@ class ConstantEvaluationEngine {
 
   static _EnumConstant? _enumConstant(VariableElementImpl element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {
-      var enum_ = element.enclosingElement3;
+      var enum_ = element.enclosingElement;
       if (enum_ is EnumElementImpl) {
         var index = enum_.constants.indexOf(element);
         assert(index >= 0);
@@ -890,7 +890,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (element.name == "identical") {
         NodeList<Expression> arguments = node.argumentList.arguments;
         if (arguments.length == 2) {
-          var enclosingElement = element.enclosingElement3;
+          var enclosingElement = element.enclosingElement;
           if (enclosingElement is CompilationUnitElement) {
             LibraryElement library = enclosingElement.library;
             if (library.isDartCore) {
@@ -1474,7 +1474,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return false;
     }
     return identifier.name == 'length' &&
-        identifier.staticElement?.enclosingElement3 is! ExtensionElement;
+        identifier.staticElement?.enclosingElement is! ExtensionElement;
   }
 
   void _reportNotPotentialConstants(AstNode node) {
@@ -2175,7 +2175,7 @@ class _InstanceCreationEvaluator {
     List<Expression> arguments, {
     required bool isNullSafe,
   }) {
-    final definingClass = _constructor.enclosingElement3;
+    final definingClass = _constructor.enclosingElement;
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
@@ -2286,7 +2286,7 @@ class _InstanceCreationEvaluator {
   }
 
   void _checkFields() {
-    var fields = _constructor.enclosingElement3.fields;
+    var fields = _constructor.enclosingElement.fields;
     for (var field in fields) {
       if ((field.isFinal || field.isConst) &&
           !field.isStatic &&
@@ -2575,7 +2575,7 @@ class _InstanceCreationEvaluator {
   }
 
   void _checkTypeParameters() {
-    var typeParameters = _constructor.enclosingElement3.typeParameters;
+    var typeParameters = _constructor.enclosingElement.typeParameters;
     var typeArguments = _typeArguments;
     if (typeParameters.isNotEmpty &&
         typeArguments != null &&

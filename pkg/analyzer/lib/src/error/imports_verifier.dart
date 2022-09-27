@@ -94,7 +94,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
 
   void _recordIfExtensionMember(Element? element) {
     if (element != null) {
-      var enclosingElement = element.enclosingElement3;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ExtensionElement) {
         _recordUsedExtension(enclosingElement);
       }
@@ -165,7 +165,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor<void> {
     if (_recordPrefixMap(identifier, element)) {
       return;
     }
-    var enclosingElement = element.enclosingElement3;
+    var enclosingElement = element.enclosingElement;
     if (enclosingElement is CompilationUnitElement) {
       _recordUsedElement(element);
     } else if (enclosingElement is ExtensionElement) {

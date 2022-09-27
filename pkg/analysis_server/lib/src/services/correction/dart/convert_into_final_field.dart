@@ -46,7 +46,7 @@ class ConvertIntoFinalField extends CorrectionProducer {
       if (element == null) {
         return;
       }
-      var enclosing = element.enclosingElement3;
+      var enclosing = element.enclosingElement;
       if (enclosing is InterfaceElement) {
         if (enclosing.getSetter(element.name) != null) {
           return;

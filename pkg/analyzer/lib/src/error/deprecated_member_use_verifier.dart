@@ -167,7 +167,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
       // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
-      displayName = element.enclosingElement3.displayName;
+      displayName = element.enclosingElement.displayName;
       if (element.displayName.isNotEmpty) {
         displayName = "$displayName.${element.displayName}";
       }
@@ -240,7 +240,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   /// Return `true` if [element] is a [ParameterElement] declared in [node].
   static bool _isLocalParameter(Element? element, AstNode? node) {
     if (element is ParameterElement) {
-      var definingFunction = element.enclosingElement3 as ExecutableElement;
+      var definingFunction = element.enclosingElement as ExecutableElement;
 
       for (; node != null; node = node.parent) {
         if (node is ConstructorDeclaration) {

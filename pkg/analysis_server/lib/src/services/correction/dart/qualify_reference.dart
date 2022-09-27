@@ -40,7 +40,7 @@ class QualifyReference extends CorrectionProducer {
       return;
     }
 
-    var enclosingElement = memberElement.enclosingElement3;
+    var enclosingElement = memberElement.enclosingElement;
     if (enclosingElement == null ||
         enclosingElement.library != libraryElement) {
       // TODO(brianwilkerson) Support qualifying references to members defined

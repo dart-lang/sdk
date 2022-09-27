@@ -315,7 +315,7 @@ class PropertyElementResolver with ScopeHelpers {
           propertyName,
         );
       } else {
-        var enclosingElement = element.enclosingElement3;
+        var enclosingElement = element.enclosingElement;
         if (enclosingElement is ExtensionElement &&
             enclosingElement.name == null) {
           _resolver.errorReporter.reportErrorForNode(

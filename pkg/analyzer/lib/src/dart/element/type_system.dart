@@ -1717,7 +1717,7 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement3 is ExtensionElement) {
+    if (methodElement.enclosingElement is ExtensionElement) {
       return currentType;
     }
 
@@ -1821,7 +1821,7 @@ class TypeSystemImpl implements TypeSystem {
     // If the method being invoked comes from an extension, don't refine the
     // type because we can only make guarantees about methods defined in the
     // SDK, and the numeric methods we refine are all instance methods.
-    if (methodElement.enclosingElement3 is ExtensionElement) {
+    if (methodElement.enclosingElement is ExtensionElement) {
       return currentType;
     }
 

@@ -212,7 +212,7 @@ class MethodInvocationResolver with ScopeHelpers {
     ExecutableElement element,
     bool nullReceiver,
   ) {
-    var enclosingElement = element.enclosingElement3;
+    var enclosingElement = element.enclosingElement;
     if (nullReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.reportErrorForNode(
@@ -762,6 +762,12 @@ class MethodInvocationResolver with ScopeHelpers {
       nameNode.staticElement = null;
       nameNode.staticType = _dynamicType;
       return;
+    }
+
+    final recordField = result.recordField;
+    if (recordField != null) {
+      return _rewriteAsFunctionExpressionInvocation(node, recordField.type,
+          contextType: contextType);
     }
 
     var target = result.getter;

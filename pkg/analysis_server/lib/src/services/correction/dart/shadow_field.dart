@@ -28,7 +28,7 @@ class ShadowField extends CorrectionProducer {
       return;
     }
 
-    if (!accessor.isGetter || accessor.enclosingElement3 is! InterfaceElement) {
+    if (!accessor.isGetter || accessor.enclosingElement is! InterfaceElement) {
       // TODO(brianwilkerson) Should we also require that the getter be synthetic?
       return;
     }

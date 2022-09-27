@@ -3924,7 +3924,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (node.inSetterContext()) {
         _localVariableInfo.potentiallyMutatedInScope.add(element);
         if (_enclosingClosure != null &&
-            element.enclosingElement3 != _enclosingClosure) {
+            element.enclosingElement != _enclosingClosure) {
           _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }

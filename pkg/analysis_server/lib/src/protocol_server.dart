@@ -225,7 +225,7 @@ Location newLocation_fromUnit(
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member,
     {required bool withNullability}) {
   var element = convertElement(member, withNullability: withNullability);
-  var className = member.enclosingElement3!.displayName;
+  var className = member.enclosingElement!.displayName;
   return OverriddenMember(element, className);
 }
 
@@ -272,7 +272,7 @@ List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
 
   if (element is engine.PrefixElement) {
-    element = element.enclosingElement3.definingCompilationUnit;
+    element = element.enclosingElement.definingCompilationUnit;
   }
 
   var withNullability = element.library?.isNonNullableByDefault ?? false;
@@ -287,7 +287,7 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
     return element;
   }
 
-  var enclosingElement = element.enclosingElement3;
+  var enclosingElement = element.enclosingElement;
   if (enclosingElement is engine.LibraryElement) {
     element = enclosingElement;
   }

@@ -44,7 +44,11 @@ class ConstructorMember extends ExecutableMember
   String get displayName => declaration.displayName;
 
   @override
-  InterfaceElement get enclosingElement3 => declaration.enclosingElement3;
+  InterfaceElement get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  InterfaceElement get enclosingElement3 => enclosingElement;
 
   @override
   bool get isConst => declaration.isConst;
@@ -345,7 +349,11 @@ class FieldMember extends VariableMember implements FieldElement {
   String get displayName => declaration.displayName;
 
   @override
-  Element get enclosingElement3 => declaration.enclosingElement3;
+  Element get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement3 => enclosingElement;
 
   @override
   PropertyAccessorElement? get getter {
@@ -435,7 +443,11 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   FunctionElement get declaration => super.declaration as FunctionElement;
 
   @override
-  Element get enclosingElement3 => declaration.enclosingElement3;
+  Element get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement3 => enclosingElement;
 
   @override
   bool get isDartCoreIdentical => declaration.isDartCoreIdentical;
@@ -494,7 +506,11 @@ abstract class Member implements Element {
   String? get documentationComment => _declaration.documentationComment;
 
   @override
-  Element? get enclosingElement3 => _declaration.enclosingElement3;
+  Element? get enclosingElement => _declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement3 => enclosingElement;
 
   @override
   bool get hasAlwaysThrows => _declaration.hasAlwaysThrows;
@@ -779,7 +795,11 @@ class MethodMember extends ExecutableMember implements MethodElement {
   MethodElement get declaration => super.declaration as MethodElement;
 
   @override
-  Element get enclosingElement3 => declaration.enclosingElement3;
+  Element get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement3 => enclosingElement;
 
   @override
   String get name => declaration.name;
@@ -863,7 +883,11 @@ class ParameterMember extends VariableMember
   String? get defaultValueCode => declaration.defaultValueCode;
 
   @override
-  Element? get enclosingElement3 => declaration.enclosingElement3;
+  Element? get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement3 => enclosingElement;
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -1004,7 +1028,11 @@ class PropertyAccessorMember extends ExecutableMember
       super.declaration as PropertyAccessorElement;
 
   @override
-  Element get enclosingElement3 => declaration.enclosingElement3;
+  Element get enclosingElement => declaration.enclosingElement;
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element get enclosingElement3 => enclosingElement;
 
   @override
   bool get isGetter => declaration.isGetter;

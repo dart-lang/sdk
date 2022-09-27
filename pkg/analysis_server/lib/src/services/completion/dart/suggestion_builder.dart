@@ -394,7 +394,7 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement3;
+    var enclosingClass = constructor.enclosingElement;
     var className = enclosingClass.name;
     if (className.isEmpty) {
       return;
@@ -442,10 +442,10 @@ class SuggestionBuilder {
     } else if (element is ExtensionElement) {
       suggestExtension(element, kind: kind);
     } else if (element is FunctionElement &&
-        element.enclosingElement3 is CompilationUnitElement) {
+        element.enclosingElement is CompilationUnitElement) {
       suggestTopLevelFunction(element, kind: kind);
     } else if (element is PropertyAccessorElement &&
-        element.enclosingElement3 is CompilationUnitElement) {
+        element.enclosingElement is CompilationUnitElement) {
       suggestTopLevelPropertyAccessor(element);
     } else if (element is TypeAliasElement) {
       suggestTypeAlias(element);
@@ -458,7 +458,7 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestEnumConstant(FieldElement constant, {String? prefix}) {
     var constantName = constant.name;
-    var enumElement = constant.enclosingElement3;
+    var enumElement = constant.enclosingElement;
     var enumName = enumElement.name;
     var completion = '$enumName.$constantName';
     var relevance =
@@ -706,7 +706,7 @@ class SuggestionBuilder {
       inheritanceDistance: inheritanceDistance,
     );
 
-    var enclosingElement = method.enclosingElement3;
+    var enclosingElement = method.enclosingElement;
     if (method.name == 'setState' &&
         enclosingElement is ClassElement &&
         flutter.isExactState(enclosingElement)) {
@@ -778,10 +778,10 @@ class SuggestionBuilder {
 
     // Optionally add Flutter child widget details.
     // todo (pq): revisit this special casing; likely it can be generalized away
-    var element = parameter.enclosingElement3;
+    var element = parameter.enclosingElement;
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.instance.isWidget(element.enclosingElement3)) {
+      if (Flutter.instance.isWidget(element.enclosingElement)) {
         var codeStyleOptions = request
             .analysisSession.analysisContext.analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.
@@ -1082,9 +1082,9 @@ class SuggestionBuilder {
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
       {String? prefix}) {
     assert(
-        accessor.enclosingElement3 is CompilationUnitElement,
+        accessor.enclosingElement is CompilationUnitElement,
         'Enclosing element of ${accessor.runtimeType} is '
-        '${accessor.enclosingElement3.runtimeType}.');
+        '${accessor.enclosingElement.runtimeType}.');
     if (accessor.isSynthetic) {
       // Avoid visiting a field twice. All fields induce a getter, but only
       // non-final fields induce a setter, so we don't add a suggestion for a
@@ -1134,7 +1134,7 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
       {String? prefix}) {
-    assert(variable.enclosingElement3 is CompilationUnitElement);
+    assert(variable.enclosingElement is CompilationUnitElement);
     var relevance =
         _computeTopLevelRelevance(variable, elementType: variable.type);
     _addBuilder(
@@ -1367,7 +1367,7 @@ class SuggestionBuilder {
       withNullability: _isNonNullableByDefault,
     );
 
-    var enclosingElement = element.enclosingElement3;
+    var enclosingElement = element.enclosingElement;
 
     String? declaringType;
     if (enclosingElement is InterfaceElement) {
@@ -1426,7 +1426,7 @@ class SuggestionBuilder {
   /// The enclosing element must be either a class, or extension; otherwise
   /// we either fail with assertion, or return `null`.
   String? _enclosingClassOrExtensionName(Element element) {
-    var enclosing = element.enclosingElement3;
+    var enclosing = element.enclosingElement;
     if (enclosing is InterfaceElement) {
       return enclosing.name;
     } else if (enclosing is ExtensionElement) {
