@@ -60,7 +60,6 @@ def monorepo_builder(name, short_name, category):
 
 monorepo_builder("monorepo-android-debug", "android-debug", "build")
 monorepo_builder("monorepo-android-profile", "android-profile", "build")
-monorepo_builder("monorepo-builder-v2", "builder", "build")
 monorepo_builder("monorepo-host-debug", "debug", "build")
 monorepo_builder("monorepo-host-debug-unopt", "debug-unopt", "build")
 monorepo_builder("monorepo-host-profile", "profile", "build")
