@@ -779,24 +779,72 @@ class StringTable extends Section implements DwarfContainerStringTable {
 
 /// An enumeration of recognized symbol binding values used by the ELF format.
 enum SymbolBinding {
-  STB_LOCAL,
-  STB_GLOBAL,
-  STB_WEAK,
+  // We only list the standard types here, not OS-specific ones.
+  STB_LOCAL(0, 'local'),
+  STB_GLOBAL(1, 'global'),
+  STB_WEAK(2, 'weak');
+
+  final int code;
+  final String description;
+
+  const SymbolBinding(this.code, this.description);
+
+  static SymbolBinding? fromCode(int code) {
+    for (final value in values) {
+      if (value.code == code) {
+        return value;
+      }
+    }
+    return null;
+  }
 }
 
 /// An enumeration of recognized symbol types used by the ELF format.
 enum SymbolType {
-  STT_NOTYPE,
-  STT_OBJECT,
-  STT_FUNC,
-  STT_SECTION,
+  // We only list the standard types here, not OS-specific ones.
+  STT_NOTYPE(0, 'notype'),
+  STT_OBJECT(1, 'object'),
+  STT_FUNC(2, 'function'),
+  STT_SECTION(3, 'section'),
+  STT_FILE(4, 'file'),
+  STT_COMMON(5, 'common'),
+  STT_TLS(6, 'thread-local');
+
+  final int code;
+  final String description;
+
+  const SymbolType(this.code, this.description);
+
+  static SymbolType? fromCode(int code) {
+    for (final value in values) {
+      if (value.code == code) {
+        return value;
+      }
+    }
+    return null;
+  }
 }
 
 enum SymbolVisibility {
-  STV_DEFAULT,
-  STV_INTERNAL,
-  STV_HIDDEN,
-  STV_PROTECTED,
+  // We only list the standard values here.
+  STV_DEFAULT(0, 'public'),
+  STV_INTERNAL(1, 'internal'),
+  STV_HIDDEN(2, 'hidden'),
+  STV_PROTECTED(3, 'protected');
+
+  final int code;
+  final String description;
+
+  const SymbolVisibility(this.code, this.description);
+
+  static SymbolVisibility? fromCode(int code) {
+    for (final value in values) {
+      if (value.code == code) {
+        return value;
+      }
+    }
+    return null;
+  }
 }
 
 /// A symbol in an ELF file, which names a portion of the virtual address space.
@@ -837,40 +885,20 @@ class Symbol implements DwarfContainerSymbol {
         nameIndex, info, other, sectionIndex, value, size, wordSize);
   }
 
-  SymbolBinding get bind => SymbolBinding.values[info >> 4];
-  SymbolType get type => SymbolType.values[info & 0x0f];
-  SymbolVisibility get visibility => SymbolVisibility.values[other & 0x03];
+  SymbolBinding? get bind => SymbolBinding.fromCode(info >> 4);
+  SymbolType? get type => SymbolType.fromCode(info & 0x0f);
+  SymbolVisibility? get visibility => SymbolVisibility.fromCode(other & 0x03);
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
       ..write('"')
       ..write(name)
-      ..write('" =>');
-    switch (bind) {
-      case SymbolBinding.STB_GLOBAL:
-        buffer.write(' a global');
-        break;
-      case SymbolBinding.STB_LOCAL:
-        buffer.write(' a local');
-        break;
-      case SymbolBinding.STB_WEAK:
-        buffer.write(' a weak');
-        break;
-    }
-    switch (visibility) {
-      case SymbolVisibility.STV_DEFAULT:
-        break;
-      case SymbolVisibility.STV_HIDDEN:
-        buffer.write(' hidden');
-        break;
-      case SymbolVisibility.STV_INTERNAL:
-        buffer.write(' internal');
-        break;
-      case SymbolVisibility.STV_PROTECTED:
-        buffer.write(' protected');
-        break;
-    }
-    buffer
+      ..write('" => a ')
+      ..write(bind?.description ?? '<binding unrecognized>')
+      ..write(' ')
+      ..write(type?.description ?? '<type unrecognized>')
+      ..write(' ')
+      ..write(visibility?.description ?? '<visibility unrecognized>')
       ..write(' symbol that points to ')
       ..write(size)
       ..write(' bytes at location 0x')

@@ -1294,6 +1294,17 @@ void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
   for (const auto& symbol : *current_symbols_) {
     WriteBytes(bytes + last_position, symbol.offset - last_position);
     assembly_stream_->Printf("%s:\n", symbol.name);
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
+    defined(DART_TARGET_OS_FUCHSIA)
+    // Output size and type of the read-only data symbol to the assembly stream.
+    assembly_stream_->Printf(".size %s, %zu\n", symbol.name, symbol.size);
+    assembly_stream_->Printf(".type %s, %%object\n", symbol.name);
+#elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+    // MachO symbol tables don't include the size of the symbol, so don't bother
+    // printing it to the assembly output.
+#else
+    UNIMPLEMENTED();
+#endif
     last_position = symbol.offset;
   }
   WriteBytes(bytes + last_position, len - last_position);
@@ -1379,6 +1390,17 @@ void AssemblyImageWriter::ExitSection(ProgramSection name,
   // We should still be in the same section as the last EnterSection.
   ASSERT(current_section_symbol_ != nullptr);
   ASSERT_EQUAL(strcmp(SectionSymbol(name, vm), current_section_symbol_), 0);
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
+    defined(DART_TARGET_OS_FUCHSIA)
+  // Output the size of the section symbol to the assembly stream.
+  assembly_stream_->Printf(".size %s, %zu\n", current_section_symbol_, size);
+  assembly_stream_->Printf(".type %s, %%object\n", current_section_symbol_);
+#elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+  // MachO symbol tables don't include the size of the symbol, so don't bother
+  // printing it to the assembly output.
+#else
+  UNIMPLEMENTED();
+#endif
   // We need to generate a text segment of the appropriate size in the ELF
   // for two reasons:
   //
@@ -1460,6 +1482,17 @@ void AssemblyImageWriter::AddCodeSymbol(const Code& code,
     debug_elf_->dwarf()->AddCode(code, symbol);
   }
   assembly_stream_->Printf("%s:\n", symbol);
+#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_ANDROID) ||        \
+    defined(DART_TARGET_OS_FUCHSIA)
+  // Output the size of the code symbol to the assembly stream.
+  assembly_stream_->Printf(".size %s, %zu\n", symbol, code.Size());
+  assembly_stream_->Printf(".type %s, %%function\n", symbol);
+#elif defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+  // MachO symbol tables don't include the size of the symbol, so don't bother
+  // printing it to the assembly output.
+#else
+  UNIMPLEMENTED();
+#endif
 }
 
 void AssemblyImageWriter::AddDataSymbol(const char* symbol,

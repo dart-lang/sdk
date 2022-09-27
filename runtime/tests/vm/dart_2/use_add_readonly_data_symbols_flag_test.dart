@@ -66,15 +66,38 @@ main(List<String> args) async {
 
     checkElf(scriptSnapshot);
     checkElf(scriptDebuggingInfo);
+
+    if (Platform.isLinux) {
+      final scriptAssembly = path.join(tempDir, 'snapshot.S');
+      final scriptAssemblySnapshot = path.join(tempDir, 'assembly.so');
+      final scriptAssemblyDebuggingInfo =
+          path.join(tempDir, 'assembly_debug.so');
+
+      await run(genSnapshot, <String>[
+        '--add-readonly-data-symbols',
+        '--dwarf-stack-traces-mode',
+        '--save-debugging-info=$scriptAssemblyDebuggingInfo',
+        '--snapshot-kind=app-aot-assembly',
+        '--assembly=$scriptAssembly',
+        scriptDill,
+      ]);
+
+      await assembleSnapshot(scriptAssembly, scriptAssemblySnapshot,
+          debug: true);
+
+      checkElf(scriptAssemblySnapshot, isAssembled: true);
+      checkElf(scriptAssemblyDebuggingInfo);
+    }
   });
 }
 
-void checkElf(String filename) {
+void checkElf(String filename, {bool isAssembled = false}) {
   // Check that the static symbol table contains entries that are not in the
   // dynamic symbol table, have STB_LOCAL binding, and are of type STT_OBJECT.
   final elf = Elf.fromFile(filename);
   Expect.isNotNull(elf);
   final dynamicSymbols = elf.dynamicSymbols.toList();
+  print('Dynamic symbols:');
   for (final symbol in dynamicSymbols) {
     // All symbol tables have an initial entry with zero-valued fields.
     if (symbol.name == '') {
@@ -82,23 +105,43 @@ void checkElf(String filename) {
       Expect.equals(SymbolType.STT_NOTYPE, symbol.type);
       Expect.equals(0, symbol.value);
     } else {
+      print(symbol);
+      if (!symbol.name.startsWith('_kDart')) {
+        // The VM only adds symbols with names starting with _kDart, so this
+        // must be an assembled snapshot.
+        Expect.isTrue(isAssembled);
+        continue;
+      }
       Expect.equals(SymbolBinding.STB_GLOBAL, symbol.bind);
       Expect.equals(SymbolType.STT_OBJECT, symbol.type);
-      Expect.isTrue(symbol.name.startsWith('_kDart'),
-          'unexpected symbol name ${symbol.name}');
+      // All VM-generated read-only object symbols should have a non-zero size.
+      Expect.notEquals(0, symbol.size);
     }
   }
+  print("");
   final onlyStaticSymbols = elf.staticSymbols
       .where((s1) => !dynamicSymbols.any((s2) => s1.name == s2.name));
   Expect.isNotEmpty(onlyStaticSymbols, 'no static-only symbols');
   final objectSymbols =
       onlyStaticSymbols.where((s) => s.type == SymbolType.STT_OBJECT);
   Expect.isNotEmpty(objectSymbols, 'no static-only object symbols');
+  print("Static-only object symbols:");
   for (final symbol in objectSymbols) {
-    // Currently we only write local object symbols.
+    print(symbol);
+    // There should be no static-only global object symbols.
     Expect.equals(SymbolBinding.STB_LOCAL, symbol.bind);
-    // All object symbols are prefixed with the type of the C++ object.
-    final objectType = symbol.name.substring(0, symbol.name.indexOf('_'));
+    final objectTypeEnd = symbol.name.indexOf('_');
+    // All VM-generated read-only object symbols are prefixed with the type of
+    // the C++ object followed by an underscore. If assembling the snapshot,
+    // the assembler might introduce other object symbols which either start
+    // with an underscore or have no underscore.
+    if (objectTypeEnd <= 0) {
+      Expect.isTrue(isAssembled);
+      continue;
+    }
+    // All VM-generated read-only object symbols should have a non-zero size.
+    Expect.notEquals(0, symbol.size);
+    final objectType = symbol.name.substring(0, objectTypeEnd);
     switch (objectType) {
       // Used for entries in the non-clustered portion of the read-only data
       // section that don't correspond to a specific Dart object.
