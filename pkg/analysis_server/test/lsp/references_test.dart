@@ -100,6 +100,90 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(loc.uri, equals(mainFileUri));
   }
 
+  Future<void> test_function_startOfParameterList() async {
+    final contents = '''
+    foo^() {
+      [[foo]]();
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
+      ),
+    );
+  }
+
+  Future<void> test_function_startOfTypeParameterList() async {
+    final contents = '''
+    foo^<T>() {
+      [[foo]]();
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
+      ),
+    );
+  }
+
+  Future<void> test_method_startOfParameterList() async {
+    final contents = '''
+    class A {
+      foo^() {
+        [[foo]]();
+      }
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
+      ),
+    );
+  }
+
+  Future<void> test_method_startOfTypeParameterList() async {
+    final contents = '''
+    class A {
+      foo^<T>() {
+        [[foo]]();
+      }
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getReferences(mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(1));
+    expect(
+      res,
+      contains(
+        Location(uri: mainFileUri, range: rangeFromMarkers(contents)),
+      ),
+    );
+  }
+
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, simplePubspecContent);
     await initialize();

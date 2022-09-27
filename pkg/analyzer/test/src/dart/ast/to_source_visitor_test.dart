@@ -1450,7 +1450,7 @@ final v = [ $code ];
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_namedRequired() {
@@ -1458,7 +1458,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_nn() {
@@ -1466,7 +1466,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_p() {
@@ -1474,7 +1474,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_pp() {
@@ -1482,7 +1482,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_r() {
@@ -1497,7 +1497,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_rnn() {
@@ -1505,7 +1505,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_rp() {
@@ -1513,7 +1513,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_rpp() {
@@ -1521,7 +1521,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_rr() {
@@ -1538,7 +1538,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_rrnn() {
@@ -1546,7 +1546,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_rrp() {
@@ -1554,7 +1554,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitFormalParameterList_rrpp() {
@@ -1562,7 +1562,7 @@ void f$code {}
     final findNode = _parseStringToFindNode('''
 void f$code {}
 ''');
-    _assertSource(code, findNode.formalParameterList(code));
+    _assertSource(code, findNode.formalParameterList(code.substring(1)));
   }
 
   void test_visitForPartsWithDeclarations() {

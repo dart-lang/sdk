@@ -612,7 +612,9 @@ void doFoo(void Function() a) => a();
 
 @reflectiveTest
 class ExtractVariableRefactorCodeActionsTest extends AbstractCodeActionsTest {
+  final convertMethodToGetterTitle = 'Convert Method to Getter';
   final extractVariableTitle = 'Extract Local Variable';
+  final inlineMethodTitle = 'Inline Method';
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''
@@ -667,6 +669,216 @@ void foo(int arg) {}
         await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
     final codeAction = findCommand(
         codeActions, Commands.performRefactor, extractVariableTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_inlineMethod_function_startOfParameterList() async {
+    const content = '''
+test[[]](a, b) {
+  print(a);
+  print(b);
+}
+void f() {
+  test(1, 2);
+}
+    ''';
+    const expectedContent = '''
+void f() {
+  print(1);
+  print(2);
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  @failingTest
+  Future<void> test_inlineMethod_function_startOfTypeParameterList() async {
+    // TODO(dantup): This refactor fails for this code even with an offset
+    //  that's not at the end of the name.
+    //  'No argument for the parameter "a".'
+    const content = '''
+test[[]]<T>(T a, T b) {
+  print(a);
+  print(b);
+}
+void f() {
+  test(1, 2);
+}
+    ''';
+    const expectedContent = '''
+void f() {
+  print(1);
+  print(2);
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_inlineMethod_method_startOfParameterList() async {
+    const content = '''
+class A {
+  test[[]](a, b) {
+    print(a);
+    print(b);
+  }
+  void f() {
+    test(1, 2);
+  }
+}
+    ''';
+    const expectedContent = '''
+class A {
+  void f() {
+    print(1);
+    print(2);
+  }
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  @failingTest
+  Future<void> test_inlineMethod_method_startOfTypeParameterList() async {
+    // TODO(dantup): This refactor fails for this code even with an offset
+    //  that's not at the end of the name.
+    //  'No argument for the parameter "a".'
+    const content = '''
+class A {
+  test[[]]<T>(T a, T b) {
+    print(a);
+    print(b);
+  }
+  void f() {
+    test(1, 2);
+  }
+  }
+    ''';
+    const expectedContent = '''
+void f() {
+  print(1);
+  print(2);
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, inlineMethodTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_methodToGetter_function_startOfParameterList() async {
+    const content = '''
+int test[[]]() => 42;
+    ''';
+    const expectedContent = '''
+int get test => 42;
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_methodToGetter_function_startOfTypeParameterList() async {
+    const content = '''
+int test[[]]<T>() => 42;
+    ''';
+    const expectedContent = '''
+int get test<T> => 42;
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_methodToGetter_method_startOfParameterList() async {
+    const content = '''
+class A {
+  int test[[]]() => 42;
+}
+    ''';
+    const expectedContent = '''
+class A {
+  int get test => 42;
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  Future<void> test_methodToGetter_method_startOfTypeParameterList() async {
+    const content = '''
+class A {
+  int test[[]]<T>() => 42;
+}
+    ''';
+    const expectedContent = '''
+class A {
+  int get test<T> => 42;
+}
+    ''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final codeActions =
+        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+    final codeAction = findCommand(
+        codeActions, Commands.performRefactor, convertMethodToGetterTitle)!;
 
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);

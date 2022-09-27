@@ -8,6 +8,8 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:collection/collection.dart';
 
 class ImplementationHandler
@@ -32,12 +34,13 @@ class ImplementationHandler
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset
-        .mapResult((offset) => _getImplementations(path.result, offset, token));
+        .mapResult((offset) => _getImplementations(unit.result, offset, token));
   }
 
   Future<ErrorOr<List<Location>>> _getImplementations(
-      String file, int offset, CancellationToken token) async {
-    final element = await server.getElementAtOffset(file, offset);
+      ResolvedUnitResult result, int offset, CancellationToken token) async {
+    final node = NodeLocator(offset).searchWithin(result.unit);
+    final element = server.getElementOfNode(node);
     if (element == null) {
       return success([]);
     }

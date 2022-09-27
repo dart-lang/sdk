@@ -306,6 +306,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
     final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
     final Element? element;
+
     if (selectedNode is FunctionDeclaration) {
       element = selectedNode.declaredElement;
       isDeclaration = true;

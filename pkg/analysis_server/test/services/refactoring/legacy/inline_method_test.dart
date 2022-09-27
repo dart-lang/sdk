@@ -894,6 +894,26 @@ void f() {
 ''');
   }
 
+  Future<void> test_function_startOfParameterList() async {
+    await indexTestUnit(r'''
+test(a, b) {
+  print(a);
+  print(b);
+}
+void f() {
+  test(1, 2);
+}
+''');
+    _createRefactoring('(a, b) {');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+void f() {
+  print(1);
+  print(2);
+}
+''');
+  }
+
   Future<void> test_getter_async_targetIsAsync() async {
     await indexTestUnit(r'''
 import 'dart:async';

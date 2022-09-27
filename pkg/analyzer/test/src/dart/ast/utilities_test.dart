@@ -18,7 +18,18 @@ main() {
 }
 
 @reflectiveTest
-class NodeLocator2Test extends ParserTestCase {
+class NodeLocator2Test extends _SharedNodeLocatorTests {
+  @override
+  AstNode? locate(
+    CompilationUnit unit,
+    int start, [
+    int? end,
+  ]) {
+    var locator = NodeLocator2(start, end);
+    var node = locator.searchWithin(unit)!;
+    return node;
+  }
+
   void test_onlyStartOffset() {
     String code = ' int vv; ';
     //             012345678
@@ -57,7 +68,19 @@ class NodeLocator2Test extends ParserTestCase {
 }
 
 @reflectiveTest
-class NodeLocatorTest extends ParserTestCase {
+class NodeLocatorTest extends _SharedNodeLocatorTests {
+  @override
+  AstNode? locate(
+    CompilationUnit unit,
+    int start, [
+    int? end,
+  ]) {
+    var locator = NodeLocator(start, end);
+    var node = locator.searchWithin(unit)!;
+    expect(locator.foundNode, same(node));
+    return node;
+  }
+
   void test_range() {
     CompilationUnit unit = parseCompilationUnit("library myLib;");
     var node = _assertLocate(unit, 4, 10);
@@ -92,15 +115,94 @@ class B {}''');
     var node = locator.searchWithin(unit.declarations[1]);
     expect(node, isNull);
   }
+}
+
+abstract class _SharedNodeLocatorTests extends ParserTestCase {
+  AstNode? locate(
+    CompilationUnit unit,
+    int start, [
+    int? end,
+  ]);
+
+  void test_searchWithin_constructor_afterName_beforeParameters() {
+    var source = r'''
+class A {
+  A() {}
+}
+''';
+    var unit = parseCompilationUnit(source);
+    // TODO(dantup): Update these tests to use markers.
+    var node = _assertLocate(unit, source.indexOf('() {}'));
+    expect(node, isConstructorDeclaration);
+  }
+
+  void test_searchWithin_function_afterName_beforeParameters() {
+    var source = r'''
+void f() {}
+''';
+    var unit = parseCompilationUnit(source);
+    var node = _assertLocate(unit, source.indexOf('() {}'));
+    expect(node, isFunctionDeclaration);
+  }
+
+  void test_searchWithin_function_afterName_beforeTypeParameters() {
+    var source = r'''
+void f<T>() {}
+''';
+    var unit = parseCompilationUnit(source);
+    var node = _assertLocate(unit, source.indexOf('<T>() {}'));
+    expect(node, isFunctionDeclaration);
+  }
+
+  void test_searchWithin_method_afterName_beforeParameters() {
+    var source = r'''
+class A {
+  void m() {}
+}
+''';
+    var unit = parseCompilationUnit(source);
+    var node = _assertLocate(unit, source.indexOf('() {}'));
+    expect(node, isMethodDeclaration);
+  }
+
+  void test_searchWithin_method_afterName_beforeTypeParameters() {
+    var source = r'''
+class A {
+  void m<T>() {}
+}
+''';
+    var unit = parseCompilationUnit(source);
+    var node = _assertLocate(unit, source.indexOf('<T>() {}'));
+    expect(node, isMethodDeclaration);
+  }
+
+  void test_searchWithin_namedConstructor_afterName_beforeParameters() {
+    var source = r'''
+class A {
+  A.c() {}
+}
+''';
+    var unit = parseCompilationUnit(source);
+    var node = _assertLocate(unit, source.indexOf('() {}'));
+    expect(node, isConstructorDeclaration);
+  }
+
+  void test_searchWithin_setter_afterName_beforeParameters() {
+    var source = r'''
+set s(int i) {}
+''';
+    var unit = parseCompilationUnit(source);
+    var node = _assertLocate(unit, source.indexOf('(int i)'));
+    expect(node, isFunctionDeclaration);
+  }
 
   AstNode _assertLocate(
     CompilationUnit unit,
-    int start,
-    int end,
-  ) {
-    NodeLocator locator = NodeLocator(start, end);
-    var node = locator.searchWithin(unit)!;
-    expect(locator.foundNode, same(node));
+    int start, [
+    int? end,
+  ]) {
+    end ??= start;
+    var node = locate(unit, start, end)!;
     expect(node.offset <= start, isTrue, reason: "Node starts after range");
     expect(node.offset + node.length > end, isTrue,
         reason: "Node ends before range");

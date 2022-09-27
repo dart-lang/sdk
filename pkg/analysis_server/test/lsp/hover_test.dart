@@ -39,6 +39,42 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     expect(_getStringContents(hover), endsWith('This is shared content.'));
   }
 
+  Future<void> test_function_startOfParameterList() async {
+    final content = '''
+    /// This is a function.
+    String [[abc]]^() {}
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.value, contains('This is a function.'));
+  }
+
+  Future<void> test_function_startOfTypeParameterList() async {
+    final content = '''
+    /// This is a function.
+    String [[abc]]^<T>(T a) {}
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.value, contains('This is a function.'));
+  }
+
   Future<void> test_hover_bad_position() async {
     await initialize();
     await openFile(mainFileUri, '');
@@ -113,6 +149,46 @@ print();
     final markup = _getMarkupContents(hover);
     expect(markup.kind, equals(MarkupKind.Markdown));
     expect(markup.value, contains('This is a string.'));
+  }
+
+  Future<void> test_method_startOfParameterList() async {
+    final content = '''
+    class A {
+      /// This is a method.
+      String [[abc]]^() {}
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.value, contains('This is a method.'));
+  }
+
+  Future<void> test_method_startOfTypeParameterList() async {
+    final content = '''
+    class A {
+      /// This is a method.
+      String [[abc]]^<T>(T a) {}
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withHoverContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover!.range, equals(rangeFromMarkers(content)));
+    expect(hover.contents, isNotNull);
+    final markup = _getMarkupContents(hover);
+    expect(markup.value, contains('This is a method.'));
   }
 
   Future<void> test_noElement() async {
