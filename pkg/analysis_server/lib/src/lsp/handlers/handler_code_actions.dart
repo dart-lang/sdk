@@ -625,6 +625,7 @@ class CodeActionHandler
       if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
         final node = NodeLocator(offset).searchWithin(unit.unit);
         final element = server.getElementOfNode(node);
+
         // Getter to Method
         if (element is PropertyAccessorElement &&
             ConvertGetterToMethodRefactoring(

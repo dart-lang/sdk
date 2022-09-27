@@ -55,7 +55,9 @@ String _getMethodSourceForInvocation(
     // prepare argument
     Expression? argument;
     for (var arg in arguments) {
-      if (arg.staticParameterElement == parameter) {
+      // Compare using names because parameter elements may not be the same
+      // instance for methods with generic type arguments.
+      if (arg.staticParameterElement?.name == parameter.name) {
         argument = arg;
         break;
       }
@@ -306,6 +308,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
     final selectedNode = NodeLocator(offset).searchWithin(resolveResult.unit);
     final Element? element;
+
     if (selectedNode is FunctionDeclaration) {
       element = selectedNode.declaredElement;
       isDeclaration = true;

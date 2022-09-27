@@ -108,6 +108,58 @@ class C extends B {
         equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
   }
 
+  Future<void> test_methodName_startOfParameterList() async {
+    final content = '''
+class A {
+  void [[foo]]() {}
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  void foo^() {
+    // fooC
+  }
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getSuper(
+      mainFileUri,
+      positionFromMarker(content),
+    );
+
+    expect(res,
+        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+  }
+
+  Future<void> test_methodName_startOfTypeParameterList() async {
+    final content = '''
+class A {
+  void [[foo]]<T>() {}
+}
+
+class B extends A {}
+
+class C extends B {
+  @override
+  void foo^<T>() {
+    // fooC
+  }
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getSuper(
+      mainFileUri,
+      positionFromMarker(content),
+    );
+
+    expect(res,
+        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+  }
+
   Future<void> test_methodReturnType() async {
     final content = '''
 class A {

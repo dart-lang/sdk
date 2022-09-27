@@ -1296,8 +1296,8 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
 
   // Check nullability.
   __ Bind(&equiv_cids);
-  __ ldrb(R1, FieldAddress(R1, target::Type::nullability_offset()));
-  __ ldrb(R2, FieldAddress(R2, target::Type::nullability_offset()));
+  __ LoadAbstractTypeNullability(R1, R1);
+  __ LoadAbstractTypeNullability(R2, R2);
   __ cmp(R1, Operand(R2));
   __ b(&check_legacy, NE);
   // Fall through to equal case if nullability is strictly equal.

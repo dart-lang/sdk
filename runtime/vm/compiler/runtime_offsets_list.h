@@ -88,6 +88,7 @@
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   CONSTANT(TypeArguments, kMaxElements)                                        \
+  FIELD(AbstractType, flags_offset)                                            \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \
   FIELD(ArgumentsDescriptor, count_offset)                                     \
   FIELD(ArgumentsDescriptor, size_offset)                                      \
@@ -336,9 +337,6 @@
   FIELD(TwoByteString, data_offset)                                            \
   FIELD(Type, arguments_offset)                                                \
   FIELD(Type, hash_offset)                                                     \
-  FIELD(Type, type_class_id_offset)                                            \
-  FIELD(Type, type_state_offset)                                               \
-  FIELD(Type, nullability_offset)                                              \
   FIELD(Finalizer, type_arguments_offset)                                      \
   FIELD(Finalizer, callback_offset)                                            \
   FIELD(FinalizerBase, all_entries_offset)                                     \
@@ -354,14 +352,12 @@
   FIELD(NativeFinalizer, callback_offset)                                      \
   FIELD(FunctionType, hash_offset)                                             \
   FIELD(FunctionType, named_parameter_names_offset)                            \
-  FIELD(FunctionType, nullability_offset)                                      \
   FIELD(FunctionType, packed_parameter_counts_offset)                          \
   FIELD(FunctionType, packed_type_parameter_counts_offset)                     \
   FIELD(FunctionType, parameter_types_offset)                                  \
   FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
-  FIELD(TypeParameter, nullability_offset)                                     \
   FIELD(TypeArguments, instantiations_offset)                                  \
   FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \
@@ -371,7 +367,6 @@
   FIELD(TypeParameters, bounds_offset)                                         \
   FIELD(TypeParameters, defaults_offset)                                       \
   FIELD(TypeParameter, bound_offset)                                           \
-  FIELD(TypeParameter, flags_offset)                                           \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, typed_data_offset)                                      \

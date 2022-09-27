@@ -88,6 +88,8 @@ constexpr bool FLAG_support_il_printer = false;
   DISASSEMBLE_FLAGS(P, R, C, D)                                                \
   P(abort_on_oom, bool, false,                                                 \
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
+  P(add_readonly_data_symbols, bool, false,                                    \
+    "Add static symbols for objects in snapshot read-only data")               \
   C(async_debugger, false, false, bool, true,                                  \
     "Debugger support async functions.")                                       \
   P(background_compilation, bool, kDartUseBackgroundCompilation,               \

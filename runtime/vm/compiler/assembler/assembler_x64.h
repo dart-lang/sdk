@@ -594,6 +594,9 @@ class Assembler : public AssemblerBase {
   void LslImmediate(Register dst, int32_t shift) {
     shlq(dst, Immediate(shift));
   }
+  void LsrImmediate(Register dst, int32_t shift) override {
+    shrq(dst, Immediate(shift));
+  }
 
   void shldq(Register dst, Register src, Register shifter) {
     ASSERT(shifter == RCX);
@@ -1219,17 +1222,17 @@ class Assembler : public AssemblerBase {
     OBJ(cmp)(value, FieldAddress(base, offset));
   }
 
-  void CompareFunctionTypeNullabilityWith(Register type,
-                                          int8_t value) override {
-    EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
-    cmpb(FieldAddress(type,
-                      compiler::target::FunctionType::nullability_offset()),
-         Immediate(value));
+  void LoadAbstractTypeNullability(Register dst, Register type) override {
+    movzxb(dst,
+           FieldAddress(type, compiler::target::AbstractType::flags_offset()));
+    andl(dst,
+         Immediate(compiler::target::UntaggedAbstractType::kNullabilityMask));
   }
-  void CompareTypeNullabilityWith(Register type, int8_t value) override {
-    EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
-    cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
-         Immediate(value));
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch) override {
+    LoadAbstractTypeNullability(scratch, type);
+    cmpl(scratch, Immediate(value));
   }
 
   void RestoreCodePointer();

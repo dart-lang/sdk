@@ -135,7 +135,6 @@ namespace dart {
   F(TypeArguments, nullability_)                                               \
   F(AbstractType, type_test_stub_)                                             \
   F(Type, type_test_stub_)                                                     \
-  F(Type, type_class_id_)                                                      \
   F(Type, arguments_)                                                          \
   F(Type, hash_)                                                               \
   F(FunctionType, type_test_stub_)                                             \

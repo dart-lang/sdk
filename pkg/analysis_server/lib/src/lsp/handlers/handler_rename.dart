@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 
 class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
     TextDocumentPrepareRenameResult> {
@@ -36,7 +37,7 @@ class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) async {
-      final node = await server.getNodeAtOffset(path.result, offset);
+      final node = NodeLocator(offset).searchWithin(unit.result.unit);
       final element = server.getElementOfNode(node);
       if (node == null || element == null) {
         return success(null);
@@ -124,7 +125,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) async {
-      final node = await server.getNodeAtOffset(path.result, offset);
+      final node = NodeLocator(offset).searchWithin(unit.result.unit);
       final element = server.getElementOfNode(node);
       if (node == null || element == null) {
         return success(null);

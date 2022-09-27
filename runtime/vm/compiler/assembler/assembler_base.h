@@ -782,30 +782,24 @@ class AssemblerBase : public StackResource {
                             Register address,
                             int32_t offset = 0) = 0;
 
-  // Retrieves nullability from a FunctionTypePtr in [type] and compares it
-  // to [value].
-  //
-  // TODO(dartbug.com/47034): Change how nullability is stored so that it
-  // can be accessed without checking the class id first.
-  virtual void CompareFunctionTypeNullabilityWith(Register type,
-                                                  int8_t value) = 0;
+  // Loads nullability from an AbstractType [type] to [dst].
+  virtual void LoadAbstractTypeNullability(Register dst, Register type) = 0;
+  // Loads nullability from an AbstractType [type] and compares it
+  // to [value]. Clobbers [scratch].
+  virtual void CompareAbstractTypeNullabilityWith(Register type,
+                                                  /*Nullability*/ int8_t value,
+                                                  Register scratch) = 0;
 
-  // Retrieves nullability from a TypePtr in [type] and compares it to [value].
-  //
-  // TODO(dartbug.com/47034): Change how nullability is stored so that it
-  // can be accessed without checking the class id first.
-  virtual void CompareTypeNullabilityWith(Register type, int8_t value) = 0;
+  virtual void LsrImmediate(Register dst, int32_t shift) = 0;
 
   void LoadTypeClassId(Register dst, Register src) {
 #if !defined(TARGET_ARCH_IA32)
     EnsureHasClassIdInDEBUG(kTypeCid, src, TMP);
 #endif
-    ASSERT(!compiler::target::UntaggedType::kTypeClassIdIsSigned);
-    ASSERT_EQUAL(compiler::target::UntaggedType::kTypeClassIdBitSize,
-                 kBitsPerInt16);
     LoadFieldFromOffset(dst, src,
-                        compiler::target::Type::type_class_id_offset(),
-                        kUnsignedTwoBytes);
+                        compiler::target::AbstractType::flags_offset(),
+                        kUnsignedFourBytes);
+    LsrImmediate(dst, compiler::target::UntaggedType::kTypeClassIdShift);
   }
 
   virtual void EnsureHasClassIdInDEBUG(intptr_t cid,

@@ -36,6 +36,22 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     return _test_prepare(content, 'MyClass');
   }
 
+  Future<void> test_prepare_function_startOfParameterList() {
+    const content = '''
+    void [[aaaa]]^() {}
+    ''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
+  Future<void> test_prepare_function_startOfTypeParameterList() {
+    const content = '''
+    void [[aaaa]]^<T>() {}
+    ''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
   Future<void> test_prepare_importPrefix() async {
     const content = '''
     import 'dart:async' as [[myPr^efix]];
@@ -68,6 +84,26 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     ''';
 
     return _test_prepare(content, null);
+  }
+
+  Future<void> test_prepare_method_startOfParameterList() {
+    const content = '''
+    class A {
+      void [[aaaa]]^() {}
+    }
+    ''';
+
+    return _test_prepare(content, 'aaaa');
+  }
+
+  Future<void> test_prepare_method_startOfTypeParameterList() {
+    const content = '''
+    class A {
+      void [[aaaa]]^<T>() {}
+    }
+    ''';
+
+    return _test_prepare(content, 'aaaa');
   }
 
   Future<void> test_prepare_sdkClass() async {
@@ -366,6 +402,28 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_rename_function_startOfParameterList() {
+    const content = '''
+    void f^() {}
+    ''';
+    const expectedContent = '''
+    void newName() {}
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
+  Future<void> test_rename_function_startOfTypeParameterList() {
+    const content = '''
+    void f^<T>() {}
+    ''';
+    const expectedContent = '''
+    void newName<T>() {}
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
   Future<void> test_rename_importPrefix() {
     const content = '''
     import 'dart:async' as myPr^efix;
@@ -406,6 +464,36 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     }
     ''';
     return _test_rename_withDocumentChanges(content, 'MyNewClass', null);
+  }
+
+  Future<void> test_rename_method_startOfParameterList() {
+    const content = '''
+    class MyClass {
+      void m^() {}
+    }
+    ''';
+    const expectedContent = '''
+    class MyClass {
+      void newName() {}
+    }
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
+  }
+
+  Future<void> test_rename_method_startOfTypeParameterList() {
+    const content = '''
+    class MyClass {
+      void m^<T>() {}
+    }
+    ''';
+    const expectedContent = '''
+    class MyClass {
+      void newName<T>() {}
+    }
+    ''';
+    return _test_rename_withDocumentChanges(
+        content, 'newName', expectedContent);
   }
 
   Future<void> test_rename_multipleFiles() async {

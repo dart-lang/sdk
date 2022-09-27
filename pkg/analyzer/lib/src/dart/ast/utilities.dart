@@ -1687,7 +1687,11 @@ class LinterExceptionHandler {
 /// An object used to locate the [AstNode] associated with a source range, given
 /// the AST structure built from the source. More specifically, they will return
 /// the [AstNode] with the shortest length whose source range completely
-/// encompasses the specified range.
+/// encompasses the specified range with some exceptions:
+///
+/// - Offsets that fall between the name and type/formal parameter list of a
+///   declaration will return the declaration node and not the parameter list
+///   node.
 class NodeLocator extends UnifyingAstVisitor<void> {
   /// The start offset of the range used to identify the node.
   final int _startOffset;
@@ -1728,7 +1732,45 @@ class NodeLocator extends UnifyingAstVisitor<void> {
               stackTrace));
       return null;
     }
+
     return _foundNode;
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the decleration (not parameter list).
+    if (_startOffset == _endOffset &&
+        _startOffset == (node.name ?? node.returnType).end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the decleration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the decleration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitMethodDeclaration(node);
   }
 
   @override
@@ -1779,7 +1821,11 @@ class NodeLocator extends UnifyingAstVisitor<void> {
 
 /// An object used to locate the [AstNode] associated with a source range.
 /// More specifically, they will return the deepest [AstNode] which completely
-/// encompasses the specified range.
+/// encompasses the specified range with some exceptions:
+///
+/// - Offsets that fall between the name and type/formal parameter list of a
+///   declaration will return the declaration node and not the parameter list
+///   node.
 class NodeLocator2 extends UnifyingAstVisitor<void> {
   /// The inclusive start offset of the range used to identify the node.
   final int _startOffset;
@@ -1818,6 +1864,43 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       return null;
     }
     return _foundNode;
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the decleration (not parameter list).
+    if (_startOffset == _endOffset &&
+        _startOffset == (node.name ?? node.returnType).end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the decleration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the decleration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitMethodDeclaration(node);
   }
 
   @override

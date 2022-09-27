@@ -255,6 +255,40 @@ extension StringExtension on String {
         ));
   }
 
+  Future<void> test_function_startOfParameterList() async {
+    final contents = '''
+/*1*/void myFunction^() {}/*1*/
+    ''';
+
+    await expectTarget(
+        contents,
+        _isItem(
+          CallHierarchyKind.function,
+          'myFunction',
+          testFile,
+          containerName: 'test.dart',
+          nameRange: rangeAtSearch('myFunction', contents),
+          codeRange: rangeNumbered(1, contents),
+        ));
+  }
+
+  Future<void> test_function_startOfTypeParameterList() async {
+    final contents = '''
+/*1*/void myFunction^<T>() {}/*1*/
+    ''';
+
+    await expectTarget(
+        contents,
+        _isItem(
+          CallHierarchyKind.function,
+          'myFunction',
+          testFile,
+          containerName: 'test.dart',
+          nameRange: rangeAtSearch('myFunction', contents),
+          codeRange: rangeNumbered(1, contents),
+        ));
+  }
+
   Future<void> test_functionCall() async {
     final contents = '''
 import 'other.dart' as f;
@@ -359,6 +393,44 @@ void f() {
     final contents = '''
 class Foo {
   /*1*/void myMet^hod() {}/*1*/
+}
+    ''';
+
+    await expectTarget(
+        contents,
+        _isItem(
+          CallHierarchyKind.method,
+          'myMethod',
+          testFile,
+          containerName: 'Foo',
+          nameRange: rangeAtSearch('myMethod', contents),
+          codeRange: rangeNumbered(1, contents),
+        ));
+  }
+
+  Future<void> test_method_startOfParameterList() async {
+    final contents = '''
+class Foo {
+  /*1*/void myMethod^() {}/*1*/
+}
+    ''';
+
+    await expectTarget(
+        contents,
+        _isItem(
+          CallHierarchyKind.method,
+          'myMethod',
+          testFile,
+          containerName: 'Foo',
+          nameRange: rangeAtSearch('myMethod', contents),
+          codeRange: rangeNumbered(1, contents),
+        ));
+  }
+
+  Future<void> test_method_startOfTypeParameterList() async {
+    final contents = '''
+class Foo {
+  /*1*/void myMethod^<T>() {}/*1*/
 }
     ''';
 

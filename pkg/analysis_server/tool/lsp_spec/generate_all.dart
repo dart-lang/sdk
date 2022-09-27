@@ -112,9 +112,10 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 List<LspEntity> getCustomClasses() {
   /// Helper to create an interface type.
   Interface interface(String name, List<Member> fields,
-      {String? baseType, String? comment}) {
+      {String? baseType, String? comment, bool abstract = false}) {
     return Interface(
       name: name,
+      abstract: abstract,
       comment: comment,
       baseTypes: [if (baseType != null) TypeReference(baseType)],
       members: fields,
@@ -127,16 +128,21 @@ List<LspEntity> getCustomClasses() {
     String? comment,
     required String type,
     bool array = false,
+    bool literal = false,
+    bool canBeNull = false,
     bool canBeUndefined = false,
   }) {
-    final fieldType =
-        array ? ArrayType(TypeReference(type)) : TypeReference(type);
+    final fieldType = array
+        ? ArrayType(TypeReference(type))
+        : literal
+            ? LiteralType(TypeReference('string'), type)
+            : TypeReference(type);
 
     return Field(
       name: name,
       comment: comment,
       type: fieldType,
-      allowsNull: false,
+      allowsNull: canBeNull,
       allowsUndefined: canBeUndefined,
     );
   }
@@ -358,23 +364,24 @@ List<LspEntity> getCustomClasses() {
       'CommandParameter',
       [
         field(
-          'label',
+          'parameterLabel',
           type: 'String',
           comment:
               'A human-readable label to be displayed in the UI affordance '
               'used to prompt the user for the value of the parameter.',
         ),
-        field(
-          'type',
-          type: 'CommandParameterType',
-          comment: 'The type of the value of the parameter.',
+        AbstractGetter(
+          name: 'type',
+          type: TypeReference('string'),
+          comment: 'An optional default value for the parameter.',
         ),
-        field(
-          'defaultValue',
-          type: 'String',
-          comment: 'The default value for the parameter.',
+        AbstractGetter(
+          name: 'defaultValue',
+          type: TypeReference.LspAny,
+          comment: 'An optional default value for the parameter.',
         ),
       ],
+      abstract: true,
       comment: 'Information about one of the arguments needed by the command.'
           '\n\n'
           'A list of parameters is sent in the `data` field of the '
@@ -382,35 +389,34 @@ List<LspEntity> getCustomClasses() {
           'should appear in the `args` field of the `Command` sent to the '
           'server in the same order as the corresponding parameters.',
     ),
-    LspEnum(
-      name: 'CommandParameterType',
-      comment: 'The type of the value associated with a CommandParameter. All '
-          'values are encoded as strings, but the type indicates how the '
-          'string will be decoded by the server.',
-      members: [
-        Constant(
-          name: 'boolean',
-          value: 'boolean',
-          type: TypeReference('String'),
-          comment: 'The type associated with a bool value.'
-              '\n\n'
-              "The value must either be `'true'` or `'false'`.",
+    interface(
+      'SaveUriCommandParameter',
+      [
+        field(
+          'type',
+          type: 'saveUri',
+          literal: true,
         ),
-        Constant(
-          name: 'string',
-          value: 'string',
-          type: TypeReference('String'),
-          comment: 'The type associated with a string value.',
+        field(
+          'defaultValue',
+          type: 'LSPUri',
+          canBeNull: true,
+          canBeUndefined: true,
+          comment: 'An optional default value for the parameter.',
         ),
-        Constant(
-          name: 'filePath',
-          value: 'filePath',
-          type: TypeReference('String'),
-          comment:
-              'The type associated with a value representing a path to a file.',
+        field(
+          'parameterTitle',
+          type: 'String',
+          comment: 'A title that may be displayed on a file dialog.',
+        ),
+        field(
+          'actionLabel',
+          type: 'String',
+          comment: 'A label for the file dialogs action button.',
         ),
       ],
-      typeOfValues: TypeReference('String'),
+      baseType: 'CommandParameter',
+      comment: 'Information about a Save URI argument needed by the command.',
     ),
   ];
   return customTypes;
@@ -427,4 +433,13 @@ Future<List<LspEntity>> getSpecClasses(ArgResults args) async {
   model = LspMetaModelCleaner().cleanModel(model);
 
   return model.types;
+}
+
+class AbstractGetter extends Member {
+  final TypeBase type;
+  AbstractGetter({
+    required super.name,
+    super.comment,
+    required this.type,
+  });
 }

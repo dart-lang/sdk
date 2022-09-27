@@ -391,12 +391,15 @@ const word UntaggedObject::kTagBitsSizeTagPos =
 
 const word UntaggedAbstractType::kTypeStateFinalizedInstantiated =
     dart::UntaggedAbstractType::kFinalizedInstantiated;
+const word UntaggedAbstractType::kTypeStateShift =
+    dart::UntaggedAbstractType::kTypeStateShift;
+const word UntaggedAbstractType::kTypeStateBits =
+    dart::UntaggedAbstractType::kTypeStateBits;
+const word UntaggedAbstractType::kNullabilityMask =
+    dart::UntaggedAbstractType::kNullabilityMask;
 
-const bool UntaggedType::kTypeClassIdIsSigned =
-    std::is_signed<decltype(dart::UntaggedType::type_class_id_)>::value;
-
-const word UntaggedType::kTypeClassIdBitSize =
-    sizeof(dart::UntaggedType::type_class_id_) * kBitsPerByte;
+const word UntaggedType::kTypeClassIdShift =
+    dart::UntaggedType::kTypeClassIdShift;
 
 const word UntaggedObject::kBarrierOverlapShift =
     dart::UntaggedObject::kBarrierOverlapShift;

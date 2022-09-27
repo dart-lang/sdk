@@ -111,7 +111,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "49bc3ff32b5578b6e19f8fd376d668130941ee29", # manually rev'd
 
-  "dartdoc_rev": "a6676ee586283d6ea0f835f0c70fc1115400964f",
+  "dartdoc_rev": "6b8b1c46da9aceb405995516bab15b662119e5b0",
   "devtools_rev": "40aae5e5ea2118e2b6dee8a8a20f166f7cec4270",
   "ffi_rev": "fb5f2667826c0900e551d19101052f84e35f41bf",
   "file_rev": "b2e31cb6ef40b223701dbfa0b907fe58468484d7",
@@ -120,7 +120,7 @@ vars = {
   "html_rev": "8243e967caad9932c13971af3b2a7c8f028383d5",
   "http_multi_server_rev": "20bf079c8955d1250a45afb9cb096472a724a551",
   "http_parser_rev": "b968f7ddde0588273a6cbd1d2eb6569f418606ac",
-  "http_rev": "d6a4bf1e8f9d6e8f372958387cea32b0a6a62cfa",
+  "http_rev": "738a55b20e391c5a526b86bf4b02af6b7745b494",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "6806ab06fa6145f30dbcd5cbfeb3aeaadd21ea8e",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -148,7 +148,7 @@ vars = {
   "source_span_rev": "ff03af16474ce91c89eb3bc28182866f4cb6dfb0",
   "sse_rev": "00084c43684ddaf7e09c19c5364c4a27eb04efda",
   "stack_trace_rev": "17f09c2c6845bb31c7c385acecce5befb8527a13",
-  "stream_channel_rev": "63831cb74c5a413da893bda0fa4a80b5cb567076",
+  "stream_channel_rev": "a5129ca44322a7024074ca38fb98e343dcb638c7",
   "string_scanner_rev": "2d84b16d8ae03c3a8c2417b71abe0fe6de7d8bf6",
   "sync_http_rev": "f5c1f18f579752112870fa2f1860470d28c6f605",
   "term_glyph_rev": "ec7cf7bb51ebb7d55760a1359f6697690dbc06ba",

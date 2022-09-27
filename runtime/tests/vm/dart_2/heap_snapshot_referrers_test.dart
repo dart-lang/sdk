@@ -14,6 +14,7 @@ import 'use_flag_test_helper.dart';
 
 main() async {
   if (const bool.fromEnvironment('dart.vm.product')) return;
+  if (isSimulator) return; // Takes too long on simulators.
 
   await withTempDir('heap_snapshot_test', (String dir) async {
     final file = path.join(dir, 'state1.heapsnapshot');

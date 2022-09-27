@@ -978,8 +978,8 @@ void g<U>(double b) {
 }
 ''');
     _assertReplacementForChildren<FunctionExpression>(
-      destination: findNode.functionExpression('<T>'),
-      source: findNode.functionExpression('<U>'),
+      destination: findNode.functionExpression('T>'),
+      source: findNode.functionExpression('U>'),
       childAccessors: [
         (node) => node.body,
         (node) => node.parameters!,

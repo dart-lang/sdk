@@ -432,12 +432,14 @@ class UntaggedObject : public AllStatic {
 class UntaggedAbstractType : public AllStatic {
  public:
   static const word kTypeStateFinalizedInstantiated;
+  static const word kTypeStateShift;
+  static const word kTypeStateBits;
+  static const word kNullabilityMask;
 };
 
 class UntaggedType : public AllStatic {
  public:
-  static const bool kTypeClassIdIsSigned;
-  static const word kTypeClassIdBitSize;
+  static const word kTypeClassIdShift;
 };
 
 class Object : public AllStatic {
@@ -695,6 +697,7 @@ class Pointer : public AllStatic {
 
 class AbstractType : public AllStatic {
  public:
+  static word flags_offset();
   static word type_test_stub_entry_point_offset();
   static word InstanceSize();
   FINAL_CLASS();
@@ -703,10 +706,7 @@ class AbstractType : public AllStatic {
 class Type : public AllStatic {
  public:
   static word hash_offset();
-  static word type_state_offset();
   static word arguments_offset();
-  static word type_class_id_offset();
-  static word nullability_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };
@@ -714,13 +714,11 @@ class Type : public AllStatic {
 class FunctionType : public AllStatic {
  public:
   static word hash_offset();
-  static word type_state_offset();
   static word packed_parameter_counts_offset();
   static word packed_type_parameter_counts_offset();
   static word named_parameter_names_offset();
   static word parameter_types_offset();
   static word type_parameters_offset();
-  static word nullability_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };
@@ -966,12 +964,10 @@ class Bool : public AllStatic {
 class TypeParameter : public AllStatic {
  public:
   static word bound_offset();
-  static word flags_offset();
   static word InstanceSize();
   FINAL_CLASS();
   static word parameterized_class_id_offset();
   static word index_offset();
-  static word nullability_offset();
 };
 
 class LibraryPrefix : public AllStatic {

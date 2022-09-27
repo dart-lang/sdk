@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart'
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
@@ -38,7 +39,7 @@ class ReferencesHandler
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset.mapResult(
-        (offset) => _getReferences(path.result, offset, params, unit.result));
+        (offset) => _getReferences(unit.result, offset, params, unit.result));
   }
 
   List<Location> _getDeclarations(CompilationUnit unit, int offset) {
@@ -54,9 +55,10 @@ class ReferencesHandler
     }).whereNotNull().toList();
   }
 
-  Future<ErrorOr<List<Location>?>> _getReferences(String path, int offset,
-      ReferenceParams params, ResolvedUnitResult unit) async {
-    var element = await server.getElementAtOffset(path, offset);
+  Future<ErrorOr<List<Location>?>> _getReferences(ResolvedUnitResult result,
+      int offset, ReferenceParams params, ResolvedUnitResult unit) async {
+    final node = NodeLocator(offset).searchWithin(result.unit);
+    var element = server.getElementOfNode(node);
     if (element is LibraryImportElement) {
       element = element.prefix?.element;
     }

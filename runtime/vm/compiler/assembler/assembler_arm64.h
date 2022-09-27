@@ -648,20 +648,17 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP), sz);
   }
 
-  void CompareFunctionTypeNullabilityWith(Register type,
-                                          int8_t value) override {
-    EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
-    ldr(TMP,
-        FieldAddress(type,
-                     compiler::target::FunctionType::nullability_offset()),
+  void LoadAbstractTypeNullability(Register dst, Register type) override {
+    ldr(dst, FieldAddress(type, compiler::target::AbstractType::flags_offset()),
         kUnsignedByte);
-    cmp(TMP, Operand(value));
+    AndImmediate(dst, dst,
+                 compiler::target::UntaggedAbstractType::kNullabilityMask);
   }
-  void CompareTypeNullabilityWith(Register type, int8_t value) override {
-    EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
-    ldr(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()),
-        kUnsignedByte);
-    cmp(TMP, Operand(value));
+  void CompareAbstractTypeNullabilityWith(Register type,
+                                          /*Nullability*/ int8_t value,
+                                          Register scratch) override {
+    LoadAbstractTypeNullability(scratch, type);
+    cmp(scratch, Operand(value));
   }
 
   bool use_far_branches() const {
@@ -1706,6 +1703,9 @@ class Assembler : public AssemblerBase {
         (sz == kEightBytes) ? kXRegSizeInBits : kWRegSizeInBits;
     ASSERT((shift >= 0) && (shift < reg_size));
     ubfm(rd, rn, shift, reg_size - 1, sz);
+  }
+  void LsrImmediate(Register rd, int32_t shift) override {
+    LsrImmediate(rd, rd, shift);
   }
   void AsrImmediate(Register rd,
                     Register rn,

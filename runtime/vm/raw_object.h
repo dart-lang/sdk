@@ -2607,26 +2607,29 @@ class UntaggedTypeParameters : public UntaggedObject {
 };
 
 class UntaggedAbstractType : public UntaggedInstance {
+ protected:
+  // Accessed from generated code.
+  std::atomic<uword> type_test_stub_entry_point_;
+  // Accessed from generated code.
+  uint32_t flags_;
+  COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
+  VISIT_FROM(type_test_stub)
+
  public:
   enum TypeState {
     kAllocated,                // Initial state.
     kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
-    // Adjust kTypeStateBitSize if more are added.
   };
 
- protected:
-  static constexpr intptr_t kTypeStateBitSize = 2;
-  COMPILE_ASSERT(sizeof(std::atomic<word>) == sizeof(word));
+  using NullabilityBits = BitField<decltype(flags_), uint8_t, 0, 2>;
+  static constexpr intptr_t kNullabilityMask = NullabilityBits::mask();
 
-  // Accessed from generated code.
-  std::atomic<uword> type_test_stub_entry_point_;
-#if defined(DART_COMPRESSED_POINTERS)
-  uint32_t padding_;  // Makes Windows and Posix agree on layout.
-#endif
-  COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
-  VISIT_FROM(type_test_stub)
+  static constexpr intptr_t kTypeStateShift = NullabilityBits::kNextBit;
+  static constexpr intptr_t kTypeStateBits = 2;
+  using TypeStateBits =
+      BitField<decltype(flags_), uint8_t, kTypeStateShift, kTypeStateBits>;
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
@@ -2636,17 +2639,28 @@ class UntaggedAbstractType : public UntaggedInstance {
 };
 
 class UntaggedType : public UntaggedAbstractType {
+ public:
+  static constexpr intptr_t kTypeClassIdShift = TypeStateBits::kNextBit;
+  using TypeClassIdBits = BitField<decltype(flags_),
+                                   ClassIdTagType,
+                                   kTypeClassIdShift,
+                                   sizeof(ClassIdTagType) * kBitsPerByte>;
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, arguments)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
-  ClassIdTagType type_class_id_;
-  uint8_t type_state_;
-  uint8_t nullability_;
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  ClassIdTagType type_class_id() const {
+    return TypeClassIdBits::decode(flags_);
+  }
+  void set_type_class_id(ClassIdTagType value) {
+    flags_ = TypeClassIdBits::update(value, flags_);
+  }
 
   friend class compiler::target::UntaggedType;
   friend class CidRewriteVisitor;
@@ -2665,8 +2679,6 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   VISIT_TO(hash)
   AtomicBitFieldContainer<uint32_t> packed_parameter_counts_;
   AtomicBitFieldContainer<uint16_t> packed_type_parameter_counts_;
-  uint8_t type_state_;
-  uint8_t nullability_;
 
   // The bit fields are public for use in kernel_to_il.cc.
  public:
@@ -2716,8 +2728,6 @@ class UntaggedRecordType : public UntaggedAbstractType {
   COMPRESSED_POINTER_FIELD(ArrayPtr, field_names);
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
-  uint8_t type_state_;
-  uint8_t nullability_;
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
@@ -2742,14 +2752,6 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
   ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
   uint8_t base_;   // Number of enclosing function type parameters.
   uint8_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
-  uint8_t flags_;
-  uint8_t nullability_;
-
- public:
-  using BeingFinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
-  using FinalizedBit =
-      BitField<decltype(flags_), bool, BeingFinalizedBit::kNextBit, 1>;
-  static constexpr intptr_t kFlagsBitSize = FinalizedBit::kNextBit;
 
  private:
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }

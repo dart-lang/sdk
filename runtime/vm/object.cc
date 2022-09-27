@@ -10554,18 +10554,13 @@ FunctionTypePtr FunctionType::New(intptr_t num_parent_type_arguments,
   result.set_packed_type_parameter_counts(0);
   result.set_named_parameter_names(Object::empty_array());
   result.SetNumParentTypeArguments(num_parent_type_arguments);
-  result.set_nullability(nullability);
   result.SetHash(0);
-  result.StoreNonPointer(&result.untag()->type_state_,
-                         UntaggedType::kAllocated);
+  result.set_flags(0);
+  result.set_nullability(nullability);
+  result.set_type_state(UntaggedAbstractType::kAllocated);
   result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
-}
-
-void FunctionType::set_type_state(uint8_t state) const {
-  ASSERT(state <= UntaggedFunctionType::kFinalizedUninstantiated);
-  StoreNonPointer(&untag()->type_state_, state);
 }
 
 const char* FunctionType::ToUserVisibleCString() const {
@@ -20133,12 +20128,6 @@ void AbstractType::set_arguments(const TypeArguments& value) const {
   UNREACHABLE();
 }
 
-Nullability AbstractType::nullability() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return Nullability::kNullable;
-}
-
 bool AbstractType::IsStrictlyNonNullable() const {
   // Null can be assigned to legacy and nullable types.
   if (!IsNonNullable()) {
@@ -20259,26 +20248,32 @@ bool AbstractType::IsInstantiated(Genericity genericity,
   return false;
 }
 
-bool AbstractType::IsFinalized() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
-}
-
 void AbstractType::SetIsFinalized() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-}
-
-bool AbstractType::IsBeingFinalized() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return false;
+  ASSERT(!IsFinalized());
+  set_type_state(IsInstantiated()
+                     ? UntaggedAbstractType::kFinalizedInstantiated
+                     : UntaggedAbstractType::kFinalizedUninstantiated);
 }
 
 void AbstractType::SetIsBeingFinalized() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
+  ASSERT(!IsFinalized() && !IsBeingFinalized());
+  set_type_state(UntaggedAbstractType::kBeingFinalized);
+}
+
+void AbstractType::set_flags(uint32_t value) const {
+  StoreNonPointer(&untag()->flags_, value);
+}
+
+void AbstractType::set_type_state(UntaggedAbstractType::TypeState value) const {
+  ASSERT(!IsCanonical());
+  set_flags(
+      UntaggedAbstractType::TypeStateBits::update(value, untag()->flags_));
+}
+
+void AbstractType::set_nullability(Nullability value) const {
+  ASSERT(!IsCanonical());
+  set_flags(UntaggedAbstractType::NullabilityBits::update(
+      static_cast<uint8_t>(value), untag()->flags_));
 }
 
 bool AbstractType::IsEquivalent(const Instance& other,
@@ -21066,34 +21061,6 @@ TypePtr Type::NewNonParameterizedType(const Class& type_class) {
   return type.ptr();
 }
 
-void Type::SetIsFinalized() const {
-  ASSERT(!IsFinalized());
-  if (IsInstantiated()) {
-    set_type_state(UntaggedType::kFinalizedInstantiated);
-  } else {
-    set_type_state(UntaggedType::kFinalizedUninstantiated);
-  }
-}
-
-void FunctionType::SetIsFinalized() const {
-  ASSERT(!IsFinalized());
-  if (IsInstantiated()) {
-    set_type_state(UntaggedFunctionType::kFinalizedInstantiated);
-  } else {
-    set_type_state(UntaggedFunctionType::kFinalizedUninstantiated);
-  }
-}
-
-void Type::SetIsBeingFinalized() const {
-  ASSERT(!IsFinalized() && !IsBeingFinalized());
-  set_type_state(UntaggedType::kBeingFinalized);
-}
-
-void FunctionType::SetIsBeingFinalized() const {
-  ASSERT(!IsFinalized() && !IsBeingFinalized());
-  set_type_state(UntaggedFunctionType::kBeingFinalized);
-}
-
 TypePtr Type::ToNullability(Nullability value, Heap::Space space) const {
   if (nullability() == value) {
     return ptr();
@@ -21151,7 +21118,7 @@ FunctionTypePtr FunctionType::ToNullability(Nullability value,
 }
 
 classid_t Type::type_class_id() const {
-  return untag()->type_class_id_;
+  return untag()->type_class_id();
 }
 
 ClassPtr Type::type_class() const {
@@ -21161,11 +21128,11 @@ ClassPtr Type::type_class() const {
 bool Type::IsInstantiated(Genericity genericity,
                           intptr_t num_free_fun_type_params,
                           TrailPtr trail) const {
-  if (untag()->type_state_ == UntaggedType::kFinalizedInstantiated) {
+  if (type_state() == UntaggedType::kFinalizedInstantiated) {
     return true;
   }
   if ((genericity == kAny) && (num_free_fun_type_params == kAllFree) &&
-      (untag()->type_state_ == UntaggedType::kFinalizedUninstantiated)) {
+      (type_state() == UntaggedType::kFinalizedUninstantiated)) {
     return false;
   }
   if (arguments() == TypeArguments::null()) {
@@ -21723,12 +21690,12 @@ TypePtr Type::New(const Class& clazz,
                   Heap::Space space) {
   Zone* Z = Thread::Current()->zone();
   const Type& result = Type::Handle(Z, Type::New(space));
-  result.set_type_class(clazz);
   result.set_arguments(arguments);
   result.SetHash(0);
-  result.StoreNonPointer(&result.untag()->type_state_,
-                         UntaggedType::kAllocated);
+  result.set_flags(0);
   result.set_nullability(nullability);
+  result.set_type_state(UntaggedAbstractType::kAllocated);
+  result.set_type_class(clazz);
 
   result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
@@ -21736,19 +21703,13 @@ TypePtr Type::New(const Class& clazz,
 }
 
 void Type::set_type_class_id(intptr_t id) const {
-  COMPILE_ASSERT(
-      std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
-  ASSERT(Utils::IsUint(sizeof(untag()->type_class_id_) * kBitsPerByte, id));
+  COMPILE_ASSERT(std::is_unsigned<ClassIdTagType>::value);
+  ASSERT(Utils::IsUint(sizeof(ClassIdTagType) * kBitsPerByte, id));
   // We should never need a Type object for a top-level class.
   ASSERT(!ClassTable::IsTopLevelCid(id));
   ASSERT(id != kIllegalCid);
   ASSERT(!IsInternalOnlyClassId(id));
-  StoreNonPointer(&untag()->type_class_id_, id);
-}
-
-void Type::set_type_state(uint8_t state) const {
-  ASSERT(state <= UntaggedType::kFinalizedUninstantiated);
-  StoreNonPointer(&untag()->type_state_, state);
+  untag()->set_type_class_id(id);
 }
 
 const char* Type::ToCString() const {
@@ -22064,6 +22025,12 @@ AbstractTypePtr TypeRef::InstantiateFrom(
 
 void TypeRef::set_type(const AbstractType& value) const {
   ASSERT(!value.IsTypeRef());
+  if (value.IsNull()) {
+    ASSERT(!IsFinalized());
+  } else {
+    set_type_state(value.type_state());
+    set_nullability(value.nullability());
+  }
   untag()->set_type(value.ptr());
 }
 
@@ -22163,23 +22130,6 @@ const char* TypeRef::ToCString() const {
     printer.Printf(" (H%" Px ")", hash);
   }
   return printer.buffer();
-}
-
-void TypeParameter::SetIsFinalized() const {
-  ASSERT(!IsFinalized());
-  set_flags(UntaggedTypeParameter::FinalizedBit::update(
-      true, UntaggedTypeParameter::BeingFinalizedBit::update(false,
-                                                             untag()->flags_)));
-}
-
-void TypeParameter::SetIsBeingFinalized() const {
-  ASSERT(!IsFinalized());
-  set_flags(
-      UntaggedTypeParameter::BeingFinalizedBit::update(true, untag()->flags_));
-}
-
-void TypeParameter::set_nullability(Nullability value) const {
-  StoreNonPointer(&untag()->nullability_, static_cast<uint8_t>(value));
 }
 
 TypeParameterPtr TypeParameter::ToNullability(Nullability value,
@@ -22539,17 +22489,14 @@ TypeParameterPtr TypeParameter::New(const Class& parameterized_class,
   result.set_base(base);
   result.set_index(index);
   result.set_bound(bound);
+  result.SetHash(0);
   result.set_flags(0);
   result.set_nullability(nullability);
-  result.SetHash(0);
+  result.set_type_state(UntaggedAbstractType::kAllocated);
 
   result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
-}
-
-void TypeParameter::set_flags(uint8_t flags) const {
-  StoreNonPointer(&untag()->flags_, flags);
 }
 
 const char* TypeParameter::CanonicalNameCString(bool is_class_type_parameter,
@@ -27252,32 +27199,13 @@ RecordTypePtr RecordType::New(const Array& field_types,
   const RecordType& result = RecordType::Handle(Z, RecordType::New(space));
   result.set_field_types(field_types);
   result.set_field_names(field_names);
-  result.set_nullability(nullability);
   result.SetHash(0);
-  result.StoreNonPointer(&result.untag()->type_state_,
-                         UntaggedType::kAllocated);
+  result.set_flags(0);
+  result.set_nullability(nullability);
+  result.set_type_state(UntaggedAbstractType::kAllocated);
   result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
-}
-
-void RecordType::set_type_state(uint8_t state) const {
-  ASSERT(state <= UntaggedRecordType::kFinalizedUninstantiated);
-  StoreNonPointer(&untag()->type_state_, state);
-}
-
-void RecordType::SetIsFinalized() const {
-  ASSERT(!IsFinalized());
-  if (IsInstantiated()) {
-    set_type_state(UntaggedRecordType::kFinalizedInstantiated);
-  } else {
-    set_type_state(UntaggedRecordType::kFinalizedUninstantiated);
-  }
-}
-
-void RecordType::SetIsBeingFinalized() const {
-  ASSERT(!IsFinalized() && !IsBeingFinalized());
-  set_type_state(UntaggedRecordType::kBeingFinalized);
 }
 
 RecordTypePtr RecordType::ToNullability(Nullability value,

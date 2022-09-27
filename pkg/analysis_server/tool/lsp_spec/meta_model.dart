@@ -81,12 +81,14 @@ class FixedValueField extends Field {
 class Interface extends LspEntity {
   final List<TypeReference> baseTypes;
   final List<Member> members;
+  final bool abstract;
 
   Interface({
     required super.name,
     super.comment,
     this.baseTypes = const [],
     required this.members,
+    this.abstract = false,
   }) {
     baseTypes.sortBy((type) => type.dartTypeWithTypeArgs.toLowerCase());
     members.sortBy((member) => member.name.toLowerCase());

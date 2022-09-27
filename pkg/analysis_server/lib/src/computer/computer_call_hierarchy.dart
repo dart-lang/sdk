@@ -311,9 +311,7 @@ class DartCallHierarchyComputer {
   /// Finds a target node for call hierarchy navigation at [offset].
   AstNode? _findTargetNode(int offset) {
     var node = NodeLocator(offset).searchWithin(_result.unit);
-    if (node is FormalParameterList) {
-      node = node.parent;
-    } else if (node is SimpleIdentifier &&
+    if (node is SimpleIdentifier &&
         node.parent != null &&
         node.parent is! VariableDeclaration &&
         node.parent is! AssignmentExpression) {
