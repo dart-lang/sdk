@@ -252,7 +252,11 @@ class FindNode {
   }
 
   FormalParameterList formalParameterList(String search) {
-    return _node(search, (n) => n is FormalParameterList);
+    // If the search starts with `(` then NodeLocator will locate the definition
+    // before it, so offset the search to within the parameter list.
+    final locateOffset = search.startsWith('(') ? 1 : 0;
+    return _node(search, (n) => n is FormalParameterList,
+        locateOffset: locateOffset);
   }
 
   ForPartsWithDeclarations forPartsWithDeclarations(String search) {
@@ -707,8 +711,14 @@ class FindNode {
     return _node(search, (n) => n is YieldStatement);
   }
 
-  T _node<T>(String search, bool Function(AstNode) predicate) {
-    int offset = this.offset(search);
+  /// Locates a node at the offset of [search] and returns the first ancestor
+  /// matching [predicate].
+  ///
+  /// If [locateOffset] is provided, its value is added to the offset of
+  /// [search] before locating the node.
+  T _node<T>(String search, bool Function(AstNode) predicate,
+      {int? locateOffset}) {
+    int offset = this.offset(search) + (locateOffset ?? 0);
 
     var node = NodeLocator2(offset).searchWithin(unit);
     if (node == null) {
