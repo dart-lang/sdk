@@ -823,9 +823,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void handleNoStatement(Statement node) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
+  void handleNoStatement(Statement node) {}
 
   @override
   void handleSwitchScrutinee(DartType type) {
@@ -2057,31 +2055,47 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
+  void visitIfStatement(covariant IfStatementImpl node) {
     checkUnreachableNode(node);
-    flowAnalysis.flow?.ifStatement_conditionBegin();
 
-    Expression condition = node.condition;
+    final caseClause = node.caseClause;
+    if (caseClause != null) {
+      analyzeIfCaseStatement(
+        node,
+        node.expression,
+        caseClause.pattern,
+        caseClause.whenClause?.expression,
+        node.thenStatement,
+        node.elseStatement,
+      );
+      // Stack: (Expression, Guard)
+      popRewrite(); // guard
+      popRewrite()!; // expression
+    } else {
+      flowAnalysis.flow?.ifStatement_conditionBegin();
 
-    analyzeExpression(condition, typeProvider.boolType);
-    condition = popRewrite()!;
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
+      Expression condition = node.condition;
 
-    boolExpressionVerifier.checkForNonBoolCondition(condition,
-        whyNotPromoted: whyNotPromoted);
+      analyzeExpression(condition, typeProvider.boolType);
+      condition = popRewrite()!;
+      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
 
-    flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
-    node.thenStatement.accept(this);
-    nullSafetyDeadCodeVerifier.flowEnd(node.thenStatement);
+      boolExpressionVerifier.checkForNonBoolCondition(condition,
+          whyNotPromoted: whyNotPromoted);
 
-    var elseStatement = node.elseStatement;
-    if (elseStatement != null) {
-      flowAnalysis.flow?.ifStatement_elseBegin();
-      elseStatement.accept(this);
-      nullSafetyDeadCodeVerifier.flowEnd(elseStatement);
+      flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
+      node.thenStatement.accept(this);
+      nullSafetyDeadCodeVerifier.flowEnd(node.thenStatement);
+
+      var elseStatement = node.elseStatement;
+      if (elseStatement != null) {
+        flowAnalysis.flow?.ifStatement_elseBegin();
+        elseStatement.accept(this);
+        nullSafetyDeadCodeVerifier.flowEnd(elseStatement);
+      }
+
+      flowAnalysis.flow?.ifStatement_end(elseStatement != null);
     }
-
-    flowAnalysis.flow?.ifStatement_end(elseStatement != null);
   }
 
   @override
@@ -3203,7 +3217,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
+  void visitIfStatement(covariant IfStatementImpl node) {
     var conditionalKnownValue =
         _migrationResolutionHooks.getConditionalKnownValue(node);
     if (conditionalKnownValue == null) {
@@ -3780,6 +3794,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   @override
   void visitIfStatement(IfStatement node) {
     node.condition.accept(this);
+    node.caseClause?.accept(this);
     visitStatementInScope(node.thenStatement);
     visitStatementInScope(node.elseStatement);
   }

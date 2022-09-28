@@ -53,10 +53,11 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: BooleanLiteral
     literal: true
+    staticType: bool
 ''');
   }
 
@@ -152,10 +153,11 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: DoubleLiteral
     literal: 1.0
+    staticType: double
 ''');
   }
 
@@ -269,10 +271,11 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
     literal: 0
+    staticType: int
 ''');
   }
 
@@ -369,10 +372,11 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: NullLiteral
     literal: null
+    staticType: Null
 ''');
   }
 
@@ -464,15 +468,17 @@ CastPattern
 
   test_inside_ifStatement_case() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x, int y) {
   if (x case y) {}
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: SimpleIdentifier
     token: y
+    staticElement: self::@function::f::@parameter::y
+    staticType: int
 ''');
   }
 
@@ -567,7 +573,7 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: SimpleStringLiteral
     literal: 'x'
