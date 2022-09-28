@@ -551,11 +551,11 @@ class LineNumberProgramWriter {
   // Associates the given file, line, and column information for the instruction
   // at the pc_offset into the instructions payload of the Code object with the
   // symbol asm_name. Returns whether any changes were made to the stream.
-  bool AddRow(intptr_t file,
-              intptr_t line,
-              intptr_t column,
-              const char* asm_name,
-              intptr_t pc_offset) {
+  DART_WARN_UNUSED_RESULT bool AddRow(intptr_t file,
+                                      intptr_t line,
+                                      intptr_t column,
+                                      const char* asm_name,
+                                      intptr_t pc_offset) {
     ASSERT_EQUAL(end_sequence_, false);
     bool source_info_changed = false;
     // Note that files are 1-indexed.
@@ -675,8 +675,8 @@ void Dwarf::WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer) {
     auto& comments = code.comments();
     for (intptr_t i = 0, len = comments.Length(); i < len;) {
       intptr_t current_pc_offset = comments.PCOffsetAt(i);
-      writer->AddRow(comments_file_index, current_line,
-                     DwarfPosition::kNoColumn, asm_name, current_pc_offset);
+      writer->EmitRow(comments_file_index, current_line,
+                      DwarfPosition::kNoColumn, asm_name, current_pc_offset);
       while (i < len && current_pc_offset == comments.PCOffsetAt(i)) {
         comments_buffer.AddString(comments.CommentAt(i));
         comments_buffer.AddChar('\n');
