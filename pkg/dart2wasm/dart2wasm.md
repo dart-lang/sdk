@@ -15,7 +15,6 @@ where *options* include:
 | `--`[`no-`]`export-all`                 | no      | Export all functions; otherwise, just export `main`.
 | `--`[`no-`]`import-shared-memory`       | no      | Import a shared memory buffer. If this is on, `--shared-memory-max-pages` must also be specified.
 | `--`[`no-`]`inlining`                   | no      | Inline small functions.
-| `--`[`no-`]`lazy-constants`             | no      | Instantiate constants lazily.
 | `--`[`no-`]`name-section`               | yes     | Emit Name Section with function names.
 | `--`[`no-`]`polymorphic-specialization` | no      | Do virtual calls by switching on the class ID instead of using `call_indirect`.
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.

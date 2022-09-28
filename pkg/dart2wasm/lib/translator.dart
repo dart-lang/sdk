@@ -34,7 +34,6 @@ class TranslatorOptions {
   bool importSharedMemory = false;
   bool inlining = false;
   int inliningLimit = 3;
-  bool lazyConstants = false;
   bool nameSection = true;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
@@ -449,7 +448,6 @@ class Translator {
     }
 
     dispatchTable.output();
-    constants.finalize();
     initFunction.body.end();
 
     for (ConstantInfo info in constants.constantInfo.values) {
@@ -462,10 +460,6 @@ class Translator {
           print(info.global.initializer.trace);
         }
       }
-    }
-    if (options.lazyConstants) {
-      _printFunction(constants.oneByteStringFunction, "makeOneByteString");
-      _printFunction(constants.twoByteStringFunction, "makeTwoByteString");
     }
     _printFunction(initFunction, "init");
 
