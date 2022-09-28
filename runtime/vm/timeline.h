@@ -961,6 +961,15 @@ class TimelineEventEmbedderCallbackRecorder
   virtual void OnEvent(TimelineEvent* event);
 };
 
+// A recorder that does nothing.
+class TimelineEventNopRecorder : public TimelineEventCallbackRecorder {
+ public:
+  TimelineEventNopRecorder() {}
+  virtual ~TimelineEventNopRecorder() {}
+
+  virtual void OnEvent(TimelineEvent* event);
+};
+
 // A recorder that stores events in chains of blocks of events.
 // NOTE: This recorder will continue to allocate blocks until it exhausts
 // memory.
