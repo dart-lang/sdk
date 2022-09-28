@@ -135,7 +135,7 @@ List<LspEntity> getCustomClasses() {
     final fieldType = array
         ? ArrayType(TypeReference(type))
         : literal
-            ? LiteralType(TypeReference('string'), type)
+            ? LiteralType(TypeReference.string, type)
             : TypeReference(type);
 
     return Field(
@@ -195,7 +195,7 @@ List<LspEntity> getCustomClasses() {
       [
         Field(
           name: 'id',
-          type: UnionType([TypeReference('int'), TypeReference('string')]),
+          type: UnionType([TypeReference.int, TypeReference.string]),
           allowsNull: false,
           allowsUndefined: false,
         )
@@ -212,7 +212,7 @@ List<LspEntity> getCustomClasses() {
       [
         Field(
           name: 'id',
-          type: UnionType([TypeReference('int'), TypeReference('string')]),
+          type: UnionType([TypeReference.int, TypeReference.string]),
           allowsNull: true,
           allowsUndefined: false,
         ),
@@ -371,14 +371,17 @@ List<LspEntity> getCustomClasses() {
               'used to prompt the user for the value of the parameter.',
         ),
         AbstractGetter(
-          name: 'type',
-          type: TypeReference('string'),
-          comment: 'An optional default value for the parameter.',
+          name: 'kind',
+          type: TypeReference.string,
+          comment: 'The kind of this parameter. The client may use different '
+              'UIs based on this value.',
         ),
         AbstractGetter(
           name: 'defaultValue',
           type: TypeReference.LspAny,
-          comment: 'An optional default value for the parameter.',
+          comment: 'An optional default value for the parameter. The type of '
+              'this value may vary between parameter kinds but must always be '
+              'something that can be converted directly to/from JSON.',
         ),
       ],
       abstract: true,
@@ -393,16 +396,16 @@ List<LspEntity> getCustomClasses() {
       'SaveUriCommandParameter',
       [
         field(
-          'type',
+          'kind',
           type: 'saveUri',
           literal: true,
         ),
         field(
           'defaultValue',
-          type: 'LSPUri',
+          type: 'String',
           canBeNull: true,
           canBeUndefined: true,
-          comment: 'An optional default value for the parameter.',
+          comment: 'An optional default URI for the parameter.',
         ),
         field(
           'parameterTitle',
@@ -413,6 +416,15 @@ List<LspEntity> getCustomClasses() {
           'actionLabel',
           type: 'String',
           comment: 'A label for the file dialogs action button.',
+        ),
+        Field(
+          name: 'filters',
+          type: MapType(TypeReference.string, ArrayType(TypeReference.string)),
+          allowsNull: true,
+          allowsUndefined: true,
+          comment: 'A set of file filters for a file dialog. '
+              'Keys of the map are textual names ("Dart") and the value '
+              'is a list of file extensions (["dart"]).',
         ),
       ],
       baseType: 'CommandParameter',
