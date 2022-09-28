@@ -345,7 +345,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     List<TypeInformation> positionalArguments = arguments.positional;
     if (positionalArguments.length == 1) {
       return (selectorName == 'add' && currentUser == positionalArguments[0]);
-    } else if (arguments.length == 2) {
+    } else if (positionalArguments.length == 2) {
       return (selectorName == 'insert' &&
           currentUser == positionalArguments[1]);
     }
