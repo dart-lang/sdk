@@ -6112,23 +6112,14 @@ class Parser {
     return token;
   }
 
-  /// Parse either a parenthesized expression or a record literal, or a
-  /// parenthesized pattern or record pattern.  If [constKeywordForRecord] is
-  /// non-null it is forced to be a record literal and an error will be issued
-  /// if there is no trailing comma.
-  ///
-  /// [forPattern] indicates whether a pattern is being parsed.
+  /// Parse either a parenthesized expression or a record literal.
+  /// If [constKeywordForRecord] is non-null it is forced to be a record
+  /// literal and an error will be issued if there is no trailing comma.
   Token parseParenthesizedExpressionOrRecordLiteral(
-      Token token, Token? constKeywordForRecord,
-      {bool forPattern = false}) {
-    if (forPattern) {
-      assert(constKeywordForRecord == null);
-    }
+      Token token, Token? constKeywordForRecord) {
     Token begin = token.next!;
     assert(optional('(', begin));
-    if (!forPattern) {
-      listener.beginParenthesizedExpressionOrRecordLiteral(begin);
-    }
+    listener.beginParenthesizedExpressionOrRecordLiteral(begin);
 
     // For parsing of parenthesized expression we need parity with
     // parseExpressionInParenthesisRest used in ensureParenthesizedCondition.
@@ -6143,13 +6134,7 @@ class Parser {
         break;
       }
       Token? colon = null;
-      if (forPattern && optional(':', next)) {
-        wasRecord = true;
-        wasValidRecord = true;
-        listener.handleNoName(token);
-        colon = token = next;
-      } else if (optional(':', next.next!) || /* recovery */
-          optional(':', next)) {
+      if (optional(':', next.next!) || /* recovery */ optional(':', next)) {
         // Record with named expression.
         wasRecord = true;
         token = ensureIdentifier(
@@ -6159,30 +6144,15 @@ class Parser {
         colon = token;
         wasValidRecord = true;
       }
-      if (forPattern) {
-        token = parsePattern(token);
-      } else {
-        token = parseExpression(token);
-      }
+      token = parseExpression(token);
       next = token.next!;
-      if (forPattern) {
-        if (wasRecord || colon != null) {
-          listener.handlePatternField(colon);
-        }
-      } else {
-        if (colon != null) listener.handleNamedRecordField(colon);
-      }
+      if (colon != null) listener.handleNamedRecordField(colon);
       ++count;
       if (!optional(',', next)) {
         // TODO(jensj): Possible more specific recovery.
-        // TODO(paulberry): make sure to test the error case where there's a
-        // colon but it's not a record (for patterns).
         break;
       } else {
         // It is a comma, i.e. it's a record.
-        if (forPattern && !wasRecord && colon == null) {
-          listener.handlePatternField(colon);
-        }
         wasRecord = true;
         wasValidRecord = true;
       }
@@ -6200,17 +6170,9 @@ class Parser {
         reportRecoverableError(
             token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
       }
-      if (forPattern) {
-        listener.handleRecordPattern(begin, count);
-      } else {
-        listener.endRecordLiteral(begin, count, constKeywordForRecord);
-      }
+      listener.endRecordLiteral(begin, count, constKeywordForRecord);
     } else {
-      if (forPattern) {
-        listener.handleParenthesizedPattern(begin);
-      } else {
-        listener.endParenthesizedExpression(begin);
-      }
+      listener.endParenthesizedExpression(begin);
     }
 
     return token;
@@ -7063,21 +7025,15 @@ class Parser {
   ///   label expression
   /// ;
   /// ```
-  ///
-  /// [forPattern] indicates whether an expression or pattern is being
-  /// parsed.
-  Token parseArguments(Token token, {bool forPattern = false}) {
-    return parseArgumentsRest(token.next!, forPattern: forPattern);
+  Token parseArguments(Token token) {
+    return parseArgumentsRest(token.next!);
   }
 
   /// Parses the rest of an arguments list, where [token] is the `(`.
-  /// [forPattern] indicates whether an expression or pattern is being parsed.
-  Token parseArgumentsRest(Token token, {bool forPattern = false}) {
+  Token parseArgumentsRest(Token token) {
     Token begin = token;
     assert(optional('(', begin));
-    if (!forPattern) {
-      listener.beginArguments(begin);
-    }
+    listener.beginArguments(begin);
     int argumentCount = 0;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
@@ -7088,27 +7044,15 @@ class Parser {
         break;
       }
       Token? colon = null;
-      if (forPattern && optional(':', next)) {
-        listener.handleNoName(token);
-        colon = token = next;
-      } else if (optional(':', next.next!) || /* recovery */
-          optional(':', next)) {
+      if (optional(':', next.next!) || /* recovery */ optional(':', next)) {
         token =
             ensureIdentifier(token, IdentifierContext.namedArgumentReference)
                 .next!;
         colon = token;
       }
-      if (forPattern) {
-        token = parsePattern(token);
-      } else {
-        token = parseExpression(token);
-      }
+      token = parseExpression(token);
       next = token.next!;
-      if (forPattern) {
-        listener.handlePatternField(colon);
-      } else {
-        if (colon != null) listener.handleNamedArgument(colon);
-      }
+      if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
       if (!optional(',', next)) {
         if (optional(')', next)) {
@@ -7132,11 +7076,7 @@ class Parser {
     }
     assert(optional(')', token));
     mayParseFunctionExpressions = old;
-    if (forPattern) {
-      listener.handleExtractorPatternFields(argumentCount, begin, token);
-    } else {
-      listener.endArguments(argumentCount, begin, token);
-    }
+    listener.endArguments(argumentCount, begin, token);
     return token;
   }
 
@@ -8082,13 +8022,7 @@ class Parser {
         // 'on' type catchPart?
         onKeyword = token;
         TypeInfo typeInfo = computeType(token, /* required = */ true);
-        // TODO(jensj): Record types wreak havoc here so waiting for input from
-        // language team. For now pretend like we don't know record types.
-        // https://github.com/dart-lang/language/issues/2406
-        if (catchCount > 0 &&
-            (typeInfo == noType ||
-                typeInfo.recovered ||
-                (typeInfo is ComplexTypeInfo && typeInfo.recordType))) {
+        if (catchCount > 0 && (typeInfo == noType || typeInfo.recovered)) {
           // Not a valid on-clause and we have enough catch counts to be a valid
           // try block already.
           // This could for instance be code like `on([...])` or `on = 42` after
@@ -9234,8 +9168,7 @@ class Parser {
           listener.handleRecordPattern(next, /* count = */ 0);
           return nextNext;
         } else {
-          return parseParenthesizedExpressionOrRecordLiteral(token, null,
-              forPattern: true);
+          return parseParenthesizedPatternOrRecordPattern(token);
         }
       case 'const':
         // constantPattern ::= booleanLiteral
@@ -9297,7 +9230,7 @@ class Parser {
       if (optional('(', afterToken) && !potentialTypeArg.recovered) {
         TypeParamOrArgInfo typeArg = potentialTypeArg;
         token = typeArg.parseArguments(token, this);
-        token = parseArguments(token, forPattern: true);
+        token = parseExtractorPatternRest(token);
         listener.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
         return token;
       }
@@ -9464,6 +9397,141 @@ class Parser {
         }
       }
     }
+  }
+
+  /// Parses either a parenthesizedPattern or a recordPattern.
+  ///
+  /// parenthesizedPattern  ::= '(' pattern ')'
+  /// recordPattern         ::= '(' patternFields? ')'
+  /// patternFields         ::= patternField ( ',' patternField )* ','?
+  /// patternField          ::= ( identifier? ':' )? pattern
+  Token parseParenthesizedPatternOrRecordPattern(Token token) {
+    Token begin = token.next!;
+    assert(optional('(', begin));
+
+    token = begin;
+    int count = 0;
+    bool wasRecord = false;
+    bool wasValidRecord = false;
+    while (true) {
+      Token next = token.next!;
+      if ((count > 0 || wasRecord) && optional(')', next)) {
+        break;
+      }
+      Token? colon = null;
+      // TODO(paulberry): test error recovery
+      if (optional(':', next)) {
+        wasRecord = true;
+        wasValidRecord = true;
+        listener.handleNoName(token);
+        colon = token = next;
+      } else if (optional(':', next.next!) || /* recovery */
+          optional(':', next)) {
+        // Record with named expression.
+        wasRecord = true;
+        token = ensureIdentifier(
+          token,
+          IdentifierContext.namedRecordFieldReference,
+        ).next!;
+        colon = token;
+        wasValidRecord = true;
+      }
+      token = parsePattern(token);
+      next = token.next!;
+      if (wasRecord || colon != null) {
+        listener.handlePatternField(colon);
+      }
+      ++count;
+      if (!optional(',', next)) {
+        // TODO(paulberry): make sure to test the error case where there's a
+        // colon but it's not a record.
+        break;
+      } else {
+        // It is a comma, i.e. it's a record.
+        if (!wasRecord && colon == null) {
+          listener.handlePatternField(colon);
+        }
+        wasRecord = true;
+        wasValidRecord = true;
+      }
+      token = next;
+    }
+    token = ensureCloseParen(token, begin);
+    assert(optional(')', token));
+
+    assert(wasRecord || count <= 1);
+
+    if (wasRecord) {
+      if (count == 0) {
+        reportRecoverableError(token, codes.messageRecordLiteralEmpty);
+      } else if (count == 1 && !wasValidRecord) {
+        reportRecoverableError(
+            token, codes.messageRecordLiteralOnePositionalFieldNoTrailingComma);
+      }
+      listener.handleRecordPattern(begin, count);
+    } else {
+      listener.handleParenthesizedPattern(begin);
+    }
+
+    return token;
+  }
+
+  /// Parses the rest of an extractorPattern, where [token] is the token before
+  /// the `(`.
+  ///
+  /// extractorPattern ::= extractorName typeArguments?
+  ///                          '(' patternFields? ')'
+  Token parseExtractorPatternRest(Token token) {
+    Token begin = token = token.next!;
+    assert(optional('(', begin));
+    int argumentCount = 0;
+    bool old = mayParseFunctionExpressions;
+    mayParseFunctionExpressions = true;
+    while (true) {
+      Token next = token.next!;
+      if (optional(')', next)) {
+        token = next;
+        break;
+      }
+      Token? colon = null;
+      if (optional(':', next)) {
+        listener.handleNoName(token);
+        colon = token = next;
+      } else if (optional(':', next.next!)) {
+        token =
+            ensureIdentifier(token, IdentifierContext.namedArgumentReference)
+                .next!;
+        colon = token;
+      }
+      token = parsePattern(token);
+      next = token.next!;
+      listener.handlePatternField(colon);
+      ++argumentCount;
+      if (!optional(',', next)) {
+        if (optional(')', next)) {
+          token = next;
+          break;
+        }
+        // TODO(paulberry): test error recovery
+        // Recovery
+        if (looksLikeExpressionStart(next)) {
+          // If this looks like the start of an expression,
+          // then report an error, insert the comma, and continue parsing.
+          next = rewriteAndRecover(
+              token,
+              codes.templateExpectedButGot.withArguments(','),
+              new SyntheticToken(TokenType.COMMA, next.offset));
+        } else {
+          token = ensureCloseParen(token, begin);
+          break;
+        }
+      }
+      token = next;
+    }
+    assert(optional(')', token));
+    mayParseFunctionExpressions = old;
+    listener.handleExtractorPatternFields(argumentCount, begin, token);
+    return token;
   }
 }
 

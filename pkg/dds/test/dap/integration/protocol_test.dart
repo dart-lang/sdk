@@ -15,7 +15,11 @@ main() {
         () async {
       final errorOutput = Completer<String>();
       final server = await DapTestSession.startServer(
-        onError: (e) => errorOutput.complete('$e'),
+        onError: (e) {
+          if (!errorOutput.isCompleted) {
+            errorOutput.complete('$e');
+          }
+        },
       );
       addTearDown(() => server.stop());
       server.sink.add(utf8.encode('not\r\n\r\nvalid'));
