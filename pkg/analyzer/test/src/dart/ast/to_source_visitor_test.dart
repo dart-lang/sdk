@@ -151,10 +151,19 @@ var v = a * (b + c);
     );
   }
 
-  @failingTest
   void test_visitBinaryPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _ & double? _ & Object? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _ & double? _ & Object? _',
+      findNode.binaryPattern('Object?'),
+    );
   }
 
   void test_visitBlock_empty() {
@@ -275,10 +284,19 @@ void f() {
     _assertSource(code, findNode.cascade(code));
   }
 
-  @failingTest
   void test_visitCastPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case y as int:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'y as int',
+      findNode.castPattern('as '),
+    );
   }
 
   void test_visitCatchClause_catch_noStack() {
@@ -687,6 +705,18 @@ void f() {
     _assertSource(code, findNode.conditionalExpression(code));
   }
 
+  void test_visitConstantPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  if (x case true) {}
+}
+''');
+    _assertSource(
+      'true',
+      findNode.constantPattern('true'),
+    );
+  }
+
   void test_visitConstructorDeclaration_const() {
     final code = 'const A();';
     final findNode = _parseStringToFindNode('''
@@ -1059,12 +1089,6 @@ void f() $code
     _assertSource(code, findNode.expressionFunctionBody(code));
   }
 
-  @failingTest
-  void test_visitExpressionPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
-  }
-
   void test_visitExpressionStatement() {
     final code = '1 + 2;';
     final findNode = _parseStringToFindNode('''
@@ -1270,10 +1294,19 @@ $code
     _assertSource(code, findNode.extensionDeclaration(code));
   }
 
-  @failingTest
   void test_visitExtractorPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case C(f: 1):
+      break;
+  }
+}
+''');
+    _assertSource(
+      'C(f: 1)',
+      findNode.extractorPattern('C'),
+    );
   }
 
   void test_visitFieldDeclaration_abstract() {
@@ -2258,10 +2291,49 @@ final x = $code;
     _assertSource(code, findNode.listLiteral(code));
   }
 
-  @failingTest
-  void test_visitListPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+  void test_visitListPattern_empty() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case []:
+      break;
+  }
+}
+''');
+    _assertSource(
+      '[]',
+      findNode.listPattern('[]'),
+    );
+  }
+
+  void test_visitListPattern_nonEmpty() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case [1, 2]:
+      break;
+  }
+}
+''');
+    _assertSource(
+      '[1, 2]',
+      findNode.listPattern('1'),
+    );
+  }
+
+  void test_visitListPattern_withTypeArguments() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case <int>[]:
+      break;
+  }
+}
+''');
+    _assertSource(
+      '<int>[]',
+      findNode.listPattern('[]'),
+    );
   }
 
   void test_visitMapLiteral_const() {
@@ -2289,16 +2361,64 @@ final x = {$code};
     _assertSource(code, findNode.mapLiteralEntry(code));
   }
 
-  @failingTest
-  void test_visitMapPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+  void test_visitMapPattern_empty() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case {}:
+      break;
+  }
+}
+''');
+    _assertSource(
+      '{}',
+      findNode.mapPattern('{}'),
+    );
   }
 
-  @failingTest
+  void test_visitMapPattern_notEmpty() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case {1: 2}:
+      break;
+  }
+}
+''');
+    _assertSource(
+      '{1: 2}',
+      findNode.mapPattern('1'),
+    );
+  }
+
+  void test_visitMapPattern_withTypeArguments() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case <int, int>{}:
+      break;
+  }
+}
+''');
+    _assertSource(
+      '<int, int>{}',
+      findNode.mapPattern('{}'),
+    );
+  }
+
   void test_visitMapPatternEntry() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case {1: 2}:
+      break;
+  }
+}
+''');
+    _assertSource(
+      '1: 2',
+      findNode.mapPatternEntry('1'),
+    );
   }
 
   void test_visitMethodDeclaration_external() {
@@ -2538,10 +2658,19 @@ final x = $code;
             AstTestFactory.identifier3("a")));
   }
 
-  @failingTest
   void test_visitParenthesizedPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case (3):
+      break;
+  }
+}
+''');
+    _assertSource(
+      '(3)',
+      findNode.parenthesizedPattern('(3'),
+    );
   }
 
   void test_visitPartDirective() {
@@ -2611,10 +2740,19 @@ void f([$code]) {}
             AstTestFactory.identifier3("a"), TokenType.PLUS_PLUS));
   }
 
-  @failingTest
   void test_visitPostfixPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case true!:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'true!',
+      findNode.postfixPattern('true'),
+    );
   }
 
   void test_visitPrefixedIdentifier() {
@@ -2683,22 +2821,64 @@ final x = $code;
     );
   }
 
-  @failingTest
   void test_visitRecordPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case (1, 2):
+      break;
+  }
+}
+''');
+    _assertSource(
+      '(1, 2)',
+      findNode.recordPattern('(1'),
+    );
   }
 
-  @failingTest
-  void test_visitRecordPatternField() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+  void test_visitRecordPatternField_named() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case (a: 1):
+      break;
+  }
+}
+''');
+    _assertSource(
+      'a: 1',
+      findNode.recordPatternField('1'),
+    );
   }
 
-  @failingTest
+  void test_visitRecordPatternField_positional() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case (1,):
+      break;
+  }
+}
+''');
+    _assertSource(
+      '1',
+      findNode.recordPatternField('1'),
+    );
+  }
+
   void test_visitRecordPatternFieldName() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case (b: 2):
+      break;
+  }
+}
+''');
+    _assertSource(
+      'b:',
+      findNode.recordPatternFieldName('b:'),
+    );
   }
 
   void test_visitRecordTypeAnnotation_mixed() {
@@ -2754,10 +2934,19 @@ $code f() {}
     _assertSource("this()", AstTestFactory.redirectingConstructorInvocation());
   }
 
-  @failingTest
   void test_visitRelationalPattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case > 3:
+      break;
+  }
+}
+''');
+    _assertSource(
+      '> 3',
+      findNode.relationalPattern('>'),
+    );
   }
 
   void test_visitRethrowExpression() {
@@ -3425,10 +3614,19 @@ $code;
     _assertSource(code, findNode.variableDeclarationList(code));
   }
 
-  @failingTest
   void test_visitVariablePattern() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _',
+      findNode.variablePattern('int?'),
+    );
   }
 
   void test_visitWhileStatement() {

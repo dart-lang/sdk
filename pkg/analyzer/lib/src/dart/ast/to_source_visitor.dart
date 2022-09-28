@@ -1100,6 +1100,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitRelationalPattern(RelationalPattern node) {
     sink.write(node.operator.lexeme);
+    sink.write(' ');
     _visitNode(node.operand);
   }
 
@@ -1365,7 +1366,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitVariablePattern(VariablePattern node) {
     _visitToken(node.keyword, suffix: ' ');
     _visitNode(node.type, suffix: ' ');
-    sink.write(' ');
     sink.write(node.name.lexeme);
   }
 
