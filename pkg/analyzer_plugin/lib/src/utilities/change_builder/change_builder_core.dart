@@ -261,6 +261,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
   @override
   void setSelection(Position position) {
     _selection = position;
+    // Clear any existing selection range, since it is no long valid.
+    _selectionRange = null;
   }
 
   /// Return a copy of the linked edit [group].
@@ -306,6 +308,11 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   void _setSelectionRange(SourceRange range) {
     _selectionRange = range;
+    // If we previously had a selection, update it to this new offset.
+    final selection = _selection;
+    if (selection != null) {
+      _selection = Position(selection.file, range.offset);
+    }
   }
 
   /// Update the offsets of any positions that occur at or after the given
@@ -326,6 +333,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
     var selection = _selection;
     if (selection != null) {
       updatePosition(selection);
+    }
+    var selectionRange = _selectionRange;
+    if (selectionRange != null) {
+      if (selectionRange.offset >= offset) {
+        _selectionRange =
+            SourceRange(selectionRange.offset + delta, selectionRange.length);
+      }
     }
   }
 }
@@ -585,8 +599,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
     var range = builder._selectionRange;
     if (range != null) {
       var position = Position(fileEdit.file, range.offset + _deltaToEdit(edit));
+      var newRange = SourceRange(position.offset, range.length);
       changeBuilder.setSelection(position);
-      changeBuilder._setSelectionRange(range);
+      changeBuilder._setSelectionRange(newRange);
     }
   }
 
