@@ -80,7 +80,23 @@ class _DartNavigationCollector {
   _DartNavigationCollector(
       this.collector, this.requestedOffset, this.requestedLength);
 
-  void _addRegion(int offset, int length, Element? element) {
+  void _addRegion(
+    int offset,
+    int length,
+    protocol.ElementKind kind,
+    protocol.Location location, {
+    Element? targetElement,
+  }) {
+    // Discard elements that don't span the offset/range given (if provided).
+    if (!_isWithinRequestedRange(offset, length)) {
+      return;
+    }
+
+    collector.addRegion(offset, length, kind, location,
+        targetElement: targetElement);
+  }
+
+  void _addRegionForElement(int offset, int length, Element? element) {
     element = element?.nonSynthetic;
     if (element == null || element == DynamicElementImpl.instance) {
       return;
@@ -99,7 +115,7 @@ class _DartNavigationCollector {
       return;
     }
 
-    collector.addRegion(offset, length, kind, location, targetElement: element);
+    _addRegion(offset, length, kind, location, targetElement: element);
   }
 
   void _addRegionForNode(AstNode? node, Element? element) {
@@ -108,13 +124,13 @@ class _DartNavigationCollector {
     }
     var offset = node.offset;
     var length = node.length;
-    _addRegion(offset, length, element);
+    _addRegionForElement(offset, length, element);
   }
 
   void _addRegionForToken(Token token, Element? element) {
     var offset = token.offset;
     var length = token.length;
-    _addRegion(offset, length, element);
+    _addRegionForElement(offset, length, element);
   }
 
   /// Checks if offset/length intersect with the range the user requested
@@ -235,7 +251,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
                 .joinAll('${_examplesApiPath!}/$pathSnippet'.split('/'));
             var start = token.offset + startIndex;
             var end = token.offset + endIndex;
-            computer.collector.addRegion(
+            computer._addRegion(
               start,
               end - start,
               protocol.ElementKind.LIBRARY,

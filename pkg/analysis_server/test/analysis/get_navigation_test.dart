@@ -75,6 +75,28 @@ String f() {
     assertHasRegion(examplePath, examplePath.length);
   }
 
+  Future<void> test_comment_toolSeeCodeComment_multiple() async {
+    var examplePath = 'examples/api/foo.dart';
+    var example2Path = 'examples/api/foo2.dart';
+    newFile('$testPackageLibPath/$examplePath', '');
+    newFile('$testPackageLibPath/$example2Path', '');
+    addTestFile('''
+/// {@tool dartpad}
+/// ** See code in $examplePath **
+/// {@end-tool}
+/// 
+/// {@tool dartpad}
+/// ** See code in $example2Path **
+/// {@end-tool}
+String f() {
+}''');
+    await waitForTasksFinished();
+    // Ensure we only get the expected region when there are multiple.
+    await _getNavigation(search: example2Path, length: 1);
+    expect(regions, hasLength(1));
+    assertHasRegion(example2Path, example2Path.length);
+  }
+
   Future<void> test_constructorInvocation() async {
     // Check that a constructor invocation navigates to the constructor and not
     // the class.
