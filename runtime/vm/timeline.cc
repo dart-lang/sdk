@@ -24,6 +24,15 @@
 
 namespace dart {
 
+#if defined(PRODUCT)
+#define DEFAULT_TIMELINE_RECORDER "none"
+#define SUPPORTED_TIMELINE_RECORDERS "systrace, file, callback"
+#else
+#define DEFAULT_TIMELINE_RECORDER "ring"
+#define SUPPORTED_TIMELINE_RECORDERS                                           \
+  "ring, endless, startup, systrace, file, callback"
+#endif
+
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
 DEFINE_FLAG(
@@ -45,9 +54,9 @@ DEFINE_FLAG(charp,
             "Debugger, Embedder, GC, Isolate, and VM.");
 DEFINE_FLAG(charp,
             timeline_recorder,
-            "ring",
+            DEFAULT_TIMELINE_RECORDER,
             "Select the timeline recorder used. "
-            "Valid values: ring, endless, startup, systrace, file, callback.")
+            "Valid values: none, " SUPPORTED_TIMELINE_RECORDERS)
 
 // Implementation notes:
 //
@@ -94,60 +103,81 @@ DEFINE_FLAG(charp,
 std::atomic<bool> RecorderLock::shutdown_lock_ = {false};
 std::atomic<intptr_t> RecorderLock::outstanding_event_writes_ = {0};
 
+static TimelineEventRecorder* CreateDefaultTimelineRecorder() {
+#if defined(PRODUCT)
+  return new TimelineEventNopRecorder();
+#else
+  return new TimelineEventRingRecorder();
+#endif
+}
+
 static TimelineEventRecorder* CreateTimelineRecorder() {
   // Some flags require that we use the endless recorder.
-  const bool use_endless_recorder =
-      (FLAG_timeline_dir != NULL) || FLAG_complete_timeline;
 
-  const bool use_startup_recorder = FLAG_startup_timeline;
-  const bool use_systrace_recorder = FLAG_systrace_timeline;
-  const char* flag = FLAG_timeline_recorder;
+  const char* flag =
+      FLAG_timeline_recorder != nullptr ? FLAG_timeline_recorder : "";
 
-  if (use_systrace_recorder || (flag != NULL)) {
-    if (use_systrace_recorder || (strcmp("systrace", flag) == 0)) {
+  if (FLAG_systrace_timeline) {
+    flag = "systrace";
+  } else if (FLAG_timeline_dir != nullptr || FLAG_complete_timeline) {
+    flag = "endless";
+  } else if (FLAG_startup_timeline) {
+    flag = "startup";
+  }
+
+  if (strcmp("none", flag) == 0) {
+    return new TimelineEventNopRecorder();
+  }
+
+  // Systrace recorder.
+  if (strcmp("systrace", flag) == 0) {
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
-      return new TimelineEventSystraceRecorder();
+    return new TimelineEventSystraceRecorder();
 #elif defined(DART_HOST_OS_MACOS)
-      if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
-        return new TimelineEventMacosRecorder();
-      }
+    if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
+      return new TimelineEventMacosRecorder();
+    }
 #elif defined(DART_HOST_OS_FUCHSIA)
-      return new TimelineEventFuchsiaRecorder();
+    return new TimelineEventFuchsiaRecorder();
 #else
-      OS::PrintErr(
-          "Warning: The systrace timeline recorder is equivalent to the"
-          "ring recorder on this platform.");
-      return new TimelineEventRingRecorder();
+    // Not supported. A warning will be emitted below.
 #endif
-    }
   }
 
-  if (use_endless_recorder || (flag != NULL)) {
-    if (use_endless_recorder || (strcmp("endless", flag) == 0)) {
-      return new TimelineEventEndlessRecorder();
-    }
-  }
-
-  if (use_startup_recorder || (flag != NULL)) {
-    if (use_startup_recorder || (strcmp("startup", flag) == 0)) {
-      return new TimelineEventStartupRecorder();
-    }
-  }
-
-  if (strcmp("file", flag) == 0) {
-    return new TimelineEventFileRecorder("dart-timeline.json");
-  }
-  if (Utils::StrStartsWith(flag, "file:") ||
-      Utils::StrStartsWith(flag, "file=")) {
-    return new TimelineEventFileRecorder(&flag[5]);
+  if (Utils::StrStartsWith(flag, "file") &&
+      (flag[4] == '\0' || flag[4] == ':' || flag[4] == '=')) {
+    const char* filename = flag[4] == '\0' ? "dart-timeline.json" : &flag[5];
+    return new TimelineEventFileRecorder(filename);
   }
 
   if (strcmp("callback", flag) == 0) {
     return new TimelineEventEmbedderCallbackRecorder();
   }
 
-  // Always fall back to the ring recorder.
-  return new TimelineEventRingRecorder();
+#if !defined(PRODUCT)
+  // Recorders below do nothing useful in PRODUCT mode. You can't extract
+  // information available in them without vm-service.
+  if (strcmp("endless", flag) == 0) {
+    return new TimelineEventEndlessRecorder();
+  }
+
+  if (strcmp("startup", flag) == 0) {
+    return new TimelineEventStartupRecorder();
+  }
+
+  if (strcmp("ring", flag) == 0) {
+    return new TimelineEventRingRecorder();
+  }
+#endif
+
+  if (strlen(flag) > 0 && strcmp(flag, DEFAULT_TIMELINE_RECORDER) != 0) {
+    OS::PrintErr(
+        "Warning: requested %s timeline recorder which is not supported, "
+        "defaulting to " DEFAULT_TIMELINE_RECORDER " recorder\n",
+        flag);
+  }
+
+  return CreateDefaultTimelineRecorder();
 }
 
 // Returns a caller freed array of stream names in FLAG_timeline_streams.
@@ -1421,6 +1451,10 @@ void TimelineEventEmbedderCallbackRecorder::OnEvent(TimelineEvent* event) {
 
   NoActiveIsolateScope no_active_isolate_scope;
   callback(&recorder_event);
+}
+
+void TimelineEventNopRecorder::OnEvent(TimelineEvent* event) {
+  // Do nothing.
 }
 
 TimelineEventPlatformRecorder::TimelineEventPlatformRecorder() {}
