@@ -67,7 +67,7 @@ main(List<String> args) async {
     checkElf(scriptSnapshot);
     checkElf(scriptDebuggingInfo);
 
-    if (Platform.isLinux) {
+    if (Platform.isLinux && !isSimulator) {
       final scriptAssembly = path.join(tempDir, 'snapshot.S');
       final scriptAssemblySnapshot = path.join(tempDir, 'assembly.so');
       final scriptAssemblyDebuggingInfo =
@@ -99,13 +99,13 @@ void checkElf(String filename, {bool isAssembled = false}) {
   final dynamicSymbols = elf.dynamicSymbols.toList();
   print('Dynamic symbols:');
   for (final symbol in dynamicSymbols) {
+    print(symbol);
     // All symbol tables have an initial entry with zero-valued fields.
     if (symbol.name == '') {
       Expect.equals(SymbolBinding.STB_LOCAL, symbol.bind);
       Expect.equals(SymbolType.STT_NOTYPE, symbol.type);
       Expect.equals(0, symbol.value);
     } else {
-      print(symbol);
       if (!symbol.name.startsWith('_kDart')) {
         // The VM only adds symbols with names starting with _kDart, so this
         // must be an assembled snapshot.
