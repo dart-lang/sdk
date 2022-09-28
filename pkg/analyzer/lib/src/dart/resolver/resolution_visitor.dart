@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -1174,6 +1175,22 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var offset = (i == 0 ? node.parent! : variable).offset;
       var length = variable.end - offset;
       element.setCodeRange(offset, length);
+    }
+  }
+
+  @override
+  void visitVariablePattern(covariant VariablePatternImpl node) {
+    node.type?.accept(this);
+
+    if (node.name.lexeme != '_') {
+      final element = VariablePatternElementImpl(
+        node.name.lexeme,
+        node.name.offset,
+      );
+      node.declaredElement = element;
+      _elementHolder.enclose(element);
+      element.isFinal = node.keyword?.keyword == Keyword.FINAL;
+      element.hasImplicitType = node.type == null;
     }
   }
 

@@ -1405,7 +1405,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement('declaredElement', node.declaredElement);
+        final element = node.declaredElement;
+        if (element != null) {
+          element as VariablePatternElementImpl;
+          _sink.write(_indent);
+          _sink.write('declaredElement: ');
+          _writeIf(element.hasImplicitType, 'hasImplicitType ');
+          _writeIf(element.isFinal, 'isFinal ');
+          _sink.writeln('${element.name}@${element.nameOffset}');
+          _withIndent(() {
+            _writeType('type', element.type);
+          });
+        }
       }
     });
   }
@@ -1673,6 +1684,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         _writeType('returnType', element.returnType);
         _writeType('type', element.type);
       });
+    }
+  }
+
+  void _writeIf(bool flag, String str) {
+    if (flag) {
+      _sink.write(str);
     }
   }
 

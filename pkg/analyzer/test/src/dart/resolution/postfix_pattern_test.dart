@@ -82,16 +82,18 @@ ExtractorPattern
 
   test_inside_ifStatement_case() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+void f(int? x) {
   if (x case var y!) {}
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern
     keyword: var
     name: y
+    declaredElement: hasImplicitType y@34
+      type: int
   operator: !
 ''');
   }
@@ -252,13 +254,14 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
   pattern: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 0
+        staticType: int
     operator: !
   rightParenthesis: )
 ''');
@@ -444,16 +447,18 @@ ExtractorPattern
 
   test_inside_ifStatement_case() async {
     await assertNoErrorsInCode(r'''
-void f(x) {
+void f(int? x) {
   if (x case var y?) {}
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern
     keyword: var
     name: y
+    declaredElement: hasImplicitType y@34
+      type: int
   operator: ?
 ''');
   }
@@ -614,13 +619,14 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
   pattern: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 0
+        staticType: int
     operator: ?
   rightParenthesis: )
 ''');

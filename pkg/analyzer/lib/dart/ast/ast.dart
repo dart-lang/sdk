@@ -5420,7 +5420,7 @@ abstract class VariablePattern implements DartPattern {
   /// Return the element associated with this declaration, or `null` if either
   /// the variable name is `_` (in which case no variable is defined) or the AST
   /// structure has not been resolved.
-  VariableElement? get declaredElement;
+  VariablePatternElement? get declaredElement;
 
   /// The 'var' or 'final' keyword used when there is no [type], or `null` if a
   /// type is given.
