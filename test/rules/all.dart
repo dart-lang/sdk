@@ -82,6 +82,8 @@ import 'use_build_context_synchronously_test.dart'
 import 'use_enums_test.dart' as use_enums;
 import 'use_is_even_rather_than_modulo_test.dart'
     as use_is_even_rather_than_modulo;
+import 'use_late_for_private_fields_and_variables_test.dart'
+    as use_late_for_private_fields_and_variables;
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'void_checks_test.dart' as void_checks;
 
@@ -142,6 +144,7 @@ void main() {
   use_build_context_synchronously.main();
   use_enums.main();
   use_is_even_rather_than_modulo.main();
+  use_late_for_private_fields_and_variables.main();
   use_super_parameters.main();
   void_checks.main();
 }
