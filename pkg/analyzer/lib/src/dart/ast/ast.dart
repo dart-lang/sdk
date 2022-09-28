@@ -9987,7 +9987,9 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    resolverVisitor.analyzeNullCheckOrAssertPattern(
+        matchedType, typeInfos, context, this, operand,
+        isAssert: operator.type == TokenType.BANG);
   }
 
   @override

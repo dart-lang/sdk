@@ -71,11 +71,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: BooleanLiteral
       literal: true
+      staticType: bool
   operator: !
 ''');
   }
@@ -90,11 +91,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: BooleanLiteral
       literal: true
+      staticType: bool
   operator: ?
 ''');
   }
@@ -171,11 +173,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: DoubleLiteral
       literal: 1.0
+      staticType: double
   operator: !
 ''');
   }
@@ -190,11 +193,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: DoubleLiteral
       literal: 1.0
+      staticType: double
   operator: ?
 ''');
   }
@@ -289,11 +293,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: IntegerLiteral
       literal: 0
+      staticType: int
   operator: !
 ''');
   }
@@ -308,11 +313,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: IntegerLiteral
       literal: 0
+      staticType: int
   operator: ?
 ''');
   }
@@ -390,11 +396,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: NullLiteral
       literal: null
+      staticType: Null
   operator: !
 ''');
   }
@@ -409,11 +416,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: NullLiteral
       literal: null
+      staticType: Null
   operator: ?
 ''');
   }
@@ -484,7 +492,7 @@ ConstantPattern
 
   test_inside_nullAssert() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x, int y) {
   switch (x) {
     case y!:
       break;
@@ -492,18 +500,20 @@ void f(x, y) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleIdentifier
       token: y
+      staticElement: self::@function::f::@parameter::y
+      staticType: int
   operator: !
 ''');
   }
 
   test_inside_nullCheck() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x, int y) {
   switch (x) {
     case y?:
       break;
@@ -511,11 +521,13 @@ void f(x, y) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleIdentifier
       token: y
+      staticElement: self::@function::f::@parameter::y
+      staticType: int
   operator: ?
 ''');
   }
@@ -590,7 +602,7 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleStringLiteral
@@ -609,7 +621,7 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleStringLiteral

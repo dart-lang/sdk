@@ -355,7 +355,7 @@ RecordPattern
 
   test_inside_switchStatement_case() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x, int y) {
   switch (x) {
     case y!:
       break;
@@ -363,11 +363,13 @@ void f(x, y) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleIdentifier
       token: y
+      staticElement: self::@function::f::@parameter::y
+      staticType: int
   operator: !
 ''');
   }
@@ -715,7 +717,7 @@ RecordPattern
 
   test_inside_switchStatement_case() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x, int y) {
   switch (x) {
     case y?:
       break;
@@ -723,11 +725,13 @@ void f(x, y) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleIdentifier
       token: y
+      staticElement: self::@function::f::@parameter::y
+      staticType: int
   operator: ?
 ''');
   }
