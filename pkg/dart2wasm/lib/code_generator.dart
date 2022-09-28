@@ -4,6 +4,7 @@
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/closures.dart';
+import 'package:dart2wasm/constants.dart';
 import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/intrinsics.dart';
 import 'package:dart2wasm/param_info.dart';
@@ -2257,8 +2258,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.i32_const(initialIdentityHash);
     types.makeType(this, typeArg);
     b.i64_const(length);
-    if (options.lazyConstants) {
-      // Avoid array.init instruction in lazy constants mode
+    if (length > maxArrayNewFixedLength) {
+      // Too long for `array.new_fixed`. Set elements individually.
       b.i32_const(length);
       b.array_new_default(arrayType);
       if (length > 0) {

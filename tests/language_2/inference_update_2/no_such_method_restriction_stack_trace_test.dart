@@ -19,12 +19,16 @@ main() {
     callPrivateMethod(Test());
   } on NoSuchMethodError catch (e, st) {
     var stackString = st.toString();
-    if (stackString.contains('.js:')) {
-      // Obfuscated Javascript stacktrace.  We don't expect to be able to
-      // resolve Dart files from this stack trace, so just let the test pass.
+    if (stackString.contains('.js:') || !stackString.contains('.dart')) {
+      // Obfuscated stacktrace.  We don't expect to be able to resolve Dart
+      // files from this stack trace, so just let the test pass.
+      //
+      // Note: it's not sufficient to check for the absence of `.dart` in the
+      // stacktrace, because obfuscated Javascript stacktraces often contain
+      // `self.dartMainRunner`.
     } else {
       Expect.contains(
-          'no_such_method_restriction_stack_trace_lib1.dart', st.toString());
+          'no_such_method_restriction_stack_trace_lib1.dart', stackString);
     }
   }
 }

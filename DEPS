@@ -122,7 +122,7 @@ vars = {
   "http_parser_rev": "b968f7ddde0588273a6cbd1d2eb6569f418606ac",
   "http_rev": "738a55b20e391c5a526b86bf4b02af6b7745b494",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
-  "intl_rev": "6806ab06fa6145f30dbcd5cbfeb3aeaadd21ea8e",
+  "intl_rev": "5464b3b95635e97f67e29d71bdbe85a5d4126971",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "805e6536dd961d66f6b8cd46d8f3e61774f957c9",
   "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca", # 1.28.0

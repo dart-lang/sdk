@@ -306,17 +306,21 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
   pattern: CastPattern
     pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 0
+        staticType: int
     asToken: as
     type: NamedType
       name: SimpleIdentifier
         token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
   rightParenthesis: )
 ''');
   }

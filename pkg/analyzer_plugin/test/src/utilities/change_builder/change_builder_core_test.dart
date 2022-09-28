@@ -456,6 +456,48 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
     expect(edits[1].replacement, text);
   }
 
+  Future<void> test_addSimpleInsertion_updatesSelection_futureEdits() async {
+    // Set a selection position.
+    builder.setSelection(Position(path, 5));
+
+    // Ensure a simple insertion before the selection moves it along by this
+    // length.
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleInsertion(0, '123');
+    });
+    expect(builder.sourceChange.selection, Position(path, 8));
+  }
+
+  Future<void>
+      test_addSimpleInsertion_updatesSelectionRange_futureEdits() async {
+    // Set a selection range.
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(5, (builder) => builder.selectHere());
+    });
+
+    // Ensure a simple insertion before the selection moves it along by this
+    // length.
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleInsertion(0, '123');
+    });
+    expect(builder.selectionRange, SourceRange(8, 0));
+  }
+
+  Future<void> test_addSimpleInsertion_updatesSelections_priorEdits() async {
+    // Insert some text at the start.
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleInsertion(0, '123');
+    });
+
+    // Ensure a subsequent insertion has its selection offset to account for
+    // the insertion above.
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(5, (builder) => builder.selectHere());
+    });
+    expect(builder.sourceChange.selection, Position(path, 8));
+    expect(builder.selectionRange, SourceRange(8, 0));
+  }
+
   Future<void> test_addSimpleReplacement() async {
     var offset = 23;
     var length = 7;
@@ -537,6 +579,32 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
       expect(sourceEdit.offset, offset);
       expect(sourceEdit.replacement, isEmpty);
     });
+  }
+
+  Future<void> test_setSelection_clearsSelectionRange() async {
+    // Set a selection range.
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) => builder.selectHere());
+    });
+
+    // Ensure setting a selection position removes the range.
+    expect(builder.selectionRange, isNotNull);
+    builder.setSelection(Position(path, 0));
+    expect(builder.selectionRange, isNull);
+  }
+
+  Future<void> test_setSelectionRange_updatesSelection() async {
+    // Set a selection position.
+    builder.setSelection(Position(path, 0));
+
+    // Ensure setting a selection range moves the position to the new offset.
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.write('123');
+        builder.selectHere();
+      });
+    });
+    expect(builder.sourceChange.selection, Position(path, 3));
   }
 }
 

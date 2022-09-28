@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // SharedOptions=--enable-experiment=records
+// VMOptions=
+// VMOptions=--test_il_serialization
 
 import "package:expect/expect.dart";
 

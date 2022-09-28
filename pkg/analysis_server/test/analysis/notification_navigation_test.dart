@@ -30,7 +30,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
   late List<NavigationTarget> testTargets;
   late NavigationTarget testTarget;
 
-  /// Validates that there is a target in [testTargetIndexes] with [file],
+  /// Validates that there is a target in [testTargets] with [file],
   /// at [offset] and with the given [length].
   void assertHasFileTarget(String file, int offset, int length) {
     for (var target in testTargets) {
@@ -115,20 +115,20 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
     assertHasTarget(str, str.length);
   }
 
-  /// Validates that there is no a region at [search] and with the given
+  /// Validates that there is not a region at [search] and with the given
   /// [length].
   void assertNoRegion(String search, int length) {
     var offset = findOffset(search);
     findRegion(offset, length, false);
   }
 
-  /// Validates that there is no a region at [search] with any length.
+  /// Validates that there is not a region at [search] with any length.
   void assertNoRegionAt(String search) {
     var offset = findOffset(search);
     findRegion(offset, -1, false);
   }
 
-  /// Validates that there is no a region for [search] string.
+  /// Validates that there is not a region for [search] string.
   void assertNoRegionString(String search) {
     var offset = findOffset(search);
     var length = search.length;
@@ -150,7 +150,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
   /// If [length] is `-1`, then it is ignored.
   ///
   /// If [exists] is `true`, then fails if such region does not exist.
-  /// Otherwise remembers this it into [testRegion].
+  /// Otherwise remembers it in [testRegion].
   /// Also fills [testTargets] with its targets.
   ///
   /// If [exists] is `false`, then fails if such region exists.
@@ -1225,6 +1225,68 @@ void g() {
     await prepareNavigation();
     assertHasRegionTarget('c: 2', 'c,');
     assertHasRegionTarget('d: 3', 'd}) {}');
+  }
+
+  Future<void> test_navigation_dart_example_api() async {
+    final exampleLinkPath = 'examples/api/lib/test_file.dart';
+    final exampleApiFile =
+        join(convertPath(workspaceRootPath), convertPath(exampleLinkPath));
+    newFile(exampleApiFile, '/// Test');
+    addTestFile('''
+/// Dartdoc comment
+/// {@tool dartpad}
+/// Example description.
+///
+/// ** See code in examples/api/lib/test_file.dart **
+/// {@end-tool}
+const int foo = 0;
+''');
+    await prepareNavigation();
+    assertHasRegion(exampleLinkPath, 31);
+    assertHasFileTarget(
+        exampleApiFile.substring(
+            resourceProvider.pathContext.rootPrefix(exampleApiFile).length),
+        0,
+        0);
+  }
+
+  Future<void> test_navigation_dart_example_api_multiple() async {
+    final exampleLinkPath0 = 'examples/api/lib/test_file.0.dart';
+    final exampleLinkPath1 = 'examples/api/lib/test_file.1.dart';
+    final exampleApiFile0 = join(workspaceRootPath, exampleLinkPath0);
+    final exampleApiFile1 = join(workspaceRootPath, exampleLinkPath1);
+    newFile(exampleApiFile0, '/// Test 0');
+    newFile(exampleApiFile1, '/// Test 1');
+    addTestFile('''
+/// Dartdoc comment
+/// {@tool dartpad}
+/// Example description.
+///
+/// ** See code in examples/api/lib/test_file.0.dart **
+/// {@end-tool}
+///
+/// {@tool dartpad}
+/// Example description.
+///
+/// ** See code in examples/api/lib/test_file.1.dart **
+/// {@end-tool}
+const int foo = 0;
+''');
+    await prepareNavigation();
+    assertHasRegion(exampleLinkPath0, 33);
+    // Files created with newFile have to be absolute paths, but we're looking
+    // for root-relative paths.
+    assertHasFileTarget(
+        convertPath(exampleApiFile0.substring(
+            resourceProvider.pathContext.rootPrefix(exampleApiFile0).length)),
+        0,
+        0);
+    assertHasRegion(exampleLinkPath1, 33);
+    assertHasFileTarget(
+        convertPath(exampleApiFile1.substring(
+            resourceProvider.pathContext.rootPrefix(exampleApiFile1).length)),
+        0,
+        0);
   }
 
   Future<void> test_operator_arithmetic() async {

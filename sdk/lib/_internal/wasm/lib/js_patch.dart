@@ -12,109 +12,111 @@ import 'dart:collection' show ListMixin;
 import 'dart:wasm';
 
 @patch
-JsObject get context => throw UnimplementedError;
+JsObject get context => throw UnimplementedError();
 
 @patch
 class JsObject {
   // No argument empty constructor to support inheritance.
   JsObject._() {
-    throw UnimplementedError;
+    throw UnimplementedError();
   }
 
   @patch
   factory JsObject(JsFunction constructor, [List? arguments]) =>
-      throw UnimplementedError;
+      throw UnimplementedError();
 
   @patch
-  factory JsObject.fromBrowserObject(Object object) => throw UnimplementedError;
+  factory JsObject.fromBrowserObject(Object object) =>
+      throw UnimplementedError();
 
   @patch
-  factory JsObject.jsify(Object object) => throw UnimplementedError;
+  factory JsObject.jsify(Object object) => throw UnimplementedError();
 
   @patch
-  dynamic operator [](Object property) => throw UnimplementedError;
+  dynamic operator [](Object property) => throw UnimplementedError();
 
   @patch
-  void operator []=(Object property, Object? value) => throw UnimplementedError;
+  void operator []=(Object property, Object? value) =>
+      throw UnimplementedError();
 
   @patch
-  bool operator ==(Object other) => throw UnimplementedError;
+  bool operator ==(Object other) => throw UnimplementedError();
 
   @patch
-  bool hasProperty(Object property) => throw UnimplementedError;
+  bool hasProperty(Object property) => throw UnimplementedError();
 
   @patch
-  void deleteProperty(Object property) => throw UnimplementedError;
+  void deleteProperty(Object property) => throw UnimplementedError();
 
   @patch
-  bool instanceof(JsFunction type) => throw UnimplementedError;
+  bool instanceof(JsFunction type) => throw UnimplementedError();
 
   @patch
-  String toString() => throw UnimplementedError;
+  String toString() => throw UnimplementedError();
 
   @patch
-  dynamic callMethod(Object method, [List? args]) => throw UnimplementedError;
+  dynamic callMethod(Object method, [List? args]) => throw UnimplementedError();
 }
 
 @patch
 class JsFunction extends JsObject {
   @patch
-  factory JsFunction.withThis(Function f) => throw UnimplementedError;
+  factory JsFunction.withThis(Function f) => throw UnimplementedError();
 
   @patch
-  dynamic apply(List args, {thisArg}) => throw UnimplementedError;
+  dynamic apply(List args, {thisArg}) => throw UnimplementedError();
 }
 
 @patch
 class JsArray<E> extends JsObject with ListMixin<E> {
   @patch
-  factory JsArray() => throw UnimplementedError;
+  factory JsArray() => throw UnimplementedError();
 
   @patch
-  factory JsArray.from(Iterable<E> other) => throw UnimplementedError;
+  factory JsArray.from(Iterable<E> other) => throw UnimplementedError();
 
   @patch
-  E operator [](Object index) => throw UnimplementedError;
+  E operator [](Object index) => throw UnimplementedError();
 
   @patch
-  void operator []=(Object index, E value) => throw UnimplementedError;
+  void operator []=(Object index, E value) => throw UnimplementedError();
 
   @patch
-  int get length => throw UnimplementedError;
+  int get length => throw UnimplementedError();
 
   @patch
-  void set length(int length) => throw UnimplementedError;
+  void set length(int length) => throw UnimplementedError();
 
   @patch
-  void add(E value) => throw UnimplementedError;
+  void add(E value) => throw UnimplementedError();
 
   @patch
-  void addAll(Iterable<E> iterable) => throw UnimplementedError;
+  void addAll(Iterable<E> iterable) => throw UnimplementedError();
 
   @patch
-  void insert(int index, E element) => throw UnimplementedError;
+  void insert(int index, E element) => throw UnimplementedError();
 
   @patch
-  E removeAt(int index) => throw UnimplementedError;
+  E removeAt(int index) => throw UnimplementedError();
 
   @patch
-  E removeLast() => throw UnimplementedError;
+  E removeLast() => throw UnimplementedError();
 
   @patch
-  void removeRange(int start, int end) => throw UnimplementedError;
+  void removeRange(int start, int end) => throw UnimplementedError();
 
   @patch
   void setRange(int start, int end, Iterable<E> iterable,
           [int skipCount = 0]) =>
-      throw UnimplementedError;
+      throw UnimplementedError();
 
   @patch
-  void sort([int compare(E a, E b)?]) => throw UnimplementedError;
+  void sort([int compare(E a, E b)?]) => throw UnimplementedError();
 }
 
 /// This will be lowered to a a call to `_wrapDartCallback`.
 @patch
-F allowInterop<F extends Function>(F f) => throw UnimplementedError;
+F allowInterop<F extends Function>(F f) => throw UnimplementedError();
 
 @patch
-Function allowInteropCaptureThis(Function f) => throw UnimplementedError;
+Function allowInteropCaptureThis(Function f) => throw UnimplementedError();

@@ -129,7 +129,6 @@ class Globals {
     if (init is IntLiteral) return IntConstant(init.value);
     if (init is DoubleLiteral) return DoubleConstant(init.value);
     if (init is BoolLiteral) return BoolConstant(init.value);
-    if (translator.options.lazyConstants) return null;
     if (init is StringLiteral) return StringConstant(init.value);
     if (init is ConstantExpression) return init.constant;
     return null;
@@ -142,9 +141,9 @@ class Globals {
     return globals.putIfAbsent(variable, () {
       w.ValueType type = translator.translateType(variable.type);
       Constant? init = _getConstantInitializer(variable);
-      if (init != null) {
+      if (init != null &&
+          !(translator.constants.ensureConstant(init)?.isLazy ?? false)) {
         // Initialized to a constant
-        translator.constants.ensureConstant(init);
         w.DefinedGlobal global =
             m.addGlobal(w.GlobalType(type, mutable: !variable.isFinal));
         translator.constants

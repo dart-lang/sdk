@@ -30,15 +30,19 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
     expression: BooleanLiteral
       literal: true
+      staticType: bool
   asToken: as
   type: NamedType
     name: SimpleIdentifier
       token: Object
+      staticElement: dart:core::@class::Object
+      staticType: null
+    type: Object
 ''');
   }
 
@@ -49,10 +53,11 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: BooleanLiteral
     literal: true
+    staticType: bool
 ''');
   }
 
@@ -66,11 +71,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: BooleanLiteral
       literal: true
+      staticType: bool
   operator: !
 ''');
   }
@@ -85,11 +91,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: BooleanLiteral
       literal: true
+      staticType: bool
   operator: ?
 ''');
   }
@@ -125,15 +132,19 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
     expression: DoubleLiteral
       literal: 1.0
+      staticType: double
   asToken: as
   type: NamedType
     name: SimpleIdentifier
       token: Object
+      staticElement: dart:core::@class::Object
+      staticType: null
+    type: Object
 ''');
   }
 
@@ -144,10 +155,11 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: DoubleLiteral
     literal: 1.0
+    staticType: double
 ''');
   }
 
@@ -161,11 +173,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: DoubleLiteral
       literal: 1.0
+      staticType: double
   operator: !
 ''');
   }
@@ -180,11 +193,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: DoubleLiteral
       literal: 1.0
+      staticType: double
   operator: ?
 ''');
   }
@@ -210,6 +224,24 @@ ConstantPattern
 @reflectiveTest
 class ConstantPattern_IntegerLiteral_ResolutionTest
     extends PatternsResolutionTest {
+  test_contextType_double() async {
+    await assertNoErrorsInCode(r'''
+void f(double x) {
+  switch (x) {
+    case 0:
+      break;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: IntegerLiteral
+    literal: 0
+    staticType: double
+''');
+  }
+
   test_inside_castPattern() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
@@ -220,15 +252,19 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
     expression: IntegerLiteral
       literal: 0
+      staticType: int
   asToken: as
   type: NamedType
     name: SimpleIdentifier
       token: Object
+      staticElement: dart:core::@class::Object
+      staticType: null
+    type: Object
 ''');
   }
 
@@ -239,10 +275,11 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
     literal: 0
+    staticType: int
 ''');
   }
 
@@ -256,11 +293,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: IntegerLiteral
       literal: 0
+      staticType: int
   operator: !
 ''');
   }
@@ -275,11 +313,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: IntegerLiteral
       literal: 0
+      staticType: int
   operator: ?
 ''');
   }
@@ -294,10 +333,11 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: IntegerLiteral
     literal: 0
+    staticType: int
 ''');
   }
 }
@@ -315,15 +355,19 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
     expression: NullLiteral
       literal: null
+      staticType: Null
   asToken: as
   type: NamedType
     name: SimpleIdentifier
       token: Object
+      staticElement: dart:core::@class::Object
+      staticType: null
+    type: Object
 ''');
   }
 
@@ -334,10 +378,11 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: NullLiteral
     literal: null
+    staticType: Null
 ''');
   }
 
@@ -351,11 +396,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: NullLiteral
       literal: null
+      staticType: Null
   operator: !
 ''');
   }
@@ -370,11 +416,12 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: NullLiteral
       literal: null
+      staticType: Null
   operator: ?
 ''');
   }
@@ -402,7 +449,7 @@ class ConstantPattern_SimpleIdentifier_ResolutionTest
     extends PatternsResolutionTest {
   test_inside_castPattern() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x, int y) {
   switch (x) {
     case y as Object:
       break;
@@ -410,35 +457,42 @@ void f(x, y) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
+      staticElement: self::@function::f::@parameter::y
+      staticType: int
   asToken: as
   type: NamedType
     name: SimpleIdentifier
       token: Object
+      staticElement: dart:core::@class::Object
+      staticType: null
+    type: Object
 ''');
   }
 
   test_inside_ifStatement_case() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x, int y) {
   if (x case y) {}
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: SimpleIdentifier
     token: y
+    staticElement: self::@function::f::@parameter::y
+    staticType: int
 ''');
   }
 
   test_inside_nullAssert() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x, int y) {
   switch (x) {
     case y!:
       break;
@@ -446,18 +500,20 @@ void f(x, y) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleIdentifier
       token: y
+      staticElement: self::@function::f::@parameter::y
+      staticType: int
   operator: !
 ''');
   }
 
   test_inside_nullCheck() async {
     await assertNoErrorsInCode(r'''
-void f(x, y) {
+void f(x, int y) {
   switch (x) {
     case y?:
       break;
@@ -465,11 +521,13 @@ void f(x, y) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleIdentifier
       token: y
+      staticElement: self::@function::f::@parameter::y
+      staticType: int
   operator: ?
 ''');
   }
@@ -505,7 +563,7 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
     expression: SimpleStringLiteral
@@ -514,6 +572,9 @@ CastPattern
   type: NamedType
     name: SimpleIdentifier
       token: Object
+      staticElement: dart:core::@class::Object
+      staticType: null
+    type: Object
 ''');
   }
 
@@ -524,7 +585,7 @@ void f(x) {
 }
 ''');
     final node = findNode.caseClause('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 ConstantPattern
   expression: SimpleStringLiteral
     literal: 'x'
@@ -541,7 +602,7 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleStringLiteral
@@ -560,7 +621,7 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: ConstantPattern
     expression: SimpleStringLiteral

@@ -972,44 +972,24 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
   return !type_argument_checks.is_empty();
 }
 
-// Unwraps TypeRefs, jumping to the appropriate label for the unwrapped type
-// if that label is not nullptr and otherwise falling through.
+// Unwraps TypeRef in [type_reg] and loads class id of the unwrapped type to
+// [class_id_reg].
 //
-// [type_reg] must contain an AbstractTypePtr, and [scratch] must be distinct
-// from [type_reg]. Clobbers [type_reg] with the unwrapped type.
-static void UnwrapAbstractType(compiler::Assembler* assembler,
-                               Register type_reg,
-                               Register scratch,
-                               compiler::Label* is_type = nullptr,
-                               compiler::Label* is_function_type = nullptr,
-                               compiler::Label* is_type_parameter = nullptr) {
-  ASSERT(scratch != type_reg);
-  compiler::Label cid_checks, fall_through;
+// [type_reg] must contain an AbstractType. Unwrapped TypeRef is written
+// back to [type_reg]. [class_id_reg] must be distinct from [type_reg].
+static void UnwrapTypeRefAndLoadClassId(compiler::Assembler* assembler,
+                                        Register type_reg,
+                                        Register class_id_reg) {
+  ASSERT(class_id_reg != type_reg);
+  compiler::Label done;
   // TypeRefs never wrap other TypeRefs, so we only need to unwrap once.
-  __ LoadClassId(scratch, type_reg);
-  __ CompareImmediate(scratch, kTypeRefCid);
-  __ BranchIf(NOT_EQUAL, &cid_checks, compiler::Assembler::kNearJump);
+  __ LoadClassId(class_id_reg, type_reg);
+  __ CompareImmediate(class_id_reg, kTypeRefCid);
+  __ BranchIf(NOT_EQUAL, &done, compiler::Assembler::kNearJump);
   __ LoadCompressedFieldFromOffset(type_reg, type_reg,
                                    compiler::target::TypeRef::type_offset());
-  // Only load the class id of the unwrapped type if it will be checked below.
-  if (is_type != nullptr || is_function_type != nullptr ||
-      is_type_parameter != nullptr) {
-    __ LoadClassId(scratch, type_reg);
-  }
-  __ Bind(&cid_checks);
-  if (is_type != nullptr) {
-    __ CompareImmediate(scratch, kTypeCid);
-    __ BranchIf(EQUAL, is_type);
-  }
-  if (is_function_type != nullptr) {
-    __ CompareImmediate(scratch, kFunctionTypeCid);
-    __ BranchIf(EQUAL, is_function_type);
-  }
-  if (is_type_parameter != nullptr) {
-    __ CompareImmediate(scratch, kTypeParameterCid);
-    __ BranchIf(EQUAL, is_type_parameter);
-  }
-  // TODO(dartbug.com/49719)
+  __ LoadClassId(class_id_reg, type_reg);
+  __ Bind(&done);
 }
 
 void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
@@ -1053,9 +1033,10 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
 
   __ Comment("Checking instantiated type parameter for possible top types");
   compiler::Label check_subtype_type_class_ids;
-  UnwrapAbstractType(assembler, TTSInternalRegs::kSuperTypeArgumentReg,
-                     TTSInternalRegs::kScratchReg, /*is_type=*/nullptr,
-                     &check_subtype_type_class_ids);
+  UnwrapTypeRefAndLoadClassId(assembler, TTSInternalRegs::kSuperTypeArgumentReg,
+                              TTSInternalRegs::kScratchReg);
+  __ CompareImmediate(TTSInternalRegs::kScratchReg, kTypeCid);
+  __ BranchIf(NOT_EQUAL, &check_subtype_type_class_ids);
   __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
                      TTSInternalRegs::kSuperTypeArgumentReg);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kDynamicCid);
@@ -1072,16 +1053,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
         TTSInternalRegs::kScratchReg);
     __ BranchIf(NOT_EQUAL, &is_subtype);
     __ Comment("Checking for legacy or non-nullable instance type argument");
-    compiler::Label subtype_is_type;
-    UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
-                       TTSInternalRegs::kScratchReg, &subtype_is_type);
-    __ CompareAbstractTypeNullabilityWith(
-        TTSInternalRegs::kSubTypeArgumentReg,
-        static_cast<int8_t>(Nullability::kNullable),
-        TTSInternalRegs::kScratchReg);
-    __ BranchIf(EQUAL, check_failed);
-    __ Jump(&is_subtype);
-    __ Bind(&subtype_is_type);
     __ CompareAbstractTypeNullabilityWith(
         TTSInternalRegs::kSubTypeArgumentReg,
         static_cast<int8_t>(Nullability::kNullable),
@@ -1095,9 +1066,10 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
   __ Bind(&check_subtype_type_class_ids);
   __ Comment("Checking instance type argument for possible bottom types");
   // Nothing else to check for non-Types, so fall back to the slow stub.
-  UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
-                     TTSInternalRegs::kScratchReg, /*is_type=*/nullptr,
-                     check_failed);
+  UnwrapTypeRefAndLoadClassId(assembler, TTSInternalRegs::kSubTypeArgumentReg,
+                              TTSInternalRegs::kScratchReg);
+  __ CompareImmediate(TTSInternalRegs::kScratchReg, kTypeCid);
+  __ BranchIf(NOT_EQUAL, check_failed);
   __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
                      TTSInternalRegs::kSubTypeArgumentReg);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kNeverCid);
@@ -1108,16 +1080,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
   if (strict_null_safety) {
     // Only nullable or legacy types can be a supertype of Null.
     __ Comment("Checking for legacy or nullable instantiated type parameter");
-    compiler::Label supertype_is_type;
-    UnwrapAbstractType(assembler, TTSInternalRegs::kSuperTypeArgumentReg,
-                       TTSInternalRegs::kScratchReg, &supertype_is_type);
-    __ CompareAbstractTypeNullabilityWith(
-        TTSInternalRegs::kSuperTypeArgumentReg,
-        static_cast<int8_t>(Nullability::kNonNullable),
-        TTSInternalRegs::kScratchReg);
-    __ BranchIf(EQUAL, check_failed);
-    __ Jump(&is_subtype, compiler::Assembler::kNearJump);
-    __ Bind(&supertype_is_type);
     __ CompareAbstractTypeNullabilityWith(
         TTSInternalRegs::kSuperTypeArgumentReg,
         static_cast<int8_t>(Nullability::kNonNullable),
@@ -1153,22 +1115,29 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     __ Comment("%s", buffer.buffer());
   }
 
-  compiler::Label is_subtype, check_subtype_cid, sub_is_function_type,
-      sub_is_type;
+  compiler::Label is_subtype, sub_is_type;
   __ LoadCompressedFieldFromOffset(
       TTSInternalRegs::kSubTypeArgumentReg,
       TTSInternalRegs::kInstanceTypeArgumentsReg,
       compiler::target::TypeArguments::type_at_offset(
           type_param_value_offset_i));
-  __ Bind(&check_subtype_cid);
-  UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
-                     TTSInternalRegs::kScratchReg, &sub_is_type);
-  // TODO(dartbug.com/49719)
-  __ Comment("Checks for FunctionType");
-  __ EnsureHasClassIdInDEBUG(kFunctionTypeCid,
-                             TTSInternalRegs::kSubTypeArgumentReg,
-                             TTSInternalRegs::kScratchReg);
-  if (type.IsObjectType() || type.IsDartFunctionType()) {
+  UnwrapTypeRefAndLoadClassId(assembler, TTSInternalRegs::kSubTypeArgumentReg,
+                              TTSInternalRegs::kScratchReg);
+  if (type.IsObjectType() || type.IsDartFunctionType() ||
+      type.IsDartRecordType()) {
+    __ CompareImmediate(TTSInternalRegs::kScratchReg, kTypeCid);
+    __ BranchIf(EQUAL, &sub_is_type);
+    if (type.IsDartFunctionType()) {
+      __ Comment("Checks for Function type");
+      __ CompareImmediate(TTSInternalRegs::kScratchReg, kFunctionTypeCid);
+      __ BranchIf(NOT_EQUAL, check_failed);
+    } else if (type.IsDartRecordType()) {
+      __ Comment("Checks for Record type");
+      __ CompareImmediate(TTSInternalRegs::kScratchReg, kRecordTypeCid);
+      __ BranchIf(NOT_EQUAL, check_failed);
+    } else {
+      __ Comment("Checks for Object type");
+    }
     if (strict_null_safety && type.IsNonNullable()) {
       // Nullable types cannot be a subtype of a non-nullable type.
       __ CompareAbstractTypeNullabilityWith(
@@ -1177,13 +1146,13 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
           TTSInternalRegs::kScratchReg);
       __ BranchIf(EQUAL, check_failed);
     }
-    // No further checks needed for non-nullable Object or Function.
+    // No further checks needed for non-nullable Object, Function or Record.
     __ Jump(&is_subtype, compiler::Assembler::kNearJump);
   } else {
-    // _Closure <: Function, and T <: Function for any FunctionType T, but
-    // T </: _Closure, so we _don't_ want to fall back to cid tests. Instead,
+    // Don't fall back to cid tests for record and function types. Instead,
     // just let the STC/runtime handle any possible false negatives here.
-    __ Jump(check_failed);
+    __ CompareImmediate(TTSInternalRegs::kScratchReg, kTypeCid);
+    __ BranchIf(NOT_EQUAL, check_failed);
   }
 
   __ Comment("Checks for Type");

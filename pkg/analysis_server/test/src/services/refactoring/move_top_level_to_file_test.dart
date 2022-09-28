@@ -26,12 +26,12 @@ class MoveTopLevelToFileTest extends RefactoringTest {
   @override
   String get refactoringName => MoveTopLevelToFile.commandName;
 
-  /// Replaces the filename argument in [action].
-  void replaceFilenameArgument(CodeAction action, String newFilePath) {
+  /// Replaces the "Save URI" argument in [action].
+  void replaceSaveUriArgument(CodeAction action, Uri newFileUri) {
     final arguments = getRefactorCommandArguments(action);
     // The filename is the first item we prompt for so is first in the
     // arguments.
-    arguments[0] = newFilePath;
+    arguments[0] = newFileUri.toString();
   }
 
   Future<void> test_available() async {
@@ -79,6 +79,7 @@ class ClassToMove {}
 
     /// Filename to inject to replace default.
     final newFilePath = join(projectFolderPath, 'lib', 'my_new_class.dart');
+    final newFileUri = Uri.file(newFilePath);
 
     /// Expected new file content.
     const expectedNewFileContent = '''
@@ -87,8 +88,8 @@ class A {}
 
     await initializeServer();
     final action = await expectCodeAction(simpleClassRefactorTitle);
-    // Replace the filename argument with our custom path.
-    replaceFilenameArgument(action, newFilePath);
+    // Replace the file URI argument with our custom path.
+    replaceSaveUriArgument(action, newFileUri);
     await executeRefactor(action);
 
     expect(content[newFilePath], expectedNewFileContent);

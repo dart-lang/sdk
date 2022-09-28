@@ -42,11 +42,7 @@ class RefactoringProcessor {
                     'selectionOffset': context.selectionOffset,
                     'selectionLength': context.selectionLength,
                     'arguments': producer.parameters
-                        // Use toJson() to ensure values are always valid for
-                        // JSON. Without this, defaultValues that are URIs will
-                        // fail.
-                        .map((param) => param.toJson())
-                        .map((json) => json['defaultValue'])
+                        .map((param) => param.defaultValue)
                         .toList(),
                   }
                 ],
