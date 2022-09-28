@@ -1599,13 +1599,26 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       break;
     }
     case kRecordCid: {
-      // TODO(dartbug.com/49719)
-      UNIMPLEMENTED();
+      ASSERT(x.IsCanonical());
+      const auto& record = Record::Cast(x);
+      const intptr_t num_fields = record.num_fields();
+      Write<intptr_t>(num_fields);
+      Write<const Array&>(Array::Handle(Z, record.field_names()));
+      auto& field = Object::Handle(Z);
+      for (intptr_t i = 0; i < num_fields; ++i) {
+        field = record.FieldAt(i);
+        Write<const Object&>(field);
+      }
       break;
     }
     case kRecordTypeCid: {
-      // TODO(dartbug.com/49719)
-      UNIMPLEMENTED();
+      const auto& rec = RecordType::Cast(x);
+      ASSERT(rec.IsFinalized());
+      TypeScope type_scope(this, rec.IsRecursive());
+      Write<int8_t>(static_cast<int8_t>(rec.nullability()));
+      Write<const Array&>(Array::Handle(Z, rec.field_names()));
+      Write<const Array&>(Array::Handle(Z, rec.field_types()));
+      Write<bool>(type_scope.CanBeCanonicalized());
       break;
     }
     case kSentinelCid:
@@ -1869,14 +1882,25 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
                                 Symbols::FromLatin1(thread(), latin1, length));
     }
     case kRecordCid: {
-      // TODO(dartbug.com/49719)
-      UNIMPLEMENTED();
-      break;
+      const intptr_t num_fields = Read<intptr_t>();
+      const auto& field_names = Read<const Array&>();
+      auto& record =
+          Record::ZoneHandle(Z, Record::New(num_fields, field_names));
+      for (intptr_t i = 0; i < num_fields; ++i) {
+        record.SetFieldAt(i, Read<const Object&>());
+      }
+      record ^= record.Canonicalize(thread());
+      return record;
     }
     case kRecordTypeCid: {
-      // TODO(dartbug.com/49719)
-      UNIMPLEMENTED();
-      break;
+      const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
+      const Array& field_names = Read<const Array&>();
+      const Array& field_types = Read<const Array&>();
+      RecordType& rec = RecordType::ZoneHandle(
+          Z, RecordType::New(field_types, field_names, nullability));
+      rec.SetIsFinalized();
+      rec ^= MaybeCanonicalize(rec, object_index, Read<bool>());
+      return rec;
     }
     case kSentinelCid:
       return Read<bool>() ? Object::sentinel() : Object::transition_sentinel();
