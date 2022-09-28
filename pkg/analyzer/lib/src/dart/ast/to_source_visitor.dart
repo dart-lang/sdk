@@ -1257,7 +1257,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write('case ');
     _visitNode(node.pattern);
     _visitNode(node.whenClause, prefix: ' ');
-    sink.write(' : ');
+    sink.write(': ');
     _visitNodeList(node.statements, separator: ' ');
   }
 

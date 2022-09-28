@@ -75,7 +75,7 @@
   CONSTANT(Instructions, kPolymorphicEntryOffsetAOT)                           \
   CONSTANT(Instructions, kBarePayloadAlignment)                                \
   CONSTANT(Instructions, kNonBarePayloadAlignment)                             \
-  CONSTANT(OldPage, kBytesPerCardLog2)                                         \
+  CONSTANT(Page, kBytesPerCardLog2)                                            \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
@@ -141,7 +141,7 @@
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
   FIELD(GrowableObjectArray, type_arguments_offset)                            \
-  FIELD(OldPage, card_table_offset)                                            \
+  FIELD(Page, card_table_offset)                                               \
   FIELD(CallSiteData, arguments_descriptor_offset)                             \
   FIELD(ICData, NumArgsTestedMask)                                             \
   FIELD(ICData, NumArgsTestedShift)                                            \

@@ -1820,7 +1820,7 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
 
 DART_EXPORT void Dart_NotifyLowMemory() {
   API_TIMELINE_BEGIN_END(Thread::Current());
-  SemiSpace::ClearCache();
+  Page::ClearCache();
   Zone::ClearCache();
 
   // For each isolate's global variables, we might also clear:

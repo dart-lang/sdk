@@ -431,10 +431,9 @@ class Types {
   void emitTypeTest(CodeGenerator codeGen, DartType type, DartType operandType,
       TreeNode node) {
     w.Instructions b = codeGen.b;
-    if (type is FunctionType) {
-      // TODO(joshualitt): We can enable type tests for [FunctionType] after
-      // enabling `.runtimeType` for [FunctionType].
-      print("Not implemented: Type test with function type $type"
+    if (type is FunctionType && isGenericFunction(type)) {
+      // TODO(joshualitt): Finish generic function types.
+      print("Not implemented: Type test with generic function type $type"
           " at ${node.location}");
       b.drop();
       b.i32_const(1);

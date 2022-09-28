@@ -1656,8 +1656,9 @@ class B extends A {
     );
   }
 
-  void test_switchCase() {
+  void test_switchCase_language218() {
     var findNode = _parseStringToFindNode(r'''
+// @dart=2.18
 void f() {
   switch (x) {
     foo: bar:
@@ -1692,8 +1693,9 @@ void f() {
     );
   }
 
-  void test_switchStatement() {
+  void test_switchStatement_language218() {
     var findNode = _parseStringToFindNode(r'''
+// @dart=2.18
 void f() {
   switch (0) {
     case 0: break;

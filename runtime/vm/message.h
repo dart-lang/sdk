@@ -21,9 +21,6 @@ namespace dart {
 
 class JSONStream;
 class PersistentHandle;
-class OldPage;
-class WeakTable;
-class FreeList;
 
 class Message {
  public:

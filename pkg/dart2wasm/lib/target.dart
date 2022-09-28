@@ -263,7 +263,7 @@ class WasmTarget extends Target {
       bool isStatic = false,
       bool isConstructor = false,
       bool isTopLevel = false}) {
-    return ConstructorInvocation(
+    return StaticInvocation(
         coreTypes.noSuchMethodErrorDefaultConstructor,
         Arguments(
             [receiver, _instantiateInvocation(coreTypes, name, arguments)]));

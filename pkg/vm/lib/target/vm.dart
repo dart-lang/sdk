@@ -293,7 +293,7 @@ class VmTarget extends Target {
         isStatic: isStatic,
         isConstructor: isConstructor,
         isTopLevel: isTopLevel);
-    return new ConstructorInvocation(
+    return new StaticInvocation(
         coreTypes.noSuchMethodErrorDefaultConstructor,
         new Arguments(<Expression>[
           receiver,

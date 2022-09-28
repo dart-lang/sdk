@@ -326,7 +326,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   Api::Init();
   NativeSymbolResolver::Init();
   NOT_IN_PRODUCT(Profiler::Init());
-  SemiSpace::Init();
+  Page::Init();
   NOT_IN_PRODUCT(Metric::Init());
   StoreBuffer::Init();
   MarkingStack::Init();
@@ -773,7 +773,7 @@ char* Dart::Cleanup() {
   MarkingStack::Cleanup();
   StoreBuffer::Cleanup();
   Object::Cleanup();
-  SemiSpace::Cleanup();
+  Page::Cleanup();
   StubCode::Cleanup();
 #if defined(SUPPORT_TIMELINE)
   if (FLAG_trace_shutdown) {

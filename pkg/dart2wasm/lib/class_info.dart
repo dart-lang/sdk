@@ -25,6 +25,7 @@ class FieldIndex {
   static const hashBaseData = 4;
   static const closureContext = 2;
   static const closureVtable = 3;
+  static const closureRuntimeType = 4;
   static const typeIsNullable = 2;
   static const interfaceTypeTypeArguments = 4;
   static const functionTypeNamedParameters = 6;

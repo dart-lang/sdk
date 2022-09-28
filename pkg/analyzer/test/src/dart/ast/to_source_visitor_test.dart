@@ -3010,6 +3010,7 @@ class A {
   void test_visitSwitchCase_multipleLabels() {
     final code = 'l1: l2: case a: {}';
     final findNode = _parseStringToFindNode('''
+// @dart=2.18
 void f() {
   switch (x) {
     $code
@@ -3022,6 +3023,7 @@ void f() {
   void test_visitSwitchCase_multipleStatements() {
     final code = 'case a: foo(); bar();';
     final findNode = _parseStringToFindNode('''
+// @dart=2.18
 void f() {
   switch (x) {
     $code
@@ -3034,6 +3036,7 @@ void f() {
   void test_visitSwitchCase_noLabels() {
     final code = 'case a: {}';
     final findNode = _parseStringToFindNode('''
+// @dart=2.18
 void f() {
   switch (x) {
     $code
@@ -3046,6 +3049,7 @@ void f() {
   void test_visitSwitchCase_singleLabel() {
     final code = 'l1: case a: {}';
     final findNode = _parseStringToFindNode('''
+// @dart=2.18
 void f() {
   switch (x) {
     $code
@@ -3127,10 +3131,52 @@ void f() {
     fail('Unable to parse patterns');
   }
 
-  @failingTest
-  void test_visitSwitchPatternCase() {
-    // TODO(brianwilkerson) Test this when the parser allows.
-    fail('Unable to parse patterns');
+  void test_visitSwitchPatternCase_multipleLabels() {
+    final code = 'l1: l2: case a: {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchPatternCase(code));
+  }
+
+  void test_visitSwitchPatternCase_multipleStatements() {
+    final code = 'case a: foo(); bar();';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchPatternCase(code));
+  }
+
+  void test_visitSwitchPatternCase_noLabels() {
+    final code = 'case a: {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchPatternCase(code));
+  }
+
+  void test_visitSwitchPatternCase_singleLabel() {
+    final code = 'l1: case a: {}';
+    final findNode = _parseStringToFindNode('''
+void f() {
+  switch (x) {
+    $code
+  }
+}
+''');
+    _assertSource(code, findNode.switchPatternCase(code));
   }
 
   void test_visitSwitchStatement() {

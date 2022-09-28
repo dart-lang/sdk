@@ -65,13 +65,13 @@ class Heap {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
         if (!IsAllocatableInNewSpace(size)) {
-          return AllocateOld(thread, size, OldPage::kData);
+          return AllocateOld(thread, size, Page::kData);
         }
         return AllocateNew(thread, size);
       case kOld:
-        return AllocateOld(thread, size, OldPage::kData);
+        return AllocateOld(thread, size, Page::kData);
       case kCode:
-        return AllocateOld(thread, size, OldPage::kExecutable);
+        return AllocateOld(thread, size, Page::kExecutable);
       default:
         UNREACHABLE();
     }
@@ -149,9 +149,6 @@ class Heap {
                    bool is_vm_isolate,
                    intptr_t max_new_gen_words,
                    intptr_t max_old_gen_words);
-
-  // Returns a suitable name for a VM region in the heap.
-  static const char* RegionName(Space space);
 
   // Verify that all pointers in the heap point to the heap.
   bool Verify(MarkExpectation mark_expectation = kForbidMarked);
@@ -324,7 +321,7 @@ class Heap {
        intptr_t max_old_gen_words);
 
   uword AllocateNew(Thread* thread, intptr_t size);
-  uword AllocateOld(Thread* thread, intptr_t size, OldPage::PageType type);
+  uword AllocateOld(Thread* thread, intptr_t size, Page::PageType type);
 
   // Visit all pointers. Caller must ensure concurrent sweeper is not running,
   // and the visitor must not allocate.

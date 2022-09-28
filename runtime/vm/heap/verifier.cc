@@ -50,7 +50,7 @@ void VerifyPointersVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
     if (raw_obj->IsHeapObject()) {
       if (!allocated_set_->Contains(raw_obj)) {
         if (raw_obj->IsInstructions() &&
-            allocated_set_->Contains(OldPage::ToWritable(raw_obj))) {
+            allocated_set_->Contains(Page::ToWritable(raw_obj))) {
           continue;
         }
         uword raw_addr = UntaggedObject::ToAddr(raw_obj);
@@ -68,7 +68,7 @@ void VerifyPointersVisitor::VisitCompressedPointers(uword heap_base,
     if (raw_obj->IsHeapObject()) {
       if (!allocated_set_->Contains(raw_obj)) {
         if (raw_obj->IsInstructions() &&
-            allocated_set_->Contains(OldPage::ToWritable(raw_obj))) {
+            allocated_set_->Contains(Page::ToWritable(raw_obj))) {
           continue;
         }
         uword raw_addr = UntaggedObject::ToAddr(raw_obj);

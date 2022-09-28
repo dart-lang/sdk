@@ -685,7 +685,9 @@ void ImageWriter::WriteText(bool vm) {
   const bool bare_instruction_payloads = FLAG_precompiled_mode;
 
   // Start snapshot at page boundary.
-  if (!EnterSection(ProgramSection::Text, vm, ImageWriter::kTextAlignment)) {
+  intptr_t alignment_padding = 0;
+  if (!EnterSection(ProgramSection::Text, vm, ImageWriter::kTextAlignment,
+                    &alignment_padding)) {
     return;
   }
 
@@ -698,7 +700,7 @@ void ImageWriter::WriteText(bool vm) {
 #endif
 
   // This head also provides the gap to make the instructions snapshot
-  // look like a OldPage.
+  // look like a Page.
   const intptr_t image_size = Utils::RoundUp(
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
   text_offset += WriteTargetWord(image_size);
@@ -720,7 +722,8 @@ void ImageWriter::WriteText(bool vm) {
   if (profile_writer_ != nullptr) {
     profile_writer_->SetObjectTypeAndName(parent_id, image_type_,
                                           instructions_symbol);
-    profile_writer_->AttributeBytesTo(parent_id, Image::kHeaderSize);
+    profile_writer_->AttributeBytesTo(
+        parent_id, ImageWriter::kTextAlignment + alignment_padding);
     profile_writer_->AddRoot(parent_id);
   }
 
@@ -1319,7 +1322,8 @@ void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
 
 bool AssemblyImageWriter::EnterSection(ProgramSection section,
                                        bool vm,
-                                       intptr_t alignment) {
+                                       intptr_t alignment,
+                                       intptr_t* alignment_padding) {
   ASSERT(FLAG_precompiled_mode);
   ASSERT(current_section_symbol_ == nullptr);
   ASSERT(current_symbols_ == nullptr);
@@ -1363,7 +1367,10 @@ bool AssemblyImageWriter::EnterSection(ProgramSection section,
   if (global_symbol) {
     assembly_stream_->Printf(".globl %s\n", current_section_symbol_);
   }
-  Align(alignment);
+  intptr_t padding = Align(alignment);
+  if (alignment_padding != nullptr) {
+    *alignment_padding = padding;
+  }
   assembly_stream_->Printf("%s:\n", current_section_symbol_);
   return true;
 }
@@ -1652,7 +1659,8 @@ void BlobImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
 
 bool BlobImageWriter::EnterSection(ProgramSection section,
                                    bool vm,
-                                   intptr_t alignment) {
+                                   intptr_t alignment,
+                                   intptr_t* alignment_padding) {
 #if defined(DART_PRECOMPILER)
   ASSERT_EQUAL(elf_ != nullptr, FLAG_precompiled_mode);
   ASSERT(current_relocations_ == nullptr);
@@ -1691,7 +1699,10 @@ bool BlobImageWriter::EnterSection(ProgramSection section,
       return false;
   }
   current_section_symbol_ = SectionSymbol(section, vm);
-  current_section_stream_->Align(alignment);
+  intptr_t padding = current_section_stream_->Align(alignment);
+  if (alignment_padding != nullptr) {
+    *alignment_padding = padding;
+  }
   return true;
 }
 
@@ -1769,8 +1780,8 @@ ImageReader::ImageReader(const uint8_t* data_image,
       instructions_image_(ASSERT_NOTNULL(instructions_image)) {}
 
 ApiErrorPtr ImageReader::VerifyAlignment() const {
-  if (!Utils::IsAligned(data_image_, kObjectAlignment) ||
-      !Utils::IsAligned(instructions_image_, kMaxObjectAlignment)) {
+  if (!Utils::IsAligned(data_image_, kObjectStartAlignment) ||
+      !Utils::IsAligned(instructions_image_, kObjectStartAlignment)) {
     return ApiError::New(
         String::Handle(String::New("Snapshot is misaligned", Heap::kOld)),
         Heap::kOld);

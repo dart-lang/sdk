@@ -5450,7 +5450,7 @@ class Instructions : public Object {
 
   static const intptr_t kMaxElements =
       (kMaxInt32 - (sizeof(UntaggedInstructions) + sizeof(UntaggedObject) +
-                    (2 * kMaxObjectAlignment)));
+                    (2 * kObjectStartAlignment)));
 
   // Currently, we align bare instruction payloads on 4 byte boundaries.
   //

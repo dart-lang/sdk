@@ -97,16 +97,16 @@ class A extends core::Enum {
     ;
   get foo() → core::int
     ;
-  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+  no-such-method-forwarder get _name() → core::String
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 class B extends core::Object implements core::Enum {
   synthetic constructor •() → self::B
     ;
   get foo() → core::int
     ;
-  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+  no-such-method-forwarder get _name() → core::String
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 abstract class EnumInterface extends core::Object implements core::Enum {
   synthetic constructor •() → self::EnumInterface
@@ -117,8 +117,8 @@ class EnumClass extends self::EnumInterface {
     ;
   get index() → core::int
     ;
-  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+  no-such-method-forwarder get _name() → core::String
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 abstract class AbstractEnumClass extends self::EnumInterface {
   synthetic constructor •() → self::AbstractEnumClass
@@ -127,8 +127,8 @@ abstract class AbstractEnumClass extends self::EnumInterface {
 class EnumClass2 extends self::AbstractEnumClass {
   synthetic constructor •() → self::EnumClass2
     ;
-  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+  no-such-method-forwarder get _name() → core::String
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 abstract class EnumMixin extends core::Enum /*isMixinDeclaration*/  {
 }
@@ -144,32 +144,32 @@ abstract class AbstractEnumClass2 extends self::_AbstractEnumClass2&Object&EnumM
 class EnumClass3 extends self::AbstractEnumClass2 {
   synthetic constructor •() → self::EnumClass3
     ;
-  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+  no-such-method-forwarder get _name() → core::String
+    return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 static method main() → dynamic
   ;
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> SymbolConstant(#_name)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> SymbolConstant(#_name)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> SymbolConstant(#_name)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> SymbolConstant(#_name)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> MapConstant(const <Symbol*, dynamic>{})
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> SymbolConstant(#_name)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:5:7 -> SymbolConstant(#_name)
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:5:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:5:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:5:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:9:7 -> SymbolConstant(#_name)
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:9:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:9:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:9:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:15:7 -> SymbolConstant(#_name)
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:15:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:15:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:15:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:21:7 -> SymbolConstant(#_name)
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:21:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:21:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:21:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:27:7 -> SymbolConstant(#_name)
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:27:7 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:27:7 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///enum_as_supertype_error.dart:27:7 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 45, effectively constant: 20

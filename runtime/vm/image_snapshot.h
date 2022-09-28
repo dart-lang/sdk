@@ -44,7 +44,7 @@ class Image : ValueObject {
       : raw_memory_(raw_memory),
         snapshot_size_(FieldValue(raw_memory, HeaderField::ImageSize)),
         extra_info_(ExtraInfo(raw_memory_, snapshot_size_)) {
-    ASSERT(Utils::IsAligned(raw_memory, kMaxObjectAlignment));
+    ASSERT(Utils::IsAligned(raw_memory, kObjectStartAlignment));
   }
 
   // Even though an Image is read-only memory, we must return a void* here.
@@ -117,12 +117,12 @@ class Image : ValueObject {
   //
   // Note: Image::kHeaderSize is _not_ an architecture-dependent constant,
   // and so there is no compiler::target::Image::kHeaderSize.
-  static constexpr intptr_t kHeaderSize = kMaxObjectAlignment;
+  static constexpr intptr_t kHeaderSize = kObjectStartAlignment;
   // Explicitly double-checking kHeaderSize is never changed. Increasing the
   // Image header size would mean objects would not start at a place expected
-  // by parts of the VM (like the GC) that use Image pages as HeapPages.
-  static_assert(kHeaderSize == kMaxObjectAlignment,
-                "Image page cannot be used as HeapPage");
+  // by parts of the VM (like the GC) that use Image pages as Pages.
+  static_assert(kHeaderSize == kObjectStartAlignment,
+                "Image page cannot be used as Page");
   // Make sure that the number of fields in the Image header fit both on the
   // host and target architectures.
   static_assert(kHeaderFields * kWordSize <= kHeaderSize,
@@ -243,10 +243,10 @@ class ImageWriter : public ValueObject {
   // BSS sections contain word-sized data.
   static constexpr intptr_t kBssAlignment = compiler::target::kWordSize;
   // ROData sections contain objects wrapped in an Image object.
-  static constexpr intptr_t kRODataAlignment = kMaxObjectAlignment;
+  static constexpr intptr_t kRODataAlignment = kObjectStartAlignment;
   // Text sections contain objects (even in bare instructions mode) wrapped
   // in an Image object.
-  static constexpr intptr_t kTextAlignment = kMaxObjectAlignment;
+  static constexpr intptr_t kTextAlignment = kObjectStartAlignment;
 
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
@@ -425,7 +425,8 @@ class ImageWriter : public ValueObject {
   // this section should not be written.
   virtual bool EnterSection(ProgramSection name,
                             bool vm,
-                            intptr_t alignment) = 0;
+                            intptr_t alignment,
+                            intptr_t* alignment_padding = nullptr) = 0;
   // Marks the exit from a particular ProgramSection, allowing subclasses to
   // do any post-writing work.
   virtual void ExitSection(ProgramSection name, bool vm, intptr_t size) = 0;
@@ -604,7 +605,8 @@ class AssemblyImageWriter : public ImageWriter {
 
   virtual bool EnterSection(ProgramSection section,
                             bool vm,
-                            intptr_t alignment);
+                            intptr_t alignment,
+                            intptr_t* alignment_padding = nullptr);
   virtual void ExitSection(ProgramSection name, bool vm, intptr_t size);
   virtual intptr_t WriteTargetWord(word value);
   virtual intptr_t WriteBytes(const void* bytes, intptr_t size);
@@ -655,7 +657,8 @@ class BlobImageWriter : public ImageWriter {
 
   virtual bool EnterSection(ProgramSection section,
                             bool vm,
-                            intptr_t alignment);
+                            intptr_t alignment,
+                            intptr_t* alignment_padding = nullptr);
   virtual void ExitSection(ProgramSection name, bool vm, intptr_t size);
   virtual intptr_t WriteTargetWord(word value);
   virtual intptr_t WriteBytes(const void* bytes, intptr_t size);
