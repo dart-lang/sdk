@@ -82,8 +82,8 @@ Future<void> generateNative({
     final snapshotResult = await generateAotSnapshot(genSnapshot, kernelFile,
         snapshotFile, debugPath, enableAsserts, extraOptions);
 
-    if (verbose || kernelResult.exitCode != 0) {
-      await _forwardOutput(kernelResult);
+    if (verbose || snapshotResult.exitCode != 0) {
+      await _forwardOutput(snapshotResult);
     }
     if (snapshotResult.exitCode != 0) {
       throw 'Generating AOT snapshot failed!';
