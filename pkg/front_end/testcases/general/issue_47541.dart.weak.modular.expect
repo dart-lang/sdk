@@ -23,7 +23,10 @@ static method a() → void {
   on self::Foo catch(no-exception-var) {
     ;
   }
-  self::on();
+  on() catch(no-exception-var) {
+    ;
+  }
+  self::on(42);
 }
 static method b() → void {
   try {
@@ -64,4 +67,4 @@ static method d(core::int on) → void {
   }
   on.{core::int::toString}(){() → core::String};
 }
-static method on() → void {}
+static method on(dynamic e) → void {}

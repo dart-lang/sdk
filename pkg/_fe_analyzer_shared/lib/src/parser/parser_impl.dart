@@ -8022,13 +8022,7 @@ class Parser {
         // 'on' type catchPart?
         onKeyword = token;
         TypeInfo typeInfo = computeType(token, /* required = */ true);
-        // TODO(jensj): Record types wreak havoc here so waiting for input from
-        // language team. For now pretend like we don't know record types.
-        // https://github.com/dart-lang/language/issues/2406
-        if (catchCount > 0 &&
-            (typeInfo == noType ||
-                typeInfo.recovered ||
-                (typeInfo is ComplexTypeInfo && typeInfo.recordType))) {
+        if (catchCount > 0 && (typeInfo == noType || typeInfo.recovered)) {
           // Not a valid on-clause and we have enough catch counts to be a valid
           // try block already.
           // This could for instance be code like `on([...])` or `on = 42` after
