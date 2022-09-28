@@ -773,9 +773,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   SwitchStatementMemberInfo<AstNode, Statement, Expression>
       getSwitchStatementMemberInfo(covariant SwitchStatement node, int index) {
     var member = node.members[index];
-    Expression? pattern;
+    AstNode? pattern;
     if (member is SwitchCase) {
       pattern = member.expression;
+    } else if (member is SwitchPatternCase) {
+      pattern = member.pattern;
     }
     return SwitchStatementMemberInfo(
         [CaseHeadOrDefaultInfo(pattern: pattern)], member.statements,

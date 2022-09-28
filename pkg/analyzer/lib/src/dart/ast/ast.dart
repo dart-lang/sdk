@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
@@ -1123,7 +1124,7 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
 
   @override
@@ -1535,8 +1536,9 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeCastPatternSchema();
+  }
 
   @override
   void resolvePattern(
@@ -1544,7 +1546,9 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    type.accept(resolverVisitor);
+    resolverVisitor.analyzeCastPattern(
+        matchedType, typeInfos, context, pattern, type.typeOrThrow);
   }
 
   @override
@@ -2749,7 +2753,7 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   final Token? constKeyword;
 
   @override
-  final ExpressionImpl expression;
+  ExpressionImpl expression;
 
   ConstantPatternImpl({required this.constKeyword, required this.expression}) {
     _becomeParentOf(expression);
@@ -2769,8 +2773,9 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
-      throw UnimplementedError('TODO(paulberry)');
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeConstantPatternSchema();
+  }
 
   @override
   void resolvePattern(
@@ -2778,7 +2783,8 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    resolverVisitor.analyzeExpression(expression, matchedType);
+    expression = resolverVisitor.popRewrite()!;
   }
 
   @override
@@ -4725,7 +4731,7 @@ class ExtractorPatternImpl extends DartPatternImpl implements ExtractorPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
 
   @override
@@ -8093,7 +8099,7 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
 
   @override
@@ -8300,7 +8306,7 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
 
   @override
@@ -9539,7 +9545,7 @@ class ParenthesizedPatternImpl extends DartPatternImpl
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
 
   @override
@@ -9983,7 +9989,7 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
 
   @override
@@ -10461,7 +10467,7 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
 
   @override
@@ -10757,7 +10763,7 @@ class RelationalPatternImpl extends DartPatternImpl
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
 
   @override
@@ -13457,7 +13463,7 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
   }
 
   @override
