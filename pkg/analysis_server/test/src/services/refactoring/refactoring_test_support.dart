@@ -75,7 +75,7 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
 
   /// Unwraps the 'arguments' field from the arguments object (which is the
   /// single argument for the command).
-  List<String> getRefactorCommandArguments(CodeAction action) {
+  List<Object?> getRefactorCommandArguments(CodeAction action) {
     final commandArguments = action.command!.arguments as List<Object?>;
 
     // Our refactor command uses a single object in its arguments so we can have
@@ -83,11 +83,11 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     // corresponds to the parameters.
     final argsObject = commandArguments.single as Map<String, Object?>;
 
-    // Within that object, the 'arguments' field is the List<String> that
+    // Within that object, the 'arguments' field is the List<Object?> that
     // contains the values for the parameters.
     final arguments = argsObject['arguments'] as List<Object?>;
 
-    return arguments.cast<String>();
+    return arguments;
   }
 
   /// Initializes the server.
