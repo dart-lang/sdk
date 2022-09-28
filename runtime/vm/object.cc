@@ -22047,7 +22047,11 @@ AbstractTypePtr TypeRef::Canonicalize(Thread* thread, TrailPtr trail) const {
   AbstractType& ref_type = AbstractType::Handle(type());
   ASSERT(!ref_type.IsNull());
   ref_type = ref_type.Canonicalize(thread, trail);
-  set_type(ref_type);
+  {
+    SafepointMutexLocker ml(
+        thread->isolate_group()->type_canonicalization_mutex());
+    set_type(ref_type);
+  }
   return ptr();
 }
 
