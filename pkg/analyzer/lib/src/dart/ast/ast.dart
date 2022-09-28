@@ -1536,9 +1536,8 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeCastPatternSchema();
-  }
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
 
   @override
   void resolvePattern(
@@ -2773,9 +2772,8 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
 
   @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeConstantPatternSchema();
-  }
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) =>
+      throw UnimplementedError('TODO(paulberry)');
 
   @override
   void resolvePattern(
@@ -9545,7 +9543,7 @@ class ParenthesizedPatternImpl extends DartPatternImpl
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    resolverVisitor.dispatchPattern(matchedType, typeInfos, context, pattern);
   }
 
   @override
