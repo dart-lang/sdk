@@ -1613,16 +1613,13 @@ class TestParser extends Parser {
 
   @override
   Token parseParenthesizedExpressionOrRecordLiteral(
-      Token token, Token? constKeywordForRecord,
-      {bool forPattern = false}) {
+      Token token, Token? constKeywordForRecord) {
     doPrint('parseParenthesizedExpressionOrRecordLiteral('
         '$token, '
-        '$constKeywordForRecord, '
-        'forPattern: $forPattern)');
+        '$constKeywordForRecord)');
     indent++;
     var result = super.parseParenthesizedExpressionOrRecordLiteral(
-        token, constKeywordForRecord,
-        forPattern: forPattern);
+        token, constKeywordForRecord);
     indent--;
     return result;
   }
@@ -1872,19 +1869,19 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseArguments(Token token, {bool forPattern = false}) {
-    doPrint('parseArguments(' '$token, ' 'forPattern: $forPattern)');
+  Token parseArguments(Token token) {
+    doPrint('parseArguments(' '$token)');
     indent++;
-    var result = super.parseArguments(token, forPattern: forPattern);
+    var result = super.parseArguments(token);
     indent--;
     return result;
   }
 
   @override
-  Token parseArgumentsRest(Token token, {bool forPattern = false}) {
-    doPrint('parseArgumentsRest(' '$token, ' 'forPattern: $forPattern)');
+  Token parseArgumentsRest(Token token) {
+    doPrint('parseArgumentsRest(' '$token)');
     indent++;
-    var result = super.parseArgumentsRest(token, forPattern: forPattern);
+    var result = super.parseArgumentsRest(token);
     indent--;
     return result;
   }
@@ -2651,6 +2648,24 @@ class TestParser extends Parser {
     doPrint('parseMapPatternSuffix(' '$token)');
     indent++;
     var result = super.parseMapPatternSuffix(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseParenthesizedPatternOrRecordPattern(Token token) {
+    doPrint('parseParenthesizedPatternOrRecordPattern(' '$token)');
+    indent++;
+    var result = super.parseParenthesizedPatternOrRecordPattern(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseExtractorPatternRest(Token token) {
+    doPrint('parseExtractorPatternRest(' '$token)');
+    indent++;
+    var result = super.parseExtractorPatternRest(token);
     indent--;
     return result;
   }
