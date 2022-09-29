@@ -4031,8 +4031,8 @@ class BodyBuilder extends StackListenerImpl
     push(new InternalRecordLiteral(
         positional, named, namedElements, originalElementOrder,
         isConst:
-            constKeyword != null || constantContext == ConstantContext.inferred)
-      ..fileOffset = token.offset);
+            constKeyword != null || constantContext == ConstantContext.inferred,
+        offset: token.offset));
   }
 
   void buildLiteralSet(List<TypeBuilder>? typeArguments, Token? constKeyword,

@@ -11,8 +11,11 @@ void runTests() {
   checkExpected(
       makeSimpleComponentWithPatternVariableDeclaration(
           new PatternVariableDeclaration(
-              new ListBinder(const DynamicType(), [new WildcardBinder(null)]),
-              new IntLiteral(0))),
+              new ListBinder(const DynamicType(),
+                  [new WildcardBinder(null, offset: TreeNode.noOffset)],
+                  offset: TreeNode.noOffset),
+              new IntLiteral(0),
+              offset: TreeNode.noOffset)),
       makeExpectationOfSimpleComponentWithPatternVariableDeclaration(
           "PatternVariableDeclaration"));
 }
