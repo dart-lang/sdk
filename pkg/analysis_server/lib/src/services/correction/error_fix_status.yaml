@@ -24,10 +24,11 @@
 #   issue created for it.
 #
 # Stats:
-# - 726 "needsEvaluation"
-# -  58 "needsFix"
+# - 713 "needsEvaluation"
+#   - 206 for ParserErrorCodes.
+# -  68 "needsFix"
 # - 287 "hasFix"
-# -  48 "noFix"
+# -  57 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -1430,7 +1431,9 @@ HintCode.NULL_AWARE_IN_CONDITION:
 HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
   status: needsEvaluation
 HintCode.NULL_CHECK_ALWAYS_FAILS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the null check.
 HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
 HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
@@ -1442,9 +1445,14 @@ HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
 HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
   status: hasFix
 HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    We should be able to convert the import into a `package:` import. At least
+    some of the time.
 HintCode.RECEIVER_OF_TYPE_NEVER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    We _could_ remove the thing being received (method invocation, etc.)
 HintCode.RETURN_OF_DO_NOT_STORE:
   status: needsEvaluation
 HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
@@ -1477,9 +1485,16 @@ HintCode.SDK_VERSION_UI_AS_CODE:
 HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
   status: needsEvaluation
 HintCode.STRICT_RAW_TYPE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    One fix would be to add an explicit `<dynamic>`, but we can also provide
+    more helpful fixes that pretend inference works the way the user may
+    have thought it did. For example in: `List a = <int>[];`, we can add
+    `<int>` after `List`.
 HintCode.SUBTYPE_OF_SEALED_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the sealed class in the `extends` or `implements` clause.
 HintCode.TYPE_CHECK_IS_NOT_NULL:
   status: hasFix
 HintCode.TYPE_CHECK_IS_NULL:
@@ -1487,27 +1502,37 @@ HintCode.TYPE_CHECK_IS_NULL:
 HintCode.UNDEFINED_HIDDEN_NAME:
   status: hasFix
 HintCode.UNDEFINED_REFERENCED_PARAMETER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Can try to find the correct parameter name.
 HintCode.UNDEFINED_SHOWN_NAME:
   status: hasFix
 HintCode.UNIGNORABLE_IGNORE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_CAST:
   status: hasFix
 HintCode.UNNECESSARY_FINAL:
   status: hasFix
 HintCode.UNNECESSARY_IGNORE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
 HintCode.UNNECESSARY_NO_SUCH_METHOD:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the noSuchMethod implementation.
 HintCode.UNNECESSARY_NULL_COMPARISON_FALSE:
   status: hasFix
 HintCode.UNNECESSARY_NULL_COMPARISON_TRUE:
   status: hasFix
 HintCode.UNNECESSARY_QUESTION_MARK:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Remove the question mark.
 HintCode.UNNECESSARY_TYPE_CHECK_FALSE:
   status: needsFix
   issue: https://github.com/dart-lang/sdk/issues/47793
@@ -1537,9 +1562,13 @@ HintCode.UNUSED_LABEL:
 HintCode.UNUSED_LOCAL_VARIABLE:
   status: hasFix
 HintCode.UNUSED_RESULT:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    There is no predictable common way in which a result _should_ be used.
 HintCode.UNUSED_RESULT_WITH_MESSAGE:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    There is no predictable common way in which a result _should_ be used.
 HintCode.UNUSED_SHOWN_NAME:
   status: hasFix
 LanguageCode.IMPLICIT_DYNAMIC_FIELD:
@@ -2565,9 +2594,13 @@ StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
 StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
   status: hasFix
 StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    This is a pre-null safety code. No need to add a fix.
 StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    This is a pre-null safety code. No need to add a fix.
 StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
   status: hasFix
 StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
