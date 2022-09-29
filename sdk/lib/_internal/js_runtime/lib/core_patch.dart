@@ -63,8 +63,7 @@ class Object {
 
   @patch
   dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError(this, invocation.memberName,
-        invocation.positionalArguments, invocation.namedArguments);
+    throw new NoSuchMethodError.withInvocation(this, invocation);
   }
 
   @patch
@@ -703,11 +702,17 @@ class NoSuchMethodError {
   @patch
   factory NoSuchMethodError.withInvocation(
           Object? receiver, Invocation invocation) =>
-      NoSuchMethodError(receiver, invocation.memberName,
+      NoSuchMethodError._(receiver, invocation.memberName,
           invocation.positionalArguments, invocation.namedArguments);
 
   @patch
   NoSuchMethodError(Object? receiver, Symbol memberName,
+      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
+      [List? existingArgumentNames = null])
+      : this._(receiver, memberName, positionalArguments, namedArguments,
+            existingArgumentNames);
+
+  NoSuchMethodError._(Object? receiver, Symbol memberName,
       List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
       [List? existingArgumentNames = null])
       : _receiver = receiver,
@@ -848,7 +853,7 @@ _malformedTypeError(message) => new RuntimeError(message);
 // Called from kernel generated code.
 _genericNoSuchMethod(receiver, memberName, positionalArguments, namedArguments,
     existingArguments) {
-  return new NoSuchMethodError(
+  return new NoSuchMethodError._(
       receiver, memberName, positionalArguments, namedArguments);
 }
 
@@ -859,7 +864,7 @@ _unresolvedConstructorError(receiver, memberName, positionalArguments,
   //
   //     No constructor '$memberName' declared in class '$receiver'.
 
-  return new NoSuchMethodError(
+  return new NoSuchMethodError._(
       receiver, memberName, positionalArguments, namedArguments);
 }
 
@@ -867,7 +872,7 @@ _unresolvedConstructorError(receiver, memberName, positionalArguments,
 _unresolvedStaticGetterError(receiver, memberName, positionalArguments,
     namedArguments, existingArguments) {
   // TODO(sra): Generate customized message.
-  return new NoSuchMethodError(
+  return new NoSuchMethodError._(
       receiver, memberName, positionalArguments, namedArguments);
 }
 
@@ -875,7 +880,7 @@ _unresolvedStaticGetterError(receiver, memberName, positionalArguments,
 _unresolvedStaticSetterError(receiver, memberName, positionalArguments,
     namedArguments, existingArguments) {
   // TODO(sra): Generate customized message.
-  return new NoSuchMethodError(
+  return new NoSuchMethodError._(
       receiver, memberName, positionalArguments, namedArguments);
 }
 
@@ -883,7 +888,7 @@ _unresolvedStaticSetterError(receiver, memberName, positionalArguments,
 _unresolvedStaticMethodError(receiver, memberName, positionalArguments,
     namedArguments, existingArguments) {
   // TODO(sra): Generate customized message.
-  return new NoSuchMethodError(
+  return new NoSuchMethodError._(
       receiver, memberName, positionalArguments, namedArguments);
 }
 
@@ -891,7 +896,7 @@ _unresolvedStaticMethodError(receiver, memberName, positionalArguments,
 _unresolvedTopLevelGetterError(receiver, memberName, positionalArguments,
     namedArguments, existingArguments) {
   // TODO(sra): Generate customized message.
-  return new NoSuchMethodError(
+  return new NoSuchMethodError._(
       receiver, memberName, positionalArguments, namedArguments);
 }
 
@@ -899,7 +904,7 @@ _unresolvedTopLevelGetterError(receiver, memberName, positionalArguments,
 _unresolvedTopLevelSetterError(receiver, memberName, positionalArguments,
     namedArguments, existingArguments) {
   // TODO(sra): Generate customized message.
-  return new NoSuchMethodError(
+  return new NoSuchMethodError._(
       receiver, memberName, positionalArguments, namedArguments);
 }
 
@@ -907,7 +912,7 @@ _unresolvedTopLevelSetterError(receiver, memberName, positionalArguments,
 _unresolvedTopLevelMethodError(receiver, memberName, positionalArguments,
     namedArguments, existingArguments) {
   // TODO(sra): Generate customized message.
-  return new NoSuchMethodError(
+  return new NoSuchMethodError._(
       receiver, memberName, positionalArguments, namedArguments);
 }
 

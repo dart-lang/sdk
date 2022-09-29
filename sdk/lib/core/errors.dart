@@ -489,7 +489,6 @@ class NoSuchMethodError extends Error {
   external factory NoSuchMethodError.withInvocation(
       Object? receiver, Invocation invocation);
 
-  // Deprecated constructor to be removed after dart2js updates to the above.
   /// Create a [NoSuchMethodError] corresponding to a failed method call.
   ///
   /// The [receiver] is the receiver of the method call.

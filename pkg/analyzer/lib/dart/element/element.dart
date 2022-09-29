@@ -2388,6 +2388,15 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   DartObject? computeConstantValue();
 }
 
+/// A pattern variable.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class VariablePatternElement implements LocalVariableElement {
+  /// Aliases of this variable in logical-or patterns.
+  List<VariablePatternElement> get aliases;
+}
+
 /// This class exists to provide non-nullable overrides for existing elements,
 /// as opposite to artificial "multiply defined" element.
 abstract class _ExistingElement implements Element {

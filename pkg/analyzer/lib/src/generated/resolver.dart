@@ -1140,7 +1140,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void setVariableType(PromotableElement variable, DartType type) {
-    throw UnimplementedError('TODO(paulberry)');
+    if (variable is LocalVariableElementImpl) {
+      variable.type = type;
+    } else {
+      throw UnimplementedError('TODO(paulberry)');
+    }
   }
 
   void setWriteElement(Expression node, Element? element) {
@@ -1241,7 +1245,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   DartType variableTypeFromInitializerType(DartType type) {
-    throw UnimplementedError('TODO(paulberry)');
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50078
+    return type;
   }
 
   @override

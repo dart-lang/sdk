@@ -1228,9 +1228,6 @@ bool Scavenger::IsUnreachable(ObjectPtr* p) {
     return false;
   }
   uword raw_addr = UntaggedObject::ToAddr(raw_obj);
-  if (to_->Contains(raw_addr)) {
-    return false;
-  }
   uword header = *reinterpret_cast<uword*>(raw_addr);
   if (IsForwarding(header)) {
     *p = ForwardedObj(header);

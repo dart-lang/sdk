@@ -13422,7 +13422,7 @@ class VariableDeclarationStatementImpl extends StatementImpl
 @experimental
 class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
   @override
-  VariableElement? declaredElement;
+  VariablePatternElementImpl? declaredElement;
 
   @override
   final Token? keyword;
@@ -13463,7 +13463,9 @@ class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    resolverVisitor.analyzeVariablePattern(matchedType, typeInfos, context,
+        this, declaredElement, type?.typeOrThrow,
+        isFinal: keyword?.keyword == Keyword.FINAL);
   }
 
   @override

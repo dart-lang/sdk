@@ -6479,6 +6479,14 @@ abstract class VariableElementImpl extends ElementImpl
   DartObject? computeConstantValue() => null;
 }
 
+class VariablePatternElementImpl extends LocalVariableElementImpl
+    implements VariablePatternElement {
+  @override
+  final List<VariablePatternElementImpl> aliases = [];
+
+  VariablePatternElementImpl(super.name, super.offset);
+}
+
 abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {
   _ExistingElementImpl(super.name, super.offset, {super.reference});
 }
