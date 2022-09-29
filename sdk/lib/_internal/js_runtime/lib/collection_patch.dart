@@ -4,12 +4,12 @@
 
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
+import 'dart:_internal' show patch;
 import 'dart:_js_helper'
     show
         fillLiteralMap,
         fillLiteralSet,
         InternalMap,
-        patch,
         JsLinkedHashMap,
         LinkedHashMapCell,
         LinkedHashMapKeyIterable,

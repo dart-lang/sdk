@@ -4,10 +4,10 @@
 
 // Patch file for dart:convert library.
 
-import 'dart:_js_helper' show argumentErrorValue, patch;
+import 'dart:_js_helper' show argumentErrorValue;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
-import 'dart:_internal' show MappedIterable, ListIterable;
+import 'dart:_internal' show MappedIterable, ListIterable, patch;
 import 'dart:collection' show LinkedHashMap, MapBase;
 import 'dart:_native_typed_data' show NativeUint8List;
 

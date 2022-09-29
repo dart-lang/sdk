@@ -4,7 +4,8 @@
 
 // Patch file for the dart:async library.
 
-import 'dart:_js_helper' show notNull, patch, ReifyFunctionTypes;
+import 'dart:_js_helper' show notNull, ReifyFunctionTypes;
+import 'dart:_internal' show patch;
 import 'dart:_isolate_helper' show TimerImpl;
 import 'dart:_foreign_helper' show JS, JSExportName;
 import 'dart:_runtime' as dart;

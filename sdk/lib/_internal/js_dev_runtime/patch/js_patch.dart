@@ -7,9 +7,10 @@ library dart.js;
 
 import 'dart:collection' show HashMap, ListMixin;
 
-import 'dart:_js_helper' show patch, NoReifyGeneric, Primitives;
+import 'dart:_js_helper' show NoReifyGeneric, Primitives;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show LegacyJavaScriptObject;
+import 'dart:_internal' show patch;
 import 'dart:_runtime' as dart;
 
 @patch

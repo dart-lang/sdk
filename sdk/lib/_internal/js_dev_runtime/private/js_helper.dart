@@ -15,7 +15,8 @@ import 'dart:_internal'
         EfficientLengthIterable,
         MappedIterable,
         IterableElementError,
-        SubListIterable;
+        SubListIterable,
+        patch;
 
 import 'dart:_native_typed_data';
 import 'dart:_runtime' as dart;
@@ -28,12 +29,6 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
-
-class _Patch {
-  const _Patch();
-}
-
-const _Patch patch = _Patch();
 
 /// Adapts a JS `[Symbol.iterator]` to a Dart `get iterator`.
 ///
