@@ -25,6 +25,8 @@ import 'avoid_types_as_parameter_names_test.dart'
 import 'avoid_unused_constructor_parameters_test.dart'
     as avoid_unused_constructor_parameters;
 import 'avoid_void_async_test.dart' as avoid_void_async;
+import 'collection_methods_unrelated_type_test.dart'
+    as collection_methods_unrelated_type;
 import 'conditional_uri_does_not_exist_test.dart'
     as conditional_uri_does_not_exist;
 import 'constant_identifier_names_test.dart' as constant_identifier_names;
@@ -102,6 +104,7 @@ void main() {
   avoid_types_as_parameter_names.main();
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
+  collection_methods_unrelated_type.main();
   conditional_uri_does_not_exist.main();
   constant_identifier_names.main();
   deprecated_consistency.main();

@@ -58,6 +58,7 @@ import 'rules/cancel_subscriptions.dart';
 import 'rules/cascade_invocations.dart';
 import 'rules/cast_nullable_to_non_nullable.dart';
 import 'rules/close_sinks.dart';
+import 'rules/collection_methods_unrelated_type.dart';
 import 'rules/combinators_ordering.dart';
 import 'rules/comment_references.dart';
 import 'rules/conditional_uri_does_not_exist.dart';
@@ -274,6 +275,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(CascadeInvocations())
     ..register(CastNullableToNonNullable())
     ..register(CloseSinks())
+    ..register(CollectionMethodsUnrelatedType())
     ..register(CombinatorsOrdering())
     ..register(CommentReferences())
     ..register(ConditionalUriDoesNotExist())
