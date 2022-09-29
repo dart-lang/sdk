@@ -21,12 +21,19 @@ void f(bool Function() b) {
 }
 ''');
 
-    assertFunctionExpressionInvocation(
-      findNode.functionExpressionInvocation('b()'),
-      element: null,
-      typeArgumentTypes: [],
-      invokeType: 'bool Function()',
-      type: 'bool',
-    );
+    final node = findNode.functionExpressionInvocation('b()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: b
+    staticElement: self::@function::f::@parameter::b
+    staticType: bool Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: bool Function()
+  staticType: bool
+''');
   }
 }
