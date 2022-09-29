@@ -676,6 +676,10 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     return name == 'Object' && library.isDartCore;
   }
 
+  bool get isDartCoreRecord {
+    return name == 'Record' && library.isDartCore;
+  }
+
   bool get isEnumLike {
     // Must be a concrete class.
     // TODO(scheglov) `is MixinElement` after the separation.
