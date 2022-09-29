@@ -217,7 +217,8 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
         new ParserTestListenerWithMessageFormatting(
             addTrace, annotateLines, source, shortNameId);
     Parser parser = new Parser(parserTestListener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: shouldAllowPatterns(shortName));
     parser.parseUnit(firstToken);
     return parserTestListener;
   }
@@ -280,7 +281,8 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
     ParserTestListenerForIntertwined parserTestListener =
         new ParserTestListenerForIntertwined(
             context.addTrace, context.annotateLines, source);
-    TestParser parser = new TestParser(parserTestListener, context.addTrace);
+    TestParser parser = new TestParser(parserTestListener, context.addTrace,
+        allowPatterns: shouldAllowPatterns(description.shortName));
     parserTestListener.parser = parser;
     parser.sb = parserTestListener.sb;
     parser.parseUnit(firstToken);
@@ -325,7 +327,8 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     ParserTestListener parserTestListener =
         new ParserTestListener(context.addTrace);
     Parser parser = new Parser(parserTestListener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: shouldAllowPatterns(description.shortName));
     bool parserCrashed = false;
     dynamic parserCrashedE;
     StackTrace? parserCrashedSt;
@@ -455,6 +458,11 @@ Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
   List<int> rawBytes = f.readAsBytesSync();
 
   return scanRawBytes(rawBytes, config, lineStarts);
+}
+
+bool shouldAllowPatterns(String shortName) {
+  String firstDir = shortName.split("/")[0];
+  return firstDir == "patterns";
 }
 
 Token scanRawBytes(
