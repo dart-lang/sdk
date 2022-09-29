@@ -64,6 +64,7 @@
           "_internal/vm/lib/map_patch.dart",
           "_internal/vm/lib/null_patch.dart",
           "_internal/vm/lib/object_patch.dart",
+          "_internal/vm/lib/record_patch.dart",
           "_internal/vm/lib/regexp_patch.dart",
           "_internal/vm/lib/stacktrace.dart",
           "_internal/vm/lib/stopwatch_patch.dart",
