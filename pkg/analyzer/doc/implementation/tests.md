@@ -37,6 +37,11 @@ void main() {
     // ...
   });
 }
+
+@reflectiveTest
+class CompilationUnitImplTest {
+  // ...
+}
 ```
 
 When the tests are run the test loader will reflect on the specified class
@@ -84,12 +89,12 @@ void main() {
   group('ToSourceVisitor', () {
     group('visitListLiteral', () {
       group('with type arguments', () {
-        test('with const', () { ... });
-        test('without const', () { ... });
+        test('with const', () { /* ... */ });
+        test('without const', () { /* ... */ });
       });
       group('without type arguments', () {
-        test('with const', () { ... });
-        test('without const', () { ... });
+        test('with const', () { /* ... */ });
+        test('without const', () { /* ... */ });
       });
     });
   });
@@ -103,13 +108,13 @@ separated with an underscore. So the equivalent to the code above would be:
 
 ```dart
 class ToSourceVisitorTest {
-  void test_visitListLiteral_withTypeArguments_withConst() { ... }
+  void test_visitListLiteral_withTypeArguments_withConst() { /* ... */ }
 
-  void test_visitListLiteral_withTypeArguments_withoutConst() { ... }
+  void test_visitListLiteral_withTypeArguments_withoutConst() { /* ... */ }
 
-  void test_visitListLiteral_withoutTypeArguments_withConst() { ... }
+  void test_visitListLiteral_withoutTypeArguments_withConst() { /* ... */ }
 
-  void test_visitListLiteral_withoutTypeArguments_withoutConst() { ... }
+  void test_visitListLiteral_withoutTypeArguments_withoutConst() { /* ... */ }
 }
 ```
 
@@ -126,7 +131,7 @@ single line, with the text fully left justified, and with the closing quotes on
 a separate line. For example:
 
 ```dart
-  test_final_noInitializer() async {
+  Future<void> test_final_noInitializer() async {
     await assertNoErrorsInCode('''
 abstract class C {
   abstract final int x;

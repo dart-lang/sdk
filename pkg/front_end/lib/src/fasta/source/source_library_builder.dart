@@ -268,6 +268,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   SourceLibraryBuilder.internal(
       SourceLoader loader,
+      Uri importUri,
       Uri fileUri,
       Uri? packageUri,
       LanguageVersion packageLanguageVersion,
@@ -282,6 +283,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Map<String, Builder>? omittedTypes})
       : this.fromScopes(
             loader,
+            importUri,
             fileUri,
             packageUri,
             packageLanguageVersion,
@@ -297,6 +299,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   SourceLibraryBuilder.fromScopes(
       this.loader,
+      this.importUri,
       this.fileUri,
       this._packageUri,
       this.packageLanguageVersion,
@@ -427,6 +430,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Map<String, Builder>? omittedTypes})
       : this.internal(
             loader,
+            importUri,
             fileUri,
             packageUri,
             packageLanguageVersion,
@@ -1174,11 +1178,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     this.fileUri, -1, noLength)
               ]);
         } else {
-          if (isPatch) {
-            usedParts.add(part.fileUri);
-          } else {
-            usedParts.add(part.importUri);
-          }
+          usedParts.add(part.importUri);
           includePart(part, usedParts, partOffset);
         }
       } else {
@@ -1618,7 +1618,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  Uri get importUri => library.importUri;
+  final Uri importUri;
 
   @override
   void addSyntheticDeclarationOfDynamic() {

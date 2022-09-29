@@ -2676,6 +2676,23 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
   }
 }
 
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? BELOW_EQUAL : ABOVE;
+  Register to_check = value;
+  if (temp != kNoRegister) {
+    movq(temp, value);
+    to_check = temp;
+  }
+  subq(to_check, Immediate(low));
+  cmpq(to_check, Immediate(high - low));
+  j(cc, target);
+}
+
 }  // namespace compiler
 }  // namespace dart
 

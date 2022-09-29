@@ -1230,31 +1230,29 @@ void g() {
   Future<void> test_navigation_dart_example_api() async {
     final exampleLinkPath = 'examples/api/lib/test_file.dart';
     final exampleApiFile =
-        join(convertPath(workspaceRootPath), convertPath(exampleLinkPath));
+        convertPath(join(workspaceRootPath, exampleLinkPath));
     newFile(exampleApiFile, '/// Test');
     addTestFile('''
 /// Dartdoc comment
 /// {@tool dartpad}
 /// Example description.
 ///
-/// ** See code in examples/api/lib/test_file.dart **
+/// ** See code in $exampleLinkPath **
 /// {@end-tool}
 const int foo = 0;
 ''');
     await prepareNavigation();
     assertHasRegion(exampleLinkPath, 31);
-    assertHasFileTarget(
-        exampleApiFile.substring(
-            resourceProvider.pathContext.rootPrefix(exampleApiFile).length),
-        0,
-        0);
+    assertHasFileTarget(exampleApiFile, 0, 0);
   }
 
   Future<void> test_navigation_dart_example_api_multiple() async {
     final exampleLinkPath0 = 'examples/api/lib/test_file.0.dart';
     final exampleLinkPath1 = 'examples/api/lib/test_file.1.dart';
-    final exampleApiFile0 = join(workspaceRootPath, exampleLinkPath0);
-    final exampleApiFile1 = join(workspaceRootPath, exampleLinkPath1);
+    final exampleApiFile0 =
+        convertPath(join(workspaceRootPath, exampleLinkPath0));
+    final exampleApiFile1 =
+        convertPath(join(workspaceRootPath, exampleLinkPath1));
     newFile(exampleApiFile0, '/// Test 0');
     newFile(exampleApiFile1, '/// Test 1');
     addTestFile('''
@@ -1262,31 +1260,21 @@ const int foo = 0;
 /// {@tool dartpad}
 /// Example description.
 ///
-/// ** See code in examples/api/lib/test_file.0.dart **
+/// ** See code in $exampleLinkPath0 **
 /// {@end-tool}
 ///
 /// {@tool dartpad}
 /// Example description.
 ///
-/// ** See code in examples/api/lib/test_file.1.dart **
+/// ** See code in $exampleLinkPath1 **
 /// {@end-tool}
 const int foo = 0;
 ''');
     await prepareNavigation();
     assertHasRegion(exampleLinkPath0, 33);
-    // Files created with newFile have to be absolute paths, but we're looking
-    // for root-relative paths.
-    assertHasFileTarget(
-        convertPath(exampleApiFile0.substring(
-            resourceProvider.pathContext.rootPrefix(exampleApiFile0).length)),
-        0,
-        0);
+    assertHasFileTarget(exampleApiFile0, 0, 0);
     assertHasRegion(exampleLinkPath1, 33);
-    assertHasFileTarget(
-        convertPath(exampleApiFile1.substring(
-            resourceProvider.pathContext.rootPrefix(exampleApiFile1).length)),
-        0,
-        0);
+    assertHasFileTarget(exampleApiFile1, 0, 0);
   }
 
   Future<void> test_operator_arithmetic() async {

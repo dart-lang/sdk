@@ -140,26 +140,35 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: CastPattern
     pattern: VariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
+          staticElement: dart:core::@class::int
+          staticType: null
         question: ?
+        type: int?
       name: _
     asToken: as
     type: NamedType
       name: SimpleIdentifier
         token: double
+        staticElement: dart:core::@class::double
+        staticType: null
       question: ?
+      type: double?
   operator: &
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
+        staticElement: dart:core::@class::Object
+        staticType: null
       question: ?
+      type: Object?
     name: _
 ''');
   }
@@ -174,13 +183,16 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
+        staticElement: dart:core::@class::int
+        staticType: null
       question: ?
+      type: int?
     name: _
   operator: &
   rightOperand: CastPattern
@@ -188,13 +200,19 @@ BinaryPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
+          staticElement: dart:core::@class::double
+          staticType: null
         question: ?
+        type: double?
       name: _
     asToken: as
     type: NamedType
       name: SimpleIdentifier
         token: Object
+        staticElement: dart:core::@class::Object
+        staticType: null
       question: ?
+      type: Object?
 ''');
   }
 
@@ -208,26 +226,35 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: CastPattern
     pattern: VariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
+          staticElement: dart:core::@class::int
+          staticType: null
         question: ?
+        type: int?
       name: _
     asToken: as
     type: NamedType
       name: SimpleIdentifier
         token: double
+        staticElement: dart:core::@class::double
+        staticType: null
       question: ?
+      type: double?
   operator: |
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
+        staticElement: dart:core::@class::Object
+        staticType: null
       question: ?
+      type: Object?
     name: _
 ''');
   }
@@ -242,13 +269,16 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
+        staticElement: dart:core::@class::int
+        staticType: null
       question: ?
+      type: int?
     name: _
   operator: |
   rightOperand: CastPattern
@@ -256,13 +286,19 @@ BinaryPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
+          staticElement: dart:core::@class::double
+          staticType: null
         question: ?
+        type: double?
       name: _
     asToken: as
     type: NamedType
       name: SimpleIdentifier
         token: Object
+        staticElement: dart:core::@class::Object
+        staticType: null
       question: ?
+      type: Object?
 ''');
   }
 

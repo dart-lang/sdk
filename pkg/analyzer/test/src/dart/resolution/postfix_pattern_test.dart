@@ -131,17 +131,19 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
+        staticType: int
     operator: !
   operator: &
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
+      staticType: int
 ''');
   }
 
@@ -155,16 +157,18 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
+      staticType: int
   operator: &
   rightOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
+        staticType: int
     operator: !
 ''');
   }
@@ -179,17 +183,19 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
+        staticType: int
     operator: !
   operator: |
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
+      staticType: int
 ''');
   }
 
@@ -203,16 +209,18 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
+      staticType: int
   operator: |
   rightOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
+        staticType: int
     operator: !
 ''');
   }
@@ -496,17 +504,19 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
+        staticType: int
     operator: ?
   operator: &
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
+      staticType: int
 ''');
   }
 
@@ -520,16 +530,18 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
+      staticType: int
   operator: &
   rightOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
+        staticType: int
     operator: ?
 ''');
   }
@@ -544,17 +556,19 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
+        staticType: int
     operator: ?
   operator: |
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
+      staticType: int
 ''');
   }
 
@@ -568,16 +582,18 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
+      staticType: int
   operator: |
   rightOperand: PostfixPattern
     operand: ConstantPattern
       expression: IntegerLiteral
         literal: 2
+        staticType: int
     operator: ?
 ''');
   }

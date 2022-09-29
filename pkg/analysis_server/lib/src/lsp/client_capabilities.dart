@@ -71,6 +71,7 @@ class LspClientCapabilities {
   final bool typeDefinitionLocationLink;
   final bool hierarchicalSymbols;
   final bool diagnosticCodeDescription;
+  final bool lineFoldingOnly;
   final Set<CodeActionKind> codeActionKinds;
   final Set<CompletionItemTag> completionItemTags;
   final Set<DiagnosticTag> diagnosticTags;
@@ -142,6 +143,8 @@ class LspClientCapabilities {
     final hoverContentFormats = _listToNullableSet(hover?.contentFormat);
     final insertReplaceCompletionRanges =
         completionItem?.insertReplaceSupport ?? false;
+    final lineFoldingOnly =
+        textDocument?.foldingRange?.lineFoldingOnly ?? false;
     final literalCodeActions = codeActionLiteral != null;
     final renameValidation = textDocument?.rename?.prepareSupport ?? false;
     final signatureHelpDocumentationFormats =
@@ -170,6 +173,7 @@ class LspClientCapabilities {
       definitionLocationLink: definitionLocationLink,
       typeDefinitionLocationLink: typeDefinitionLocationLink,
       hierarchicalSymbols: hierarchicalSymbols,
+      lineFoldingOnly: lineFoldingOnly,
       diagnosticCodeDescription: diagnosticCodeDescription,
       codeActionKinds: codeActionKinds,
       completionItemTags: completionItemTags,
@@ -204,6 +208,7 @@ class LspClientCapabilities {
     required this.definitionLocationLink,
     required this.typeDefinitionLocationLink,
     required this.hierarchicalSymbols,
+    required this.lineFoldingOnly,
     required this.diagnosticCodeDescription,
     required this.codeActionKinds,
     required this.completionItemTags,

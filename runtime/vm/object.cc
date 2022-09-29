@@ -27111,7 +27111,7 @@ void RecordType::SetFieldTypeAt(intptr_t index,
 }
 
 void RecordType::set_field_types(const Array& value) const {
-  ASSERT(!value.IsNull() && (value.Length() > 0));
+  ASSERT(!value.IsNull());
   untag()->set_field_types(value.ptr());
 }
 

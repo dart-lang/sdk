@@ -919,7 +919,11 @@ severity: $severity
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
-      Uri importUri = libraryBuilder.importUri;
+
+      /// We use the [importUri] of the created [Library] and not the
+      /// [importUri] of the [LibraryBuilder] since it might be a patch library
+      /// which is not directly part of the output.
+      Uri importUri = libraryBuilder.library.importUri;
       if (libraryBuilder.isPatch) {
         // For patch files we create a "fake" import uri.
         // We cannot use the import uri from the patched library because

@@ -1028,55 +1028,47 @@ void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
   __ ret();
 }
 
-static void RangeCheck(Assembler* assembler,
-                       Register reg,
-                       intptr_t low,
-                       intptr_t high,
-                       Condition cc,
-                       Label* target) {
-  __ subq(reg, Immediate(low));
-  __ cmpq(reg, Immediate(high - low));
-  __ j(cc, target);
-}
-
-const Condition kIfNotInRange = ABOVE;
-const Condition kIfInRange = BELOW_EQUAL;
-
 static void JumpIfInteger(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kSmiCid, kMintCid, kIfInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kSmiCid, kMintCid,
+                        Assembler::kIfInRange, target);
 }
 
 static void JumpIfNotInteger(Assembler* assembler,
                              Register cid,
                              Label* target) {
-  RangeCheck(assembler, cid, kSmiCid, kMintCid, kIfNotInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kSmiCid, kMintCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 static void JumpIfString(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kOneByteStringCid, kExternalTwoByteStringCid,
-             kIfInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kOneByteStringCid,
+                        kExternalTwoByteStringCid, Assembler::kIfInRange,
+                        target);
 }
 
 static void JumpIfNotString(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kOneByteStringCid, kExternalTwoByteStringCid,
-             kIfNotInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kOneByteStringCid,
+                        kExternalTwoByteStringCid, Assembler::kIfNotInRange,
+                        target);
 }
 
 static void JumpIfNotList(Assembler* assembler, Register cid, Label* target) {
-  RangeCheck(assembler, cid, kArrayCid, kGrowableObjectArrayCid, kIfNotInRange,
-             target);
+  assembler->RangeCheck(cid, kNoRegister, kArrayCid, kGrowableObjectArrayCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 static void JumpIfType(Assembler* assembler, Register cid, Label* target) {
   COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
                  (kRecordTypeCid == kTypeCid + 2));
-  RangeCheck(assembler, cid, kTypeCid, kRecordTypeCid, kIfInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kTypeCid, kRecordTypeCid,
+                        Assembler::kIfInRange, target);
 }
 
 static void JumpIfNotType(Assembler* assembler, Register cid, Label* target) {
   COMPILE_ASSERT((kFunctionTypeCid == kTypeCid + 1) &&
                  (kRecordTypeCid == kTypeCid + 2));
-  RangeCheck(assembler, cid, kTypeCid, kRecordTypeCid, kIfNotInRange, target);
+  assembler->RangeCheck(cid, kNoRegister, kTypeCid, kRecordTypeCid,
+                        Assembler::kIfNotInRange, target);
 }
 
 // Return type quickly for simple types (not parameterized and not signature).

@@ -537,6 +537,16 @@ class AssemblerTest {
   }
 #endif  // ARCH_IS_64_BIT
 
+  template <typename ResultType, typename Arg1Type>
+  ResultType Invoke(Arg1Type arg1) {
+    COMPILE_ASSERT(!is_double<Arg1Type>::value);
+    const bool fp_args = false;
+    const bool fp_return = false;
+    return Simulator::Current()->Call(bit_cast<intptr_t, uword>(entry()),
+                                      static_cast<intptr_t>(arg1), 0, 0, 0,
+                                      fp_return, fp_args);
+  }
+
   template <typename ResultType,
             typename Arg1Type,
             typename Arg2Type,
@@ -569,6 +579,12 @@ class AssemblerTest {
     ASSERT(thread != NULL);
     typedef ResultType (*FunctionType)(const Code&, Thread*, Arg1Type);
     return reinterpret_cast<FunctionType>(entry())(code_, thread, arg1);
+  }
+
+  template <typename ResultType, typename Arg1Type>
+  ResultType Invoke(Arg1Type arg1) {
+    typedef ResultType (*FunctionType)(Arg1Type);
+    return reinterpret_cast<FunctionType>(entry())(arg1);
   }
 
   template <typename ResultType,

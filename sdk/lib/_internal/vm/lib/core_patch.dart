@@ -84,6 +84,7 @@ import "dart:typed_data"
 // part "map_patch.dart";
 // part "null_patch.dart";
 // part "object_patch.dart";
+// part "record_patch.dart";
 // part "regexp_patch.dart";
 // part "stacktrace.dart";
 // part "stopwatch_patch.dart";

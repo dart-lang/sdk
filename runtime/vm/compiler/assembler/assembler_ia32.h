@@ -947,6 +947,13 @@ class Assembler : public AssemblerBase {
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);
 
+  void RangeCheck(Register value,
+                  Register temp,
+                  intptr_t low,
+                  intptr_t high,
+                  RangeCheckCondition condition,
+                  Label* target) override;
+
   /*
    * Loading and comparing classes of objects.
    */

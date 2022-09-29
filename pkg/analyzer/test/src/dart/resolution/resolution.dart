@@ -278,37 +278,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResolvedUnit(result, expectedErrors);
   }
 
-  void assertExtensionOverride(
-    ExtensionOverride node, {
-    required Object element,
-    required String extendedType,
-    required List<String> typeArgumentTypes,
-  }) {
-    assertElement(node, element);
-    assertType(node.extendedType, extendedType);
-    assertElementTypes(node.typeArgumentTypes, typeArgumentTypes);
-  }
-
-  void assertFieldFormalParameter(
-    FieldFormalParameter node, {
-    required FieldFormalParameterElement element,
-  }) {
-    assertElement(node.declaredElement, element);
-  }
-
-  void assertFunctionExpressionInvocation(
-    FunctionExpressionInvocation node, {
-    required ExecutableElement? element,
-    required List<String> typeArgumentTypes,
-    required String invokeType,
-    required String type,
-  }) {
-    assertElement(node, element);
-    assertTypeArgumentTypes(node, typeArgumentTypes);
-    assertInvokeType(node, invokeType);
-    assertType(node, type);
-  }
-
   void assertHasTestErrors() {
     expect(result.errors, isNotEmpty);
   }

@@ -248,7 +248,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
             // re-join it using the resource provider to get the right separator
             // for the platform.
             var examplePath = resourceProvider.pathContext
-                .joinAll('${_examplesApiPath!}/$pathSnippet'.split('/'));
+                .joinAll([_examplesApiPath!, ...pathSnippet.split('/')]);
             var start = token.offset + startIndex;
             var end = token.offset + endIndex;
             computer._addRegion(
@@ -624,7 +624,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       var examplesFolder = parent.getChildAssumingFolder('examples');
       if (examplesFolder.exists &&
           examplesFolder.getChildAssumingFolder('api').exists) {
-        return parent.path;
+        return resourceProvider.pathContext.absolute(parent.path);
       }
       parent = parent.parent;
     }

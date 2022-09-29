@@ -539,6 +539,14 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withLineFoldingOnly(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'foldingRange': {'lineFoldingOnly': true},
+    });
+  }
+
   TextDocumentClientCapabilities withLocationLinkSupport(
     TextDocumentClientCapabilities source,
   ) {
@@ -1225,7 +1233,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
-  Future<List<FoldingRange>> getFoldingRegions(Uri uri) {
+  Future<List<FoldingRange>> getFoldingRanges(Uri uri) {
     final request = makeRequest(
       Method.textDocument_foldingRange,
       FoldingRangeParams(
