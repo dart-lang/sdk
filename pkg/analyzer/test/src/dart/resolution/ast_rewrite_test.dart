@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -421,13 +420,37 @@ f(A a) {
 }
 ''');
 
-    var override = findNode.extensionOverride('E<int>(a)');
-    _assertExtensionOverride(
-      override,
-      expectedElement: findElement.extension_('E'),
-      expectedTypeArguments: ['int'],
-      expectedExtendedType: 'A',
-    );
+    final node = findNode.extensionOverride('E<int>(a)');
+    assertResolvedNodeText(node, r'''
+ExtensionOverride
+  extensionName: SimpleIdentifier
+    token: E
+    staticElement: self::@extension::E
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: a
+        parameter: <null>
+        staticElement: self::@function::f::@parameter::a
+        staticType: A
+    rightParenthesis: )
+  extendedType: A
+  staticType: null
+  typeArgumentTypes
+    int
+''');
   }
 
   test_targetNull_function() async {
@@ -1134,16 +1157,45 @@ f(prefix.A a) {
 }
 ''');
 
-    var importFind = findElement.importFind('package:test/a.dart');
-
-    var override = findNode.extensionOverride('E<int>(a)');
-    _assertExtensionOverride(
-      override,
-      expectedElement: importFind.extension_('E'),
-      expectedTypeArguments: ['int'],
-      expectedExtendedType: 'A',
-    );
-    assertImportPrefix(findNode.simple('prefix.E'), importFind.prefix);
+    final node = findNode.extensionOverride('E<int>(a)');
+    assertResolvedNodeText(node, r'''
+ExtensionOverride
+  extensionName: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      staticElement: self::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: E
+      staticElement: package:test/a.dart::@extension::E
+      staticType: null
+    staticElement: package:test/a.dart::@extension::E
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: a
+        parameter: <null>
+        staticElement: self::@function::f::@parameter::a
+        staticType: A
+    rightParenthesis: )
+  extendedType: A
+  staticType: null
+  typeArgumentTypes
+    int
+''');
   }
 
   test_targetSimpleIdentifier_prefix_function() async {
@@ -1250,24 +1302,6 @@ InstanceCreationExpression
     rightParenthesis: )
   staticType: A<int>
 ''');
-  }
-
-  void _assertExtensionOverride(
-    ExtensionOverride override, {
-    required ExtensionElement expectedElement,
-    required List<String> expectedTypeArguments,
-    required String expectedExtendedType,
-  }) {
-    expect(override.staticElement, expectedElement);
-
-    assertTypeNull(override);
-    assertTypeNull(override.extensionName);
-
-    assertElementTypes(
-      override.typeArgumentTypes,
-      expectedTypeArguments,
-    );
-    assertType(override.extendedType, expectedExtendedType);
   }
 }
 
