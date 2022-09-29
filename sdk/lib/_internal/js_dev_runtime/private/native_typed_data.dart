@@ -1087,9 +1087,11 @@ class NativeFloat32x4 implements Float32x4 {
   static final NativeFloat32List _list = NativeFloat32List(4);
   static final Uint32List _uint32view = _list.buffer.asUint32List();
 
-  static _truncate(x) {
-    _list[0] = x;
-    return _list[0];
+  static double _truncate(x) {
+    // TODO(nshahan) Is it safe to replace this operation the JavaScript
+    // Math.fround()?
+    JS('', '#[0] = #', _list, x);
+    return JS<double>('!', '#[0]', _list);
   }
 
   NativeFloat32x4(double x, double y, double z, double w)
@@ -1422,9 +1424,11 @@ class NativeInt32x4 implements Int32x4 {
 
   static final _list = NativeInt32List(4);
 
-  static _truncate(x) {
-    _list[0] = x;
-    return _list[0];
+  static int _truncate(x) {
+    // TODO(nshahan) Is it safe to replace this operation the JavaScript
+    // Math.round()?
+    JS('', '#[0] = #', _list, x);
+    return JS<int>('!', '#[0]', _list);
   }
 
   NativeInt32x4(int x, int y, int z, int w)
