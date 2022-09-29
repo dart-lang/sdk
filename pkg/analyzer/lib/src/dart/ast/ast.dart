@@ -1124,7 +1124,9 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
       DartType matchedType,
       Map<PromotableElement, VariableTypeInfo<AstNode, DartType>> typeInfos,
       MatchContext<AstNode, Expression> context) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50066
+    resolverVisitor.analyzeLogicalPattern(
+        matchedType, typeInfos, context, this, leftOperand, rightOperand,
+        isAnd: operator.type == TokenType.AMPERSAND);
   }
 
   @override

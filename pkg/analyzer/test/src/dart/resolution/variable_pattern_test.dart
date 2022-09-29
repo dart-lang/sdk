@@ -532,17 +532,23 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
     name: as
+    declaredElement: as@40
+      type: int
   operator: &
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
+      staticType: int
 ''');
   }
 
@@ -556,17 +562,23 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
+      staticType: int
   operator: &
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
     name: as
+    declaredElement: as@44
+      type: int
 ''');
   }
 
@@ -580,17 +592,23 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
     name: as
+    declaredElement: as@40
+      type: int
   operator: |
   rightOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 2
+      staticType: int
 ''');
   }
 
@@ -604,17 +622,23 @@ void f(x) {
 }
 ''');
     final node = findNode.switchPatternCase('case').pattern;
-    assertParsedNodeText(node, r'''
+    assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
+      staticType: int
   operator: |
   rightOperand: VariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
     name: as
+    declaredElement: as@44
+      type: int
 ''');
   }
 
