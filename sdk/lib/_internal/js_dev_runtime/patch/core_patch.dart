@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for dart:core classes.
-import "dart:_internal" as _symbol_dev;
+import 'dart:_internal' as _symbol_dev;
+import 'dart:_internal' show patch;
 import 'dart:_interceptors';
 import 'dart:_js_helper'
     show
-        patch,
         checkInt,
         getRuntimeType,
         LinkedMap,

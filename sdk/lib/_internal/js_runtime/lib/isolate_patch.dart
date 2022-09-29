@@ -6,7 +6,7 @@
 
 import "dart:async";
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show patch;
+import 'dart:_internal' show patch;
 import "dart:typed_data" show TypedData;
 
 @patch

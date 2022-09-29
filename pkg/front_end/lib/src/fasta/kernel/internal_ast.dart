@@ -4952,7 +4952,9 @@ class InternalRecordLiteral extends InternalExpression {
 
   InternalRecordLiteral(this.positional, this.named, this.namedElements,
       this.originalElementOrder,
-      {required this.isConst});
+      {required this.isConst, required int offset}) {
+    fileOffset = offset;
+  }
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -5014,7 +5016,9 @@ class ListBinder extends Binder {
   final DartType typeBinderArgument;
   final List<Binder> binders;
 
-  ListBinder(this.typeBinderArgument, this.binders);
+  ListBinder(this.typeBinderArgument, this.binders, {required int offset}) {
+    fileOffset = offset;
+  }
 
   @override
   R accept<R>(TreeVisitor<R> visitor) {
@@ -5070,7 +5074,9 @@ class ListBinder extends Binder {
 class WildcardBinder extends Binder {
   final DartType? type;
 
-  WildcardBinder(this.type);
+  WildcardBinder(this.type, {required int offset}) {
+    fileOffset = offset;
+  }
 
   @override
   R accept<R>(TreeVisitor<R> visitor) {
@@ -5124,7 +5130,10 @@ class PatternVariableDeclaration extends Statement {
   final Binder binder;
   final Expression initializer;
 
-  PatternVariableDeclaration(this.binder, this.initializer);
+  PatternVariableDeclaration(this.binder, this.initializer,
+      {required int offset}) {
+    fileOffset = offset;
+  }
 
   @override
   R accept<R>(StatementVisitor<R> visitor) {

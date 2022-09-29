@@ -94,27 +94,27 @@ void checkElf(String filename, {bool isAssembled = false}) {
   // dynamic symbol table, have STB_LOCAL binding, and are of type STT_OBJECT.
   final elf = Elf.fromFile(filename);
   Expect.isNotNull(elf);
-  final dynamicSymbols = elf!.dynamicSymbols.toList();
+  final dynamicSymbols = elf!.dynamicSymbols;
+  // All symbol tables have an initial entry with zero-valued fields.
+  Expect.isNotEmpty(dynamicSymbols);
   print('Dynamic symbols:');
-  for (final symbol in dynamicSymbols) {
-    // All symbol tables have an initial entry with zero-valued fields.
-    if (symbol.name == '') {
-      print(symbol);
-      Expect.equals(SymbolBinding.STB_LOCAL, symbol.bind);
-      Expect.equals(SymbolType.STT_NOTYPE, symbol.type);
-      Expect.equals(0, symbol.value);
-    } else {
-      if (!symbol.name.startsWith('_kDart')) {
-        // The VM only adds symbols with names starting with _kDart, so this
-        // must be an assembled snapshot.
-        Expect.isTrue(isAssembled);
-        continue;
-      }
-      Expect.equals(SymbolBinding.STB_GLOBAL, symbol.bind);
-      Expect.equals(SymbolType.STT_OBJECT, symbol.type);
-      // All VM-generated read-only object symbols should have a non-zero size.
-      Expect.notEquals(0, symbol.size);
+  final initialDynamic = dynamicSymbols.first;
+  print(initialDynamic);
+  Expect.equals(SymbolBinding.STB_LOCAL, initialDynamic.bind);
+  Expect.equals(SymbolType.STT_NOTYPE, initialDynamic.type);
+  Expect.equals(0, initialDynamic.value);
+  for (final symbol in dynamicSymbols.skip(1)) {
+    print(symbol);
+    if (!symbol.name.startsWith('_kDart')) {
+      // The VM only adds symbols with names starting with _kDart, so this
+      // must be an assembled snapshot.
+      Expect.isTrue(isAssembled);
+      continue;
     }
+    Expect.equals(SymbolBinding.STB_GLOBAL, symbol.bind);
+    Expect.equals(SymbolType.STT_OBJECT, symbol.type);
+    // All VM-generated read-only object symbols should have a non-zero size.
+    Expect.notEquals(0, symbol.size);
   }
   print("");
   final onlyStaticSymbols = elf.staticSymbols

@@ -1,0 +1,19 @@
+import 'dart:async' as async;
+
+test(dynamic x) {
+switch (x) {
+case async.Future<int>()?:
+break;
+}
+}
+
+
+import[KeywordToken] 'dart:async'[StringToken] as[KeywordToken] async[KeywordToken];[SimpleToken]
+
+test[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] async[KeywordToken].[SimpleToken]Future[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken])[SimpleToken]?[SimpleToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

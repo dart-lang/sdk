@@ -26,7 +26,6 @@ vm_common:
         - "_internal/vm/lib/class_id_fasta.dart"
         - "_internal/vm/lib/print_patch.dart"
         - "_internal/vm/lib/symbol_patch.dart"
-        - "internal/patch.dart"
 
     async:
       uri: "async/async.dart"

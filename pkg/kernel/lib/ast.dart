@@ -9617,24 +9617,42 @@ class LabeledStatement extends Statement {
 
 /// Breaks out of an enclosing [LabeledStatement].
 ///
-/// Both `break` and loop `continue` statements are translated into this node.
+/// Both `break` and `continue` statements are translated into this node.
 ///
-/// For example, the following loop with a `continue` will be desugared:
+/// Example `break` desugaring:
 ///
-///     while(x) {
-///       if (y) continue;
-///       BODY'
+///     while (x) {
+///       if (y) break;
+///       BODY
 ///     }
 ///
 ///     ==>
 ///
-///     while(x) {
+///     L: while (x) {
+///       if (y) break L;
+///       BODY
+///     }
+///
+/// Example `continue` desugaring:
+///
+///     while (x) {
+///       if (y) continue;
+///       BODY
+///     }
+///
+///     ==>
+///
+///     while (x) {
 ///       L: {
 ///         if (y) break L;
-///         BODY'
+///         BODY
 ///       }
 ///     }
-//
+///
+/// Note: Compiler-generated [LabeledStatement]s for [WhileStatement]s and
+/// [ForStatement]s are only generated when needed. If there isn't a `break` or
+/// `continue` in a loop, the kernel for the loop won't have a generated
+/// [LabeledStatement].
 class BreakStatement extends Statement {
   LabeledStatement target;
 

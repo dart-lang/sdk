@@ -19,7 +19,6 @@ import 'dart:_js_helper'
         jsonEncodeNative,
         JSSyntaxRegExp,
         objectHashCode,
-        patch,
         Primitives,
         quoteStringForRegExp,
         getTraceFromException,

@@ -8,8 +8,8 @@ import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 import 'dart:_interceptors' show DART_CLOSURE_PROPERTY_NAME;
-import 'dart:_js_helper'
-    show patch, Primitives, getIsolateAffinityTag, isJSFunction;
+import 'dart:_internal' show patch;
+import 'dart:_js_helper' show Primitives, getIsolateAffinityTag, isJSFunction;
 import 'dart:_js' show isBrowserObject, convertFromBrowserObject;
 
 @patch

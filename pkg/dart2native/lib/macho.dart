@@ -9,7 +9,6 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
 
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import './macho_utils.dart';
@@ -291,13 +290,9 @@ abstract class MachOLoadCommand {
   /// command.
   bool get mustBeUnderstood => (code & LoadCommandType._reqDyld) != 0;
 
-  // Overwrite in subclasses that are used in the minimumFileOffset calculation.
-  int? get minimumFileOffset => null;
-
-  // Returns a version of the load command with any file offsets appropriately
-  // adjusted as needed. Should be overloaded by any load commands that contain
-  // file offsets.
-  MachOLoadCommand adjust(OffsetsAdjuster adjuster) => this;
+  /// Returns a version of the load command with any file offsets appropriately
+  /// adjusted as needed.
+  MachOLoadCommand adjust(OffsetsAdjuster adjuster);
 
   void writeSync(MachOWriter stream) {
     stream
@@ -306,9 +301,9 @@ abstract class MachOLoadCommand {
     writeContentsSync(stream);
   }
 
-  // Subclasses need to implement this serializer, which should NOT
-  // attempt to serialize the cmd and the cmdsize to the stream. That
-  // logic is handled by the parent class automatically.
+  /// Subclasses need to implement this serializer, which should NOT
+  /// attempt to serialize the cmd and the cmdsize to the stream. That
+  /// logic is handled by the parent class automatically.
   void writeContentsSync(MachOWriter stream);
 }
 
@@ -317,6 +312,9 @@ class MachOGenericLoadCommand extends MachOLoadCommand {
   final Uint8List contents;
 
   MachOGenericLoadCommand(cmd, cmdsize, this.contents) : super(cmd, cmdsize);
+
+  @override
+  MachOLoadCommand adjust(OffsetsAdjuster adjuster) => this;
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -428,6 +426,10 @@ class MachOHeader {
   // A faster check than rechecking the magic number.
   bool get is64Bit => reserved != null;
   Endian get endian => magicEndian(magic);
+
+  // The size of the header when written to disk. Seven 32-bit fields, plus
+  // an extra 32-bit field for 64-bit headers to align it to word size.
+  int get size => 7 * 4 + (is64Bit ? 4 : 0);
 
   void writeSync(RandomAccessFile original) {
     // Like reading, first we write the magic value using host endianness,
@@ -561,22 +563,18 @@ class MachOSegmentCommand extends MachOLoadCommand {
       LoadCommandType.fromCode(code) == LoadCommandType.segment64 ? 8 : 4;
 
   @override
-  int? get minimumFileOffset {
-    if (sections.isEmpty) {
-      // Don't use the file offset of this segment if the segment is empty.
-      return fileSize != 0 ? fileOffset : null;
-    }
-    int? minOffset;
-    for (final section in sections) {
-      // Skip zero fill sections.
-      if (section.isZeroFill) continue;
-      assert(section.fileOffset != 0 && section.size != 0);
-      minOffset = minOffset == null
-          ? section.fileOffset
-          : min(minOffset, section.fileOffset);
-    }
-    return minOffset;
-  }
+  MachOSegmentCommand adjust(OffsetsAdjuster adjuster) => MachOSegmentCommand(
+      code,
+      size,
+      name,
+      memoryAddress,
+      memorySize,
+      adjuster.adjust(fileOffset),
+      fileSize,
+      maxProtection,
+      initialProtection,
+      flags,
+      sections.map((s) => s.adjust(adjuster)).toList());
 
   @override
   void writeContentsSync(MachOWriter stream) {
@@ -756,6 +754,20 @@ class MachOSection {
         cachedType == SectionType.gigabyteZeroFill ||
         cachedType == SectionType.threadLocalZeroFill;
   }
+
+  MachOSection adjust(OffsetsAdjuster adjuster) => MachOSection(
+      name,
+      segmentName,
+      memoryAddress,
+      size,
+      adjuster.adjust(fileOffset),
+      alignment,
+      adjuster.adjust(relocationsFileOffset),
+      relocationsCount,
+      flags,
+      reserved1,
+      reserved2,
+      reserved3);
 
   void writeContentsSync(MachOWriter stream) {
     final int wordSize = is64Bit ? 8 : 4;
@@ -1373,8 +1385,6 @@ class MachONoteCommand extends MachOLoadCommand {
       int code, int size, this.dataOwner, this.fileOffset, this.fileSize)
       : super(code, size);
 
-  static const _dataOwnerLength = 16;
-
   static MachONoteCommand fromStream(int code, int size, MachOReader stream) {
     final dataOwner =
         stream.readFixedLengthNullTerminatedString(_dataOwnerLength);
@@ -1382,6 +1392,21 @@ class MachONoteCommand extends MachOLoadCommand {
     final fileSize = stream.readUint64();
     return MachONoteCommand(code, size, dataOwner, fileOffset, fileSize);
   }
+
+  /// Constructs a note load command given the content of the note-specific
+  /// fields, using the default values for the code and size fields.
+  static MachONoteCommand fromFields(
+          String dataOwner, int fileOffset, int fileSize) =>
+      MachONoteCommand(LoadCommandType.note.code, _defaultSize, dataOwner,
+          fileOffset, fileSize);
+
+  /// The maximum size of the dataOwner field contents.
+  static const _dataOwnerLength = 16;
+
+  // The total size of any given note load command. A note load command contains
+  // the 4-byte cmd and cmdsize fields that start every load command, a 16 byte
+  // name field, and then two additional 8-byte fields.
+  static const _defaultSize = 4 + 4 + 16 + 8 + 8;
 
   @override
   MachONoteCommand adjust(OffsetsAdjuster adjuster) => MachONoteCommand(
@@ -1456,15 +1481,10 @@ class MachOFile {
   /// non-header contents of the MachO file.
   final List<MachOLoadCommand> commands;
 
-  /// A cached version of the minimum file offset of any segments or sections,
-  /// which we use to determine post-header padding.
-  final int minimumFileOffset;
-
   /// Whether or not the parsed MachO file has a code signature.
   final bool hasCodeSignature;
 
-  MachOFile._(this.header, this.commands, this.minimumFileOffset,
-      this.hasCodeSignature);
+  MachOFile._(this.header, this.commands, this.hasCodeSignature);
 
   static MachOFile fromFile(File file) {
     // Ensure the file is long enough to contain the magic bytes.
@@ -1487,89 +1507,43 @@ class MachOFile {
     final commands = List<MachOLoadCommand>.generate(
         header.loadCommandsCount, (_) => MachOLoadCommand.fromStream(reader));
 
-    // Set the max header offset to the maximum file size so that when we read
-    // in the header we can correctly set the total header size.
-    final minimumFileOffset = commands.fold<int>((1 << 63) - 1, (i, c) {
-      final minFileOffset = c.minimumFileOffset;
-      return minFileOffset != null ? min(i, minFileOffset) : i;
-    });
+    final size = _totalSize(header, commands);
+    assert(size == stream.positionSync());
+
     final hasCodeSignature =
         commands.any((c) => c.type == LoadCommandType.codeSignature);
 
-    return MachOFile._(header, commands, minimumFileOffset, hasCodeSignature);
+    return MachOFile._(header, commands, hasCodeSignature);
   }
 
-  /// Returns a new MachOFile that is like the input, but with a new
-  /// segment load command with a single section inserted prior to the
-  /// __LINKEDIT segment load command. Any file offsets in other load commands
-  /// that reference the __LINKEDIT segment are adjusted appropriately.
-  MachOFile insertSegmentLoadCommand(
-      int segmentLength, String segmentName, String sectionName) {
+  /// Returns a new MachOFile that is like the input, but with the empty segment
+  /// used to reserve header space dropped and with a new note load command
+  /// inserted prior to the __LINKEDIT segment load command. Any file offsets
+  /// in other load commands that reference the __LINKEDIT segment are adjusted
+  /// appropriately.
+  MachOFile adjustHeaderForSnapshot(int snapshotSize) {
+    // This is not an idempotent operation.
+    if (snapshotNote != null) {
+      throw FormatException(
+          "The executable already has a Dart snapshot inserted");
+    }
+
+    final reserved = reservedSegment;
+    // TODO(49783): Once linker flags are in place in g3, we should throw a
+    // FormatException if the segment used to reserve header space is not found.
+
     final linkedit = linkEditSegment;
     if (linkedit == null) {
       throw FormatException("__LINKEDIT segment not found");
     }
 
-    // Create the new segment.
+    // We insert the contents of the snapshot where the old linkedit segment
+    // started in the original executable, aligned appropriately.
     final int fileOffset = align(linkedit.fileOffset, segmentAlignment);
-    final int fileSize = align(segmentLength, segmentAlignment);
-    final int memoryAddress = linkedit.memoryAddress;
-    final int memorySize = fileSize;
-    final int maxProtection = VirtualMemoryProtection.read.code;
-    final int initialProtection = maxProtection;
+    final int fileSize = snapshotSize;
 
-    final int sectionFlags =
-        MachOSection.combineIntoFlags(SectionType.regular, 0);
-
-    final loadCommandDefinitionSize = 4 * 2;
-    final sectionDefinitionSize = 16 * 2 + 8 * 2 + 4 * 8;
-    final segmentDefinitionSize = 16 + 8 * 4 + 4 * 4;
-    final commandSize = loadCommandDefinitionSize +
-        segmentDefinitionSize +
-        sectionDefinitionSize;
-
-    final section = MachOSection(
-        sectionName,
-        segmentName,
-        memoryAddress,
-        fileSize,
-        fileOffset,
-        segmentAlignmentLog2,
-        0,
-        0,
-        sectionFlags,
-        0,
-        0,
-        0);
-
-    final segment = MachOSegmentCommand(
-        LoadCommandType.segment64.code,
-        commandSize,
-        segmentName,
-        memoryAddress,
-        memorySize,
-        fileOffset,
-        fileSize,
-        maxProtection,
-        initialProtection,
-        0,
-        [section]);
-
-    // Setup the new linkedit command.
-    final shiftedLinkeditMemoryAddress = memoryAddress + segment.memorySize;
-    final shiftedLinkeditFileOffset = fileOffset + segment.fileSize;
-    final shiftedLinkedit = MachOSegmentCommand(
-        linkedit.code,
-        linkedit.size,
-        linkedit.name,
-        shiftedLinkeditMemoryAddress,
-        linkedit.memorySize,
-        shiftedLinkeditFileOffset,
-        linkedit.fileSize,
-        linkedit.maxProtection,
-        linkedit.initialProtection,
-        linkedit.flags,
-        linkedit.sections);
+    final note =
+        MachONoteCommand.fromFields(snapshotNoteName, fileOffset, fileSize);
 
     // Now we need to build the new header from these modified pieces.
     final newHeader = MachOHeader(
@@ -1577,36 +1551,65 @@ class MachOFile {
         header.cpu,
         header.machine,
         header.type,
-        header.loadCommandsCount + 1,
-        header.loadCommandsSize + segment.size,
+        // If the reserved section exists, we remove it and replace it with
+        // the note.
+        //
+        // TODO(49783): Once linker flags are in place in g3, reserved should
+        // never be null.
+        header.loadCommandsCount + (reserved == null ? 1 : 0),
+        header.loadCommandsSize - (reserved?.size ?? 0) + note.size,
         header.flags,
         header.reserved);
 
-    final adjuster = OffsetsAdjuster();
-    adjuster.add(
-        linkedit.fileOffset, shiftedLinkeditFileOffset - linkedit.fileOffset);
+    // We'll want the __LINKEDIT segment to start at the next aligned file
+    // offset after the end of the snapshot, so we'll need to adjust all
+    // file offsets pointing into it (including its own segment) accordingly.
+    final snapshotEnd =
+        align(note.fileOffset + note.fileSize, segmentAlignment);
+    final adjuster = OffsetsAdjuster()
+      ..add(linkedit.fileOffset, snapshotEnd - linkedit.fileOffset);
     final newCommands = <MachOLoadCommand>[];
     for (final command in commands) {
-      if (command == linkedit) {
-        // Insert the new segment prior to the __LINKEDIT segment.
-        newCommands.add(segment);
-        // Replace the old __LINKEDIT segment with the new one.
-        newCommands.add(shiftedLinkedit);
-      } else {
-        // Shift the offsets of any other load command that fall within the
-        // __LINKEDIT segment appropriately.
-        newCommands.add(command.adjust(adjuster));
+      if (command == reserved) {
+        // Drop the reserved segment on the floor, as we only add it so there's
+        // enough header space to add the note.
+        continue;
       }
+      if (command == linkedit) {
+        // Insert the new note prior to the __LINKEDIT segment.
+        newCommands.add(note);
+      }
+      newCommands.add(command.adjust(adjuster));
     }
 
-    return MachOFile._(
-        newHeader, newCommands, minimumFileOffset, hasCodeSignature);
+    final newFile = MachOFile._(newHeader, newCommands, hasCodeSignature);
+
+    // TODO(49783): Once linker flags are in place in g3, we should throw a
+    // FormatException if [newFile.size] is greater than [size].
+
+    return newFile;
   }
 
   /// The name of the segment containing all the structs created and maintained
   /// by the link editor.
   static const _linkEditSegmentName = "__LINKEDIT";
 
+  /// Retrieves the segment load command used to reserve header space for the
+  /// snapshot information. Returns null if not found or if it is of an
+  /// unexpected form.
+  MachOSegmentCommand? get reservedSegment {
+    final reservedIndex = commands.indexWhere(
+        (c) => c is MachOSegmentCommand && c.name == reservedSegmentName);
+    if (reservedIndex < 0) {
+      return null;
+    }
+    final reserved = commands[reservedIndex] as MachOSegmentCommand;
+    assert(reserved.fileSize == 0);
+    assert(reserved.sections.single.name == reservedSectionName);
+    return reserved;
+  }
+
+  /// Retrieves the __LINKEDIT segment load command. Returns null if not found.
   MachOSegmentCommand? get linkEditSegment {
     final linkEditIndex = commands.indexWhere(
         (c) => c is MachOSegmentCommand && c.name == _linkEditSegmentName);
@@ -1621,15 +1624,24 @@ class MachOFile {
     return commands[linkEditIndex] as MachOSegmentCommand;
   }
 
-  MachOSegmentCommand? get snapshotSegment {
+  /// Retrieves the note load command that points to the snapshot contents in
+  /// the executable. Returns null if not found.
+  MachONoteCommand? get snapshotNote {
     final snapshotIndex = commands.indexWhere(
-        (c) => c is MachOSegmentCommand && c.name == snapshotSegmentName);
+        (c) => c is MachONoteCommand && c.dataOwner == snapshotNoteName);
     if (snapshotIndex < 0) {
       return null;
     }
-
-    return commands[snapshotIndex] as MachOSegmentCommand;
+    return commands[snapshotIndex] as MachONoteCommand;
   }
+
+  static bool containsSnapshot(File file) =>
+      MachOFile.fromFile(file).snapshotNote != null;
+
+  static int _totalSize(MachOHeader header, List<MachOLoadCommand> commands) =>
+      commands.fold(header.size, (i, c) => i + c.size);
+
+  int get size => _totalSize(header, commands);
 
   /// Writes the MachO file to the given [RandomAccessFile] stream.
   void writeSync(RandomAccessFile stream) {
@@ -1640,12 +1652,6 @@ class MachOFile {
     // Write all of the commands.
     for (var command in commands) {
       command.writeSync(writer);
-    }
-
-    // Pad the header according to the offset.
-    final int paddingAmount = minimumFileOffset - stream.positionSync();
-    if (paddingAmount > 0) {
-      stream.writeFromSync(List.filled(paddingAmount, 0));
     }
   }
 }

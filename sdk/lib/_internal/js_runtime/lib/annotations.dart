@@ -9,10 +9,3 @@ class Native {
   final String name;
   const Native(this.name);
 }
-
-class _Patch {
-  const _Patch();
-}
-
-/// Annotation that marks the declaration as a patch.
-const _Patch patch = const _Patch();

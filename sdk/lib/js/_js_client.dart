@@ -4,7 +4,7 @@
 
 import 'dart:html' show Blob, Event, ImageData, Node, Window, WorkerGlobalScope;
 import 'dart:indexed_db' show KeyRange;
-import 'dart:_js_helper' show patch;
+import 'dart:_internal' show patch;
 import 'dart:_foreign_helper' show JS;
 
 @patch

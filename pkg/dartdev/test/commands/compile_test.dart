@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:math';
 
+import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -46,15 +48,9 @@ void defineCompileTests() {
       expect(File(outFile).existsSync(), true,
           reason: 'File not found: $outFile');
 
-      // Ensure the file contains the __CUSTOM segment.
-      final machOFile = MachOFile.fromFile(File(outFile));
-
-      // Throws an exception (and thus the test fails) if the segment doesn't
-      // exist.
-      machOFile.commands
-          .where((segment) =>
-              segment is MachOSegmentCommand && segment.name == '__CUSTOM')
-          .first;
+      if (!MachOFile.containsSnapshot(File(outFile))) {
+        throw FormatException('Snapshot not found in standalone executable');
+      }
 
       // Ensure that the exe can be signed.
       final codeSigningProcess = await Process.start('codesign', [
@@ -67,6 +63,88 @@ void defineCompileTests() {
 
       final signingResult = await codeSigningProcess.exitCode;
       expect(signingResult, 0);
+    }, skip: isRunningOnIA32);
+
+    test('Changing snapshot contents fails to validate', () async {
+      final p = project(mainSrc: '''void main() {}''');
+      final inFile =
+          path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+      final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+      final corruptedFile =
+          path.canonicalize(path.join(p.dirPath, 'myexe-corrupted'));
+
+      var result = await p.run(
+        [
+          'compile',
+          'exe',
+          '-o',
+          outFile,
+          inFile,
+        ],
+      );
+
+      expect(result.stdout, contains(soundNullSafetyMessage));
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(File(outFile).existsSync(), true,
+          reason: 'File not found: $outFile');
+
+      final macho = MachOFile.fromFile(File(outFile));
+      final snapshotNote = macho.snapshotNote;
+      if (snapshotNote == null) {
+        throw FormatException('Snapshot not found in standalone executable');
+      }
+
+      if (macho.hasCodeSignature) {
+        // Verify the resulting executable using codesign.
+        result = Process.runSync('codesign', [
+          '-v',
+          outFile,
+        ]);
+
+        expect(result.stderr, isEmpty);
+        expect(result.exitCode, 0);
+      } else {
+        // Sign the executable first.
+        final codeSigningProcess = await Process.start('codesign', [
+          '-o',
+          'runtime',
+          '-s',
+          '-',
+          outFile,
+        ]);
+
+        final signingResult = await codeSigningProcess.exitCode;
+        expect(signingResult, 0);
+      }
+
+      // Pick a random range of bytes within the snapshot.
+      final rand = Random();
+      final offset1 = rand.nextInt(snapshotNote.fileSize);
+      final offset2 = rand.nextInt(snapshotNote.fileSize);
+      final int start = snapshotNote.fileOffset + min(offset1, offset2);
+      final int size = max(offset1, offset2) - min(offset1, offset2);
+
+      // Write the corrupted version of the executable, corrupting the bytes in
+      // the calculated range by incrementing them (modulo 256).
+      final original = File(outFile).openSync();
+      final corrupted = File(corruptedFile).openSync(mode: FileMode.write);
+      await pipeStream(original, corrupted, numToWrite: start);
+      final bytesToCorrupt = original.readSync(size);
+      for (int i = 0; i < bytesToCorrupt.length; i++) {
+        bytesToCorrupt[i] = (bytesToCorrupt[i] + 1) % 256;
+      }
+      corrupted.writeFromSync(bytesToCorrupt);
+      await pipeStream(original, corrupted);
+
+      // (Fail to) verify the resulting executable using codesign.
+      result = Process.runSync('codesign', [
+        '-v',
+        corruptedFile,
+      ]);
+
+      expect(result.stderr, isNotEmpty);
+      expect(result.exitCode, 1);
     }, skip: isRunningOnIA32);
   }
 

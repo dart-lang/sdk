@@ -30,9 +30,10 @@ class TestParser extends Parser {
   StringBuffer sb = new StringBuffer();
   final bool trace;
 
-  TestParser(Listener listener, this.trace)
+  TestParser(Listener listener, this.trace, {required bool allowPatterns})
       : super(listener,
-            useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+            allowPatterns: allowPatterns);
 
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");

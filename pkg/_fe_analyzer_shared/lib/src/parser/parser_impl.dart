@@ -6348,8 +6348,6 @@ class Parser {
 
   /// This method parses the portion of a set or map literal that starts with
   /// the left curly brace when there are no leading type arguments.
-  ///
-  /// [forPattern] indicates whether an expression or pattern should be parsed.
   Token parseLiteralSetOrMapSuffix(Token token, Token? constKeyword) {
     Token leftBrace = token = token.next!;
     assert(optional('{', leftBrace));

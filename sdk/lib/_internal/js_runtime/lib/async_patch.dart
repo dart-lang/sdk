@@ -4,9 +4,9 @@
 
 // Patch file for the dart:async library.
 
+import 'dart:_internal' show patch;
 import 'dart:_js_helper'
     show
-        patch,
         ExceptionAndStackTrace,
         convertDartClosureToJS,
         getTraceFromException,
