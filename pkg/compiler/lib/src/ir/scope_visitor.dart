@@ -870,9 +870,13 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     complexity = complexity.combine(visitExpressions(node.expressions));
     if (node.isConst) {
       return const EvaluationComplexity.constant();
-    } else {
-      return complexity.makeEager();
     }
+    if (complexity.isLazy) return complexity;
+    // TODO(45681): Refine heuristic to count operations in the whole
+    // initializer. Lists are not expensive to eagerly initialize, but the could
+    // contain something expensive (e.g. a big list of many small maps would be
+    // slightly more expensive than a big map of similar size).
+    return complexity.makeEager();
   }
 
   @override
@@ -884,6 +888,8 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
       return const EvaluationComplexity.constant();
     }
     if (complexity.isLazy) return complexity;
+    // TODO(45681): Refine heuristic to count operations in whole initializer.
+    if (node.expressions.length > 10) return const EvaluationComplexity.lazy();
     if (node.expressions.every(_isWellBehavedEagerHashKey)) {
       // Includes empty set literals.
       return complexity.makeEager();
@@ -901,8 +907,9 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     if (node.isConst) {
       return const EvaluationComplexity.constant();
     }
-    if (node.entries.length > 10) return const EvaluationComplexity.lazy();
     if (complexity.isLazy) return complexity;
+    // TODO(45681): Refine heuristic to count operations in whole initializer.
+    if (node.entries.length > 10) return const EvaluationComplexity.lazy();
     if (node.entries
         .map((entry) => entry.key)
         .every(_isWellBehavedEagerHashKey)) {
@@ -914,7 +921,8 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
   bool _isWellBehavedEagerHashKey(ir.Expression key) {
     // Well-behaved eager keys for LinkedHashMap and LinkedHashSet must not
-    // indirectly use any lazy-initialized variables.
+    // indirectly use any lazy-initialized variables, e.g. by calling a
+    // user-defined `get:hashCode` or `operator==`.
     //
     // TODO(45681): Improve the analysis. (1) Use static type of the [key]
     // expression. (2) Use information about the class heirarchy and overloading
