@@ -5992,6 +5992,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('function', function)
+    ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
   @override
