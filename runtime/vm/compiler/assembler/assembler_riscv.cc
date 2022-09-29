@@ -4539,6 +4539,19 @@ void Assembler::CountLeadingZeroes(Register rd, Register rs) {
   Bind(&l5);
 }
 
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? LS : HI;
+  Register to_check = temp != kNoRegister ? temp : value;
+  AddImmediate(to_check, value, -low);
+  CompareImmediate(to_check, high - low);
+  BranchIf(cc, target);
+}
+
 }  // namespace compiler
 
 }  // namespace dart

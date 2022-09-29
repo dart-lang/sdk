@@ -894,7 +894,7 @@ void Assembler::EmitMultiVSMemOp(Condition cond,
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
                      B26 | B11 | B9 | am | (load ? L : 0) |
                      ArmEncode::Rn(base) |
-                     ((static_cast<int32_t>(start) & 0x1) ? D : 0) |
+                     ((static_cast<int32_t>(start) & 0x1) != 0 ? D : 0) |
                      ((static_cast<int32_t>(start) >> 1) << 12) | count;
   Emit(encoding);
 }
@@ -914,7 +914,7 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
   int32_t encoding =
       (static_cast<int32_t>(cond) << kConditionShift) | B27 | B26 | B11 | B9 |
       B8 | am | (load ? L : 0) | ArmEncode::Rn(base) |
-      ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
+      ((static_cast<int32_t>(start) & 0x10) != 0 ? D : 0) |
       ((static_cast<int32_t>(start) & 0xf) << 12) | (count << 1) | notArmv5te;
   Emit(encoding);
 }
@@ -3837,6 +3837,19 @@ void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
   strb(tmp, Address(addr, 2));
   Lsr(tmp, src, Operand(24));
   strb(tmp, Address(addr, 3));
+}
+
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? LS : HI;
+  Register to_check = temp != kNoRegister ? temp : value;
+  AddImmediate(to_check, value, -low);
+  CompareImmediate(to_check, high - low);
+  b(target, cc);
 }
 
 }  // namespace compiler

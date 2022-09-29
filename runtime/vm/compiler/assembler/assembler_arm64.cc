@@ -2459,6 +2459,19 @@ void Assembler::GenerateCbzTbz(Register rn,
   }
 }
 
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? LS : HI;
+  Register to_check = temp != kNoRegister ? temp : value;
+  AddImmediate(to_check, value, -low);
+  CompareImmediate(to_check, high - low);
+  b(target, cc);
+}
+
 }  // namespace compiler
 
 }  // namespace dart

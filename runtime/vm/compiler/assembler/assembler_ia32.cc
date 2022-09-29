@@ -2582,7 +2582,7 @@ void Assembler::Align(intptr_t alignment, intptr_t offset) {
     nop(MAX_NOP_SIZE);
     bytes_needed -= MAX_NOP_SIZE;
   }
-  if (bytes_needed) {
+  if (bytes_needed != 0) {
     nop(bytes_needed);
   }
   ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);
@@ -3056,6 +3056,23 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
     return FieldAddress(array, index, ToScaleFactor(index_scale, index_unboxed),
                         target::Instance::DataOffsetFor(cid) + extra_disp);
   }
+}
+
+void Assembler::RangeCheck(Register value,
+                           Register temp,
+                           intptr_t low,
+                           intptr_t high,
+                           RangeCheckCondition condition,
+                           Label* target) {
+  auto cc = condition == kIfInRange ? BELOW_EQUAL : ABOVE;
+  Register to_check = value;
+  if (temp != kNoRegister) {
+    movl(temp, value);
+    to_check = temp;
+  }
+  subl(to_check, Immediate(low));
+  cmpl(to_check, Immediate(high - low));
+  j(cc, target);
 }
 
 }  // namespace compiler
