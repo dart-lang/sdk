@@ -817,6 +817,7 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
       DataDriven.new,
       ImportLibrary.forExtension,
+      ImportLibrary.forExtensionMember,
       ImportLibrary.forFunction,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
