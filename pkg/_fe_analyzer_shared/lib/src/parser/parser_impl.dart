@@ -590,8 +590,23 @@ class Parser {
       // and can be used in a top level declaration
       // as an identifier such as "abstract<T>() => 0;"
       // or as a prefix such as "abstract.A b() => 0;".
+      // This also means that `typedef ({int? j}) => 0;` is a method, but with
+      // records something like `typedef ({int? j}) X();` is a typedef.
       String? nextValue = keyword.next!.stringValue;
-      if (identical(nextValue, '(') || identical(nextValue, '.')) {
+      bool typedefWithRecord = false;
+      if (identical(value, 'typedef') && identical(nextValue, '(')) {
+        Token? endParen = keyword.next!.endGroup;
+        if (endParen != null && endParen.next!.isIdentifier) {
+          // Looks like a typedef with a record.
+          TypeInfo typeInfo = computeType(keyword, /* required = */ false);
+          if (typeInfo is ComplexTypeInfo && typeInfo.recordType) {
+            typedefWithRecord = true;
+          }
+        }
+      }
+
+      if ((identical(nextValue, '(') || identical(nextValue, '.')) &&
+          !typedefWithRecord) {
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(start);
       } else if (identical(nextValue, '<')) {
