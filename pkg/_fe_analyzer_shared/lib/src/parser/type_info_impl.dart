@@ -739,7 +739,8 @@ class ComplexTypeInfo implements TypeInfo {
         }
       } else {
         // Is it e.g. List<(int, int)> or Map<(int, int), (String, String)>?
-        if (!isOneOfOrEof(next, const [",", ">"])) {
+        // or List<List<(int, int)>> or List<List<List<(int, int)>>>.
+        if (!isOneOfOrEof(next, const [",", ">", ">>", ">>>"])) {
           return noType;
         }
       }
