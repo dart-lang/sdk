@@ -1079,17 +1079,6 @@ lsp.FlutterOutlineAttribute toFlutterOutlineAttribute(
           : null);
 }
 
-lsp.FoldingRange toFoldingRange(
-    server.LineInfo lineInfo, server.FoldingRegion region) {
-  final range = toRange(lineInfo, region.offset, region.length);
-  return lsp.FoldingRange(
-      startLine: range.start.line,
-      startCharacter: range.start.character,
-      endLine: range.end.line,
-      endCharacter: range.end.character,
-      kind: toFoldingRangeKind(region.kind));
-}
-
 lsp.FoldingRangeKind? toFoldingRangeKind(server.FoldingKind kind) {
   switch (kind) {
     case server.FoldingKind.COMMENT:
