@@ -146,6 +146,16 @@ FunctionExpressionInvocation
     token: a
     staticElement: self::@function::f::@parameter::a
     staticType: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -174,6 +184,16 @@ FunctionExpressionInvocation
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Never
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -215,6 +235,16 @@ FunctionExpressionInvocation
     token: x
     staticElement: self::@function::f::@parameter::x
     staticType: Never?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -500,6 +530,22 @@ FunctionExpressionInvocation
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: SimpleIdentifier
+          token: bool
+          staticElement: dart:core::@class::bool
+          staticType: null
+        type: bool*
+      NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int*
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments

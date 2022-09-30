@@ -43,7 +43,7 @@ final String _pubspec = '''
 name: __projectName__
 description: An absolute bare-bones web app.
 version: 1.0.0
-# homepage: https://www.example.com
+# repository: https://github.com/my_org/my_repo
 
 environment:
   ${common.sdkConstraint}

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -191,6 +192,14 @@ class PrefixScope implements Scope {
   }
 
   void _add(Element element, bool isFromDeprecatedExport) {
+    // TODO(scheglov) Remove when `records` feature is enabled by default.
+    if (element is ClassElementImpl &&
+        element.isDartCoreRecord &&
+        !_container.featureSet.isEnabled(Feature.records) &&
+        Feature.records.status != FeatureStatus.current) {
+      return;
+    }
+
     if (element is PropertyAccessorElement && element.isSetter) {
       _addTo(element, isFromDeprecatedExport, isSetter: true);
     } else {
