@@ -221,6 +221,16 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     return combinedComplexity;
   }
 
+  EvaluationComplexity visitNamedExpressions(
+      List<ir.NamedExpression> named, EvaluationComplexity combinedComplexity) {
+    for (int i = 0; i < named.length; i++) {
+      named[i].value = _handleExpression(named[i].value);
+      combinedComplexity =
+          combinedComplexity.combine(_lastExpressionComplexity);
+    }
+    return combinedComplexity;
+  }
+
   /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
   void attachCapturedScopeVariables(ir.TreeNode node) {
@@ -949,6 +959,12 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
+  EvaluationComplexity visitRecordLiteral(ir.RecordLiteral node) {
+    EvaluationComplexity complexity = visitExpressions(node.positional);
+    return visitNamedExpressions(node.named, complexity);
+  }
+
+  @override
   EvaluationComplexity visitNullLiteral(ir.NullLiteral node) =>
       _evaluateImplicitConstant(node);
 
@@ -1031,11 +1047,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitArguments(ir.Arguments node) {
     EvaluationComplexity combinedComplexity = visitExpressions(node.positional);
-    for (int i = 0; i < node.named.length; i++) {
-      node.named[i].value = _handleExpression(node.named[i].value);
-      combinedComplexity =
-          combinedComplexity.combine(_lastExpressionComplexity);
-    }
+    combinedComplexity = visitNamedExpressions(node.named, combinedComplexity);
     return combinedComplexity;
   }
 

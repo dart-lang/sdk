@@ -271,6 +271,13 @@ class _TypeContainedInOutputUnitVisitor
   }
 
   @override
+  bool visitRecordType(RecordType type, OutputUnit argument) {
+    // TODO(sra): The record shape is a bit like an implicit interface
+    // type. Does it have an OutputUnit?
+    throw UnimplementedError();
+  }
+
+  @override
   bool visitFunctionType(FunctionType type, OutputUnit argument) {
     bool result = visit(type.returnType, argument) &&
         visitList(type.parameterTypes, argument) &&

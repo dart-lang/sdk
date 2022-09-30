@@ -225,6 +225,9 @@ class FindTypeVisitor extends DartTypeVisitor<bool, Null> {
       type.element == entity || checkList(type.typeArguments);
 
   @override
+  bool visitRecordType(RecordType type, _) => throw UnimplementedError();
+
+  @override
   bool visitDynamicType(DynamicType type, _) => false;
 
   @override

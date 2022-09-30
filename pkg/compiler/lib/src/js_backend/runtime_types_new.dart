@@ -293,6 +293,12 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   }
 
   @override
+  void visitRecordType(RecordType type, _) {
+    // TODO(49718): Implement Rti recipes for records.
+    throw UnimplementedError();
+  }
+
+  @override
   void visitFunctionType(FunctionType type, _) {
     if (type.typeVariables.isNotEmpty) {
       // Enter generic function scope.

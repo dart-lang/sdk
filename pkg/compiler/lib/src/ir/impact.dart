@@ -40,6 +40,8 @@ abstract class ImpactRegistry {
   void registerMapLiteral(ir.DartType keyType, ir.DartType valueType,
       {required bool isConst, required bool isEmpty});
 
+  void registerRecordLiteral(ir.RecordType type, {required bool isConst});
+
   void registerStaticTearOff(
       ir.Procedure procedure, ir.LibraryDependency? import);
 
@@ -302,7 +304,13 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
 
   @override
   void visitRecordConstant(ir.RecordConstant node) {
-    return defaultConstant(node);
+    registry.registerRecordLiteral(node.recordType, isConst: true);
+    for (ir.Constant element in node.positional) {
+      visitConstant(element);
+    }
+    for (ir.Constant element in node.named.values) {
+      visitConstant(element);
+    }
   }
 
   @override
