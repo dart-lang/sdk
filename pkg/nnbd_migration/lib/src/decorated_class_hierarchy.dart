@@ -84,10 +84,10 @@ class DecoratedClassHierarchy {
         var supertype = decoratedSupertype.type as InterfaceType;
         // Compute a type substitution to determine how [class_] relates to
         // this specific [superclass].
-        Map<TypeParameterElement, DecoratedType?> substitution = {};
+        Map<TypeParameterElement, DecoratedType> substitution = {};
         for (int i = 0; i < supertype.typeArguments.length; i++) {
           substitution[supertype.element2.typeParameters[i]] =
-              decoratedSupertype.typeArguments[i];
+              decoratedSupertype.typeArguments[i]!;
         }
         // Apply that substitution to the relation between [superclass] and
         // each of its transitive superclasses, to determine the relation

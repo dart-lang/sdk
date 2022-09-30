@@ -39,13 +39,17 @@ class DataDriven extends MultiCorrectionProducer {
       // The node doesn't represent any element that can be transformed.
       return;
     }
+    var transformSet = <Transform>{};
     for (var set in _availableTransformSetsForLibrary(library)) {
       for (var matcher in matchers) {
         for (var transform in set.transformsFor(matcher,
             applyingBulkFixes: applyingBulkFixes)) {
-          yield DataDrivenFix(transform);
+          transformSet.add(transform);
         }
       }
+    }
+    for (var transform in transformSet) {
+      yield DataDrivenFix(transform);
     }
   }
 

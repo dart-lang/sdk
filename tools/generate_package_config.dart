@@ -23,6 +23,7 @@ void main(List<String> args) {
     platform('runtime/observatory'),
     platform('runtime/observatory/tests/service/observatory_test_package'),
     platform('runtime/observatory_2'),
+    platform('runtime/tools/heapsnapshot'),
     platform('sdk/lib/_internal/sdk_library_metadata'),
     platform('third_party/devtools/devtools_shared'),
     platform('tools/package_deps'),

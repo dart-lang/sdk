@@ -85,13 +85,19 @@ class MakeVariableNullable extends CorrectionProducer {
     }
 
     var oldType = element.type;
-    if (oldType is! InterfaceTypeImpl) {
+    if (oldType is! InterfaceTypeImpl && oldType is! RecordTypeImpl) {
       return;
     }
 
     var newType = rightHandSide.typeOrThrow;
     if (rightHandSide is NullLiteral) {
-      newType = oldType.withNullability(NullabilitySuffix.question);
+      if (oldType is InterfaceTypeImpl) {
+        newType = oldType.withNullability(NullabilitySuffix.question);
+      } else if (oldType is RecordTypeImpl) {
+        newType = oldType.withNullability(NullabilitySuffix.question);
+      } else {
+        return;
+      }
     } else if (!typeSystem.isAssignableTo(
         oldType, typeSystem.promoteToNonNull(newType))) {
       return;
@@ -200,13 +206,19 @@ class MakeVariableNullable extends CorrectionProducer {
     }
 
     var oldType = parent.declaredElement!.type;
-    if (oldType is! InterfaceTypeImpl) {
+    if (oldType is! InterfaceTypeImpl && oldType is! RecordTypeImpl) {
       return;
     }
 
     var newType = node.typeOrThrow;
     if (node is NullLiteral) {
-      newType = oldType.withNullability(NullabilitySuffix.question);
+      if (oldType is InterfaceTypeImpl) {
+        newType = oldType.withNullability(NullabilitySuffix.question);
+      } else if (oldType is RecordTypeImpl) {
+        newType = oldType.withNullability(NullabilitySuffix.question);
+      } else {
+        return;
+      }
     } else if (!typeSystem.isAssignableTo(
         oldType, typeSystem.promoteToNonNull(newType))) {
       return;

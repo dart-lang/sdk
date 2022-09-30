@@ -304,15 +304,20 @@ inline bool IsInternalOnlyClassId(intptr_t index) {
   return index <= kLastInternalOnlyCid;
 }
 
-inline bool IsErrorClassId(intptr_t index) {
   // Make sure this function is updated when new Error types are added.
-  COMPILE_ASSERT(kApiErrorCid == kErrorCid + 1 &&
-                 kLanguageErrorCid == kErrorCid + 2 &&
-                 kUnhandledExceptionCid == kErrorCid + 3 &&
-                 kUnwindErrorCid == kErrorCid + 4 &&
-                 // Change if needed for detecting a new error added at the end.
-                 kLastInternalOnlyCid == kUnwindErrorCid);
-  return (index >= kErrorCid && index <= kUnwindErrorCid);
+static const ClassId kFirstErrorCid = kErrorCid;
+static const ClassId kLastErrorCid = kUnwindErrorCid;
+COMPILE_ASSERT(kFirstErrorCid == kErrorCid &&
+               kApiErrorCid == kFirstErrorCid + 1 &&
+               kLanguageErrorCid == kFirstErrorCid + 2 &&
+               kUnhandledExceptionCid == kFirstErrorCid + 3 &&
+               kUnwindErrorCid == kFirstErrorCid + 4 &&
+               kLastErrorCid == kUnwindErrorCid &&
+               // Change if needed for detecting a new error added at the end.
+               kLastInternalOnlyCid == kLastErrorCid);
+
+inline bool IsErrorClassId(intptr_t index) {
+  return (index >= kFirstErrorCid && index <= kLastErrorCid);
 }
 
 inline bool IsNumberClassId(intptr_t index) {
