@@ -40,7 +40,9 @@ class ChangeTypeAnnotation extends CorrectionProducer {
       var typeNode = variableList.type;
       if (typeNode != null) {
         var newType = initializer.typeOrThrow;
-        if (newType is InterfaceType || newType is FunctionType) {
+        if (newType is InterfaceType ||
+            newType is FunctionType ||
+            newType is RecordType) {
           _oldAnnotation = displayStringForType(typeNode.typeOrThrow);
           _newAnnotation = displayStringForType(newType);
           await builder.addDartFileEdit(file, (builder) {
