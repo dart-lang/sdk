@@ -1057,7 +1057,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool get isTcp => (typeFlags & typeTcpSocket) != 0;
   bool get isUdp => (typeFlags & typeUdpSocket) != 0;
 
-  Map _toJSON(bool ref) => throw new UnimplementedError();
   String get _serviceTypePath => throw new UnimplementedError();
   String get _serviceTypeName => throw new UnimplementedError();
 
