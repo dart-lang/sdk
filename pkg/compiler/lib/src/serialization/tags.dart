@@ -70,6 +70,7 @@ enum DartTypeKind {
   functionTypeVariable,
   functionType,
   interfaceType,
+  recordType,
   dynamicType,
   erasedType,
   anyType,

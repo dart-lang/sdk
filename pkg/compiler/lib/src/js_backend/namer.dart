@@ -1541,6 +1541,14 @@ class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
   }
 
   @override
+  String visitRecordType(RecordType type, _) {
+    // TODO(49718): Test with
+    //    typedef X = (int,{String s});
+    //    print(X);
+    throw UnimplementedError();
+  }
+
+  @override
   String visitDynamicType(DynamicType type, _) => 'dynamic';
 
   @override

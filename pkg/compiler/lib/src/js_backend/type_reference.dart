@@ -786,6 +786,24 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     }
   }
 
+  @override
+  void visitRecordType(covariant RecordType type, _) {
+    if (_dagCheck(type)) return;
+    final shape = type.shape;
+    // e.g. `(int, {String foo})` -> "Record_2_int_and_String_foo"
+    _identifier('Record');
+    final fieldCount = shape.fieldCount;
+    _add('$fieldCount');
+    bool needsComma = false;
+    for (int i = 0; i < fieldCount; i++) {
+      needsComma = _comma(needsComma);
+      _visit(type.fields[i], type);
+      if (i >= shape.positionalFieldCount) {
+        _identifier(shape.fieldNames[i - shape.positionalFieldCount]);
+      }
+    }
+  }
+
   bool _dagCheck(DartType type) {
     int /*?*/ ref = _backrefs[type];
     if (ref != null) {

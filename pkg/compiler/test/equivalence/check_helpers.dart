@@ -490,6 +490,11 @@ class DartTypePrinter implements DartTypeVisitor {
   }
 
   @override
+  void visitRecordType(RecordType type, _) {
+    throw UnimplementedError();
+  }
+
+  @override
   void visitFunctionType(FunctionType type, _) {
     visit(type.returnType);
     sb.write(' Function');

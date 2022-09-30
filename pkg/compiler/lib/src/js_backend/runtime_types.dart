@@ -869,6 +869,11 @@ class ArgumentCollector extends DartTypeVisitor<void, void> {
   }
 
   @override
+  void visitRecordType(RecordType type, _) {
+    collectAll(type.fields);
+  }
+
+  @override
   void visitDynamicType(DynamicType type, _) {}
 
   @override
@@ -984,6 +989,11 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
       onClass(type.element, state: state);
     }
     visitTypes(type.typeArguments, covariantArgument(state));
+  }
+
+  @override
+  void visitRecordType(RecordType type, TypeVisitorState state) {
+    visitTypes(type.fields, covariantArgument(state));
   }
 
   @override

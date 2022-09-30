@@ -629,6 +629,11 @@ class _TypeConverter
   }
 
   @override
+  DartType visitRecordType(RecordType type, _EntityConverter converter) {
+    return _dartTypes.recordType(type.shape, visitList(type.fields, converter));
+  }
+
+  @override
   DartType visitTypeVariableType(
       TypeVariableType type, _EntityConverter converter) {
     return _dartTypes.typeVariableType(converter(type.element));

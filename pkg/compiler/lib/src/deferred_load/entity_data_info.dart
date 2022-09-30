@@ -408,6 +408,14 @@ class TypeEntityDataVisitor implements DartTypeVisitor<void, Null> {
   }
 
   @override
+  void visitRecordType(RecordType type, Null argument) {
+    visitIterable(type.fields);
+    // TODO(49718): Deferred loading could track record types to ensure that the
+    // shape predicate attached to the Rti for a shape (instanceof SomeClass)
+    // has access to the shape class.
+  }
+
+  @override
   void visitFunctionType(FunctionType type, Null argument) {
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
       visit(typeVariable.bound);
