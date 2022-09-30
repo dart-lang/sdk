@@ -446,10 +446,10 @@ class Thread : public ThreadState {
   enum {
     // Always true in generated state.
     kDidNotExit = 0,
-    // The VM exited the generated state through FFI.
+    // The VM did exit the generated state through FFI.
     // This can be true in both native and VM state.
     kExitThroughFfi = 1,
-    // The VM exited the generated state through a runtime call.
+    // The VM exited the generated state through FFI.
     // This can be true in both native and VM state.
     kExitThroughRuntimeCall = 2,
   };

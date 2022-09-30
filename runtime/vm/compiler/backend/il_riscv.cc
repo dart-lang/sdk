@@ -1629,38 +1629,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ jalr(temp1);
     }
 
-    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
-      __ Comment("Check Dart_Handle for Error.");
-      ASSERT(temp1 != CallingConventions::kReturnReg);
-      ASSERT(temp2 != CallingConventions::kReturnReg);
-      compiler::Label not_error;
-      __ LoadFromOffset(
-          temp1,
-          compiler::Address(CallingConventions::kReturnReg,
-                            compiler::target::LocalHandle::ptr_offset()));
-      __ LoadClassId(temp1, temp1);
-      __ RangeCheck(temp1, temp2, kFirstErrorCid, kLastErrorCid,
-                    compiler::AssemblerBase::kIfNotInRange, &not_error);
-
-      // Slow path, use the stub to propagate error, to save on code-size.
-      __ Comment("Slow path: call Dart_PropagateError through stub.");
-      ASSERT(CallingConventions::ArgumentRegisters[0] ==
-             CallingConventions::kReturnReg);
-      __ lx(temp1,
-            compiler::Address(
-                THR, compiler::target::Thread::
-                         call_native_through_safepoint_entry_point_offset()));
-      __ lx(target, compiler::Address(
-                        THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
-      __ jalr(temp1);
-#if defined(DEBUG)
-      // We should never return with normal controlflow from this.
-      __ ebreak();
-#endif
-
-      __ Bind(&not_error);
-    }
-
     // Refresh pinned registers values (inc. write barrier mask and null
     // object).
     __ RestorePinnedRegisters();
