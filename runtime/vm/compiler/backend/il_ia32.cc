@@ -1117,6 +1117,34 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Calls EAX within a safepoint and clobbers EBX.
     ASSERT(branch == EAX);
     __ call(temp);
+
+    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+      __ Comment("Check Dart_Handle for Error.");
+      compiler::Label not_error;
+      __ movl(temp,
+              compiler::Address(CallingConventions::kReturnReg,
+                                compiler::target::LocalHandle::ptr_offset()));
+      __ LoadClassId(temp, temp);
+      __ RangeCheck(temp, kNoRegister, kFirstErrorCid, kLastErrorCid,
+                    compiler::AssemblerBase::kIfNotInRange, &not_error);
+
+      // Slow path, use the stub to propagate error, to save on code-size.
+      __ Comment("Slow path: call Dart_PropagateError through stub.");
+      __ movl(temp,
+              compiler::Address(
+                  THR, compiler::target::Thread::
+                           call_native_through_safepoint_entry_point_offset()));
+      __ pushl(CallingConventions::kReturnReg);
+      __ movl(EAX, compiler::Address(
+                       THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
+      __ call(temp);
+#if defined(DEBUG)
+      // We should never return with normal controlflow from this.
+      __ int3();
+#endif
+
+      __ Bind(&not_error);
+    }
   }
 
   // Restore the stack when a struct by value is returned into memory pointed

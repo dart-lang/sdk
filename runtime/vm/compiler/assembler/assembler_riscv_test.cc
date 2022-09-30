@@ -6648,7 +6648,7 @@ TEST_ENCODING(intptr_t, CI4SPNImm)
 static void RangeCheck(Assembler* assembler, Register value, Register temp) {
   const Register return_reg = CallingConventions::kReturnReg;
   Label in_range;
-  __ RangeCheck(value, temp, kErrorCid, kUnwindErrorCid,
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
                 AssemblerBase::kIfInRange, &in_range);
   __ LoadImmediate(return_reg, 0);
   __ Ret();
@@ -6698,7 +6698,7 @@ ASSEMBLER_TEST_GENERATE(RangeCheckWithTempReturnValue, assembler) {
   const Register temp = CallingConventions::ArgumentRegisters[1];
   const Register return_reg = CallingConventions::kReturnReg;
   Label in_range;
-  __ RangeCheck(value, temp, kErrorCid, kUnwindErrorCid,
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
                 AssemblerBase::kIfInRange, &in_range);
   __ Bind(&in_range);
   __ MoveRegister(return_reg, value);

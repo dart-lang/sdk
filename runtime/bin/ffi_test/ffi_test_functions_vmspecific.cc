@@ -1065,6 +1065,13 @@ DART_EXPORT int64_t PropagateErrorWithoutHandle(Dart_Handle (*callback)()) {
   return 0;
 }
 
+DART_EXPORT Dart_Handle ThrowOnReturnOfError(Dart_Handle (*callback)()) {
+  Dart_Handle result = callback();
+  const bool is_error = Dart_IsError(result);
+  printf("ThrowOnReturnOfError is_error %s\n", is_error ? "true" : "false");
+  return result;
+}
+
 DART_EXPORT Dart_Handle TrueHandle() {
   return Dart_True();
 }
