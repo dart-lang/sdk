@@ -48,12 +48,24 @@ void f((int, {String foo02}) r) {
 
     assertResponseText(response, r'''
 suggestions
+  hashCode
+    kind: getter
+    returnType: int
+  runtimeType
+    kind: getter
+    returnType: Type
   $0
     kind: identifier
     returnType: int
   foo02
     kind: identifier
     returnType: String
+  toString
+    kind: methodInvocation
+    returnType: String
+  noSuchMethod
+    kind: methodInvocation
+    returnType: dynamic
 ''');
   }
 
@@ -66,12 +78,24 @@ void f(({int foo01, String foo02}) r) {
 
     assertResponseText(response, r'''
 suggestions
+  hashCode
+    kind: getter
+    returnType: int
+  runtimeType
+    kind: getter
+    returnType: Type
   foo01
     kind: identifier
     returnType: int
   foo02
     kind: identifier
     returnType: String
+  toString
+    kind: methodInvocation
+    returnType: String
+  noSuchMethod
+    kind: methodInvocation
+    returnType: dynamic
 ''');
   }
 
@@ -84,12 +108,24 @@ void f((int, String) r) {
 
     assertResponseText(response, r'''
 suggestions
+  hashCode
+    kind: getter
+    returnType: int
+  runtimeType
+    kind: getter
+    returnType: Type
   $0
     kind: identifier
     returnType: int
   $1
     kind: identifier
     returnType: String
+  toString
+    kind: methodInvocation
+    returnType: String
+  noSuchMethod
+    kind: methodInvocation
+    returnType: dynamic
 ''');
   }
 }

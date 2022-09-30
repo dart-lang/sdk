@@ -92,6 +92,9 @@ class TypeMemberContributor extends DartCompletionContributor {
           mixins: mixins, superclassConstraints: superclassConstraints);
     } else if (type is RecordType) {
       _suggestFromRecordType(type);
+      var memberBuilder = _SuggestionBuilder(request, builder);
+      memberBuilder.buildSuggestions(request.objectType as InterfaceType,
+          mixins: mixins, superclassConstraints: superclassConstraints);
     }
   }
 
