@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -583,14 +584,16 @@ BinaryPattern
   }
 
   test_typed_named_as_inside_logicalOr_left() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case int as | 2:
       break;
   }
 }
-''');
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 45, 1),
+    ]);
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
@@ -613,14 +616,16 @@ BinaryPattern
   }
 
   test_typed_named_as_inside_logicalOr_right() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case 1 | int as:
       break;
   }
 }
-''');
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 36, 1),
+    ]);
     final node = findNode.switchPatternCase('case').pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern

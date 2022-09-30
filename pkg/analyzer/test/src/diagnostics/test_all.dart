@@ -452,6 +452,7 @@ import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
 import 'missing_size_annotation_carray_test.dart'
     as missing_size_annotation_carray;
+import 'missing_variable_pattern_test.dart' as missing_variable_pattern;
 import 'mixin_application_concrete_super_invoked_member_type_test.dart'
     as mixin_application_concrete_super_invoked_member_type;
 import 'mixin_application_no_concrete_super_invoked_member_test.dart'
@@ -1099,6 +1100,7 @@ main() {
     missing_required_param.main();
     missing_return.main();
     missing_size_annotation_carray.main();
+    missing_variable_pattern.main();
     mixin_application_concrete_super_invoked_member_type.main();
     mixin_application_no_concrete_super_invoked_member.main();
     mixin_application_not_implemented_interface.main();

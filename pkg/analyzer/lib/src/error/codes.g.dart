@@ -2726,6 +2726,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the variable pattern
+  static const CompileTimeErrorCode MISSING_VARIABLE_PATTERN =
+      CompileTimeErrorCode(
+    'MISSING_VARIABLE_PATTERN',
+    "Variable pattern '{0}' is missing in this branch of the logical-or "
+        "pattern.",
+    correctionMessage: "Try declaring this variable pattern in the branch.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the class that appears in both "extends" and "with" clauses
   static const CompileTimeErrorCode MIXINS_SUPER_CLASS = CompileTimeErrorCode(
     'IMPLEMENTS_SUPER_CLASS',
