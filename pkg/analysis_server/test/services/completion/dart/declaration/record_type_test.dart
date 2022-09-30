@@ -39,7 +39,7 @@ mixin RecordTypeTestCases on AbstractCompletionDriverTest {
     );
   }
 
-  Future<void> test_mixin() async {
+  Future<void> test_mixed() async {
     var response = await getTestCodeSuggestions('''
 void f((int, {String foo02}) r) {
   r.^
