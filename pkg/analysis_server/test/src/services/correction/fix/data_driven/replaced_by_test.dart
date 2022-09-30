@@ -37,6 +37,15 @@ class ReplacedByTest extends DataDrivenFixProcessorTest {
     );
   }
 
+  Future<void> test_defaultConstructor_defaultConstructor_removed() async {
+    await _assertReplacement(
+      _Element.defaultConstructor(isDeprecated: true, isOld: true),
+      _Element.defaultConstructor(),
+      isInvocation: true,
+      isOldRemoved: true,
+    );
+  }
+
   Future<void> test_defaultConstructor_namedConstructor() async {
     await _assertReplacement(
       _Element.defaultConstructor(isDeprecated: true, isOld: true),
@@ -798,10 +807,11 @@ class ReplacedByTest extends DataDrivenFixProcessorTest {
   Future<void> _assertReplacement(_Element oldElement, _Element newElement,
       {bool isAssignment = false,
       bool isInvocation = false,
-      bool isPrefixed = false}) async {
+      bool isPrefixed = false,
+      bool isOldRemoved = false}) async {
     assert(!(isAssignment && isInvocation));
     setPackageContent('''
-${oldElement.declaration}
+${isOldRemoved ? '' : oldElement.declaration}
 ${newElement.declaration}
 ''');
     setPackageData(_replacedBy(oldElement.kind, oldElement.components,
@@ -826,15 +836,23 @@ void g() {
 ''');
       return;
     }
-    await resolveTestCode('''
-import '$importUri'$prefixDeclaration;
 
-var x = $prefixReference${oldElement.reference}$invocation;
+    var import = "import '$importUri'$prefixDeclaration;";
+    //TODO(asashour) inserting imports should remove initial blank lines
+    var oldImport = isOldRemoved
+        ? ''
+        : '''
+$import
+''';
+    var newImport = '''
+$import${isOldRemoved ? '\n' : ''}
+''';
+
+    await resolveTestCode('''
+${oldImport}var x = $prefixReference${oldElement.reference}$invocation;
 ''');
     await assertHasFix('''
-import '$importUri'$prefixDeclaration;
-
-var x = $prefixReference${newElement.reference}$invocation;
+${newImport}var x = $prefixReference${newElement.reference}$invocation;
 ''');
   }
 
@@ -847,7 +865,7 @@ var x = $prefixReference${newElement.reference}$invocation;
         kind: oldKind,
         isStatic: isStatic,
         components: oldComponents);
-    var newElement2 = ElementDescriptor(
+    var newElement = ElementDescriptor(
         libraryUris: uris,
         kind: newKind,
         isStatic: isStatic,
@@ -858,7 +876,7 @@ var x = $prefixReference${newElement.reference}$invocation;
         element: oldElement,
         bulkApply: true,
         changesSelector: UnconditionalChangesSelector([
-          ReplacedBy(newElement: newElement2),
+          ReplacedBy(newElement: newElement),
         ]));
   }
 }

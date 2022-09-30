@@ -56,6 +56,16 @@ class ElementMatcher {
         }
       }
     } else if (nodeComponentCount < elementComponentCount) {
+      // The element has one more empty component
+      if (nodeComponentCount + 1 == elementComponentCount &&
+          elementComponents[0].isEmpty) {
+        for (var i = 0; i < nodeComponentCount; i++) {
+          if (elementComponents[i + 1] != components[i]) {
+            return false;
+          }
+        }
+        return true;
+      }
       // The node has fewer components, which can happen, for example, when we
       // can't figure out the class that used to define a field. We treat the
       // missing components as wildcards and match the rest.
@@ -100,11 +110,11 @@ class ElementMatcher {
   /// there are no appropriate matchers for the [node].
   static List<ElementMatcher> matchersForNode(AstNode? node, Token? nameToken) {
     if (node == null) {
-      return const <ElementMatcher>[];
+      return const [];
     }
     var importedUris = _importElementsForNode(node);
     if (importedUris == null) {
-      return const <ElementMatcher>[];
+      return const [];
     }
     var builder = _MatcherBuilder(importedUris);
     builder.buildMatchersForNode(node, nameToken);
