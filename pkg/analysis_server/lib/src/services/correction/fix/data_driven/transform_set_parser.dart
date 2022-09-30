@@ -162,13 +162,6 @@ class TransformSetParser {
     return _translateTransformSet(map);
   }
 
-  bool _equalUris(List<Uri> oldUris, List<Uri> newUris) {
-    var oldSet = oldUris.toSet();
-    var newSet = newUris.toSet();
-    return oldSet.difference(newSet).isEmpty &&
-        newSet.difference(oldSet).isEmpty;
-  }
-
   /// Convert the given [template] into a list of components. Variable
   /// references in the template are looked up in the map of [generators].
   List<TemplateComponent> _extractTemplateComponents(
@@ -877,10 +870,6 @@ class TransformSetParser {
     }
     var oldElement = elementBeingTransformed;
     if (oldElement != null) {
-      if (!_equalUris(oldElement.libraryUris, newElement.libraryUris)) {
-        _reportError(TransformSetErrorCode.unsupportedUriChange,
-            (node.valueAt(_newElementKey) as YamlMap).valueAt(_urisKey)!);
-      }
       var compatibleTypes = compatibleReplacementTypes[oldElement.kind];
       if (compatibleTypes == null) {
         _reportError(
