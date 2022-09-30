@@ -113,7 +113,9 @@ class AddTypeAnnotation extends CorrectionProducer {
       return;
     }
     var type = declaredIdentifier.declaredElement!.type;
-    if (type is! InterfaceType && type is! FunctionType) {
+    if (type is! InterfaceType &&
+        type is! FunctionType &&
+        type is! RecordType) {
       return;
     }
     await _applyChange(builder, declaredIdentifier.keyword,
@@ -132,7 +134,9 @@ class AddTypeAnnotation extends CorrectionProducer {
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden
     // method.
-    if (type is! InterfaceType) {
+    if (type is! InterfaceType &&
+//        type is! FunctionType &&
+        type is! RecordType) {
       return;
     }
     await _applyChange(builder, null, name.offset, type);
@@ -162,7 +166,8 @@ class AddTypeAnnotation extends CorrectionProducer {
       }
     }
     if ((type is! InterfaceType || type.isDartCoreNull) &&
-        type is! FunctionType) {
+        type is! FunctionType &&
+        type is! RecordType) {
       return;
     }
     await _applyChange(builder, declarationList.keyword, variable.offset, type);

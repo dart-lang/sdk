@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-//import 'dart:_internal' show ClassID;
+part of 'core_patch.dart';
 
 // Representation of runtime types. Code in this file should avoid using `is` or
 // `as` entirely to avoid a dependency on any inline type checks.

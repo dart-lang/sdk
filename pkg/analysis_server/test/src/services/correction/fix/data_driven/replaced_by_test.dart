@@ -883,6 +883,39 @@ ${newImport}var x = $prefixReference${newElement.reference}$invocation;
 
 @reflectiveTest
 class ReplacedByUriSemanticsTest extends DataDrivenFixProcessorTest {
+  Future<void> test_different_uris() async {
+    setPackageContent('''
+@deprecated
+double oldSin(num n) => 1;
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace with different uri'
+    date: 2022-09-28
+    element:
+      uris: ['$importUri']
+      function: 'oldSin'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['dart:math']
+          function: 'sin'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+var x = oldSin(1);
+''');
+    await assertHasFix('''
+import 'dart:math';
+
+import '$importUri';
+
+var x = sin(1);
+''');
+  }
+
   Future<void> test_new_element_uris_multiple() async {
     setPackageContent('');
     newFile('$workspaceRootPath/p/lib/expect.dart', '''
@@ -894,7 +927,7 @@ export 'expect.dart';
     addPackageDataFile('''
 version: 1
 transforms:
-  - title:  'Replace expect'
+  - title: 'Replace expect'
     date: 2022-05-12
     bulkApply: false
     element:
@@ -928,7 +961,7 @@ f() {
     addPackageDataFile('''
 version: 1
 transforms:
-  - title:  'Replace expect'
+  - title: 'Replace expect'
     date: 2022-05-12
     bulkApply: false
     element:

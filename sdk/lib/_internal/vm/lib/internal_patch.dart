@@ -14,9 +14,9 @@ import "dart:isolate" show SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
 
 /// These are the additional parts of this patch library:
-// part "class_id_fasta.dart";
-// part "print_patch.dart";
-// part "symbol_patch.dart";
+part "class_id_fasta.dart";
+part "print_patch.dart";
+part "symbol_patch.dart";
 
 // On the VM, we don't make the entire legacy weak mode check
 // const to avoid having a constant in the platform libraries

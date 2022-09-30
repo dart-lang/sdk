@@ -164,14 +164,6 @@ class TransformSetErrorCode extends ErrorCode {
   /**
    * No parameters.
    */
-  static const TransformSetErrorCode unsupportedUriChange = TransformSetErrorCode(
-      'unsupported_uri_change',
-      "The set of URIs for the replacement element must match the transformed "
-          "element.");
-
-  /**
-   * No parameters.
-   */
   static const TransformSetErrorCode unsupportedVersion = TransformSetErrorCode(
       'unsupported_version', "Only version '1' is supported at this time.");
 

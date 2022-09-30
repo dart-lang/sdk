@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 // Much of this patch file is similar to the VM `string_patch.dart`. It may make
 // sense to share some of the code when the patching mechanism supports patching

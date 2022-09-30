@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "core_patch.dart";
+part of "core_patch.dart";
 
 // This function takes care of rehashing of the expandos in [objects]. We
 // do this eagerly after snapshot deserialization.

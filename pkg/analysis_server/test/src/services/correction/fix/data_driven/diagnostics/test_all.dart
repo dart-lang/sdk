@@ -24,7 +24,6 @@ import 'unexpected_token_test.dart' as unexpected_token;
 import 'unknown_accessor_test.dart' as unknown_accessor;
 import 'unsupported_key_test.dart' as unsupported_key;
 import 'unsupported_static_test.dart' as unsupported_static;
-import 'unsupported_uri_change_test.dart' as unsupported_uri_change;
 import 'unsupported_version_test.dart' as unsupported_version;
 import 'wrong_token_test.dart' as wrong_token;
 import 'yaml_syntax_error_test.dart' as yaml_syntax_error;
@@ -51,7 +50,6 @@ void main() {
     unknown_accessor.main();
     unsupported_key.main();
     unsupported_static.main();
-    unsupported_uri_change.main();
     unsupported_version.main();
     wrong_token.main();
     yaml_syntax_error.main();

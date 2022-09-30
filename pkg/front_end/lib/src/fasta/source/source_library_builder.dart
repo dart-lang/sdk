@@ -799,7 +799,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
     parts.add(loader.read(resolvedUri, charOffset,
-        fileUri: newFileUri, accessor: this));
+        origin: isPatch ? origin : null, fileUri: newFileUri, accessor: this));
     partOffsets.add(charOffset);
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
