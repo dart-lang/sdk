@@ -16,7 +16,7 @@ import "dart:collection" show HashMap;
 import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
 
 /// These are the additional parts of this patch library:
-// part "timer_impl.dart";
+part "timer_impl.dart";
 
 @patch
 class ReceivePort {

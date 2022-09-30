@@ -52,6 +52,8 @@ import 'dart:_internal' show patch, scheduleCallback, unsafeCastOpaque;
 
 import 'dart:wasm';
 
+part 'timer_patch.dart';
+
 @pragma("wasm:entry-point")
 Future<T> _asyncHelper<T>(WasmDataRef args) {
   Completer<T> completer = Completer();

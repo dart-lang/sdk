@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// part of "internal_patch.dart";
+part of "internal_patch.dart";
 
 // TODO(49531): This file is nearly identical to the VM's
 // symbol_patch.dart, with the exception of the added pragma on `const Symbol`.

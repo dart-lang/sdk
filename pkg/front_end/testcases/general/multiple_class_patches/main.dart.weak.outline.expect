@@ -9,16 +9,6 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/multiple_class_patches/patch_lib2.dart:9:7: Error: 'Class' is already declared in this scope.
-// class Class {
-//       ^^^^^
-// pkg/front_end/testcases/general/multiple_class_patches/patch_lib1.dart:9:7: Context: Previous declaration of 'Class'.
-// class Class {
-//       ^^^^^
-//
 import self as self2;
 import "dart:_internal" as _in;
 import "dart:core" as core;
@@ -27,33 +17,25 @@ import "dart:_internal";
 import "dart:_internal";
 
 @_in::patch
-class Class#1#1 extends core::Object { // from org-dartlang-testcase:///patch_lib2.dart
-  synthetic constructor •() → self2::Class#1#1
-    ;
-  @_in::patch
-  method method2() → core::int
-    ;
-  @_in::patch
-  method method3() → core::int
-    ;
-}
 @_in::patch
 class Class extends core::Object {
   synthetic constructor •() → self2::Class
     ;
   @_in::patch
   external method method1() → core::int;
+  @_in::patch
   external method method2() → core::int;
+  @_in::patch
   @_in::patch
   external method method3() → core::int;
 }
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib2.dart:8:2 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib2.dart:10:4 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib2.dart:13:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:23 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:23 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:20 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:20 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 6, effectively constant: 6
