@@ -188,6 +188,18 @@ Object? dartify(Object? object) {
     if (convertedObjects.containsKey(o)) {
       return convertedObjects[o];
     }
+
+    // Because [List] needs to be shallowly converted across the interop
+    // boundary, we have to double check for the case where a shallowly
+    // converted [List] is passed back into [dartify].
+    if (o is List) {
+      List<Object?> converted = [];
+      for (final item in o) {
+        converted.add(convert(item));
+      }
+      return converted;
+    }
+
     if (o is! JSValue) {
       return o;
     }

@@ -217,6 +217,10 @@ void deepConversionsTest() {
         10004.888]);
     globalThis.arrayBuffer = globalThis.uint8Array.buffer;
     globalThis.dataView = new DataView(globalThis.arrayBuffer);
+    globalThis.implicitExplicit = [
+      {'foo': 'bar'},
+      [1, 2, 3, {'baz': 'boo'}],
+    ];
   ''');
   Object gt = globalThis;
   Expect.isNull(getProperty(gt, 'a'));
@@ -264,6 +268,18 @@ void deepConversionsTest() {
   // Confirm a function that takes a roundtrip remains a function.
   Expect.equals('hello world',
       callMethod(gt, 'invoke', <Object?>[dartify(getProperty(gt, 'f'))]));
+
+  // Confirm arrays, which need to be converted implicitly, are still
+  // recursively converted by dartify when desired.
+  _expectIterableEquals([
+    {'foo': 'bar'},
+    [
+      1,
+      2,
+      3,
+      {'baz': 'boo'}
+    ],
+  ], dartify(getProperty(globalThis, 'implicitExplicit')) as Iterable);
 }
 
 Future<void> promiseToFutureTest() async {
