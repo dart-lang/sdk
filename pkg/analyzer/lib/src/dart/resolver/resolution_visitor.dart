@@ -1134,10 +1134,45 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSwitchPatternCase(SwitchPatternCase node) {
-    _withPatternContext(() {
-      super.visitSwitchPatternCase(node);
-    });
+  void visitSwitchStatement(SwitchStatement node) {
+    node.expression.accept(this);
+
+    void visitGroup(List<SwitchMember> members) {
+      _withPatternContext(() {
+        final patternContext = _patternContext!;
+        var startedAlternatives = false;
+        for (final member in members) {
+          if (member is SwitchPatternCaseImpl) {
+            if (!startedAlternatives) {
+              patternContext.binder.startAlternatives();
+              startedAlternatives = true;
+            }
+            patternContext.binder.startAlternative(member.pattern);
+          }
+          member.accept(this);
+          if (member is SwitchPatternCaseImpl) {
+            patternContext.binder.finishAlternative();
+          }
+        }
+        if (startedAlternatives) {
+          patternContext.binder.finishAlternatives();
+        }
+        members.last.statements.accept(this);
+      });
+    }
+
+    var group = <SwitchMember>[];
+    for (final member in node.members) {
+      group.add(member);
+      if (member.statements.isNotEmpty) {
+        visitGroup(group);
+        group = <SwitchMember>[];
+      }
+    }
+
+    if (group.isNotEmpty) {
+      visitGroup(group);
+    }
   }
 
   @override

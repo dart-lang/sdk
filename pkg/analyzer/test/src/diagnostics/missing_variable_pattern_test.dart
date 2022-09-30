@@ -15,6 +15,61 @@ main() {
 
 @reflectiveTest
 class MissingVariablePatternTest extends PatternsResolutionTest {
+  test_ifCase_differentStatements_nested() async {
+    await assertNoErrorsInCode(r'''
+void f(int x) {
+  if (x case final a) {
+    if (x case final b) {}
+  }
+}
+''');
+
+    final node1 = findNode.caseClause('case final a').pattern;
+    assertResolvedNodeText(node1, r'''
+VariablePattern
+  keyword: final
+  name: a
+  declaredElement: hasImplicitType isFinal a@35
+    type: int
+''');
+
+    final node2 = findNode.caseClause('case final b').pattern;
+    assertResolvedNodeText(node2, r'''
+VariablePattern
+  keyword: final
+  name: b
+  declaredElement: hasImplicitType isFinal b@61
+    type: int
+''');
+  }
+
+  test_ifCase_differentStatements_sibling() async {
+    await assertNoErrorsInCode(r'''
+void f(int x) {
+  if (x case final a) {}
+  if (x case final b) {}
+}
+''');
+
+    final node1 = findNode.caseClause('case final a').pattern;
+    assertResolvedNodeText(node1, r'''
+VariablePattern
+  keyword: final
+  name: a
+  declaredElement: hasImplicitType isFinal a@35
+    type: int
+''');
+
+    final node2 = findNode.caseClause('case final b').pattern;
+    assertResolvedNodeText(node2, r'''
+VariablePattern
+  keyword: final
+  name: b
+  declaredElement: hasImplicitType isFinal b@60
+    type: int
+''');
+  }
+
   test_ifCase_logicalOr2_both_direct() async {
     await assertNoErrorsInCode(r'''
 void f(int x) {
@@ -320,6 +375,170 @@ BinaryPattern
     name: a
     declaredElement: hasImplicitType isFinal a@43
       type: int
+''');
+  }
+
+  test_switchStatement_case1_logicalOr2_both() async {
+    await assertNoErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case final a | final a:
+      return;
+  }
+}
+''');
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+BinaryPattern
+  leftOperand: VariablePattern
+    keyword: final
+    name: a
+    declaredElement: hasImplicitType isFinal a@46
+      type: int
+  operator: |
+  rightOperand: VariablePattern
+    keyword: final
+    name: a
+    declaredElement: a@46
+''');
+  }
+
+  test_switchStatement_case1_logicalOr2_left() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case final a | 2:
+      return;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 50, 1),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+BinaryPattern
+  leftOperand: VariablePattern
+    keyword: final
+    name: a
+    declaredElement: hasImplicitType isFinal a@46
+      type: int
+  operator: |
+  rightOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 2
+      staticType: int
+''');
+  }
+
+  test_switchStatement_case1_logicalOr2_right() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case 1 | final a:
+      return;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
+    ]);
+    final node = findNode.switchPatternCase('case').pattern;
+    assertResolvedNodeText(node, r'''
+BinaryPattern
+  leftOperand: ConstantPattern
+    expression: IntegerLiteral
+      literal: 1
+      staticType: int
+  operator: |
+  rightOperand: VariablePattern
+    keyword: final
+    name: a
+    declaredElement: hasImplicitType isFinal a@50
+      type: int
+''');
+  }
+
+  test_switchStatement_case2_both() async {
+    await assertNoErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case /*1*/ final a:
+    case /*2*/ final a:
+      return;
+  }
+}
+''');
+
+    final node1 = findNode.switchPatternCase('case /*1*/').pattern;
+    assertResolvedNodeText(node1, r'''
+VariablePattern
+  keyword: final
+  name: a
+  declaredElement: hasImplicitType isFinal a@52
+    type: int
+''');
+
+    final node2 = findNode.switchPatternCase('case /*2*/').pattern;
+    assertResolvedNodeText(node2, r'''
+VariablePattern
+  keyword: final
+  name: a
+  declaredElement: a@52
+''');
+  }
+
+  test_switchStatement_case2_left() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case final a:
+    case 2:
+      return;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 58, 1),
+    ]);
+  }
+
+  test_switchStatement_case2_right() async {
+    await assertErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case 1:
+    case final a:
+      return;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
+    ]);
+  }
+
+  test_switchStatement_differentCases_nested() async {
+    await assertNoErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case final a:
+      switch (x) {
+        case 2:
+          return;
+      }
+      return;
+  }
+}
+''');
+  }
+
+  test_switchStatement_differentCases_sibling() async {
+    await assertNoErrorsInCode(r'''
+void f(int x) {
+  switch (x) {
+    case final a:
+      return;
+    case 2:
+      return;
+  }
+}
 ''');
   }
 }
