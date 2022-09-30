@@ -8268,7 +8268,7 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
     }
     if (class_.name == 'MyListOfList' && superclass.name == 'List') {
       return assignmentCheckerTest._myListOfListSupertype
-          .substitute({class_.typeParameters[0]: type.typeArguments[0]});
+          .substitute({class_.typeParameters[0]: type.typeArguments[0]!});
     }
     if (class_.name == 'List' && superclass.name == 'Iterable') {
       return DecoratedType(

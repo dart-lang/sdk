@@ -282,7 +282,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// (receiver) for a method, getter, or setter invocation.
   DecoratedType getOrComputeElementType(AstNode node, Element element,
       {DecoratedType? targetType, Expression? targetExpression}) {
-    Map<TypeParameterElement, DecoratedType?>? substitution;
+    Map<TypeParameterElement, DecoratedType>? substitution;
     Element? baseElement = element.declaration;
     if (targetType != null) {
       var enclosingElement = baseElement!.enclosingElement;
@@ -2214,7 +2214,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           astNode,
           type,
           left.substitute(
-              {typeParam: _variables.decoratedTypeParameterBound(typeParam)}),
+              {typeParam: _variables.decoratedTypeParameterBound(typeParam)!}),
           right,
           isLUB,
           node: node);
@@ -2227,7 +2227,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           type,
           left,
           right.substitute(
-              {typeParam: _variables.decoratedTypeParameterBound(typeParam)}),
+              {typeParam: _variables.decoratedTypeParameterBound(typeParam)!}),
           isLUB,
           node: node);
     }
@@ -2979,8 +2979,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       setType =
           _variables.decoratedElementType(setter).positionalParameters!.single;
     }
-    Map<TypeParameterElement, DecoratedType?> getterSubstitution = const {};
-    Map<TypeParameterElement, DecoratedType?> setterSubstitution = const {};
+    Map<TypeParameterElement, DecoratedType> getterSubstitution = const {};
+    Map<TypeParameterElement, DecoratedType> setterSubstitution = const {};
     if (class_ != null) {
       var getterClass = getter.enclosingElement as ClassElement;
       if (!identical(class_, getterClass)) {
