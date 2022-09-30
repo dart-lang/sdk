@@ -140,9 +140,11 @@ void deepConversionsTest() {
       ['a', 'b', 'c'], dartify(jsify(['a', 'b', 'c'])) as List<Object?>);
   _expectRecEquals(
       {
+        'null': 'foo',
+        'foo': null,
         'a': 1,
         'b': true,
-        'c': [1, 2, 3],
+        'c': [1, 2, 3, null],
         'd': 'foo',
         'e': {
           'f': 2,
@@ -150,9 +152,11 @@ void deepConversionsTest() {
         },
       },
       dartify(jsify({
+        'null': 'foo',
+        'foo': null,
         'a': 1,
         'b': true,
-        'c': [1, 2, 3],
+        'c': [1, 2, 3, null],
         'd': 'foo',
         'e': {
           'f': 2,
@@ -194,9 +198,11 @@ void deepConversionsTest() {
     globalThis.e = true;
     globalThis.f = function () { return 'hello world'; };
     globalThis.g = {
+        null: 'foo',
+        'foo': null,
         'a': 1,
         'b': true,
-        'c': [1, 2, 3],
+        'c': [1, 2, 3, null],
         'd': 'foo',
         'e': {'f': 2, 'g': [2, 4, 6]},
       };
@@ -229,9 +235,11 @@ void deepConversionsTest() {
   Expect.equals(2.5, getProperty(gt, 'd'));
   Expect.equals(true, getProperty(gt, 'e'));
   _expectRecEquals({
+    'null': 'foo',
+    'foo': null,
     'a': 1,
     'b': true,
-    'c': [1, 2, 3],
+    'c': [1, 2, 3, null],
     'd': 'foo',
     'e': {
       'f': 2,

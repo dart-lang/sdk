@@ -37,8 +37,7 @@ dynamic jsify(Object? object) {
         o is Float32List ||
         o is Float64List ||
         o is ByteBuffer ||
-        o is ByteData ||
-        o is num) {
+        o is ByteData) {
       return JSValue.box(jsifyRaw(o));
     }
 
@@ -46,9 +45,9 @@ dynamic jsify(Object? object) {
       JSValue convertedMap = newObject<JSValue>();
       convertedObjects[o] = convertedMap;
       for (final key in o.keys) {
-        JSValue convertedKey = convert(key) as JSValue;
-        setPropertyRaw(convertedMap.toExternRef(), convertedKey.toExternRef(),
-            (convert(o[key]) as JSValue).toExternRef());
+        JSValue? convertedKey = convert(key) as JSValue?;
+        setPropertyRaw(convertedMap.toExternRef(), convertedKey?.toExternRef(),
+            (convert(o[key]) as JSValue?)?.toExternRef());
       }
       return convertedMap;
     } else if (o is Iterable) {
