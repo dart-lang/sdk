@@ -1529,7 +1529,7 @@ class FixProcessor extends BaseProcessor {
         for (var multiGenerator in multiGenerators) {
           var multiProducer = multiGenerator();
           multiProducer.configure(context);
-          await for (var producer in multiProducer.producers) {
+          for (var producer in await multiProducer.producers) {
             await compute(producer);
           }
         }

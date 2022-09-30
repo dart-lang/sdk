@@ -15,28 +15,30 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrap extends MultiCorrectionProducer {
   @override
-  Stream<CorrectionProducer> get producers async* {
+  Future<List<CorrectionProducer>> get producers async {
+    var producers = <CorrectionProducer>[];
     var widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr != null) {
       var widgetType = widgetExpr.typeOrThrow;
-      yield _FlutterWrapGeneric(widgetExpr);
+      producers.add(_FlutterWrapGeneric(widgetExpr));
       if (!flutter.isExactWidgetTypeCenter(widgetType)) {
-        yield _FlutterWrapCenter(widgetExpr);
+        producers.add(_FlutterWrapCenter(widgetExpr));
       }
       if (!flutter.isExactWidgetTypeContainer(widgetType)) {
-        yield _FlutterWrapContainer(widgetExpr);
+        producers.add(_FlutterWrapContainer(widgetExpr));
       }
       if (!flutter.isExactWidgetTypePadding(widgetType)) {
-        yield _FlutterWrapPadding(widgetExpr);
+        producers.add(_FlutterWrapPadding(widgetExpr));
       }
       if (!flutter.isExactWidgetTypeSizedBox(widgetType)) {
-        yield _FlutterWrapSizedBox(widgetExpr);
+        producers.add(_FlutterWrapSizedBox(widgetExpr));
       }
     }
-    yield* _wrapMultipleWidgets();
+    await _wrapMultipleWidgets(producers);
+    return producers;
   }
 
-  Stream<CorrectionProducer> _wrapMultipleWidgets() async* {
+  Future<void> _wrapMultipleWidgets(List<CorrectionProducer> producers) async {
     var selectionRange = SourceRange(selectionOffset, selectionLength);
     var analyzer = SelectionAnalyzer(selectionRange);
     resolvedResult.unit.accept(analyzer);
@@ -84,8 +86,8 @@ class FlutterWrap extends MultiCorrectionProducer {
 
     var firstWidget = widgetExpressions.first;
     var lastWidget = widgetExpressions.last;
-    yield _FlutterWrapColumn(firstWidget, lastWidget);
-    yield _FlutterWrapRow(firstWidget, lastWidget);
+    producers.add(_FlutterWrapColumn(firstWidget, lastWidget));
+    producers.add(_FlutterWrapRow(firstWidget, lastWidget));
   }
 }
 

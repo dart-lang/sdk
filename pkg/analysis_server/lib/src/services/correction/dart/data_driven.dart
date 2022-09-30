@@ -22,7 +22,7 @@ class DataDriven extends MultiCorrectionProducer {
   static List<TransformSet>? transformSetsForTests;
 
   @override
-  Stream<CorrectionProducer> get producers async* {
+  Future<List<CorrectionProducer>> get producers async {
     var importedUris = <Uri>[];
     var library = resolvedResult.libraryElement;
     for (var importElement in library.libraryImports) {
@@ -37,7 +37,7 @@ class DataDriven extends MultiCorrectionProducer {
     var matchers = ElementMatcher.matchersForNode(node, token);
     if (matchers.isEmpty) {
       // The node doesn't represent any element that can be transformed.
-      return;
+      return const [];
     }
     var transformSet = <Transform>{};
     for (var set in _availableTransformSetsForLibrary(library)) {
@@ -48,9 +48,7 @@ class DataDriven extends MultiCorrectionProducer {
         }
       }
     }
-    for (var transform in transformSet) {
-      yield DataDrivenFix(transform);
-    }
+    return transformSet.map((transform) => DataDrivenFix(transform)).toList();
   }
 
   /// Return the transform sets that are available for fixing issues in the

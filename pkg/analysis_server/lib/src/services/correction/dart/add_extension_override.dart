@@ -11,22 +11,24 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddExtensionOverride extends MultiCorrectionProducer {
   @override
-  Stream<CorrectionProducer> get producers async* {
+  Future<List<CorrectionProducer>> get producers async {
     final node = this.node;
-    if (node is! SimpleIdentifier) return;
+    if (node is! SimpleIdentifier) return const [];
     final parent = node.parent;
-    if (parent is! PropertyAccess) return;
+    if (parent is! PropertyAccess) return const [];
     var target = parent.target;
-    if (target == null) return;
+    if (target == null) return const [];
 
     var extensions =
         libraryElement.accessibleExtensions.hasMemberWithBaseName(node.name);
+    var producers = <CorrectionProducer>[];
     for (var extension in extensions) {
       var name = extension.extension.name;
       if (name != null) {
-        yield _AddOverride(target, name);
+        producers.add(_AddOverride(target, name));
       }
     }
+    return producers;
   }
 }
 
