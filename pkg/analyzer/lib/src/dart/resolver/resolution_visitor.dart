@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -89,6 +90,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// enclosing element.
   ElementHolder _elementHolder;
 
+  _PatternContext? _patternContext;
+
   factory ResolutionVisitor({
     required CompilationUnitElementImpl unitElement,
     required AnalysisErrorListener errorListener,
@@ -172,6 +175,26 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitBinaryPattern(covariant BinaryPatternImpl node) {
+    final isOr = node.operator.type == TokenType.BAR;
+    final binder = _patternContext!.binder;
+    if (isOr) {
+      binder.startAlternatives();
+      binder.startAlternative(node.leftOperand);
+    }
+    node.leftOperand.accept(this);
+    if (isOr) {
+      binder.finishAlternative();
+      binder.startAlternative(node.rightOperand);
+    }
+    node.rightOperand.accept(this);
+    if (isOr) {
+      binder.finishAlternative();
+      binder.finishAlternatives();
+    }
+  }
+
+  @override
   void visitBlock(Block node) {
     var outerScope = _nameScope;
     try {
@@ -183,6 +206,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } finally {
       _nameScope = outerScope;
     }
+  }
+
+  @override
+  void visitCaseClause(CaseClause node) {
+    _withPatternContext(() {
+      super.visitCaseClause(node);
+    });
   }
 
   @override
@@ -1104,6 +1134,48 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSwitchStatement(SwitchStatement node) {
+    node.expression.accept(this);
+
+    void visitGroup(List<SwitchMember> members) {
+      _withPatternContext(() {
+        final patternContext = _patternContext!;
+        var startedAlternatives = false;
+        for (final member in members) {
+          if (member is SwitchPatternCaseImpl) {
+            if (!startedAlternatives) {
+              patternContext.binder.startAlternatives();
+              startedAlternatives = true;
+            }
+            patternContext.binder.startAlternative(member.pattern);
+          }
+          member.accept(this);
+          if (member is SwitchPatternCaseImpl) {
+            patternContext.binder.finishAlternative();
+          }
+        }
+        if (startedAlternatives) {
+          patternContext.binder.finishAlternatives();
+        }
+        members.last.statements.accept(this);
+      });
+    }
+
+    var group = <SwitchMember>[];
+    for (final member in node.members) {
+      group.add(member);
+      if (member.statements.isNotEmpty) {
+        visitGroup(group);
+        group = <SwitchMember>[];
+      }
+    }
+
+    if (group.isNotEmpty) {
+      visitGroup(group);
+    }
+  }
+
+  @override
   void visitTypeParameter(TypeParameter node) {
     var element = node.declaredElement as TypeParameterElementImpl;
 
@@ -1182,15 +1254,23 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitVariablePattern(covariant VariablePatternImpl node) {
     node.type?.accept(this);
 
-    if (node.name.lexeme != '_') {
-      final element = VariablePatternElementImpl(
-        node.name.lexeme,
-        node.name.offset,
-      );
+    final name = node.name.lexeme;
+    if (name != '_') {
+      final patternContext = _patternContext!;
+      var element = patternContext.variables[name];
+      if (element == null) {
+        element = VariablePatternElementImpl(
+          name,
+          node.name.offset,
+        );
+        patternContext.variables[name] = element;
+        _elementHolder.enclose(element);
+        _define(element);
+        element.isFinal = node.keyword?.keyword == Keyword.FINAL;
+        element.hasImplicitType = node.type == null;
+      }
       node.declaredElement = element;
-      _elementHolder.enclose(element);
-      element.isFinal = node.keyword?.keyword == Keyword.FINAL;
-      element.hasImplicitType = node.type == null;
+      patternContext.binder.add(node, element);
     }
   }
 
@@ -1476,6 +1556,19 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Run [f] with a new pattern variable binder.
+  void _withPatternContext(void Function() f) {
+    final saved = _patternContext;
+    try {
+      final patternContext = _PatternContext(this);
+      _patternContext = patternContext;
+      f();
+      patternContext.binder.finish();
+    } finally {
+      _patternContext = saved;
+    }
+  }
+
   /// We always build local elements for [VariableDeclarationStatement]s and
   /// [FunctionDeclarationStatement]s in blocks, because invalid code might try
   /// to use forward references.
@@ -1498,5 +1591,49 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     for (int i = 0; i < nodeCount; i++) {
       (nodes[i] as AnnotationImpl).elementAnnotation = annotations[i];
     }
+  }
+}
+
+class _PatternContext
+    implements
+        VariableBindingCallbacks<DartPatternImpl, VariablePatternElementImpl,
+            DartType>,
+        VariableBinderErrors<DartPatternImpl, VariablePatternElementImpl> {
+  final ResolutionVisitor visitor;
+  final Map<String, VariablePatternElementImpl> variables = {};
+  late final VariableBinder<DartPatternImpl, VariablePatternElementImpl,
+      DartType> binder = VariableBinder(this);
+
+  _PatternContext(this.visitor);
+
+  @override
+  VariableBinderErrors<DartPatternImpl, VariablePatternElementImpl>
+      get errors => this;
+
+  @override
+  void assertInErrorRecovery() {
+    // TODO: implement assertInErrorRecovery
+    throw UnimplementedError();
+  }
+
+  @override
+  void matchVarOverlap({
+    required DartPatternImpl pattern,
+    required DartPatternImpl previousPattern,
+  }) {
+    // TODO: implement matchVarOverlap
+    throw UnimplementedError();
+  }
+
+  @override
+  void missingMatchVar(
+    DartPatternImpl alternative,
+    VariablePatternElementImpl variable,
+  ) {
+    visitor._errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.MISSING_VARIABLE_PATTERN,
+      alternative,
+      [variable.name],
+    );
   }
 }

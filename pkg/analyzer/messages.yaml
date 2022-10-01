@@ -8373,6 +8373,12 @@ CompileTimeErrorCode:
         f(3, end: 5);
       }
       ```
+  MISSING_VARIABLE_PATTERN:
+    problemMessage: "Variable pattern '{0}' is missing in this branch of the logical-or pattern."
+    correctionMessage: "Try declaring this variable pattern in the branch."
+    comment: |-
+      Parameters:
+      0: the name of the variable pattern
   MIXINS_SUPER_CLASS:
     sharedName: IMPLEMENTS_SUPER_CLASS
     problemMessage: "'{0}' can't be used in both the 'extends' and 'with' clauses."

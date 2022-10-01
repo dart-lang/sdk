@@ -296,8 +296,6 @@ abstract class _ServiceObject {
     return __serviceId;
   }
 
-  Map _toJSON(bool ref);
-
   String get _servicePath => "$_serviceTypePath/$_serviceId";
 
   String get _serviceTypePath;
@@ -3018,7 +3016,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
   static final Map<int, _HttpConnection> _connections =
       HashMap<int, _HttpConnection>();
 
-  final /*_ServerSocket*/ _socket;
+  final Socket _socket;
   final _HttpServer _httpServer;
   final _HttpParser _httpParser;
   int _state = _IDLE;
@@ -3121,49 +3119,6 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
 
   String get _serviceTypePath => 'io/http/serverconnections';
   String get _serviceTypeName => 'HttpServerConnection';
-
-  Map _toJSON(bool ref) {
-    var name = "${_socket.address.host}:${_socket.port} <-> "
-        "${_socket.remoteAddress.host}:${_socket.remotePort}";
-    var r = <String, dynamic>{
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': name,
-      'user_name': name,
-    };
-    if (ref) {
-      return r;
-    }
-    r['server'] = _httpServer._toJSON(true);
-    try {
-      r['socket'] = _socket._toJSON(true);
-    } catch (_) {
-      r['socket'] = {
-        'id': _servicePath,
-        'type': '@Socket',
-        'name': 'UserSocket',
-        'user_name': 'UserSocket',
-      };
-    }
-    switch (_state) {
-      case _ACTIVE:
-        r['state'] = "Active";
-        break;
-      case _IDLE:
-        r['state'] = "Idle";
-        break;
-      case _CLOSING:
-        r['state'] = "Closing";
-        break;
-      case _DETACHED:
-        r['state'] = "Detached";
-        break;
-      default:
-        r['state'] = 'Unknown';
-        break;
-    }
-    return r;
-  }
 }
 
 // HTTP server waiting for socket connections.
@@ -3373,34 +3328,6 @@ class _HttpServer extends Stream<HttpRequest>
   String get _serviceTypePath => 'io/http/servers';
   String get _serviceTypeName => 'HttpServer';
 
-  Map<String, dynamic> _toJSON(bool ref) {
-    var r = <String, dynamic>{
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': '${address.host}:$port',
-      'user_name': '${address.host}:$port',
-    };
-    if (ref) {
-      return r;
-    }
-    try {
-      r['socket'] = _serverSocket._toJSON(true);
-    } catch (_) {
-      r['socket'] = {
-        'id': _servicePath,
-        'type': '@Socket',
-        'name': 'UserSocket',
-        'user_name': 'UserSocket',
-      };
-    }
-    r['port'] = port;
-    r['address'] = address.host;
-    r['active'] = _activeConnections.map((c) => c._toJSON(true)).toList();
-    r['idle'] = _idleConnections.map((c) => c._toJSON(true)).toList();
-    r['closed'] = closed;
-    return r;
-  }
-
   _HttpSessionManager? _sessionManagerInstance;
 
   // Indicated if the http server has been closed.
@@ -3589,10 +3516,6 @@ class _DetachedSocket extends Stream<Uint8List> implements Socket {
 
   void setRawOption(RawSocketOption option) {
     _socket.setRawOption(option);
-  }
-
-  Map _toJSON(bool ref) {
-    return (_socket as dynamic)._toJSON(ref);
   }
 }
 

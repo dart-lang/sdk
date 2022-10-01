@@ -3902,32 +3902,6 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_AllocateHandle));
 
-// Enables reusing `Dart_PropagateError` from `FfiCallInstr`.
-// `Dart_PropagateError` requires the native state and transitions into the VM.
-// So the flow is:
-// - FfiCallInstr (slow path)
-// - TransitionGeneratedToNative
-// - DLRT_PropagateError (this)
-// - Dart_PropagateError
-// - TransitionNativeToVM
-// - Throw
-extern "C" void DLRT_PropagateError(Dart_Handle handle) {
-  CHECK_STACK_ALIGNMENT;
-  TRACE_RUNTIME_CALL("PropagateError %p", handle);
-  ASSERT(Thread::Current()->execution_state() == Thread::kThreadInNative);
-  ASSERT(Dart_IsError(handle));
-  Dart_PropagateError(handle);
-  // We should never exit through normal control flow.
-  UNREACHABLE();
-}
-
-// Not a leaf-function, throws error.
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    PropagateError,
-    1,
-    false /* is_float */,
-    reinterpret_cast<RuntimeFunction>(&DLRT_PropagateError));
-
 #if defined(USING_MEMORY_SANITIZER)
 #define MSAN_UNPOISON_RANGE reinterpret_cast<RuntimeFunction>(&__msan_unpoison)
 #define MSAN_UNPOISON_PARAM                                                    \

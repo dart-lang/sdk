@@ -1410,12 +1410,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
           element as VariablePatternElementImpl;
           _sink.write(_indent);
           _sink.write('declaredElement: ');
-          _writeIf(element.hasImplicitType, 'hasImplicitType ');
-          _writeIf(element.isFinal, 'isFinal ');
-          _sink.writeln('${element.name}@${element.nameOffset}');
-          _withIndent(() {
-            _writeType('type', element.type);
-          });
+          if (node.name.offset == element.nameOffset) {
+            _writeIf(element.hasImplicitType, 'hasImplicitType ');
+            _writeIf(element.isFinal, 'isFinal ');
+            _sink.writeln('${element.name}@${element.nameOffset}');
+            _withIndent(() {
+              _writeType('type', element.type);
+            });
+          } else {
+            _sink.writeln('${element.name}@${element.nameOffset}');
+          }
         }
       }
     });

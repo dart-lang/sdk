@@ -47,7 +47,10 @@ class CreateLocalVariable extends CorrectionProducer {
     var prefix = utils.getNodePrefix(target);
     // compute type
     var type = inferUndefinedExpressionType(nameNode);
-    if (!(type == null || type is InterfaceType || type is FunctionType)) {
+    if (!(type == null ||
+        type is InterfaceType ||
+        type is FunctionType ||
+        type is RecordType)) {
       return;
     }
     // build variable declaration source

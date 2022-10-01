@@ -7581,7 +7581,7 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
 static void RangeCheck(Assembler* assembler, Register value, Register temp) {
   const Register return_reg = CallingConventions::kReturnReg;
   Label in_range;
-  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+  __ RangeCheck(value, temp, kErrorCid, kUnwindErrorCid,
                 AssemblerBase::kIfInRange, &in_range);
   __ LoadImmediate(return_reg, Immediate(0));
   __ Ret();
@@ -7631,7 +7631,7 @@ ASSEMBLER_TEST_GENERATE(RangeCheckWithTempReturnValue, assembler) {
   const Register temp = CallingConventions::ArgumentRegisters[1];
   const Register return_reg = CallingConventions::kReturnReg;
   Label in_range;
-  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
+  __ RangeCheck(value, temp, kErrorCid, kUnwindErrorCid,
                 AssemblerBase::kIfInRange, &in_range);
   __ Bind(&in_range);
   __ mov(return_reg, value);

@@ -1279,7 +1279,8 @@ class Handlex20 extends FfiBenchmarkBase {
 //
 // Main driver.
 //
-void main(List<String> args) {
+
+void main() {
   final benchmarks = [
     () => Uint8x01(),
     () => Uint8x01(isLeaf: true),
@@ -1326,12 +1327,7 @@ void main(List<String> args) {
     () => Handlex10(),
     () => Handlex20(),
   ];
-  final filter = args.length == 1 ? args[0] : null;
   for (final benchmark in benchmarks) {
-    final b = benchmark();
-    final run = (filter != null) ? b.name.contains(filter) : true;
-    if (run) {
-      b.report();
-    }
+    benchmark().report();
   }
 }

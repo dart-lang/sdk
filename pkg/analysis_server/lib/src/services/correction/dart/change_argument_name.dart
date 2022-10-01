@@ -17,28 +17,30 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   static const _maxDistance = 4;
 
   @override
-  Stream<CorrectionProducer> get producers async* {
+  Future<List<CorrectionProducer>> get producers async {
     var namedContext = _getNamedParameterNames();
     if (namedContext == null) {
-      return;
+      return const [];
     }
 
     var names = namedContext.names;
     if (names.isEmpty) {
-      return;
+      return const [];
     }
 
     var currentNameNode = namedContext.identifier;
     var currentName = currentNameNode.name;
 
+    var producers = <CorrectionProducer>[];
     for (var proposedName in names) {
       var distance = _computeDistance(currentName, proposedName);
       if (distance <= _maxDistance) {
         // TODO(brianwilkerson) Create a way to use the distance as part of the
         //  computation of the priority (so that closer names sort first).
-        yield _ChangeName(currentNameNode, proposedName);
+        producers.add(_ChangeName(currentNameNode, proposedName));
       }
     }
+    return producers;
   }
 
   int _computeDistance(String current, String proposal) {
