@@ -28,80 +28,7 @@ class PatternsTest extends FastaParserTestCase {
 
   late FindNode findNode;
 
-  test_boolean_literal_inside_case() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case true:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('true');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<BooleanLiteral>());
-  }
-
-  test_boolean_literal_inside_cast() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case true as Object:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('true as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
-  }
-
-  test_boolean_literal_inside_if_case() {
-    _parse('''
-test(dynamic x) {
-  if (x case true) {}
-}
-''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<BooleanLiteral>());
-  }
-
-  test_boolean_literal_inside_null_assert() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case true!:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('true!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
-  }
-
-  test_boolean_literal_inside_null_check() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case true?:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('true?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
-  }
-
-  test_cast_inside_case() {
+  test_cast_insideCase() {
     _parse('''
 test(dynamic x) {
   const y = 1;
@@ -117,7 +44,7 @@ test(dynamic x) {
     expect(castPattern.type.toString(), 'int');
   }
 
-  test_cast_inside_extractor_pattern() {
+  test_cast_insideExtractor_explicitlyNamed() {
     _parse('''
 class C {
   int? f;
@@ -134,7 +61,7 @@ test(dynamic x) {
     expect(extractorPattern.fields[0].pattern, TypeMatcher<CastPattern>());
   }
 
-  test_cast_inside_extractor_pattern_implicitly_named() {
+  test_cast_insideExtractor_implicitlyNamed() {
     _parse('''
 class C {
   int? f;
@@ -151,7 +78,7 @@ test(dynamic x) {
     expect(extractorPattern.fields[0].pattern, TypeMatcher<CastPattern>());
   }
 
-  test_cast_inside_if_case() {
+  test_cast_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case var y as int) {}
@@ -164,7 +91,7 @@ test(dynamic x) {
     expect(caseClause.pattern, TypeMatcher<CastPattern>());
   }
 
-  test_cast_inside_list_pattern() {
+  test_cast_insideList() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -178,7 +105,7 @@ test(dynamic x) {
     expect(listPattern.elements[0], TypeMatcher<CastPattern>());
   }
 
-  test_cast_inside_logical_and_lhs() {
+  test_cast_insideLogicalAnd_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -195,7 +122,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
   }
 
-  test_cast_inside_logical_and_rhs() {
+  test_cast_insideLogicalAnd_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -212,7 +139,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<CastPattern>());
   }
 
-  test_cast_inside_logical_or_lhs() {
+  test_cast_insideLogicalOr_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -229,7 +156,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
   }
 
-  test_cast_inside_logical_or_rhs() {
+  test_cast_insideLogicalOr_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -246,7 +173,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<CastPattern>());
   }
 
-  test_cast_inside_map_pattern() {
+  test_cast_insideMap() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -260,7 +187,7 @@ test(dynamic x) {
     expect(mapPattern.entries[0].value, TypeMatcher<CastPattern>());
   }
 
-  test_cast_inside_parenthesized_pattern() {
+  test_cast_insideParenthesized() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -275,21 +202,7 @@ test(dynamic x) {
     expect(parenthesizedPattern.pattern, TypeMatcher<CastPattern>());
   }
 
-  test_cast_inside_record_pattern_implicitly_named() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case (: var n as int, 2):
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("(: var n as int, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<CastPattern>());
-  }
-
-  test_cast_inside_record_pattern_named() {
+  test_cast_insideRecord_explicitlyNamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -303,7 +216,21 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<CastPattern>());
   }
 
-  test_cast_inside_record_pattern_unnamed() {
+  test_cast_insideRecord_implicitlyNamed() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case (: var n as int, 2):
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("(: var n as int, 2)");
+    var recordPattern = switchPatternCase.pattern as RecordPattern;
+    expect(recordPattern.fields[0].pattern, TypeMatcher<CastPattern>());
+  }
+
+  test_cast_insideRecord_unnamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -317,7 +244,7 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<CastPattern>());
   }
 
-  test_constant_identifier_inside_case() {
+  test_constant_identifier_unprefixed_insideCase() {
     _parse('''
 test(dynamic x) {
   const y = 1;
@@ -332,7 +259,7 @@ test(dynamic x) {
     expect(constantPattern.expression.toString(), 'y');
   }
 
-  test_constant_identifier_inside_cast() {
+  test_constant_identifier_unprefixed_insideCast() {
     _parse('''
 test(dynamic x) {
   const y = 1;
@@ -348,7 +275,7 @@ test(dynamic x) {
     expect(castPattern.type.toString(), 'Object');
   }
 
-  test_constant_identifier_inside_if_case() {
+  test_constant_identifier_unprefixed_insideIfCase() {
     _parse('''
 test(dynamic x) {
   const y = 1;
@@ -363,7 +290,7 @@ test(dynamic x) {
     expect(constantPattern.expression.toString(), 'y');
   }
 
-  test_constant_identifier_inside_null_assert() {
+  test_constant_identifier_unprefixed_insideNullAssert() {
     _parse('''
 test(dynamic x) {
   const y = 1;
@@ -379,7 +306,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '!');
   }
 
-  test_constant_identifier_inside_null_check() {
+  test_constant_identifier_unprefixed_insideNullCheck() {
     _parse('''
 test(dynamic x) {
   const y = 1;
@@ -395,80 +322,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '?');
   }
 
-  test_double_literal_inside_case() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case 1.0:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('1.0');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<DoubleLiteral>());
-  }
-
-  test_double_literal_inside_cast() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case 1.0 as Object:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('1.0 as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
-  }
-
-  test_double_literal_inside_if_case() {
-    _parse('''
-test(dynamic x) {
-  if (x case 1.0) {}
-}
-''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<DoubleLiteral>());
-  }
-
-  test_double_literal_inside_null_assert() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case 1.0!:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('1.0!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
-  }
-
-  test_double_literal_inside_null_check() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case 1.0?:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('1.0?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
-  }
-
-  test_error_recovery_after_question_suffix_in_expression() {
+  test_errorRecovery_afterQuestionSuffixInExpression() {
     // Based on co19 test `Language/Expressions/Conditional/syntax_t06.dart`.
     // Even though we now support suffix `?` in patterns, we need to make sure
     // that a suffix `?` in an expression still causes the appropriate syntax
@@ -482,60 +336,6 @@ f() {
 ''', errors: [
       error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
     ]);
-  }
-
-  test_extractor_pattern_inside_cast() {
-    _parse('''
-class C {
-  int? f;
-}
-test(dynamic x) {
-  switch (x) {
-    case C(f: 1) as Object:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: 1) as Object");
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ExtractorPattern>());
-    expect(castPattern.type.toString(), 'Object');
-  }
-
-  test_extractor_pattern_inside_null_assert() {
-    _parse('''
-class C {
-  int? f;
-}
-test(dynamic x) {
-  switch (x) {
-    case C(f: 1)!:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: 1)!");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
-  }
-
-  test_extractor_pattern_inside_null_check() {
-    _parse('''
-class C {
-  int? f;
-}
-test(dynamic x) {
-  switch (x) {
-    case C(f: 1)?:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("C(f: 1)?");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
   }
 
   test_extractor_pattern_with_type_args() {
@@ -554,7 +354,130 @@ test(dynamic x) {
     expect(extractorPattern.typeArguments.toString(), '<int>');
   }
 
-  test_extractor_pattern_with_type_args_inside_null_assert() {
+  test_extractor_prefixed_withTypeArgs_insideCase() {
+    _parse('''
+import 'dart:async' as async;
+
+test(dynamic x) {
+  switch (x) {
+    case async.Future<int>():
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("async.Future<int>()");
+    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
+    expect(extractorPattern.typeName.toString(), 'async.Future');
+    expect(extractorPattern.typeArguments.toString(), '<int>');
+  }
+
+  test_extractor_prefixed_withTypeArgs_insideCast() {
+    _parse('''
+import 'dart:async' as async;
+
+test(dynamic x) {
+  switch (x) {
+    case async.Future<int>() as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase("async.Future<int>() as Object");
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ExtractorPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_extractor_prefixed_withTypeArgs_insideNullAssert() {
+    _parse('''
+import 'dart:async' as async;
+
+test(dynamic x) {
+  switch (x) {
+    case async.Future<int>()!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("async.Future<int>()!");
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_extractor_prefixed_withTypeArgs_insideNullCheck() {
+    _parse('''
+import 'dart:async' as async;
+
+test(dynamic x) {
+  switch (x) {
+    case async.Future<int>()?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("async.Future<int>()?");
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_extractor_unprefixed_withoutTypeArgs_insideCast() {
+    _parse('''
+class C {
+  int? f;
+}
+test(dynamic x) {
+  switch (x) {
+    case C(f: 1) as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("C(f: 1) as Object");
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ExtractorPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_extractor_unprefixed_withoutTypeArgs_insideNullAssert() {
+    _parse('''
+class C {
+  int? f;
+}
+test(dynamic x) {
+  switch (x) {
+    case C(f: 1)!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("C(f: 1)!");
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_extractor_unprefixed_withoutTypeArgs_insideNullCheck() {
+    _parse('''
+class C {
+  int? f;
+}
+test(dynamic x) {
+  switch (x) {
+    case C(f: 1)?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("C(f: 1)?");
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_extractor_unprefixed_withTypeArgs_insideNullAssert() {
     _parse('''
 class C<T> {
   T? f;
@@ -572,219 +495,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '!');
   }
 
-  test_final_variable_inside_case() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case final y:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('final y');
-    var variablePattern = switchPatternCase.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
-  }
-
-  test_final_variable_inside_cast() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case final y as Object:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('y as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.type.toString(), 'Object');
-    var variablePattern = castPattern.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
-  }
-
-  test_final_variable_inside_if_case() {
-    _parse('''
-test(dynamic x) {
-  if (x case final y) {}
-}
-''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var variablePattern = caseClause.pattern as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
-  }
-
-  test_final_variable_inside_null_assert() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case final y!:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('y!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '!');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
-  }
-
-  test_final_variable_inside_null_check() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case final y?:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('y?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operator.lexeme, '?');
-    var variablePattern = postfixPattern.operand as VariablePattern;
-    expect(variablePattern.keyword!.lexeme, 'final');
-    expect(variablePattern.type, null);
-    expect(variablePattern.name.lexeme, 'y');
-  }
-
-  test_integer_literal_inside_case() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case 1:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('1');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<IntegerLiteral>());
-  }
-
-  test_integer_literal_inside_cast() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case 1 as Object:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('1 as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
-  }
-
-  test_integer_literal_inside_if_case() {
-    _parse('''
-test(dynamic x) {
-  if (x case 1) {}
-}
-''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<IntegerLiteral>());
-  }
-
-  test_integer_literal_inside_null_assert() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case 1!:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('1!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
-  }
-
-  test_integer_literal_inside_null_check() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case 1?:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('1?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
-  }
-
-  test_list_pattern_inside_case() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case [1, 2]:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('[1, 2]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.typeArguments, isNull);
-    expect(listPattern.leftBracket.lexeme, '[');
-    expect(listPattern.elements, hasLength(2));
-    expect(listPattern.elements[0].toString(), '1');
-    expect(listPattern.elements[1].toString(), '2');
-    expect(listPattern.rightBracket.lexeme, ']');
-  }
-
-  test_list_pattern_inside_case_empty() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case []:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('[]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.typeArguments, isNull);
-    expect(listPattern.leftBracket.lexeme, '[');
-    expect(listPattern.elements, isEmpty);
-    expect(listPattern.rightBracket.lexeme, ']');
-  }
-
-  test_list_pattern_inside_case_empty_whitespace() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case [ ]:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('[ ]');
-    var listPattern = switchPatternCase.pattern as ListPattern;
-    expect(listPattern.typeArguments, isNull);
-    expect(listPattern.leftBracket.lexeme, '[');
-    expect(listPattern.elements, isEmpty);
-    expect(listPattern.rightBracket.lexeme, ']');
-  }
-
-  test_list_pattern_inside_case_with_type_arguments() {
+  test_list_insideCase_typed_nonEmpty() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -803,7 +514,60 @@ test(dynamic x) {
     expect(listPattern.rightBracket.lexeme, ']');
   }
 
-  test_list_pattern_inside_cast() {
+  test_list_insideCase_untyped_empty() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case []:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('[]');
+    var listPattern = switchPatternCase.pattern as ListPattern;
+    expect(listPattern.typeArguments, isNull);
+    expect(listPattern.leftBracket.lexeme, '[');
+    expect(listPattern.elements, isEmpty);
+    expect(listPattern.rightBracket.lexeme, ']');
+  }
+
+  test_list_insideCase_untyped_emptyWithWhitespace() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case [ ]:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('[ ]');
+    var listPattern = switchPatternCase.pattern as ListPattern;
+    expect(listPattern.typeArguments, isNull);
+    expect(listPattern.leftBracket.lexeme, '[');
+    expect(listPattern.elements, isEmpty);
+    expect(listPattern.rightBracket.lexeme, ']');
+  }
+
+  test_list_insideCase_untyped_nonEmpty() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case [1, 2]:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('[1, 2]');
+    var listPattern = switchPatternCase.pattern as ListPattern;
+    expect(listPattern.typeArguments, isNull);
+    expect(listPattern.leftBracket.lexeme, '[');
+    expect(listPattern.elements, hasLength(2));
+    expect(listPattern.elements[0].toString(), '1');
+    expect(listPattern.elements[1].toString(), '2');
+    expect(listPattern.rightBracket.lexeme, ']');
+  }
+
+  test_list_insideCast() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -818,7 +582,7 @@ test(dynamic x) {
     expect(castPattern.type.toString(), 'Object');
   }
 
-  test_list_pattern_inside_null_assert() {
+  test_list_insideNullAssert() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -833,7 +597,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '!');
   }
 
-  test_list_pattern_inside_null_check() {
+  test_list_insideNullCheck() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -848,7 +612,372 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '?');
   }
 
-  test_logical_and_inside_if_case() {
+  test_literal_boolean_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case true:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('true');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<BooleanLiteral>());
+  }
+
+  test_literal_boolean_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case true as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('true as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_literal_boolean_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case true) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<BooleanLiteral>());
+  }
+
+  test_literal_boolean_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case true!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('true!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_literal_boolean_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case true?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('true?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_literal_double_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case 1.0:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('1.0');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<DoubleLiteral>());
+  }
+
+  test_literal_double_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case 1.0 as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('1.0 as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_literal_double_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case 1.0) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<DoubleLiteral>());
+  }
+
+  test_literal_double_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case 1.0!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('1.0!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_literal_double_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case 1.0?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('1.0?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_literal_integer_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case 1:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('1');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<IntegerLiteral>());
+  }
+
+  test_literal_integer_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case 1 as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('1 as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_literal_integer_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case 1) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<IntegerLiteral>());
+  }
+
+  test_literal_integer_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case 1!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('1!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_literal_integer_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case 1?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('1?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_literal_null_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case null:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('null');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<NullLiteral>());
+  }
+
+  test_literal_null_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case null as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('null as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_literal_null_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case null) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<NullLiteral>());
+  }
+
+  test_literal_null_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case null!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('null!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_literal_null_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case null?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('null?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_literal_string_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case "x":
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('"x"');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<StringLiteral>());
+  }
+
+  test_literal_string_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case "x" as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('"x" as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_literal_string_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case "x") {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.expression, TypeMatcher<StringLiteral>());
+  }
+
+  test_literal_string_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case "x"!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('"x"!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_literal_string_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case "x"?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('"x"?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_logicalAnd_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case int? _ & double? _) {}
@@ -862,7 +991,7 @@ test(dynamic x) {
     expect(binaryPattern.operator.lexeme, '&');
   }
 
-  test_logical_and_inside_logical_and_lhs() {
+  test_logicalAnd_insideLogicalAnd_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -879,7 +1008,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
   }
 
-  test_logical_and_inside_logical_or_lhs() {
+  test_logicalAnd_insideLogicalOr_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -896,7 +1025,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
   }
 
-  test_logical_and_inside_logical_or_rhs() {
+  test_logicalAnd_insideLogicalOr_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -913,7 +1042,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<BinaryPattern>());
   }
 
-  test_logical_or_inside_if_case() {
+  test_logicalOr_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case int? _ | double? _) {}
@@ -927,7 +1056,7 @@ test(dynamic x) {
     expect(binaryPattern.operator.lexeme, '|');
   }
 
-  test_logical_or_inside_logical_or_lhs() {
+  test_logicalOr_insideLogicalOr_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -944,47 +1073,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
   }
 
-  test_map_pattern_inside_case() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case {'a': 1, 'b': 2}:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("{'a': 1, 'b': 2}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.typeArguments, isNull);
-    expect(mapPattern.leftBracket.lexeme, '{');
-    expect(mapPattern.entries, hasLength(2));
-    expect(mapPattern.entries[0].key.toString(), "'a'");
-    expect(mapPattern.entries[0].separator.lexeme, ':');
-    expect(mapPattern.entries[0].value.toString(), '1');
-    expect(mapPattern.entries[1].key.toString(), "'b'");
-    expect(mapPattern.entries[1].separator.lexeme, ':');
-    expect(mapPattern.entries[1].value.toString(), '2');
-    expect(mapPattern.rightBracket.lexeme, '}');
-  }
-
-  test_map_pattern_inside_case_empty() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case {}:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("{}");
-    var mapPattern = switchPatternCase.pattern as MapPattern;
-    expect(mapPattern.typeArguments, isNull);
-    expect(mapPattern.leftBracket.lexeme, '{');
-    expect(mapPattern.entries, isEmpty);
-    expect(mapPattern.rightBracket.lexeme, '}');
-  }
-
-  test_map_pattern_inside_case_with_type_arguments() {
+  test_map_insideCase_typed_nonEmpty() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1008,7 +1097,47 @@ test(dynamic x) {
     expect(mapPattern.rightBracket.lexeme, '}');
   }
 
-  test_map_pattern_inside_cast() {
+  test_map_insideCase_untyped_empty() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case {}:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("{}");
+    var mapPattern = switchPatternCase.pattern as MapPattern;
+    expect(mapPattern.typeArguments, isNull);
+    expect(mapPattern.leftBracket.lexeme, '{');
+    expect(mapPattern.entries, isEmpty);
+    expect(mapPattern.rightBracket.lexeme, '}');
+  }
+
+  test_map_insideCase_untyped_nonEmpty() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case {'a': 1, 'b': 2}:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("{'a': 1, 'b': 2}");
+    var mapPattern = switchPatternCase.pattern as MapPattern;
+    expect(mapPattern.typeArguments, isNull);
+    expect(mapPattern.leftBracket.lexeme, '{');
+    expect(mapPattern.entries, hasLength(2));
+    expect(mapPattern.entries[0].key.toString(), "'a'");
+    expect(mapPattern.entries[0].separator.lexeme, ':');
+    expect(mapPattern.entries[0].value.toString(), '1');
+    expect(mapPattern.entries[1].key.toString(), "'b'");
+    expect(mapPattern.entries[1].separator.lexeme, ':');
+    expect(mapPattern.entries[1].value.toString(), '2');
+    expect(mapPattern.rightBracket.lexeme, '}');
+  }
+
+  test_map_insideCast() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1023,7 +1152,7 @@ test(dynamic x) {
     expect(castPattern.type.toString(), 'Object');
   }
 
-  test_map_pattern_inside_null_assert() {
+  test_map_insideNullAssert() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1038,7 +1167,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '!');
   }
 
-  test_map_pattern_inside_null_check() {
+  test_map_insideNullCheck() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1053,7 +1182,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '?');
   }
 
-  test_null_assert_inside_case() {
+  test_nullAssert_insideCase() {
     _parse('''
 test(dynamic x) {
   const y = 1;
@@ -1069,7 +1198,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '!');
   }
 
-  test_null_assert_inside_extractor_pattern() {
+  test_nullAssert_insideExtractor_explicitlyNamed() {
     _parse('''
 class C {
   int? f;
@@ -1086,7 +1215,7 @@ test(dynamic x) {
     expect(extractorPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_assert_inside_extractor_pattern_implicitly_named() {
+  test_nullAssert_insideExtractor_implicitlyNamed() {
     _parse('''
 class C {
   int? f;
@@ -1103,7 +1232,7 @@ test(dynamic x) {
     expect(extractorPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_assert_inside_if_case() {
+  test_nullAssert_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case var y!) {}
@@ -1116,7 +1245,7 @@ test(dynamic x) {
     expect(caseClause.pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_assert_inside_list_pattern() {
+  test_nullAssert_insideList() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1130,7 +1259,7 @@ test(dynamic x) {
     expect(listPattern.elements[0], TypeMatcher<PostfixPattern>());
   }
 
-  test_null_assert_inside_logical_and_lhs() {
+  test_nullAssert_insideLogicalAnd_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1146,7 +1275,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
   }
 
-  test_null_assert_inside_logical_and_rhs() {
+  test_nullAssert_insideLogicalAnd_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1162,7 +1291,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_assert_inside_logical_or_lhs() {
+  test_nullAssert_insideLogicalOr_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1178,7 +1307,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
   }
 
-  test_null_assert_inside_logical_or_rhs() {
+  test_nullAssert_insideLogicalOr_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1194,7 +1323,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_assert_inside_map_pattern() {
+  test_nullAssert_insideMap() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1208,7 +1337,7 @@ test(dynamic x) {
     expect(mapPattern.entries[0].value, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_assert_inside_parenthesized_pattern() {
+  test_nullAssert_insideParenthesized() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1223,21 +1352,7 @@ test(dynamic x) {
     expect(parenthesizedPattern.pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_assert_inside_record_pattern_implicitly_named() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case (: var n!, 2):
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("(: var n!, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
-  }
-
-  test_null_assert_inside_record_pattern_named() {
+  test_nullAssert_insideRecord_explicitlyNamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1251,7 +1366,21 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_assert_inside_record_pattern_unnamed() {
+  test_nullAssert_insideRecord_implicitlyNamed() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case (: var n!, 2):
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("(: var n!, 2)");
+    var recordPattern = switchPatternCase.pattern as RecordPattern;
+    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+  }
+
+  test_nullAssert_insideRecord_unnamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1265,7 +1394,7 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_case() {
+  test_nullCheck_insideCase() {
     _parse('''
 test(dynamic x) {
   const y = 1;
@@ -1281,7 +1410,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '?');
   }
 
-  test_null_check_inside_extractor_pattern() {
+  test_nullCheck_insideExtractor_explicitlyNamed() {
     _parse('''
 class C {
   int? f;
@@ -1298,7 +1427,7 @@ test(dynamic x) {
     expect(extractorPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_extractor_pattern_implicitly_named() {
+  test_nullCheck_insideExtractor_implicitlyNamed() {
     _parse('''
 class C {
   int? f;
@@ -1315,7 +1444,7 @@ test(dynamic x) {
     expect(extractorPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_if_case() {
+  test_nullCheck_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case var y?) {}
@@ -1328,7 +1457,7 @@ test(dynamic x) {
     expect(caseClause.pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_list_pattern() {
+  test_nullCheck_insideList() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1342,7 +1471,7 @@ test(dynamic x) {
     expect(listPattern.elements[0], TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_logical_and_lhs() {
+  test_nullCheck_insideLogicalAnd_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1358,7 +1487,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
   }
 
-  test_null_check_inside_logical_and_rhs() {
+  test_nullCheck_insideLogicalAnd_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1374,7 +1503,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_logical_or_lhs() {
+  test_nullCheck_insideLogicalOr_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1390,7 +1519,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
   }
 
-  test_null_check_inside_logical_or_rhs() {
+  test_nullCheck_insideLogicalOr_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1406,7 +1535,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_map_pattern() {
+  test_nullCheck_insideMap() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1420,7 +1549,7 @@ test(dynamic x) {
     expect(mapPattern.entries[0].value, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_parenthesized_pattern() {
+  test_nullCheck_insideParenthesized() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1435,21 +1564,7 @@ test(dynamic x) {
     expect(parenthesizedPattern.pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_record_pattern_implicitly_named() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case (: var n?, 2):
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("(: var n?, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
-  }
-
-  test_null_check_inside_record_pattern_named() {
+  test_nullCheck_insideRecord_explicitlyNamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1463,7 +1578,21 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_check_inside_record_pattern_unnamed() {
+  test_nullCheck_insideRecord_implicitlyNamed() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case (: var n?, 2):
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("(: var n?, 2)");
+    var recordPattern = switchPatternCase.pattern as RecordPattern;
+    expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
+  }
+
+  test_nullCheck_insideRecord_unnamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1477,80 +1606,7 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<PostfixPattern>());
   }
 
-  test_null_literal_inside_case() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case null:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('null');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<NullLiteral>());
-  }
-
-  test_null_literal_inside_cast() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case null as Object:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('null as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
-  }
-
-  test_null_literal_inside_if_case() {
-    _parse('''
-test(dynamic x) {
-  if (x case null) {}
-}
-''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<NullLiteral>());
-  }
-
-  test_null_literal_inside_null_assert() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case null!:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('null!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
-  }
-
-  test_null_literal_inside_null_check() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case null?:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('null?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
-  }
-
-  test_parenthesized_pattern_inside_cast() {
+  test_parenthesized_insideCast() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1565,7 +1621,7 @@ test(dynamic x) {
     expect(castPattern.type.toString(), 'Object');
   }
 
-  test_parenthesized_pattern_inside_null_assert() {
+  test_parenthesized_insideNullAssert() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1580,7 +1636,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '!');
   }
 
-  test_parenthesized_pattern_inside_null_check() {
+  test_parenthesized_insideNullCheck() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1595,76 +1651,40 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '?');
   }
 
-  test_prefixed_extractor_pattern_with_type_args() {
+  test_record_insideCase_empty() {
     _parse('''
-import 'dart:async' as async;
-
 test(dynamic x) {
   switch (x) {
-    case async.Future<int>():
+    case ():
       break;
   }
 }
 ''');
-    var switchPatternCase = findNode.switchPatternCase("async.Future<int>()");
-    var extractorPattern = switchPatternCase.pattern as ExtractorPattern;
-    expect(extractorPattern.typeName.toString(), 'async.Future');
-    expect(extractorPattern.typeArguments.toString(), '<int>');
+    var switchPatternCase = findNode.switchPatternCase("()");
+    var recordPattern = switchPatternCase.pattern as RecordPattern;
+    expect(recordPattern.leftParenthesis.lexeme, '(');
+    expect(recordPattern.fields, isEmpty);
+    expect(recordPattern.rightParenthesis.lexeme, ')');
   }
 
-  test_prefixed_extractor_pattern_with_type_args_inside_cast() {
+  test_record_insideCase_oneField() {
     _parse('''
-import 'dart:async' as async;
-
 test(dynamic x) {
   switch (x) {
-    case async.Future<int>() as Object:
+    case (1,):
       break;
   }
 }
 ''');
-    var switchPatternCase =
-        findNode.switchPatternCase("async.Future<int>() as Object");
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ExtractorPattern>());
-    expect(castPattern.type.toString(), 'Object');
+    var switchPatternCase = findNode.switchPatternCase("(1,)");
+    var recordPattern = switchPatternCase.pattern as RecordPattern;
+    expect(recordPattern.leftParenthesis.lexeme, '(');
+    expect(recordPattern.fields, hasLength(1));
+    expect(recordPattern.fields[0].toString(), '1');
+    expect(recordPattern.rightParenthesis.lexeme, ')');
   }
 
-  test_prefixed_extractor_pattern_with_type_args_inside_null_assert() {
-    _parse('''
-import 'dart:async' as async;
-
-test(dynamic x) {
-  switch (x) {
-    case async.Future<int>()!:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("async.Future<int>()!");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
-  }
-
-  test_prefixed_extractor_pattern_with_type_args_inside_null_check() {
-    _parse('''
-import 'dart:async' as async;
-
-test(dynamic x) {
-  switch (x) {
-    case async.Future<int>()?:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("async.Future<int>()?");
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ExtractorPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
-  }
-
-  test_record_pattern_inside_case() {
+  test_record_insideCase_twoFIelds() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1682,40 +1702,7 @@ test(dynamic x) {
     expect(recordPattern.rightParenthesis.lexeme, ')');
   }
 
-  test_record_pattern_inside_case_empty() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case ():
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("()");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.leftParenthesis.lexeme, '(');
-    expect(recordPattern.fields, isEmpty);
-    expect(recordPattern.rightParenthesis.lexeme, ')');
-  }
-
-  test_record_pattern_inside_case_singleton() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case (1,):
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("(1,)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.leftParenthesis.lexeme, '(');
-    expect(recordPattern.fields, hasLength(1));
-    expect(recordPattern.fields[0].toString(), '1');
-    expect(recordPattern.rightParenthesis.lexeme, ')');
-  }
-
-  test_record_pattern_inside_cast() {
+  test_record_insideCast() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1730,7 +1717,7 @@ test(dynamic x) {
     expect(castPattern.type.toString(), 'Object');
   }
 
-  test_record_pattern_inside_null_assert() {
+  test_record_insideNullAssert() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1745,7 +1732,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '!');
   }
 
-  test_record_pattern_inside_null_check() {
+  test_record_insideNullCheck() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1760,7 +1747,7 @@ test(dynamic x) {
     expect(postfixPattern.operator.lexeme, '?');
   }
 
-  test_relational_inside_case_equal() {
+  test_relational_insideCase_equal() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1775,7 +1762,7 @@ test(dynamic x) {
     expect(relationalPattern.operand.toString(), '1 << 1');
   }
 
-  test_relational_inside_case_greater_than() {
+  test_relational_insideCase_greaterThan() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1790,7 +1777,7 @@ test(dynamic x) {
     expect(relationalPattern.operand.toString(), '1 << 1');
   }
 
-  test_relational_inside_case_greater_than_or_equal() {
+  test_relational_insideCase_greaterThanOrEqual() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1805,7 +1792,7 @@ test(dynamic x) {
     expect(relationalPattern.operand.toString(), '1 << 1');
   }
 
-  test_relational_inside_case_less_than() {
+  test_relational_insideCase_lessThan() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1820,7 +1807,7 @@ test(dynamic x) {
     expect(relationalPattern.operand.toString(), '1 << 1');
   }
 
-  test_relational_inside_case_less_than_or_equal() {
+  test_relational_insideCase_lessThanOrEqual() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1835,7 +1822,7 @@ test(dynamic x) {
     expect(relationalPattern.operand.toString(), '1 << 1');
   }
 
-  test_relational_inside_case_not_equal() {
+  test_relational_insideCase_notEqual() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1850,7 +1837,7 @@ test(dynamic x) {
     expect(relationalPattern.operand.toString(), '1 << 1');
   }
 
-  test_relational_inside_extractor_pattern() {
+  test_relational_insideExtractor_explicitlyNamed() {
     _parse('''
 class C {
   int? f;
@@ -1868,7 +1855,7 @@ test(dynamic x) {
         extractorPattern.fields[0].pattern, TypeMatcher<RelationalPattern>());
   }
 
-  test_relational_inside_if_case() {
+  test_relational_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case == 1) {}
@@ -1881,7 +1868,7 @@ test(dynamic x) {
     expect(caseClause.pattern, TypeMatcher<RelationalPattern>());
   }
 
-  test_relational_inside_list_pattern() {
+  test_relational_insideList() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1895,7 +1882,7 @@ test(dynamic x) {
     expect(listPattern.elements[0], TypeMatcher<RelationalPattern>());
   }
 
-  test_relational_inside_logical_and_lhs() {
+  test_relational_insideLogicalAnd_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1911,7 +1898,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
   }
 
-  test_relational_inside_logical_and_rhs() {
+  test_relational_insideLogicalAnd_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1927,7 +1914,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<RelationalPattern>());
   }
 
-  test_relational_inside_logical_or_lhs() {
+  test_relational_insideLogicalOr_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1943,7 +1930,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
   }
 
-  test_relational_inside_logical_or_rhs() {
+  test_relational_insideLogicalOr_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1959,7 +1946,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<RelationalPattern>());
   }
 
-  test_relational_inside_map_pattern() {
+  test_relational_insideMap() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1973,7 +1960,7 @@ test(dynamic x) {
     expect(mapPattern.entries[0].value, TypeMatcher<RelationalPattern>());
   }
 
-  test_relational_inside_parenthesized_pattern() {
+  test_relational_insideParenthesized() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -1988,7 +1975,7 @@ test(dynamic x) {
     expect(parenthesizedPattern.pattern, TypeMatcher<RelationalPattern>());
   }
 
-  test_relational_inside_record_pattern_named() {
+  test_relational_insideRecord_explicitlyNamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2002,7 +1989,7 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<RelationalPattern>());
   }
 
-  test_relational_inside_record_pattern_unnamed() {
+  test_relational_insideRecord_unnamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2016,80 +2003,7 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<RelationalPattern>());
   }
 
-  test_string_literal_inside_case() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case "x":
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('"x"');
-    var constantPattern = switchPatternCase.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<StringLiteral>());
-  }
-
-  test_string_literal_inside_cast() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case "x" as Object:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('"x" as Object');
-    var castPattern = switchPatternCase.pattern as CastPattern;
-    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
-    expect(castPattern.type.toString(), 'Object');
-  }
-
-  test_string_literal_inside_if_case() {
-    _parse('''
-test(dynamic x) {
-  if (x case "x") {}
-}
-''');
-    var ifStatement = findNode.ifStatement('x case');
-    expect(ifStatement.condition, same(findNode.simple('x case')));
-    var caseClause = ifStatement.caseClause!;
-    expect(caseClause, same(findNode.caseClause('case')));
-    var constantPattern = caseClause.pattern as ConstantPattern;
-    expect(constantPattern.expression, TypeMatcher<StringLiteral>());
-  }
-
-  test_string_literal_inside_null_assert() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case "x"!:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('"x"!');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '!');
-  }
-
-  test_string_literal_inside_null_check() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case "x"?:
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase('"x"?');
-    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
-    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
-    expect(postfixPattern.operator.lexeme, '?');
-  }
-
-  test_typed_final_variable_inside_case() {
+  test_variable_final_typed_insideCase() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2105,7 +2019,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_final_variable_inside_cast() {
+  test_variable_final_typed_insideCast() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2123,7 +2037,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_final_variable_inside_if_case() {
+  test_variable_final_typed_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case final int y) {}
@@ -2139,7 +2053,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_final_variable_inside_null_assert() {
+  test_variable_final_typed_insideNullAssert() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2157,7 +2071,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_final_variable_inside_null_check() {
+  test_variable_final_typed_insideNullCheck() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2175,7 +2089,93 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_variable_inside_case() {
+  test_variable_final_untyped_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case final y:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('final y');
+    var variablePattern = switchPatternCase.pattern as VariablePattern;
+    expect(variablePattern.keyword!.lexeme, 'final');
+    expect(variablePattern.type, null);
+    expect(variablePattern.name.lexeme, 'y');
+  }
+
+  test_variable_final_untyped_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case final y as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('y as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.type.toString(), 'Object');
+    var variablePattern = castPattern.pattern as VariablePattern;
+    expect(variablePattern.keyword!.lexeme, 'final');
+    expect(variablePattern.type, null);
+    expect(variablePattern.name.lexeme, 'y');
+  }
+
+  test_variable_final_untyped_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case final y) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var variablePattern = caseClause.pattern as VariablePattern;
+    expect(variablePattern.keyword!.lexeme, 'final');
+    expect(variablePattern.type, null);
+    expect(variablePattern.name.lexeme, 'y');
+  }
+
+  test_variable_final_untyped_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case final y!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('y!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operator.lexeme, '!');
+    var variablePattern = postfixPattern.operand as VariablePattern;
+    expect(variablePattern.keyword!.lexeme, 'final');
+    expect(variablePattern.type, null);
+    expect(variablePattern.name.lexeme, 'y');
+  }
+
+  test_variable_final_untyped_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case final y?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('y?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operator.lexeme, '?');
+    var variablePattern = postfixPattern.operand as VariablePattern;
+    expect(variablePattern.keyword!.lexeme, 'final');
+    expect(variablePattern.type, null);
+    expect(variablePattern.name.lexeme, 'y');
+  }
+
+  test_variable_typed_insideCase() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2191,7 +2191,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_variable_inside_cast() {
+  test_variable_typed_insideCast() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2209,7 +2209,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_variable_inside_if_case() {
+  test_variable_typed_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case int y) {}
@@ -2225,7 +2225,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_variable_inside_null_assert() {
+  test_variable_typed_insideNullAssert() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2243,7 +2243,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_variable_inside_null_check() {
+  test_variable_typed_insideNullCheck() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2261,7 +2261,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_typed_variable_named_as_inside_case() {
+  test_variable_typedNamedAs_insideCase() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2277,7 +2277,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'as');
   }
 
-  test_typed_variable_named_as_inside_cast() {
+  test_variable_typedNamedAs_insideCast() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2295,7 +2295,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'as');
   }
 
-  test_typed_variable_named_as_inside_extractor_pattern() {
+  test_variable_typedNamedAs_insideExtractor_explicitlyNamed() {
     _parse('''
 class C {
   int? f;
@@ -2312,7 +2312,7 @@ test(dynamic x) {
     expect(extractorPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
   }
 
-  test_typed_variable_named_as_inside_extractor_pattern_implicitly_named() {
+  test_variable_typedNamedAs_insideExtractor_implicitlyNamed() {
     _parse('''
 class C {
   int? f;
@@ -2329,7 +2329,7 @@ test(dynamic x) {
     expect(extractorPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
   }
 
-  test_typed_variable_named_as_inside_if_case() {
+  test_variable_typedNamedAs_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case int as) {}
@@ -2342,7 +2342,7 @@ test(dynamic x) {
     expect(caseClause.pattern, TypeMatcher<VariablePattern>());
   }
 
-  test_typed_variable_named_as_inside_list_pattern() {
+  test_variable_typedNamedAs_insideList() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2356,7 +2356,7 @@ test(dynamic x) {
     expect(listPattern.elements[0], TypeMatcher<VariablePattern>());
   }
 
-  test_typed_variable_named_as_inside_logical_and_lhs() {
+  test_variable_typedNamedAs_insideLogicalAnd_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2372,7 +2372,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
   }
 
-  test_typed_variable_named_as_inside_logical_and_rhs() {
+  test_variable_typedNamedAs_insideLogicalAnd_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2388,7 +2388,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
   }
 
-  test_typed_variable_named_as_inside_logical_or_lhs() {
+  test_variable_typedNamedAs_insideLogicalOr_lhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2404,7 +2404,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<ConstantPattern>());
   }
 
-  test_typed_variable_named_as_inside_logical_or_rhs() {
+  test_variable_typedNamedAs_insideLogicalOr_rhs() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2420,7 +2420,7 @@ test(dynamic x) {
     expect(binaryPattern.rightOperand, TypeMatcher<VariablePattern>());
   }
 
-  test_typed_variable_named_as_inside_map_pattern() {
+  test_variable_typedNamedAs_insideMap() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2434,7 +2434,7 @@ test(dynamic x) {
     expect(mapPattern.entries[0].value, TypeMatcher<VariablePattern>());
   }
 
-  test_typed_variable_named_as_inside_null_assert() {
+  test_variable_typedNamedAs_insideNullAssert() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2452,7 +2452,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'as');
   }
 
-  test_typed_variable_named_as_inside_null_check() {
+  test_variable_typedNamedAs_insideNullCheck() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2470,7 +2470,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'as');
   }
 
-  test_typed_variable_named_as_inside_parenthesized_pattern() {
+  test_variable_typedNamedAs_insideParenthesized() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2485,21 +2485,7 @@ test(dynamic x) {
     expect(parenthesizedPattern.pattern, TypeMatcher<VariablePattern>());
   }
 
-  test_typed_variable_named_as_inside_record_pattern_implicitly_named() {
-    _parse('''
-test(dynamic x) {
-  switch (x) {
-    case (: int as, 2):
-      break;
-  }
-}
-''');
-    var switchPatternCase = findNode.switchPatternCase("(: int as, 2)");
-    var recordPattern = switchPatternCase.pattern as RecordPattern;
-    expect(recordPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
-  }
-
-  test_typed_variable_named_as_inside_record_pattern_named() {
+  test_variable_typedNamedAs_insideRecord_explicitlyNamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2513,7 +2499,21 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
   }
 
-  test_typed_variable_named_as_inside_record_pattern_unnamed() {
+  test_variable_typedNamedAs_insideRecord_implicitlyNamed() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case (: int as, 2):
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase("(: int as, 2)");
+    var recordPattern = switchPatternCase.pattern as RecordPattern;
+    expect(recordPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
+  }
+
+  test_variable_typedNamedAs_insideRecord_unnamed() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2527,7 +2527,7 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<VariablePattern>());
   }
 
-  test_var_variable_inside_case() {
+  test_variable_var_insideCase() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2543,7 +2543,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_var_variable_inside_cast() {
+  test_variable_var_insideCast() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2561,7 +2561,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_var_variable_inside_if_case() {
+  test_variable_var_insideIfCase() {
     _parse('''
 test(dynamic x) {
   if (x case var y) {}
@@ -2577,7 +2577,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_var_variable_inside_null_assert() {
+  test_variable_var_insideNullAssert() {
     _parse('''
 test(dynamic x) {
   switch (x) {
@@ -2595,7 +2595,7 @@ test(dynamic x) {
     expect(variablePattern.name.lexeme, 'y');
   }
 
-  test_var_variable_inside_null_check() {
+  test_variable_var_insideNullCheck() {
     _parse('''
 test(dynamic x) {
   switch (x) {
