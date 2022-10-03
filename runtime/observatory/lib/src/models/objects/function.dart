@@ -24,7 +24,8 @@ enum FunctionKind {
   ffiTrampoline,
   stub,
   tag,
-  dynamicInvocationForwarder
+  dynamicInvocationForwarder,
+  recordFieldGetter,
 }
 
 bool isSyntheticFunction(FunctionKind? kind) {

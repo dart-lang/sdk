@@ -3339,8 +3339,10 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   // when building a dynamic closure call dispatcher, where any unboxed values
   // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
   // See FlowGraphBuilder::BuildDynamicCallVarsInit().
+  // Unboxed values are also allowed in record field getters.
   ASSERT(!RepresentationUtils::IsUnboxedInteger(rep) ||
-         function.IsDynamicClosureCallDispatcher(thread()));
+         function.IsDynamicClosureCallDispatcher(thread()) ||
+         function.IsRecordFieldGetter());
   frame_state_.Add(rep);
 }
 

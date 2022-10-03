@@ -679,6 +679,11 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
     return false;
   }
 
+  // Record field getters have no parameters to check and 'dynamic' return type.
+  if (function.IsRecordFieldGetter()) {
+    return false;
+  }
+
   // Invoke field dispatchers are dynamically generated, will invoke a getter to
   // obtain the field value and then invoke ".call()" on the result.
   // Those dynamically generated dispathers don't have proper kernel metadata

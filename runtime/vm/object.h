@@ -452,8 +452,8 @@ class Object {
   V(LocalVarDescriptors, empty_var_descriptors)                                \
   V(ExceptionHandlers, empty_exception_handlers)                               \
   V(ExceptionHandlers, empty_async_exception_handlers)                         \
-  V(Array, extractor_parameter_types)                                          \
-  V(Array, extractor_parameter_names)                                          \
+  V(Array, synthetic_getter_parameter_types)                                   \
+  V(Array, synthetic_getter_parameter_names)                                   \
   V(Sentinel, sentinel)                                                        \
   V(Sentinel, transition_sentinel)                                             \
   V(Sentinel, unknown_constant)                                                \
@@ -1685,6 +1685,8 @@ class Class : public Object {
                                       UntaggedFunction::Kind kind,
                                       bool create_if_absent) const;
 
+  FunctionPtr GetRecordFieldGetter(const String& getter_name) const;
+
   void Finalize() const;
 
   ObjectPtr Invoke(const String& selector,
@@ -1915,6 +1917,8 @@ class Class : public Object {
   FunctionPtr CreateInvocationDispatcher(const String& target_name,
                                          const Array& args_desc,
                                          UntaggedFunction::Kind kind) const;
+
+  FunctionPtr CreateRecordFieldGetter(const String& getter_name) const;
 
   // Returns the bitmap of unboxed fields
   UnboxedFieldBitmap CalculateFieldOffsets() const;
@@ -3002,6 +3006,10 @@ class Function : public Object {
     return kind() == UntaggedFunction::kNoSuchMethodDispatcher;
   }
 
+  bool IsRecordFieldGetter() const {
+    return kind() == UntaggedFunction::kRecordFieldGetter;
+  }
+
   bool IsInvokeFieldDispatcher() const {
     return kind() == UntaggedFunction::kInvokeFieldDispatcher;
   }
@@ -3093,6 +3101,7 @@ class Function : public Object {
       case UntaggedFunction::kNoSuchMethodDispatcher:
       case UntaggedFunction::kInvokeFieldDispatcher:
       case UntaggedFunction::kDynamicInvocationForwarder:
+      case UntaggedFunction::kRecordFieldGetter:
         return true;
       case UntaggedFunction::kClosureFunction:
       case UntaggedFunction::kImplicitClosureFunction:
@@ -3127,6 +3136,7 @@ class Function : public Object {
       case UntaggedFunction::kNoSuchMethodDispatcher:
       case UntaggedFunction::kInvokeFieldDispatcher:
       case UntaggedFunction::kDynamicInvocationForwarder:
+      case UntaggedFunction::kRecordFieldGetter:
         return false;
       default:
         UNREACHABLE();
@@ -3901,6 +3911,11 @@ class Function : public Object {
   COMPILE_ASSERT(kNumTagBits <=
                  (kBitsPerByte *
                   sizeof(decltype(UntaggedFunction::kind_tag_))));
+
+#define ASSERT_FUNCTION_KIND_IN_RANGE(Name)                                    \
+  COMPILE_ASSERT(UntaggedFunction::k##Name < (1 << kKindTagSize));
+  FOR_EACH_RAW_FUNCTION_KIND(ASSERT_FUNCTION_KIND_IN_RANGE)
+#undef ASSERT_FUNCTION_KIND_IN_RANGE
 
   class KindBits : public BitField<uint32_t,
                                    UntaggedFunction::Kind,
@@ -10783,6 +10798,16 @@ class Record : public Instance {
   // it depends on runtime types of values if its fields, which can be
   // quite expensive to query.
   RecordTypePtr GetRecordType() const;
+
+  // Parses positional field name and return its index,
+  // or -1 if [field_name] is not a valid positional field name.
+  static intptr_t GetPositionalFieldIndexFromFieldName(
+      const String& field_name);
+
+  // Returns index of the field with given name, or -1
+  // if such field doesn't exist.
+  // Supports positional field names ("$0", "$1", etc).
+  intptr_t GetFieldIndexByName(const String& field_name) const;
 
  private:
   void set_num_fields(intptr_t num_fields) const;

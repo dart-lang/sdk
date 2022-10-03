@@ -104,6 +104,9 @@ static FunctionPtr ResolveDynamicAnyArgsWithCustomLookup(
     // Use GetMethodExtractor instead of CreateMethodExtractor to ensure
     // nobody created method extractor since we last checked under ReadRwLocker.
     function = function.GetMethodExtractor(demangled);
+  } else if (is_getter && receiver_class.IsRecordClass() && allow_add &&
+             FLAG_lazy_dispatchers) {
+    function = receiver_class.GetRecordFieldGetter(demangled);
   }
   return function.ptr();
 }
