@@ -373,7 +373,7 @@ export 'dart:math' hide pi;
     await assertNoErrorsInCode('''
 export 'dart:math';
 ''');
-    expect(findNode.export('dart:math').element2!.exportedLibrary!.name,
+    expect(findNode.export('dart:math').element!.exportedLibrary!.name,
         'dart.math');
   }
 
@@ -422,7 +422,7 @@ import 'dart:math';
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
-    expect(findNode.import('dart:math').element2!.importedLibrary!.name,
+    expect(findNode.import('dart:math').element!.importedLibrary!.name,
         'dart.math');
   }
 
@@ -432,7 +432,7 @@ import 'dart:math' as p;
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
-    expect(findNode.import('dart:math').element2!.importedLibrary!.name,
+    expect(findNode.import('dart:math').element!.importedLibrary!.name,
         'dart.math');
   }
 
@@ -448,7 +448,7 @@ import 'lib1.dart' show v1, v2;
     ]);
     var importedVariables = findNode
         .import('lib1.dart')
-        .element2!
+        .element!
         .importedLibrary!
         .definingCompilationUnit
         .topLevelVariables;

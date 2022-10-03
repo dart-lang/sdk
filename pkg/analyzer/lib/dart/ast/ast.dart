@@ -697,6 +697,10 @@ abstract class AugmentationImportDirective implements UriBasedDirective {
   Token get augmentKeyword;
 
   @override
+  AugmentationImportElement? get element;
+
+  @Deprecated('Use element instead')
+  @override
   AugmentationImportElement? get element2;
 
   /// The token representing the 'import' keyword.
@@ -1754,6 +1758,11 @@ abstract class DefaultFormalParameter implements FormalParameter {
 abstract class Directive implements AnnotatedNode {
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
+  Element? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  @Deprecated('Use element instead')
   Element? get element2;
 }
 
@@ -1938,6 +1947,12 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 abstract class ExportDirective implements NamespaceDirective {
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
+  @override
+  LibraryExportElement? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  @Deprecated('Use element instead')
   @override
   LibraryExportElement? get element2;
 
@@ -3090,6 +3105,12 @@ abstract class ImportDirective implements NamespaceDirective {
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
   @override
+  LibraryImportElement? get element;
+
+  /// Return the element associated with this directive, or `null` if the AST
+  /// structure has not been resolved.
+  @Deprecated('Use element instead')
+  @override
   LibraryImportElement? get element2;
 
   /// The token representing the 'import' keyword.
@@ -4022,6 +4043,10 @@ abstract class ParenthesizedPattern implements DartPattern {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PartDirective implements UriBasedDirective {
+  @override
+  PartElement? get element;
+
+  @Deprecated('Use element instead')
   @override
   PartElement? get element2;
 

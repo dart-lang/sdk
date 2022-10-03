@@ -192,7 +192,7 @@ class ElementResolver {
   }
 
   void visitExportDirective(ExportDirective node) {
-    var exportElement = node.element2;
+    var exportElement = node.element;
     if (exportElement != null) {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson) Figure out whether the element can ever be
@@ -244,7 +244,7 @@ class ElementResolver {
         }
       }
     }
-    var importElement = node.element2;
+    var importElement = node.element;
     if (importElement != null) {
       // The element is null when the URI is invalid
       var library = importElement.importedLibrary;

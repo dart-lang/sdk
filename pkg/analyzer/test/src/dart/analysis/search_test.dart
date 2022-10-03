@@ -2234,7 +2234,7 @@ main() {
   V(); // nq
 }
 ''');
-    final importElement = findNode.import('show V').element2!;
+    final importElement = findNode.import('show V').element!;
     CompilationUnitElement impUnit =
         importElement.importedLibrary!.definingCompilationUnit;
     TopLevelVariableElement variable = impUnit.topLevelVariables[0];

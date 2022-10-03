@@ -71,7 +71,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _container.documentationComment = getCommentNodeRawText(
           firstDirective.documentationComment,
         );
-        var firstDirectiveMetadata = firstDirective.element2?.metadata;
+        var firstDirectiveMetadata = firstDirective.element?.metadata;
         if (firstDirectiveMetadata != null) {
           _container.metadata = firstDirectiveMetadata;
         }

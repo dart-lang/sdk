@@ -558,7 +558,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _handleUriReference(node.uri, node.element2?.exportedLibrary);
+    _handleUriReference(node.uri, node.element?.exportedLibrary);
 
     super.visitExportDirective(node);
   }
@@ -668,7 +668,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    _handleUriReference(node.uri, node.element2?.importedLibrary);
+    _handleUriReference(node.uri, node.element?.importedLibrary);
 
     // prefix
     var prefixIdentifier = node.prefix;

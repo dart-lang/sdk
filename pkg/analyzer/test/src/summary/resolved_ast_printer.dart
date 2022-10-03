@@ -130,7 +130,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('AugmentationImportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -461,7 +461,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ExportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -744,7 +744,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ImportDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -818,7 +818,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LibraryAugmentationDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -827,7 +827,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('LibraryDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -977,7 +977,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PartDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 
@@ -986,7 +986,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('PartOfDirective');
     _withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement('element', node.element2);
+      _writeElement('element', node.element);
     });
   }
 

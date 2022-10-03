@@ -192,7 +192,7 @@ class LibraryAnalyzer {
 
     for (var directive in libraryUnit.directives) {
       if (directive is PartDirective) {
-        final elementUri = directive.element2?.uri;
+        final elementUri = directive.element?.uri;
         if (elementUri is DirectiveUriWithUnit) {
           final partUnit = elementToUnit[elementUri.unit];
           if (partUnit != null) {
