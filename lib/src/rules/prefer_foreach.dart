@@ -105,12 +105,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
     var target = node.target;
     if (arguments.length == 1 &&
         arguments.first.canonicalElement == element &&
-        (target == null ||
-            target.canonicalElement != element &&
-                !target
-                    .traverseNodesInDFS()
-                    .map((e) => e.canonicalElement)
-                    .contains(element))) {
+        (target == null || !_ReferenceFinder(element).references(target))) {
       rule.reportLint(forEachStatement);
     }
   }
@@ -118,6 +113,29 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     node.unParenthesized.accept(this);
+  }
+}
+
+class _ReferenceFinder extends UnifyingAstVisitor {
+  bool found = false;
+  final LocalVariableElement? element;
+  _ReferenceFinder(this.element);
+
+  bool references(Expression target) {
+    if (target.canonicalElement == element) return true;
+
+    target.accept(this);
+    return found;
+  }
+
+  @override
+  visitNode(AstNode node) {
+    if (found) return;
+
+    found = node.canonicalElement == element;
+    if (!found) {
+      super.visitNode(node);
+    }
   }
 }
 
