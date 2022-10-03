@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
-import '../inferrer/types.dart' show GlobalTypeInferenceResults;
+import '../inferrer/types_interfaces.dart' show GlobalTypeInferenceResults;
 import '../kernel/no_such_method_resolver.dart';
 import '../serialization/serialization.dart';
 import 'no_such_method_registry_interfaces.dart' as interfaces;
@@ -52,7 +52,7 @@ import 'no_such_method_registry_interfaces.dart' as interfaces;
 
 /// Registry for collecting `noSuchMethod` implementations and categorizing them
 /// into categories `A`, `B`, `C`, `D`.
-class NoSuchMethodRegistry {
+class NoSuchMethodRegistry implements interfaces.NoSuchMethodRegistry {
   /// The implementations that fall into category A, described above.
   final Set<FunctionEntity> _defaultImpls = {};
 
@@ -82,9 +82,11 @@ class NoSuchMethodRegistry {
   NoSuchMethodResolver get internalResolverForTesting => _resolver;
 
   /// `true` if a category `B` method has been seen so far.
+  @override
   bool get hasThrowingNoSuchMethod => _throwingImpls.isNotEmpty;
 
   /// `true` if a category `D` method has been seen so far.
+  @override
   bool get hasComplexNoSuchMethod => _otherImpls.isNotEmpty;
 
   Iterable<FunctionEntity> get defaultImpls => _defaultImpls;
@@ -94,11 +96,13 @@ class NoSuchMethodRegistry {
   Iterable<FunctionEntity> get otherImpls => _otherImpls;
 
   /// Register [noSuchMethodElement].
+  @override
   void registerNoSuchMethod(FunctionEntity noSuchMethodElement) {
     _uncategorizedImpls.add(noSuchMethodElement);
   }
 
   /// Categorizes the registered methods.
+  @override
   void onQueueEmpty() {
     _uncategorizedImpls.forEach(_categorizeImpl);
     _uncategorizedImpls.clear();
@@ -235,6 +239,7 @@ class NoSuchMethodData implements interfaces.NoSuchMethodData {
   /// Now that type inference is complete, split category D into two
   /// subcategories: D1, those that have no return type, and D2, those
   /// that have a return type.
+  @override
   void categorizeComplexImplementations(GlobalTypeInferenceResults results) {
     _otherImpls.forEach((FunctionEntity element) {
       if (results.resultOfMember(element).throwsAlways) {
@@ -246,6 +251,7 @@ class NoSuchMethodData implements interfaces.NoSuchMethodData {
   }
 
   /// Emits a diagnostic about methods in categories `B`, `D1` and `D2`.
+  @override
   void emitDiagnostic(DiagnosticReporter reporter) {
     _throwingImpls.forEach((e) {
       if (!_forwardingSyntaxImpls.contains(e)) {

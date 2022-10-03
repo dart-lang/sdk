@@ -47,6 +47,35 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
   }
 
+  void test_locateRoots_excludedByOptions_directoryWithParenthesis() {
+    var rootPath = convertPath('/home/test (copy)');
+    var rootFolder = newFolder(rootPath);
+    var optionsFile = newAnalysisOptionsYamlFile(rootPath, r'''
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+''');
+    var packagesFile = newPackageConfigJsonFile(rootPath, '');
+    var fooFile = newFile('$rootPath/lib/foo.dart', '');
+    newFile('$rootPath/lib/bar.g.dart', '');
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [rootFolder.path, fooFile.path],
+    );
+    expect(roots, hasLength(1));
+
+    var root = findRoot(roots, rootFolder);
+    expect(
+      root.includedPaths,
+      unorderedEquals([rootFolder.path]),
+    );
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, optionsFile);
+    expect(root.packagesFile, packagesFile);
+
+    _assertAnalyzedFiles2(root, [optionsFile, fooFile]);
+  }
+
   void test_locateRoots_link_file_toOutOfRoot() {
     Folder rootFolder = newFolder('/home/test');
     newFile('/home/test/lib/a.dart', '');

@@ -27,7 +27,7 @@ class ContextRootImpl implements ContextRoot {
 
   /// A list of the globs for excluded files that were read from the analysis
   /// options file.
-  List<Glob> excludedGlobs = [];
+  List<LocatedGlob> excludedGlobs = [];
 
   @override
   File? optionsFile;
@@ -159,12 +159,29 @@ class ContextRootImpl implements ContextRoot {
       }
     }
 
-    for (Glob pattern in excludedGlobs) {
+    for (final pattern in excludedGlobs) {
       if (!pattern.matches(includedPath) && pattern.matches(path)) {
         return true;
       }
     }
 
+    return false;
+  }
+}
+
+/// [Glob] to apply to resources inside the [parent].
+class LocatedGlob {
+  final Folder parent;
+  final Glob glob;
+
+  LocatedGlob(this.parent, this.glob);
+
+  bool matches(String path) {
+    if (parent.contains(path)) {
+      final pathContext = parent.provider.pathContext;
+      final relativePath = pathContext.relative(path, from: parent.path);
+      return glob.matches(relativePath);
+    }
     return false;
   }
 }

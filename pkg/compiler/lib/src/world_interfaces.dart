@@ -78,7 +78,7 @@ abstract class JClosedWorld implements World {
       AbstractValueDomain abstractValueDomain);
 
   Iterable<MemberEntity> locateMembersInDomain(Selector selector,
-      AbstractValue receiver, AbstractValueDomain abstractValueDomain);
+      AbstractValue? receiver, AbstractValueDomain abstractValueDomain);
 
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y);
 

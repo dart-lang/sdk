@@ -2,22 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Note: the VM concatenates all patch files into a single patch file. This
-/// file is the first patch in "dart:collection" which contains all the imports
-/// used by patches of that library. We plan to change this when we have a
-/// shared front end and simply use parts.
-
 import "dart:_internal" as internal;
 
-import "dart:_internal" show patch, IterableElementError, ClassID;
-
-import "dart:math" show max;
-
-import "dart:typed_data" show Uint32List;
-
-/// These are the additional parts of this patch library:
-part "compact_hash.dart";
-part "hash_factories.dart";
+import "dart:_internal" show patch, IterableElementError;
 
 class _TypeTest<T> {
   bool test(v) => v is T;

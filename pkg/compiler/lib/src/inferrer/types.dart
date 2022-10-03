@@ -25,6 +25,8 @@ import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 
+import 'types_interfaces.dart' as interfaces;
+
 /// Results about a single element (e.g. a method, parameter, or field)
 /// produced by the global type-inference algorithm.
 ///
@@ -35,7 +37,8 @@ import 'abstract_value_domain.dart';
 /// implementation would return false on all boolean properties (giving no
 /// guarantees) and the `subclass of Object or null` type mask for the type
 /// based queries (the runtime value could be anything).
-abstract class GlobalTypeInferenceMemberResult {
+abstract class GlobalTypeInferenceMemberResult
+    implements interfaces.GlobalTypeInferenceMemberResult {
   /// Deserializes a [GlobalTypeInferenceMemberResult] object from [source].
   factory GlobalTypeInferenceMemberResult.readFromDataSource(
           DataSourceReader source,
@@ -55,6 +58,7 @@ abstract class GlobalTypeInferenceMemberResult {
   bool get isCalledOnce;
 
   /// Whether the method element associated with this result always throws.
+  @override
   bool get throwsAlways;
 
   /// The inferred return type when this result belongs to a function element.
@@ -114,7 +118,8 @@ abstract class TypesInferrer {
 /// closed-world semantics. Any [AbstractValue] for an element or node that we
 /// return was inferred to be a "guaranteed type", that means, it is a type that
 /// we can prove to be correct for all executions of the program.
-abstract class GlobalTypeInferenceResults {
+abstract class GlobalTypeInferenceResults
+    implements interfaces.GlobalTypeInferenceResults {
   /// Deserializes a [GlobalTypeInferenceResults] object from [source].
   factory GlobalTypeInferenceResults.readFromDataSource(
       DataSourceReader source,
@@ -139,6 +144,7 @@ abstract class GlobalTypeInferenceResults {
 
   InferredData get inferredData;
 
+  @override
   GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member);
 
   AbstractValue resultOfParameter(Local parameter);

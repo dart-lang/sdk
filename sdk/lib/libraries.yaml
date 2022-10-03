@@ -32,16 +32,22 @@ vm_common:
     collection:
       uri: "collection/collection.dart"
       patches:
-        - "_internal/vm/lib/collection_patch.dart"
+        - "_internal/vm_shared/lib/collection_patch.dart"
+        - "_internal/vm_shared/lib/compact_hash.dart"
+        - "_internal/vm/lib/hash_factories.dart"
 
     convert:
       uri: "convert/convert.dart"
-      patches: "_internal/vm/lib/convert_patch.dart"
+      patches: "_internal/vm_shared/lib/convert_patch.dart"
 
     core:
       uri: "core/core.dart"
       patches:
         - "_internal/vm/lib/core_patch.dart"
+        - "_internal/vm_shared/lib/array_patch.dart"
+        - "_internal/vm_shared/lib/bigint_patch.dart"
+        - "_internal/vm_shared/lib/bool_patch.dart"
+        - "_internal/vm_shared/lib/map_patch.dart"
 
     developer:
       uri: "developer/developer.dart"
@@ -121,15 +127,21 @@ wasm:
     collection:
       uri: collection/collection.dart
       patches:
-      - _internal/wasm/lib/collection_patch.dart
+      - _internal/vm_shared/lib/collection_patch.dart
+      - _internal/vm_shared/lib/compact_hash.dart
+      - _internal/wasm/lib/hash_factories.dart
     convert:
       uri: convert/convert.dart
-      patches: _internal/wasm/lib/convert_patch.dart
+      patches: _internal/vm_shared/lib/convert_patch.dart
     core:
       uri: core/core.dart
       patches:
       - _internal/wasm/lib/core_patch.dart
+      - _internal/vm_shared/lib/array_patch.dart
+      - _internal/vm_shared/lib/bigint_patch.dart
+      - _internal/vm_shared/lib/bool_patch.dart
       - _internal/wasm/lib/expando_patch.dart
+      - _internal/vm_shared/lib/map_patch.dart
     developer:
       uri: developer/developer.dart
       patches:

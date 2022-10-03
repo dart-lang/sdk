@@ -59,14 +59,10 @@ import "dart:ffi" show Pointer, Struct, Union, NativePort;
 
 import "dart:isolate" show Isolate, RawReceivePort;
 
-import "dart:typed_data"
-    show Endian, Uint8List, Int64List, Uint16List, Uint32List;
+import "dart:typed_data" show Uint8List, Int64List, Uint16List;
 
 /// These are the additional parts of this patch library:
 part "array.dart";
-part "array_patch.dart";
-part "bigint_patch.dart";
-part "bool_patch.dart";
 part "date_patch.dart";
 part "double.dart";
 part "double_patch.dart";
@@ -81,7 +77,6 @@ part "integers.dart";
 part "integers_patch.dart";
 part "invocation_mirror_patch.dart";
 part "lib_prefix.dart";
-part "map_patch.dart";
 part "null_patch.dart";
 part "object_patch.dart";
 part "record_patch.dart";

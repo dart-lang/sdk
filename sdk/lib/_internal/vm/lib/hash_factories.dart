@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "collection_patch.dart";
+import "dart:_internal" show patch;
+
+import "dart:typed_data" show Uint32List;
 
 // The [LinkedHashMap] and [LinkedHashSet] factory constructors return different
 // internal implementations depending on the supplied callback functions.

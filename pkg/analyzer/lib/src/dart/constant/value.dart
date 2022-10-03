@@ -2530,6 +2530,12 @@ class RecordState extends InstanceState {
   /// The values of the named fields.
   final Map<String, DartObjectImpl> namedFields;
 
+  @override
+  late final hashCode = Object.hashAll([
+    ...positionalFields,
+    ...namedFields.values,
+  ]);
+
   /// Initialize a newly created state to represent a record with the given
   /// values of [positionalFields] and [namedFields].
   RecordState(this.positionalFields, this.namedFields);
@@ -2538,47 +2544,44 @@ class RecordState extends InstanceState {
   String get typeName => 'Record';
 
   @override
-  // The behavior of `toString` is undefined.
-  StringState convertToString() => StringState.UNKNOWN_VALUE;
-
-  @override
-  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    if (rightOperand is! RecordState) {
-      return BoolState.FALSE_STATE;
+  bool operator ==(Object other) {
+    if (other is! RecordState) {
+      return false;
     }
     var positionalCount = positionalFields.length;
-    var otherPositionalFields = rightOperand.positionalFields;
+    var otherPositionalFields = other.positionalFields;
     if (otherPositionalFields.length != positionalCount) {
-      return BoolState.FALSE_STATE;
+      return false;
     }
     var namedCount = namedFields.length;
-    var otherNamedFields = rightOperand.namedFields;
+    var otherNamedFields = other.namedFields;
     if (otherNamedFields.length != namedCount) {
-      return BoolState.FALSE_STATE;
+      return false;
     }
     for (var i = 0; i < positionalCount; i++) {
-      var result = positionalFields[i]
-          .equalEqual(typeSystem, otherPositionalFields[i])
-          .state;
-      if (result is! BoolState) {
-        return BoolState.FALSE_STATE;
-      } else if (result != BoolState.TRUE_STATE) {
-        return result;
+      if (positionalFields[i] != otherPositionalFields[i]) {
+        return false;
       }
     }
     for (var entry in namedFields.entries) {
       var otherValue = otherNamedFields[entry.key];
       if (otherValue == null) {
-        return BoolState.FALSE_STATE;
+        return false;
       }
-      var result = entry.value.equalEqual(typeSystem, otherValue).state;
-      if (result is! BoolState) {
-        return BoolState.FALSE_STATE;
-      } else if (result != BoolState.TRUE_STATE) {
-        return result;
+      if (entry.value != otherValue) {
+        return false;
       }
     }
-    return BoolState.TRUE_STATE;
+    return true;
+  }
+
+  @override
+  // The behavior of `toString` is undefined.
+  StringState convertToString() => StringState.UNKNOWN_VALUE;
+
+  @override
+  BoolState equalEqual(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    return isIdentical(typeSystem, rightOperand);
   }
 
   /// Returns the value of the field with the given [name].
@@ -2593,9 +2596,8 @@ class RecordState extends InstanceState {
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
-    var equal = equalEqual(typeSystem, rightOperand);
-    if (equal == BoolState.FALSE_STATE) {
-      return equal;
+    if (this != rightOperand) {
+      return BoolState.FALSE_STATE;
     }
     return BoolState.UNKNOWN_VALUE;
   }
