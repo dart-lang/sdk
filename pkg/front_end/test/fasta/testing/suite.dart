@@ -828,18 +828,16 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
     try {
       FolderOptions folderOptions =
           context.computeFolderOptions(result.description);
-      Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
-          .computeExplicitExperimentalFlags(context.explicitExperimentalFlags);
       switch (folderOptions.target) {
         case "vm":
           if (context._platforms.isEmpty) {
             throw "Executed `Run` step before initializing the context.";
           }
           List<String> args = <String>[];
-          if (experimentalFlags[ExperimentalFlag.nonNullable] == true) {
-            if (context.soundNullSafety) {
-              args.add("--sound-null-safety");
-            }
+          if (context.soundNullSafety) {
+            args.add("--sound-null-safety");
+          } else {
+            args.add("--no-sound-null-safety");
           }
           args.add(generated.path);
           StdioProcess process =
