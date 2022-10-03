@@ -278,7 +278,7 @@ class _CascadableExpression {
   }
 }
 
-class _NodeVisitor extends GeneralizingAstVisitor {
+class _NodeVisitor extends UnifyingAstVisitor {
   final _CascadableExpression expressionBox;
 
   bool foundCriticalNode = false;
@@ -288,7 +288,6 @@ class _NodeVisitor extends GeneralizingAstVisitor {
       node.canonicalElement == expressionBox.element;
 
   bool isOrHasCriticalNode(AstNode node) {
-    if (isCriticalNode(node)) return true;
     node.accept(this);
     return foundCriticalNode;
   }
