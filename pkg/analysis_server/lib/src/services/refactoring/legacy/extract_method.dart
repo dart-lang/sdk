@@ -580,7 +580,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       var function = node?.thisOrAncestorOfType<FunctionExpression>();
       if (function != null) {
         var parameters = function.parameters;
-        if (parameters != null && range.node(parameters).contains(offset)) {
+        if (parameters != null &&
+            range.node(parameters).contains(offset) &&
+            // Don't include function declarations, only closures.
+            function.parent is! FunctionDeclaration) {
           return function;
         }
       }
@@ -955,6 +958,15 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
+  void visitFormalParameterList(FormalParameterList node) {
+    super.visitFormalParameterList(node);
+    if (_isFirstSelectedNode(node)) {
+      invalidSelection(
+          'Cannot extract a parameter list.', newLocation_fromNode(node));
+    }
+  }
+
+  @override
   void visitForParts(ForParts node) {
     node.visitChildren(this);
   }
@@ -971,6 +983,25 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
       } else if (forLoopParts.updaters.contains(lastSelectedNode)) {
         invalidSelection("Cannot extract increment part of a 'for' statement.");
       }
+    }
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    super.visitFunctionDeclaration(node);
+    if (_isFirstSelectedNode(node)) {
+      invalidSelection(
+          'Cannot extract a function declaration.', newLocation_fromNode(node));
+    }
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    super.visitFunctionExpression(node);
+    // Disallow function expressions that are part of function declarations.
+    if (_isFirstSelectedNode(node) && node.parent is FunctionDeclaration) {
+      invalidSelection(
+          'Cannot extract a function declaration.', newLocation_fromNode(node));
     }
   }
 

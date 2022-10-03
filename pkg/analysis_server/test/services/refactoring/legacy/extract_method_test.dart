@@ -406,6 +406,33 @@ void f() {
     return _assertConditionsFatal('Cannot extract an import prefix.');
   }
 
+  Future<void> test_bad_functionDeclaration_beforeParameters() async {
+    await indexTestUnit('''
+int test() => 42;
+''');
+    _createRefactoringForStringOffset('(');
+    return _assertConditionsFatal(
+        "Can only extract a single expression or a set of statements.");
+  }
+
+  Future<void> test_bad_functionDeclaration_inParameters() async {
+    await indexTestUnit('''
+int test() => 42;
+''');
+    _createRefactoringForStringOffset(')');
+    return _assertConditionsFatal(
+        "Can only extract a single expression or a set of statements.");
+  }
+
+  Future<void> test_bad_functionDeclaration_name() async {
+    await indexTestUnit('''
+int test() => 42;
+''');
+    _createRefactoringForStringOffset('st()');
+    return _assertConditionsFatal(
+        "Can only extract a single expression or a set of statements.");
+  }
+
   Future<void> test_bad_methodName_reference() async {
     await indexTestUnit('''
 void f() {
@@ -2720,6 +2747,31 @@ class A {
   void res() {
     print(0);
   }
+}
+''');
+  }
+
+  Future<void> test_statements_localFunction() async {
+    await indexTestUnit('''
+void f() {
+// start
+  void g() {}
+  g();
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f() {
+// start
+  res();
+// end
+}
+
+void res() {
+  void g() {}
+  g();
 }
 ''');
   }
