@@ -37,7 +37,8 @@ import 'types_interfaces.dart' as interfaces;
 /// implementation would return false on all boolean properties (giving no
 /// guarantees) and the `subclass of Object or null` type mask for the type
 /// based queries (the runtime value could be anything).
-abstract class GlobalTypeInferenceMemberResult {
+abstract class GlobalTypeInferenceMemberResult
+    implements interfaces.GlobalTypeInferenceMemberResult {
   /// Deserializes a [GlobalTypeInferenceMemberResult] object from [source].
   factory GlobalTypeInferenceMemberResult.readFromDataSource(
           DataSourceReader source,
@@ -57,6 +58,7 @@ abstract class GlobalTypeInferenceMemberResult {
   bool get isCalledOnce;
 
   /// Whether the method element associated with this result always throws.
+  @override
   bool get throwsAlways;
 
   /// The inferred return type when this result belongs to a function element.
@@ -142,6 +144,7 @@ abstract class GlobalTypeInferenceResults
 
   InferredData get inferredData;
 
+  @override
   GlobalTypeInferenceMemberResult resultOfMember(MemberEntity member);
 
   AbstractValue resultOfParameter(Local parameter);

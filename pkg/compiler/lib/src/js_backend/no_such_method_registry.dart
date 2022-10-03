@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common/elements.dart' show CommonElements;
 import '../common/names.dart' show Identifiers, Selectors;
 import '../elements/entities.dart';
-import '../inferrer/types.dart' show GlobalTypeInferenceResults;
+import '../inferrer/types_interfaces.dart' show GlobalTypeInferenceResults;
 import '../kernel/no_such_method_resolver.dart';
 import '../serialization/serialization.dart';
 import 'no_such_method_registry_interfaces.dart' as interfaces;
@@ -240,8 +240,7 @@ class NoSuchMethodData implements interfaces.NoSuchMethodData {
   /// subcategories: D1, those that have no return type, and D2, those
   /// that have a return type.
   @override
-  void categorizeComplexImplementations(
-      covariant GlobalTypeInferenceResults results) {
+  void categorizeComplexImplementations(GlobalTypeInferenceResults results) {
     _otherImpls.forEach((FunctionEntity element) {
       if (results.resultOfMember(element).throwsAlways) {
         _complexNoReturnImpls.add(element);
