@@ -2057,14 +2057,14 @@ void Assembler::StoreIntoObject(Register object,
   Label done;
   StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   // A store buffer update is required.
-  if (value != EDX) {
-    pushl(EDX);  // Preserve EDX.
-  }
   if (object != EDX) {
+    if (value != EDX) {
+      pushl(EDX);  // Preserve EDX.
+    }
     movl(EDX, object);
   }
   call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
-  if (value != EDX) {
+  if ((object != EDX) && (value != EDX)) {
     popl(EDX);  // Restore EDX.
   }
   Bind(&done);
