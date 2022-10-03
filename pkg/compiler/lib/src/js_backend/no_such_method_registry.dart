@@ -52,7 +52,7 @@ import 'no_such_method_registry_interfaces.dart' as interfaces;
 
 /// Registry for collecting `noSuchMethod` implementations and categorizing them
 /// into categories `A`, `B`, `C`, `D`.
-class NoSuchMethodRegistry {
+class NoSuchMethodRegistry implements interfaces.NoSuchMethodRegistry {
   /// The implementations that fall into category A, described above.
   final Set<FunctionEntity> _defaultImpls = {};
 
@@ -82,9 +82,11 @@ class NoSuchMethodRegistry {
   NoSuchMethodResolver get internalResolverForTesting => _resolver;
 
   /// `true` if a category `B` method has been seen so far.
+  @override
   bool get hasThrowingNoSuchMethod => _throwingImpls.isNotEmpty;
 
   /// `true` if a category `D` method has been seen so far.
+  @override
   bool get hasComplexNoSuchMethod => _otherImpls.isNotEmpty;
 
   Iterable<FunctionEntity> get defaultImpls => _defaultImpls;
@@ -94,11 +96,13 @@ class NoSuchMethodRegistry {
   Iterable<FunctionEntity> get otherImpls => _otherImpls;
 
   /// Register [noSuchMethodElement].
+  @override
   void registerNoSuchMethod(FunctionEntity noSuchMethodElement) {
     _uncategorizedImpls.add(noSuchMethodElement);
   }
 
   /// Categorizes the registered methods.
+  @override
   void onQueueEmpty() {
     _uncategorizedImpls.forEach(_categorizeImpl);
     _uncategorizedImpls.clear();

@@ -4,6 +4,13 @@
 
 import '../elements/entities.dart';
 
+abstract class NoSuchMethodRegistry {
+  void registerNoSuchMethod(FunctionEntity noSuchMethodElement);
+  void onQueueEmpty();
+  bool get hasThrowingNoSuchMethod;
+  bool get hasComplexNoSuchMethod;
+}
+
 abstract class NoSuchMethodData {
   bool isComplex(FunctionEntity element);
 }
