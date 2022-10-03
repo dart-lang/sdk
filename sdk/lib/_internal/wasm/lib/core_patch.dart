@@ -49,15 +49,11 @@ import 'dart:convert' show Encoding, utf8;
 
 import 'dart:math' show Random;
 
-import "dart:typed_data"
-    show Endian, Uint8List, Int64List, Uint16List, Uint32List;
+import "dart:typed_data" show Uint8List, Int64List, Uint16List;
 
 import 'dart:wasm';
 
-part "array_patch.dart";
-part "bigint_patch.dart";
 part "bool.dart";
-part "bool_patch.dart";
 part "date_patch.dart";
 part "double.dart";
 part "errors_patch.dart";
@@ -68,7 +64,6 @@ part "int.dart";
 part "integers_patch.dart";
 part "list.dart";
 part "null_patch.dart";
-part "map_patch.dart";
 part "object_patch.dart";
 part "regexp_patch.dart";
 part "stack_trace_patch.dart";
