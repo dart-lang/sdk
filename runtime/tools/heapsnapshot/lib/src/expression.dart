@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:vm_service/vm_service.dart';
 
 import 'analysis.dart';
+import 'completion.dart';
 
 abstract class SetExpression {
   Set<int>? evaluate(NamedSets namedSets, Analysis analysis, Output output);
@@ -453,6 +454,17 @@ SetExpression? parse(
   }
   if (!namedSets.contains(current)) {
     output.printError('There is no set with name "$current". See `info`.');
+
+    // We're at the end - it may be beneficial to suggest completion.
+    if (tokens.isAtEnd && tokens._text.endsWith(current)) {
+      final pc = PostfixCompleter(tokens._text);
+      final candidate = pc.tryComplete(current, namedSets.toList()) ??
+          pc.tryComplete(current, parsingFunctions.keys.toList());
+      if (candidate != null) {
+        output.suggestCompletion(candidate);
+      }
+    }
+
     return null;
   }
   return NamedExpression(current);
@@ -632,6 +644,7 @@ class NamedSets {
 abstract class Output {
   void print(String message) {}
   void printError(String message) {}
+  void suggestCompletion(String text) {}
 }
 
 const dslDescription = '''

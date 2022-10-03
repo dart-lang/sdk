@@ -10,6 +10,7 @@ import 'package:args/args.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'analysis.dart';
+import 'completion.dart';
 import 'expression.dart';
 import 'format.dart';
 import 'load.dart';
@@ -50,6 +51,39 @@ abstract class Command {
           .print('Usage for $name (aliases: ${nameAliases.join(' ')}):');
     }
     state.output.print('   $usage');
+  }
+
+  String? completeCommand(CliState state, String text) {
+    return null;
+  }
+
+  String? _completeExpression(CliState state, text) {
+    if (!state.isInitialized) return null;
+
+    final output = CompletionCollector();
+    parseExpression(text, output, state.namedSets.names.toSet());
+    return output.suggestedCompletion;
+  }
+
+  String? _completeOptions(String text) {
+    final pc = PostfixCompleter(text);
+
+    final lastWord = getLastWord(text);
+    if (lastWord.isEmpty || !lastWord.startsWith('-')) return null;
+
+    if (!lastWord.startsWith('--')) {
+      // For only one `-` we prefer to complete with abbreviated options.
+      final options = argParser.options.values
+          .where((o) => o.abbr != null)
+          .map((o) => '-' + o.abbr!)
+          .toList();
+      return pc.tryComplete(lastWord, options);
+    }
+    final options = argParser.options.values
+        .expand((o) => [o.name, ...o.aliases])
+        .map((o) => '--$o')
+        .toList();
+    return pc.tryComplete(lastWord, options);
   }
 }
 
@@ -113,6 +147,11 @@ class LoadCommand extends Command {
       return;
     }
   }
+
+  String? completeCommand(CliState state, String text) {
+    return tryCompleteFileSystemEntity(
+        text, (filename) => filename.endsWith('.heapsnapshot'));
+  }
 }
 
 class StatsCommand extends SnapshotCommand {
@@ -145,6 +184,10 @@ class StatsCommand extends SnapshotCommand {
         state.analysis.generateObjectStats(oids, sortBySize: !sortByCount);
     state.output.print(formatHeapStats(stats, maxLines: lines));
   }
+
+  String? completeCommand(CliState state, String text) {
+    return _completeOptions(text) ?? _completeExpression(state, text);
+  }
 }
 
 class DataStatsCommand extends SnapshotCommand {
@@ -175,6 +218,10 @@ class DataStatsCommand extends SnapshotCommand {
     final stats =
         state.analysis.generateDataStats(oids, sortBySize: !sortByCount);
     state.output.print(formatDataStats(stats, maxLines: lines));
+  }
+
+  String? completeCommand(CliState state, String text) {
+    return _completeOptions(text) ?? _completeExpression(state, text);
   }
 }
 
@@ -255,6 +302,10 @@ class RetainingPathCommand extends SnapshotCommand {
       state.output.print('');
     }
   }
+
+  String? completeCommand(CliState state, String text) {
+    return _completeOptions(text) ?? _completeExpression(state, text);
+  }
 }
 
 class ExamineCommand extends SnapshotCommand {
@@ -294,6 +345,10 @@ class ExamineCommand extends SnapshotCommand {
       if (++i >= limit) break;
     }
   }
+
+  String? completeCommand(CliState state, String text) {
+    return _completeOptions(text) ?? _completeExpression(state, text);
+  }
 }
 
 class EvaluateCommand extends SnapshotCommand {
@@ -319,6 +374,10 @@ class EvaluateCommand extends SnapshotCommand {
       name = state.namedSets.nameSet(oids);
     }
     state.output.print(' $name {#${oids.length}}');
+  }
+
+  String? completeCommand(CliState state, String text) {
+    return _completeExpression(state, text);
   }
 }
 
@@ -383,6 +442,31 @@ class CommandRunner {
 
     await defaultCommand.execute(state, args);
   }
+
+  String? completeCommand(CliState state, String text) {
+    // We only complete commands, no arguments (yet).
+    if (text.isEmpty) return null;
+
+    final left = getFirstWordWithSpaces(text);
+    if (left.endsWith(' ')) {
+      final command = name2command[left.trim()];
+      if (command != null) {
+        final right = text.substring(left.length);
+        final result = command.completeCommand(state, right);
+        return (result != null) ? (left + result) : null;
+      }
+    } else {
+      final pc = PostfixCompleter(text);
+      final possibleCommands = name2command.keys
+          .where((name) =>
+              state.isInitialized || name2command[name] is! SnapshotCommand)
+          .toList();
+      final completion = pc.tryComplete(text, possibleCommands);
+      if (completion != null) return completion;
+    }
+
+    return defaultCommand.completeCommand(state, text);
+  }
 }
 
 class CliState {
@@ -416,3 +500,11 @@ final cliCommandRunner = CommandRunner([
   ExamineCommand(),
   DescFilterCommand(),
 ], EvaluateCommand());
+
+class CompletionCollector extends Output {
+  String? suggestedCompletion;
+
+  void suggestCompletion(String text) {
+    suggestedCompletion = text;
+  }
+}

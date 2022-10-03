@@ -1528,6 +1528,38 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ blx(temp1);
     }
 
+    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+      __ Comment("Check Dart_Handle for Error.");
+      compiler::Label not_error;
+      ASSERT(temp1 != CallingConventions::kReturnReg);
+      ASSERT(saved_fp_or_sp != CallingConventions::kReturnReg);
+      __ ldr(temp1,
+             compiler::Address(CallingConventions::kReturnReg,
+                               compiler::target::LocalHandle::ptr_offset()));
+      __ BranchIfSmi(temp1, &not_error);
+      __ LoadClassId(temp1, temp1);
+      __ RangeCheck(temp1, saved_fp_or_sp, kFirstErrorCid, kLastErrorCid,
+                    compiler::AssemblerBase::kIfNotInRange, &not_error);
+
+      // Slow path, use the stub to propagate error, to save on code-size.
+      __ Comment("Slow path: call Dart_PropagateError through stub.");
+      ASSERT(CallingConventions::ArgumentRegisters[0] ==
+             CallingConventions::kReturnReg);
+      __ ldr(temp1,
+             compiler::Address(
+                 THR, compiler::target::Thread::
+                          call_native_through_safepoint_entry_point_offset()));
+      __ ldr(branch, compiler::Address(
+                         THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
+      __ blx(temp1);
+#if defined(DEBUG)
+      // We should never return with normal controlflow from this.
+      __ bkpt(0);
+#endif
+
+      __ Bind(&not_error);
+    }
+
     // Restore the global object pool after returning from runtime (old space is
     // moving, so the GOP could have been relocated).
     if (FLAG_precompiled_mode) {

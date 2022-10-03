@@ -4,6 +4,7 @@
 
 import '../../../tools/heapsnapshot/test/cli_test.dart' as cli_test;
 import '../../../tools/heapsnapshot/test/expression_test.dart' as expr_test;
+import '../../../tools/heapsnapshot/test/completion_test.dart' as comp_test;
 
 import 'use_flag_test_helper.dart';
 
@@ -17,6 +18,7 @@ main(List<String> args) {
     return;
   }
 
-  cli_test.main(args);
-  expr_test.main(args);
+  cli_test.main();
+  expr_test.main();
+  comp_test.main();
 }

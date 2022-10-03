@@ -14,6 +14,7 @@ import 'dylib_utils.dart';
 
 void main() {
   testHandle();
+  testHandleWithInteger();
   testReadField();
   testTrueHandle();
   testClosureCallback();
@@ -30,6 +31,15 @@ void main() {
 void testHandle() {
   print("testHandle");
   final s = SomeClass(123);
+  print("passObjectToC($s)");
+  final result = passObjectToC(s);
+  print("result = $result");
+  Expect.isTrue(identical(s, result));
+}
+
+void testHandleWithInteger() {
+  print("testHandleWithInteger");
+  final s = 1337;
   print("passObjectToC($s)");
   final result = passObjectToC(s);
   print("result = $result");
