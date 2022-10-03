@@ -25,6 +25,8 @@ import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'abstract_value_domain.dart';
 
+import 'types_interfaces.dart' as interfaces;
+
 /// Results about a single element (e.g. a method, parameter, or field)
 /// produced by the global type-inference algorithm.
 ///
@@ -114,7 +116,8 @@ abstract class TypesInferrer {
 /// closed-world semantics. Any [AbstractValue] for an element or node that we
 /// return was inferred to be a "guaranteed type", that means, it is a type that
 /// we can prove to be correct for all executions of the program.
-abstract class GlobalTypeInferenceResults {
+abstract class GlobalTypeInferenceResults
+    implements interfaces.GlobalTypeInferenceResults {
   /// Deserializes a [GlobalTypeInferenceResults] object from [source].
   factory GlobalTypeInferenceResults.readFromDataSource(
       DataSourceReader source,

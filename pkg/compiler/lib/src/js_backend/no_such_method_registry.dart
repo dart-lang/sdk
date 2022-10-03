@@ -239,7 +239,9 @@ class NoSuchMethodData implements interfaces.NoSuchMethodData {
   /// Now that type inference is complete, split category D into two
   /// subcategories: D1, those that have no return type, and D2, those
   /// that have a return type.
-  void categorizeComplexImplementations(GlobalTypeInferenceResults results) {
+  @override
+  void categorizeComplexImplementations(
+      covariant GlobalTypeInferenceResults results) {
     _otherImpls.forEach((FunctionEntity element) {
       if (results.resultOfMember(element).throwsAlways) {
         _complexNoReturnImpls.add(element);
@@ -250,6 +252,7 @@ class NoSuchMethodData implements interfaces.NoSuchMethodData {
   }
 
   /// Emits a diagnostic about methods in categories `B`, `D1` and `D2`.
+  @override
   void emitDiagnostic(DiagnosticReporter reporter) {
     _throwingImpls.forEach((e) {
       if (!_forwardingSyntaxImpls.contains(e)) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.world;
 
 import 'closure.dart';
@@ -18,7 +16,8 @@ import 'js_backend/field_analysis.dart' show JFieldAnalysis;
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
-import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
+import 'js_backend/no_such_method_registry_interfaces.dart'
+    show NoSuchMethodData;
 import 'js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import 'js_emitter/sorter.dart';
 import 'universe/class_hierarchy.dart';
@@ -212,7 +211,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   /// signature so it cannot be modelled by a [FunctionEntity]. Also,
   /// call-methods for tear-off are not part of the element model.
   @override
-  bool includesClosureCall(Selector selector, AbstractValue receiver);
+  bool includesClosureCall(Selector selector, AbstractValue? receiver);
 
   /// Returns the mask for the potential receivers of a dynamic call to
   /// [selector] on [receiver].
@@ -229,7 +228,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   /// mechanism.
   @override
   Iterable<MemberEntity> locateMembersInDomain(Selector selector,
-      AbstractValue receiver, AbstractValueDomain abstractValueDomain);
+      AbstractValue? receiver, AbstractValueDomain abstractValueDomain);
 
   /// Returns all the instance members that may be invoked with the [selector]
   /// on the given [receiver]. The returned elements may include noSuchMethod
@@ -237,7 +236,7 @@ abstract class JClosedWorld implements interfaces.JClosedWorld {
   /// mechanism.
   @override
   Iterable<MemberEntity> locateMembers(
-      Selector selector, AbstractValue receiver);
+      Selector selector, AbstractValue? receiver);
 
   /// Returns the single [MemberEntity] that matches a call to [selector] on the
   /// [receiver]. If multiple targets exist, `null` is returned.
