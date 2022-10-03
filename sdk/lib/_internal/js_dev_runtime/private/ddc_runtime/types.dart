@@ -382,9 +382,12 @@ class LegacyType extends DartType {
   @JSExportName('is')
   bool is_T(obj) {
     if (obj == null) {
-      // Object and Never are the only legacy types that should return true if
+      // Object and Never are trivially legacy types that should return true if
       // obj is `null`.
-      return _equalType(type, Object) || _equalType(type, Never);
+      if (_equalType(type, Object) || _equalType(type, Never)) return true;
+
+      return _isFutureOr(type) &&
+          JS<bool>('!', '#[0].is(#)', getGenericArgs(type), obj);
     }
     return JS<bool>('!', '#.is(#)', type, obj);
   }
@@ -1383,7 +1386,7 @@ external Type legacyTypeRep<T>();
 @notNull
 bool _isFutureOr(type) {
   var genericClass = getGenericClass(type);
-  return JS<bool>('!', '# && # === #', genericClass, genericClass,
+  return JS<bool>('!', '!!# && # === #', genericClass, genericClass,
       getGenericClassStatic<FutureOr>());
 }
 
