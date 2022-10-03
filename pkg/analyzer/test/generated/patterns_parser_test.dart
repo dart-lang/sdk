@@ -244,6 +244,152 @@ test(dynamic x) {
     expect(recordPattern.fields[0].pattern, TypeMatcher<CastPattern>());
   }
 
+  test_constant_identifier_doublyPrefixed_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case a.b.c:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('a.b.c:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.expression.toString(), 'a.b.c');
+  }
+
+  test_constant_identifier_doublyPrefixed_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case a.b.c as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('a.b.c as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_identifier_doublyPrefixed_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case a.b.c) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.expression.toString(), 'a.b.c');
+  }
+
+  test_constant_identifier_doublyPrefixed_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case a.b.c!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('a.b.c!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_identifier_doublyPrefixed_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case a.b.c?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('a.b.c?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_identifier_prefixed_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case a.b:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('a.b:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.expression.toString(), 'a.b');
+  }
+
+  test_constant_identifier_prefixed_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case a.b as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('a.b as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_identifier_prefixed_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case a.b) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.expression.toString(), 'a.b');
+  }
+
+  test_constant_identifier_prefixed_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case a.b!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('a.b!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_identifier_prefixed_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case a.b?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('a.b?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
   test_constant_identifier_unprefixed_insideCase() {
     _parse('''
 test(dynamic x) {
@@ -317,6 +463,765 @@ test(dynamic x) {
 }
 ''');
     var switchPatternCase = findNode.switchPatternCase('y?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_list_typed_empty_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>[]:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const <int>[]:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '<int>[]');
+  }
+
+  test_constant_list_typed_empty_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>[] as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase('const <int>[] as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_list_typed_empty_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const <int>[]) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '<int>[]');
+  }
+
+  test_constant_list_typed_empty_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>[]!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const <int>[]!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_list_typed_empty_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>[]?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const <int>[]?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_list_typed_nonEmpty_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>[1]:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const <int>[1]:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '<int>[1]');
+  }
+
+  test_constant_list_typed_nonEmpty_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>[1] as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase('const <int>[1] as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_list_typed_nonEmpty_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const <int>[1]) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '<int>[1]');
+  }
+
+  test_constant_list_typed_nonEmpty_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>[1]!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const <int>[1]!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_list_typed_nonEmpty_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>[1]?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const <int>[1]?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_list_untyped_empty_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const []:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const []:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '[]');
+  }
+
+  test_constant_list_untyped_empty_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const [] as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const [] as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_list_untyped_empty_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const []) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '[]');
+  }
+
+  test_constant_list_untyped_empty_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const []!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const []!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_list_untyped_empty_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const []?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const []?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const [1]:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const [1]:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '[1]');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const [1] as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const [1] as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const [1]) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '[1]');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const [1]!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const [1]!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_list_untyped_nonEmpty_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const [1]?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const [1]?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_map_typed_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int, int>{1: 2}:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase('const <int, int>{1: 2}:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '<int, int>{1 : 2}');
+  }
+
+  test_constant_map_typed_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int, int>{1: 2} as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase('const <int, int>{1: 2} as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_map_typed_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const <int, int>{1: 2}) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '<int, int>{1 : 2}');
+  }
+
+  test_constant_map_typed_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int, int>{1: 2}!:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase('const <int, int>{1: 2}!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_map_typed_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int, int>{1: 2}?:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase('const <int, int>{1: 2}?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_map_untyped_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const {1: 2}:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const {1: 2}:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '{1 : 2}');
+  }
+
+  test_constant_map_untyped_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const {1: 2} as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase('const {1: 2} as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_map_untyped_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const {1: 2}) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '{1 : 2}');
+  }
+
+  test_constant_map_untyped_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const {1: 2}!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const {1: 2}!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_map_untyped_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const {1: 2}?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const {1: 2}?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_objectExpression_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const Foo(1):
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const Foo(1):');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), 'Foo(1)');
+  }
+
+  test_constant_objectExpression_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const Foo(1) as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase('const Foo(1) as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_objectExpression_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const Foo(1)) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), 'Foo(1)');
+  }
+
+  test_constant_objectExpression_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const Foo(1)!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const Foo(1)!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_objectExpression_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const Foo(1)?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const Foo(1)?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_parenthesized_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const (1):
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const (1):');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '(1)');
+  }
+
+  test_constant_parenthesized_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const (1) as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const (1) as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_parenthesized_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const (1)) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '(1)');
+  }
+
+  test_constant_parenthesized_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const (1)!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const (1)!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_parenthesized_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const (1)?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const (1)?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_set_typed_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>{1}:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const <int>{1}:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '<int>{1}');
+  }
+
+  test_constant_set_typed_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>{1} as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase =
+        findNode.switchPatternCase('const <int>{1} as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_set_typed_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const <int>{1}) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '<int>{1}');
+  }
+
+  test_constant_set_typed_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>{1}!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const <int>{1}!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_set_typed_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const <int>{1}?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const <int>{1}?');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '?');
+  }
+
+  test_constant_set_untyped_insideCase() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const {1}:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const {1}:');
+    var constantPattern = switchPatternCase.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '{1}');
+  }
+
+  test_constant_set_untyped_insideCast() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const {1} as Object:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const {1} as Object');
+    var castPattern = switchPatternCase.pattern as CastPattern;
+    expect(castPattern.pattern, TypeMatcher<ConstantPattern>());
+    expect(castPattern.type.toString(), 'Object');
+  }
+
+  test_constant_set_untyped_insideIfCase() {
+    _parse('''
+test(dynamic x) {
+  if (x case const {1}) {}
+}
+''');
+    var ifStatement = findNode.ifStatement('x case');
+    expect(ifStatement.condition, same(findNode.simple('x case')));
+    var caseClause = ifStatement.caseClause!;
+    expect(caseClause, same(findNode.caseClause('case')));
+    var constantPattern = caseClause.pattern as ConstantPattern;
+    expect(constantPattern.constKeyword!.lexeme, 'const');
+    expect(constantPattern.expression.toString(), '{1}');
+  }
+
+  test_constant_set_untyped_insideNullAssert() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const {1}!:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const {1}!');
+    var postfixPattern = switchPatternCase.pattern as PostfixPattern;
+    expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
+    expect(postfixPattern.operator.lexeme, '!');
+  }
+
+  test_constant_set_untyped_insideNullCheck() {
+    _parse('''
+test(dynamic x) {
+  switch (x) {
+    case const {1}?:
+      break;
+  }
+}
+''');
+    var switchPatternCase = findNode.switchPatternCase('const {1}?');
     var postfixPattern = switchPatternCase.pattern as PostfixPattern;
     expect(postfixPattern.operand, TypeMatcher<ConstantPattern>());
     expect(postfixPattern.operator.lexeme, '?');
