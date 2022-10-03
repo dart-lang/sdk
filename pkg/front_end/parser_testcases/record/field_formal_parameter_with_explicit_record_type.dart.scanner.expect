@@ -1,0 +1,13 @@
+class C {
+({num n, String s}) x;
+
+C(({int n, String s}) this.x);
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+([BeginToken]{[BeginToken]num[StringToken] n[StringToken],[SimpleToken] String[StringToken] s[StringToken]}[SimpleToken])[SimpleToken] x[StringToken];[SimpleToken]
+
+C[StringToken]([BeginToken]([BeginToken]{[BeginToken]int[StringToken] n[StringToken],[SimpleToken] String[StringToken] s[StringToken]}[SimpleToken])[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

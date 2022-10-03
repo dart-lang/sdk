@@ -737,6 +737,8 @@ class ComplexTypeInfo implements TypeInfo {
             return noType;
           }
         }
+      } else if (optional("this", next) && optional(".", next.next!)) {
+        // E.g. C(({int n, String s}) this.x);
       } else {
         // Is it e.g. List<(int, int)> or Map<(int, int), (String, String)>?
         // or List<List<(int, int)>> or List<List<List<(int, int)>>>.
