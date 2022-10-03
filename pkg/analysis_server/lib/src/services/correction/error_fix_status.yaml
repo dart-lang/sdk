@@ -1293,6 +1293,10 @@ HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
 HintCode.DIVISION_OPTIMIZATION:
   status: hasFix
+HintCode.DUPLICATE_EXPORT:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated export.
 HintCode.DUPLICATE_HIDDEN_NAME:
   status: hasFix
 HintCode.DUPLICATE_IGNORE:

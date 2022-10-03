@@ -206,11 +206,13 @@ export 'lib2.dart' show C;
 library lib;
 class N {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 library L;
 export 'lib.dart';
 export 'lib.dart';
-''');
+''', [
+      error(HintCode.DUPLICATE_EXPORT, 37, 10),
+    ]);
   }
 
   test_ambiguousImport_dart_implicitHide() async {

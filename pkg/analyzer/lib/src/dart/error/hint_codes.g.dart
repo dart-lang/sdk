@@ -205,6 +205,15 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Duplicate exports.
+  ///
+  ///  No parameters.
+  static const HintCode DUPLICATE_EXPORT = HintCode(
+    'DUPLICATE_EXPORT',
+    "Duplicate export.",
+    correctionMessage: "Try removing all but one export of the library.",
+  );
+
   ///  No parameters.
   static const HintCode DUPLICATE_HIDDEN_NAME = HintCode(
     'DUPLICATE_HIDDEN_NAME',

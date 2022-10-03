@@ -18025,6 +18025,14 @@ HintCode:
 
       var x = pi;
       ```
+  DUPLICATE_EXPORT:
+    problemMessage: Duplicate export.
+    correctionMessage: Try removing all but one export of the library.
+    hasPublishedDocs: false
+    comment: |-
+      Duplicate exports.
+
+      No parameters.
   DUPLICATE_IGNORE:
     problemMessage: "The diagnostic '{0}' doesn't need to be ignored here because it's already being ignored."
     correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.

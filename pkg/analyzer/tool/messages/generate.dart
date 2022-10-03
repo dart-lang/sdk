@@ -24,7 +24,7 @@ import 'package:path/path.dart';
 
 import 'error_code_info.dart';
 
-void main() async {
+Future<void> main() async {
   await GeneratedContent.generateAll(analyzerPkgPath, allTargets);
 
   _SyntacticErrorGenerator()

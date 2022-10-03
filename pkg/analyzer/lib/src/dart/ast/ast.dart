@@ -7018,10 +7018,12 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   /// to the same absolute URI, so to the same library, regardless of the used
   /// syntax (absolute, relative, not normalized).
   static bool areSyntacticallyIdenticalExceptUri(
-    ImportDirective node1,
-    ImportDirective node2,
+    NamespaceDirective node1,
+    NamespaceDirective node2,
   ) {
-    if (node1.prefix?.name != node2.prefix?.name) {
+    if (node1 is ImportDirective &&
+        node2 is ImportDirective &&
+        node1.prefix?.name != node2.prefix?.name) {
       return false;
     }
 
