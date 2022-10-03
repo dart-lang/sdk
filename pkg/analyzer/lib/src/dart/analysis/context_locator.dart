@@ -263,7 +263,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      List<Glob> excludedGlobs,
+      List<LocatedGlob> excludedGlobs,
       File? optionsFile,
       File? packagesFile) {
     //
@@ -317,7 +317,7 @@ class ContextLocatorImpl implements ContextLocator {
       Folder folder,
       List<Folder> excludedFolders,
       ContextRoot containingRoot,
-      List<Glob> excludedGlobs,
+      List<LocatedGlob> excludedGlobs,
       File? optionsFile,
       File? packagesFile) {
     bool isExcluded(Folder folder) {
@@ -326,7 +326,7 @@ class ContextLocatorImpl implements ContextLocator {
         return true;
       }
       // TODO(scheglov) Why not take it from `containingRoot`?
-      for (Glob pattern in excludedGlobs) {
+      for (var pattern in excludedGlobs) {
         if (pattern.matches(folder.path)) {
           return true;
         }
@@ -427,8 +427,8 @@ class ContextLocatorImpl implements ContextLocator {
   /// file associated with the context root. The list will be empty if there are
   /// no exclusion patterns in the options file, or if there is no options file
   /// associated with the context root.
-  List<Glob> _getExcludedGlobs(ContextRootImpl root) {
-    List<Glob> patterns = [];
+  List<LocatedGlob> _getExcludedGlobs(ContextRootImpl root) {
+    List<LocatedGlob> patterns = [];
     File? optionsFile = root.optionsFile;
     if (optionsFile != null) {
       try {
@@ -444,17 +444,16 @@ class ContextLocatorImpl implements ContextLocator {
 
             void addGlob(List<String> components) {
               var pattern = posix.joinAll(components);
-              patterns.add(Glob(pattern, context: pathContext));
+              patterns.add(
+                LocatedGlob(
+                  optionsFile.parent,
+                  Glob(pattern, context: pathContext),
+                ),
+              );
             }
 
             for (String excludedPath in excludeOptions.whereType<String>()) {
               var excludedComponents = posix.split(excludedPath);
-              if (pathContext.isRelative(excludedPath)) {
-                excludedComponents = [
-                  ...pathContext.split(optionsFile.parent.path),
-                  ...excludedComponents,
-                ];
-              }
               addGlob(excludedComponents);
               if (excludedComponents.last == '**') {
                 addGlob(excludedComponents..removeLast());
