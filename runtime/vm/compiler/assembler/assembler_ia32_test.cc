@@ -5010,7 +5010,7 @@ IMMEDIATE_TEST(AddrImmEAXByte,
 static void RangeCheck(Assembler* assembler, Register value, Register temp) {
   const Register return_reg = CallingConventions::kReturnReg;
   Label in_range;
-  __ RangeCheck(value, temp, kErrorCid, kUnwindErrorCid,
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
                 AssemblerBase::kIfInRange, &in_range);
   __ movl(return_reg, Immediate(0));
   __ ret();
@@ -5063,7 +5063,7 @@ ASSEMBLER_TEST_GENERATE(RangeCheckWithTempReturnValue, assembler) {
   const Register return_reg = CallingConventions::kReturnReg;
   Label in_range;
   __ movl(value, compiler::Address(ESP, 4));
-  __ RangeCheck(value, temp, kErrorCid, kUnwindErrorCid,
+  __ RangeCheck(value, temp, kFirstErrorCid, kLastErrorCid,
                 AssemblerBase::kIfInRange, &in_range);
   __ Bind(&in_range);
   __ movl(return_reg, value);

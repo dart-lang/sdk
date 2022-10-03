@@ -1405,6 +1405,36 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ blr(temp1);
     }
 
+    if (marshaller_.IsHandle(compiler::ffi::kResultIndex)) {
+      __ Comment("Check Dart_Handle for Error.");
+      compiler::Label not_error;
+      __ ldr(temp1,
+             compiler::Address(CallingConventions::kReturnReg,
+                               compiler::target::LocalHandle::ptr_offset()));
+      __ BranchIfSmi(temp1, &not_error);
+      __ LoadClassId(temp1, temp1);
+      __ RangeCheck(temp1, temp2, kFirstErrorCid, kLastErrorCid,
+                    compiler::AssemblerBase::kIfNotInRange, &not_error);
+
+      // Slow path, use the stub to propagate error, to save on code-size.
+      __ Comment("Slow path: call Dart_PropagateError through stub.");
+      ASSERT(CallingConventions::ArgumentRegisters[0] ==
+             CallingConventions::kReturnReg);
+      __ ldr(temp1,
+             compiler::Address(
+                 THR, compiler::target::Thread::
+                          call_native_through_safepoint_entry_point_offset()));
+      __ ldr(branch, compiler::Address(
+                         THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
+      __ blr(temp1);
+#if defined(DEBUG)
+      // We should never return with normal controlflow from this.
+      __ brk(0);
+#endif
+
+      __ Bind(&not_error);
+    }
+
     // Refresh pinned registers values (inc. write barrier mask and null
     // object).
     __ RestorePinnedRegisters();
@@ -3664,8 +3694,8 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
       object_store->allocate_mint_without_fpu_regs_stub()
           ->untag()
           ->InVMIsolateHeap();
-  const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     !stubs_in_vm_isolate;
+  const bool shared_slow_path_call =
+      SlowPathSharingSupported(opt) && !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()          ? LocationSummary::kNoCall
