@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart_console/dart_console.dart';
 import 'package:heapsnapshot/src/cli.dart';
+import 'package:heapsnapshot/src/console.dart';
 
 class ConsoleErrorPrinter extends Output {
   final Console console;
@@ -19,8 +19,39 @@ class ConsoleErrorPrinter extends Output {
   }
 }
 
+class CompletionKeyHandler extends KeyHandler {
+  final CliState cliState;
+  CompletionKeyHandler(this.cliState);
+
+  bool handleKey(LineEditBuffer buffer, Key lastPressed) {
+    if (lastPressed.isControl &&
+        lastPressed.controlChar == ControlCharacter.tab &&
+        buffer.completionText.isNotEmpty) {
+      buffer.insert(buffer.completionText);
+      buffer.completionText = '';
+      return true;
+    }
+
+    buffer.completionText = '';
+
+    if (!lastPressed.isControl) {
+      final incomplete = buffer.text.substring(0, buffer.index);
+      final complete = cliCommandRunner.completeCommand(cliState, incomplete);
+      if (complete != null) {
+        if (!complete.startsWith(incomplete)) {
+          throw 'CompletionError: Suggestion "$complete" does not start with "$incomplete".';
+        }
+        if (complete.length > incomplete.length) {
+          buffer.completionText = complete.substring(incomplete.length);
+        }
+      }
+    }
+    return false;
+  }
+}
+
 void main() async {
-  final console = Console.scrolling();
+  final console = SmartConsole();
 
   console.write('The ');
   console.setForegroundColor(ConsoleColor.brightYellow);
@@ -34,21 +65,18 @@ void main() async {
   final errors = ConsoleErrorPrinter(console);
   final cliState = CliState(errors);
 
+  console.completionHandler = CompletionKeyHandler(cliState);
+
   while (true) {
-    void writePrompt() {
-      console.setForegroundColor(ConsoleColor.brightBlue);
-      console.write('(hsa) ');
-      console.resetColorAttributes();
-      console.setForegroundColor(ConsoleColor.brightGreen);
+    final response = console.smartReadLine();
+    console.resetColorAttributes();
+    if (response.shouldExit) return;
+    if (response.wasCancelled) {
+      console.write(console.newLine);
+      continue;
     }
 
-    writePrompt();
-    final response = console.readLine(cancelOnEOF: true);
-    console.resetColorAttributes();
-    if (response == null) return;
-    if (response.isEmpty) continue;
-
-    final args = response
+    final args = response.text
         .split(' ')
         .map((p) => p.trim())
         .where((p) => !p.isEmpty)
