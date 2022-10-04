@@ -5213,40 +5213,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
     uniqueName: 'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
   );
 
-  ///  7.1 Instance Methods: It is a static warning if an instance method
-  ///  <i>m1</i> overrides an instance member <i>m2</i>, the signature of
-  ///  <i>m2</i> explicitly specifies a default value for a formal parameter
-  ///  <i>p</i> and the signature of <i>m1</i> specifies a different default value
-  ///  for <i>p</i>.
-  ///
-  ///  Parameters:
-  ///  0: the name of the super class
-  ///  1: the name of the super method
-  ///  2: the name of the overriding method
-  static const StaticWarningCode
-      INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED = StaticWarningCode(
-    'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED',
-    "Parameters can't override default values, this method overrides '{0}.{1}' "
-        "where '{2}' has a different value.",
-    correctionMessage: "Try using the same default value in both methods.",
-  );
-
-  ///  7.1 Instance Methods: It is a static warning if an instance method
-  ///  <i>m1</i> overrides an instance member <i>m2</i>, the signature of
-  ///  <i>m2</i> explicitly specifies a default value for a formal parameter
-  ///  <i>p</i> and the signature of <i>m1</i> specifies a different default value
-  ///  for <i>p</i>.
-  ///  Parameters:
-  ///  0: the name of the super class
-  ///  1: the name of the super method
-  static const StaticWarningCode
-      INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL = StaticWarningCode(
-    'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL',
-    "Parameters can't override default values, this method overrides '{0}.{1}' "
-        "where this positional parameter has a different value.",
-    correctionMessage: "Try using the same default value in both methods.",
-  );
-
   ///  Parameters:
   ///  0: the name of the constant that is missing
   static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
