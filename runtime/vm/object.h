@@ -8319,7 +8319,8 @@ class AbstractType : public Instance {
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
-  void PrintName(NameVisibility visibility, BaseTextBuffer* printer) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   // Add the class name and URI of each occurring type to the uris
   // list and mark ambiguous triplets to be printed.
@@ -8549,6 +8550,8 @@ class Type : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
   uword ComputeHash() const;
@@ -8687,6 +8690,8 @@ class FunctionType : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
   uword ComputeHash() const;
@@ -8951,6 +8956,8 @@ class RecordType : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
   uword ComputeHash() const;
@@ -9046,6 +9053,8 @@ class TypeRef : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
 
@@ -9129,6 +9138,8 @@ class TypeParameter : public AbstractType {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const { return; }
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
 
   virtual uword Hash() const;
 
