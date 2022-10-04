@@ -22,7 +22,7 @@ import '../elements/types.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../serialization/serialization.dart';
-import '../js_model/jrecord_field_interface.dart' show JRecordFieldInterface;
+import '../js_model/closure_migrated.dart' show JContextField;
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
@@ -622,7 +622,7 @@ class StaticUse {
   /// Read access of an instance field or boxed field [element].
   factory StaticUse.fieldGet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is JRecordFieldInterface,
+        element.isInstanceMember || element is JContextField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_GET);
@@ -631,7 +631,7 @@ class StaticUse {
   /// Write access of an instance field or boxed field [element].
   factory StaticUse.fieldSet(FieldEntity element) {
     assert(
-        element.isInstanceMember || element is JRecordFieldInterface,
+        element.isInstanceMember || element is JContextField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
     return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_SET);

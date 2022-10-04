@@ -321,7 +321,7 @@ class JsClosedWorldBuilder implements interfaces.JsClosedWorldBuilder {
       MemberEntity member,
       ir.FunctionNode originalClosureFunctionNode,
       JLibrary enclosingLibrary,
-      Map<ir.VariableDeclaration, JRecordField> boxedVariables,
+      Map<ir.VariableDeclaration, JContextField> boxedVariables,
       KernelScopeInfo info,
       {bool createSignatureMethod}) {
     ClassEntity superclass =

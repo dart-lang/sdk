@@ -19,31 +19,29 @@ import 'element_map_interfaces.dart';
 import 'element_map_migrated.dart';
 import 'elements.dart';
 import 'env.dart';
-import 'jrecord_field_interface.dart';
 
 /// A container for variables declared in a particular scope that are accessed
 /// elsewhere.
-// TODO(johnniwinther): Don't implement JClass. This isn't actually a
-// class.
-class JRecord extends JClass {
-  /// Tag used for identifying serialized [JRecord] objects in a
-  /// debugging data stream.
-  static const String tag = 'record';
+// TODO(johnniwinther): Don't implement JClass. This isn't actually a class.
+class JContext extends JClass {
+  /// Tag used for identifying serialized [JContext] objects in a debugging data
+  /// stream.
+  static const String tag = 'context';
 
-  JRecord(LibraryEntity library, String name)
+  JContext(LibraryEntity library, String name)
       : super(library as JLibrary, name, isAbstract: false);
 
-  factory JRecord.readFromDataSource(DataSourceReader source) {
+  factory JContext.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JLibrary library = source.readLibrary() as JLibrary;
     String name = source.readString();
     source.end(tag);
-    return JRecord(library, name);
+    return JContext(library, name);
   }
 
   @override
   void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(JClassKind.record);
+    sink.writeEnum(JClassKind.context);
     sink.begin(tag);
     sink.writeLibrary(library);
     sink.writeString(name);
@@ -54,36 +52,36 @@ class JRecord extends JClass {
   bool get isClosure => false;
 
   @override
-  String toString() => '${jsElementPrefix}record_container($name)';
+  String toString() => '${jsElementPrefix}context($name)';
 }
 
-/// A variable that has been "boxed" to prevent name shadowing with the
-/// original variable and ensure that this variable is updated/read with the
-/// most recent value.
-class JRecordField extends JField implements JRecordFieldInterface {
-  /// Tag used for identifying serialized [JRecordField] objects in a
-  /// debugging data stream.
-  static const String tag = 'record-field';
+/// A variable that has been "boxed" to prevent name shadowing with the original
+/// variable and ensure that this variable is updated/read with the most recent
+/// value.
+class JContextField extends JField {
+  /// Tag used for identifying serialized [JContextField] objects in a debugging
+  /// data stream.
+  static const String tag = 'context-field';
 
   final BoxLocal box;
 
-  JRecordField(String name, this.box, {required bool isConst})
+  JContextField(String name, this.box, {required bool isConst})
       : super(box.container.library as JLibrary, box.container as JClass,
             Name(name, box.container.library.canonicalUri),
             isStatic: false, isAssignable: true, isConst: isConst);
 
-  factory JRecordField.readFromDataSource(DataSourceReader source) {
+  factory JContextField.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     String name = source.readString();
     final enclosingClass = source.readClass() as JClass;
     bool isConst = source.readBool();
     source.end(tag);
-    return JRecordField(name, BoxLocal(enclosingClass), isConst: isConst);
+    return JContextField(name, BoxLocal(enclosingClass), isConst: isConst);
   }
 
   @override
   void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(JMemberKind.recordField);
+    sink.writeEnum(JMemberKind.contextField);
     sink.begin(tag);
     sink.writeString(name);
     sink.writeClass(enclosingClass!);
@@ -227,10 +225,10 @@ abstract class JsClosureClassInfo {
   void registerFieldForBoxedVariable(ir.VariableDeclaration node, JField field);
 }
 
-class RecordClassData implements JClassData {
-  /// Tag used for identifying serialized [RecordClassData] objects in a
+class ContextClassData implements JClassData {
+  /// Tag used for identifying serialized [ContextClassData] objects in a
   /// debugging data stream.
-  static const String tag = 'record-class-data';
+  static const String tag = 'context-class-data';
 
   @override
   final ClassDefinition definition;
@@ -244,22 +242,22 @@ class RecordClassData implements JClassData {
   @override
   final InterfaceType? supertype;
 
-  RecordClassData(
+  ContextClassData(
       this.definition, this.thisType, this.supertype, this.orderedTypeSet);
 
-  factory RecordClassData.readFromDataSource(DataSourceReader source) {
+  factory ContextClassData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ClassDefinition definition = ClassDefinition.readFromDataSource(source);
     InterfaceType thisType = source.readDartType() as InterfaceType;
     InterfaceType supertype = source.readDartType() as InterfaceType;
     OrderedTypeSet orderedTypeSet = OrderedTypeSet.readFromDataSource(source);
     source.end(tag);
-    return RecordClassData(definition, thisType, supertype, orderedTypeSet);
+    return ContextClassData(definition, thisType, supertype, orderedTypeSet);
   }
 
   @override
   void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(JClassDataKind.record);
+    sink.writeEnum(JClassDataKind.context);
     sink.begin(tag);
     definition.writeToDataSink(sink);
     sink.writeDartType(thisType!);
@@ -296,7 +294,7 @@ class RecordClassData implements JClassData {
   List<Variance> getVariances() => [];
 }
 
-class ClosureClassData extends RecordClassData {
+class ClosureClassData extends ContextClassData {
   /// Tag used for identifying serialized [ClosureClassData] objects in a
   /// debugging data stream.
   static const String tag = 'closure-class-data';

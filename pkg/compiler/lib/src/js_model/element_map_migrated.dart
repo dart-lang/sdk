@@ -344,9 +344,9 @@ void forEachOrderedParameter(JsToElementMap elementMap, FunctionEntity function,
 enum ClassKind {
   regular,
   closure,
-  // TODO(efortuna, johnniwinther): Record is not a class, but is
+  // TODO(efortuna, johnniwinther): Context is not a class, but is
   // masquerading as one currently for consistency with the old element model.
-  record,
+  context,
 }
 
 /// Definition information for a [ClassEntity].
@@ -369,8 +369,8 @@ abstract class ClassDefinition {
         return RegularClassDefinition.readFromDataSource(source);
       case ClassKind.closure:
         return ClosureClassDefinition.readFromDataSource(source);
-      case ClassKind.record:
-        return RecordContainerDefinition.readFromDataSource(source);
+      case ClassKind.context:
+        return ContextContainerDefinition.readFromDataSource(source);
     }
   }
 
@@ -451,40 +451,40 @@ class ClosureClassDefinition implements ClassDefinition {
   String toString() => 'ClosureClassDefinition(kind:$kind,location:$location)';
 }
 
-class RecordContainerDefinition implements ClassDefinition {
-  /// Tag used for identifying serialized [RecordContainerDefinition] objects in
+class ContextContainerDefinition implements ClassDefinition {
+  /// Tag used for identifying serialized [ContextContainerDefinition] objects in
   /// a debugging data stream.
-  static const String tag = 'record-definition';
+  static const String tag = 'context-definition';
 
   @override
   final SourceSpan location;
 
-  RecordContainerDefinition(this.location);
+  ContextContainerDefinition(this.location);
 
-  factory RecordContainerDefinition.readFromDataSource(
+  factory ContextContainerDefinition.readFromDataSource(
       DataSourceReader source) {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
     source.end(tag);
-    return RecordContainerDefinition(location);
+    return ContextContainerDefinition(location);
   }
 
   @override
   void writeToDataSink(DataSinkWriter sink) {
-    sink.writeEnum(ClassKind.record);
+    sink.writeEnum(ClassKind.context);
     sink.begin(tag);
     sink.writeSourceSpan(location);
     sink.end(tag);
   }
 
   @override
-  ClassKind get kind => ClassKind.record;
+  ClassKind get kind => ClassKind.context;
 
   @override
   ir.Node get node =>
-      throw UnsupportedError('RecordContainerDefinition.node for $location');
+      throw UnsupportedError('ContextContainerDefinition.node for $location');
 
   @override
   String toString() =>
-      'RecordContainerDefinition(kind:$kind,location:$location)';
+      'ContextContainerDefinition(kind:$kind,location:$location)';
 }

@@ -161,10 +161,10 @@ abstract class JsToElementMap implements interfaces.JsToElementMap {
   /// Returns the constructor body entity corresponding to [function].
   JGeneratorBody getGeneratorBody(FunctionEntity function);
 
-  /// Make a record to ensure variables that are are declared in one scope and
-  /// modified in another get their values updated correctly.
+  /// Make a mapping from closed-over variables to the context fields where they
+  /// are stored.
   @override
-  Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
+  Map<ir.VariableDeclaration, JContextField> makeContextContainer(
       KernelScopeInfo info, MemberEntity member);
 
   /// Returns a provider for static types for [member].

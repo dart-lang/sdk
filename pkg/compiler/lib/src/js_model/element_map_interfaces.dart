@@ -32,7 +32,7 @@ abstract class JsToElementMap {
   MemberDefinition getMemberDefinition(MemberEntity member);
   ConstantValue getRequiredSentinelConstantValue();
 
-  Map<ir.VariableDeclaration, JRecordField> makeRecordContainer(
+  Map<ir.VariableDeclaration, JContextField> makeContextContainer(
       KernelScopeInfo info, MemberEntity member);
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node);
 }
