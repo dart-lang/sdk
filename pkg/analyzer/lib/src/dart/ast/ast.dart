@@ -2783,8 +2783,9 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   Token get endToken => expression.endToken;
 
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities..addNode('expression', expression);
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('const', constKeyword)
+    ..addNode('expression', expression);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
