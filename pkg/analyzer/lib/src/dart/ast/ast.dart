@@ -4881,20 +4881,22 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   /// [period] can be `null` if the keyword 'this' was not provided.  The
   /// [parameters] can be `null` if this is not a function-typed field formal
   /// parameter.
-  FieldFormalParameterImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token? covariantKeyword,
-      Token? requiredKeyword,
-      this.keyword,
-      this._type,
-      this.thisKeyword,
-      this.period,
-      Token name,
-      this._typeParameters,
-      this._parameters,
-      this.question)
-      : super(comment, metadata, covariantKeyword, requiredKeyword, name) {
+  FieldFormalParameterImpl({
+    required super.comment,
+    required super.metadata,
+    required super.covariantKeyword,
+    required super.requiredKeyword,
+    required this.keyword,
+    required TypeAnnotationImpl? type,
+    required this.thisKeyword,
+    required this.period,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl? parameters,
+    required this.question,
+  })  : _type = type,
+        _typeParameters = typeParameters,
+        _parameters = parameters {
     _becomeParentOf(_type);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -6203,17 +6205,19 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [returnType] can be `null` if no return type
   /// was specified.
-  FunctionTypedFormalParameterImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token? covariantKeyword,
-      Token? requiredKeyword,
-      this._returnType,
-      Token name,
-      this._typeParameters,
-      this._parameters,
-      this.question)
-      : super(comment, metadata, covariantKeyword, requiredKeyword, name) {
+  FunctionTypedFormalParameterImpl({
+    required super.comment,
+    required super.metadata,
+    required super.covariantKeyword,
+    required super.requiredKeyword,
+    required TypeAnnotationImpl? returnType,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl parameters,
+    required this.question,
+  })  : _returnType = returnType,
+        _typeParameters = typeParameters,
+        _parameters = parameters {
     _becomeParentOf(_returnType);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
@@ -7095,15 +7099,26 @@ class IndexExpressionImpl extends ExpressionImpl
 
   /// Initialize a newly created index expression that is a child of a cascade
   /// expression.
-  IndexExpressionImpl.forCascade(this.period, this.question, this.leftBracket,
-      this._index, this.rightBracket) {
+  IndexExpressionImpl.forCascade({
+    required this.period,
+    required this.question,
+    required this.leftBracket,
+    required ExpressionImpl index,
+    required this.rightBracket,
+  }) : _index = index {
     _becomeParentOf(_index);
   }
 
   /// Initialize a newly created index expression that is not a child of a
   /// cascade expression.
-  IndexExpressionImpl.forTarget(this._target, this.question, this.leftBracket,
-      this._index, this.rightBracket) {
+  IndexExpressionImpl.forTarget({
+    required ExpressionImpl? target,
+    required this.question,
+    required this.leftBracket,
+    required ExpressionImpl index,
+    required this.rightBracket,
+  })  : _target = target,
+        _index = index {
     _becomeParentOf(_target);
     _becomeParentOf(_index);
   }
@@ -9258,8 +9273,13 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute.
-  NormalFormalParameterImpl(this._comment, List<Annotation>? metadata,
-      this.covariantKeyword, this.requiredKeyword, this.name) {
+  NormalFormalParameterImpl({
+    required CommentImpl? comment,
+    required List<Annotation>? metadata,
+    required this.covariantKeyword,
+    required this.requiredKeyword,
+    required this.name,
+  }) : _comment = comment {
     _becomeParentOf(_comment);
     _metadata._initialize(this, metadata);
   }
@@ -11155,15 +11175,15 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [keyword] can be `null` if a type was
   /// specified. The [type] must be `null` if the keyword is 'var'.
-  SimpleFormalParameterImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token? covariantKeyword,
-      Token? requiredKeyword,
-      this.keyword,
-      this._type,
-      Token? name)
-      : super(comment, metadata, covariantKeyword, requiredKeyword, name) {
+  SimpleFormalParameterImpl({
+    required super.comment,
+    required super.metadata,
+    required super.covariantKeyword,
+    required super.requiredKeyword,
+    required this.keyword,
+    required TypeAnnotationImpl? type,
+    required super.name,
+  }) : _type = type {
     _becomeParentOf(_type);
   }
 
@@ -11960,20 +11980,22 @@ class SuperFormalParameterImpl extends NormalFormalParameterImpl
   /// [period] can be `null` if the keyword 'this' was not provided.  The
   /// [parameters] can be `null` if this is not a function-typed field formal
   /// parameter.
-  SuperFormalParameterImpl(
-      CommentImpl? comment,
-      List<Annotation>? metadata,
-      Token? covariantKeyword,
-      Token? requiredKeyword,
-      this.keyword,
-      this._type,
-      this.superKeyword,
-      this.period,
-      Token name,
-      this._typeParameters,
-      this._parameters,
-      this.question)
-      : super(comment, metadata, covariantKeyword, requiredKeyword, name) {
+  SuperFormalParameterImpl({
+    required super.comment,
+    required super.metadata,
+    required super.covariantKeyword,
+    required super.requiredKeyword,
+    required this.keyword,
+    required TypeAnnotationImpl? type,
+    required this.superKeyword,
+    required this.period,
+    required super.name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl? parameters,
+    required this.question,
+  })  : _type = type,
+        _typeParameters = typeParameters,
+        _parameters = parameters {
     _becomeParentOf(_type);
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);

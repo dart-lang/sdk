@@ -1680,47 +1680,52 @@ class AstBuilder extends StackListener {
       if (superKeyword != null) {
         assert(thisKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
-        node = ast.superFormalParameter(
-            name: name!.token,
-            comment: comment,
-            metadata: metadata,
-            covariantKeyword: covariantKeyword,
-            requiredKeyword: requiredKeyword,
-            type: typeOrFunctionTypedParameter.returnType,
-            superKeyword: superKeyword,
-            period: periodAfterThisOrSuper!,
-            typeParameters: typeOrFunctionTypedParameter.typeParameters,
-            parameters: typeOrFunctionTypedParameter.parameters,
-            question: typeOrFunctionTypedParameter.question);
+        node = SuperFormalParameterImpl(
+          name: name!.token,
+          comment: comment,
+          metadata: metadata,
+          covariantKeyword: covariantKeyword,
+          keyword: keyword,
+          requiredKeyword: requiredKeyword,
+          type: typeOrFunctionTypedParameter.returnType,
+          superKeyword: superKeyword,
+          period: periodAfterThisOrSuper!,
+          typeParameters: typeOrFunctionTypedParameter.typeParameters,
+          parameters: typeOrFunctionTypedParameter.parameters,
+          question: typeOrFunctionTypedParameter.question,
+        );
       } else if (thisKeyword != null) {
         assert(superKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
-        node = ast.fieldFormalParameter2(
-            name: name!.token,
-            comment: comment,
-            metadata: metadata,
-            covariantKeyword: covariantKeyword,
-            requiredKeyword: requiredKeyword,
-            type: typeOrFunctionTypedParameter.returnType,
-            thisKeyword: thisKeyword,
-            period: periodAfterThisOrSuper!,
-            typeParameters: typeOrFunctionTypedParameter.typeParameters,
-            parameters: typeOrFunctionTypedParameter.parameters,
-            question: typeOrFunctionTypedParameter.question);
+        node = FieldFormalParameterImpl(
+          name: name!.token,
+          comment: comment,
+          metadata: metadata,
+          covariantKeyword: covariantKeyword,
+          keyword: keyword,
+          requiredKeyword: requiredKeyword,
+          type: typeOrFunctionTypedParameter.returnType,
+          thisKeyword: thisKeyword,
+          period: periodAfterThisOrSuper!,
+          typeParameters: typeOrFunctionTypedParameter.typeParameters,
+          parameters: typeOrFunctionTypedParameter.parameters,
+          question: typeOrFunctionTypedParameter.question,
+        );
       } else {
-        node = ast.functionTypedFormalParameter2(
-            name: name!.token,
-            comment: comment,
-            metadata: metadata,
-            covariantKeyword: covariantKeyword,
-            requiredKeyword: requiredKeyword,
-            returnType: typeOrFunctionTypedParameter.returnType,
-            typeParameters: typeOrFunctionTypedParameter.typeParameters,
-            parameters: typeOrFunctionTypedParameter.parameters,
-            question: typeOrFunctionTypedParameter.question);
+        node = FunctionTypedFormalParameterImpl(
+          name: name!.token,
+          comment: comment,
+          metadata: metadata,
+          covariantKeyword: covariantKeyword,
+          requiredKeyword: requiredKeyword,
+          returnType: typeOrFunctionTypedParameter.returnType,
+          typeParameters: typeOrFunctionTypedParameter.typeParameters,
+          parameters: typeOrFunctionTypedParameter.parameters,
+          question: typeOrFunctionTypedParameter.question,
+        );
       }
     } else {
-      var type = typeOrFunctionTypedParameter as TypeAnnotation?;
+      var type = typeOrFunctionTypedParameter as TypeAnnotationImpl?;
       if (superKeyword != null) {
         assert(thisKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
@@ -1731,38 +1736,47 @@ class AstBuilder extends StackListener {
             keyword,
           );
         }
-        node = ast.superFormalParameter(
-            comment: comment,
-            metadata: metadata,
-            covariantKeyword: covariantKeyword,
-            requiredKeyword: requiredKeyword,
-            keyword: keyword,
-            type: type,
-            superKeyword: superKeyword,
-            period: periodAfterThisOrSuper!,
-            name: name!.token);
+        node = SuperFormalParameterImpl(
+          comment: comment,
+          metadata: metadata,
+          covariantKeyword: covariantKeyword,
+          requiredKeyword: requiredKeyword,
+          keyword: keyword,
+          type: type,
+          superKeyword: superKeyword,
+          period: periodAfterThisOrSuper!,
+          name: name!.token,
+          typeParameters: null,
+          parameters: null,
+          question: null,
+        );
       } else if (thisKeyword != null) {
         assert(superKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
-        node = ast.fieldFormalParameter2(
-            comment: comment,
-            metadata: metadata,
-            covariantKeyword: covariantKeyword,
-            requiredKeyword: requiredKeyword,
-            keyword: keyword,
-            type: type,
-            thisKeyword: thisKeyword,
-            period: thisKeyword.next!,
-            name: name!.token);
+        node = FieldFormalParameterImpl(
+          comment: comment,
+          metadata: metadata,
+          covariantKeyword: covariantKeyword,
+          requiredKeyword: requiredKeyword,
+          keyword: keyword,
+          type: type,
+          thisKeyword: thisKeyword,
+          period: thisKeyword.next!,
+          name: name!.token,
+          typeParameters: null,
+          parameters: null,
+          question: null,
+        );
       } else {
-        node = ast.simpleFormalParameter2(
-            comment: comment,
-            metadata: metadata,
-            covariantKeyword: covariantKeyword,
-            requiredKeyword: requiredKeyword,
-            keyword: keyword,
-            type: type,
-            name: name?.token);
+        node = SimpleFormalParameterImpl(
+          comment: comment,
+          metadata: metadata,
+          covariantKeyword: covariantKeyword,
+          requiredKeyword: requiredKeyword,
+          keyword: keyword,
+          type: type,
+          name: name?.token,
+        );
       }
     }
 
@@ -1896,18 +1910,25 @@ class AstBuilder extends StackListener {
       reportErrorIfNullableType(question);
     }
 
-    var formalParameters = pop() as FormalParameterList;
-    var returnType = pop() as TypeAnnotation?;
-    var typeParameters = pop() as TypeParameterList?;
+    var formalParameters = pop() as FormalParameterListImpl;
+    var returnType = pop() as TypeAnnotationImpl?;
+    var typeParameters = pop() as TypeParameterListImpl?;
 
     // Create a temporary formal parameter that will be dissected later in
     // [endFormalParameter].
-    push(ast.functionTypedFormalParameter2(
+    push(
+      FunctionTypedFormalParameterImpl(
+        comment: null,
+        metadata: null,
+        covariantKeyword: null,
+        requiredKeyword: null,
         name: StringToken(TokenType.IDENTIFIER, '', 0),
         returnType: returnType,
         typeParameters: typeParameters,
         parameters: formalParameters,
-        question: question));
+        question: question,
+      ),
+    );
   }
 
   @override
@@ -3935,27 +3956,31 @@ class AstBuilder extends StackListener {
       reportErrorIfNullableType(question);
     }
 
-    var index = pop() as Expression;
-    var target = pop() as Expression?;
+    var index = pop() as ExpressionImpl;
+    var target = pop() as ExpressionImpl?;
     if (target == null) {
       var receiver = pop() as CascadeExpression;
       var token = peek() as Token;
       push(receiver);
-      IndexExpression expression = ast.indexExpressionForCascade2(
-          period: token,
-          question: question,
-          leftBracket: leftBracket,
-          index: index,
-          rightBracket: rightBracket);
+      IndexExpression expression = IndexExpressionImpl.forCascade(
+        period: token,
+        question: question,
+        leftBracket: leftBracket,
+        index: index,
+        rightBracket: rightBracket,
+      );
       assert(expression.isCascaded);
       push(expression);
     } else {
-      push(ast.indexExpressionForTarget2(
+      push(
+        IndexExpressionImpl.forTarget(
           target: target,
           question: question,
           leftBracket: leftBracket,
           index: index,
-          rightBracket: rightBracket));
+          rightBracket: rightBracket,
+        ),
+      );
     }
   }
 

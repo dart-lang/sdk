@@ -41,6 +41,7 @@ void main() {
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(SpreadElementTest);
     defineReflectiveTests(StringInterpolationTest);
+    defineReflectiveTests(SuperFormalParameterTest);
     defineReflectiveTests(VariableDeclarationTest);
     defineReflectiveTests(WithClauseImplTest);
   });
@@ -113,17 +114,25 @@ class A {
 }
 
 @reflectiveTest
-class FieldFormalParameterTest {
+class FieldFormalParameterTest extends _AstTest {
   void test_endToken_noParameters() {
-    FieldFormalParameter parameter =
-        AstTestFactory.fieldFormalParameter2('field');
-    expect(parameter.endToken, parameter.name);
+    var node = _parseStringToNode<FieldFormalParameter>(r'''
+class A {
+  final int foo;
+  A(this.^foo);
+}
+''');
+    expect(node.endToken, node.name);
   }
 
   void test_endToken_parameters() {
-    FieldFormalParameter parameter = AstTestFactory.fieldFormalParameter(
-        null, null, 'field', AstTestFactory.formalParameterList([]));
-    expect(parameter.endToken, parameter.parameters!.endToken);
+    var node = _parseStringToNode<FieldFormalParameter>(r'''
+class A {
+  final Object foo;
+  A(this.^foo(a, b));
+}
+''');
+    expect(node.endToken, node.parameters!.endToken);
   }
 }
 
@@ -564,25 +573,21 @@ class C {}
 @reflectiveTest
 class IndexExpressionTest extends _AstTest {
   void test_inGetterContext_assignment_compound_left() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // a[b] += c
-    AstTestFactory.assignmentExpression(
-        expression, TokenType.PLUS_EQ, AstTestFactory.identifier3("c"));
-    expect(expression.inGetterContext(), isTrue);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  ^a[0] += 0;
+}
+''');
+    expect(node.inGetterContext(), isTrue);
   }
 
   void test_inGetterContext_assignment_simple_left() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // a[b] = c
-    AstTestFactory.assignmentExpression(
-        expression, TokenType.EQ, AstTestFactory.identifier3("c"));
-    expect(expression.inGetterContext(), isFalse);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  ^a[0] = 0;
+}
+''');
+    expect(node.inGetterContext(), isFalse);
   }
 
   void test_inGetterContext_nonAssignment() {
@@ -593,47 +598,39 @@ var v = ^a[b] + c;
   }
 
   void test_inSetterContext_assignment_compound_left() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // a[b] += c
-    AstTestFactory.assignmentExpression(
-        expression, TokenType.PLUS_EQ, AstTestFactory.identifier3("c"));
-    expect(expression.inSetterContext(), isTrue);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  ^a[0] += 0;
+}
+''');
+    expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_compound_right() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // c += a[b]
-    AstTestFactory.assignmentExpression(
-        AstTestFactory.identifier3("c"), TokenType.PLUS_EQ, expression);
-    expect(expression.inSetterContext(), isFalse);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  b += ^a[0];
+}
+''');
+    expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_assignment_simple_left() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // a[b] = c
-    AstTestFactory.assignmentExpression(
-        expression, TokenType.EQ, AstTestFactory.identifier3("c"));
-    expect(expression.inSetterContext(), isTrue);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  ^a[0] = 0;
+}
+''');
+    expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_simple_right() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // c = a[b]
-    AstTestFactory.assignmentExpression(
-        AstTestFactory.identifier3("c"), TokenType.EQ, expression);
-    expect(expression.inSetterContext(), isFalse);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  b = ^a[0];
+}
+''');
+    expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_nonAssignment() {
@@ -644,53 +641,48 @@ var v = ^a[b] + c;
   }
 
   void test_inSetterContext_postfix_bang() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // a[b]!
-    AstTestFactory.postfixExpression(expression, TokenType.BANG);
-    expect(expression.inSetterContext(), isFalse);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  ^a[0]!;
+}
+''');
+    expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_postfix_plusPlus() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    AstTestFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
-    // a[b]++
-    expect(expression.inSetterContext(), isTrue);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  ^a[0]++;
+}
+''');
+    expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_prefix_bang() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // !a[b]
-    AstTestFactory.prefixExpression(TokenType.BANG, expression);
-    expect(expression.inSetterContext(), isFalse);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  !^a[0];
+}
+''');
+    expect(node.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext_prefix_minusMinus() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // --a[b]
-    AstTestFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
-    expect(expression.inSetterContext(), isTrue);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  --^a[0];
+}
+''');
+    expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_prefix_plusPlus() {
-    IndexExpression expression = AstTestFactory.indexExpression(
-      target: AstTestFactory.identifier3("a"),
-      index: AstTestFactory.identifier3("b"),
-    );
-    // ++a[b]
-    AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
-    expect(expression.inSetterContext(), isTrue);
+    var node = _parseStringToNode<IndexExpression>(r'''
+void f() {
+  ++^a[0];
+}
+''');
+    expect(node.inSetterContext(), isTrue);
   }
 
   void test_isNullAware_cascade_false() {
@@ -1934,19 +1926,23 @@ final v = """a${bb}ccc""";
 }
 
 @reflectiveTest
-// TODO(srawlins): Re-enable?
-// ignore: unreachable_from_main
-class SuperFormalParameterTest {
+class SuperFormalParameterTest extends _AstTest {
   void test_endToken_noParameters() {
-    SuperFormalParameter parameter =
-        AstTestFactory.superFormalParameter2('field');
-    expect(parameter.endToken, parameter.name);
+    var node = _parseStringToNode<SuperFormalParameter>(r'''
+class A {
+  A(super.^foo);
+}
+''');
+    expect(node.endToken, node.name);
   }
 
   void test_endToken_parameters() {
-    SuperFormalParameter parameter = AstTestFactory.superFormalParameter(
-        null, null, 'field', AstTestFactory.formalParameterList([]));
-    expect(parameter.endToken, parameter.parameters!.endToken);
+    var node = _parseStringToNode<SuperFormalParameter>(r'''
+class A {
+  A(super.^foo(a, b));
+}
+''');
+    expect(node.endToken, node.parameters!.endToken);
   }
 }
 
