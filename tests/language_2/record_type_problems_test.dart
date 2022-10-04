@@ -16,7 +16,7 @@ main() {
 // [cfe] Record type named fields list can't be empty.
 //                               ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
 
   (int /* missing trailing comma */ ) r2 = (1, );
 //^
@@ -27,14 +27,14 @@ main() {
 // [cfe] Record type with one entry requires a trailing comma.
 //                                         ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'records' language feature to be enabled.
+// [cfe] The 'records' language feature is disabled for this library.
 
   () emptyRecord = Record.empty;
 //^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
 // [cfe] This requires the experimental 'records' language feature to be enabled.
-  //               ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] Undefined name 'Record'.
+//                 ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [cfe] Undefined name 'Record'.
   print(emptyRecord);
 }

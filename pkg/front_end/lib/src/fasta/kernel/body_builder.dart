@@ -3982,13 +3982,8 @@ class BodyBuilder extends StackListenerImpl
             ]),
             count)));
 
-    if (!libraryFeatures.records.isEnabled) {
-      addProblem(
-          templateExperimentNotEnabledOffByDefault
-              .withArguments(ExperimentalFlag.records.name),
-          token.offset,
-          noLength);
-    }
+    reportIfNotEnabled(
+        libraryFeatures.records, token.charOffset, token.charCount);
 
     // Pop all elements. This will put them in evaluation order.
     List<Object?>? elements =
